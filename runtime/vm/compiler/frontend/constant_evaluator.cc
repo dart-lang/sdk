@@ -213,6 +213,23 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
   return Instance::ZoneHandle(Z, result_.raw());
 }
 
+Instance& ConstantEvaluator::EvaluateStaticInvocation(intptr_t offset,
+                                                      bool reset_position) {
+  if (!GetCachedConstant(offset, &result_)) {
+    ASSERT(IsAllowedToEvaluate());
+    intptr_t original_offset = helper_->ReaderOffset();
+    helper_->SetOffset(offset);
+    helper_->ReadTag();  // skip tag.
+    EvaluateStaticInvocation();
+
+    CacheConstantValue(offset, result_);
+    if (reset_position) helper_->SetOffset(original_offset);
+  }
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  return Instance::ZoneHandle(Z, result_.raw());
+}
+
 RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -1007,9 +1024,6 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   // is running, and thus change the value of 'compile_time_constants';
   // do not assert that 'compile_time_constants' has not changed.
   constants.Release();
-  if (FLAG_compiler_stats && is_present) {
-    ++H.thread()->compiler_stats()->num_const_cache_hits;
-  }
   return is_present;
 }
 

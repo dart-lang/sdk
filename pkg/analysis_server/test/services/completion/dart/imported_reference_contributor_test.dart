@@ -40,7 +40,7 @@ bool foo(int bar, {bool boo, @required int baz}) => false;
 ''');
 
     addTestSource('''
-import "${convertPathForImport('/testB.dart')}";
+import "${convertAbsolutePathToUri('/testB.dart')}";
 
 void main() {f^}''');
     await computeSuggestions();
@@ -56,7 +56,7 @@ void main() {f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertPathForImport('/libA.dart')}';
+        import '${convertAbsolutePathToUri('/libA.dart')}';
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -83,7 +83,7 @@ void main() {f^}''');
         expect(arg) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertPathForImport('/libA.dart')}'
+        import '${convertAbsolutePathToUri('/libA.dart')}'
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -111,7 +111,7 @@ void main() {f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertPathForImport('/libA.dart')}';
+        import '${convertAbsolutePathToUri('/libA.dart')}';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -143,7 +143,7 @@ void main() {f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertPathForImport('/libA.dart')}';
+        import '${convertAbsolutePathToUri('/libA.dart')}';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -172,7 +172,7 @@ void main() {f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertPathForImport('/libA.dart')}'
+        import '${convertAbsolutePathToUri('/libA.dart')}'
         expect(arg) { }
         class B { }
         String bar() => true;
@@ -199,7 +199,7 @@ void main() {f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertPathForImport('/libA.dart')}'
+        import '${convertAbsolutePathToUri('/libA.dart')}'
         class B {
           expect(arg) { }
           void foo() {expect(^)}}
@@ -228,7 +228,7 @@ void main() {f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertPathForImport('/libA.dart')}';
+        import '${convertAbsolutePathToUri('/libA.dart')}';
         class B { }
         String bar(f()) => true;
         void main() {bar(^);}''');
@@ -259,7 +259,7 @@ void main() {f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertPathForImport('/libA.dart')}';
+        import '${convertAbsolutePathToUri('/libA.dart')}';
         class B { String bar(f()) => true; }
         void main() {new B().bar(^);}''');
 
@@ -286,7 +286,7 @@ void main() {f^}''');
         library A;
         bool hasLength(int expected) { }''');
     addTestSource('''
-        import '${convertPathForImport('/libA.dart')}'
+        import '${convertAbsolutePathToUri('/libA.dart')}'
         String bar() => true;
         void main() {expect(foo: ^)}''');
 
@@ -325,7 +325,7 @@ void main() {f^}''');
           class A {} class B extends A {} class C extends B {}
           class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-          import "${convertPathForImport('/testB.dart')}";
+          import "${convertAbsolutePathToUri('/testB.dart')}";
          main(){A a; if (a as ^)}''');
 
     await computeSuggestions();
@@ -347,7 +347,7 @@ void main() {f^}''');
           class A {} class B implements A {} class C implements B {}
           class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-          import "${convertPathForImport('/testB.dart')}";
+          import "${convertAbsolutePathToUri('/testB.dart')}";
           main(){A a; if (a as ^)}''');
 
     await computeSuggestions();
@@ -495,7 +495,7 @@ void main() {f^}''');
 Future y() async {return 0;}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   int x;
   foo() async {await ^}
@@ -517,7 +517,7 @@ class A {
   Future y() async { return 0; }
 }''');
     addTestSource('''
-import "${convertPathForImport('/testB.dart')}";
+import "${convertAbsolutePathToUri('/testB.dart')}";
 class B extends A {
   foo() async {await ^}
 }
@@ -584,10 +584,10 @@ class B extends A {
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertPathForImport('/testAB.dart')}";
-        import "${convertPathForImport('/testCD.dart')}" hide D;
-        import "${convertPathForImport('/testEEF.dart')}" show EE;
-        import "${convertPathForImport('/testG.dart')}" as g;
+        import "${convertAbsolutePathToUri('/testAB.dart')}";
+        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
+        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
+        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -687,10 +687,10 @@ class B extends A {
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertPathForImport('/testAB.dart')}";
-        import "${convertPathForImport('/testCD.dart')}" hide D;
-        import "${convertPathForImport('/testEEF.dart')}" show EE;
-        import "${convertPathForImport('/testG.dart')}" as g;
+        import "${convertAbsolutePathToUri('/testAB.dart')}";
+        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
+        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
+        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -800,10 +800,10 @@ class B extends A {
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertPathForImport('/testAB.dart')}";
-        import "${convertPathForImport('/testCD.dart')}" hide D;
-        import "${convertPathForImport('/testEEF.dart')}" show EE;
-        import "${convertPathForImport('/testG.dart')}" as g hide G;
+        import "${convertAbsolutePathToUri('/testAB.dart')}";
+        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
+        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
+        import "${convertAbsolutePathToUri('/testG.dart')}" as g hide G;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -901,10 +901,10 @@ class B extends A {
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertPathForImport('/testAB.dart')}";
-        import "${convertPathForImport('/testCD.dart')}" hide D;
-        import "${convertPathForImport('/testEEF.dart')}" show EE;
-        import "${convertPathForImport('/testG.dart')}" as g;
+        import "${convertAbsolutePathToUri('/testAB.dart')}";
+        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
+        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
+        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -1000,10 +1000,10 @@ class B extends A {
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertPathForImport('/testAB.dart')}";
-        import "${convertPathForImport('/testCD.dart')}" hide D;
-        import "${convertPathForImport('/testEEF.dart')}" show EE;
-        import "${convertPathForImport('/testG.dart')}" as g;
+        import "${convertAbsolutePathToUri('/testAB.dart')}";
+        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
+        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
+        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
         int T5;
         var _T6;
         Z D2() {int x;}
@@ -1065,7 +1065,7 @@ class B extends A {
         class I { int i1; i2() { } }
         class M { var m1; int m2() { } }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class A extends E implements I with M {a() {^}}''');
 
     await computeSuggestions();
@@ -1131,10 +1131,10 @@ class B extends A {
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertPathForImport('/testAB.dart')}";
-        import "${convertPathForImport('/testCD.dart')}" hide D;
-        import "${convertPathForImport('/testEEF.dart')}" show EE;
-        import "${convertPathForImport('/testG.dart')}" as g;
+        import "${convertAbsolutePathToUri('/testAB.dart')}";
+        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
+        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
+        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -1183,10 +1183,10 @@ class B extends A {
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
-        import "${convertPathForImport('/testCD.dart')}" hide D;
-        import "${convertPathForImport('/testEEF.dart')}" show EE;
-        import "${convertPathForImport('/testG.dart')}" as g;
+        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
+        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
+        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
         int T5;
         var _T6;
         Z D2() {int x;}
@@ -1221,7 +1221,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class A {var b; X _c;}
         class X{}
         // looks like a cascade to the parser
@@ -1246,7 +1246,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^z}''');
@@ -1269,7 +1269,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^ return}''');
@@ -1364,7 +1364,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('testB.dart')}" as x;
+        import "${convertAbsolutePathToUri('testB.dart')}" as x;
         @deprecated class A {^}
         class _B {}
         A T;''');
@@ -1389,7 +1389,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('testB.dart')}" as x;
+        import "${convertAbsolutePathToUri('testB.dart')}" as x;
         class A {final ^}
         class _B {}
         A T;''');
@@ -1410,7 +1410,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('testB.dart')}" as x;
+        import "${convertAbsolutePathToUri('testB.dart')}" as x;
         class A {final ^ A(){}}
         class _B {}
         A T;''');
@@ -1431,7 +1431,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('testB.dart')}" as Soo;
+        import "${convertAbsolutePathToUri('testB.dart')}" as Soo;
         class A {final S^ A();}
         class _B {}
         A Sew;''');
@@ -1452,7 +1452,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('testB.dart')}" as x;
+        import "${convertAbsolutePathToUri('testB.dart')}" as x;
         class A {final ^ final foo;}
         class _B {}
         A T;''');
@@ -1473,7 +1473,7 @@ class B extends A {
     addSource('/testB.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertPathForImport('testB.dart')}" as x;
+        import "${convertAbsolutePathToUri('testB.dart')}" as x;
         class A {final ^ var foo;}
         class _B {}
         A T;''');
@@ -1505,8 +1505,8 @@ class B extends A {
         class C { }
         class D { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}" hide ^;
-        import "${convertPathForImport('/testCD.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}" hide ^;
+        import "${convertAbsolutePathToUri('/testCD.dart')}";
         class X {}''');
 
     await computeSuggestions();
@@ -1531,8 +1531,8 @@ class B extends A {
         class C { }
         class D { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}" show ^;
-        import "${convertPathForImport('/testCD.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}" show ^;
+        import "${convertAbsolutePathToUri('/testCD.dart')}";
         class X {}''');
 
     await computeSuggestions();
@@ -1546,7 +1546,7 @@ class B extends A {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         class B {int x;}
@@ -1566,7 +1566,7 @@ class B extends A {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         class B {int x;}
@@ -1595,7 +1595,7 @@ class B extends A {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         class B {int x;}
@@ -1615,7 +1615,7 @@ class B extends A {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         class B {int x;}
@@ -1644,7 +1644,7 @@ class B extends A {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         class B {int x;}
@@ -1666,7 +1666,7 @@ class B extends A {
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         var m;
         main() {new X.^}''');
 
@@ -1691,7 +1691,7 @@ class B extends A {
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         var m;
         main() {new X.^}''');
 
@@ -1794,7 +1794,8 @@ library A;
 /// Longer description.
 class A {}
 ''');
-    addTestSource('import "${convertPathForImport('/libA.dart')}"; main() {^}');
+    addTestSource(
+        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
 
     await computeSuggestions();
 
@@ -1816,7 +1817,8 @@ library A;
 /// Longer description.
 int myFunc() {}
 ''');
-    addTestSource('import "${convertPathForImport('/libA.dart')}"; main() {^}');
+    addTestSource(
+        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
 
     await computeSuggestions();
 
@@ -1837,7 +1839,8 @@ library A;
  */
 int myFunc() {}
 ''');
-    addTestSource('import "${convertPathForImport('/libA.dart')}"; main() {^}');
+    addTestSource(
+        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
 
     await computeSuggestions();
 
@@ -1849,7 +1852,8 @@ int myFunc() {}
 
   test_enum() async {
     addSource('/libA.dart', 'library A; enum E { one, two }');
-    addTestSource('import "${convertPathForImport('/libA.dart')}"; main() {^}');
+    addTestSource(
+        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
     await computeSuggestions();
     assertSuggestEnum('E');
     assertNotSuggested('one');
@@ -1858,7 +1862,8 @@ int myFunc() {}
 
   test_enum_deprecated() async {
     addSource('/libA.dart', 'library A; @deprecated enum E { one, two }');
-    addTestSource('import "${convertPathForImport('/libA.dart')}"; main() {^}');
+    addTestSource(
+        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
     await computeSuggestions();
     // TODO(danrube) investigate why suggestion/element is not deprecated
     // when AST node has correct @deprecated annotation
@@ -1899,7 +1904,7 @@ main() {
         class A {int x;}
         class _B { }''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         typedef int F2(int blat);
         class Clz = Object with Object;
         class C {foo(){^} void bar() {}}''');
@@ -1928,7 +1933,7 @@ main() {
         B T1;
         class B{}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         class C {a() {C ^}}''');
 
     await computeSuggestions();
@@ -1940,7 +1945,7 @@ main() {
     // FieldDeclaration
     addSource('/testA.dart', 'class A { }');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         class C {A ^}''');
 
     await computeSuggestions();
@@ -1952,7 +1957,7 @@ main() {
     // FieldDeclaration
     addSource('/testA.dart', 'class A { }');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         class C {var ^}''');
 
     await computeSuggestions();
@@ -2136,7 +2141,7 @@ main() {
 int m(x, {int y}) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -2157,7 +2162,7 @@ class B extends A {
 void m(x, [int y]) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -2178,7 +2183,7 @@ class B extends A {
 void m({x, int y}) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -2199,7 +2204,7 @@ class B extends A {
 void m() {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -2218,7 +2223,7 @@ class B extends A {
 void m([x, int y]) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -2239,7 +2244,7 @@ class B extends A {
 void m(x, int y) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -2263,7 +2268,7 @@ class B extends A {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -2293,7 +2298,7 @@ class B extends A {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -2323,7 +2328,7 @@ class B extends A {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -2474,7 +2479,7 @@ main() {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         class B {int x;}
@@ -2503,7 +2508,7 @@ main() {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         class B {int x;}
@@ -2522,7 +2527,7 @@ class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addTestSource('''
-import "${convertPathForImport('/testA.dart')}";
+import "${convertAbsolutePathToUri('/testA.dart')}";
 import "dart:math" as math;
 main() {new ^ String x = "hello";}''');
 
@@ -2639,7 +2644,7 @@ main() {
         F1() { }
         class A {A(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         import "dart:async";
         int T2;
         F2() { }
@@ -2701,7 +2706,7 @@ main() {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -2736,7 +2741,7 @@ main() {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -2809,7 +2814,7 @@ main() {
         foo() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class Y {Y.c(); Y._d(); z() {}}
         main() {var x; if (x is ^) { }}''');
 
@@ -2879,7 +2884,7 @@ main() {
         class A {} class B extends A {} class C extends B {}
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         main(){A a; if (a is ^)}''');
 
     await computeSuggestions();
@@ -2901,7 +2906,7 @@ main() {
         class A {} class B implements A {} class C implements B {}
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         main(){A a; if (a is ^)}''');
 
     await computeSuggestions();
@@ -2924,7 +2929,7 @@ main() {
         nowIsIt() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         String newer() {}
         var m;
         main() {new^ X.c();}''');
@@ -2984,7 +2989,7 @@ main() {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -3021,7 +3026,7 @@ main() {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -3048,7 +3053,7 @@ main() {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -3067,7 +3072,7 @@ main() {
 void m(x, {int y}) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3088,7 +3093,7 @@ class B extends A {
 void m(x, [int y]) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3109,7 +3114,7 @@ class B extends A {
 void m({x, int y}) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3130,7 +3135,7 @@ class B extends A {
 void m() {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3149,7 +3154,7 @@ class B extends A {
 void m([x, int y]) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3170,7 +3175,7 @@ class B extends A {
 void m(x, int y) {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B {
   main() {^}
 }
@@ -3207,7 +3212,7 @@ class B {
           static c3() {}
           static var c4;}''');
     addTestSource('''
-        import "${convertPathForImport('/testC.dart')}";
+        import "${convertAbsolutePathToUri('/testC.dart')}";
         class B extends C {
           b1() {}
           var b2;
@@ -3294,7 +3299,7 @@ class B {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -3323,7 +3328,7 @@ class B {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -3352,7 +3357,7 @@ class B {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -3381,7 +3386,7 @@ class B {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         int T2;
         F2() { }
         typedef D2();
@@ -3448,7 +3453,7 @@ class M2 {
 }
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class C extends B with M1, M2 {
   void f() {
     ^
@@ -3487,8 +3492,8 @@ class C extends B with M1, M2 {
       class ClassInLocalContext {int x;}''');
     testFile = '/context1/completionTest.dart';
     addTestSource('''
-      import "${convertPathForImport("/context1/libA.dart")}";
-      import "${convertPathForImport("/foo.dart")}";
+      import "${convertAbsolutePathToUri("/context1/libA.dart")}";
+      import "${convertAbsolutePathToUri("/foo.dart")}";
       main() {C^}
       ''');
 
@@ -3518,7 +3523,7 @@ class C extends B with M1, M2 {
 int x;
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3533,7 +3538,7 @@ class B extends A {
 int get x => null;
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3548,7 +3553,7 @@ class B extends A {
 set x(int value) {};
 ''');
     addTestSource('''
-import '${convertPathForImport('/libA.dart')}';
+import '${convertAbsolutePathToUri('/libA.dart')}';
 class B extends A {
   main() {^}
 }
@@ -3574,8 +3579,8 @@ class B extends A {
         class X {X.c(); X._d(); z() {}}''');
     addSource('/testA.dart', '''
         library libA;
-        import "${convertPathForImport('/testB.dart')}";
-        part "${convertPathForImport(testFile)}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
+        part "${convertAbsolutePathToUri(testFile)}";
         class A { }
         var m;''');
     addTestSource('''
@@ -3613,7 +3618,7 @@ class B extends A {
         class B { }''');
     addTestSource('''
         library libA;
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         part "testA.dart";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
@@ -3653,7 +3658,7 @@ class B extends A {
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class A extends B {
           static const String scA = 'foo';
           w() { }}
@@ -3697,7 +3702,7 @@ class B extends A {
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         main() {A a; a.^}''');
 
     await computeSuggestions();
@@ -3771,7 +3776,7 @@ class B extends A {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}" as b;
+        import "${convertAbsolutePathToUri('/testB.dart')}" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -3798,7 +3803,7 @@ class B extends A {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}" as b;
+        import "${convertAbsolutePathToUri('/testB.dart')}" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -3825,7 +3830,7 @@ class B extends A {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}" as b;
+        import "${convertAbsolutePathToUri('/testB.dart')}" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -3852,7 +3857,7 @@ class B extends A {
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         foo(X x) {x.^}''');
 
     await computeSuggestions();
@@ -3869,7 +3874,7 @@ class B extends A {
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";
+        import "${convertAbsolutePathToUri('/testA.dart')}";
         class X {foo(){A^.bar}}''');
 
     await computeSuggestions();
@@ -4314,7 +4319,7 @@ class B extends A {
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";'
+        import "${convertAbsolutePathToUri('/testA.dart')}";'
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -4340,7 +4345,7 @@ class B extends A {
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "${convertPathForImport('/testA.dart')}";'
+        import "${convertAbsolutePathToUri('/testA.dart')}";'
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -4364,7 +4369,7 @@ export 'testB.dart';
 class B {}
 ''');
     addTestSource('''
-import '${convertPathForImport('/testB.dart')}';
+import '${convertAbsolutePathToUri('/testB.dart')}';
 List<^> x;
 ''');
     await computeSuggestions();
@@ -4383,7 +4388,7 @@ List<^> x;
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class Y {Y.c(); Y._d(); z() {}}
         main() {var ^}''');
 
@@ -4410,7 +4415,7 @@ List<^> x;
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         class Y {Y.c(); Y._d(); z() {}}
         class C {bar(){var f; {var x;} var e = ^}}''');
 
@@ -4436,7 +4441,7 @@ List<^> x;
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertPathForImport('/testB.dart')}";
+        import "${convertAbsolutePathToUri('/testB.dart')}";
         foo2() { }
         void bar2() { }
         class Y {Y.c(); Y._d(); z() {}}

@@ -66,10 +66,12 @@ const uint8_t* isolate_snapshot_data = NULL;
 const uint8_t* isolate_snapshot_instructions = NULL;
 
 // Global state that indicates whether a snapshot is to be created and
-// if so which file to write the snapshot into.
+// if so which file to write the snapshot into. The ordering of this list must
+// match kSnapshotKindNames below.
 enum SnapshotKind {
   kCore,
   kCoreJIT,
+  kCoreJITAll,
   kAppJIT,
   kAppAOTBlobs,
   kAppAOTAssembly,
@@ -91,14 +93,17 @@ static bool ProcessEnvironmentOption(const char* arg,
                                                    &environment);
 }
 
+// The ordering of this list must match the SnapshotKind enum above.
 static const char* kSnapshotKindNames[] = {
+    // clang-format off
     "core",
     "core-jit",
+    "core-jit-all",
     "app-jit",
     "app-aot-blobs",
     "app-aot-assembly",
-    "vm-aot-assembly",
-    NULL,
+    "vm-aot-assembly", NULL,
+    // clang-format on
 };
 
 #define STRING_OPTIONS_LIST(V)                                                 \
@@ -289,6 +294,7 @@ static int ParseArguments(int argc,
       }
       break;
     }
+    case kCoreJITAll:
     case kCoreJIT: {
       if ((vm_snapshot_data_filename == NULL) ||
           (vm_snapshot_instructions_filename == NULL) ||
@@ -461,6 +467,7 @@ class DependenciesFileWriter : public ValueObject {
         WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
         break;
+      case kCoreJITAll:
       case kCoreJIT:
         WriteDependenciesWithTarget(vm_snapshot_data_filename);
         // WriteDependenciesWithTarget(vm_snapshot_instructions_filename);
@@ -550,7 +557,8 @@ static void CreateAndWriteDependenciesFile() {
 }
 
 static void LoadBytecode() {
-  if (Dart_IsVMFlagSet("enable_interpreter") &&
+  if ((Dart_IsVMFlagSet("enable_interpreter") ||
+       Dart_IsVMFlagSet("use_bytecode_compiler")) &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     Dart_Handle result = Dart_ReadAllBytecode();
     CHECK_RESULT(result);
@@ -564,6 +572,13 @@ static void LoadCompilationTrace() {
     intptr_t size = 0;
     ReadFile(load_compilation_trace_filename, &buffer, &size);
     Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
+    CHECK_RESULT(result);
+  }
+}
+
+static void CompileAll() {
+  if (snapshot_kind == kCoreJITAll) {
+    Dart_Handle result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
 }
@@ -624,7 +639,7 @@ static std::unique_ptr<MappedMemory> MapFile(const char* filename,
 }
 
 static void CreateAndWriteCoreJITSnapshot() {
-  ASSERT(snapshot_kind == kCoreJIT);
+  ASSERT((snapshot_kind == kCoreJIT) || (snapshot_kind == kCoreJITAll));
   ASSERT(vm_snapshot_data_filename != NULL);
   ASSERT(vm_snapshot_instructions_filename != NULL);
   ASSERT(isolate_snapshot_data_filename != NULL);
@@ -803,53 +818,6 @@ static void CreateAndWritePrecompiledSnapshot() {
   }
 }
 
-static Dart_Isolate CreateServiceIsolate(const char* script_uri,
-                                         const char* main,
-                                         const char* package_root,
-                                         const char* package_config,
-                                         Dart_IsolateFlags* flags,
-                                         void* data,
-                                         char** error) {
-  IsolateData* isolate_data =
-      new IsolateData(script_uri, package_root, package_config, NULL);
-  Dart_Isolate isolate = NULL;
-  isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
-                               isolate_snapshot_instructions, NULL, NULL, flags,
-                               isolate_data, error);
-
-  if (isolate == NULL) {
-    Log::PrintErr("Error: Could not create service isolate\n");
-    return NULL;
-  }
-
-  Dart_EnterScope();
-  if (!Dart_IsServiceIsolate(isolate)) {
-    Log::PrintErr("Error: We only expect to create the service isolate\n");
-    return NULL;
-  }
-  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
-  if (Dart_IsError(result)) {
-    Log::PrintErr("Error: Could not set tag handler for service isolate\n");
-    return NULL;
-  }
-  // Setup the native resolver.
-  Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-  Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
-
-  ASSERT(Dart_IsServiceIsolate(isolate));
-  // Load embedder specific bits and return. Will not start http server.
-  if (!VmService::Setup("127.0.0.1", -1, false /* running_precompiled */,
-                        false /* server dev mode */, false /* trace_loading */,
-                        true /* deterministic */)) {
-    *error = strdup(VmService::GetErrorMessage());
-    return NULL;
-  }
-  Dart_ExitScope();
-  Dart_ExitIsolate();
-  return isolate;
-}
-
 static Dart_QualifiedFunctionName no_entry_points[] = {
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
@@ -931,6 +899,10 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
     }
     case kCore:
       CreateAndWriteCoreSnapshot();
+      break;
+    case kCoreJITAll:
+      CompileAll();
+      CreateAndWriteCoreJITSnapshot();
       break;
     case kCoreJIT:
       LoadBytecode();
@@ -1022,7 +994,8 @@ int main(int argc, char** argv) {
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
   }
-  if (snapshot_kind == kCoreJIT || snapshot_kind == kAppJIT) {
+  if ((snapshot_kind == kCoreJITAll) || (snapshot_kind == kCoreJIT) ||
+      (snapshot_kind == kAppJIT)) {
     vm_options.AddArgument("--fields_may_be_reset");
     vm_options.AddArgument("--link_natives_lazily");
 #if !defined(PRODUCT)
@@ -1046,12 +1019,7 @@ int main(int argc, char** argv) {
   Dart_InitializeParams init_params;
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  if (app_script_name != NULL && kernel_buffer == NULL) {
-    // We need the service isolate to load script files.
-    // When generating snapshots from a kernel program, we do not need to load
-    // any script files.
-    init_params.create = CreateServiceIsolate;
-  }
+  ASSERT((app_script_name != NULL) || (kernel_buffer == NULL));
   init_params.file_open = DartUtils::OpenFile;
   init_params.file_read = DartUtils::ReadFile;
   init_params.file_write = DartUtils::WriteFile;

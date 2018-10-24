@@ -443,7 +443,6 @@ class C extends A<int> {
     expect(fType.parameters[0].type.toString(), 'int');
   }
 
-  @failingTest
   void test_inferredType_parameter_genericFunctionType_asTypeArgument() {
     var bundle = createPackageBundle('''
 class A<T> {
@@ -717,6 +716,63 @@ final x = new List<F>();
     FunctionType type2 = type1.typeArguments[0];
     expect(type2.element.name, 'F');
     expect(type2.returnType.toString(), 'num');
+  }
+
+  void test_isSimplyBounded_class_in_other_bundle() {
+    var bundle = createPackageBundle('''
+class C<T extends C> {} // Not simply bounded
+class D<T extends D<Null>> {} // Simply bounded
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A<T extends C> {} // Not simply bounded
+class B<T extends D> {} // Simply bounded
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    expect(library.getContainedName('A').isSimplyBounded, false);
+    expect(library.getContainedName('B').isSimplyBounded, true);
+  }
+
+  void test_isSimplyBounded_new_typedef_in_other_bundle() {
+    var bundle = createPackageBundle('''
+typedef C<T extends C> = void Function(T x); // Not simply bounded
+typedef D<T extends D<Null>> = void Function(T x); // Simply bounded
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A<T extends C> {} // Not simply bounded
+class B<T extends D> {} // Simply bounded
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    expect(library.getContainedName('A').isSimplyBounded, false);
+    expect(library.getContainedName('B').isSimplyBounded, true);
+  }
+
+  void test_isSimplyBounded_old_typedef_in_other_bundle() {
+    var bundle = createPackageBundle('''
+typedef void C<T extends C>(T x); // Not simply bounded
+typedef void D<T extends D<Null>>(T x); // Simply bounded
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A<T extends C> {} // Not simply bounded
+class B<T extends D> {} // Simply bounded
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    expect(library.getContainedName('A').isSimplyBounded, false);
+    expect(library.getContainedName('B').isSimplyBounded, true);
   }
 
   void test_leastUpperBound_functionAndClass() {

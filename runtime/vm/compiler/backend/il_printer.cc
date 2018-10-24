@@ -586,6 +586,10 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(", using unchecked entrypoint");
   }
+  if (function().recognized_kind() != MethodRecognizer::kUnknown) {
+    f->Print(", recognized_kind = %s",
+             MethodRecognizer::KindToCString(function().recognized_kind()));
+  }
 }
 
 void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -848,9 +852,9 @@ void InvokeMathCFunctionInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
+    BufferFormatter* f) const {
   const GrowableArray<Definition*>& defns = initial_definitions_;
-  f->Print("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
   if (defns.length() > 0) {
     f->Print(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
@@ -862,8 +866,13 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(", block_id(),
              try_index(), GetDeoptId());
   } else {
@@ -890,7 +899,7 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
-  ASSERT(try_index() == CatchClauseNode::kInvalidTryIndex);
+  ASSERT(try_index() == kInvalidTryIndex);
   f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
@@ -912,7 +921,7 @@ void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
-static const char* RepresentationToCString(Representation rep) {
+const char* RepresentationToCString(Representation rep) {
   switch (rep) {
     case kTagged:
       return "tagged";
@@ -1007,7 +1016,7 @@ void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[target try_idx %" Pd "]:%" Pd, block_id(), try_index(),
              GetDeoptId());
   } else {
@@ -1019,6 +1028,24 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void OsrEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[osr entry]:%" Pd, block_id(), GetDeoptId());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void FunctionEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[function entry]:%" Pd, block_id(), GetDeoptId());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("B%" Pd "[target catch try_idx %" Pd " catch_try_idx %" Pd "]",
            block_id(), try_index(), catch_try_index());
@@ -1027,16 +1054,7 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
   }
 
-  const GrowableArray<Definition*>& defns = initial_definitions_;
-  if (defns.length() > 0) {
-    f->Print(" {");
-    for (intptr_t i = 0; i < defns.length(); ++i) {
-      Definition* def = defns[i];
-      f->Print("\n      ");
-      def->PrintTo(f);
-    }
-    f->Print("\n}");
-  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
 void LoadIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1063,7 +1081,9 @@ void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
                  .ToFullyQualifiedCString();
     }
   }
-  f->Print("%s", name);
+  f->Print("%s(", name);
+  InputAt(0)->PrintTo(f);
+  f->Print(")");
 }
 
 void PushArgumentInstr::PrintOperandsTo(BufferFormatter* f) const {

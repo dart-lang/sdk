@@ -17,7 +17,7 @@ abstract class _C&Super&Mixin<V extends core::Object = dynamic> extends self::Su
   field dynamic y = null /* from org-dartlang-testcase:///mixin_library.dart */;
   field dynamic z = null /* from org-dartlang-testcase:///mixin_library.dart */;
   field self::_C&Super&Mixin::V t = null /* from org-dartlang-testcase:///mixin_library.dart */;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_C&Super&Mixin<self::_C&Super&Mixin::V>
     : super self::Super::•()
     ;
   method /* from org-dartlang-testcase:///mixin_library.dart */ foo() → dynamic
@@ -43,7 +43,7 @@ abstract class _D&Super&Mixin extends self::Super<dynamic> implements mix::Mixin
   field dynamic y = null /* from org-dartlang-testcase:///mixin_library.dart */;
   field dynamic z = null /* from org-dartlang-testcase:///mixin_library.dart */;
   field dynamic t = null /* from org-dartlang-testcase:///mixin_library.dart */;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_D&Super&Mixin
     : super self::Super::•()
     ;
   method /* from org-dartlang-testcase:///mixin_library.dart */ foo() → dynamic

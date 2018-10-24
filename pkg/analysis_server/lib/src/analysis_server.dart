@@ -54,8 +54,12 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
+    show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
@@ -68,10 +72,6 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
-    show EvictingFileByteStore;
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -560,7 +560,7 @@ class AnalysisServer {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!priorityFiles.contains(file)) {
-      var driver = await getAnalysisDriver(file);
+      var driver = getAnalysisDriver(file);
       if (driver == null) {
         return null;
       }

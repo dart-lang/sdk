@@ -4,14 +4,17 @@
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -43,8 +46,6 @@ import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
 import 'package:package_config/discovery.dart' as pkg_discovery;
@@ -165,7 +166,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   }
 
   @override
-  Future<Null> start(List<String> args) async {
+  Future<Null> start(List<String> args, {SendPort sendPort}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (analysisDriver != null) {
@@ -191,7 +192,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
     // Do analysis.
     if (options.buildMode) {
-      ErrorSeverity severity = await _buildModeAnalyze(options);
+      ErrorSeverity severity = await _buildModeAnalyze(options, sendPort);
       // Propagate issues to the exit code.
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
@@ -436,15 +437,22 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   }
 
   /// Perform analysis in build mode according to the given [options].
-  Future<ErrorSeverity> _buildModeAnalyze(CommandLineOptions options) async {
+  ///
+  /// If [sendPort] is provided it is used for bazel worker communication
+  /// instead of stdin/stdout.
+  Future<ErrorSeverity> _buildModeAnalyze(
+      CommandLineOptions options, SendPort sendPort) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     PerformanceTag previous = _analyzeAllTag.makeCurrent();
     try {
       if (options.buildModePersistentWorker) {
-        await new AnalyzerWorkerLoop.std(resourceProvider,
+        var workerLoop = sendPort == null
+            ? new AnalyzerWorkerLoop.std(resourceProvider,
                 dartSdkPath: options.dartSdkPath)
-            .run();
+            : new AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
+                dartSdkPath: options.dartSdkPath);
+        await workerLoop.run();
         return ErrorSeverity.NONE;
       } else {
         return await new BuildMode(resourceProvider, options, stats,
@@ -824,9 +832,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       return false;
     }
     if (newOptions.strongMode != previous.strongMode) {
-      return false;
-    }
-    if (newOptions.enableSuperMixins != previous.enableSuperMixins) {
       return false;
     }
     if (!_equalLists(

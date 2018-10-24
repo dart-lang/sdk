@@ -12,7 +12,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/compiler_stats.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -49,7 +48,6 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timeline_analysis.h"
-#include "vm/timer.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -911,9 +909,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       library_tag_handler_(NULL),
       api_state_(NULL),
       random_(),
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      interpreter_(NULL),
-#endif
       simulator_(NULL),
       mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
       symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
@@ -923,6 +918,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_"))),
       megamorphic_lookup_mutex_(
           new Mutex(NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_"))),
+      kernel_data_lib_cache_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_"))),
+      kernel_data_class_cache_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_"))),
       message_handler_(NULL),
       spawn_state_(NULL),
       defer_finalization_count_(0),
@@ -991,9 +990,6 @@ Isolate::~Isolate() {
   ASSERT(marking_stack_ == NULL);
   delete object_store_;
   delete api_state_;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  delete interpreter_;
-#endif
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -1007,6 +1003,10 @@ Isolate::~Isolate() {
   constant_canonicalization_mutex_ = NULL;
   delete megamorphic_lookup_mutex_;
   megamorphic_lookup_mutex_ = NULL;
+  delete kernel_data_lib_cache_mutex_;
+  kernel_data_lib_cache_mutex_ = NULL;
+  delete kernel_data_class_cache_mutex_;
+  kernel_data_class_cache_mutex_ = NULL;
   delete pending_deopts_;
   pending_deopts_ = NULL;
   delete message_handler_;
@@ -1240,7 +1240,6 @@ void Isolate::DoneLoading() {
       lib.SetLoaded();
     }
   }
-  TokenStream::CloseSharedTokenList(this);
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1666,10 +1665,6 @@ static void ShutdownIsolate(uword parameter) {
 #if defined(DEBUG)
     isolate->ValidateConstants();
 #endif  // defined(DEBUG)
-    const Error& error = Error::Handle(thread->sticky_error());
-    if (!error.IsNull() && !error.IsUnwindError()) {
-      OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
-    }
     TransitionVMToNative transition(thread);
     Dart::RunShutdownCallback();
   }
@@ -1871,19 +1866,6 @@ void Isolate::Shutdown() {
   // Don't allow anymore dart code to execution on this isolate.
   thread->ClearStackLimit();
 
-  // First, perform higher-level cleanup that may need to allocate.
-  {
-    // Ensure we have a zone and handle scope so that we can call VM functions.
-    StackZone stack_zone(thread);
-    HandleScope handle_scope(thread);
-
-    // Write compiler stats data if enabled.
-    if (FLAG_support_compiler_stats && FLAG_compiler_stats &&
-        !Isolate::IsVMInternalIsolate(this)) {
-      OS::PrintErr("%s", aggregate_compiler_stats()->PrintToZone());
-    }
-  }
-
   // Remove this isolate from the list *before* we start tearing it down, to
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
@@ -2014,12 +1996,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (interpreter() != NULL) {
-    interpreter()->VisitObjectPointers(visitor);
-  }
-#endif
 
 #if defined(TARGET_ARCH_DBC)
   if (simulator() != NULL) {
@@ -2878,7 +2854,19 @@ void Isolate::UnscheduleThread(Thread* thread,
     scheduled_mutator_thread_->end_ = 0;
     scheduled_mutator_thread_ = NULL;
   }
-  thread->isolate_ = NULL;
+  // Even if we unschedule the mutator thread, e.g. via calling
+  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
+  // stacks active, which e.g. GC marker threads want to visit.  So we don't
+  // clear out the isolate pointer if we are on the mutator thread.
+  //
+  // The [thread] structure for the mutator thread is kept alive in the thread
+  // registry even if the mutator thread is temporarily unscheduled.
+  //
+  // All other threads are not allowed to unschedule themselves and schedule
+  // again later on.
+  if (!is_mutator) {
+    thread->isolate_ = NULL;
+  }
   thread->heap_ = NULL;
   thread->set_os_thread(NULL);
   thread->set_execution_state(Thread::kThreadInNative);

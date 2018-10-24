@@ -114,17 +114,17 @@ getReifiedType(obj) {
 }
 
 /// Return the module name for a raw library object.
-getModuleName(value) => JS('', '#[#]', value, _moduleName);
+String getModuleName(Object module) => JS('', '#[#]', module, _moduleName);
 
-var _loadedModules = JS('', 'new Map()');
-var _loadedSourceMaps = JS('', 'new Map()');
+final _loadedModules = JS('', 'new Map()');
+final _loadedSourceMaps = JS('', 'new Map()');
 
-List getModuleNames() {
-  return JS('', 'Array.from(#.keys())', _loadedModules);
+List<String> getModuleNames() {
+  return JSArray<String>.of(JS('', 'Array.from(#.keys())', _loadedModules));
 }
 
-String getSourceMap(module) {
-  return JS<String>('!', '#.get(#)', _loadedSourceMaps, module);
+String getSourceMap(String moduleName) {
+  return JS('!', '#.get(#)', _loadedSourceMaps, moduleName);
 }
 
 /// Return all library objects in the specified module.
@@ -136,7 +136,7 @@ getModuleLibraries(String name) {
 }
 
 /// Track all libraries
-void trackLibraries(String moduleName, libraries, sourceMap) {
+void trackLibraries(String moduleName, Object libraries, String sourceMap) {
   JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
   JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
 }

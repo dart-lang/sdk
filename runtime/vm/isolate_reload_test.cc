@@ -98,9 +98,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompile) {
       "main() {\n"
       "  return 42;\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -158,9 +155,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
       "WhatsTheMeaningOfAllThis() {\n"
       "  return 42;\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -229,9 +223,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
       "  State(this.t);\n"
       "  T howAreTheThings() => t;\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -312,9 +303,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
           "  first() => t;\n"
           "}\n"
           "doWork() => new MyAccountState(<dynamic>[42, 'abc']).first();\n"
-      },
-      {
-          "file:///.packages", "untitled:/"
       }};
   // clang-format on
 
@@ -389,11 +377,7 @@ TEST_CASE(IsolateReload_BadClass) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  if (TestCase::UsingDartFrontend()) {
-    EXPECT_ERROR(result, "Expected ';' after this");
-  } else {
-    EXPECT_ERROR(result, "unexpected token");
-  }
+  EXPECT_ERROR(result, "Expected ';' after this");
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 }
 
@@ -1168,15 +1152,7 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  if (TestCase::UsingDartFrontend()) {
-    EXPECT_ERROR(lib, "importedIntFunc");
-  } else {
-    EXPECT_VALID(lib);
-    // Works.
-    EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
-    // Results in an error.
-    EXPECT_ERROR(SimpleInvokeError(lib, "mainInt"), "importedIntFunc");
-  }
+  EXPECT_ERROR(lib, "importedIntFunc");
 }
 
 // Verifies that we clear the ICs for the functions live on the stack in a way
@@ -1258,13 +1234,9 @@ TEST_CASE(IsolateReload_TopLevelParseError) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  if (TestCase::UsingDartFrontend()) {
-    EXPECT_ERROR(lib,
-                 "Variables must be declared using the keywords"
-                 " 'const', 'final', 'var' or a type name.");
-  } else {
-    EXPECT_ERROR(lib, "unexpected token");
-  }
+  EXPECT_ERROR(lib,
+               "Variables must be declared using the keywords"
+               " 'const', 'final', 'var' or a type name.");
 }
 
 TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
@@ -2550,11 +2522,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
   {
     TransitionVMToNative transition(thread);
     Dart_Handle lib = TestCase::ReloadTestScript(kReloadScript);
-    if (TestCase::UsingDartFrontend()) {
-      EXPECT_ERROR(lib, "Expected ';' after this");
-    } else {
-      EXPECT_ERROR(lib, "unexpected token");
-    }
+    EXPECT_ERROR(lib, "Expected ';' after this");
   }
 
   // If we don't clean up the subclasses, we would find BIterator in

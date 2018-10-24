@@ -12,6 +12,7 @@
 #include "vm/heap/heap.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/program_visitor.h"
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
@@ -354,6 +355,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Object& owner = Object::Handle(zone);
   String& str = String::Handle(zone);
 
+  ObjectStore* object_store = Isolate::Current()->object_store();
+
   TypeTestingStubFinder tts;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
@@ -397,6 +400,10 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       owner = code.owner();
       if (owner.IsNull()) {
         const char* name = StubCode::NameOfStub(insns.EntryPoint());
+        if (name == nullptr &&
+            code.raw() == object_store->build_method_extractor_code()) {
+          name = "BuildMethodExtractor";
+        }
         if (name != NULL) {
           assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
         } else {

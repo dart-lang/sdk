@@ -1,14 +1,16 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/regress/issue_31190.dart:1: Warning: Can't use type arguments with type variable 'T'.
+// pkg/front_end/testcases/regress/issue_31190.dart:6:3: Warning: Can't use type arguments with type variable 'T'.
 // Try removing the type arguments.
+//   T<U> v;
+//   ^
 
 library;
 import self as self;
 import "dart:core" as core;
 
 class Typed<T extends core::Object = dynamic> extends core::Object {
-  field self::Typed::T v;
+  field invalid-type v;
   synthetic constructor •() → self::Typed<self::Typed::T>
     ;
 }

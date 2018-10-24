@@ -13,7 +13,7 @@ class J<X extends core::Object = dynamic> extends core::Object {
     ;
 }
 abstract class _M0&I&J<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends self::I<self::_M0&I&J::X> implements self::J<self::_M0&I&J::Y> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_M0&I&J<self::_M0&I&J::X, self::_M0&I&J::Y>
     : super self::I::•()
     ;
 }
@@ -33,7 +33,7 @@ class M2 extends self::M1 implements self::J<core::double> {
     ;
 }
 abstract class _A&M2&M0 extends self::M2 implements self::M0<core::int, core::double> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_A&M2&M0
     : super self::M2::•()
     ;
 }

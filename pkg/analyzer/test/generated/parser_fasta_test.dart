@@ -927,7 +927,56 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
  */
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
-    with StatementParserTestMixin {}
+    with StatementParserTestMixin {
+  void test_invalid_typeArg_34850() {
+    var unit = parseCompilationUnit('foo Future<List<int>> bar() {}', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 4),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 4, 6),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 22, 3),
+    ]);
+    // Validate that recovery has properly updated the token stream.
+    analyzer.Token token = unit.beginToken;
+    while (!token.isEof) {
+      expect(token.type, isNot(TokenType.GT_GT));
+      analyzer.Token next = token.next;
+      expect(next.previous, token);
+      token = next;
+    }
+  }
+
+  void test_partial_typeArg1_34850() {
+    var unit = parseCompilationUnit('<bar<', errors: [
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 3),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 5, 0),
+    ]);
+    // Validate that recovery has properly updated the token stream.
+    analyzer.Token token = unit.beginToken;
+    while (!token.isEof) {
+      expect(token.type, isNot(TokenType.GT_GT));
+      analyzer.Token next = token.next;
+      expect(next.previous, token);
+      token = next;
+    }
+  }
+
+  void test_partial_typeArg2_34850() {
+    var unit = parseCompilationUnit('foo <bar<', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 3),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 0, 3),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 9, 0),
+    ]);
+    // Validate that recovery has properly updated the token stream.
+    analyzer.Token token = unit.beginToken;
+    while (!token.isEof) {
+      expect(token.type, isNot(TokenType.GT_GT));
+      analyzer.Token next = token.next;
+      expect(next.previous, token);
+      token = next;
+    }
+  }
+}
 
 /**
  * Tests of the fasta parser based on [TopLevelParserTestMixin].

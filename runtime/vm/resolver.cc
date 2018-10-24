@@ -78,18 +78,36 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     demangled ^= Field::NameFromGetter(function_name);
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (Function::IsDynamicInvocationForwaderName(function_name)) {
-    ASSERT(!FLAG_precompiled_mode);
     demangled ^=
         Function::DemangleDynamicInvocationForwarderName(function_name);
+#ifdef DART_PRECOMPILED_RUNTIME
+    // In precompiled mode, the non-dynamic version of the function may be
+    // tree-shaken away, so can't necessarily resolve the demanged name.
+    while (!cls.IsNull()) {
+      function = cls.GetInvocationDispatcher(
+          function_name, Array::null_array(),
+          RawFunction::kDynamicInvocationForwarder, /*create_if_absent=*/false);
+      if (!function.IsNull()) break;
+      cls = cls.SuperClass();
+    }
+    // Some functions don't require dynamic invocation forwarders, for example
+    // if there are no parameters or all the parameters are marked
+    // `generic-covariant` (meaning there's no work for the dynamic invocation
+    // forwarder to do, see `kernel::DynamicInvocationForwarder`). For these
+    // functions, we won't have built a `dyn:` version, but it's safe to just
+    // return the original version directly.
+    return !function.IsNull() ? function.raw()
+                              : ResolveDynamicAnyArgs(zone, receiver_class,
+                                                      demangled, allow_add);
+#else
     function =
         ResolveDynamicAnyArgs(zone, receiver_class, demangled, allow_add);
     return function.IsNull() ? function.raw()
                              : function.GetDynamicInvocationForwarder(
                                    function_name, allow_add);
-  }
 #endif
+  }
 
   // Now look for an instance function whose name matches function_name
   // in the class.

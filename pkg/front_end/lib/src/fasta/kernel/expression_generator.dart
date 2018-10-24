@@ -71,7 +71,6 @@ import 'kernel_ast_api.dart'
         Member,
         Name,
         Procedure,
-        StaticInvocationJudgment,
         SyntheticExpressionJudgment,
         UnresolvedTargetInvocationJudgment,
         VariableDeclaration;
@@ -1063,13 +1062,10 @@ abstract class PrefixUseGenerator implements Generator {
   @override
   /* Expression | Generator | Initializer */ doInvocation(
       int offset, Arguments arguments) {
-    return new StaticInvocationJudgment(null, forest.castArguments(arguments),
-        desugaredError: helper.wrapInLocatedProblem(
-            helper.evaluateArgumentsBefore(
-                arguments, forest.literalNull(token)),
-            messageCantUsePrefixAsExpression.withLocation(
-                helper.uri, offsetForToken(token), lengthForToken(token))))
-      ..fileOffset = offset;
+    return helper.wrapInLocatedProblem(
+        helper.evaluateArgumentsBefore(arguments, forest.literalNull(token)),
+        messageCantUsePrefixAsExpression.withLocation(
+            helper.uri, offsetForToken(token), lengthForToken(token)));
   }
 
   @override

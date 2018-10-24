@@ -4,7 +4,6 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
-#include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
@@ -796,14 +795,8 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   Zone* zone = stack_zone.GetZone();
   ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
 
-  ParsedFunction* parsed_function;
-  // Check if this field is coming from the Kernel binary.
-  if (field.kernel_offset() > 0) {
-    parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
-  } else {
-    parsed_function = Parser::ParseStaticFieldInitializer(field);
-    parsed_function->AllocateVariables();
-  }
+  ParsedFunction* parsed_function =
+      kernel::ParseStaticFieldInitializer(zone, field);
 
   DartCompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
@@ -861,11 +854,6 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
-    if (FLAG_support_ast_printer && FLAG_trace_compiler) {
-      THR_Print("compiling expression: ");
-      AstPrinter ast_printer;
-      ast_printer.PrintNode(fragment);
-    }
 
     // Create a dummy function object for the code generator.
     // The function needs to be associated with a named Class: the interface
@@ -1122,6 +1110,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
   String& selector = String::Handle(Z);
   String& selector2 = String::Handle(Z);
   String& selector3 = String::Handle(Z);
+  Field& field = Field::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1146,26 +1135,58 @@ void Precompiler::CheckForNewDynamicFunctions() {
           AddFunction(function);
         }
 
+        bool found_metadata = false;
+        kernel::ProcedureAttributesMetadata metadata;
+
         // Handle the implicit call type conversions.
         if (Field::IsGetterName(selector)) {
+          // Call-through-getter.
+          // Function is get:foo and somewhere foo (or dyn:foo) is called.
           selector2 = Field::NameFromGetter(selector);
           selector3 = Symbols::Lookup(thread(), selector2);
-          if (IsSent(selector2)) {
-            // Call-through-getter.
-            // Function is get:foo and somewhere foo is called.
+          if (IsSent(selector3)) {
+            AddFunction(function);
+          }
+          selector2 = Function::CreateDynamicInvocationForwarderName(selector2);
+          selector3 = Symbols::Lookup(thread(), selector2);
+          if (IsSent(selector3)) {
             AddFunction(function);
           }
         } else if (function.kind() == RawFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
-          if (IsSent(selector2) && kernel::IsTearOffTaken(function, Z)) {
-            // Closurization.
-            // Function is foo and somewhere get:foo is called.
-            function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
+          if (IsSent(selector2)) {
+            metadata = kernel::ProcedureAttributesOf(function, Z);
+            found_metadata = true;
 
-            // Add corresponding method extractor.
-            function2 = function.GetMethodExtractor(selector2);
-            AddFunction(function2);
+            if (metadata.has_tearoff_uses) {
+              // Closurization.
+              // Function is foo and somewhere get:foo is called.
+              function2 = function.ImplicitClosureFunction();
+              AddFunction(function2);
+
+              // Add corresponding method extractor.
+              function2 = function.GetMethodExtractor(selector2);
+              AddFunction(function2);
+            }
+          }
+        }
+
+        if (function.kind() == RawFunction::kImplicitSetter ||
+            function.kind() == RawFunction::kSetterFunction ||
+            function.kind() == RawFunction::kRegularFunction) {
+          selector2 = Function::CreateDynamicInvocationForwarderName(selector);
+          if (IsSent(selector2)) {
+            if (function.kind() == RawFunction::kImplicitSetter) {
+              field = function.accessor_field();
+              metadata = kernel::ProcedureAttributesOf(field, Z);
+            } else if (!found_metadata) {
+              metadata = kernel::ProcedureAttributesOf(function, Z);
+            }
+
+            if (metadata.has_dynamic_invocations) {
+              function2 = function.GetDynamicInvocationForwarder(selector2);
+              AddFunction(function2);
+            }
           }
         }
       }
@@ -1622,7 +1643,6 @@ void Precompiler::DropScriptData() {
   Library& lib = Library::Handle(Z);
   Array& scripts = Array::Handle(Z);
   Script& script = Script::Handle(Z);
-  const TokenStream& null_tokens = TokenStream::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     scripts = lib.LoadedScripts();
@@ -1630,7 +1650,6 @@ void Precompiler::DropScriptData() {
       script ^= scripts.At(j);
       script.set_compile_time_constants(Array::null_array());
       script.set_source(String::null_string());
-      script.set_tokens(null_tokens);
     }
   }
 }
@@ -2206,13 +2225,10 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
-  CSTAT_TIMER_SCOPE(thread(), codefinalizer_timer);
   // CreateDeoptInfo uses the object pool and needs to be done before
   // FinalizeCode.
   const Array& deopt_info_array =
       Array::Handle(zone, graph_compiler->CreateDeoptInfo(assembler));
-  INC_STAT(thread(), total_code_size,
-           deopt_info_array.Length() * sizeof(uword));
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   const Code& code = Code::Handle(Code::FinalizeCode(
@@ -2263,7 +2279,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 #ifndef PRODUCT
   TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
 #endif  // !PRODUCT
-  CSTAT_TIMER_SCOPE(thread(), codegen_timer);
   HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -2286,10 +2301,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerState compiler_state(thread());
 
-      // TimerScope needs an isolate to be properly terminated in case of a
-      // LongJump.
       {
-        CSTAT_TIMER_SCOPE(thread(), graphbuilder_timer);
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
 #ifndef PRODUCT
         TimelineDurationScope tds(thread(), compiler_timeline,
@@ -2322,7 +2334,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         TimelineDurationScope tds(thread(), compiler_timeline,
                                   "OptimizationPasses");
 #endif  // !PRODUCT
-        CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
         pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -2360,7 +2371,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array, function_stats);
       {
-        CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
 #ifndef PRODUCT
         TimelineDurationScope tds(thread(), compiler_timeline, "CompileGraph");
 #endif  // !PRODUCT
@@ -2450,17 +2460,9 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
                 function.ToFullyQualifiedCString(), function.token_pos().Pos(),
                 (function.end_token_pos().Pos() - function.token_pos().Pos()));
     }
-    INC_STAT(thread, num_functions_compiled, 1);
-    if (optimized) {
-      INC_STAT(thread, num_functions_optimized, 1);
-    }
     {
       HANDLESCOPE(thread);
-      const int64_t num_tokens_before = STAT_VALUE(thread, num_tokens_consumed);
       pipeline->ParseFunction(parsed_function);
-      const int64_t num_tokens_after = STAT_VALUE(thread, num_tokens_consumed);
-      INC_STAT(thread, num_func_tokens_compiled,
-               num_tokens_after - num_tokens_before);
     }
 
     PrecompileParsedFunctionHelper helper(precompiler, parsed_function,

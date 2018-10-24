@@ -1082,7 +1082,7 @@ class _BigIntImpl implements BigInt {
   /// The `multiplicandDigits` in the range `i` to `i`+`n`-1 are the
   /// multiplicand digits.
   ///
-  /// The `acculumatorDigits` in the range `j` to `j`+`n`-1 are the accumulator
+  /// The `accumulatorDigits` in the range `j` to `j`+`n`-1 are the accumulator
   /// digits.
   ///
   /// Concretely:
@@ -1132,7 +1132,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// The `xDigits` in the range `i` to `used`-1 are the multiplicand digits.
   ///
-  /// The `acculumatorDigits` in the range 2*`i` to `i`+`used`-1 are the
+  /// The `accumulatorDigits` in the range 2*`i` to `i`+`used`-1 are the
   /// accumulator digits.
   ///
   /// Concretely:

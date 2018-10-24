@@ -30,7 +30,9 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 import 'package:vm/incremental_compiler.dart';
+import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 
@@ -61,15 +63,13 @@ bool allowDartInternalImport = false;
 
 abstract class Compiler {
   final FileSystem fileSystem;
-  final bool strongMode;
   final List<String> errors = new List<String>();
 
   CompilerOptions options;
 
   Compiler(this.fileSystem, Uri platformKernelPath,
-      {this.strongMode: false,
-      bool suppressWarnings: false,
-      bool syncAsync: false,
+      {bool suppressWarnings: false,
+      bool bytecode: false,
       String packageConfig: null}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
@@ -83,18 +83,15 @@ abstract class Compiler {
       print("DFE: packagesUri: ${packagesUri}");
       print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
       print("DFE: platformKernelPath: ${platformKernelPath}");
-      print("DFE: strongMode: ${strongMode}");
-      print("DFE: syncAsync: ${syncAsync}");
     }
 
     options = new CompilerOptions()
-      ..strongMode = strongMode
       ..fileSystem = fileSystem
-      ..target = new VmTarget(
-          new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
+      ..target = new VmTarget(new TargetFlags(syncAsync: true))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
+      ..bytecode = bytecode
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -120,7 +117,18 @@ abstract class Compiler {
   }
 
   Future<Component> compile(Uri script) {
-    return runWithPrintToStderr(() => compileInternal(script));
+    return runWithPrintToStderr(() async {
+      final component = await compileInternal(script);
+
+      if (options.bytecode && errors.isEmpty) {
+        await runWithFrontEndCompilerContext(script, options, component, () {
+          // TODO(alexmarkov): pass environment defines
+          generateBytecode(component);
+        });
+      }
+
+      return component;
+    });
   }
 
   Future<Component> compileInternal(Uri script);
@@ -130,14 +138,12 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
   IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
-      {bool strongMode: false,
-      bool suppressWarnings: false,
-      bool syncAsync: false,
+      {bool suppressWarnings: false,
+      bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
-            strongMode: strongMode,
             suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync,
+            bytecode: bytecode,
             packageConfig: packageConfig);
 
   @override
@@ -158,14 +164,12 @@ class SingleShotCompilerWrapper extends Compiler {
 
   SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
-      bool strongMode: false,
       bool suppressWarnings: false,
-      bool syncAsync: false,
+      bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
-            strongMode: strongMode,
             suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync,
+            bytecode: bytecode,
             packageConfig: packageConfig);
 
   @override
@@ -187,9 +191,8 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
-    {bool strongMode: false,
-    bool suppressWarnings: false,
-    bool syncAsync: false,
+    {bool suppressWarnings: false,
+    bool bytecode: false,
     String packageConfig: null,
     String multirootFilepaths,
     String multirootScheme}) async {
@@ -206,9 +209,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
     compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
-        strongMode: strongMode,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
+        bytecode: bytecode,
         packageConfig: packageConfig);
     isolateCompilers[isolateId] = compiler;
   }
@@ -372,11 +374,10 @@ Future _processLoadRequest(request) async {
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool strong = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
-  final bool syncAsync = request[9];
+  final bool bytecode = request[9];
   final String packageConfig = request[10];
   final String multirootFilepaths = request[11];
   final String multirootScheme = request[12];
@@ -389,8 +390,8 @@ Future _processLoadRequest(request) async {
     platformKernelPath = Uri.parse(platformKernelFile);
     platformKernel = request[3];
   } else {
-    platformKernelPath = computePlatformBinariesLocation()
-        .resolve(strong ? 'vm_platform_strong.dill' : 'vm_platform.dill');
+    platformKernelPath =
+        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   }
 
   Compiler compiler;
@@ -429,9 +430,8 @@ Future _processLoadRequest(request) async {
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernelPath, platformKernel,
-        strongMode: strong,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
+        bytecode: bytecode,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme);
@@ -440,9 +440,8 @@ Future _processLoadRequest(request) async {
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: false,
-        strongMode: strong,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
+        bytecode: bytecode,
         packageConfig: packageConfig);
   }
 

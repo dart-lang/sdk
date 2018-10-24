@@ -51,6 +51,7 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   LibraryElement _libraryElement;
+  LibraryScope _libraryScope;
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
@@ -100,6 +101,7 @@ class LibraryAnalyzer {
     try {
       _libraryElement = _resynthesizer
           .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+      _libraryScope = new LibraryScope(_libraryElement);
 
       _resolveDirectives(units);
 
@@ -218,9 +220,10 @@ class LibraryAnalyzer {
         typeSystem: _context.typeSystem));
 
     unit.accept(new OverrideVerifier(
-        errorReporter,
-        new InheritanceManager(_libraryElement,
-            includeAbstractFromSuperclasses: true)));
+      _inheritance,
+      _libraryElement,
+      errorReporter,
+    ));
 
     new ToDoFinder(errorReporter).findIn(unit);
 
@@ -329,12 +332,7 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        _libraryElement,
-        _typeProvider,
-        new InheritanceManager(_libraryElement),
-        _inheritance,
-        _analysisOptions.enableSuperMixins);
+        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
     unit.accept(errorVerifier);
   }
 
@@ -575,10 +573,9 @@ class LibraryAnalyzer {
 
     new DeclarationResolver().resolve(unit, unitElement);
 
-    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
         source, _typeProvider, errorListener,
-        nameScope: libraryScope));
+        nameScope: _libraryScope));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
@@ -591,7 +588,7 @@ class LibraryAnalyzer {
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: libraryScope));
+        nameScope: _libraryScope));
 
     unit.accept(new PartialResolverVisitor(_inheritance, _libraryElement,
         source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));

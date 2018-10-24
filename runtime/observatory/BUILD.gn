@@ -39,8 +39,10 @@ prebuilt_dart2js_action("build_observatory") {
     "-o",
     rebase_path(output),
     "--packages=" + rebase_path(".packages"),
-    "--minify",
   ]
+  if (!is_debug) {
+    args += [ "--minify" ]
+  }
 }
 
 # The rules here down to "deploy_observatory" copy files into place such that

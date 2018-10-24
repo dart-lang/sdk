@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/dart/dart_action.gni")
-import("../../sdk/lib/_http/http_sources.gni")
-import("../../sdk/lib/io/io_sources.gni")
-import("../../sdk/lib/cli/cli_sources.gni")
 import("../runtime_args.gni")
 import("../vm/heap/heap_sources.gni")
 import("../vm/compiler/compiler_sources.gni")
@@ -16,35 +13,6 @@ import("io_impl_sources.gni")
 import("io_sources.gni")
 import("cli_impl_sources.gni")
 import("cli_sources.gni")
-import("vmservice/vmservice_sources.gni")
-
-# Generate a resources.cc file for the service isolate without Observatory.
-action("gen_resources_cc") {
-  visibility = [ ":*" ]  # Only targets in this file can see this.
-  script = "../tools/create_resources.py"
-  inputs = [
-    "../tools/create_resources.py",
-  ]
-
-  # The path below is hard coded for the Mojo and Flutter trees. When moving
-  # the Dart runtime to gn, this path might need to be updated.
-  sources = rebase_path(vmservice_sources, "", "../bin/vmservice/")
-  outputs = [
-    "$target_gen_dir/resources_gen.cc",
-  ]
-  args = [
-           "--output",
-           rebase_path("$target_gen_dir/resources_gen.cc", root_build_dir),
-           "--outer_namespace",
-           "dart",
-           "--inner_namespace",
-           "bin",
-           "--table_name",
-           "service_bin",
-           "--root_prefix",
-           rebase_path(".", root_build_dir) + "/",
-         ] + rebase_path(sources, root_build_dir)
-}
 
 config("libdart_builtin_config") {
   if (!is_win) {
@@ -139,11 +107,9 @@ template("build_gen_snapshot") {
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
-    deps = [ ":gen_resources_cc" ] + extra_deps
+    deps = extra_deps
 
     sources = [
-      # Include generated source files.
-      "$target_gen_dir/resources_gen.cc",
       "address_sanitizer.cc",
       "builtin.cc",
       "builtin.h",
@@ -754,7 +720,6 @@ dart_executable("dart") {
   extra_deps = [
     "..:libdart_jit",
     ":dart_snapshot_cc",
-    ":gen_resources_cc",
   ]
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
@@ -767,7 +732,6 @@ dart_executable("dart") {
     "loader.h",
     "gzip.cc",
     "gzip.h",
-    "$target_gen_dir/resources_gen.cc",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -862,13 +826,14 @@ prebuilt_dart_action("gen_kernel_bytecode_dill") {
   platform_dill = "$root_out_dir/vm_platform_strong.dill"
 
   output = "$root_out_dir/gen_kernel_bytecode.dill"
+  depfile = "$target_gen_dir/gen_kernel_bytecode.dill.d"
   outputs = [
     output,
+    depfile,
   ]
 
   script = "../../pkg/vm/bin/gen_kernel.dart"
 
-  depfile = "$target_gen_dir/gen_kernel_bytecode.dill.d"
   abs_depfile = rebase_path(depfile)
   rebased_output = rebase_path(output, root_out_dir)
   vm_args = [
@@ -878,6 +843,7 @@ prebuilt_dart_action("gen_kernel_bytecode_dill") {
 
   args = [
     "--gen-bytecode",
+    "--drop-ast",
     "--no-embed-sources",
     "--platform",
     rebase_path(platform_dill),

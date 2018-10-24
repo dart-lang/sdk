@@ -5,7 +5,9 @@
 part of masks;
 
 class UnionTypeMask implements TypeMask {
-  final Iterable<FlatTypeMask> disjointMasks;
+  /// Tag used for identifying serialized [UnionTypeMask] objects in a
+  /// debugging data stream.
+  static const String tag = 'union-type-mask';
 
   static const int MAX_UNION_LENGTH = 4;
 
@@ -14,9 +16,30 @@ class UnionTypeMask implements TypeMask {
   // helpful in debugging.
   static const bool PERFORM_EXTRA_CONTAINS_CHECK = false;
 
+  final Iterable<FlatTypeMask> disjointMasks;
+
   UnionTypeMask._internal(this.disjointMasks) {
     assert(disjointMasks.length > 1);
     assert(disjointMasks.every((TypeMask mask) => !mask.isUnion));
+  }
+
+  /// Deserializes a [UnionTypeMask] object from [source].
+  factory UnionTypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    List<FlatTypeMask> disjointMasks = source
+        .readList(() => new TypeMask.readFromDataSource(source, closedWorld));
+    source.end(tag);
+    return new UnionTypeMask._internal(disjointMasks);
+  }
+
+  /// Serializes this [UnionTypeMask] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(TypeMaskKind.union);
+    sink.begin(tag);
+    sink.writeList(
+        disjointMasks, (FlatTypeMask mask) => mask.writeToDataSink(sink));
+    sink.end(tag);
   }
 
   static TypeMask unionOf(Iterable<TypeMask> masks, JClosedWorld closedWorld) {

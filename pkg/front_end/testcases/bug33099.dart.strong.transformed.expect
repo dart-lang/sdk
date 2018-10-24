@@ -16,7 +16,7 @@ class MyTest extends core::Object {
   method foo() → void {}
 }
 abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTest {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_MyTest2&Object&MyTest
     : super core::Object::•()
     ;
   @self::failingTest

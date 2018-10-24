@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,8 +21,6 @@
  * future changes to the AST structure. For example, the [RecursiveAstVisitor]
  * automates the process of visiting all of the descendants of a node.
  */
-library analyzer.dart.ast.visitor;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';

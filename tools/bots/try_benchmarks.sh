@@ -152,25 +152,6 @@ for command; do
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
       -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/run_vm_tests
-    strip -w \
-      -K 'kDartVmSnapshotData' \
-      -K 'kDartVmSnapshotInstructions' \
-      -K 'kDartCoreIsolateSnapshotData' \
-      -K 'kDartCoreIsolateSnapshotInstructions' \
-      -K '_ZN4dart3bin26observatory_assets_archiveE' \
-      -K '_ZN4dart3bin30observatory_assets_archive_lenE' \
-      -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
-      -K '_ZN4dart3bin7Builtin*_paths_E' \
-      -K '_ZN4dart3binL17vm_snapshot_data_E' \
-      -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
-      -K '_ZN4dart3binL27observatory_assets_archive_E' \
-      -K '_ZN4dart3binL27vm_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL29core_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart7Version14snapshot_hash_E' \
-      -K '_ZN4dart7Version4str_E' \
-      -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' third_party/d8/linux/ia32/d8
     tar -czf linux-ia32.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -333,25 +314,6 @@ EOF
       -K '_ZN4dart7Version14snapshot_hash_E' \
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' third_party/d8/linux/x64/d8
-    strip -w \
-      -K 'kDartVmSnapshotData' \
-      -K 'kDartVmSnapshotInstructions' \
-      -K 'kDartCoreIsolateSnapshotData' \
-      -K 'kDartCoreIsolateSnapshotInstructions' \
-      -K '_ZN4dart3bin26observatory_assets_archiveE' \
-      -K '_ZN4dart3bin30observatory_assets_archive_lenE' \
-      -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
-      -K '_ZN4dart3bin7Builtin*_paths_E' \
-      -K '_ZN4dart3binL17vm_snapshot_data_E' \
-      -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
-      -K '_ZN4dart3binL27observatory_assets_archive_E' \
-      -K '_ZN4dart3binL27vm_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL29core_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart7Version14snapshot_hash_E' \
-      -K '_ZN4dart7Version4str_E' \
-      -K '_ZN4dart7Version7commit_E' \
       -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/dart_precompiled_runtime
     tar -czf linux-x64.tar.gz \
       --exclude .git \
@@ -402,7 +364,6 @@ EOF
     echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
-    out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --implementation=minimal --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
     out/ReleaseX64/run_vm_tests InitialRSS
     out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel

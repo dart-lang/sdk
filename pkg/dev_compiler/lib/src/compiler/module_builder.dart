@@ -41,14 +41,11 @@ ModuleFormat parseModuleFormat(String s) => {
     }[s];
 
 /// Parse the module format option added by [addModuleFormatOptions].
-List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
-  var format = argResults['modules'];
-  if (format is String) {
-    return [parseModuleFormat(format)];
-  }
-  var formats = (format as List<String>).map(parseModuleFormat).toList();
+List<ModuleFormat> parseModuleFormatOption(ArgResults args) {
+  var formats =
+      (args['modules'] as List<String>).map(parseModuleFormat).toList();
 
-  if (argResults['single-out-file'] as bool) {
+  if (args['single-out-file'] as bool) {
     for (int i = 0; i < formats.length; i++) {
       var format = formats[i];
       switch (formats[i]) {
@@ -72,8 +69,7 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
 /// Adds an option to the [argParser] for choosing the module format, optionally
 /// [allowMultiple] formats to be specified, with each emitted into a separate
 /// file.
-void addModuleFormatOptions(ArgParser argParser,
-    {bool allowMultiple = false, bool hide = true}) {
+void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
   argParser.addMultiOption('modules', help: 'module pattern to emit', allowed: [
     'es6',
     'common',

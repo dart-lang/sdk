@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                4
   CheckStack
 Try #0 start:
@@ -62,7 +62,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
 Try #0 start:
@@ -226,7 +226,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                7
   CheckStack
   AllocateContext      3
@@ -325,7 +325,6 @@ Try #0 handler:
   PopLocal             r6
   Push                 r6
   ReturnTOS
-  Jump                 L1
 L1:
   Push                 r0
   LoadContextParent
@@ -505,7 +504,7 @@ L1:
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                8
   CheckStack
 Try #0 start:
@@ -533,7 +532,6 @@ Try #2 start:
   Push                 r2
   Push                 r3
   Throw                1
-  Drop1
 L2:
   Jump                 L3
 Try #2 end:
@@ -575,9 +573,9 @@ L4:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 2, end 36, handler 36, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 2, end 35, handler 35, needs-stack-trace, types [CP#3]
   try-index 1, outer 0, start 2, end 7, handler 7, needs-stack-trace, types [CP#3]
-  try-index 2, outer 0, start 12, end 24, handler 24, types [CP#3]
+  try-index 2, outer 0, start 12, end 23, handler 23, types [CP#3]
 }
 ConstantPool {
   [0] = String 'try 1 > try 2'
@@ -615,7 +613,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                3
   CheckStack
   PushInt              0
@@ -693,7 +691,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                9
   CheckStack
   AllocateContext      2
@@ -753,7 +751,6 @@ Try #1 start:
   InstanceCall         1, CP#24
   Drop1
   Jump                 L4
-  Jump                 L5
 Try #1 end:
 Try #1 handler:
   SetFrame             9
@@ -775,19 +772,7 @@ L4:
   PushConstant         CP#28
   IndirectStaticCall   1, CP#4
   Drop1
-  Jump                 L6
-L5:
-  Push                 r5
-  PopLocal             r0
-  PushConstant         CP#26
-  PushConstant         CP#29
-  IndirectStaticCall   1, CP#4
-  Drop1
-  PushConstant         CP#30
-  PushConstant         CP#31
-  IndirectStaticCall   1, CP#4
-  Drop1
-  Jump                 L7
+  Jump                 L5
 Try #0 end:
 Try #0 handler:
   SetFrame             9
@@ -795,32 +780,24 @@ Try #0 handler:
   PopLocal             r0
   MoveSpecial          r3, exception
   MoveSpecial          r4, stackTrace
+  PushConstant         CP#31
   PushConstant         CP#32
-  PushConstant         CP#33
   IndirectStaticCall   1, CP#4
   Drop1
   Push                 r3
   Push                 r4
   Throw                1
-L6:
+L5:
   Push                 r3
   PopLocal             r0
-  PushConstant         CP#32
-  PushConstant         CP#34
+  PushConstant         CP#31
+  PushConstant         CP#33
   IndirectStaticCall   1, CP#4
   Drop1
   Jump                 L2
-L7:
-  Push                 r3
-  PopLocal             r0
-  PushConstant         CP#32
-  PushConstant         CP#35
-  IndirectStaticCall   1, CP#4
-  Drop1
-  Jump                 L3
 L2:
-  PushConstant         CP#36
-  PushConstant         CP#37
+  PushConstant         CP#34
+  PushConstant         CP#35
   IndirectStaticCall   1, CP#4
   Drop1
   Jump                 L3
@@ -829,8 +806,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 21, end 87, handler 87, needs-stack-trace, types [CP#25]
-  try-index 1, outer 0, start 30, end 57, handler 57, needs-stack-trace, types [CP#25]
+  try-index 0, outer -1, start 21, end 75, handler 75, needs-stack-trace, types [CP#25]
+  try-index 1, outer 0, start 30, end 56, handler 56, needs-stack-trace, types [CP#25]
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -862,15 +839,13 @@ ConstantPool {
   [26] = String 'finally 1'
   [27] = StaticICData target 'dart.core::print', arg-desc CP#4
   [28] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [29] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [30] = String 'after try 1'
-  [31] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [32] = String 'finally 2'
+  [29] = String 'after try 1'
+  [30] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [31] = String 'finally 2'
+  [32] = StaticICData target 'dart.core::print', arg-desc CP#4
   [33] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [34] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [34] = String 'case 2'
   [35] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [36] = String 'case 2'
-  [37] = StaticICData target 'dart.core::print', arg-desc CP#4
 }
 Closure CP#8 {
   EntryFixed           1, 2
@@ -929,7 +904,7 @@ Closure CP#8 {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                6
   CheckStack
   AllocateContext      1
@@ -942,20 +917,20 @@ Bytecode {
   Push                 r0
   PopLocal             r3
 Try #0 start:
-  Allocate             CP#22
+  Allocate             CP#16
   StoreLocal           r5
   Push                 r5
   PushNull
-  StoreFieldTOS        CP#23
+  StoreFieldTOS        CP#17
   Push                 r5
   PushNull
-  StoreFieldTOS        CP#25
+  StoreFieldTOS        CP#19
   Push                 r5
-  PushConstant         CP#27
-  StoreFieldTOS        CP#28
+  PushConstant         CP#21
+  StoreFieldTOS        CP#22
   Push                 r5
   PushConstant         CP#0
-  StoreFieldTOS        CP#30
+  StoreFieldTOS        CP#24
   Push                 r5
   Push                 r0
   StoreFieldTOS        CP#1
@@ -970,11 +945,11 @@ Try #0 handler:
   MoveSpecial          r4, stackTrace
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#32
+  PushConstant         CP#26
   IndirectStaticCall   1, CP#3
   Drop1
   Push                 r2
-  InstanceCall         1, CP#33
+  InstanceCall         1, CP#27
   Drop1
   Push                 r3
   Push                 r4
@@ -984,11 +959,11 @@ L1:
   PopLocal             r0
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#34
+  PushConstant         CP#28
   IndirectStaticCall   1, CP#3
   Drop1
   Push                 r2
-  InstanceCall         1, CP#35
+  InstanceCall         1, CP#29
   Drop1
   Push                 r0
   LoadContextParent
@@ -1015,27 +990,21 @@ ConstantPool {
   [12] = StaticICData target 'dart.core::print', arg-desc CP#3
   [13] = StaticICData target 'dart.core::print', arg-desc CP#3
   [14] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [15] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [16] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [17] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [18] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [19] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [20] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [21] = EndClosureFunctionScope
-  [22] = Class dart.core::_Closure
-  [23] = InstanceField dart.core::_Closure::_instantiator_type_arguments
-  [24] = Reserved
-  [25] = InstanceField dart.core::_Closure::_function_type_arguments
-  [26] = Reserved
-  [27] = EmptyTypeArguments
-  [28] = InstanceField dart.core::_Closure::_delayed_type_arguments
-  [29] = Reserved
-  [30] = InstanceField dart.core::_Closure::_function
-  [31] = Reserved
-  [32] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [33] = ICData dynamic target-name 'call', arg-desc CP#3
-  [34] = StaticICData target 'dart.core::print', arg-desc CP#3
-  [35] = ICData dynamic target-name 'call', arg-desc CP#3
+  [15] = EndClosureFunctionScope
+  [16] = Class dart.core::_Closure
+  [17] = InstanceField dart.core::_Closure::_instantiator_type_arguments
+  [18] = Reserved
+  [19] = InstanceField dart.core::_Closure::_function_type_arguments
+  [20] = Reserved
+  [21] = EmptyTypeArguments
+  [22] = InstanceField dart.core::_Closure::_delayed_type_arguments
+  [23] = Reserved
+  [24] = InstanceField dart.core::_Closure::_function
+  [25] = Reserved
+  [26] = StaticICData target 'dart.core::print', arg-desc CP#3
+  [27] = ICData dynamic target-name 'call', arg-desc CP#3
+  [28] = StaticICData target 'dart.core::print', arg-desc CP#3
+  [29] = ICData dynamic target-name 'call', arg-desc CP#3
 }
 Closure CP#0 {
   EntryFixed           1, 6
@@ -1056,7 +1025,6 @@ Try #0 start:
   IndirectStaticCall   1, CP#3
   Drop1
   Jump                 L1
-  Jump                 L2
 Try #0 end:
 Try #0 handler:
   SetFrame             6
@@ -1071,8 +1039,7 @@ Try #1 start:
   PushConstant         CP#9
   IndirectStaticCall   1, CP#3
   Drop1
-  Jump                 L3
-  Jump                 L4
+  Jump                 L2
 Try #1 end:
 Try #1 handler:
   SetFrame             6
@@ -1088,7 +1055,7 @@ Try #1 handler:
   Push                 r4
   Push                 r5
   Throw                1
-L3:
+L2:
   Push                 r4
   PopLocal             r0
   Push                 r0
@@ -1098,17 +1065,6 @@ L3:
   Drop1
   PushInt              43
   ReturnTOS
-L4:
-  Push                 r4
-  PopLocal             r0
-  Push                 r0
-  LoadContextVar       0
-  PushConstant         CP#12
-  IndirectStaticCall   1, CP#3
-  Drop1
-  Push                 r2
-  Push                 r3
-  Throw                1
 L1:
   Push                 r2
   PopLocal             r0
@@ -1116,11 +1072,10 @@ L1:
   PopLocal             r4
 Try #2 start:
   PushConstant         CP#8
-  PushConstant         CP#13
+  PushConstant         CP#12
   IndirectStaticCall   1, CP#3
   Drop1
-  Jump                 L5
-  Jump                 L6
+  Jump                 L3
 Try #2 end:
 Try #2 handler:
   SetFrame             6
@@ -1130,78 +1085,21 @@ Try #2 handler:
   MoveSpecial          r5, stackTrace
   Push                 r0
   LoadContextVar       0
+  PushConstant         CP#13
+  IndirectStaticCall   1, CP#3
+  Drop1
+  Push                 r4
+  Push                 r5
+  Throw                1
+L3:
+  Push                 r4
+  PopLocal             r0
+  Push                 r0
+  LoadContextVar       0
   PushConstant         CP#14
   IndirectStaticCall   1, CP#3
   Drop1
-  Push                 r4
-  Push                 r5
-  Throw                1
-L5:
-  Push                 r4
-  PopLocal             r0
-  Push                 r0
-  LoadContextVar       0
-  PushConstant         CP#15
-  IndirectStaticCall   1, CP#3
-  Drop1
   PushInt              43
-  ReturnTOS
-L6:
-  Push                 r4
-  PopLocal             r0
-  Push                 r0
-  LoadContextVar       0
-  PushConstant         CP#16
-  IndirectStaticCall   1, CP#3
-  Drop1
-  PushInt              42
-  ReturnTOS
-L2:
-  Push                 r2
-  PopLocal             r0
-  Push                 r0
-  PopLocal             r4
-Try #3 start:
-  PushConstant         CP#8
-  PushConstant         CP#17
-  IndirectStaticCall   1, CP#3
-  Drop1
-  Jump                 L7
-  Jump                 L8
-Try #3 end:
-Try #3 handler:
-  SetFrame             6
-  Push                 r4
-  PopLocal             r0
-  MoveSpecial          r4, exception
-  MoveSpecial          r5, stackTrace
-  Push                 r0
-  LoadContextVar       0
-  PushConstant         CP#18
-  IndirectStaticCall   1, CP#3
-  Drop1
-  Push                 r4
-  Push                 r5
-  Throw                1
-L7:
-  Push                 r4
-  PopLocal             r0
-  Push                 r0
-  LoadContextVar       0
-  PushConstant         CP#19
-  IndirectStaticCall   1, CP#3
-  Drop1
-  PushInt              43
-  ReturnTOS
-L8:
-  Push                 r4
-  PopLocal             r0
-  Push                 r0
-  LoadContextVar       0
-  PushConstant         CP#20
-  IndirectStaticCall   1, CP#3
-  Drop1
-  PushNull
   ReturnTOS
 
 }
@@ -1232,7 +1130,7 @@ L8:
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
 Try #0 start:
@@ -1304,7 +1202,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

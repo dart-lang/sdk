@@ -296,7 +296,10 @@ void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
   SocketAddress::SetAddrPort(&addr, port);
   bool reuse_addr = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
-  intptr_t socket = Socket::CreateBindDatagram(addr, reuse_addr);
+  bool reuse_port = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
+  int ttl = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 5));
+  intptr_t socket =
+      Socket::CreateBindDatagram(addr, reuse_addr, reuse_port, ttl);
   if (socket >= 0) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket,
                                    Socket::kFinalizerNormal);

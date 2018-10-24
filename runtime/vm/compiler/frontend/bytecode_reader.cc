@@ -34,12 +34,21 @@ BytecodeMetadataHelper::BytecodeMetadataHelper(KernelReaderHelper* helper,
       type_translator_(*type_translator),
       active_class_(active_class) {}
 
+bool BytecodeMetadataHelper::HasBytecode(intptr_t node_offset) {
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  return (md_offset >= 0);
+}
+
 void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
 #if !defined(PRODUCT)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadMetadata");
+  // This increases bytecode reading time by ~7%, so only keep it around for
+  // debugging.
+#if defined(DEBUG)
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "Function", function.ToQualifiedCString());
+#endif  // defined(DEBUG)
 #endif  // !defined(PRODUCT)
 
   const intptr_t node_offset = function.kernel_offset();
@@ -48,8 +57,21 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     return;
   }
 
+  ASSERT(Thread::Current()->IsMutatorThread());
+
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
+
+  const intptr_t version = helper_->reader_.ReadUInt();
+  if ((version < KernelBytecode::kMinSupportedBytecodeFormatVersion) ||
+      (version > KernelBytecode::kMaxSupportedBytecodeFormatVersion)) {
+    FATAL3(
+        "Unsupported Dart bytecode format version %" Pd
+        ". This version of Dart VM supports bytecode format versions from %" Pd
+        " to %" Pd ".",
+        version, KernelBytecode::kMinSupportedBytecodeFormatVersion,
+        KernelBytecode::kMaxSupportedBytecodeFormatVersion);
+  }
 
   const int kHasExceptionsTableFlag = 1 << 0;
   const int kHasNullableFieldsFlag = 1 << 1;
@@ -757,6 +779,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!function.HasBytecode());
   ASSERT(thread->sticky_error() == Error::null());
+  ASSERT(Thread::Current()->IsMutatorThread());
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {

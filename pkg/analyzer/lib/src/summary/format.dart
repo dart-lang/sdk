@@ -3502,6 +3502,7 @@ class LinkedUnitBuilder extends Object
     with _LinkedUnitMixin
     implements idl.LinkedUnit {
   List<int> _constCycles;
+  List<int> _notSimplyBounded;
   List<int> _parametersInheritingCovariant;
   List<LinkedReferenceBuilder> _references;
   List<TopLevelInferenceErrorBuilder> _topLevelInferenceErrors;
@@ -3515,6 +3516,17 @@ class LinkedUnitBuilder extends Object
   void set constCycles(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._constCycles = value;
+  }
+
+  @override
+  List<int> get notSimplyBounded => _notSimplyBounded ??= <int>[];
+
+  /// List of slot ids (referring to [UnlinkedClass.notSimplyBoundedSlot] or
+  /// [UnlinkedTypedef.notSimplyBoundedSlot]) corresponding to classes and
+  /// typedefs that are not simply bounded.
+  void set notSimplyBounded(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._notSimplyBounded = value;
   }
 
   @override
@@ -3563,11 +3575,13 @@ class LinkedUnitBuilder extends Object
 
   LinkedUnitBuilder(
       {List<int> constCycles,
+      List<int> notSimplyBounded,
       List<int> parametersInheritingCovariant,
       List<LinkedReferenceBuilder> references,
       List<TopLevelInferenceErrorBuilder> topLevelInferenceErrors,
       List<EntityRefBuilder> types})
       : _constCycles = constCycles,
+        _notSimplyBounded = notSimplyBounded,
         _parametersInheritingCovariant = parametersInheritingCovariant,
         _references = references,
         _topLevelInferenceErrors = topLevelInferenceErrors,
@@ -3626,16 +3640,28 @@ class LinkedUnitBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    if (this._notSimplyBounded == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._notSimplyBounded.length);
+      for (var x in this._notSimplyBounded) {
+        signature.addInt(x);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_constCycles;
+    fb.Offset offset_notSimplyBounded;
     fb.Offset offset_parametersInheritingCovariant;
     fb.Offset offset_references;
     fb.Offset offset_topLevelInferenceErrors;
     fb.Offset offset_types;
     if (!(_constCycles == null || _constCycles.isEmpty)) {
       offset_constCycles = fbBuilder.writeListUint32(_constCycles);
+    }
+    if (!(_notSimplyBounded == null || _notSimplyBounded.isEmpty)) {
+      offset_notSimplyBounded = fbBuilder.writeListUint32(_notSimplyBounded);
     }
     if (!(_parametersInheritingCovariant == null ||
         _parametersInheritingCovariant.isEmpty)) {
@@ -3658,6 +3684,9 @@ class LinkedUnitBuilder extends Object
     fbBuilder.startTable();
     if (offset_constCycles != null) {
       fbBuilder.addOffset(2, offset_constCycles);
+    }
+    if (offset_notSimplyBounded != null) {
+      fbBuilder.addOffset(5, offset_notSimplyBounded);
     }
     if (offset_parametersInheritingCovariant != null) {
       fbBuilder.addOffset(3, offset_parametersInheritingCovariant);
@@ -3692,6 +3721,7 @@ class _LinkedUnitImpl extends Object
   _LinkedUnitImpl(this._bc, this._bcOffset);
 
   List<int> _constCycles;
+  List<int> _notSimplyBounded;
   List<int> _parametersInheritingCovariant;
   List<idl.LinkedReference> _references;
   List<idl.TopLevelInferenceError> _topLevelInferenceErrors;
@@ -3702,6 +3732,13 @@ class _LinkedUnitImpl extends Object
     _constCycles ??=
         const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _constCycles;
+  }
+
+  @override
+  List<int> get notSimplyBounded {
+    _notSimplyBounded ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+    return _notSimplyBounded;
   }
 
   @override
@@ -3741,6 +3778,8 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
+    if (notSimplyBounded.isNotEmpty)
+      _result["notSimplyBounded"] = notSimplyBounded;
     if (parametersInheritingCovariant.isNotEmpty)
       _result["parametersInheritingCovariant"] = parametersInheritingCovariant;
     if (references.isNotEmpty)
@@ -3757,6 +3796,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   @override
   Map<String, Object> toMap() => {
         "constCycles": constCycles,
+        "notSimplyBounded": notSimplyBounded,
         "parametersInheritingCovariant": parametersInheritingCovariant,
         "references": references,
         "topLevelInferenceErrors": topLevelInferenceErrors,
@@ -5238,6 +5278,7 @@ class UnlinkedClassBuilder extends Object
   List<EntityRefBuilder> _mixins;
   String _name;
   int _nameOffset;
+  int _notSimplyBoundedSlot;
   List<EntityRefBuilder> _superclassConstraints;
   List<String> _superInvokedNames;
   EntityRefBuilder _supertype;
@@ -5347,6 +5388,21 @@ class UnlinkedClassBuilder extends Object
   }
 
   @override
+  int get notSimplyBoundedSlot => _notSimplyBoundedSlot ??= 0;
+
+  /// If the class might not be simply bounded, a nonzero slot id which is unique
+  /// within this compilation unit.  If this id is found in
+  /// [LinkedUnit.notSimplyBounded], then at least one of this class's type
+  /// parameters is not simply bounded, hence this class can't be used as a raw
+  /// type when specifying the bound of a type parameter.
+  ///
+  /// Otherwise, zero.
+  void set notSimplyBoundedSlot(int value) {
+    assert(value == null || value >= 0);
+    this._notSimplyBoundedSlot = value;
+  }
+
+  @override
   List<EntityRefBuilder> get superclassConstraints =>
       _superclassConstraints ??= <EntityRefBuilder>[];
 
@@ -5399,6 +5455,7 @@ class UnlinkedClassBuilder extends Object
       List<EntityRefBuilder> mixins,
       String name,
       int nameOffset,
+      int notSimplyBoundedSlot,
       List<EntityRefBuilder> superclassConstraints,
       List<String> superInvokedNames,
       EntityRefBuilder supertype,
@@ -5415,6 +5472,7 @@ class UnlinkedClassBuilder extends Object
         _mixins = mixins,
         _name = name,
         _nameOffset = nameOffset,
+        _notSimplyBoundedSlot = notSimplyBoundedSlot,
         _superclassConstraints = superclassConstraints,
         _superInvokedNames = superInvokedNames,
         _supertype = supertype,
@@ -5511,6 +5569,7 @@ class UnlinkedClassBuilder extends Object
         signature.addString(x);
       }
     }
+    signature.addInt(this._notSimplyBoundedSlot ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5607,6 +5666,9 @@ class UnlinkedClassBuilder extends Object
     if (_nameOffset != null && _nameOffset != 0) {
       fbBuilder.addUint32(1, _nameOffset);
     }
+    if (_notSimplyBoundedSlot != null && _notSimplyBoundedSlot != 0) {
+      fbBuilder.addUint32(16, _notSimplyBoundedSlot);
+    }
     if (offset_superclassConstraints != null) {
       fbBuilder.addOffset(14, offset_superclassConstraints);
     }
@@ -5651,6 +5713,7 @@ class _UnlinkedClassImpl extends Object
   List<idl.EntityRef> _mixins;
   String _name;
   int _nameOffset;
+  int _notSimplyBoundedSlot;
   List<idl.EntityRef> _superclassConstraints;
   List<String> _superInvokedNames;
   idl.EntityRef _supertype;
@@ -5740,6 +5803,13 @@ class _UnlinkedClassImpl extends Object
   }
 
   @override
+  int get notSimplyBoundedSlot {
+    _notSimplyBoundedSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
+    return _notSimplyBoundedSlot;
+  }
+
+  @override
   List<idl.EntityRef> get superclassConstraints {
     _superclassConstraints ??=
         const fb.ListReader<idl.EntityRef>(const _EntityRefReader())
@@ -5795,6 +5865,8 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
       _result["mixins"] = mixins.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (notSimplyBoundedSlot != 0)
+      _result["notSimplyBoundedSlot"] = notSimplyBoundedSlot;
     if (superclassConstraints.isNotEmpty)
       _result["superclassConstraints"] =
           superclassConstraints.map((_value) => _value.toJson()).toList();
@@ -5821,6 +5893,7 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
         "mixins": mixins,
         "name": name,
         "nameOffset": nameOffset,
+        "notSimplyBoundedSlot": notSimplyBoundedSlot,
         "superclassConstraints": superclassConstraints,
         "superInvokedNames": superInvokedNames,
         "supertype": supertype,
@@ -10145,6 +10218,7 @@ class UnlinkedTypedefBuilder extends Object
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
   int _nameOffset;
+  int _notSimplyBoundedSlot;
   List<UnlinkedParamBuilder> _parameters;
   EntityRefBuilder _returnType;
   idl.TypedefStyle _style;
@@ -10195,6 +10269,21 @@ class UnlinkedTypedefBuilder extends Object
   }
 
   @override
+  int get notSimplyBoundedSlot => _notSimplyBoundedSlot ??= 0;
+
+  /// If the typedef might not be simply bounded, a nonzero slot id which is
+  /// unique within this compilation unit.  If this id is found in
+  /// [LinkedUnit.notSimplyBounded], then at least one of this typedef's type
+  /// parameters is not simply bounded, hence this typedef can't be used as a
+  /// raw type when specifying the bound of a type parameter.
+  ///
+  /// Otherwise, zero.
+  void set notSimplyBoundedSlot(int value) {
+    assert(value == null || value >= 0);
+    this._notSimplyBoundedSlot = value;
+  }
+
+  @override
   List<UnlinkedParamBuilder> get parameters =>
       _parameters ??= <UnlinkedParamBuilder>[];
 
@@ -10236,6 +10325,7 @@ class UnlinkedTypedefBuilder extends Object
       UnlinkedDocumentationCommentBuilder documentationComment,
       String name,
       int nameOffset,
+      int notSimplyBoundedSlot,
       List<UnlinkedParamBuilder> parameters,
       EntityRefBuilder returnType,
       idl.TypedefStyle style,
@@ -10245,6 +10335,7 @@ class UnlinkedTypedefBuilder extends Object
         _documentationComment = documentationComment,
         _name = name,
         _nameOffset = nameOffset,
+        _notSimplyBoundedSlot = notSimplyBoundedSlot,
         _parameters = parameters,
         _returnType = returnType,
         _style = style,
@@ -10295,6 +10386,7 @@ class UnlinkedTypedefBuilder extends Object
       }
     }
     signature.addInt(this._style == null ? 0 : this._style.index);
+    signature.addInt(this._notSimplyBoundedSlot ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -10345,6 +10437,9 @@ class UnlinkedTypedefBuilder extends Object
     if (_nameOffset != null && _nameOffset != 0) {
       fbBuilder.addUint32(1, _nameOffset);
     }
+    if (_notSimplyBoundedSlot != null && _notSimplyBoundedSlot != 0) {
+      fbBuilder.addUint32(9, _notSimplyBoundedSlot);
+    }
     if (offset_parameters != null) {
       fbBuilder.addOffset(3, offset_parameters);
     }
@@ -10382,6 +10477,7 @@ class _UnlinkedTypedefImpl extends Object
   idl.UnlinkedDocumentationComment _documentationComment;
   String _name;
   int _nameOffset;
+  int _notSimplyBoundedSlot;
   List<idl.UnlinkedParam> _parameters;
   idl.EntityRef _returnType;
   idl.TypedefStyle _style;
@@ -10418,6 +10514,13 @@ class _UnlinkedTypedefImpl extends Object
   int get nameOffset {
     _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
+  }
+
+  @override
+  int get notSimplyBoundedSlot {
+    _notSimplyBoundedSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
+    return _notSimplyBoundedSlot;
   }
 
   @override
@@ -10462,6 +10565,8 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
       _result["documentationComment"] = documentationComment.toJson();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (notSimplyBoundedSlot != 0)
+      _result["notSimplyBoundedSlot"] = notSimplyBoundedSlot;
     if (parameters.isNotEmpty)
       _result["parameters"] =
           parameters.map((_value) => _value.toJson()).toList();
@@ -10481,6 +10586,7 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
         "documentationComment": documentationComment,
         "name": name,
         "nameOffset": nameOffset,
+        "notSimplyBoundedSlot": notSimplyBoundedSlot,
         "parameters": parameters,
         "returnType": returnType,
         "style": style,

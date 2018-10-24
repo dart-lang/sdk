@@ -45,15 +45,12 @@ final dart2jsConfigurations = {
 };
 
 final dart2jsStatusFiles = {
-  'language': 'tests/language/language_dart2js.status',
-  'corelib': 'tests/corelib/corelib.status',
   'language_2': 'tests/language_2/language_2_dart2js.status',
   // TODO(sigmund,rnystrom): update when corelib_2 gets split into multiple
   // status files.
   'corelib_2': 'tests/corelib_2/corelib_2.status',
   'dart2js_extra': 'tests/compiler/dart2js_extra/dart2js_extra.status',
   'dart2js_native': 'tests/compiler/dart2js_native/dart2js_native.status',
-  'html': 'tests/html/html.status',
 };
 
 main(args) {

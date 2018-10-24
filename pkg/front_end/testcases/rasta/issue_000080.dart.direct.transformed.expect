@@ -12,7 +12,7 @@ class Mixin extends core::Object {
 }
 abstract class _Foo&Object&Mixin extends core::Object implements self::Mixin {
   field dynamic field = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_Foo&Object&Mixin
     : super core::Object::•()
     ;
   method foo() → dynamic

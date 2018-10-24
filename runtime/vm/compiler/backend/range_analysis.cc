@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/loops.h"
 
 namespace dart {
 
@@ -137,10 +138,10 @@ static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
     return NULL;
   }
 
-  BitVector* loop_info = phi->block()->loop_info();
+  BitVector* loop_blocks = phi->block()->loop_info()->blocks();
 
   const intptr_t backedge_idx =
-      loop_info->Contains(phi->block()->PredecessorAt(0)->preorder_number())
+      loop_blocks->Contains(phi->block()->PredecessorAt(0)->preorder_number())
           ? 0
           : 1;
 
@@ -163,6 +164,7 @@ static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
   return NULL;
 }
 
+// TODO(ajcbik): move induction variable recognition in loop framework
 void RangeAnalysis::DiscoverSimpleInductionVariables() {
   GrowableArray<InductionVariableInfo*> loop_variables;
 
@@ -171,7 +173,8 @@ void RangeAnalysis::DiscoverSimpleInductionVariables() {
     BlockEntryInstr* block = block_it.Current();
 
     JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL && join->loop_info() != NULL) {
+    if (join != NULL && join->loop_info() != NULL &&
+        join->loop_info()->header() == join) {
       loop_variables.Clear();
 
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
@@ -209,8 +212,9 @@ void RangeAnalysis::DiscoverSimpleInductionVariables() {
 }
 
 void RangeAnalysis::CollectValues() {
-  const GrowableArray<Definition*>& initial =
-      *flow_graph_->graph_entry()->initial_definitions();
+  auto graph_entry = flow_graph_->graph_entry();
+
+  auto& initial = *graph_entry->initial_definitions();
   for (intptr_t i = 0; i < initial.length(); ++i) {
     Definition* current = initial[i];
     if (IsIntegerDefinition(current)) {
@@ -218,23 +222,26 @@ void RangeAnalysis::CollectValues() {
     }
   }
 
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-
-    if (block->IsGraphEntry() || block->IsCatchBlockEntry()) {
-      const GrowableArray<Definition*>& initial =
-          block->IsGraphEntry()
-              ? *block->AsGraphEntry()->initial_definitions()
-              : *block->AsCatchBlockEntry()->initial_definitions();
-      for (intptr_t i = 0; i < initial.length(); ++i) {
-        Definition* current = initial[i];
+  for (intptr_t i = 0; i < graph_entry->SuccessorCount(); ++i) {
+    auto successor = graph_entry->SuccessorAt(i);
+    if (successor->IsFunctionEntry() || successor->IsCatchBlockEntry()) {
+      auto function_entry = successor->AsFunctionEntry();
+      auto catch_entry = successor->AsCatchBlockEntry();
+      const auto& initial = function_entry != nullptr
+                                ? *function_entry->initial_definitions()
+                                : *catch_entry->initial_definitions();
+      for (intptr_t j = 0; j < initial.length(); ++j) {
+        Definition* current = initial[j];
         if (IsIntegerDefinition(current)) {
           values_.Add(current);
         }
       }
     }
+  }
 
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
     JoinEntryInstr* join = block->AsJoinEntry();
     if (join != NULL) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
@@ -690,14 +697,28 @@ void RangeAnalysis::InferRanges() {
   // Collect integer definitions (including constraints) in the reverse
   // postorder. This improves convergence speed compared to iterating
   // values_ and constraints_ array separately.
-  const GrowableArray<Definition*>& initial =
-      *flow_graph_->graph_entry()->initial_definitions();
+  auto graph_entry = flow_graph_->graph_entry();
+  const auto& initial = *graph_entry->initial_definitions();
   for (intptr_t i = 0; i < initial.length(); ++i) {
     Definition* definition = initial[i];
     if (set->Contains(definition->ssa_temp_index())) {
       definitions_.Add(definition);
     }
   }
+
+  for (intptr_t i = 0; i < graph_entry->SuccessorCount(); ++i) {
+    auto successor = graph_entry->SuccessorAt(i);
+    if (auto function_entry = successor->AsFunctionEntry()) {
+      const auto& initial = *function_entry->initial_definitions();
+      for (intptr_t j = 0; j < initial.length(); ++j) {
+        Definition* definition = initial[j];
+        if (set->Contains(definition->ssa_temp_index())) {
+          definitions_.Add(definition);
+        }
+      }
+    }
+  }
+
   CollectDefinitions(set);
 
   // Perform an iteration of range inference just propagating ranges
@@ -753,7 +774,7 @@ class Scheduler {
  public:
   explicit Scheduler(FlowGraph* flow_graph)
       : flow_graph_(flow_graph),
-        loop_headers_(flow_graph->LoopHeaders()),
+        loop_headers_(flow_graph->GetLoopHierarchy().headers()),
         pre_headers_(loop_headers_.length()) {
     for (intptr_t i = 0; i < loop_headers_.length(); i++) {
       pre_headers_.Add(loop_headers_[i]->ImmediateDominator());

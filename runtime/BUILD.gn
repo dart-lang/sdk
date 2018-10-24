@@ -165,13 +165,20 @@ config("dart_config") {
       "-fno-exceptions",
     ]
 
-    if (dart_debug) {
+    ldflags = []
+    if (is_clang && dart_vm_code_coverage) {
+      cflags += [
+        "-O0",
+        "-fprofile-arcs",
+        "-ftest-coverage",
+      ]
+      ldflags += [ "--coverage" ]
+    } else if (dart_debug) {
       cflags += [ "-O${dart_debug_optimization_level}" ]
     } else {
       cflags += [ "-O3" ]
     }
 
-    ldflags = []
     if (defined(is_asan) && is_asan) {
       ldflags += [ "-fsanitize=address" ]
     }

@@ -179,7 +179,7 @@ def Main(args):
       return MakeCCFile(options)
 
   except Exception, inst:
-    sys.stderr.write('create_resources.py exception\n')
+    sys.stderr.write('create_archive.py exception\n')
     sys.stderr.write(str(inst))
     sys.stderr.write('\n')
     return -1

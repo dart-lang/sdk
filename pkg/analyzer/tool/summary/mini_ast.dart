@@ -403,6 +403,12 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+    pop(NullValue.TypeArguments);
+  }
+
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
   }

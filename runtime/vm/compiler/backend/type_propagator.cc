@@ -908,7 +908,15 @@ CompileType ParameterInstr::ComputeType() const {
   // for example receiver.
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
   if (graph_entry == NULL) {
-    graph_entry = block_->AsCatchBlockEntry()->graph_entry();
+    if (auto function_entry = block_->AsFunctionEntry()) {
+      graph_entry = function_entry->graph_entry();
+    } else if (auto osr_entry = block_->AsOsrEntry()) {
+      graph_entry = osr_entry->graph_entry();
+    } else if (auto catch_entry = block_->AsCatchBlockEntry()) {
+      graph_entry = catch_entry->graph_entry();
+    } else {
+      UNREACHABLE();
+    }
   }
   // Parameters at OSR entries have type dynamic.
   //
@@ -994,7 +1002,7 @@ CompileType ParameterInstr::ComputeType() const {
     if (index() < scope->num_variables()) {
       const LocalVariable* param = scope->VariableAt(index());
       CompileType* inferred_type = NULL;
-      if (block_->IsGraphEntry()) {
+      if (!block_->IsCatchBlockEntry()) {
         inferred_type = param->parameter_type();
       }
       // Best bet: use inferred type if it is a concrete class or int.

@@ -104,7 +104,7 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     ..packagesFileUri = toTestUri('.packages');
 
   if (options.sdkSummary == null) {
-    options.sdkRoot = computePlatformBinariesLocation();
+    options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   }
 }
 

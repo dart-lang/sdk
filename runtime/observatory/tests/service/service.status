@@ -15,9 +15,6 @@ valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 
-[ $builder_tag == optimization_counter_threshold ]
-pause_on_unhandled_async_exceptions_test: Pass, RuntimeError # http://dartbug.com/34673
-
 [ $compiler == app_jit ]
 bad_reload_test: RuntimeError # Issue 27806
 complex_reload_test: RuntimeError # Issue 27806
@@ -107,7 +104,7 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 *: SkipByDesign
 
 [ $compiler == dartk || $compiler == dartkp ]
-rewind_test: Pass, RuntimeError, Slow # Issue 34287
+rewind_test: Pass, Slow
 
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]

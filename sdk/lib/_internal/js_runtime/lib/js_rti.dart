@@ -463,7 +463,7 @@ String computeTypeName(String isField, List arguments) {
   // Extract the class name from the is field and append the textual
   // representation of the type arguments.
   return Primitives.formatType(
-      isCheckPropertyToJsConstructorName(isField), arguments);
+      unminifyOrTag(isCheckPropertyToJsConstructorName(isField)), arguments);
 }
 
 /// Called from generated code.

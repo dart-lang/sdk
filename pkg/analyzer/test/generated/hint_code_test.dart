@@ -1770,17 +1770,22 @@ abstract class B implements A {
   }
 
   test_invalidUseOfProtectedMember_in_docs_OK() async {
-    Source source = addSource(r'''
+    addNamedSource('/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
   @protected
-  int a() => c;
+  int c = 0;
+
   @protected
-  int get b => a();
+  int get b => 0;
+
   @protected
-  int c = 42;
+  int a() => 0;
 }
+''');
+    Source source = addSource(r'''
+import 'a.dart';
 
 /// OK: [A.a], [A.b], [A.c].
 f() {}

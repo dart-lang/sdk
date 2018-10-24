@@ -38,11 +38,6 @@ class DillTarget extends TargetImplementation {
   }
 
   @override
-  void read(Uri uri) {
-    unsupported("read", -1, null);
-  }
-
-  @override
   Future<Null> buildComponent() {
     return new Future<Null>.sync(() => unsupported("buildComponent", -1, null));
   }

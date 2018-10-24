@@ -710,8 +710,13 @@ class FunctionDeserializationCluster : public DeserializationCluster {
           func.SetInstructions(code);  // Set entrypoint.
           func.SetWasCompiled(true);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        } else if (func.HasBytecode() && !code.IsDisabled()) {
-          func.SetInstructions(code);  // Set entrypoint.
+        } else if (FLAG_enable_interpreter && func.HasBytecode()) {
+          // Set the code entry_point to InterpretCall stub.
+          func.SetInstructions(
+              Code::Handle(StubCode::InterpretCall_entry()->code()));
+        } else if (FLAG_use_bytecode_compiler && func.HasBytecode()) {
+          func.SetInstructions(
+              Code::Handle(StubCode::LazyCompile_entry()->code()));
 #endif                                 // !defined(DART_PRECOMPILED_RUNTIME)
         } else {
           func.ClearCode();  // Set code and entrypoint to lazy compile stub.
@@ -1151,160 +1156,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class LiteralTokenSerializationCluster : public SerializationCluster {
- public:
-  LiteralTokenSerializationCluster() : SerializationCluster("LiteralToken") {}
-  virtual ~LiteralTokenSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawLiteralToken* token = LiteralToken::RawCast(object);
-    objects_.Add(token);
-
-    RawObject** from = token->from();
-    RawObject** to = token->to();
-    for (RawObject** p = from; p <= to; p++) {
-      s->Push(*p);
-    }
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kLiteralTokenCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawLiteralToken* token = objects_[i];
-      s->AssignRef(token);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawLiteralToken* token = objects_[i];
-      RawObject** from = token->from();
-      RawObject** to = token->to();
-      for (RawObject** p = from; p <= to; p++) {
-        s->WriteRef(*p);
-      }
-      s->Write<int32_t>(token->ptr()->kind_);
-    }
-  }
-
- private:
-  GrowableArray<RawLiteralToken*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class LiteralTokenDeserializationCluster : public DeserializationCluster {
- public:
-  LiteralTokenDeserializationCluster() {}
-  virtual ~LiteralTokenDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, LiteralToken::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawLiteralToken* token = reinterpret_cast<RawLiteralToken*>(d->Ref(id));
-      Deserializer::InitializeHeader(
-          token, kLiteralTokenCid, LiteralToken::InstanceSize(), is_vm_object);
-      RawObject** from = token->from();
-      RawObject** to = token->to();
-      for (RawObject** p = from; p <= to; p++) {
-        *p = d->ReadRef();
-      }
-      token->ptr()->kind_ = static_cast<Token::Kind>(d->Read<int32_t>());
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class TokenStreamSerializationCluster : public SerializationCluster {
- public:
-  TokenStreamSerializationCluster() : SerializationCluster("TokenStream") {}
-  virtual ~TokenStreamSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawTokenStream* stream = TokenStream::RawCast(object);
-    objects_.Add(stream);
-
-    RawObject** from = stream->from();
-    RawObject** to = stream->to();
-    for (RawObject** p = from; p <= to; p++) {
-      s->Push(*p);
-    }
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kTokenStreamCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawTokenStream* stream = objects_[i];
-      s->AssignRef(stream);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawTokenStream* stream = objects_[i];
-      RawObject** from = stream->from();
-      RawObject** to = stream->to();
-      for (RawObject** p = from; p <= to; p++) {
-        s->WriteRef(*p);
-      }
-    }
-  }
-
- private:
-  GrowableArray<RawTokenStream*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class TokenStreamDeserializationCluster : public DeserializationCluster {
- public:
-  TokenStreamDeserializationCluster() {}
-  virtual ~TokenStreamDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, TokenStream::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTokenStream* stream = reinterpret_cast<RawTokenStream*>(d->Ref(id));
-      Deserializer::InitializeHeader(stream, kTokenStreamCid,
-                                     TokenStream::InstanceSize(), is_vm_object);
-      RawObject** from = stream->from();
-      RawObject** to = stream->to();
-      for (RawObject** p = from; p <= to; p++) {
-        *p = d->ReadRef();
-      }
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 class ScriptSerializationCluster : public SerializationCluster {
  public:
   ScriptSerializationCluster() : SerializationCluster("Script") {}
@@ -1656,6 +1507,18 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       for (RawObject** p = to + 1; p <= end; p++) {
         *p = Object::null();
       }
+    }
+  }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    Array& array_ = Array::Handle(zone);
+    KernelProgramInfo& info_ = KernelProgramInfo::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      info_ ^= refs.At(id);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_libraries_cache(array_);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_classes_cache(array_);
     }
   }
 };
@@ -4710,10 +4573,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) RedirectionDataSerializationCluster();
     case kFieldCid:
       return new (Z) FieldSerializationCluster();
-    case kLiteralTokenCid:
-      return new (Z) LiteralTokenSerializationCluster();
-    case kTokenStreamCid:
-      return new (Z) TokenStreamSerializationCluster();
     case kScriptCid:
       return new (Z) ScriptSerializationCluster();
     case kLibraryCid:
@@ -5235,10 +5094,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) RedirectionDataDeserializationCluster();
     case kFieldCid:
       return new (Z) FieldDeserializationCluster();
-    case kLiteralTokenCid:
-      return new (Z) LiteralTokenDeserializationCluster();
-    case kTokenStreamCid:
-      return new (Z) TokenStreamDeserializationCluster();
     case kScriptCid:
       return new (Z) ScriptDeserializationCluster();
     case kLibraryCid:
@@ -5666,8 +5521,6 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
       AddSeed(kernel_program_info_.metadata_payloads());
       AddSeed(kernel_program_info_.metadata_mappings());
       AddSeed(kernel_program_info_.constants());
-    } else {
-      AddSeed(script_.tokens());
     }
   }
 

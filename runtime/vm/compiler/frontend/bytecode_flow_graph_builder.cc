@@ -1011,8 +1011,17 @@ void BytecodeFlowGraphBuilder::BuildJump() {
 }
 
 void BytecodeFlowGraphBuilder::BuildJumpIfNoAsserts() {
+  ASSERT(B->stack_ == nullptr);
   if (!isolate()->asserts()) {
     BuildJump();
+    // Skip all instructions up to the target PC, as they are all unreachable.
+    // If not skipped, some of the assert code may be considered reachable
+    // (if it contains jumps) and generated. The problem is that generated
+    // code may expect values left on the stack from unreachable
+    // (and not generated) code which immediately follows this Jump.
+    const intptr_t target_pc = pc_ + DecodeOperandT().value();
+    ASSERT(target_pc > pc_);
+    pc_ = target_pc - 1;
   }
 }
 
@@ -1107,6 +1116,7 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   LoadStackSlots(1);
   ASSERT(code_.is_open());
   code_ += B->Return(position_);
+  ASSERT(B->stack_ == nullptr);
 }
 
 void BytecodeFlowGraphBuilder::BuildTrap() {
@@ -1127,8 +1137,7 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
     // rethrow
     LoadStackSlots(2);
     GetArguments(2);
-    code_ += Fragment(new (Z) ReThrowInstr(position_,
-                                           CatchClauseNode::kInvalidTryIndex,
+    code_ += Fragment(new (Z) ReThrowInstr(position_, kInvalidTryIndex,
                                            B->GetNextDeoptId()))
                  .closed();
   }
@@ -1327,7 +1336,7 @@ intptr_t BytecodeFlowGraphBuilder::GetTryIndex(const PcDescriptors& descriptors,
   const uword pc_offset =
       KernelBytecode::BytecodePcToOffset(pc, /* is_return_address = */ true);
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
-  intptr_t try_index = CatchClauseNode::kInvalidTryIndex;
+  intptr_t try_index = kInvalidTryIndex;
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
     const uword start_pc = iter.PcOffset();
@@ -1420,6 +1429,9 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
         handler_info.handler_pc_offset, /* is_return_address = */ false);
     JoinEntryInstr* join = EnsureControlFlowJoin(descriptors, handler_pc);
 
+    // Make sure exception handler starts with SetFrame bytecode instruction.
+    InstructionAt(handler_pc, KernelBytecode::kSetFrame);
+
     const Array& handler_types =
         Array::ZoneHandle(Z, handlers.GetHandledTypes(try_index));
 
@@ -1447,9 +1459,11 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   ProcessICDataInObjectPool(object_pool_);
 
-  TargetEntryInstr* normal_entry = B->BuildTargetEntry();
   GraphEntryInstr* graph_entry =
-      new (Z) GraphEntryInstr(*parsed_function_, normal_entry, B->osr_id_);
+      new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
+
+  auto normal_entry = B->BuildFunctionEntry(graph_entry);
+  graph_entry->set_normal_entry(normal_entry);
 
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(Z, bytecode.pc_descriptors());
@@ -1475,9 +1489,9 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
       }
       code_ = Fragment(join);
       B->SetCurrentTryIndex(join->try_index());
-    } else if (code_.is_closed()) {
-      // Skip unreachable bytecode instructions.
-      continue;
+    } else {
+      // Unreachable bytecode is not allowed.
+      ASSERT(!code_.is_closed());
     }
 
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));

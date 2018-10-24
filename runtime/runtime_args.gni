@@ -31,8 +31,12 @@ declare_args() {
   # Available options are: arm, arm64, x64, ia32, and dbc.
   dart_target_arch = target_cpu
 
-  # The optimization level to use for debug builds.
+  # The optimization level to use for debug builds. Defaults to 0 for builds with
+  # code coverage enabled.
   dart_debug_optimization_level = "2"
+
+  # Whether to enable code coverage for the standalone VM.
+  dart_vm_code_coverage = false
 
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.

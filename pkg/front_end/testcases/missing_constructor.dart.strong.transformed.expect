@@ -37,7 +37,7 @@ class M extends core::Object {
     ;
 }
 abstract class _MixinApplication&Super&M extends self::Super implements self::M {
-  synthetic constructor _() → void
+  synthetic constructor _() → self::_MixinApplication&Super&M
     : super self::Super::_()
     ;
 }

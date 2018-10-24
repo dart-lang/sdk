@@ -14,6 +14,14 @@
 
 namespace dart {
 
+// TODO(dartbug.com/34796): enable or remove this optimization.
+DEFINE_FLAG(
+    uint64_t,
+    externalize_typed_data_threshold,
+    kMaxUint64,
+    "Convert TypedData to ExternalTypedData when sending through a message"
+    " port after it exceeds certain size in bytes.");
+
 #define OFFSET_OF_FROM(obj)                                                    \
   obj.raw()->from() - reinterpret_cast<RawObject**>(obj.raw()->ptr())
 
@@ -588,38 +596,6 @@ void RawField::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind,
                        bool as_reference) {
-  UNREACHABLE();
-}
-
-RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();
-  return LiteralToken::null();
-}
-
-void RawLiteralToken::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();
-}
-
-RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind,
-                                      bool as_reference) {
-  UNREACHABLE();
-  return TokenStream::null();
-}
-
-void RawTokenStream::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind,
-                             bool as_reference) {
   UNREACHABLE();
 }
 
@@ -1897,8 +1873,6 @@ static void IsolateMessageTypedDataFinalizer(void* isolate_callback_data,
   free(buffer);
 }
 
-static const intptr_t kExternalizeTypedDataThreshold = 4 * KB;
-
 void RawTypedData::WriteTo(SnapshotWriter* writer,
                            intptr_t object_id,
                            Snapshot::Kind kind,
@@ -1975,7 +1949,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
   writer->WriteInlinedObjectHeader(object_id);
 
   if ((kind == Snapshot::kMessage) &&
-      (bytes >= kExternalizeTypedDataThreshold)) {
+      (static_cast<uint64_t>(bytes) >= FLAG_externalize_typed_data_threshold)) {
     // Write as external.
     writer->WriteIndexedObject(external_cid);
     writer->WriteTags(writer->GetObjectTags(this));
@@ -2076,31 +2050,21 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
 
-  if ((kind == Snapshot::kMessage) &&
-      (bytes >= kExternalizeTypedDataThreshold)) {
-    // Write as external.
-    writer->WriteIndexedObject(cid);
-    writer->WriteTags(writer->GetObjectTags(this));
-    writer->Write<RawObject*>(ptr()->length_);
-    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
-    void* passed_data = malloc(bytes);
-    if (passed_data == NULL) {
-      OUT_OF_MEMORY();
-    }
-    memmove(passed_data, data, bytes);
-    static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
-        bytes,
-        passed_data,  // data
-        passed_data,  // peer,
-        IsolateMessageTypedDataFinalizer);
-  } else {
-    // Write as internal.
-    writer->WriteIndexedObject(internal_cid);
-    writer->WriteTags(writer->GetObjectTags(this));
-    writer->Write<RawObject*>(ptr()->length_);
-    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
-    writer->WriteBytes(data, bytes);
+  // Write as external.
+  writer->WriteIndexedObject(cid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<RawObject*>(ptr()->length_);
+  uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+  void* passed_data = malloc(bytes);
+  if (passed_data == NULL) {
+    OUT_OF_MEMORY();
   }
+  memmove(passed_data, data, bytes);
+  static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
+      bytes,
+      passed_data,  // data
+      passed_data,  // peer,
+      IsolateMessageTypedDataFinalizer);
 }
 
 RawCapability* Capability::ReadFrom(SnapshotReader* reader,

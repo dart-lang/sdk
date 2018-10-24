@@ -16,7 +16,7 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
   /// was encountered while visiting a closure (initially called through
-  /// [translateLazyIntializer] or [translateConstructorOrProcedure]).
+  /// [translateLazyInitializer] or [translateConstructorOrProcedure]).
   Map<ir.Node, KernelCapturedScope> get _scopesCapturedInClosureMap =>
       _model.capturedScopesMap;
 

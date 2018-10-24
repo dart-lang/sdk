@@ -2473,13 +2473,10 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
 }
 
-volatile int ctr = 0;
-
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
   ASSERT(cls.is_type_finalized());
-  if (strstr(cls.ToCString(), "AssertionError")) ++ctr;
   if (cls.is_finalized()) {
     return;
   }
@@ -2520,7 +2517,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     ApplyMixinMembers(cls);
   }
   // Mark as parsed and finalized.
-  if (strstr(cls.ToCString(), "AssertionError")) ++ctr;
   cls.Finalize();
   // Mixin app alias classes may still lack their forwarding constructor.
   if (cls.is_mixin_app_alias() &&
@@ -3607,6 +3603,45 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 #endif
 }
 
+// Clears the cached canonicalized hash codes for all instances which directly
+// (or indirectly) depend on class ids.
+//
+// In the Dart VM heap the following instances directly use cids for the
+// computation of canonical hash codes:
+//
+//    * RawType (due to RawType::type_class_id_)
+//    * RawTypeParameter (due to RawTypeParameter::parameterized_class_id_)
+//
+// The following instances use cids for the computation of canonical hash codes
+// indirectly:
+//
+//    * RawTypeRef (due to RawTypeRef::type_->type_class_id)
+//    * RawType (due to RawType::signature_'s result/parameter types)
+//    * RawBoundedType (due to RawBoundedType::type_parameter_)
+//    * RawTypeArguments (due to type references)
+//    * RawInstance (due to instance fields)
+//    * RawArray (due to type arguments & array entries)
+//
+// Caching of the canonical hash codes happens for:
+//
+//    * RawType::hash_
+//    * RawTypeParameter::hash_
+//    * RawBoundedType::hash_
+//    * RawTypeArguments::hash_
+//
+// No caching of canonical hash codes (i.e. it gets re-computed every time)
+// happens for:
+//
+//    * RawTypeRef (computed via RawTypeRef::type_->type_class_id)
+//    * RawInstance (computed via size & fields)
+//    * RawArray (computed via type arguments & array entries)
+//
+// Usages of canonical hash codes are:
+//
+//   * ObjectStore::canonical_types()
+//   * ObjectStore::canonical_type_arguments()
+//   * Class::constants()
+//
 class ClearTypeHashVisitor : public ObjectVisitor {
  public:
   explicit ClearTypeHashVisitor(Zone* zone)
@@ -3692,6 +3727,10 @@ void ClassFinalizer::RehashTypes() {
     typeargs_table.Release();
   }
 
+  // The canonical constant tables use canonical hashcodes which can change
+  // due to cid-renumbering.
+  I->RehashConstants();
+
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
   typeargs_array =
       HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
@@ -3715,7 +3754,11 @@ void ClassFinalizer::ClearAllCode() {
   ProgramVisitor::VisitFunctions(&function_visitor);
 
   class ClearCodeClassVisitor : public ClassVisitor {
-    void Visit(const Class& cls) { cls.DisableAllocationStub(); }
+    void Visit(const Class& cls) {
+      if (cls.id() >= kNumPredefinedCids) {
+        cls.DisableAllocationStub();
+      }
+    }
   };
   ClearCodeClassVisitor class_visitor;
   ProgramVisitor::VisitClasses(&class_visitor);

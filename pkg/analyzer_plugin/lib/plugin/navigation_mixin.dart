@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -75,7 +75,7 @@ abstract class NavigationMixin implements ServerPlugin {
     NavigationGenerator generator =
         new NavigationGenerator(getNavigationContributors(path));
     GeneratorResult<AnalysisGetNavigationResult> result =
-        await generator.generateNavigationResponse(request);
+        generator.generateNavigationResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
@@ -94,7 +94,7 @@ abstract class NavigationMixin implements ServerPlugin {
       NavigationGenerator generator =
           new NavigationGenerator(getNavigationContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateNavigationNotification(request);
+          generator.generateNavigationNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

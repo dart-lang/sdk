@@ -623,9 +623,10 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   InstanceCreationExpression instanceCreationExpression(Token keyword,
-          ConstructorName constructorName, ArgumentList argumentList) =>
-      new InstanceCreationExpressionImpl(
-          keyword, constructorName, argumentList);
+          ConstructorName constructorName, ArgumentList argumentList,
+          {TypeArgumentList typeArguments}) =>
+      new InstanceCreationExpressionImpl(keyword, constructorName, argumentList,
+          typeArguments: typeArguments);
 
   @override
   IntegerLiteral integerLiteral(Token literal, int value) =>

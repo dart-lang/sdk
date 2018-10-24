@@ -157,7 +157,9 @@ class GnWorkspace extends Workspace {
   /**
    * Find the GN workspace that contains the given [path].
    *
-   * Return `null` if a workspace could not be found.
+   * Return `null` if a workspace could not be found. For a workspace to be
+   * found, both a `.jiri_root` file must be found, and at least one "packages"
+   * file must be found in [path]'s output directory.
    */
   static GnWorkspace find(ResourceProvider provider, String path) {
     Context context = provider.pathContext;
@@ -182,10 +184,10 @@ class GnWorkspace extends Workspace {
         if (packagesFiles.isEmpty) {
           return null;
         }
-        return new GnWorkspace._(provider, path, packagesFiles);
+        return new GnWorkspace._(provider, root, packagesFiles);
       }
 
-      // Go up the folder.
+      // Go up one folder.
       folder = parent;
     }
   }

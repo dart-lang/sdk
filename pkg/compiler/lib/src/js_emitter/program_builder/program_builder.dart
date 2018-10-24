@@ -182,7 +182,8 @@ class ProgramBuilder {
     // Note: In rare cases (mostly tests) output units can be empty. This
     // happens when the deferred code is dead-code eliminated but we still need
     // to check that the library has been loaded.
-    _deferredLoadTask.allOutputUnits.forEach(_registry.registerOutputUnit);
+    _closedWorld.outputUnitData.outputUnits
+        .forEach(_registry.registerOutputUnit);
     collector.outputClassLists.forEach(_registry.registerClasses);
     collector.outputStaticLists.forEach(_registry.registerMembers);
     collector.outputConstantLists.forEach(_registerConstants);
@@ -648,8 +649,8 @@ class ProgramBuilder {
         _rtiEncoder,
         _jsInteropAnalysis);
 
-    void visitMember(MemberEntity member) {
-      if (member.isInstanceMember && !member.isAbstract && !member.isField) {
+    void visitInstanceMember(MemberEntity member) {
+      if (!member.isAbstract && !member.isField) {
         if (member is! JSignatureMethod) {
           Method method = _buildMethod(member);
           if (method != null) methods.add(method);
@@ -665,6 +666,12 @@ class ProgramBuilder {
             callStubs.add(_buildStubMethod(name, code, element: member));
           });
         }
+      }
+    }
+
+    void visitMember(MemberEntity member) {
+      if (member.isInstanceMember) {
+        visitInstanceMember(member);
       }
     }
 

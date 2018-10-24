@@ -184,8 +184,6 @@ class ObjectPointerVisitor;
   V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
-  V(LiteralToken, "LiteralToken")                                              \
-  V(TokenStream, "TokenStream")                                                \
   V(Script, "Script")                                                          \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
@@ -366,7 +364,6 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
-  V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
@@ -451,8 +448,6 @@ class ObjectPointerVisitor;
   V(options, "options")                                                        \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
-  V(_classRangeAssert, "_classRangeAssert")                                    \
-  V(_classIdEqualsAssert, "_classIdEqualsAssert")                              \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(PrependTypeArguments, "_prependTypeArguments")                             \

@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library summary_resynthesizer;
 
 import 'dart:collection';
 
@@ -441,6 +439,12 @@ class SummaryResynthesizerContext implements ResynthesizerContext {
   @override
   bool isInConstCycle(int slot) {
     return unitResynthesizer.constCycles.contains(slot);
+  }
+
+  @override
+  bool isSimplyBounded(int notSimplyBoundedSlot) {
+    return !unitResynthesizer.linkedUnit.notSimplyBounded
+        .contains(notSimplyBoundedSlot);
   }
 
   @override
@@ -1050,7 +1054,8 @@ class _ReferenceInfo extends ReferenceInfo {
       } else {
         typeArguments = _dynamicTypeArguments;
       }
-      return actualElement.typeAfterSubstitution(typeArguments);
+      return GenericTypeAliasElementImpl.typeAfterSubstitution(
+          actualElement, typeArguments);
     } else if (element is FunctionTypedElement) {
       if (element is FunctionTypeAliasElementHandle) {
         List<DartType> typeArguments;
@@ -1080,8 +1085,7 @@ class _ReferenceInfo extends ReferenceInfo {
         } else {
           typeArguments = _dynamicTypeArguments;
         }
-        return new FunctionTypeImpl.forTypedef(element,
-            typeArguments: typeArguments);
+        return element.instantiate(typeArguments);
       } else {
         FunctionTypedElementComputer computer;
         if (implicitFunctionTypeIndices.isNotEmpty) {

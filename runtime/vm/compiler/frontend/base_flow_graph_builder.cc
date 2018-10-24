@@ -571,6 +571,12 @@ TargetEntryInstr* BaseFlowGraphBuilder::BuildTargetEntry() {
       TargetEntryInstr(AllocateBlockId(), CurrentTryIndex(), GetNextDeoptId());
 }
 
+FunctionEntryInstr* BaseFlowGraphBuilder::BuildFunctionEntry(
+    GraphEntryInstr* graph_entry) {
+  return new (Z) FunctionEntryInstr(graph_entry, AllocateBlockId(),
+                                    CurrentTryIndex(), GetNextDeoptId());
+}
+
 JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
   return new (Z) JoinEntryInstr(AllocateBlockId(), try_index, GetNextDeoptId());
 }

@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.src.task.strong.checker_test;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2644,17 +2642,17 @@ class Base {
 }
 
 class T1 extends Base {
-  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_OVERRIDE*/B get f => null;
+  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
 }
 
 class T2 extends Base {
-  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_OVERRIDE*/set f(
+  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(
       B b) => null;
 }
 
 class T3 extends Base {
   /*error:INVALID_OVERRIDE*/final B
-      /*error:FINAL_NOT_INITIALIZED*/f;
+      /*error:FINAL_NOT_INITIALIZED, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
@@ -2662,15 +2660,15 @@ class T4 extends Base {
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
-  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_OVERRIDE*/B get f => null;
+  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T6 implements Base {
-  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_OVERRIDE*/set f(B b) => null;
+  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(B b) => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T7 implements Base {
-  /*error:INVALID_OVERRIDE*/final B f = null;
+  /*error:INVALID_OVERRIDE*/final B /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f = null;
 }
 class T8 implements Base {
   // two: one for the getter one for the setter.
@@ -3849,52 +3847,6 @@ class B extends A {
   B() : super(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
 }
 ''');
-  }
-
-  @failingTest
-  test_superMixin_invalidApplication() {
-    // Failing: https://github.com/dart-lang/sdk/issues/30283
-    return checkFile(r'''
-    class A {
-  int get foo => 3;
-}
-
-// This expects a super class which satisfies the contract of A
-class B extends A {}
-
-class C {
-  num get foo => null;
-}
-
-// This mixin application doesn't provide a valid superclass for B
-class D extends C with /*error:INCONSISTENT_INHERITANCE*/B {}
-}
-    ''', superMixins: true);
-  }
-
-  test_superMixinsMakeSuperclassMethodsAbstract() {
-    return checkFile(r'''
-  abstract class A {}
-
-abstract class B extends A {}
-
-abstract class ProvidesConcreteAGetter {
-  A get constraints => null;
-}
-
-abstract class ProvidesConcreteBGetter extends ProvidesConcreteAGetter {
-  @override
-  B get constraints => null;
-}
-
-abstract class ProvidesAbstractBGetter implements ProvidesConcreteBGetter {}
-
-abstract class ProvidesAbstractAGetterMixin extends ProvidesConcreteAGetter {}
-
-abstract class HasConcreteBGetterButMixesinAbstractAGetter
-    extends ProvidesConcreteBGetter
-    with ProvidesAbstractAGetterMixin, ProvidesAbstractBGetter {}
-    ''', superMixins: true);
   }
 
   test_tearOffTreatedConsistentlyAsStrictArrow() async {

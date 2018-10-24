@@ -568,18 +568,14 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
-  Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
-    isolate->set_interpreter(NULL);
-  }
 }
 
 // Get the active Interpreter for the current isolate.
 Interpreter* Interpreter::Current() {
-  Interpreter* interpreter = Isolate::Current()->interpreter();
+  Interpreter* interpreter = Thread::Current()->interpreter();
   if (interpreter == NULL) {
     interpreter = new Interpreter();
-    Isolate::Current()->set_interpreter(interpreter);
+    Thread::Current()->set_interpreter(interpreter);
   }
   return interpreter;
 }
@@ -665,6 +661,9 @@ DART_FORCE_INLINE static void LeaveSyntheticFrame(RawObject*** FP,
   *SP = fp - kKBCDartFrameFixedSize;
 }
 
+// Calling into runtime may trigger garbage collection and relocate objects,
+// so all RawObject* pointers become outdated and should not be used across
+// runtime calls.
 // Note: functions below are marked DART_NOINLINE to recover performance on
 // ARM where inlining these functions into the interpreter loop seemed to cause
 // some code quality issues.
@@ -788,6 +787,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
                                                   RawObject*** FP,
                                                   RawObject*** SP) {
   ASSERT(!Function::HasCode(function) && !Function::HasBytecode(function));
+  ASSERT(function == call_top[0]);
   // If the function is an implicit getter or setter, process its invocation
   // here without code or bytecode.
   RawFunction::Kind kind = Function::kind(function);
@@ -804,7 +804,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
     }
     case RawFunction::kImplicitSetter: {
       // Field object is cached in function's data_.
-      RawInstance* instance = reinterpret_cast<RawInstance*>(*call_base);
+      RawInstance* instance = reinterpret_cast<RawInstance*>(call_base[0]);
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
       RawAbstractType* field_type = field->ptr()->type_;
@@ -818,7 +818,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       // Perform type test of value if field type is not one of dynamic, object,
       // or void, and if the value is not null.
       RawObject* null_value = Object::null();
-      RawObject* value = *(call_base + 1);
+      RawObject* value = call_base[1];
       if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
           value != null_value) {
         RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;
@@ -832,29 +832,40 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
             *invoked = true;
             return false;
           }
+          // Reload objects after the call which may trigger GC.
+          function = reinterpret_cast<RawFunction*>(call_top[0]);
+          field = reinterpret_cast<RawField*>(function->ptr()->data_);
+          field_type = field->ptr()->type_;
+          instance = reinterpret_cast<RawInstance*>(call_base[0]);
+          value = call_base[1];
           cache = reinterpret_cast<RawSubtypeTestCache*>(call_top[1]);
           field->ptr()->type_test_cache_ = cache;
         }
         // Push arguments of type test.
-        // Type checked value is at call_base + 1.
-        call_base[2] = field_type;
+        call_top[1] = value;
+        call_top[2] = field_type;
         // Provide type arguments of instance as instantiator.
         RawClass* instance_class = thread->isolate()->class_table()->At(
             InterpreterHelpers::GetClassId(instance));
-        call_base[3] =
+        call_top[3] =
             instance_class->ptr()->num_type_arguments_ > 0
                 ? reinterpret_cast<RawObject**>(
                       instance
                           ->ptr())[instance_class->ptr()
                                        ->type_arguments_field_offset_in_words_]
                 : null_value;
-        call_base[4] = null_value;  // Implicit setters cannot be generic.
-        call_base[5] = field->ptr()->name_;
-        if (!AssertAssignable(thread, *pc, *FP, call_base + 5, call_base + 1,
+        call_top[4] = null_value;  // Implicit setters cannot be generic.
+        call_top[5] = field->ptr()->name_;
+        if (!AssertAssignable(thread, *pc, *FP, call_top + 5, call_top + 1,
                               cache)) {
           *invoked = true;
           return false;
         }
+        // Reload objects after the call which may trigger GC.
+        function = reinterpret_cast<RawFunction*>(call_top[0]);
+        field = reinterpret_cast<RawField*>(function->ptr()->data_);
+        instance = reinterpret_cast<RawInstance*>(call_base[0]);
+        value = call_base[1];
       }
       if (thread->isolate()->use_field_guards()) {
         // Check value cid according to field.guarded_cid().
@@ -880,6 +891,9 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
               *invoked = true;
               return false;
             }
+            // Reload objects after the call which may trigger GC.
+            instance = reinterpret_cast<RawInstance*>(call_base[0]);
+            value = call_base[1];
           }
         }
       }
@@ -905,6 +919,9 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
           *invoked = true;
           return false;
         }
+        // Reload objects after the call which may trigger GC.
+        function = reinterpret_cast<RawFunction*>(call_top[0]);
+        field = reinterpret_cast<RawField*>(function->ptr()->data_);
         pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
         // The field is initialized by the runtime call, but not returned.
         value = field->ptr()->value_.static_value_;
@@ -1055,7 +1072,8 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
-    THR_Print("invoking %s\n", Function::Handle(function).ToCString());
+    THR_Print("invoking %s\n",
+              Function::Handle(function).ToFullyQualifiedCString());
   }
 #endif
   RawCode* bytecode = function->ptr()->bytecode_;
@@ -1079,6 +1097,7 @@ void Interpreter::InlineCacheMiss(int checked_args,
                                   RawObject** FP,
                                   RawObject** SP) {
   RawObject** result = top;
+  top[0] = 0;  // Clean up result slot.
   RawObject** miss_handler_args = top + 1;
   for (intptr_t i = 0; i < checked_args; i++) {
     miss_handler_args[i] = args[i];
@@ -2233,6 +2252,7 @@ RawObject* Interpreter::Call(RawFunction* function,
       } break;
       case MethodRecognizer::kLinkedHashMap_setHashMask: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        ASSERT(!SP[0]->IsHeapObject());
         reinterpret_cast<RawObject**>(
             instance->ptr())[LinkedHashMap::hash_mask_offset() / kWordSize] =
             SP[0];
@@ -2245,6 +2265,7 @@ RawObject* Interpreter::Call(RawFunction* function,
       } break;
       case MethodRecognizer::kLinkedHashMap_setUsedData: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        ASSERT(!SP[0]->IsHeapObject());
         reinterpret_cast<RawObject**>(
             instance->ptr())[LinkedHashMap::used_data_offset() / kWordSize] =
             SP[0];
@@ -2257,6 +2278,7 @@ RawObject* Interpreter::Call(RawFunction* function,
       } break;
       case MethodRecognizer::kLinkedHashMap_setDeletedKeys: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        ASSERT(!SP[0]->IsHeapObject());
         reinterpret_cast<RawObject**>(
             instance->ptr())[LinkedHashMap::deleted_keys_offset() / kWordSize] =
             SP[0];
@@ -2280,7 +2302,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
         RawObject** incoming_args = SP - num_arguments;
         RawObject** return_slot = SP;
-        Exit(thread, FP, SP, pc);
+        Exit(thread, FP, SP + 1, pc);
         NativeArguments args(thread, argc_tag, incoming_args, return_slot);
         INVOKE_NATIVE(
             payload->trampoline,
@@ -2401,7 +2423,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawContext*>(SP[0]);
     SP -= 2;  // Drop instance and value.
-
+    ASSERT(rD < static_cast<uint32_t>(instance->ptr()->num_variables_));
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
         thread);
@@ -2441,6 +2463,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rD) / kWordSize);
     RawContext* instance = static_cast<RawContext*>(SP[0]);
+    ASSERT(rD < static_cast<uint32_t>(instance->ptr()->num_variables_));
     SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
     DISPATCH();
   }

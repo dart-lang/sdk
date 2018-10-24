@@ -508,11 +508,15 @@ class GenericInferrer {
     //
     // We don't need undo logic here because if the classes don't match, nothing
     // is added to the constraint set.
-    if (guardedInterfaceSubtype(i1.superclass)) return true;
+    var superclass = i1.superclass;
+    if (superclass != null && guardedInterfaceSubtype(superclass)) return true;
     for (final parent in i1.interfaces) {
       if (guardedInterfaceSubtype(parent)) return true;
     }
     for (final parent in i1.mixins) {
+      if (guardedInterfaceSubtype(parent)) return true;
+    }
+    for (final parent in i1.superclassConstraints) {
       if (guardedInterfaceSubtype(parent)) return true;
     }
     return false;
@@ -658,8 +662,7 @@ class GenericInferrer {
     }
 
     if (t1 is FunctionType && t2 is FunctionType) {
-      return FunctionTypeImpl.relate(
-          t1, t2, matchSubtype, _typeSystem.instantiateToBounds,
+      return FunctionTypeImpl.relate(t1, t2, matchSubtype,
           parameterRelation: (p1, p2) {
             return _matchSubtypeOf(p2.type, p1.type, null, origin,
                 covariant: !covariant);
@@ -1134,7 +1137,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   @override
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
-    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
+    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf,
         parameterRelation: isOverrideSubtypeOfParameter,
         // Type parameter bounds are invariant.
         boundsRelation: (t1, t2, p1, p2) =>
@@ -1471,7 +1474,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   /// Check that [f1] is a subtype of [f2].
   bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
-    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
+    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf,
         parameterRelation: (p1, p2) => isSubtypeOf(p2.type, p1.type),
         // Type parameter bounds are invariant.
         boundsRelation: (t1, t2, p1, p2) =>
@@ -2095,89 +2098,6 @@ abstract class TypeSystem {
     return new StrongTypeSystemImpl(context.typeProvider,
         declarationCasts: options.declarationCasts,
         implicitCasts: options.implicitCasts);
-  }
-}
-
-/**
- * Implementation of [TypeSystem] using the rules in the Dart specification.
- */
-@deprecated
-class TypeSystemImpl extends TypeSystem {
-  // TODO(brianwilkerson) Remove this class and update references to it to use
-  // StrongTypeSystemImpl.
-  final TypeProvider typeProvider;
-
-  TypeSystemImpl(this.typeProvider);
-
-  @override
-  bool get isStrong => false;
-
-  /**
-   * Instantiate a parameterized type using `dynamic` for all generic
-   * parameters.  Returns the type unchanged if there are no parameters.
-   */
-  DartType instantiateToBounds(DartType type, {List<bool> hasError}) {
-    List<DartType> typeFormals = typeFormalsAsTypes(type);
-    int count = typeFormals.length;
-    if (count > 0) {
-      List<DartType> typeArguments =
-          new List<DartType>.filled(count, DynamicTypeImpl.instance);
-      return instantiateType(type, typeArguments);
-    }
-    return type;
-  }
-
-  @override
-  List<DartType> instantiateTypeFormalsToBounds(
-      List<TypeParameterElement> typeFormals,
-      {List<bool> hasError}) {
-    return null;
-  }
-
-  @override
-  bool isAssignableTo(DartType leftType, DartType rightType,
-      {bool isDeclarationCast = false}) {
-    return leftType.isAssignableTo(rightType);
-  }
-
-  @override
-  bool isMoreSpecificThan(DartType t1, DartType t2) =>
-      t1.isMoreSpecificThan(t2);
-
-  @override
-  bool isOverrideSubtypeOf(FunctionType leftType, FunctionType rightType) {
-    return isSubtypeOf(leftType, rightType);
-  }
-
-  @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return leftType.isSubtypeOf(rightType);
-  }
-
-  @override
-  DartType tryPromoteToType(DartType to, DartType from) {
-    // Declared type should not be "dynamic".
-    // Promoted type should not be "dynamic".
-    // Promoted type should be more specific than declared.
-    if (!from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from)) {
-      return to;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  DartType _interfaceLeastUpperBound(InterfaceType type1, InterfaceType type2) {
-    InterfaceType result =
-        InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
-    return result ?? typeProvider.dynamicType;
-  }
-
-  @override
-  DartType _typeParameterLeastUpperBound(DartType type1, DartType type2) {
-    type1 = type1.resolveToBound(typeProvider.objectType);
-    type2 = type2.resolveToBound(typeProvider.objectType);
-    return getLeastUpperBound(type1, type2);
   }
 }
 

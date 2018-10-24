@@ -109,7 +109,10 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return -1;
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   LOG_ERR("SocketBase::CreateBindDatagram is unimplemented\n");
   UNIMPLEMENTED();
   return -1;

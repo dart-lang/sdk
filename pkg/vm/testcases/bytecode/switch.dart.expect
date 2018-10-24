@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushNull
@@ -38,8 +38,6 @@ L3:
 L4:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -73,7 +71,7 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushNull
@@ -119,8 +117,6 @@ L3:
 L4:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -160,7 +156,7 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushNull
@@ -206,8 +202,6 @@ L3:
   PopLocal             r0
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -246,7 +240,7 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

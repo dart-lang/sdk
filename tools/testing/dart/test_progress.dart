@@ -860,6 +860,7 @@ class ResultWriter extends EventListener {
 
     var record = {
       "name": name,
+      "configuration": _configuration.configuration.name,
       "suite": suite,
       "test_name": testName,
       "time_ms": time.inMilliseconds,
@@ -879,7 +880,8 @@ class ResultWriter extends EventListener {
     if (_outputDirectory == null) return;
     final path =
         Uri.directory(_outputDirectory).resolve(TestUtils.resultsFileName);
-    File.fromUri(path).writeAsStringSync(results.map(jsonEncode).join('\n'));
+    String jsonLine(Map x) => jsonEncode(x) + '\n';
+    File.fromUri(path).writeAsStringSync(results.map(jsonLine).join());
   }
 
   void writeRunFile() {
@@ -894,6 +896,6 @@ class ResultWriter extends EventListener {
     };
     final path = Uri.directory(_outputDirectory)
         .resolve(TestUtils.resultsInstanceFileName);
-    File.fromUri(path).writeAsStringSync(jsonEncode(run));
+    File.fromUri(path).writeAsStringSync(jsonEncode(run) + '\n');
   }
 }

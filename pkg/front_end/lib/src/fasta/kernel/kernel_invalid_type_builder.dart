@@ -16,10 +16,12 @@ class KernelInvalidTypeBuilder
   @override
   final LocatedMessage message;
 
+  final List<LocatedMessage> context;
+
   final bool suppressMessage;
 
   KernelInvalidTypeBuilder(String name, this.message,
-      [this.suppressMessage = false])
+      {this.context, this.suppressMessage: false})
       : super(name, message.charOffset, message.uri);
 
   @override
@@ -35,7 +37,8 @@ class KernelInvalidTypeBuilder
       LibraryBuilder library, List<DartType> arguments) {
     if (!suppressMessage) {
       library.addProblem(message.messageObject, message.charOffset,
-          message.length, message.uri);
+          message.length, message.uri,
+          context: context);
     }
     return const InvalidType();
   }

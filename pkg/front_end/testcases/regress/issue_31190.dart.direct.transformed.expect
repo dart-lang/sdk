@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Typed<T extends core::Object = dynamic> extends core::Object {
-  field self::Typed::T v = null;
+  field invalid-type v = null;
   synthetic constructor •() → self::Typed<self::Typed::T>
     : super core::Object::•()
     ;

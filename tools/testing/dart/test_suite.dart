@@ -480,10 +480,8 @@ class VMTestSuite extends TestSuite {
   void _addTest(ExpectationSet testExpectations, String testName) {
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
-      args.add('--use-dart-frontend');
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
-      args.add('--strong');
     }
 
     args.add(testName);
@@ -551,8 +549,6 @@ class StandardTestSuite extends TestSuite {
   Set<String> _testListPossibleFilenames;
 
   static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
-  static final Uri legacyCo19SuiteLocation =
-      Repository.uri.resolve("tests/co19/");
 
   StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
@@ -1182,6 +1178,10 @@ class StandardTestSuite extends TestSuite {
     assert(!isMultitest || dartOptions == null);
     args.add(filePath.toNativePath());
     if (dartOptions != null) {
+      // TODO(ahe): Because we add [dartOptions] here,
+      // [CompilerConfiguration.computeCompilerArguments] has to discard them
+      // later. Perhaps it would be simpler to pass [dartOptions] to
+      // [CompilerConfiguration.computeRuntimeArguments].
       args.addAll(dartOptions);
     }
 
@@ -1254,8 +1254,7 @@ class StandardTestSuite extends TestSuite {
   Map<String, dynamic> readOptionsFromFile(Uri uri) {
     if (uri.path.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if ("$uri".startsWith("$co19SuiteLocation") ||
-        "$uri".startsWith("$legacyCo19SuiteLocation")) {
+    } else if ("$uri".startsWith("$co19SuiteLocation")) {
       return readOptionsFromCo19File(uri);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
@@ -1548,7 +1547,7 @@ class AnalyzeLibraryTestSuite extends StandardTestSuite {
 
   AnalyzeLibraryTestSuite(TestConfiguration configuration)
       : super(configuration, 'analyze_library', _libraryPath(configuration),
-            ['tests/lib/analyzer/analyze_library.status']);
+            ['tests/lib_2/analyzer/analyze_library.status']);
 
   List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) =>
       const ['--fatal-warnings', '--fatal-type-errors', '--sdk-warnings'];

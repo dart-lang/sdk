@@ -863,7 +863,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   handlers = code().exception_handlers();
   ASSERT(!handlers.IsNull());
   intptr_t num_handlers_checked = 0;
-  while (try_index != CatchClauseNode::kInvalidTryIndex) {
+  while (try_index != kInvalidTryIndex) {
     // Detect circles in the exception handler data.
     num_handlers_checked++;
     ASSERT(num_handlers_checked <= handlers.num_entries());
@@ -971,7 +971,7 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
     if (iter.TokenPos() == token_pos_) {
       // Match the lowest try index at this token position.
       // TODO(johnmccutchan): Is this heuristic precise enough?
-      if (iter.TryIndex() != CatchClauseNode::kInvalidTryIndex) {
+      if (iter.TryIndex() != kInvalidTryIndex) {
         if ((try_index_ == -1) || (iter.TryIndex() < try_index_)) {
           try_index_ = iter.TryIndex();
         }
@@ -2112,6 +2112,16 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   return stack_trace;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static bool CheckAndSkipAsync(int skip_sync_async_frames_count,
+                              const String& function_name) {
+  return (skip_sync_async_frames_count == 2 &&
+          function_name.Equals(Symbols::_ClosureCall())) ||
+         (skip_sync_async_frames_count == 1 &&
+          function_name.Equals(Symbols::_AsyncAwaitCompleterStart()));
+}
+#endif
+
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Causal async stacks are not supported in the AOT runtime.
@@ -2142,7 +2152,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   bool stack_has_async_function = false;
 
   // Number of frames we are trying to skip that form "sync async" entry.
-  int skipSyncAsyncFramesCount = -1;
+  int skip_sync_async_frames_count = -1;
   String& function_name = String::Handle(zone);
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
@@ -2151,35 +2161,30 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
       OS::PrintErr("CollectAwaiterReturnStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
-    if (skipSyncAsyncFramesCount >= 0) {
-      if (!frame->IsDartFrame()) {
-        break;
-      }
-      // Assume that the code we are looking for is not inlined.
-      code = frame->LookupDartCode();
-      function = code.function();
-      function_name ^= function.QualifiedScrubbedName();
-      if (skipSyncAsyncFramesCount == 2) {
-        if (!function_name.Equals(Symbols::_ClosureCall())) {
-          break;
-        }
-      } else if (skipSyncAsyncFramesCount == 1) {
-        if (!function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
-          break;
-        }
-      }
-
-      skipSyncAsyncFramesCount--;
-    }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       if (code.is_optimized()) {
         deopt_frame = DeoptimizeToArray(thread, frame, code);
         bool found_async_awaiter = false;
+        bool abort_attempt_to_navigate_through_sync_async = false;
         for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
              it.Advance()) {
           inlined_code = it.code();
           function = it.function();
+
+          if (skip_sync_async_frames_count > 0) {
+            function_name ^= function.QualifiedScrubbedName();
+            if (CheckAndSkipAsync(skip_sync_async_frames_count,
+                                  function_name)) {
+              skip_sync_async_frames_count--;
+            } else {
+              // Unexpected function in sync async call
+              skip_sync_async_frames_count = -1;
+              abort_attempt_to_navigate_through_sync_async = true;
+              break;
+            }
+          }
+
           if (FLAG_trace_debugger_stacktrace) {
             ASSERT(!function.IsNull());
             OS::PrintErr(
@@ -2198,7 +2203,20 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
             // Grab the awaiter.
             async_activation ^= activation->GetAsyncAwaiter();
             found_async_awaiter = true;
-            break;
+            if (FLAG_sync_async) {
+              // async function might have been called synchronously, in which
+              // case we need to keep going down the stack.
+              // To determine how we are called we peek few more frames further
+              // expecting to see Closure_call followed by
+              // AsyncAwaitCompleter_start.
+              // If we are able to see those functions we continue going down
+              // thestack, if we are not, we break out of the loop as we are
+              // not interested in exploring rest of the stack - there is only
+              // dart-internal code left.
+              skip_sync_async_frames_count = 2;
+            } else {
+              break;
+            }
           } else {
             stack_trace->AddActivation(
                 CollectDartFrame(isolate, it.pc(), frame, inlined_code,
@@ -2206,11 +2224,23 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           }
         }
         // Break out of outer loop.
-        if (found_async_awaiter) {
+        if (found_async_awaiter ||
+            abort_attempt_to_navigate_through_sync_async) {
           break;
         }
       } else {
         function = code.function();
+
+        if (skip_sync_async_frames_count > 0) {
+          function_name ^= function.QualifiedScrubbedName();
+          if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
+            skip_sync_async_frames_count--;
+          } else {
+            // Unexpected function in sync async call.
+            break;
+          }
+        }
+
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
           ActivationFrame* activation = CollectDartFrame(
               isolate, frame->pc(), frame, code, Object::null_array(), 0,
@@ -2222,12 +2252,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
           if (FLAG_sync_async) {
-            // async function might have been called synchronously, in which
-            // case we need to keep going down the stack.
-            // To determine how we are called we peek few more frames further
-            // expecting to see Closure_call followed by
-            // AsyncAwaitCompleter_start.
-            skipSyncAsyncFramesCount = 2;
+            // see comment regarding skipping sync-async frames above.
+            skip_sync_async_frames_count = 2;
           } else {
             break;
           }
@@ -2456,21 +2482,6 @@ void Debugger::PauseException(const Instance& exc) {
   ClearCachedStackTraces();
 }
 
-static TokenPosition LastTokenOnLine(Zone* zone,
-                                     const TokenStream& tokens,
-                                     TokenPosition pos) {
-  TokenStream::Iterator iter(zone, tokens, pos,
-                             TokenStream::Iterator::kAllTokens);
-  ASSERT(iter.IsValid());
-  TokenPosition last_pos = pos;
-  while ((iter.CurrentTokenKind() != Token::kNEWLINE) &&
-         (iter.CurrentTokenKind() != Token::kEOS)) {
-    last_pos = iter.CurrentPosition();
-    iter.Advance();
-  }
-  return last_pos;
-}
-
 // Returns the best fit token position for a breakpoint.
 //
 // Takes a range of tokens [requested_token_pos, last_token_pos] and
@@ -2609,8 +2620,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
         end_of_line_pos = begin_pos;
       }
     } else {
-      const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-      end_of_line_pos = LastTokenOnLine(zone, tokens, begin_pos);
+      UNREACHABLE();
+      end_of_line_pos = TokenPosition::kNoSource;
     }
 
     uword lowest_pc_offset = kUwordMax;
@@ -3838,13 +3849,7 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
       }
       return false;
     }
-    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-    TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
-    if ((iter.CurrentTokenKind() == Token::kIDENT) &&
-        ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
-         (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
-      return true;
-    }
+    UNREACHABLE();
   }
   return false;
 }

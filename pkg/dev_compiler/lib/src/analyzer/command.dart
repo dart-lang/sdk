@@ -12,7 +12,7 @@ import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
 import 'context.dart' show AnalyzerOptions;
-import 'module_compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
+import 'module_compiler.dart' show CompilerOptions, ModuleCompiler;
 
 const _binaryName = 'dartdevc';
 
@@ -103,12 +103,7 @@ ArgParser ddcArgParser({bool hide = true}) {
         help: 'Ignore unrecognized command line flags.',
         defaultsTo: false,
         hide: hide)
-    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
-    ..addOption('module-name',
-        help: 'The output module name, used in some JS module formats.\n'
-            'Defaults to the output file name (without .js).')
-    ..addOption('library-root',
-        help: 'Root of source files. Library names are relative to this root.');
+    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).');
   CompilerOptions.addArguments(argParser, hide: hide);
   defineAnalysisArguments(argParser, hide: hide, ddc: true);
   AnalyzerOptions.addArguments(argParser, hide: hide);
@@ -143,32 +138,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
         '');
   }
 
-  // TODO(jmesserly): for now the first one is special. This will go away once
-  // we've removed the "root" and "module name" variables.
-  var firstOutPath = outPaths[0];
-
-  var libraryRoot = argResults['library-root'] as String;
-  if (libraryRoot != null) {
-    libraryRoot = path.absolute(libraryRoot);
-  } else {
-    libraryRoot = Directory.current.path;
-  }
-  var moduleName = argResults['module-name'] as String;
-  if (moduleName == null) {
-    var moduleRoot = compilerOpts.moduleRoot;
-    if (moduleRoot != null) {
-      // TODO(jmesserly): remove this legacy support after a deprecation period.
-      // (Mainly this is to give time for migrating build rules.)
-      moduleName =
-          path.withoutExtension(path.relative(firstOutPath, from: moduleRoot));
-    } else {
-      moduleName = path.basenameWithoutExtension(firstOutPath);
-    }
-  }
-
-  var unit = BuildUnit(moduleName, libraryRoot, argResults.rest);
-
-  var module = compiler.compile(unit, compilerOpts);
+  var module = compiler.compile(argResults.rest, compilerOpts);
   module.errors.forEach(printFn);
 
   if (!module.isValid) {

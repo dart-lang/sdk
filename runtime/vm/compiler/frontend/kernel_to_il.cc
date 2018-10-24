@@ -1116,7 +1116,7 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
   return instructions;
 }
 
-BlockEntryInstr* FlowGraphBuilder::BuildPrologue(TargetEntryInstr* normal_entry,
+BlockEntryInstr* FlowGraphBuilder::BuildPrologue(BlockEntryInstr* normal_entry,
                                                  PrologueInfo* prologue_info) {
   const bool compiling_for_osr = IsCompiledForOsr();
 
@@ -1136,9 +1136,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
   const Function& function =
       Function::ZoneHandle(Z, method.extracted_method_closure());
 
-  TargetEntryInstr* normal_entry = BuildTargetEntry();
-  graph_entry_ = new (Z)
-      GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
   Fragment body(normal_entry);
   body += CheckStackOverflowInPrologue(method.token_pos());
   body += BuildImplicitClosureCreation(function);
@@ -1155,12 +1158,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   // This function is specialized for a receiver class, a method name, and
   // the arguments descriptor at a call site.
 
-  TargetEntryInstr* normal_entry = BuildTargetEntry();
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       BuildPrologue(normal_entry, &prologue_info);
-  graph_entry_ = new (Z)
-      GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
   // The backend will expect an array of default values for all the named
   // parameters, even if they are all known to be passed at the call site
@@ -1304,12 +1310,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   }
   parsed_function_->set_default_parameter_values(default_values);
 
-  TargetEntryInstr* normal_entry = BuildTargetEntry();
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       BuildPrologue(normal_entry, &prologue_info);
-  graph_entry_ = new (Z)
-      GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
@@ -1372,9 +1381,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
   try_catch_block_ = try_catch_block;
-  SetCurrentTryIndex(try_catch_block == nullptr
-                         ? CatchClauseNode::kInvalidTryIndex
-                         : try_catch_block->try_index());
+  SetCurrentTryIndex(try_catch_block == nullptr ? kInvalidTryIndex
+                                                : try_catch_block->try_index());
 }
 
 }  // namespace kernel

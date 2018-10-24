@@ -30,7 +30,7 @@ class Conflict {
 
 /// Manages knowledge about interface types and their members.
 class InheritanceManager2 {
-  final StrongTypeSystemImpl _typeSystem;
+  final TypeSystem _typeSystem;
 
   /// Cached instance interfaces for [InterfaceType].
   final Map<InterfaceType, Interface> _interfaces = {};
@@ -43,11 +43,17 @@ class InheritanceManager2 {
 
   InheritanceManager2(this._typeSystem);
 
+  /// Return the member with the given [name] that the [type] inherits from the
+  /// mixins, superclasses, or interfaces; or `null` if no member is inherited.
+  FunctionType getInherited(InterfaceType type, Name name) {
+    return getOverridden(type, name)?.last;
+  }
+
   /// Return the interface of the given [type].  It might include private
   /// members, not necessary accessible in all libraries.
   Interface getInterface(InterfaceType type) {
     if (type == null) {
-      return const Interface._(const {}, const [{}], const []);
+      return const Interface._(const {}, const {}, const [{}], const []);
     }
 
     var result = _interfaces[type];
@@ -55,9 +61,14 @@ class InheritanceManager2 {
       return result;
     }
 
-    _interfaces[type] = const Interface._(const {}, const [{}], const []);
+    _interfaces[type] = const Interface._(
+      const {},
+      const {},
+      const [{}],
+      const [],
+    );
     Map<Name, FunctionType> map = {};
-    List<Map<Name, FunctionType>> supers = [];
+    List<Map<Name, FunctionType>> superImplemented = [];
     List<Conflict> conflicts = null;
 
     // If a class declaration has a member declaration, the signature of that
@@ -65,6 +76,11 @@ class InheritanceManager2 {
     _addTypeMembers(map, type);
 
     Map<Name, List<FunctionType>> namedCandidates = {};
+
+    for (var interface in type.interfaces) {
+      _addCandidates(namedCandidates, interface);
+    }
+
     if (type.element.isMixin) {
       for (var constraint in type.superclassConstraints) {
         _addCandidates(namedCandidates, constraint);
@@ -74,7 +90,7 @@ class InheritanceManager2 {
       // from its superclass constraints, whether it is abstract or concrete.
       Map<Name, FunctionType> mixinSuperClass = {};
       _findMostSpecificFromNamedCandidates(mixinSuperClass, namedCandidates);
-      supers.add(mixinSuperClass);
+      superImplemented.add(mixinSuperClass);
     } else {
       Map<Name, FunctionType> implemented;
 
@@ -82,7 +98,7 @@ class InheritanceManager2 {
         _addCandidates(namedCandidates, type.superclass);
 
         implemented = _getImplemented(type.superclass);
-        supers.add(implemented);
+        superImplemented.add(implemented);
       }
 
       for (var mixin in type.mixins) {
@@ -92,12 +108,8 @@ class InheritanceManager2 {
         implemented = <Name, FunctionType>{}
           ..addAll(implemented)
           ..addAll(implementedInMixin);
-        supers.add(implemented);
+        superImplemented.add(implemented);
       }
-    }
-
-    for (var interface in type.interfaces) {
-      _addCandidates(namedCandidates, interface);
     }
 
     // If a class declaration does not have a member declaration with a
@@ -108,7 +120,12 @@ class InheritanceManager2 {
     // signature becomes the signature of the class's interface.
     conflicts = _findMostSpecificFromNamedCandidates(map, namedCandidates);
 
-    var interface = new Interface._(map, supers, conflicts ?? const []);
+    var interface = new Interface._(
+      map,
+      namedCandidates,
+      superImplemented,
+      conflicts ?? const [],
+    );
     _interfaces[type] = interface;
     return interface;
   }
@@ -132,16 +149,24 @@ class InheritanceManager2 {
     bool forSuper: false,
   }) {
     if (forSuper) {
-      var supers = getInterface(type)._supers;
+      var superImplemented = getInterface(type)._superImplemented;
       if (forMixinIndex >= 0) {
-        return supers[forMixinIndex][name];
+        return superImplemented[forMixinIndex][name];
       }
-      return supers.last[name];
+      return superImplemented.last[name];
     }
     if (concrete) {
       return _getImplemented(type)[name];
     }
     return getInterface(type).map[name];
+  }
+
+  /// Return all members of mixins, superclasses, and interfaces that a member
+  /// with the given [name], defined in the [type], would override; or `null`
+  /// if no members would be overridden.
+  List<FunctionType> getOverridden(InterfaceType type, Name name) {
+    var interface = getInterface(type);
+    return interface._overridden[name];
   }
 
   void _addCandidate(Map<Name, List<FunctionType>> namedCandidates, Name name,
@@ -157,9 +182,11 @@ class InheritanceManager2 {
 
   void _addCandidates(
       Map<Name, List<FunctionType>> namedCandidates, InterfaceType type) {
-    getInterface(type).map.forEach((name, candidate) {
+    var map = getInterface(type).map;
+    for (var name in map.keys) {
+      var candidate = map[name];
       _addCandidate(namedCandidates, name, candidate);
-    });
+    }
   }
 
   void _addTypeMembers(Map<Name, FunctionType> map, InterfaceType type) {
@@ -247,8 +274,13 @@ class InheritanceManager2 {
         conflicts.add(conflict);
       }
 
+      // Candidates are recorded in forward order, so
+      // `class X extends S with M1, M2 implements I1, I2 {}` will record
+      // candidates from [I1, I2, S, M1, M2]. But during method lookup
+      // candidates should be considered in backward order, i.e. from `M2`,
+      // then from `M1`, then from `S`.
       FunctionType validOverride;
-      for (var i = 0; i < candidates.length; i++) {
+      for (var i = candidates.length - 1; i >= 0; i--) {
         validOverride = candidates[i];
         for (var j = 0; j < candidates.length; j++) {
           var candidate = candidates[j];
@@ -356,18 +388,27 @@ class Interface {
   /// The map of names to their signature in the interface.
   final Map<Name, FunctionType> map;
 
+  /// The map of names to their signatures from the mixins, superclasses,
+  /// or interfaces.
+  final Map<Name, List<FunctionType>> _overridden;
+
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
   /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
-  final List<Map<Name, FunctionType>> _supers;
+  final List<Map<Name, FunctionType>> _superImplemented;
 
   /// The list of conflicts between superinterfaces - the nominal superclass,
   /// mixins, and interfaces.  Does not include conflicts with the declared
   /// members of the class.
   final List<Conflict> conflicts;
 
-  const Interface._(this.map, this._supers, this.conflicts);
+  const Interface._(
+    this.map,
+    this._overridden,
+    this._superImplemented,
+    this.conflicts,
+  );
 }
 
 /// A public name, or a private name qualified by a library URI.

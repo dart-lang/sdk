@@ -32,10 +32,9 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target target, bool enableSuperMixins: false}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-  target ??= new TestingVmTarget(new TargetFlags(strongMode: true))
+  target ??= new TestingVmTarget(new TargetFlags())
     ..enableSuperMixins = enableSuperMixins;
   final options = new CompilerOptions()
-    ..strongMode = true
     ..target = target
     ..linkedDependencies = <Uri>[platformKernel]
     ..onDiagnostic = (DiagnosticMessage message) {

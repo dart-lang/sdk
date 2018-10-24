@@ -41,18 +41,19 @@ class ComparisonNode {
     return lines.join(indentedNewline);
   }
 
-  static ComparisonNode diff(ComparisonNode a, ComparisonNode b) {
-    String diffText;
+  static ComparisonNode diff(
+      ComparisonNode a, ComparisonNode b, String aName, String bName) {
     if (a.text == b.text) {
-      diffText = '= ${a.text}';
+      return ComparisonNode(
+          a.text, diffLists(a.children, b.children, aName, bName));
     } else {
-      diffText = 'x ${a.text} -> ${b.text}';
+      return ComparisonNode('Root nodes differ',
+          [_prefix('In $aName: ', a), _prefix('In $bName: ', b)]);
     }
-    return ComparisonNode(diffText, diffLists(a.children, b.children));
   }
 
-  static List<ComparisonNode> diffLists(
-      List<ComparisonNode> a, List<ComparisonNode> b) {
+  static List<ComparisonNode> diffLists(List<ComparisonNode> a,
+      List<ComparisonNode> b, String aName, String bName) {
     // Note: this is an O(n) "poor man's" diff algorithm; it produces optimal
     // results if the incoming results are sorted by text or if there is just
     // one contiguous hunk of differences.  Otherwise it may not find the
@@ -93,28 +94,28 @@ class ComparisonNode {
       if (comparisonResult < 0) {
         // a[aIndex].text sorts before b[bIndex].text.  Assume that this means
         // a[aIndex] was removed.
-        result.add(diff(a[aIndex++], ComparisonNode('(removed)')));
+        result.add(_prefix('Only in $aName: ', a[aIndex++]));
       } else if (comparisonResult > 0) {
         // b[bIndex].text sorts before a[aIndex].text.  Assume that this means
         // b[bIndex] was added.
-        result.add(diff(ComparisonNode('(added)'), b[bIndex++]));
+        result.add(_prefix('Only in $bName: ', b[bIndex++]));
       } else {
-        // a[aIndex].text matches b[bIndex].text, so diff the nodes.
-        var difference = diff(a[aIndex++], b[bIndex++]);
-        if (difference.text.startsWith('=') && difference.children.isEmpty) {
-          // Nodes are identical, so don't add anything
-        } else {
-          result.add(difference);
+        // a[aIndex].text matches b[bIndex].text, so diff the nodes if
+        // necessary.
+        var aNode = a[aIndex++];
+        var bNode = b[bIndex++];
+        if (aNode != bNode) {
+          result.add(diff(aNode, bNode, aName, bName));
         }
       }
     }
 
     // Deal with any nodes left over.
     while (aIndex < aEnd) {
-      result.add(diff(a[aIndex++], ComparisonNode('(removed)')));
+      result.add(_prefix('Only in $aName: ', a[aIndex++]));
     }
     while (bIndex < bEnd) {
-      result.add(diff(ComparisonNode('(added)'), b[bIndex++]));
+      result.add(_prefix('Only in $bName: ', b[bIndex++]));
     }
 
     // If we get here and we haven't added any nodes, something has gone wrong.
@@ -129,5 +130,9 @@ class ComparisonNode {
     var result = nodes.toList();
     result.sort((a, b) => a.text.compareTo(b.text));
     return result;
+  }
+
+  static ComparisonNode _prefix(String prefixString, ComparisonNode node) {
+    return ComparisonNode(prefixString + node.text, node.children);
   }
 }

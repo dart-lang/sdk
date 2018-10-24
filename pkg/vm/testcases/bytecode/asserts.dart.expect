@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   JumpIfNoAsserts      L1
@@ -28,7 +28,7 @@ ConstantPool {
   assert(condition);
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   JumpIfNoAsserts      L1
@@ -58,7 +58,7 @@ ConstantPool {
   assert([@vm.call-site-attributes.metadata=receiverType:() → dart.core::bool] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() → dart.core::String] message.call());
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

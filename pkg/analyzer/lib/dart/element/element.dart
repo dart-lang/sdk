@@ -1045,6 +1045,9 @@ abstract class FieldElement
   @deprecated
   static const List<FieldElement> EMPTY_LIST = const <FieldElement>[];
 
+  /// Return `true` if this field was explicitly marked as being covariant.
+  bool get isCovariant;
+
   /// Return {@code true} if this element is an enum constant.
   bool get isEnumConstant;
 
@@ -1111,6 +1114,10 @@ abstract class FunctionTypeAliasElement
   @override
   CompilationUnitElement get enclosingElement;
 
+  /// Return the generic function type element representing the generic function
+  /// type on the right side of the equals.
+  GenericFunctionTypeElement get function;
+
   @override
   TypeAlias computeNode();
 
@@ -1154,11 +1161,7 @@ abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 /// parameter.
 ///
 /// Clients may not extend, implement, or mix-in this class.
-abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {
-  /// Return the generic function type element representing the generic function
-  /// type on the right side of the equals.
-  GenericFunctionTypeElement get function;
-}
+abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {}
 
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.
@@ -1628,6 +1631,13 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterizedElement implements Element {
+  /// If the element defines a type, indicates whether the type may safely
+  /// appear without explicit type parameters as the bounds of a type parameter
+  /// declaration.
+  ///
+  /// If the element does not define a type, returns `true`.
+  bool get isSimplyBounded;
+
   /// The type of this element, which will be a parameterized type.
   ParameterizedType get type;
 

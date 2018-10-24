@@ -98,7 +98,7 @@ import 'kernel_ast_api.dart'
         NullAwarePropertyGetJudgment,
         Procedure,
         PropertyAssignmentJudgment,
-        PropertyGetJudgment,
+        PropertyGet,
         PropertySet,
         StaticAssignmentJudgment,
         StaticSet,
@@ -107,7 +107,6 @@ import 'kernel_ast_api.dart'
         SuperPropertyGetJudgment,
         SuperPropertySet,
         SyntheticExpressionJudgment,
-        Throw,
         TreeNode,
         TypeParameter,
         UnresolvedVariableAssignmentJudgment,
@@ -403,9 +402,10 @@ class KernelPropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeSimpleRead() => new PropertyGetJudgment(receiver, name,
-      interfaceTarget: getter, forSyntheticToken: token.isSynthetic)
-    ..fileOffset = offsetForToken(token);
+  Expression _makeSimpleRead() {
+    return new PropertyGet(receiver, name, getter)
+      ..fileOffset = offsetForToken(token);
+  }
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
@@ -418,9 +418,8 @@ class KernelPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read =
-        new PropertyGetJudgment(receiverAccess(), name, interfaceTarget: getter)
-          ..fileOffset = offsetForToken(token);
+    var read = new PropertyGet(receiverAccess(), name, getter)
+      ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -461,8 +460,7 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
     if (getter == null) {
       helper.warnUnresolvedGet(name, offsetForToken(token));
     }
-    var read = new PropertyGetJudgment(forest.thisExpression(token), name,
-        interfaceTarget: getter, forSyntheticToken: token.isSynthetic)
+    var read = new PropertyGet(forest.thisExpression(token), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -545,9 +543,8 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read =
-        new PropertyGetJudgment(receiverAccess(), name, interfaceTarget: getter)
-          ..fileOffset = offsetForToken(token);
+    var read = new PropertyGet(receiverAccess(), name, getter)
+      ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -1131,27 +1128,23 @@ class KernelStaticAccessGenerator extends KernelGenerator
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    Expression error;
     if (helper.constantContext != ConstantContext.none &&
         !helper.isIdentical(readTarget)) {
-      error = helper
-          .buildProblem(
-              templateNotConstantExpression.withArguments('Method invocation'),
-              offset,
-              readTarget?.name?.name?.length ?? 0)
-          .desugared;
+      return helper.buildProblem(
+          templateNotConstantExpression.withArguments('Method invocation'),
+          offset,
+          readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, offset + (readTarget?.name?.name?.length ?? 0),
-          error: error,
           // This isn't a constant expression, but we have checked if a
           // constant expression error should be emitted already.
           isConstantExpression: true,
           isImplicitCall: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset, error: error);
+          charOffset: offset);
     }
   }
 
@@ -1262,7 +1255,8 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
         super.expression = new SyntheticExpressionJudgment(
-            new Throw(forest.literalString(declaration.message.message, token))
+            forest.throwExpression(
+                null, forest.literalString(declaration.message.message, token))
               ..fileOffset = offset);
       } else {
         super.expression = forest.literalType(
@@ -1467,8 +1461,7 @@ class KernelUnlinkedGenerator extends KernelGenerator with UnlinkedGenerator {
 
   @override
   Expression buildSimpleRead() {
-    return new PropertyGetJudgment(receiver, name)
-      ..fileOffset = offsetForToken(token);
+    return new PropertyGet(receiver, name)..fileOffset = offsetForToken(token);
   }
 
   @override

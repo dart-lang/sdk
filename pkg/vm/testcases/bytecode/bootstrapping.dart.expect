@@ -7,7 +7,7 @@ typedef _ScheduleImmediateClosure = (() → void) → void;
 class _ScheduleImmediate extends core::Object {
   static field (() → void) → void _closure = null;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -28,7 +28,7 @@ ConstantPool {
 class _NamespaceImpl extends core::Object implements self::_Namespace {
   static field self::_NamespaceImpl _cachedNamespace = null;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -46,7 +46,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-6]
@@ -60,7 +60,7 @@ ConstantPool {
 ]  @_in::ExternalName::•("Namespace_Create")
   external static method _create(self::_NamespaceImpl namespace, dynamic n) → self::_NamespaceImpl;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -73,7 +73,7 @@ ConstantPool {
 ]  @_in::ExternalName::•("Namespace_GetPointer")
   external static method _getPointer(self::_NamespaceImpl namespace) → core::int;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   NativeCall           CP#0
@@ -85,7 +85,7 @@ ConstantPool {
 ]  @_in::ExternalName::•("Namespace_GetDefault")
   external static method _getDefault() → core::int;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   Allocate             CP#0
@@ -113,7 +113,7 @@ ConstantPool {
     self::_NamespaceImpl::_cachedNamespace = self::_NamespaceImpl::_create(new self::_NamespaceImpl::_(), namespace);
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushConstant         CP#0
@@ -136,8 +136,6 @@ L1:
   PushConstant         CP#0
   PushStatic           CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace
@@ -156,15 +154,13 @@ ConstantPool {
     return self::_NamespaceImpl::_cachedNamespace;
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   PushConstant         CP#3
   IndirectStaticCall   1, CP#2
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -178,7 +174,7 @@ ConstantPool {
 }
 class _Namespace extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -196,7 +192,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -214,13 +210,11 @@ ConstantPool {
     self::_NamespaceImpl::_setupNamespace(namespace);
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -230,13 +224,11 @@ ConstantPool {
 ]  static get _namespace() → self::_Namespace
     return self::_NamespaceImpl::_namespace;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -259,7 +251,7 @@ class VMLibraryHooks extends core::Object {
   static field dynamic _computeScriptUri = null;
   static field dynamic _cachedScript = null;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -277,7 +269,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   Push                 FP[-5]
@@ -296,7 +288,7 @@ ConstantPool {
     self::VMLibraryHooks::_cachedScript = null;
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -326,8 +318,6 @@ L3:
   PushConstant         CP#0
   PushStatic           CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = StaticField #lib::VMLibraryHooks::_cachedScript
@@ -347,7 +337,7 @@ static field core::int _stdoutFD = 1;
 static field core::int _stderrFD = 2;
 static field core::String _rawScript;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -360,7 +350,7 @@ ConstantPool {
 ]@_in::ExternalName::•("Builtin_PrintString")
 external static method _printString(core::String s) → void;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -380,12 +370,10 @@ ConstantPool {
   self::_printString(arg.{core::Object::toString}());
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -394,7 +382,7 @@ ConstantPool {
 ]static method _getPrintClosure() → dynamic
   return self::_print;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -409,7 +397,7 @@ ConstantPool {
   self::_ScheduleImmediate::_closure = closure;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                3
   CheckStack
   Push                 FP[-7]
@@ -432,7 +420,7 @@ ConstantPool {
   self::_stderrFD = stderr;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushConstant         CP#0
@@ -474,7 +462,6 @@ L4:
   PushConstant         CP#9
   IndirectStaticCall   1, CP#8
   ReturnTOS
-  Jump                 L6
 L5:
   PushConstant         CP#11
   IndirectStaticCall   0, CP#10
@@ -484,9 +471,6 @@ L5:
   PushConstant         CP#12
   IndirectStaticCall   2, CP#2
   InstanceCall         2, CP#13
-  ReturnTOS
-L6:
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -514,7 +498,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -533,7 +517,7 @@ ConstantPool {
   self::VMLibraryHooks::platformScript = self::_scriptUri;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

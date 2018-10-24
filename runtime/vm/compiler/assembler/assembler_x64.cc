@@ -67,14 +67,11 @@ void Assembler::CallPatchable(const StubEntry& stub_entry,
                               Code::EntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
-  intptr_t call_start = buffer_.GetPosition();
   const intptr_t idx =
       object_pool_wrapper().AddObject(target, ObjectPool::kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
-  call(TMP);
-  ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
+  call(FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
@@ -85,8 +82,7 @@ void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
   const intptr_t idx = object_pool_wrapper().FindObject(target, equivalence);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
-  call(TMP);
+  call(FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::Call(const StubEntry& stub_entry) {
@@ -96,8 +92,7 @@ void Assembler::Call(const StubEntry& stub_entry) {
       object_pool_wrapper().FindObject(target, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  call(TMP);
+  call(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
 void Assembler::CallToRuntime() {
@@ -1114,9 +1109,8 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 void Assembler::LoadWordFromPoolOffset(Register dst, int32_t offset) {
   ASSERT(constant_pool_allowed());
   ASSERT(dst != PP);
-  // This sequence must be of fixed size. AddressBaseImm32
-  // forces the address operand to use a fixed-size imm32 encoding.
-  movq(dst, Address::AddressBaseImm32(PP, offset));
+  // This sequence must be decodable by code_patcher_x64.cc.
+  movq(dst, Address(PP, offset));
 }
 
 void Assembler::LoadIsolate(Register dst) {

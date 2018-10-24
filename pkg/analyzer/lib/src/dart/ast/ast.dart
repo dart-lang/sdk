@@ -6394,6 +6394,10 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
  */
 class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
+  // TODO(brianwilkerson) Consider making InstanceCreationExpressionImpl extend
+  // InvocationExpressionImpl. This would probably be a breaking change, but is
+  // also probably worth it.
+
   /**
    * The 'new' or 'const' keyword used to indicate how an object should be
    * created, or `null` if the keyword is implicit.
@@ -6405,6 +6409,14 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    * The name of the constructor to be invoked.
    */
   ConstructorNameImpl _constructorName;
+
+  /**
+   * The type arguments associated with the constructor, rather than with the
+   * class in which the constructor is defined. It is always an error if there
+   * are type arguments because Dart doesn't currently support generic
+   * constructors, but we capture them in the AST in order to recover better.
+   */
+  TypeArgumentListImpl _typeArguments;
 
   /**
    * The list of arguments to the constructor.
@@ -6423,8 +6435,10 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    * Initialize a newly created instance creation expression.
    */
   InstanceCreationExpressionImpl(this.keyword,
-      ConstructorNameImpl constructorName, ArgumentListImpl argumentList) {
+      ConstructorNameImpl constructorName, ArgumentListImpl argumentList,
+      {TypeArgumentListImpl typeArguments}) {
     _constructorName = _becomeParentOf(constructorName);
+    _typeArguments = _becomeParentOf(typeArguments);
     _argumentList = _becomeParentOf(argumentList);
   }
 
@@ -6443,6 +6457,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(keyword)
     ..add(_constructorName)
+    ..add(_typeArguments)
     ..add(_argumentList);
 
   @override
@@ -6474,6 +6489,24 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   int get precedence => 16;
+
+  /**
+   * Return the type arguments associated with the constructor, rather than with
+   * the class in which the constructor is defined. It is always an error if
+   * there are type arguments because Dart doesn't currently support generic
+   * constructors, but we capture them in the AST in order to recover better.
+   */
+  TypeArgumentList get typeArguments => _typeArguments;
+
+  /**
+   * Return the type arguments associated with the constructor, rather than with
+   * the class in which the constructor is defined. It is always an error if
+   * there are type arguments because Dart doesn't currently support generic
+   * constructors, but we capture them in the AST in order to recover better.
+   */
+  void set typeArguments(TypeArgumentList typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl);
+  }
 
   @override
   E accept<E>(AstVisitor<E> visitor) =>
@@ -6562,6 +6595,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _constructorName?.accept(visitor);
+    _typeArguments?.accept(visitor);
     _argumentList?.accept(visitor);
   }
 }
@@ -7316,7 +7350,7 @@ class LocalVariableInfo {
       new Set<VariableElement>();
 
   /**
-   * The set of local variables and parameters that are potentiall mutated
+   * The set of local variables and parameters that are potentially mutated
    * within the scope of their declarations.
    */
   final Set<VariableElement> potentiallyMutatedInScope =

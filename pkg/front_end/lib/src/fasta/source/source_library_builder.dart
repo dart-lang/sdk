@@ -842,6 +842,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       accessProblem = message;
     }
   }
+
+  void checkBoundsInOutline(covariant typeEnvironment);
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to
@@ -891,44 +893,45 @@ class DeclarationBuilder<T extends TypeBuilder> {
   /// Resolves type variables in [types] and propagate other types to [parent].
   void resolveTypes(
       List<TypeVariableBuilder> typeVariables, SourceLibraryBuilder library) {
-    // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
-    // type variables. It should be everything that's in scope, for example,
-    // members (of a class) or formal parameters (of a method).
-    // Also, this doesn't work well with patching.
-    if (typeVariables == null) {
-      // If there are no type variables in the scope, propagate our types to be
-      // resolved in the parent declaration.
-      parent.types.addAll(types);
-    } else {
-      Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};
+    Map<String, TypeVariableBuilder> map;
+    if (typeVariables != null) {
+      map = <String, TypeVariableBuilder>{};
       for (TypeVariableBuilder builder in typeVariables) {
         map[builder.name] = builder;
       }
-      for (UnresolvedType<T> type in types) {
-        Object nameOrQualified = type.builder.name;
-        String name = nameOrQualified is QualifiedName
-            ? nameOrQualified.qualifier
-            : nameOrQualified;
-        TypeVariableBuilder builder;
-        if (name != null) {
-          builder = map[name];
+    }
+    Scope scope;
+    for (UnresolvedType<T> type in types) {
+      Object nameOrQualified = type.builder.name;
+      String name = nameOrQualified is QualifiedName
+          ? nameOrQualified.qualifier
+          : nameOrQualified;
+      Declaration declaration;
+      if (name != null) {
+        if (members != null) {
+          declaration = members[name];
         }
-        if (builder == null) {
-          // Since name didn't resolve in this scope, propagate it to the
-          // parent declaration.
-          parent.addType(type);
-        } else if (nameOrQualified is QualifiedName) {
-          // Attempt to use type variable as prefix.
-          type.builder.bind(type.builder.buildInvalidType(
-              templateNotAPrefixInTypeAnnotation
-                  .withArguments(
-                      flattenName(nameOrQualified.qualifier, type.charOffset,
-                          type.fileUri),
-                      nameOrQualified.name)
-                  .withLocation(type.fileUri, type.charOffset, noLength)));
-        } else {
-          type.builder.bind(builder);
+        if (declaration == null && map != null) {
+          declaration = map[name];
         }
+      }
+      if (declaration == null) {
+        // Since name didn't resolve in this scope, propagate it to the
+        // parent declaration.
+        parent.addType(type);
+      } else if (nameOrQualified is QualifiedName) {
+        // Attempt to use a member or type variable as a prefix.
+        type.builder.bind(type.builder.buildInvalidType(
+            templateNotAPrefixInTypeAnnotation
+                .withArguments(
+                    flattenName(nameOrQualified.qualifier, type.charOffset,
+                        type.fileUri),
+                    nameOrQualified.name)
+                .withLocation(type.fileUri, type.charOffset,
+                    nameOrQualified.endCharOffset - type.charOffset)));
+      } else {
+        scope ??= toScope(null).withTypeVariables(typeVariables);
+        type.resolveIn(scope, library);
       }
     }
     types.clear();

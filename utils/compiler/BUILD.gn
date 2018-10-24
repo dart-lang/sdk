@@ -88,7 +88,6 @@ compile_platform("compile_dart2js_platform") {
 
   args = [
     "--target=dart2js",
-    "--strong",
     "dart:core",
   ]
 }
@@ -104,7 +103,6 @@ compile_platform("compile_dart2js_server_platform") {
 
   args = [
     "--target=dart2js_server",
-    "--strong",
     "dart:core",
   ]
 }

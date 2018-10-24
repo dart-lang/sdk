@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -49,11 +50,11 @@ class OverrideContributor implements DartCompletionContributor {
     // Build suggestions
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (Name name in namesToOverride) {
-      ExecutableElement element = interface[name].element;
+      FunctionType signature = interface[name];
       // Gracefully degrade if the overridden element has not been resolved.
-      if (element.returnType != null) {
+      if (signature.returnType != null) {
         CompletionSuggestion suggestion =
-            await _buildSuggestion(request, targetId, element);
+            await _buildSuggestion(request, targetId, signature);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -63,13 +64,13 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Return a template for an override of the given [element]. If selected, the
-   * template will replace [targetId].
+   * Return a template for an override of the given [signature]. If selected,
+   * the template will replace [targetId].
    */
   Future<DartChangeBuilder> _buildReplacementText(
       AnalysisResult result,
       SimpleIdentifier targetId,
-      ExecutableElement element,
+      FunctionType signature,
       StringBuffer displayTextBuffer) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -77,8 +78,12 @@ class OverrideContributor implements DartCompletionContributor {
         new DartChangeBuilder(result.driver.currentSession);
     await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
-        builder.writeOverrideOfInheritedMember(element,
-            displayTextBuffer: displayTextBuffer);
+        ExecutableElement element = signature.element;
+        builder.writeOverride(
+          signature,
+          displayTextBuffer: displayTextBuffer,
+          invokeSuper: !element.isAbstract,
+        );
       });
     });
     return builder;
@@ -86,15 +91,15 @@ class OverrideContributor implements DartCompletionContributor {
 
   /**
    * Build a suggestion to replace [targetId] in the given [unit]
-   * with an override of the given [element].
+   * with an override of the given [signature].
    */
   Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
-      SimpleIdentifier targetId, ExecutableElement element) async {
+      SimpleIdentifier targetId, FunctionType signature) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     StringBuffer displayTextBuffer = new StringBuffer();
     DartChangeBuilder builder = await _buildReplacementText(
-        request.result, targetId, element, displayTextBuffer);
+        request.result, targetId, signature, displayTextBuffer);
     String replacement = builder.sourceChange.edits[0].edits[0].replacement;
     String completion = replacement.trim();
     String overrideAnnotation = '@override';
@@ -119,10 +124,10 @@ class OverrideContributor implements DartCompletionContributor {
         completion,
         selectionRange.offset - offsetDelta,
         selectionRange.length,
-        element.hasDeprecated,
+        signature.element.hasDeprecated,
         false,
         displayText: displayText);
-    suggestion.element = protocol.convertElement(element);
+    suggestion.element = protocol.convertElement(signature.element);
     return suggestion;
   }
 

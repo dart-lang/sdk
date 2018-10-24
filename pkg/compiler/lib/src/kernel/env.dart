@@ -26,7 +26,6 @@ import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../ssa/type_builder.dart';
 import 'element_map_impl.dart';
-import 'kelements.dart' show KImport;
 
 /// Environment for fast lookup of component libraries.
 class KProgramEnv {
@@ -214,11 +213,11 @@ class KLibraryData {
         imports = <ir.LibraryDependency, ImportEntity>{};
         dependencies.forEach((ir.LibraryDependency node) {
           if (node.isExport) return;
-          imports[node] = new KImport(
+          imports[node] = new ImportEntity(
               node.isDeferred,
               node.name,
               node.targetLibrary.importUri,
-              elementMap.getLibrary(node.enclosingLibrary));
+              elementMap.getLibrary(node.enclosingLibrary).canonicalUri);
         });
       }
     }
@@ -400,7 +399,7 @@ class KClassEnvImpl implements KClassEnv {
       }
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
-        // TODO(sigmund): remove once #33665 is fixed.
+        // TODO(sigmund): remove once #33732 is fixed.
         if (!includeNoSuchMethodForwarders ||
             member.name.isPrivate &&
                 member.name.libraryName != member.enclosingLibrary.reference) {
@@ -596,7 +595,7 @@ class KClassEnvImpl implements KClassEnv {
       });
     }
     return new JClassEnvImpl(cls, constructorMap, memberMap, setterMap, members,
-        _isSuperMixinApplication);
+        _isSuperMixinApplication ?? false);
   }
 }
 
@@ -617,7 +616,7 @@ abstract class KClassData {
   Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
 
   /// Convert this [KClassData] to the corresponding [JClassData].
-  JClassData convert(ClassEntity cls);
+  JClassData convert();
 }
 
 class KClassDataImpl implements KClassData {
@@ -645,8 +644,8 @@ class KClassDataImpl implements KClassData {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
-  JClassData convert(ClassEntity cls) {
-    return new JClassDataImpl(node, new RegularClassDefinition(cls, node));
+  JClassData convert() {
+    return new JClassDataImpl(node, new RegularClassDefinition(node));
   }
 }
 
@@ -660,7 +659,7 @@ abstract class KMemberData {
   ClassTypeVariableAccess get classTypeVariableAccess;
 
   /// Convert this [KMemberData] to the corresponding [JMemberData].
-  JMemberData convert(MemberEntity member);
+  JMemberData convert();
 }
 
 abstract class KMemberDataImpl implements KMemberData {
@@ -760,9 +759,9 @@ class KFunctionDataImpl extends KMemberDataImpl
   }
 
   @override
-  FunctionData convert(covariant FunctionEntity function) {
+  FunctionData convert() {
     return new FunctionDataImpl(
-        node, functionNode, new RegularMemberDefinition(function, node));
+        node, functionNode, new RegularMemberDefinition(node));
   }
 
   @override
@@ -802,13 +801,12 @@ class KConstructorDataImpl extends KFunctionDataImpl
   }
 
   @override
-  JConstructorData convert(covariant ConstructorEntity constructor) {
+  JConstructorData convert() {
     MemberDefinition definition;
     if (node is ir.Constructor) {
-      definition = new SpecialMemberDefinition(
-          constructor, node, MemberKind.constructor);
+      definition = new SpecialMemberDefinition(node, MemberKind.constructor);
     } else {
-      definition = new RegularMemberDefinition(constructor, node);
+      definition = new RegularMemberDefinition(node);
     }
     return new JConstructorDataImpl(node, functionNode, definition);
   }
@@ -897,8 +895,8 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   }
 
   @override
-  JFieldData convert(covariant FieldEntity field) {
-    return new JFieldDataImpl(node, new RegularMemberDefinition(field, node));
+  JFieldData convert() {
+    return new JFieldDataImpl(node, new RegularMemberDefinition(node));
   }
 }
 
@@ -922,7 +920,10 @@ class KTypeVariableData {
   }
 
   DartType getDefaultType(IrToElementMap elementMap) {
-    return _defaultType ??= elementMap.getDartType(node.defaultType);
+    // TODO(34522): Remove `?? const ir.DynamicType()` when issue 34522 is
+    // fixed.
+    return _defaultType ??=
+        elementMap.getDartType(node.defaultType ?? const ir.DynamicType());
   }
 
   JTypeVariableData copy() {

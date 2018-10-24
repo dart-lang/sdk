@@ -14,11 +14,8 @@ namespace bin {
 
 class VmService {
  public:
-  static bool LoadForGenPrecompiled(bool use_dart_frontend);
-
   static bool Setup(const char* server_ip,
                     intptr_t server_port,
-                    bool running_precompiled,
                     bool dev_mode_server,
                     bool trace_loading,
                     bool deterministic);
@@ -36,15 +33,6 @@ class VmService {
   friend void NotifyServerState(Dart_NativeArguments args);
 
   static void SetServerAddress(const char* server_uri_);
-  static Dart_Handle GetSource(const char* name);
-  static Dart_Handle LoadScript(const char* name);
-  static Dart_Handle LookupOrLoadLibrary(const char* name);
-  static Dart_Handle LoadSource(Dart_Handle library, const char* name);
-  static Dart_Handle LoadResources(Dart_Handle library);
-  static Dart_Handle LoadResource(Dart_Handle library, const char* name);
-  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
-                                       Dart_Handle library,
-                                       Dart_Handle url);
 
   static const char* error_msg_;
   static char server_uri_[kServerUriStringBufferSize];

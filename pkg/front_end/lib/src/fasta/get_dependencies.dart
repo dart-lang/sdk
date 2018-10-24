@@ -53,7 +53,7 @@ Future<List<Uri>> getDependencies(Uri script,
         fileSystem, false, dillTarget, uriTranslator,
         uriToSource: c.uriToSource);
 
-    kernelTarget.read(script);
+    kernelTarget.setEntryPoints(<Uri>[script]);
     await dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
     return new List<Uri>.from(c.dependencies);

@@ -200,6 +200,7 @@ class Instr {
   // We prefer not to use the int3 instruction since it conflicts with gdb.
   static const uint8_t kBreakPointInstruction = kHltInstruction;
   static const int kBreakPointInstructionSize = 1;
+  static const uint8_t kGdbBreakpointInstruction = 0xcc;
 
   bool IsBreakPoint() {
     ASSERT(kBreakPointInstructionSize == 1);

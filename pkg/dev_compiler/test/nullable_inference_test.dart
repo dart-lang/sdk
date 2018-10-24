@@ -4,9 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -490,7 +488,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   @override
   visitComponent(Component node) {
     inference ??= NullableInference(JSTypeRep(
-      TypeSchemaEnvironment(CoreTypes(node), ClassHierarchy(node), true),
+      fe.TypeSchemaEnvironment(CoreTypes(node), ClassHierarchy(node), true),
     ));
 
     if (useAnnotations) {
@@ -542,7 +540,7 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 }
 
 fe.InitializedCompilerState _compilerState;
-final _fileSystem = MemoryFileSystem(Uri.file('/memory/'));
+final _fileSystem = fe.MemoryFileSystem(Uri.file('/memory/'));
 
 Future<Component> kernelCompile(String code) async {
   var succeeded = true;

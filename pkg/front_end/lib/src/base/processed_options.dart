@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' show exitCode;
+
 import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
@@ -19,16 +21,18 @@ import 'package:package_config/packages_file.dart' as package_config;
 
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 
-import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
-
-import '../api_prototype/compilation_message.dart' show CompilationMessage;
-
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
+import '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
 import '../fasta/command_line_reporting.dart' as command_line_reporting;
+
+import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/fasta_codes.dart'
     show
@@ -58,8 +62,6 @@ import '../fasta/severity.dart' show Severity;
 import '../fasta/ticker.dart' show Ticker;
 
 import '../fasta/uri_translator.dart' show UriTranslator;
-
-import '../fasta/uri_translator_impl.dart' show UriTranslatorImpl;
 
 import 'libraries_specification.dart'
     show
@@ -95,7 +97,7 @@ class ProcessedOptions {
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
-  UriTranslatorImpl _uriTranslator;
+  UriTranslator _uriTranslator;
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
@@ -179,11 +181,6 @@ class ProcessedOptions {
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
-  bool get _reportMessages {
-    return _raw.onProblem == null &&
-        (_raw.reportMessages ?? (_raw.onError == null));
-  }
-
   FormattedMessage format(
       LocatedMessage message, Severity severity, List<LocatedMessage> context) {
     int offset = message.charOffset;
@@ -204,38 +201,23 @@ class ProcessedOptions {
 
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage> context}) {
-    context ??= const <LocatedMessage>[];
-    if (_raw.onDiagnostic != null) {
-      _raw.onDiagnostic(format(message, severity, context));
-      return;
-    } else if (_raw.onProblem != null) {
-      List<FormattedMessage> formattedContext =
-          new List<FormattedMessage>(context.length);
-      for (int i = 0; i < context.length; i++) {
-        formattedContext[i] = format(context[i], Severity.context, null);
-      }
-      _raw.onProblem(
-          format(message, severity, null), severity, formattedContext);
-      if (command_line_reporting.shouldThrowOn(severity)) {
-        throw new DebugAbort(
-            message.uri, message.charOffset, severity, StackTrace.current);
-      }
-      return;
+    if (command_line_reporting.isHidden(severity)) return;
+    if (command_line_reporting.isCompileTimeError(severity)) {
+      CompilerContext.current.logError(message, severity);
     }
+    if (CompilerContext.current.options.setExitCodeOnProblem) {
+      exitCode = 1;
+    }
+    (_raw.onDiagnostic ??
+        _defaultDiagnosticMessageHandler)(format(message, severity, context));
+    if (command_line_reporting.shouldThrowOn(severity)) {
+      throw new DebugAbort(
+          message.uri, message.charOffset, severity, StackTrace.current);
+    }
+  }
 
-    // Deprecated reporting mechanisms
-    if (_raw.onError != null) {
-      _raw.onError(new _CompilationMessage(message, severity));
-      for (LocatedMessage message in context) {
-        _raw.onError(new _CompilationMessage(message, Severity.context));
-      }
-    }
-    if (_reportMessages) {
-      command_line_reporting.report(message, severity);
-      for (LocatedMessage message in context) {
-        command_line_reporting.report(message, Severity.context);
-      }
-    }
+  void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
+    printDiagnosticMessage(message, print);
   }
 
   // TODO(askesc): Remove this and direct callers directly to report.
@@ -300,15 +282,14 @@ class ProcessedOptions {
   /// effect.
   void clearFileSystemCache() => _fileSystem = null;
 
-  /// Whether to interpret Dart sources in strong-mode.
-  bool get strongMode => _raw.strongMode;
+  bool get legacyMode => _raw.legacyMode;
 
   /// Whether to generate bytecode.
   bool get bytecode => _raw.bytecode;
 
   Target _target;
   Target get target => _target ??=
-      _raw.target ?? new NoneTarget(new TargetFlags(strongMode: strongMode));
+      _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
@@ -383,7 +364,7 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslatorImpl> getUriTranslator({bool bypassCache: false}) async {
+  Future<UriTranslator> getUriTranslator({bool bypassCache: false}) async {
     if (bypassCache) {
       _uriTranslator = null;
       _packages = null;
@@ -394,7 +375,7 @@ class ProcessedOptions {
       ticker.logMs("Read libraries file");
       var packages = await _getPackages();
       ticker.logMs("Read packages file");
-      _uriTranslator = new UriTranslatorImpl(libraries, packages);
+      _uriTranslator = new UriTranslator(libraries, packages);
     }
     return _uriTranslator;
   }
@@ -606,8 +587,8 @@ class ProcessedOptions {
     sb.writeln('Inputs: ${inputs}');
     sb.writeln('Output: ${output}');
 
-    sb.writeln('Was error handler provided: '
-        '${_raw.onError == null ? "no" : "yes"}');
+    sb.writeln('Was diagnostic message handler provided: '
+        '${_raw.onDiagnostic == null ? "no" : "yes"}');
 
     sb.writeln('FileSystem: ${_fileSystem.runtimeType} '
         '(provided: ${_raw.fileSystem.runtimeType})');
@@ -624,7 +605,7 @@ class ProcessedOptions {
         '(provided: ${_raw.librariesSpecificationUri})');
     sb.writeln('SDK summary: ${_sdkSummary} (provided: ${_raw.sdkSummary})');
 
-    sb.writeln('Strong: ${strongMode}');
+    sb.writeln('Legacy mode: ${legacyMode}');
     sb.writeln('Target: ${_target?.name} (provided: ${_raw.target?.name})');
 
     sb.writeln('throwOnErrorsForDebugging: ${throwOnErrorsForDebugging}');
@@ -674,32 +655,5 @@ class HermeticAccessException extends FileSystemException {
             'but it was not explicitly listed as an input.');
 
   @override
-  String toString() => message;
-}
-
-/// Wraps a [LocatedMessage] to implement the public [CompilationMessage] API.
-class _CompilationMessage implements CompilationMessage {
-  final LocatedMessage _original;
-  final Severity severity;
-
-  String get message => _original.message;
-
-  String get tip => _original.tip;
-
-  String get code => _original.code.name;
-
-  String get analyzerCode => _original.code.analyzerCodes?.first;
-
-  SourceSpan get span {
-    if (_original.charOffset == -1) {
-      if (_original.uri == null) return null;
-      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
-    }
-    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
-        .pointSpan();
-  }
-
-  _CompilationMessage(this._original, this.severity);
-
   String toString() => message;
 }

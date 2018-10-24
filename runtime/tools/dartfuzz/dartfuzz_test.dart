@@ -67,10 +67,14 @@ abstract class TestRunner {
     if (mode.endsWith('debug-x64')) return 'DebugX64';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
     if (mode.endsWith('debug-arm64')) return 'DebugSIMARM64';
+    if (mode.endsWith('debug-dbc')) return 'DebugSIMDBC';
+    if (mode.endsWith('debug-dbc64')) return 'DebugSIMDBC64';
     if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
     if (mode.endsWith('arm64')) return 'ReleaseSIMARM64';
+    if (mode.endsWith('dbc')) return 'ReleaseSIMDBC';
+    if (mode.endsWith('dbc64')) return 'ReleaseSIMDBC64';
     throw ('unknown tag in mode: $mode');
   }
 }
@@ -400,7 +404,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      const cluster_modes = 16;
+      const cluster_modes = 20;
       Random rand = new Random();
       do {
         mode = modes[rand.nextInt(cluster_modes)];
@@ -432,10 +436,14 @@ class DartFuzzTestSession {
     'jit-debug-x64',
     'jit-debug-arm32',
     'jit-debug-arm64',
+    'jit-debug-dbc',
+    'jit-debug-dbc64',
     'jit-ia32',
     'jit-x64',
     'jit-arm32',
     'jit-arm64',
+    'jit-dbc',
+    'jit-dbc64',
     'aot-debug-x64',
     'aot-x64',
     'kbc-int-debug-x64',

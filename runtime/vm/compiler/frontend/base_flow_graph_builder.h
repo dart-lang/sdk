@@ -125,7 +125,7 @@ class BaseFlowGraphBuilder {
         context_level_array_(context_level_array),
         context_depth_(0),
         last_used_block_id_(last_used_block_id),
-        current_try_index_(CatchClauseNode::kInvalidTryIndex),
+        current_try_index_(kInvalidTryIndex),
         next_used_try_index_(0),
         stack_(NULL),
         pending_argument_count_(0),
@@ -194,6 +194,7 @@ class BaseFlowGraphBuilder {
   ArgumentArray GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
+  FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 

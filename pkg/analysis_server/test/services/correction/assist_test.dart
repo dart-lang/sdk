@@ -2504,6 +2504,38 @@ class A {
 ''');
   }
 
+  test_convertToIntLiteral() async {
+    await resolveTestUnit('''
+const double myDouble = 42.0;
+''');
+    await assertHasAssistAt('42.0', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_e() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e1;
+''');
+    await assertHasAssistAt('4.2e1', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_eBig() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e99999;
+''');
+    await assertNoAssistAt('4.2e99999', DartAssistKind.CONVERT_TO_INT_LITERAL);
+  }
+
+  test_convertToIntLiteral_notDouble() async {
+    await resolveTestUnit('''
+const double myDouble = 42;
+''');
+    await assertNoAssistAt('42', DartAssistKind.CONVERT_TO_INT_LITERAL);
+  }
+
   test_convertToIsNot_BAD_is_alreadyIsNot() async {
     await resolveTestUnit('''
 main(p) {
@@ -5012,6 +5044,60 @@ class FakeFlutter {\r
 }\r
 ''');
     }
+  }
+
+  test_flutterWrapWidget_OK_prefixedIdentifier_identifier() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return foo./*caret*/bar;
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return widget(child: foo./*caret*/bar);
+}
+''');
+  }
+
+  test_flutterWrapWidget_OK_prefixedIdentifier_prefix() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return /*caret*/foo.bar;
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return /*caret*/widget(child: foo.bar);
+}
+''');
   }
 
   test_flutterWrapWidget_OK_singleLine1() async {

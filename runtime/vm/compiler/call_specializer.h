@@ -82,7 +82,6 @@ class CallSpecializer : public FlowGraphVisitor {
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
-  void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
@@ -106,9 +105,6 @@ class CallSpecializer : public FlowGraphVisitor {
 
   virtual bool TryReplaceInstanceOfWithRangeCheck(InstanceCallInstr* call,
                                                   const AbstractType& type);
-
-  virtual bool TryReplaceTypeCastWithRangeCheck(InstanceCallInstr* call,
-                                                const AbstractType& type);
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call) = 0;
 

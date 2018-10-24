@@ -171,10 +171,4 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll();
 
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_ReadAllBytecode();
 
-/**
- * Parses all loaded functions in the current isolate..
- *
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_ParseAll();
-
 #endif /* INCLUDE_DART_NATIVE_API_H_ */ /* NOLINT */

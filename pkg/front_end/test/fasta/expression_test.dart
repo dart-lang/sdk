@@ -16,13 +16,18 @@ import "package:kernel/ast.dart"
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
+import "package:testing/src/log.dart" show splitLines;
+
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
-import "package:front_end/src/api_prototype/front_end.dart"
-    show CompilationMessage, CompilerOptions;
+import "package:front_end/src/api_prototype/compiler_options.dart"
+    show CompilerOptions, DiagnosticMessage;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+
+import "package:front_end/src/api_prototype/terminal_color_support.dart"
+    show printDiagnosticMessage;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -54,7 +59,7 @@ const JsonEncoder json = const JsonEncoder.withIndent("  ");
 class Context extends ChainContext {
   final CompilerContext compilerContext;
   final ExternalStateSnapshot snapshot;
-  final List<CompilationMessage> errors;
+  final List<DiagnosticMessage> errors;
 
   final List<Step> steps;
 
@@ -80,8 +85,8 @@ class Context extends ChainContext {
     snapshot.restore();
   }
 
-  List<CompilationMessage> takeErrors() {
-    List<CompilationMessage> result = new List<CompilationMessage>.from(errors);
+  List<DiagnosticMessage> takeErrors() {
+    List<DiagnosticMessage> result = new List<DiagnosticMessage>.from(errors);
     errors.clear();
     return result;
   }
@@ -89,16 +94,20 @@ class Context extends ChainContext {
 
 class CompilationResult {
   Procedure compiledProcedure;
-  List<CompilationMessage> errors;
+  List<DiagnosticMessage> errors;
   CompilationResult(this.compiledProcedure, this.errors);
 
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
     buffer.write("Errors: {\n");
     for (var error in errors) {
-      buffer.write("  ");
-      buffer.write("${error.message} (@${error.span.start.offset})");
-      buffer.write("\n");
+      for (String message in error.plainTextFormatted) {
+        for (String line in splitLines(message)) {
+          buffer.write("  ");
+          buffer.write(line);
+        }
+        buffer.write("\n");
+      }
     }
     buffer.write("}\n");
     if (compiledProcedure == null) {
@@ -306,7 +315,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
         test.library,
         test.className,
         test.isStaticMethod);
-    List<CompilationMessage> errors = context.takeErrors();
+    List<DiagnosticMessage> errors = context.takeErrors();
     test.results.add(new CompilationResult(compiledProcedure, errors));
     if (compiledProcedure != null) {
       // Confirm we can serialize generated procedure.
@@ -367,7 +376,8 @@ Future<Context> createContext(
 
   /// The actual location of the dill file.
   final Uri sdkSummaryFile =
-      computePlatformBinariesLocation().resolve("vm_platform.dill");
+      computePlatformBinariesLocation(forceBuildDir: true)
+          .resolve("vm_platform.dill");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
 
@@ -375,16 +385,15 @@ Future<Context> createContext(
       .entityForUri(sdkSummary)
       .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
 
-  final List<CompilationMessage> errors = <CompilationMessage>[];
+  final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..strongMode = true
-    ..target = new VmTarget(new TargetFlags(strongMode: true))
-    ..reportMessages = true
+    ..target = new VmTarget(new TargetFlags())
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..onError = (CompilationMessage message) {
+    ..onDiagnostic = (DiagnosticMessage message) {
+      printDiagnosticMessage(message, print);
       errors.add(message);
     };
 

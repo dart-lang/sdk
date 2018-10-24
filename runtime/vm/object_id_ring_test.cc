@@ -7,6 +7,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/globals.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {

@@ -17,6 +17,7 @@
 #include "vm/heap/heap.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/isolate.h"
+#include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
@@ -373,10 +374,10 @@ void Dart::WaitForIsolateShutdown() {
   ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
 }
 
-const char* Dart::Cleanup() {
+char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
   if (vm_isolate_ == NULL) {
-    return "VM already terminated.";
+    return strdup("VM already terminated.");
   }
 
   if (FLAG_trace_shutdown) {
@@ -393,19 +394,6 @@ const char* Dart::Cleanup() {
 #endif  // !defined(PRODUCT)
 
   NativeSymbolResolver::Cleanup();
-
-  {
-    // Set the VM isolate as current isolate when shutting down
-    // Metrics so that we can use a StackZone.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
-                   UptimeMillis());
-    }
-    bool result = Thread::EnterIsolate(vm_isolate_);
-    ASSERT(result);
-    NOT_IN_PRODUCT(Metric::Cleanup());
-    Thread::ExitIsolate();
-  }
 
   // Disable the creation of new isolates.
   if (FLAG_trace_shutdown) {
@@ -454,6 +442,27 @@ const char* Dart::Cleanup() {
   WaitForIsolateShutdown();
 
   IdleNotifier::Stop();
+
+#if !defined(PRODUCT)
+  {
+    // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
+    // create a StackZone. We *must* wait for all other isolate to shutdown
+    // before entering VM isolate because code in the isolate initialization
+    // calls VerifyBootstrapClasses, which calls Heap::Verify which calls
+    // Scavenger::VisitObjects on the VM isolate's new space without taking
+    // any sort of locks: assuming that vm isolate is immutable and never
+    // entered by a mutator thread - which is in general true, but is violated
+    // by the code below.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
+                   UptimeMillis());
+    }
+    bool result = Thread::EnterIsolate(vm_isolate_);
+    ASSERT(result);
+    Metric::Cleanup();
+    Thread::ExitIsolate();
+  }
+#endif
 
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
@@ -532,6 +541,10 @@ const char* Dart::Cleanup() {
   }
   MallocHooks::Cleanup();
   Flags::Cleanup();
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  IsolateReloadContext::SetFileModifiedCallback(NULL);
+  Service::SetEmbedderStreamCallbacks(NULL, NULL);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return NULL;
 }
 
@@ -636,6 +649,13 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (I->object_store()->megamorphic_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
+
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+  if (I != Dart::vm_isolate()) {
+    I->object_store()->set_build_method_extractor_code(
+        Code::Handle(StubCode::GetBuildMethodExtractorStub()));
+  }
+#endif
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   const Code& miss_code =

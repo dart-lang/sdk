@@ -243,11 +243,11 @@ class RtiNeedDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, backendStrategy.closureDataLookup)
+            member, compiler, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -258,8 +258,8 @@ class RtiNeedDataComputer extends DataComputer {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
         .computeClassValue(cls);
   }
@@ -302,8 +302,8 @@ abstract class IrMixin implements ComputeValueMixin {
 
   @override
   Local getFrontendClosure(MemberEntity member) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    ir.Node node = backendStrategy.elementMap.getMemberDefinition(member).node;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    ir.Node node = closedWorld.elementMap.getMemberDefinition(member).node;
     if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap frontendElementMap = frontendStrategy.elementMap;
@@ -335,7 +335,7 @@ class RtiClassNeedIrComputer extends DataRegistry
 class RtiMemberNeedIrComputer extends IrDataExtractor
     with ComputeValueMixin, IrMixin {
   final JsToElementMap _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberNeedIrComputer(

@@ -223,7 +223,7 @@ abstract class Loader<L> {
     severity ??= message.code.severity;
     if (severity == Severity.errorLegacyWarning) {
       severity =
-          target.backendTarget.strongMode ? Severity.error : Severity.warning;
+          target.backendTarget.legacyMode ? Severity.warning : Severity.error;
     }
     addMessage(message, charOffset, length, fileUri, severity,
         wasHandled: wasHandled, context: context);

@@ -6,7 +6,6 @@
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
-#include "vm/compiler_stats.h"
 #include "vm/heap/become.h"
 #include "vm/heap/compactor.h"
 #include "vm/heap/marker.h"

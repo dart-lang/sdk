@@ -132,6 +132,7 @@ class AssistProcessor {
     await _addProposal_convertPartOfToUri();
     await _addProposal_convertToForIndexLoop();
     await _addProposal_convertToGenericFunctionSyntax();
+    await _addProposal_convertToIntLiteral();
     await _addProposal_convertToIsNot_onIs();
     await _addProposal_convertToIsNot_onNot();
     await _addProposal_convertToIsNotEmpty();
@@ -176,6 +177,8 @@ class AssistProcessor {
     // Calculate only specific assists for edit.dartFix
     if (assistKind == DartAssistKind.CONVERT_CLASS_TO_MIXIN) {
       await _addProposal_convertClassToMixin();
+    } else if (assistKind == DartAssistKind.CONVERT_TO_INT_LITERAL) {
+      await _addProposal_convertToIntLiteral();
     }
     return assists;
   }
@@ -380,6 +383,33 @@ class AssistProcessor {
     if (validChange) {
       _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
     }
+  }
+
+  Future<void> _addProposal_convertToIntLiteral() async {
+    if (node is! DoubleLiteral) {
+      _coverageMarker();
+      return;
+    }
+    DoubleLiteral literal = node;
+    int intValue;
+    try {
+      intValue = literal.value?.truncate();
+    } catch (e) {
+      // Double cannot be converted to int
+    }
+    if (intValue == null || intValue != literal.value) {
+      _coverageMarker();
+      return;
+    }
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(new SourceRange(literal.offset, literal.length),
+          (DartEditBuilder builder) {
+        builder.write('${intValue}');
+      });
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_INT_LITERAL);
   }
 
   Future<void> _addProposal_assignToLocalVariable() async {

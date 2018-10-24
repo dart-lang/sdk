@@ -70,9 +70,9 @@ class InheritanceOverrideVerifier {
     }
   }
 
-  /// Returns [ExecutableElement]s that are in the interface of the given
-  /// class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
+  /// Returns [FunctionType]s of members that are in the interface of the
+  /// given class, but don't have concrete implementations.
+  static List<FunctionType> missingOverrides(ClassDeclaration node) {
     return node.name.getProperty(_missingOverridesKey) ?? const [];
   }
 }
@@ -84,6 +84,7 @@ class _ClassVerifier {
   final ErrorReporter reporter;
 
   final LibraryElement library;
+  final Uri libraryUri;
   final ClassElementImpl classElement;
 
   final SimpleIdentifier classNameNode;
@@ -108,7 +109,8 @@ class _ClassVerifier {
     this.onClause,
     this.superclass,
     this.withClause,
-  }) : classElement =
+  })  : libraryUri = library.source.uri,
+        classElement =
             AbstractClassElementImpl.getImpl(classNameNode.staticElement);
 
   void verify() {
@@ -147,7 +149,6 @@ class _ClassVerifier {
 
     // Check the members if the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
-    var libraryUri = library.source.uri;
     for (var member in members) {
       if (member is FieldDeclaration) {
         var fieldList = member.fields;
@@ -169,8 +170,10 @@ class _ClassVerifier {
       _reportInconsistentInheritance(classNameNode, conflict);
     }
 
+    _checkForMismatchedAccessorTypes(interfaceMembers);
+
     if (!classElement.isAbstract) {
-      List<ExecutableElement> inheritedAbstractMembers = null;
+      List<FunctionType> inheritedAbstract = null;
 
       for (var name in interfaceMembers.map.keys) {
         if (!name.isAccessibleFor(libraryUri)) {
@@ -184,8 +187,8 @@ class _ClassVerifier {
         if (concreteType == null) {
           if (!classElement.hasNoSuchMethod) {
             if (!_reportConcreteClassWithAbstractMember(name.name)) {
-              inheritedAbstractMembers ??= [];
-              inheritedAbstractMembers.add(interfaceType.element);
+              inheritedAbstract ??= [];
+              inheritedAbstract.add(interfaceType);
             }
           }
           continue;
@@ -219,7 +222,7 @@ class _ClassVerifier {
         }
       }
 
-      _reportInheritedAbstractMembers(inheritedAbstractMembers);
+      _reportInheritedAbstractMembers(inheritedAbstract);
     }
   }
 
@@ -341,6 +344,52 @@ class _ClassVerifier {
     return hasError;
   }
 
+  void _checkForMismatchedAccessorTypes(Interface interface) {
+    for (var name in interface.map.keys) {
+      if (!name.isAccessibleFor(libraryUri)) continue;
+
+      var getter = interface.map[name];
+      if (getter.element.kind == ElementKind.GETTER) {
+        // TODO(scheglov) We should separate getters and setters.
+        var setter = interface.map[new Name(libraryUri, '${name.name}=')];
+        if (setter != null) {
+          var getterType = getter.returnType;
+          var setterType = setter.parameters[0].type;
+          if (!typeSystem.isAssignableTo(getterType, setterType)) {
+            var getterElement = getter.element;
+            var setterElement = setter.element;
+
+            Element errorElement;
+            if (getterElement.enclosingElement == classElement) {
+              errorElement = getterElement;
+            } else if (setterElement.enclosingElement == classElement) {
+              errorElement = setterElement;
+            } else {
+              errorElement = classElement;
+            }
+
+            String getterName = getterElement.displayName;
+            if (getterElement.enclosingElement != classElement) {
+              var getterClassName = getterElement.enclosingElement.displayName;
+              getterName = '$getterClassName.$getterName';
+            }
+
+            String setterName = setterElement.displayName;
+            if (setterElement.enclosingElement != classElement) {
+              var setterClassName = setterElement.enclosingElement.displayName;
+              setterName = '$setterClassName.$setterName';
+            }
+
+            reporter.reportErrorForElement(
+                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+                errorElement,
+                [getterName, getterType, setterType, setterName]);
+          }
+        }
+      }
+    }
+  }
+
   /// We identified that the current non-abstract class does not have the
   /// concrete implementation of a method with the given [name].  If this is
   /// because the class itself defines an abstract method with this [name],
@@ -391,18 +440,20 @@ class _ClassVerifier {
     }
   }
 
-  void _reportInheritedAbstractMembers(List<ExecutableElement> elements) {
-    if (elements == null) {
+  void _reportInheritedAbstractMembers(List<FunctionType> types) {
+    if (types == null) {
       return;
     }
 
     classNameNode.setProperty(
       InheritanceOverrideVerifier._missingOverridesKey,
-      elements,
+      types,
     );
 
     var descriptions = <String>[];
-    for (ExecutableElement element in elements) {
+    for (FunctionType type in types) {
+      ExecutableElement element = type.element;
+
       String prefix = '';
       if (element is PropertyAccessorElement) {
         if (element.isGetter) {
@@ -416,7 +467,7 @@ class _ClassVerifier {
       var elementName = element.displayName;
       var enclosingElement = element.enclosingElement;
       if (enclosingElement != null) {
-        var enclosingName = element.enclosingElement.displayName;
+        var enclosingName = enclosingElement.displayName;
         description = "$prefix$enclosingName.$elementName";
       } else {
         description = "$prefix$elementName";

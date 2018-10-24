@@ -49,6 +49,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool dropAST: false,
+    bool useFutureBytecodeFormat: false,
     bool enableAsserts: false,
     bool enableConstantEvaluation: true}) async {
   // Replace error handler to detect if there are compilation errors.
@@ -58,13 +59,29 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
 
   final component = await kernelForProgram(source, options);
 
+  // If we don't default back to the current VM we'll add environment defines
+  // for the core libraries.
+  if (component != null && environmentDefines != null) {
+    if (environmentDefines['dart.vm.product'] == 'true') {
+      environmentDefines['dart.developer.causal_async_stacks'] = 'false';
+    }
+    environmentDefines['dart.isVM'] = 'true';
+    for (final library in component.libraries) {
+      if (library.importUri.scheme == 'dart') {
+        final path = library.importUri.path;
+        if (!path.startsWith('_')) {
+          environmentDefines['dart.library.${path}'] = 'true';
+        }
+      }
+    }
+  }
+
   // Run global transformations only if component is correct.
   if (aot && component != null) {
     await _runGlobalTransformations(
         source,
         options,
         component,
-        options.strongMode,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
         enableAsserts,
@@ -75,8 +92,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
-          strongMode: options.strongMode,
           dropAST: dropAST,
+          useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
     });
   }
@@ -91,40 +108,37 @@ Future _runGlobalTransformations(
     Uri source,
     CompilerOptions compilerOptions,
     Component component,
-    bool strongMode,
     bool useGlobalTypeFlowAnalysis,
     Map<String, String> environmentDefines,
     bool enableAsserts,
     bool enableConstantEvaluation,
     ErrorDetector errorDetector) async {
-  if (strongMode) {
+  if (errorDetector.hasCompilationErrors) return;
+
+  final coreTypes = new CoreTypes(component);
+  _patchVmConstants(coreTypes);
+
+  // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
+  // mixin applications when creating mixin applications in frontend,
+  // so all backends (and all transformation passes from the very beginning)
+  // can benefit from mixin de-duplication.
+  // At least, in addition to VM/AOT case we should run this transformation
+  // when building a platform dill file for VM/JIT case.
+  mixin_deduplication.transformComponent(component);
+
+  if (enableConstantEvaluation) {
+    await _performConstantEvaluation(source, compilerOptions, component,
+        coreTypes, environmentDefines, enableAsserts);
+
     if (errorDetector.hasCompilationErrors) return;
+  }
 
-    final coreTypes = new CoreTypes(component);
-    _patchVmConstants(coreTypes);
-
-    // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
-    // mixin applications when creating mixin applications in frontend,
-    // so all backends (and all transformation passes from the very beginning)
-    // can benefit from mixin de-duplication.
-    // At least, in addition to VM/AOT case we should run this transformation
-    // when building a platform dill file for VM/JIT case.
-    mixin_deduplication.transformComponent(component);
-
-    if (enableConstantEvaluation) {
-      await _performConstantEvaluation(source, compilerOptions, component,
-          coreTypes, environmentDefines, strongMode, enableAsserts);
-
-      if (errorDetector.hasCompilationErrors) return;
-    }
-
-    if (useGlobalTypeFlowAnalysis) {
-      globalTypeFlow.transformComponent(
-          compilerOptions.target, coreTypes, component);
-    } else {
-      devirtualization.transformComponent(coreTypes, component);
-      no_dynamic_invocations_annotator.transformComponent(component);
-    }
+  if (useGlobalTypeFlowAnalysis) {
+    globalTypeFlow.transformComponent(
+        compilerOptions.target, coreTypes, component);
+  } else {
+    devirtualization.transformComponent(coreTypes, component);
+    no_dynamic_invocations_annotator.transformComponent(component);
   }
 }
 
@@ -152,7 +166,6 @@ Future _performConstantEvaluation(
     Component component,
     CoreTypes coreTypes,
     Map<String, String> environmentDefines,
-    bool strongMode,
     bool enableAsserts) async {
   final vmConstants =
       new vm_constants.VmConstantsBackend(environmentDefines, coreTypes);
@@ -160,13 +173,12 @@ Future _performConstantEvaluation(
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
     final hierarchy = new ClassHierarchy(component);
     final typeEnvironment =
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
+        new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
 
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).
     constants.transformComponent(component, vmConstants,
         keepFields: true,
-        strongMode: true,
         evaluateAnnotations: true,
         enableAsserts: enableAsserts,
         errorReporter: new ForwardConstantEvaluationErrors(typeEnvironment));
@@ -231,7 +243,7 @@ bool parseCommandLineDefines(
   for (final String dflag in dFlags) {
     final equalsSignIndex = dflag.indexOf('=');
     if (equalsSignIndex < 0) {
-      environmentDefines[dflag] = '';
+      // Ignored.
     } else if (equalsSignIndex > 0) {
       final key = dflag.substring(0, equalsSignIndex);
       final value = dflag.substring(equalsSignIndex + 1);

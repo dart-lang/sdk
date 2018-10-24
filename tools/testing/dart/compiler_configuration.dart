@@ -35,9 +35,13 @@ abstract class CompilerConfiguration {
   final TestConfiguration _configuration;
 
   bool get _isDebug => _configuration.mode.isDebug;
+
   bool get _isChecked => _configuration.isChecked;
+
   bool get _isHostChecked => _configuration.isHostChecked;
+
   bool get _useSdk => _configuration.useSdk;
+
   bool get _useEnableAsserts => _configuration.useEnableAsserts;
 
   bool get previewDart2 => !_configuration.noPreviewDart2;
@@ -229,6 +233,16 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     ];
     return new CommandArtifact(commands, tempKernelFile(tempDir),
         'application/kernel-ir-fully-linked');
+  }
+
+  @override
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
+    return sharedOptions.toList()..addAll(vmOptions)..addAll(args);
   }
 
   List<String> computeRuntimeArguments(
@@ -578,7 +592,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   final bool previewDart2;
 
   bool get _isAndroid => _configuration.system == System.android;
+
   bool get _isArm => _configuration.architecture == Architecture.arm;
+
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
   bool get _isAot => true;
@@ -777,7 +793,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> originalArguments) {
     List<String> args = [];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -1032,10 +1052,17 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
+  static final noCausalAsyncStacksRegExp =
+      new RegExp('--no[_-]causal[_-]async[_-]stacks');
+
   TestConfiguration get _configuration;
+
   bool get _useSdk;
+
   bool get _isAot;
+
   bool get _isChecked;
+
   bool get _useEnableAsserts;
 
   String get executableScriptSuffix;
@@ -1061,8 +1088,6 @@ abstract class VMKernelCompilerMixin {
 
     final args = [
       _isAot ? '--aot' : '--no-aot',
-      '--strong-mode',
-      _configuration.noPreviewDart2 ? '--no-sync-async' : '--sync-async',
       '--platform=$vmPlatform',
       '-o',
       dillFile,
@@ -1071,12 +1096,18 @@ abstract class VMKernelCompilerMixin {
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
     args.addAll(arguments.where(
         (name) => name.startsWith('-D') || name.startsWith('--packages=')));
+
+    final bool causalAsyncStacks =
+        !arguments.any((String arg) => noCausalAsyncStacksRegExp.hasMatch(arg));
+    args.add('-Ddart.developer.causal_async_stacks=$causalAsyncStacks');
+
     if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
     }
 
     if (_configuration.useKernelBytecode) {
       args.add('--gen-bytecode');
+      args.add('--drop-ast');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
@@ -1136,8 +1167,8 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     var outputFileName = output.toFilePath();
 
     var compilerArguments = <String>[];
-    if (!_isLegacy) {
-      compilerArguments.add("--strong-mode");
+    if (_isLegacy) {
+      compilerArguments.add("--legacy-mode");
     }
 
     compilerArguments.addAll(
@@ -1163,7 +1194,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    List<String> arguments = <String>[];
+    List<String> arguments = new List<String>.from(sharedOptions);
     for (String argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;
       arguments.add(argument);

@@ -18,7 +18,6 @@ conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333
 const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
-constructor_reference_test/27: MissingCompileTimeError # Issue 34403
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
 emit_const_fields_test: CompileTimeError # failing-by-design: #34340
@@ -26,6 +25,7 @@ enum_syntax_test/05: Fail # Issue 34341
 enum_syntax_test/06: Fail # Issue 34341
 f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
+for_test/01: MissingCompileTimeError
 forwarding_stub_tearoff_test: CompileTimeError # Issue 34329
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
@@ -72,21 +72,11 @@ issue31596_test: CompileTimeError # Issue #31596
 issue34498_test: MissingCompileTimeError # Issue 34500
 large_class_declaration_test: Slow, Pass
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
+mixin_declaration/mixin_declaration_factory_test/02: Crash # Issue 34809
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
 mixin_method_override_test/01: MissingCompileTimeError
-mixin_super_2_test/01: MissingCompileTimeError
-mixin_super_2_test/03: MissingCompileTimeError
-mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass3_test/05: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/01: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass_test/02: MissingCompileTimeError, MissingStaticWarning # failing-by-design, see Issue #34376
-mixin_supertype_subclass_test/05: MissingCompileTimeError, MissingStaticWarning # failing-by-design, see Issue #34376
+mixin_super_2_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError # Issue #28515

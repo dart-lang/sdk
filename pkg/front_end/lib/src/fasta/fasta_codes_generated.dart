@@ -675,41 +675,6 @@ const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
     tip: r"""It should be safe to remove the '?' as a prefix is never null.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type)>
-    templateCantUseSuperBoundedTypeForInstanceCreation =
-    const Template<Message Function(DartType _type)>(
-        messageTemplate:
-            r"""Can't use a super-bounded type for instance creation. Got '#type'.""",
-        tipTemplate:
-            r"""Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.""",
-        withArguments:
-            _withArgumentsCantUseSuperBoundedTypeForInstanceCreation);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type)>
-    codeCantUseSuperBoundedTypeForInstanceCreation =
-    const Code<Message Function(DartType _type)>(
-  "CantUseSuperBoundedTypeForInstanceCreation",
-  templateCantUseSuperBoundedTypeForInstanceCreation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseSuperBoundedTypeForInstanceCreation(
-    DartType _type) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  return new Message(codeCantUseSuperBoundedTypeForInstanceCreation,
-      message:
-          """Can't use a super-bounded type for instance creation. Got '${type}'.""",
-      tip: """Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.""",
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1438,7 +1403,7 @@ const Code<Null> codeConstFactory = messageConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstFactory = const MessageCode("ConstFactory",
-    analyzerCodes: <String>["CONST_FACTORY"],
+    index: 62,
     message:
         r"""Only redirecting factory constructors can be declared to be 'const'.""",
     tip:
@@ -1501,7 +1466,7 @@ const Code<Null> codeConstMethod = messageConstMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstMethod = const MessageCode("ConstMethod",
-    analyzerCodes: <String>["CONST_METHOD"],
+    index: 63,
     message:
         r"""Getters, setters and methods can't be declared to be 'const'.""",
     tip: r"""Try removing the 'const' keyword.""");
@@ -1567,7 +1532,7 @@ const Code<Null> codeConstructorWithTypeArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithTypeArguments = const MessageCode(
     "ConstructorWithTypeArguments",
-    analyzerCodes: <String>["UNDEFINED_CLASS"],
+    analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR"],
     message:
         r"""A constructor invocation can't have type arguments on the constructor name.""",
     tip: r"""Try to place the type arguments on the class name.""");
@@ -1664,7 +1629,7 @@ const Code<Null> codeContinueWithoutLabelInCase =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageContinueWithoutLabelInCase = const MessageCode(
     "ContinueWithoutLabelInCase",
-    analyzerCodes: <String>["CONTINUE_WITHOUT_LABEL_IN_CASE"],
+    index: 64,
     message:
         r"""A continue statement in a switch statement must have a label as a target.""",
     tip:
@@ -1700,7 +1665,7 @@ const Code<Null> codeCovariantAfterFinal = messageCovariantAfterFinal;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantAfterFinal = const MessageCode(
     "CovariantAfterFinal",
-    analyzerCodes: <String>["COVARIANT_AFTER_FINAL"],
+    index: 65,
     message:
         r"""The modifier 'covariant' should be before the modifier 'final'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -1722,7 +1687,7 @@ const Code<Null> codeCovariantAndStatic = messageCovariantAndStatic;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantAndStatic = const MessageCode(
     "CovariantAndStatic",
-    analyzerCodes: <String>["COVARIANT_AND_STATIC"],
+    index: 66,
     message:
         r"""Members can't be declared to be both 'covariant' and 'static'.""",
     tip: r"""Try removing either the 'covariant' or 'static' keyword.""");
@@ -1732,7 +1697,7 @@ const Code<Null> codeCovariantMember = messageCovariantMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantMember = const MessageCode("CovariantMember",
-    analyzerCodes: <String>["COVARIANT_MEMBER"],
+    index: 67,
     message:
         r"""Getters, setters and methods can't be declared to be 'covariant'.""",
     tip: r"""Try removing the 'covariant' keyword.""");
@@ -1845,7 +1810,6 @@ const Code<Null> codeDeclaredMemberConflictsWithInheritedMember =
 const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
     const MessageCode("DeclaredMemberConflictsWithInheritedMember",
         analyzerCodes: <String>["DECLARED_MEMBER_CONFLICTS_WITH_INHERITED"],
-        severity: Severity.errorLegacyWarning,
         message:
             r"""Can't declare a member that conflicts with an inherited one.""");
 
@@ -1896,7 +1860,7 @@ const Code<Null> codeDeferredAfterPrefix = messageDeferredAfterPrefix;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDeferredAfterPrefix = const MessageCode(
     "DeferredAfterPrefix",
-    analyzerCodes: <String>["DEFERRED_AFTER_PREFIX"],
+    index: 68,
     message:
         r"""The deferred keyword should come immediately before the prefix ('as' clause).""",
     tip: r"""Try moving the deferred keyword before the prefix.""");
@@ -2090,7 +2054,7 @@ const Code<Null> codeDirectiveAfterDeclaration =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
     "DirectiveAfterDeclaration",
-    analyzerCodes: <String>["DIRECTIVE_AFTER_DECLARATION"],
+    index: 69,
     message: r"""Directives must appear before any declarations.""",
     tip: r"""Try moving the directive before any declarations.""");
 
@@ -2100,7 +2064,7 @@ const Code<Null> codeDuplicateDeferred = messageDuplicateDeferred;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicateDeferred = const MessageCode(
     "DuplicateDeferred",
-    analyzerCodes: <String>["DUPLICATE_DEFERRED"],
+    index: 71,
     message: r"""An import directive can only have one 'deferred' keyword.""",
     tip: r"""Try removing all but one 'deferred' keyword.""");
 
@@ -2117,7 +2081,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeDuplicateLabelInSwitchStatement =
     const Code<Message Function(String name)>("DuplicateLabelInSwitchStatement",
         templateDuplicateLabelInSwitchStatement,
-        analyzerCodes: <String>["DUPLICATE_LABEL_IN_SWITCH_STATEMENT"]);
+        index: 72);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicateLabelInSwitchStatement(String name) {
@@ -2135,7 +2099,7 @@ const Code<Null> codeDuplicatePrefix = messageDuplicatePrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
-    analyzerCodes: <String>["DUPLICATE_PREFIX"],
+    index: 73,
     message: r"""An import directive can only have one prefix ('as' clause).""",
     tip: r"""Try removing all but one prefix.""");
 
@@ -2438,7 +2402,7 @@ const Template<Message Function(Token token)> templateDuplicatedModifier =
 const Code<Message Function(Token token)> codeDuplicatedModifier =
     const Code<Message Function(Token token)>(
         "DuplicatedModifier", templateDuplicatedModifier,
-        analyzerCodes: <String>["DUPLICATED_MODIFIER"]);
+        index: 70);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedModifier(Token token) {
@@ -2630,7 +2594,7 @@ const Code<Null> codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
-    analyzerCodes: <String>["ENUM_IN_CLASS"],
+    index: 74,
     message: r"""Enums can't be declared inside classes.""",
     tip: r"""Try moving the enum to the top-level.""");
 
@@ -3013,7 +2977,7 @@ const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExportAfterPart = const MessageCode("ExportAfterPart",
-    analyzerCodes: <String>["EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE"],
+    index: 75,
     message: r"""Export directives must preceed part directives.""",
     tip: r"""Try moving the export directives before the part directives.""");
 
@@ -3218,7 +3182,7 @@ const Code<Null> codeExternalTypedef = messageExternalTypedef;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalTypedef = const MessageCode("ExternalTypedef",
-    analyzerCodes: <String>["EXTERNAL_TYPEDEF"],
+    index: 76,
     message: r"""Typedefs can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
 
@@ -3233,7 +3197,7 @@ const Template<Message Function(Token token)> templateExtraneousModifier =
 const Code<Message Function(Token token)> codeExtraneousModifier =
     const Code<Message Function(Token token)>(
         "ExtraneousModifier", templateExtraneousModifier,
-        analyzerCodes: <String>["EXTRANEOUS_MODIFIER"]);
+        index: 77);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtraneousModifier(Token token) {
@@ -3333,7 +3297,7 @@ const Code<Null> codeFactoryTopLevelDeclaration =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
     "FactoryTopLevelDeclaration",
-    analyzerCodes: <String>["FACTORY_TOP_LEVEL_DECLARATION"],
+    index: 78,
     message: r"""Top-level declarations can't be declared to be 'factory'.""",
     tip: r"""Try removing the keyword 'factory'.""");
 
@@ -3375,6 +3339,10 @@ const MessageCode messageFastaUsageLong =
   -v, --verbose
     Display verbose information.
 
+  -Dname
+  -Dname=value
+    Ignored for now.
+
   --
     Stop option parsing, the rest of the command line is assumed to be
     file names or arguments to the Dart program.
@@ -3411,6 +3379,20 @@ const MessageCode messageFastaUsageLong =
     Location of the SDK sources for use when compiling additional platform
     libraries.
 
+  --supermixin
+    Ignored for now.
+
+  --single-root-scheme=String
+  --single-root-base=<dir>
+    Specify a custom URI scheme and a location on disk where such URIs are
+    mapped to.
+
+    When specified, the compiler can be invoked with inputs using the custom
+    URI scheme. The compiler can ignore the exact location of files on disk
+    and as a result to produce output that is independendent of the absolute
+    location of files on disk. This is mostly useful for integrating with
+    build systems.
+
   --fatal=errors
   --fatal=warnings
     Makes messages of the given kinds fatal, that is, immediately stop the
@@ -3435,7 +3417,7 @@ const Code<Null> codeFieldInitializerOutsideConstructor =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     "FieldInitializerOutsideConstructor",
-    analyzerCodes: <String>["FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR"],
+    index: 79,
     message: r"""Field formal parameters can only be used in a constructor.""",
     tip: r"""Try removing 'this.'.""");
 
@@ -3445,7 +3427,7 @@ const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndCovariant = const MessageCode(
     "FinalAndCovariant",
-    analyzerCodes: <String>["FINAL_AND_COVARIANT"],
+    index: 80,
     message:
         r"""Members can't be declared to be both 'final' and 'covariant'.""",
     tip: r"""Try removing either the 'final' or 'covariant' keyword.""");
@@ -3746,6 +3728,53 @@ const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
     analyzerCodes: <String>["GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND"],
     message:
         r"""Type variables can't have generic function types in their bounds.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type)>
+    templateGenericFunctionTypeInferredAsActualTypeArgument =
+    const Template<Message Function(DartType _type)>(
+        messageTemplate:
+            r"""Unexpected generic function type '#type' inferred as a type argument.""",
+        tipTemplate:
+            r"""Try providing a non-generic function type explicitly.""",
+        withArguments:
+            _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)>
+    codeGenericFunctionTypeInferredAsActualTypeArgument =
+    const Code<Message Function(DartType _type)>(
+        "GenericFunctionTypeInferredAsActualTypeArgument",
+        templateGenericFunctionTypeInferredAsActualTypeArgument,
+        analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
+    DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeGenericFunctionTypeInferredAsActualTypeArgument,
+      message:
+          """Unexpected generic function type '${type}' inferred as a type argument.""",
+      tip: """Try providing a non-generic function type explicitly.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeGenericFunctionTypeUsedAsActualTypeArgument =
+    messageGenericFunctionTypeUsedAsActualTypeArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageGenericFunctionTypeUsedAsActualTypeArgument =
+    const MessageCode("GenericFunctionTypeUsedAsActualTypeArgument",
+        analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
+        message:
+            r"""Unexpected generic function type found in a type argument.""",
+        tip: r"""Try using a non-generic function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateGetterNotFound =
@@ -4097,6 +4126,249 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
       message:
           """Import of '${name}' (from '${uri}') hides import from '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateIncorrectTypeArgument = const Template<
+        Message Function(DartType _type, String name)>(
+    messageTemplate:
+        r"""Type argument '#type' violates the corresponding type variable bound of '#name'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeIncorrectTypeArgument =
+    const Code<Message Function(DartType _type, String name)>(
+        "IncorrectTypeArgument", templateIncorrectTypeArgument,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgument(DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeIncorrectTypeArgument,
+      message:
+          """Type argument '${type}' violates the corresponding type variable bound of '${name}'.""",
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateIncorrectTypeArgumentInReturnType = const Template<
+        Message Function(DartType _type, String name)>(
+    messageTemplate:
+        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the return type.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInReturnType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeIncorrectTypeArgumentInReturnType =
+    const Code<Message Function(DartType _type, String name)>(
+        "IncorrectTypeArgumentInReturnType",
+        templateIncorrectTypeArgumentInReturnType,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInReturnType(
+    DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeIncorrectTypeArgumentInReturnType,
+      message:
+          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the return type.""",
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String name,
+        String name2,
+        String
+            name3)> templateIncorrectTypeArgumentInSupertype = const Template<
+        Message Function(
+            DartType _type, String name, String name2, String name3)>(
+    messageTemplate:
+        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, String name, String name2, String name3)>
+    codeIncorrectTypeArgumentInSupertype = const Code<
+            Message Function(
+                DartType _type, String name, String name2, String name3)>(
+        "IncorrectTypeArgumentInSupertype",
+        templateIncorrectTypeArgumentInSupertype,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInSupertype(
+    DartType _type, String name, String name2, String name3) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeIncorrectTypeArgumentInSupertype,
+      message:
+          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""",
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String name,
+        String name2,
+        String
+            name3)> templateIncorrectTypeArgumentInSupertypeInferred = const Template<
+        Message Function(DartType _type, String name, String name2,
+            String name3)>(
+    messageTemplate:
+        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+    tipTemplate:
+        r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInSupertypeInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, String name, String name2, String name3)>
+    codeIncorrectTypeArgumentInSupertypeInferred = const Code<
+            Message Function(
+                DartType _type, String name, String name2, String name3)>(
+        "IncorrectTypeArgumentInSupertypeInferred",
+        templateIncorrectTypeArgumentInSupertypeInferred,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(
+    DartType _type, String name, String name2, String name3) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeIncorrectTypeArgumentInSupertypeInferred,
+      message:
+          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""",
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateIncorrectTypeArgumentInferred = const Template<
+        Message Function(DartType _type,
+            String name)>(
+    messageTemplate:
+        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name'.""",
+    tipTemplate:
+        r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeIncorrectTypeArgumentInferred =
+    const Code<Message Function(DartType _type, String name)>(
+        "IncorrectTypeArgumentInferred", templateIncorrectTypeArgumentInferred,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInferred(
+    DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeIncorrectTypeArgumentInferred,
+      message:
+          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}'.""",
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIncorrectTypeArgumentVariable =
+    messageIncorrectTypeArgumentVariable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
+    "IncorrectTypeArgumentVariable",
+    severity: Severity.context,
+    message: r"""Bound of this variable is violated.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)> templateInferredPackageUri =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""Interpreting this as package URI, '#uri'.""",
+        withArguments: _withArgumentsInferredPackageUri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeInferredPackageUri =
+    const Code<Message Function(Uri uri_)>(
+        "InferredPackageUri", templateInferredPackageUri,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInferredPackageUri(Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeInferredPackageUri,
+      message: """Interpreting this as package URI, '${uri}'.""",
+      arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4492,6 +4764,30 @@ const MessageCode messageInternalProblemMissingContext = const MessageCode(
         r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInternalProblemNoInferredTypeStored =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""There's no inferred type for '#name'.""",
+        withArguments: _withArgumentsInternalProblemNoInferredTypeStored);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInternalProblemNoInferredTypeStored =
+    const Code<Message Function(String name)>(
+        "InternalProblemNoInferredTypeStored",
+        templateInternalProblemNoInferredTypeStored,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemNoInferredTypeStored(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInternalProblemNoInferredTypeStored,
+      message: """There's no inferred type for '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Couldn't find '#name'.""",
@@ -4606,27 +4902,36 @@ Message _withArgumentsInternalProblemStackNotEmpty(String name, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateInternalProblemSuperclassNotFound =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Superclass not found '#name'.""",
-        withArguments: _withArgumentsInternalProblemSuperclassNotFound);
+const Template<Message Function(DartType _type, String name)>
+    templateInternalProblemStoringMultipleInferredTypes =
+    const Template<Message Function(DartType _type, String name)>(
+        messageTemplate:
+            r"""There's already an inferred type (#type) for '#name'.""",
+        withArguments:
+            _withArgumentsInternalProblemStoringMultipleInferredTypes);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeInternalProblemSuperclassNotFound =
-    const Code<Message Function(String name)>(
-        "InternalProblemSuperclassNotFound",
-        templateInternalProblemSuperclassNotFound,
+const Code<Message Function(DartType _type, String name)>
+    codeInternalProblemStoringMultipleInferredTypes =
+    const Code<Message Function(DartType _type, String name)>(
+        "InternalProblemStoringMultipleInferredTypes",
+        templateInternalProblemStoringMultipleInferredTypes,
         severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemSuperclassNotFound(String name) {
+Message _withArgumentsInternalProblemStoringMultipleInferredTypes(
+    DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeInternalProblemSuperclassNotFound,
-      message: """Superclass not found '${name}'.""",
-      arguments: {'name': name});
+  return new Message(codeInternalProblemStoringMultipleInferredTypes,
+      message: """There's already an inferred type (${type}) for '${name}'.""",
+      arguments: {'type': _type, 'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5727,6 +6032,46 @@ const MessageCode messageMissingTypedefParameters = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3)>
+    templateMixinApplicationIncompatibleSupertype = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3)>(
+        messageTemplate:
+            r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
+        withArguments: _withArgumentsMixinApplicationIncompatibleSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2, DartType _type3)>
+    codeMixinApplicationIncompatibleSupertype = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3)>(
+        "MixinApplicationIncompatibleSupertype",
+        templateMixinApplicationIncompatibleSupertype,
+        analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationIncompatibleSupertype(
+    DartType _type, DartType _type2, DartType _type3) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type3);
+  String type3 = '$buffer';
+
+  return new Message(codeMixinApplicationIncompatibleSupertype,
+      message:
+          """'${type}' doesn't implement '${type2}' so it can't be used with '${type3}'.""",
+      arguments: {'type': _type, 'type2': _type2, 'type3': _type3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
     Message Function(
         String name,
         String name2,
@@ -6136,6 +6481,13 @@ Message _withArgumentsNotAType(String name) {
   return new Message(codeNotAType,
       message: """'${name}' isn't a type.""", arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNotATypeContext = messageNotATypeContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNotATypeContext = const MessageCode("NotATypeContext",
+    severity: Severity.context, message: r"""This isn't a type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNotAnLvalue = messageNotAnLvalue;

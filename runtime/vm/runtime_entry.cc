@@ -4,7 +4,6 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/ast.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
@@ -165,11 +164,12 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
     args.SetAt(2, String::Handle(String::New("is not an integer")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
-  // Throw: new RangeError.range(index, 0, length, "length");
+  // Throw: new RangeError.range(index, 0, length - 1, "length");
   const Array& args = Array::Handle(Array::New(4));
   args.SetAt(0, index);
   args.SetAt(1, Integer::Handle(Integer::New(0)));
-  args.SetAt(2, length);
+  args.SetAt(2, Integer::Handle(Integer::Cast(length).ArithmeticOp(
+                    Token::kSUB, Integer::Handle(Integer::New(1)))));
   args.SetAt(3, Symbols::Length());
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
@@ -1141,7 +1141,6 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
                                    const String& target_name) {
   const Class& receiver_class = Class::Handle(receiver.clazz());
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
   // (or a call-through getter for methodName).
   if (Function::IsDynamicInvocationForwaderName(target_name)) {
@@ -1149,7 +1148,6 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
         Function::DemangleDynamicInvocationForwarderName(target_name));
     return InlineCacheMissHelper(receiver, args_descriptor, demangled);
   }
-#endif
 
   Function& result = Function::Handle();
   if (!ResolveCallThroughGetter(receiver, receiver_class, target_name,
@@ -1759,6 +1757,10 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
   }
 
+  if (Function::IsDynamicInvocationForwaderName(target_name)) {
+    target_name = Function::DemangleDynamicInvocationForwarderName(target_name);
+  }
+
   Class& cls = Class::Handle(zone, receiver.clazz());
   Function& function = Function::Handle(zone);
 
@@ -2089,7 +2091,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter) {
     // Do not allocate an interpreter, if none is allocated yet.
-    Interpreter* interpreter = Isolate::Current()->interpreter();
+    Interpreter* interpreter = Thread::Current()->interpreter();
     if (interpreter != NULL) {
       interpreter_stack_overflow =
           interpreter->get_sp() >= interpreter->stack_limit();

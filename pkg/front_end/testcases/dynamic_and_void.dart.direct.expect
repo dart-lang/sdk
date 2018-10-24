@@ -2,7 +2,7 @@
 //
 // pkg/front_end/testcases/dynamic_and_void.dart:12:27: Warning: Type 'dynamic' not found.
 // /*@warning=TypeNotFound*/ dynamic testDynamic() => 0;
-//                           ^
+//                           ^^^^^^^
 
 library;
 import self as self;

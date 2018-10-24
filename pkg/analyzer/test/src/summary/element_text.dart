@@ -170,6 +170,7 @@ class _ElementWriter {
     writeMetadata(e, '', '\n');
 
     writeIf(e.isAbstract && !e.isMixin, 'abstract ');
+    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
     if (e.isEnum) {
       buffer.write('enum ');
@@ -507,6 +508,7 @@ class _ElementWriter {
   void writeFunctionTypeAliasElement(FunctionTypeAliasElement e) {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
+    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
     if (e is GenericTypeAliasElement) {
       buffer.write('typedef ');

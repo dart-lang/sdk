@@ -21,7 +21,8 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart' as a;
 import 'package:analyzer/src/summary/summary_sdk.dart' as a;
 import 'package:analyzer/src/generated/resolver.dart' as a
     show NamespaceBuilder, TypeProvider;
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show RedirectingFactoryBody;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -320,7 +321,7 @@ class AnalyzerToKernel {
       // Compute the superclass to use for the next iteration of this loop.
       //
       // Any type arguments are in terms of the original class type parameters.
-      // This allows us to perform consistent subsititions and have the correct
+      // This allows us to perform consistent substitutions and have the correct
       // type arguments for the final supertype (that we return).
       supertype = Supertype(
           c,
@@ -349,9 +350,9 @@ class AnalyzerToKernel {
       // TODO(jmesserly): CFE does not respect the synthetic bit on constructors
       // so we set a bogus offset. This causes CFE to treat it as not synthetic.
       //
-      // (The bug is in DillMemberBuilder.isSythetic. Sythetic constructors have
-      // different semantics/optimizations in some cases, so it is important
-      // that the constructor is correctly marked.)
+      // (The bug is in DillMemberBuilder.isSynthetic. Synthetic constructors
+      // have different semantics/optimizations in some cases, so it is
+      // important that the constructor is correctly marked.)
       result.fileOffset = 1;
     }
     _visitAnnotations(e.metadata, result.addAnnotation);

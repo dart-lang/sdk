@@ -112,6 +112,11 @@ enum MessageKind {
   WRONG_ARGUMENT_FOR_JS_FIRST,
   WRONG_ARGUMENT_FOR_JS_SECOND,
   WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
+  // TODO(32557): Remove these when issue 32557 is fixed.
+  SWITCH_CASE_FORBIDDEN,
+  SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+  SWITCH_CASE_TYPES_NOT_EQUAL,
+  SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
 }
 
 /// A message template for an error, warning, hint or info message generated
@@ -669,6 +674,20 @@ become a compile-time error in the future."""),
           howToFix:
               "Try removing 'external' keyword or annotating the function "
               "as a js-interop function."),
+
+      // TODO(32557): Remove these when issue 32557 is fixed.
+      MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS: const MessageTemplate(
+          MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+          "'case' expression type '#{type}' overrides 'operator =='."),
+      MessageKind.SWITCH_CASE_FORBIDDEN: const MessageTemplate(
+          MessageKind.SWITCH_CASE_FORBIDDEN,
+          "'case' expression may not be of type '#{type}'."),
+      MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL: const MessageTemplate(
+          MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
+          "'case' expressions do not all have type '#{type}'."),
+      MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE: const MessageTemplate(
+          MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+          "'case' expression of type '#{type}'."),
     }); // End of TEMPLATES.
 
   String toString() => template;

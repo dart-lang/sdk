@@ -475,6 +475,16 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void beginClassOrMixinBody(Token token) {
+    debugEvent("beginClassOrMixinBody");
+    // Resolve unresolved types from the class header (i.e., superclass, mixins,
+    // and implemented types) before adding members from the class body which
+    // should not shadow these unresolved types.
+    library.currentDeclaration
+        .resolveTypes(library.currentDeclaration.typeVariables, library);
+  }
+
+  @override
   void beginNamedMixinApplication(
       Token begin, Token abstractToken, Token name) {
     debugEvent("beginNamedMixinApplication");
@@ -937,6 +947,12 @@ class OutlineBuilder extends StackListener {
     debugEvent("TypeArguments");
     push(const FixedNullableList<KernelTypeBuilder>().pop(stack, count) ??
         NullValue.TypeArguments);
+  }
+
+  @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+    pop(NullValue.TypeArguments);
   }
 
   @override

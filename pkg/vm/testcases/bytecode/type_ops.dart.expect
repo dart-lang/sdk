@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A<T extends core::Object = dynamic> extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -24,7 +24,7 @@ ConstantPool {
 }
 class B extends self::A<core::String> {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -44,7 +44,7 @@ ConstantPool {
 }
 class C<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic, T3 extends core::Object = dynamic> extends self::B {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -65,7 +65,7 @@ ConstantPool {
 class D<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::C<core::int, self::D::Q, self::D::P> {
   generic-covariant-impl field core::Map<self::D::P, self::D::Q> foo;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-6]
@@ -98,7 +98,7 @@ ConstantPool {
     : self::D::foo = tt as{TypeError} core::Map<self::D::P, self::D::Q>, super self::C::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -168,7 +168,7 @@ ConstantPool {
     [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P, #lib::D::Q>] this.{self::D::foo} = y as{TypeError} core::Map<self::D::P, self::D::Q>;
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 2, 0
@@ -198,14 +198,13 @@ L1:
   Drop1
 L2:
   Push                 FP[-5]
+  PushConstant         CP#11
   Push                 FP[-6]
   LoadTypeArgumentsField CP#6
   Push                 r0
-  PushConstant         CP#11
-  InstanceCall         4, CP#12
-  InstanceCall         1, CP#13
-  ReturnTOS
-  PushNull
+  PushConstant         CP#12
+  AssertAssignable     0, CP#13
+  InstanceCall         1, CP#14
   ReturnTOS
 }
 ConstantPool {
@@ -221,8 +220,9 @@ ConstantPool {
   [9] = String '32'
   [10] = StaticICData target 'dart.core::print', arg-desc CP#4
   [11] = Type dart.core::Map<#lib::D::foo3::T2, #lib::D::Q>
-  [12] = ICData target-name 'dart.core::_as', arg-desc CP#1
-  [13] = ICData get target-name 'values', arg-desc CP#4
+  [12] = String ' in type cast'
+  [13] = SubtypeTestCache
+  [14] = ICData get target-name 'values', arg-desc CP#4
 }
 ]  method foo3<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic>(dynamic z) → dynamic {
     if(z is self::A<self::D::foo3::T1>) {
@@ -234,7 +234,7 @@ ConstantPool {
     return (z as core::Map<self::D::foo3::T2, self::D::Q>).{core::Map::values};
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   Push                 FP[-6]
@@ -267,8 +267,6 @@ Bytecode {
   PushConstant         CP#3
   AssertAssignable     0, CP#7
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgumentsField #lib::D
@@ -287,11 +285,9 @@ ConstantPool {
 }
 class E<P extends core::String = core::String> extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
-  PushNull
-  ReturnTOS
   PushNull
   ReturnTOS
 }
@@ -300,7 +296,7 @@ ConstantPool {
 ]  static factory •<P extends core::String = dynamic>() → self::E<self::E::•::P>
     return null;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 2, 0
@@ -332,7 +328,7 @@ ConstantPool {
 }
 static field core::List<core::Iterable<dynamic>> globalVar;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -358,12 +354,11 @@ L1:
   Drop1
 L2:
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#11
-  InstanceCall         4, CP#12
-  ReturnTOS
   PushNull
+  PushNull
+  PushConstant         CP#12
+  AssertAssignable     0, CP#13
   ReturnTOS
 }
 ConstantPool {
@@ -379,7 +374,8 @@ ConstantPool {
   [9] = String '12'
   [10] = StaticICData target 'dart.core::print', arg-desc CP#4
   [11] = Type #lib::A<dart.core::int>
-  [12] = ICData target-name 'dart.core::_as', arg-desc CP#7
+  [12] = String ' in type cast'
+  [13] = SubtypeTestCache
 }
 ]static method foo1(dynamic x) → dynamic {
   if(x is self::B) {
@@ -391,7 +387,7 @@ ConstantPool {
   return x as self::A<core::int>;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -414,7 +410,7 @@ ConstantPool {
   self::globalVar = x as{TypeError} core::List<core::Iterable<dynamic>>;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

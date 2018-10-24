@@ -695,6 +695,12 @@
         <ref>String</ref>
         <p>The name of the function being invoked at the given offset.</p>
       </field>
+      <field name="parameters">
+        <list>
+          <ref>ParameterInfo</ref>
+        </list>
+        <p>A list of information about each of the parameters of the function being invoked.</p>
+      </field>
       <field name="dartdoc" optional="true">
         <ref>String</ref>
         <p>
@@ -704,12 +710,6 @@
           unprocessed markdown. This data is omitted if there is no
           referenced element, or if the element has no dartdoc.
         </p>
-      </field>
-      <field name="parameters">
-        <list>
-          <ref>ParameterInfo</ref>
-        </list>
-        <p>A list of information about each of the parameters of the function being invoked.</p>
       </field>
     </result>
   </request>

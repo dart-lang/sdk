@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -33,8 +33,6 @@ L2:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -50,7 +48,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -87,8 +85,6 @@ L2:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -108,7 +104,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -147,8 +143,6 @@ L3:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -169,7 +163,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                4
   CheckStack
   PushInt              0
@@ -201,8 +195,6 @@ L2:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -219,7 +211,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -246,8 +238,6 @@ L1:
   JumpIfTrue           L1
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -266,7 +256,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                3
   CheckStack
   PushInt              0
@@ -290,8 +280,6 @@ L2:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -307,7 +295,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                4
   CheckStack
   PushInt              0
@@ -335,8 +323,6 @@ L2:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -354,7 +340,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

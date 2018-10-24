@@ -171,7 +171,7 @@ abstract class Stream<T> {
    * The iterable is iterated when the stream receives a listener, and stops
    * iterating if the listener cancels the subscription, or if the
    * [Iterator.moveNext] method returns `false` or throws.
-   * Iteration is suspended whild the stream subscription is paused.
+   * Iteration is suspended while the stream subscription is paused.
    *
    * If calling [Iterator.moveNext] on `elements.iterator` throws,
    * the stream emits that error and then it closes.
@@ -1461,7 +1461,7 @@ abstract class Stream<T> {
    * [EventSink] that allows putting events into the returned stream.
    * This `EventSink` is only valid during the call to [onTimeout].
    * Calling [EventSink.close] on the sink passed to [onTimeout] closes the
-   * returned stream, and no futher events are processed.
+   * returned stream, and no further events are processed.
    *
    * If [onTimeout] is omitted, a timeout will just put a [TimeoutException]
    * into the error channel of the returned stream.
@@ -2022,7 +2022,7 @@ abstract class StreamTransformer<S, T> {
       _StreamBindTransformer<S, T>;
 
   /**
-   * Adapts [source] to be a `StreamTransfomer<TS, TT>`.
+   * Adapts [source] to be a `StreamTransformer<TS, TT>`.
    *
    * This allows [source] to be used at the new type, but at run-time it
    * must satisfy the requirements of both the new type and its original type.
@@ -2073,7 +2073,7 @@ abstract class StreamTransformer<S, T> {
    * The resulting transformer will check at run-time that all data events
    * of the stream it transforms are actually instances of [S],
    * and it will check that all data events produced by this transformer
-   * are acually instances of [RT].
+   * are actually instances of [RT].
    */
   StreamTransformer<RS, RT> cast<RS, RT>();
 }

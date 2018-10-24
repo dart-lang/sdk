@@ -182,8 +182,9 @@ class _ConstantEvaluator extends ConstantEvaluator {
   _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
       {bool enableAsserts})
       : unavailableConstant = InstanceConstant(null, [], {}),
-        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes, true,
-            enableAsserts, const _ErrorReporter()) {
+        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
+            enableAsserts,
+            errorReporter: const _ErrorReporter()) {
     env = EvaluationEnvironment();
   }
 
@@ -294,9 +295,10 @@ class _ConstantsBackend implements ConstantsBackend {
             .firstWhere((f) => f.name.name == '_name');
 
   @override
-  buildConstantForNative(
-          nativeName, typeArguments, positionalArguments, namedArguments) =>
-      throw StateError('unreachable'); // DDC does not use VM native syntax
+  buildConstantForNative(nativeName, typeArguments, positionalArguments,
+      namedArguments, context, node, errorReporter, abortEvaluation) {
+    throw StateError('unreachable'); // DDC does not use VM native syntax
+  }
 
   @override
   lowerMapConstant(constant) => constant;

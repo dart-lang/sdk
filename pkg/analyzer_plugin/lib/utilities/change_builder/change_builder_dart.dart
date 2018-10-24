@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -203,12 +203,17 @@ abstract class DartEditBuilder implements EditBuilder {
       Iterable<DartType> superclassConstraints});
 
   /**
-   * Append a placeholder for an override of the specified inherited [member].
-   * If provided, write a string value suitable for display (e.g., in a
-   * completion popup) in the given [displayTextBuffer].
+   * Append a placeholder for an override of the specified inherited
+   * [signature]. If provided, write a string value suitable for display
+   * (e.g., in a completion popup) in the given [displayTextBuffer].
+   * If [invokeSuper] is `true`, then the corresponding `super.name()` will be
+   * added in the body.
    */
-  void writeOverrideOfInheritedMember(ExecutableElement member,
-      {StringBuffer displayTextBuffer});
+  void writeOverride(
+    FunctionType signature, {
+    StringBuffer displayTextBuffer,
+    bool invokeSuper: true,
+  });
 
   /**
    * Write the code for a single parameter with the given [name].

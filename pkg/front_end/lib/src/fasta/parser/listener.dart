@@ -943,6 +943,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("TypeArguments");
   }
 
+  /// After endTypeArguments has been called,
+  /// this event is called if those type arguments are invalid.
+  void handleInvalidTypeArguments(Token token) {
+    logEvent("NoTypeArguments");
+  }
+
   void handleNoTypeArguments(Token token) {
     logEvent("NoTypeArguments");
   }

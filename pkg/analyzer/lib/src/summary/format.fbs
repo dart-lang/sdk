@@ -1072,6 +1072,11 @@ table LinkedUnit {
   /// corresponding to const constructors that are part of cycles.
   constCycles:[uint] (id: 2);
 
+  /// List of slot ids (referring to [UnlinkedClass.notSimplyBoundedSlot] or
+  /// [UnlinkedTypedef.notSimplyBoundedSlot]) corresponding to classes and
+  /// typedefs that are not simply bounded.
+  notSimplyBounded:[uint] (id: 5);
+
   /// List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
   /// [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
   /// that inherit `@covariant` behavior from a base class.
@@ -1316,6 +1321,15 @@ table UnlinkedClass {
 
   /// Offset of the class name relative to the beginning of the file.
   nameOffset:uint (id: 1);
+
+  /// If the class might not be simply bounded, a nonzero slot id which is unique
+  /// within this compilation unit.  If this id is found in
+  /// [LinkedUnit.notSimplyBounded], then at least one of this class's type
+  /// parameters is not simply bounded, hence this class can't be used as a raw
+  /// type when specifying the bound of a type parameter.
+  ///
+  /// Otherwise, zero.
+  notSimplyBoundedSlot:uint (id: 16);
 
   /// Superclass constraints for this mixin declaration. The list will be empty
   /// if this class is not a mixin declaration, or if the declaration does not
@@ -1861,6 +1875,15 @@ table UnlinkedTypedef {
 
   /// Offset of the typedef name relative to the beginning of the file.
   nameOffset:uint (id: 1);
+
+  /// If the typedef might not be simply bounded, a nonzero slot id which is
+  /// unique within this compilation unit.  If this id is found in
+  /// [LinkedUnit.notSimplyBounded], then at least one of this typedef's type
+  /// parameters is not simply bounded, hence this typedef can't be used as a
+  /// raw type when specifying the bound of a type parameter.
+  ///
+  /// Otherwise, zero.
+  notSimplyBoundedSlot:uint (id: 9);
 
   /// Parameters of the executable, if any.
   parameters:[UnlinkedParam] (id: 3);

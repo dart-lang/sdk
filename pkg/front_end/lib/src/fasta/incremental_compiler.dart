@@ -59,12 +59,11 @@ import 'fasta_codes.dart'
 
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
-import 'kernel/kernel_incremental_target.dart'
-    show KernelIncrementalTarget, KernelIncrementalTargetErroneousComponent;
-
 import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
 
 import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+
+import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
@@ -90,7 +89,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   bool initializedFromDill = false;
   bool hasToCheckPackageUris = false;
 
-  KernelIncrementalTarget userCode;
+  KernelTarget userCode;
 
   IncrementalCompiler.fromComponent(
       this.context, Component this.componentToInitializeFrom)
@@ -227,8 +226,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       reusedLibraries.addAll(platformBuilders);
 
-      KernelIncrementalTarget userCodeOld = userCode;
-      userCode = new KernelIncrementalTarget(
+      KernelTarget userCodeOld = userCode;
+      userCode = new KernelTarget(
           new HybridFileSystem(
               new MemoryFileSystem(
                   new Uri(scheme: "org-dartlang-debug", path: "/")),
@@ -249,28 +248,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      Component componentWithDill;
-      try {
-        userCode.read(entryPoint);
-        await userCode.buildOutlines();
+      userCode.setEntryPoints(<Uri>[entryPoint]);
+      await userCode.buildOutlines();
 
-        // This is not the full component. It is the component including all
-        // libraries loaded from .dill files.
-        componentWithDill =
-            await userCode.buildComponent(verify: c.options.verify);
-      } on KernelIncrementalTargetErroneousComponent {
-        List<Library> librariesWithSdk = userCode.component.libraries;
-        List<Library> compiledLibraries = <Library>[];
-        for (Library lib in librariesWithSdk) {
-          if (lib.importUri.scheme == "dart") continue;
-          compiledLibraries.add(lib);
-          break;
-        }
-        userCode.loader.builders.clear();
-        userCode = userCodeOld;
-        return context.options.target.configureComponent(new Component(
-            libraries: compiledLibraries, uriToSource: <Uri, Source>{}));
-      }
+      // This is not the full component. It is the component including all
+      // libraries loaded from .dill files.
+      Component componentWithDill =
+          await userCode.buildComponent(verify: c.options.verify);
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
         hasToCheckPackageUris = false;

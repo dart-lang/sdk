@@ -90,8 +90,6 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
 class CodegenWorldBuilderImpl extends WorldBuilderBase
     implements CodegenWorldBuilder {
-  final ElementEnvironment _elementEnvironment;
-  final NativeBasicData _nativeBasicData;
   final JClosedWorld _world;
 
   /// The set of all directly instantiated classes, that is, classes with a
@@ -169,18 +167,18 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
   final JsToWorldBuilder _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
 
   final Set<DartType> _constTypeLiterals = new Set<DartType>();
   final Set<DartType> _liveTypeArguments = new Set<DartType>();
 
   CodegenWorldBuilderImpl(
-      this._elementMap,
-      this._globalLocalsMap,
-      this._elementEnvironment,
-      this._nativeBasicData,
-      this._world,
-      this.selectorConstraintsStrategy);
+      this._elementMap, this._world, this.selectorConstraintsStrategy);
+
+  ElementEnvironment get _elementEnvironment => _world.elementEnvironment;
+
+  NativeBasicData get _nativeBasicData => _world.nativeData;
+
+  GlobalLocalsMap get _globalLocalsMap => _world.globalLocalsMap;
 
   Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);

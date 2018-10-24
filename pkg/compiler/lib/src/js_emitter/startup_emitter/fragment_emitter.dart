@@ -113,6 +113,13 @@ function inherit(cls, sup) {
   }
 }
 
+// Batched version of [inherit] for multiple classes from one superclass.
+function inheritMany(sup, classes) {
+  for (var i = 0; i < classes.length; i++) {
+    inherit(classes[i], sup);
+  }
+}
+
 // Mixes in the properties of [mixin] into [cls].
 function mixin(cls, mixin) {
   copyProperties(mixin.prototype, cls.prototype);
@@ -174,6 +181,12 @@ function convertToFastObject(properties) {
   t.prototype = properties;
   new t();
   return properties;
+}
+
+function convertAllToFastObject(arrayOfObjects) {
+  for (var i = 0; i < arrayOfObjects.length; ++i) {
+    convertToFastObject(arrayOfObjects[i]);
+  }
 }
 
 // This variable is used by the tearOffCode to guarantee unique functions per
@@ -286,7 +299,7 @@ function initializeDeferredHunk(hunk) {
   typesOffset = #embeddedTypes.length;
 
   // TODO(floitsch): extend natives.
-  hunk(inherit, mixin, lazy, makeConstList, convertToFastObject, installTearOff,
+  hunk(inherit, inheritMany, mixin, lazy, makeConstList, convertToFastObject, installTearOff,
        setFunctionNamesIfNecessary, updateHolder, updateTypes,
        setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
        #embeddedGlobalsObject, holders, #staticState);
@@ -311,7 +324,8 @@ if (#hasSoftDeferredClasses) {
   function softDef(o) {
     softDef = function(o) {};  // Replace ourselves.
     #deferredGlobal[#softId](
-        holders, #embeddedGlobalsObject, #staticState, inherit, mixin,
+        holders, #embeddedGlobalsObject, #staticState,
+        inherit, inheritMany, mixin,
         installTearOff);
     if (o != null) {
       // TODO(29574): should we do something different for Firefox?
@@ -362,6 +376,9 @@ var #staticStateDeclaration = {};
 // Sets up the js-interop support.
 #jsInteropSupport;
 
+// Ensure holders are in fast mode, now we have finished adding things.
+convertAllToFastObject(holders);
+
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
 })()
@@ -407,7 +424,7 @@ const String directAccessTestExpression = r'''
 ///
 /// This template is used for Dart 2.
 const String deferredBoilerplateDart2 = '''
-function(inherit, mixin, lazy, makeConstList, convertToFastObject,
+function(inherit, inheritMany, mixin, lazy, makeConstList, convertToFastObject,
          installTearOff, setFunctionNamesIfNecessary, updateHolder, updateTypes,
          setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
          #embeddedGlobalsObject, holdersList, #staticState) {
@@ -457,8 +474,9 @@ var #typesOffset = updateTypes(#types);
 /// hierarchy, and add methods the prototypes.
 const String softDeferredBoilerplate = '''
 #deferredGlobal[#softId] =
-    function(holdersList, #embeddedGlobalsObject, #staticState, inherit, mixin,
-    installTearOff) {
+  function(holdersList, #embeddedGlobalsObject, #staticState,
+           inherit, inheritMany, mixin,
+           installTearOff) {
 
 // Installs the holders as local variables.
 #installHoldersAsLocals;
@@ -1058,15 +1076,17 @@ class FragmentEmitter {
   js.Statement emitInheritance(Fragment fragment, {bool softDeferred = false}) {
     List<js.Statement> inheritCalls = [];
     List<js.Statement> mixinCalls = [];
+    // local caches of functions to allow minifaction of function name in call.
+    Map<String, js.Expression> locals = {};
 
-    Set<Class> classesInFragment = new Set<Class>();
+    Set<Class> classesInFragment = Set();
     for (Library library in fragment.libraries) {
       classesInFragment.addAll(library.classes
           .where(((Class cls) => cls.isSoftDeferred == softDeferred)));
     }
 
-    Map<Class, List<Class>> subclasses = <Class, List<Class>>{};
-    Set<Class> seen = new Set<Class>();
+    Map<Class, List<Class>> subclasses = {};
+    Set<Class> seen = Set();
 
     void collect(cls) {
       if (cls == null || seen.contains(cls)) return;
@@ -1087,41 +1107,43 @@ class FragmentEmitter {
         collect(cls);
 
         if (cls.mixinClass != null) {
-          mixinCalls.add(js.js.statement('mixin(#, #)',
+          locals['_mixin'] ??= js.js('mixin');
+          mixinCalls.add(js.js.statement('_mixin(#, #)',
               [classReference(cls), classReference(cls.mixinClass)]));
         }
       }
     }
 
-    js.Expression temp = null;
     for (Class superclass in subclasses.keys) {
       List<Class> list = subclasses[superclass];
       js.Expression superclassReference = (superclass == null)
           ? new js.LiteralNull()
           : classReference(superclass);
       if (list.length == 1) {
-        inheritCalls.add(js.js.statement('inherit(#, #)',
+        locals['_inherit'] ??= js.js('inherit');
+        inheritCalls.add(js.js.statement('_inherit(#, #)',
             [classReference(list.single), superclassReference]));
       } else {
-        // Hold common superclass in temporary for sequence of calls.
-        if (temp == null) {
-          String tempName = '_';
-          temp = new js.VariableUse(tempName);
-          var declaration = new js.VariableDeclaration(tempName);
-          inheritCalls.add(
-              js.js.statement('var # = #', [declaration, superclassReference]));
-        } else {
-          inheritCalls
-              .add(js.js.statement('# = #', [temp, superclassReference]));
-        }
-        for (Class cls in list) {
-          inheritCalls.add(
-              js.js.statement('inherit(#, #)', [classReference(cls), temp]));
-        }
+        locals['_inheritMany'] ??= js.js('inheritMany');
+        var listElements = list.map(classReference).toList();
+        inheritCalls.add(js.js.statement('_inheritMany(#, #)',
+            [superclassReference, js.ArrayInitializer(listElements)]));
       }
     }
 
-    return wrapPhase('inheritance', inheritCalls.toList()..addAll(mixinCalls));
+    List<js.Statement> statements = [];
+    if (locals.isNotEmpty) {
+      List<js.VariableInitialization> initializations = [];
+      locals.forEach((local, value) {
+        initializations.add(
+            js.VariableInitialization(js.VariableDeclaration(local), value));
+      });
+      statements.add(
+          js.ExpressionStatement(js.VariableDeclarationList(initializations)));
+    }
+    statements.addAll(inheritCalls);
+    statements.addAll(mixinCalls);
+    return wrapPhase('inheritance', statements);
   }
 
   /// Emits the setup of method aliases.

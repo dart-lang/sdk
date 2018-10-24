@@ -27,8 +27,9 @@ def Main():
     os.environ['PATH'] = '%s%s%s' % (
             os.environ['PATH'], os.pathsep, android_platform_tools)
 
-  with utils.CoreDumpArchiver(args):
-    exit_code = subprocess.call(command)
+  with utils.FileDescriptorLimitIncreaser():
+    with utils.CoreDumpArchiver(args):
+      exit_code = subprocess.call(command)
 
   utils.DiagnoseExitCode(exit_code, command)
   return exit_code

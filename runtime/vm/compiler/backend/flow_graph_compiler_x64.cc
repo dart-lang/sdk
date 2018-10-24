@@ -7,7 +7,6 @@
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
-#include "vm/ast_printer.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/jit/compiler.h"
@@ -762,8 +761,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
   ASSERT(__ constant_pool_allowed());
 
-  __ movq(subtype_cache_reg,
-          Address::AddressBaseImm32(PP, sub_type_cache_offset));
+  __ movq(subtype_cache_reg, Address(PP, sub_type_cache_offset));
   __ call(FieldAddress(RBX, AbstractType::type_test_stub_entry_point_offset()));
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);
@@ -787,7 +785,37 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
 }
 
-void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
+void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
+    const Function& extracted_method,
+    intptr_t type_arguments_field_offset) {
+  // No frame has been setup here.
+  ASSERT(!__ constant_pool_allowed());
+  ASSERT(extracted_method.IsZoneHandle());
+
+  const Code& build_method_extractor = Code::ZoneHandle(
+      isolate()->object_store()->build_method_extractor_code());
+
+  const intptr_t stub_index = __ object_pool_wrapper().AddObject(
+      build_method_extractor, ObjectPool::Patchability::kNotPatchable);
+  const intptr_t function_index = __ object_pool_wrapper().AddObject(
+      extracted_method, ObjectPool::Patchability::kNotPatchable);
+
+  // We use a custom pool register to preserve caller PP.
+  const Register kPoolReg = RAX;
+
+  // RBX = extracted function
+  // RDX = offset of type argument vector (or 0 if class is not generic)
+  __ movq(kPoolReg, FieldAddress(CODE_REG, Code::object_pool_offset()));
+  __ movq(RDX, Immediate(type_arguments_field_offset));
+  __ movq(RBX,
+          FieldAddress(kPoolReg, ObjectPool::element_offset(function_index)));
+  __ movq(CODE_REG,
+          FieldAddress(kPoolReg, ObjectPool::element_offset(stub_index)));
+  __ jmp(FieldAddress(CODE_REG,
+                      Code::entry_point_offset(Code::EntryKind::kUnchecked)));
+}
+
+void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   // TOS: return address.
   // +1 : receiver.
   // Sequence node has one return node, its input is load field node.
@@ -797,7 +825,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ ret();
 }
 
-void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
+void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   // TOS: return address.
   // +1 : value
   // +2 : receiver.
@@ -1046,7 +1074,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   if (FLAG_precompiled_mode) {
     // Megamorphic calls may occur in slow path stubs.
     // If valid use try_index argument.
-    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+    if (try_index == kInvalidTryIndex) {
       try_index = CurrentTryIndex();
     }
     AddDescriptor(RawPcDescriptors::kOther, assembler()->CodeSize(),

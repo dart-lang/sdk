@@ -285,7 +285,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// other than [ClassLevel.Body].  Members in an external library have no
   /// body, but have their typed interface present.
   ///
-  /// If the libary is non-external, then its classes are at [ClassLevel.Body]
+  /// If the library is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
   bool isExternal;
 
@@ -793,21 +793,20 @@ class Class extends NamedNode implements FileUriNode {
     // Not a mixin declaration.
     if (!isMixinDeclaration) return constraints;
 
-    Class previous = this;
-    Class current = superclass;
-
     // Otherwise we have a left-linear binary tree (subtrees are supertype and
     // mixedInType) of constraints, where all the interior nodes are anonymous
     // mixin applications.
-    while (current != null && current.isAnonymousMixin) {
-      assert(current.implementedTypes.length == 2);
-      constraints.add(current.implementedTypes[1]);
-      previous = current;
-      current = current.implementedTypes[0].classNode;
+    Supertype current = supertype;
+    while (current != null && current.classNode.isAnonymousMixin) {
+      Class currentClass = current.classNode;
+      assert(currentClass.implementedTypes.length == 2);
+      Substitution substitution = Substitution.fromSupertype(current);
+      constraints.add(
+          substitution.substituteSupertype(currentClass.implementedTypes[1]));
+      current =
+          substitution.substituteSupertype(currentClass.implementedTypes[0]);
     }
-    return constraints
-      ..add(
-          previous == this ? previous.supertype : previous.implementedTypes[0]);
+    return constraints..add(current);
   }
 
   /// The URI of the source file this class was loaded from.

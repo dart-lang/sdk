@@ -21,6 +21,63 @@ class InstanceCreationDriverResolutionTest extends DriverResolutionTest
     with InstanceCreationResolutionMixin {}
 
 abstract class InstanceCreationResolutionMixin implements ResolutionTest {
+  test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
+    addTestFile(r'''
+class Foo<X> {
+  Foo.bar();
+}
+
+main() {
+  new Foo.bar<int>();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+    ]);
+
+    // TODO(brianwilkerson) Test this more carefully after we can re-write the
+    // AST to reflect the expected structure.
+//    var creation = findNode.instanceCreation('Foo.bar<int>');
+//    assertInstanceCreation(
+//      creation,
+//      findElement.class_('Foo'),
+//      'Foo',
+//      constructorName: 'bar',
+//    );
+  }
+
+  test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
+    newFile('/test/lib/a.dart', content: '''
+class Foo<X> {
+  Foo.bar();
+}
+''');
+    addTestFile('''
+import 'a.dart' as p;
+
+main() {
+  new p.Foo.bar<int>();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+    ]);
+
+    // TODO(brianwilkerson) Test this more carefully after we can re-write the
+    // AST to reflect the expected structure.
+//    var creation = findNode.instanceCreation('Foo.bar<int>');
+//    var import = findElement.import('package:test/a.dart');
+//    assertInstanceCreation(
+//      creation,
+//      import.importedLibrary.getType('Foo'),
+//      'Foo',
+//      constructorName: 'bar',
+//      expectedPrefix: import.prefix,
+//    );
+  }
+
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew() async {
     addTestFile(r'''
 class Foo<X> {
@@ -40,7 +97,7 @@ main() {
     assertInstanceCreation(
       creation,
       findElement.class_('Foo'),
-      'Foo<int>',
+      'Foo<dynamic>',
       constructorName: 'bar',
       expectedConstructorMember: true,
     );

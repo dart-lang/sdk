@@ -25,9 +25,6 @@ import 'package:front_end/src/base/processed_options.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_inputError;
-
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
@@ -229,7 +226,7 @@ class CompileTask {
   }
 
   KernelTarget createKernelTarget(
-      DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
+      DillTarget dillTarget, UriTranslator uriTranslator) {
     return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator,
         uriToSource: c.uriToSource);
   }
@@ -238,19 +235,12 @@ class CompileTask {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
-    KernelTarget kernelTarget =
-        createKernelTarget(dillTarget, uriTranslator, c.options.strongMode);
+    KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
     Uri platform = c.options.sdkSummary;
     if (platform != null) {
       _appendDillForUri(dillTarget, platform);
     }
-    Uri uri = c.options.inputs.first;
-    String path = uriTranslator.translate(uri)?.path ?? uri.path;
-    if (path.endsWith(".dart")) {
-      kernelTarget.read(uri);
-    } else {
-      deprecated_inputError(uri, -1, "Unexpected input: $uri");
-    }
+    kernelTarget.setEntryPoints(c.options.inputs);
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
@@ -330,7 +320,7 @@ Future compilePlatformInternal(CompilerContext c, Uri fullOutput,
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
   if (c.options.bytecode) {
-    generateBytecode(result.component, strongMode: c.options.strongMode);
+    generateBytecode(result.component);
   }
 
   await writeComponentToFile(result.component, fullOutput,
@@ -357,7 +347,7 @@ Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
   // mode), this is only an approximation, albeit accurate.  Once Fasta is
   // self-hosting, this isn't an approximation. Regardless, strong mode
   // shouldn't affect which files are read.
-  Target hostTarget = getTarget("vm", new TargetFlags(strongMode: true));
+  Target hostTarget = getTarget("vm", new TargetFlags());
   return getDependencies(Platform.script,
       platform: hostPlatform, target: hostTarget);
 }

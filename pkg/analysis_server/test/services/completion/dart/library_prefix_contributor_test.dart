@@ -297,9 +297,9 @@ class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addSource('/testB.dart', '''
 library testB;
-import "${convertPathForImport("/testA.dart")}" as t;
+import "${convertAbsolutePathToUri("/testA.dart")}" as t;
 import "dart:math" as math;
-part "${convertPathForImport(testFile)}"
+part "${convertAbsolutePathToUri(testFile)}"
 main() {new ^ String x = "hello";}''');
     addTestSource('''
 part of testB;

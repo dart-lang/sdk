@@ -9,6 +9,7 @@
 #include "vm/globals.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {

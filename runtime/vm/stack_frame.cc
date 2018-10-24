@@ -436,6 +436,7 @@ void StackFrameIterator::SetupLastExitFrameData() {
 }
 
 void StackFrameIterator::SetupNextExitFrameData() {
+  ASSERT(entry_.fp() != 0);
   uword exit_address =
       entry_.fp() + ((entry_.is_interpreted() ? kKBCExitLinkSlotFromEntryFp
                                               : kExitLinkSlotFromEntryFp) *
@@ -583,8 +584,7 @@ void StackFrameIterator::FrameSetIterator::CheckIfInterpreted(
   // TODO(regis): We should rely on a new thread vm_tag to identify an
   // interpreter frame and not need the HasFrame() method.
   ASSERT(FLAG_enable_interpreter);
-  Isolate* isolate = thread_->isolate();
-  Interpreter* interpreter = isolate != NULL ? isolate->interpreter() : NULL;
+  Interpreter* interpreter = thread_->interpreter();
   is_interpreted_ = (interpreter != NULL) && interpreter->HasFrame(exit_marker);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }

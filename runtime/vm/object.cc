@@ -18,7 +18,6 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/compiler_stats.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
@@ -52,7 +51,6 @@
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/timer.h"
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/unicode.h"
@@ -122,8 +120,6 @@ RawClass* Object::signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::redirection_data_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -398,10 +394,6 @@ static inline bool IsAsciiNonprintable(int32_t c) {
   return ((0 <= c) && (c < 32)) || (c == 127);
 }
 
-static inline bool NeedsEscapeSequence(int32_t c) {
-  return (c == '"') || (c == '\\') || (c == '$') || IsAsciiNonprintable(c);
-}
-
 static int32_t EscapeOverhead(int32_t c) {
   if (IsSpecialCharacter(c)) {
     return 1;  // 1 additional byte for the backslash.
@@ -585,12 +577,6 @@ void Object::Init(Isolate* isolate) {
 
   cls = Class::New<Field>();
   field_class_ = cls.raw();
-
-  cls = Class::New<LiteralToken>();
-  literal_token_class_ = cls.raw();
-
-  cls = Class::New<TokenStream>();
-  token_stream_class_ = cls.raw();
 
   cls = Class::New<Script>();
   script_class_ = cls.raw();
@@ -963,8 +949,6 @@ void Object::Cleanup() {
   signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   redirection_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-  literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-  token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1064,8 +1048,6 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(signature_data, SignatureData);
   SET_CLASS_NAME(redirection_data, RedirectionData);
   SET_CLASS_NAME(field, Field);
-  SET_CLASS_NAME(literal_token, LiteralToken);
-  SET_CLASS_NAME(token_stream, TokenStream);
   SET_CLASS_NAME(script, Script);
   SET_CLASS_NAME(library, LibraryClass);
   SET_CLASS_NAME(namespace, Namespace);
@@ -1233,8 +1215,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::VMHeapObjectTag::update(
-          obj.raw()->ptr()->IsVMHeapObject(), new_tags);
+      new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
+                                                    new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -1250,7 +1232,10 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = obj.CompareAndSwapTags(old_tags, new_tags);
+        // We can't use obj.CompareAndSwapTags here because we don't have a
+        // handle for the new object.
+        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
+                                                      old_tags, new_tags);
       } while (tags != old_tags);
     }
   }
@@ -2962,6 +2947,18 @@ bool Function::FindPragma(Isolate* I,
   return false;
 }
 
+bool Function::IsDynamicInvocationForwaderName(const String& name) {
+  return name.StartsWith(Symbols::DynamicPrefix());
+}
+
+RawString* Function::DemangleDynamicInvocationForwarderName(
+    const String& name) {
+  const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
+  ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
+  return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
+                      name.Length() - kDynamicPrefixLength);
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 RawFunction* Function::CreateDynamicInvocationForwarder(
     const String& mangled_name) const {
@@ -2993,20 +2990,8 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   return forwarder.raw();
 }
 
-bool Function::IsDynamicInvocationForwaderName(const String& name) {
-  return name.StartsWith(Symbols::DynamicPrefix());
-}
-
 RawString* Function::CreateDynamicInvocationForwarderName(const String& name) {
   return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
-}
-
-RawString* Function::DemangleDynamicInvocationForwarderName(
-    const String& name) {
-  const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
-  ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
-  return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
-                      name.Length() - kDynamicPrefixLength);
 }
 
 RawFunction* Function::GetDynamicInvocationForwarder(
@@ -3360,51 +3345,12 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   return true;
 }
 
-static RawString* BuildClosureSource(const Array& formal_params,
-                                     const String& expr) {
-  const GrowableObjectArray& src_pieces =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  String& piece = String::Handle();
-  src_pieces.Add(Symbols::LParen());
-  // Add formal parameters.
-  intptr_t num_formals = formal_params.Length();
-  for (intptr_t i = 0; i < num_formals; i++) {
-    if (i > 0) {
-      src_pieces.Add(Symbols::CommaSpace());
-    }
-    piece ^= formal_params.At(i);
-    src_pieces.Add(piece);
-  }
-  src_pieces.Add(Symbols::RParenArrow());
-  src_pieces.Add(expr);
-  src_pieces.Add(Symbols::Semicolon());
-  return String::ConcatAll(Array::Handle(Array::MakeFixedLength(src_pieces)));
-}
-
 RawFunction* Function::EvaluateHelper(const Class& cls,
                                       const String& expr,
                                       const Array& param_names,
                                       bool is_static) {
-  const String& func_src =
-      String::Handle(BuildClosureSource(param_names, expr));
-  Script& script = Script::Handle();
-  script =
-      Script::New(Symbols::EvalSourceUri(), func_src, RawScript::kEvaluateTag);
-  // In order to tokenize the source, we need to get the key to mangle
-  // private names from the library from which the class originates.
-  const Library& lib = Library::Handle(cls.library());
-  ASSERT(!lib.IsNull());
-  const String& lib_key = String::Handle(lib.private_key());
-  script.Tokenize(lib_key, false);
-
-  const Function& func =
-      Function::Handle(Function::NewEvalFunction(cls, script, is_static));
-  func.set_result_type(Object::dynamic_type());
-  const intptr_t num_implicit_params = is_static ? 0 : 1;
-  func.set_num_fixed_parameters(num_implicit_params + param_names.Length());
-  func.SetNumOptionalParameters(0, true);
-  func.SetIsOptimizable(false);
-  return func.raw();
+  UNREACHABLE();
+  return Function::null();
 }
 
 // Conventions:
@@ -3435,6 +3381,26 @@ static RawObject* ThrowNoSuchMethod(const Instance& receiver,
       Class::Handle(libcore.LookupClass(Symbols::NoSuchMethodError()));
   const Function& throwNew = Function::Handle(
       NoSuchMethodError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  return DartEntry::InvokeFunction(throwNew, args);
+}
+
+static RawObject* ThrowTypeError(const TokenPosition token_pos,
+                                 const Instance& src_value,
+                                 const AbstractType& dst_type,
+                                 const String& dst_name) {
+  const Array& args = Array::Handle(Array::New(5));
+  const Smi& pos = Smi::Handle(Smi::New(token_pos.value()));
+  args.SetAt(0, pos);
+  args.SetAt(1, src_value);
+  args.SetAt(2, dst_type);
+  args.SetAt(3, dst_name);
+  args.SetAt(4, String::Handle());  // bound error message
+
+  const Library& libcore = Library::Handle(Library::CoreLibrary());
+  const Class& TypeError =
+      Class::Handle(libcore.LookupClassAllowPrivate(Symbols::TypeError()));
+  const Function& throwNew = Function::Handle(
+      TypeError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
   return DartEntry::InvokeFunction(throwNew, args);
 }
 
@@ -3502,21 +3468,31 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
 
+  AbstractType& parameter_type = AbstractType::Handle(zone);
+  AbstractType& argument_type =
+      AbstractType::Handle(zone, value.GetType(Heap::kOld));
+
   if (field.IsNull()) {
     const Function& setter =
         Function::Handle(zone, LookupStaticFunction(internal_setter_name));
-
     const int kNumArgs = 1;
     const Array& args = Array::Handle(zone, Array::New(kNumArgs));
     args.SetAt(0, value);
-
     if (setter.IsNull() || (respect_reflectable && !setter.is_reflectable())) {
       return ThrowNoSuchMethod(AbstractType::Handle(zone, RareType()),
                                internal_setter_name, args, Object::null_array(),
                                InvocationMirror::kStatic,
                                InvocationMirror::kSetter);
     }
-
+    parameter_type ^= setter.ParameterTypeAt(0);
+    if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
+        !value.IsInstanceOf(parameter_type, Object::null_type_arguments(),
+                            Object::null_type_arguments(), NULL)) {
+      const String& argument_name =
+          String::Handle(zone, setter.ParameterNameAt(0));
+      return ThrowTypeError(setter.token_pos(), value, parameter_type,
+                            argument_name);
+    }
     // Invoke the setter and return the result.
     return DartEntry::InvokeFunction(setter, args);
   }
@@ -3525,13 +3501,20 @@ RawObject* Class::InvokeSetter(const String& setter_name,
     const int kNumArgs = 1;
     const Array& args = Array::Handle(zone, Array::New(kNumArgs));
     args.SetAt(0, value);
-
     return ThrowNoSuchMethod(AbstractType::Handle(zone, RareType()),
                              internal_setter_name, args, Object::null_array(),
                              InvocationMirror::kStatic,
                              InvocationMirror::kSetter);
   }
 
+  parameter_type ^= field.type();
+  if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
+      !value.IsInstanceOf(parameter_type, Object::null_type_arguments(),
+                          Object::null_type_arguments(), NULL)) {
+    const String& argument_name = String::Handle(zone, field.name());
+    return ThrowTypeError(field.token_pos(), value, parameter_type,
+                          argument_name);
+  }
   field.SetStaticValue(value);
   return value.raw();
 }
@@ -3581,19 +3564,21 @@ RawObject* Class::Invoke(const String& function_name,
       return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
     }
   }
-
   const Array& args_descriptor_array = Array::Handle(
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
-
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-
+  const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(zone, RareType()), function_name, args, arg_names,
         InvocationMirror::kStatic, InvocationMirror::kMethod);
   }
-
+  RawObject* type_error =
+      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
+  if (type_error != Error::null()) {
+    return type_error;
+  }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
 
@@ -3969,10 +3954,6 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::RedirectionData().raw();
     case kFieldCid:
       return Symbols::Field().raw();
-    case kLiteralTokenCid:
-      return Symbols::LiteralToken().raw();
-    case kTokenStreamCid:
-      return Symbols::TokenStream().raw();
     case kScriptCid:
       return Symbols::Script().raw();
     case kLibraryCid:
@@ -4106,37 +4087,14 @@ TokenPosition Class::ComputeEndTokenPos() const {
     return TokenPosition(largest_seen);
   }
 
-  const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
-  if (tkns.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
-    return TokenPosition::kNoSource;
-  }
-  TokenStream::Iterator tkit(zone, tkns, token_pos(),
-                             TokenStream::Iterator::kNoNewlines);
-  intptr_t level = 0;
-  while (tkit.CurrentTokenKind() != Token::kEOS) {
-    if (tkit.CurrentTokenKind() == Token::kLBRACE) {
-      level++;
-    } else if (tkit.CurrentTokenKind() == Token::kRBRACE) {
-      if (--level == 0) {
-        return tkit.CurrentPosition();
-      }
-    }
-    tkit.Advance();
-  }
   UNREACHABLE();
-  return TokenPosition::kNoSource;
 #endif
 }
 
 int32_t Class::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (kernel_offset() > 0) {
-    return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
-        *this);
-  }
-  return Script::Handle(script()).SourceFingerprint(token_pos(),
-                                                    ComputeEndTokenPos());
+  return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
+      *this);
 #else
   return 0;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -6024,7 +5982,7 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     case RawFunction::kIrregexpFunction:
       return false;
     case RawFunction::kImplicitStaticFinalGetter:
-      return kernel::IsFieldInitializer(*this, zone);
+      return kernel::IsFieldInitializer(*this, zone) || is_const();
     default:
       return true;
   }
@@ -7024,6 +6982,87 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
     }
   }
   return true;
+}
+
+RawObject* Function::DoArgumentTypesMatch(
+    const Array& args,
+    const ArgumentsDescriptor& args_desc,
+    const TypeArguments& instantiator_type_args) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& instantiated_func = Function::Handle(zone, raw());
+
+  if (!HasInstantiatedSignature()) {
+    instantiated_func ^= InstantiateSignatureFrom(instantiator_type_args,
+                                                  Object::null_type_arguments(),
+                                                  kAllFree, Heap::kOld);
+  }
+  AbstractType& argument_type = AbstractType::Handle(zone);
+  AbstractType& parameter_type = AbstractType::Handle(zone);
+  Instance& argument = Instance::Handle(zone);
+
+  // Check types of the provided arguments against the expected parameter types.
+  for (intptr_t i = args_desc.FirstArgIndex(); i < args_desc.PositionalCount();
+       ++i) {
+    argument ^= args.At(i);
+    argument_type ^= argument.GetType(Heap::kOld);
+    parameter_type ^= instantiated_func.ParameterTypeAt(i);
+
+    // If the argument type is dynamic or the parameter is null, move on.
+    if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
+      continue;
+    }
+    if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
+                               Object::null_type_arguments(), NULL)) {
+      String& argument_name = String::Handle(zone, ParameterNameAt(i));
+      return ThrowTypeError(token_pos(), argument, parameter_type,
+                            argument_name);
+    }
+  }
+
+  const intptr_t num_arguments = args_desc.Count();
+  const intptr_t num_named_arguments = args_desc.NamedCount();
+  if (num_named_arguments == 0) {
+    return Error::null();
+  }
+
+  String& argument_name = String::Handle(zone);
+  String& parameter_name = String::Handle(zone);
+
+  // Check types of named arguments against expected parameter type.
+  for (intptr_t i = 0; i < num_named_arguments; i++) {
+    argument_name ^= args_desc.NameAt(i);
+    ASSERT(argument_name.IsSymbol());
+    bool found = false;
+    const intptr_t num_positional_args = num_arguments - num_named_arguments;
+    const int num_parameters = NumParameters();
+
+    // Try to find the named parameter that matches the provided argument.
+    for (intptr_t j = num_positional_args; !found && (j < num_parameters);
+         j++) {
+      parameter_name = ParameterNameAt(j);
+      ASSERT(argument_name.IsSymbol());
+      if (argument_name.Equals(parameter_name)) {
+        found = true;
+        argument ^= args.At(args_desc.PositionAt(i));
+        argument_type ^= argument.GetType(Heap::kOld);
+        parameter_type ^= instantiated_func.ParameterTypeAt(j);
+
+        // If the argument type is dynamic or the parameter is null, move on.
+        if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
+          continue;
+        }
+        if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
+                                   Object::null_type_arguments(), NULL)) {
+          String& argument_name = String::Handle(zone, ParameterNameAt(i));
+          return ThrowTypeError(token_pos(), argument, parameter_type,
+                                argument_name);
+        }
+      }
+    }
+    ASSERT(found);
+  }
+  return Error::null();
 }
 
 // Helper allocating a C string buffer in the zone, printing the fully qualified
@@ -8080,6 +8119,11 @@ bool Function::HasOptimizedCode() const {
   return HasCode() && Code::Handle(CurrentCode()).is_optimized();
 }
 
+bool Function::ShouldCompilerOptimize() const {
+  return !FLAG_enable_interpreter ||
+         ((unoptimized_code() != Object::null()) && WasCompiled());
+}
+
 RawString* Function::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();
@@ -8177,50 +8221,16 @@ RawString* Function::GetSource() const {
                                   to_col + to_length);
   }
 
-  const TokenStream& stream = TokenStream::Handle(zone, func_script.tokens());
-  if (!func_script.HasSource()) {
-    // When source is not available, avoid printing the whole token stream and
-    // doing expensive position calculations.
-    return stream.GenerateSource(token_pos(), end_token_pos().Next());
-  }
-
-  const TokenStream::Iterator tkit(zone, stream, end_token_pos());
-  intptr_t from_line;
-  intptr_t from_col;
-  intptr_t to_line;
-  intptr_t to_col;
-  func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
-  func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col);
-  intptr_t last_tok_len = String::Handle(tkit.CurrentLiteral()).Length();
-  // Handle special cases for end tokens of closures (where we exclude the last
-  // token):
-  // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
-  // (2) "foo(() => null);": End token is ')`, but we don't print it.
-  // (3) "var foo = () => null;": End token is `;', but in this case the token
-  // semicolon belongs to the assignment so we skip it.
-  if ((tkit.CurrentTokenKind() == Token::kCOMMA) ||   // Case 1.
-      (tkit.CurrentTokenKind() == Token::kRPAREN) ||  // Case 2.
-      (tkit.CurrentTokenKind() == Token::kSEMICOLON &&
-       String::Handle(zone, name()).Equals("<anonymous closure>"))) {  // Cas 3.
-    last_tok_len = 0;
-  }
-  const String& result =
-      String::Handle(zone, func_script.GetSnippet(from_line, from_col, to_line,
-                                                  to_col + last_tok_len));
-  ASSERT(!result.IsNull());
-  return result.raw();
+  UNREACHABLE();
+  return String::null();
 }
 
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
 int32_t Function::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (kernel_offset() > 0) {
-    return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
-        *this);
-  }
-  return Script::Handle(script()).SourceFingerprint(token_pos(),
-                                                    end_token_pos());
+  return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
+      *this);
 #else
   return 0;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -8239,7 +8249,6 @@ void Function::SaveICDataMap(
     }
   }
   const Array& array = Array::Handle(Array::New(count, Heap::kOld));
-  INC_STAT(Thread::Current(), total_code_size, count * sizeof(uword));
   count = 1;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
@@ -8822,44 +8831,16 @@ RawField* Field::Clone(const Field& original) const {
 
 int32_t Field::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (kernel_offset() > 0) {
-    return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
-        *this);
-  }
-  return Script::Handle(Script()).SourceFingerprint(token_pos(),
-                                                    end_token_pos());
+  return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
+      *this);
 #else
   return 0;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 RawString* Field::InitializingExpression() const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const class Script& scr = Script::Handle(zone, Script());
-  ASSERT(!scr.IsNull());
-  const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
-  if (tkns.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
-    return String::null();
-  }
-  TokenStream::Iterator tkit(zone, tkns, token_pos());
-  ASSERT(Token::IsIdentifier(tkit.CurrentTokenKind()));
-#if defined(DEBUG)
-  const String& literal = String::Handle(zone, tkit.CurrentLiteral());
-  ASSERT(literal.raw() == name());
-#endif
-  tkit.Advance();
-  if (tkit.CurrentTokenKind() != Token::kASSIGN) {
-    return String::null();
-  }
-  tkit.Advance();
-  const TokenPosition start_of_expression = tkit.CurrentPosition();
-  while (tkit.CurrentTokenKind() != Token::kSEMICOLON) {
-    tkit.Advance();
-  }
-  const TokenPosition end_of_expression = tkit.CurrentPosition();
-  return scr.GetSnippet(start_of_expression, end_of_expression);
+  UNREACHABLE();
+  return String::null();
 }
 
 RawString* Field::UserVisibleName() const {
@@ -9538,700 +9519,12 @@ void Field::ForceDynamicGuardedCidAndLength() const {
   DeoptimizeDependentCode();
 }
 
-void LiteralToken::set_literal(const String& literal) const {
-  StorePointer(&raw_ptr()->literal_, literal.raw());
-}
-
-void LiteralToken::set_value(const Object& value) const {
-  StorePointer(&raw_ptr()->value_, value.raw());
-}
-
-RawLiteralToken* LiteralToken::New() {
-  ASSERT(Object::literal_token_class() != Class::null());
-  RawObject* raw = Object::Allocate(LiteralToken::kClassId,
-                                    LiteralToken::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawLiteralToken*>(raw);
-}
-
-RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
-  const LiteralToken& result = LiteralToken::Handle(LiteralToken::New());
-  result.set_kind(kind);
-  result.set_literal(literal);
-  if (kind == Token::kINTEGER) {
-    const Integer& value = Integer::Handle(Integer::NewCanonical(literal));
-    if (value.IsNull()) {
-      // Integer is out of range.
-      return LiteralToken::null();
-    }
-    ASSERT(value.IsSmi() || value.IsOld());
-    result.set_value(value);
-  } else if (kind == Token::kDOUBLE) {
-    const Double& value = Double::Handle(Double::NewCanonical(literal));
-    result.set_value(value);
-  } else {
-    ASSERT(Token::NeedsLiteralToken(kind));
-    result.set_value(literal);
-  }
-  return result.raw();
-}
-
-const char* LiteralToken::ToCString() const {
-  const String& token = String::Handle(literal());
-  return token.ToCString();
-}
-
-RawGrowableObjectArray* TokenStream::TokenObjects() const {
-  return raw_ptr()->token_objects_;
-}
-
-void TokenStream::SetTokenObjects(const GrowableObjectArray& value) const {
-  StorePointer(&raw_ptr()->token_objects_, value.raw());
-}
-
-RawExternalTypedData* TokenStream::GetStream() const {
-  return raw_ptr()->stream_;
-}
-
-void TokenStream::SetStream(const ExternalTypedData& value) const {
-  StorePointer(&raw_ptr()->stream_, value.raw());
-}
-
-void TokenStream::DataFinalizer(void* isolate_callback_data,
-                                Dart_WeakPersistentHandle handle,
-                                void* peer) {
-  ASSERT(peer != NULL);
-  ::free(peer);
-}
-
-RawString* TokenStream::PrivateKey() const {
-  return raw_ptr()->private_key_;
-}
-
-void TokenStream::SetPrivateKey(const String& value) const {
-  StorePointer(&raw_ptr()->private_key_, value.raw());
-}
-
-RawString* TokenStream::GenerateSource() const {
-  return GenerateSource(TokenPosition::kMinSource, TokenPosition::kMaxSource);
-}
-
-RawString* TokenStream::GenerateSource(TokenPosition start_pos,
-                                       TokenPosition end_pos) const {
-  Zone* zone = Thread::Current()->zone();
-  Iterator iterator(zone, *this, start_pos, Iterator::kAllTokens);
-  const ExternalTypedData& data = ExternalTypedData::Handle(zone, GetStream());
-  const GrowableObjectArray& literals = GrowableObjectArray::Handle(
-      zone, GrowableObjectArray::New(data.Length()));
-  const String& private_key = String::Handle(zone, PrivateKey());
-  intptr_t private_len = private_key.Length();
-
-  Token::Kind curr = iterator.CurrentTokenKind();
-  Token::Kind prev = Token::kILLEGAL;
-  // Handles used in the loop.
-  Object& obj = Object::Handle(zone);
-  String& literal = String::Handle(zone);
-  // Current indentation level.
-  int indent = 0;
-
-  while ((curr != Token::kEOS) && (iterator.CurrentPosition() < end_pos)) {
-    // Remember current values for this token.
-    obj = iterator.CurrentToken();
-    literal = iterator.MakeLiteralToken(obj);
-    // Advance to be able to use next token kind.
-    iterator.Advance();
-    Token::Kind next = iterator.CurrentTokenKind();
-
-    // Handle the current token.
-    if (curr == Token::kSTRING) {
-      bool escape_characters = false;
-      for (intptr_t i = 0; i < literal.Length(); i++) {
-        if (NeedsEscapeSequence(literal.CharAt(i))) {
-          escape_characters = true;
-        }
-      }
-      if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
-        literals.Add(Symbols::DoubleQuote());
-      }
-      if (escape_characters) {
-        literal = String::EscapeSpecialCharacters(literal);
-        literals.Add(literal);
-      } else {
-        literals.Add(literal);
-      }
-      if ((next != Token::kINTERPOL_VAR) && (next != Token::kINTERPOL_START)) {
-        literals.Add(Symbols::DoubleQuote());
-      }
-    } else if (curr == Token::kINTERPOL_VAR) {
-      literals.Add(Symbols::Dollar());
-      if (literal.CharAt(0) == Library::kPrivateIdentifierStart) {
-        literal = String::SubString(literal, 0, literal.Length() - private_len);
-      }
-      literals.Add(literal);
-    } else if (curr == Token::kIDENT) {
-      if (literal.CharAt(0) == Library::kPrivateIdentifierStart) {
-        literal = String::SubString(literal, 0, literal.Length() - private_len);
-      }
-      literals.Add(literal);
-    } else {
-      literals.Add(literal);
-    }
-    // Determine the separation text based on this current token.
-    const String* separator = NULL;
-    switch (curr) {
-      case Token::kLBRACE:
-      case Token::kRBRACE:
-        if (next != Token::kNEWLINE) {
-          separator = &Symbols::Blank();
-        }
-        break;
-      case Token::kPERIOD:
-      case Token::kLBRACK:
-      case Token::kINTERPOL_VAR:
-      case Token::kINTERPOL_START:
-      case Token::kINTERPOL_END:
-      case Token::kBIT_NOT:
-      case Token::kNOT:
-        break;
-      // In case we see an opening parentheses '(' we increase the indent to
-      // align multi-line parameters accordingly. The indent will be removed as
-      // soon as we see the matching closing parentheses ')'.
-      //
-      // Example:
-      // SomeVeryLongMethod(
-      //     "withVeryLongParameter",
-      //     "andAnotherVeryLongParameter",
-      //     "andAnotherVeryLongParameter2") { ...
-      case Token::kLPAREN:
-        indent += 2;
-        break;
-      case Token::kRPAREN:
-        indent -= 2;
-        separator = &Symbols::Blank();
-        break;
-      case Token::kNEWLINE:
-        if (prev == Token::kLBRACE) {
-          indent++;
-        }
-        if (next == Token::kRBRACE) {
-          indent--;
-        }
-        break;
-      default:
-        separator = &Symbols::Blank();
-        break;
-    }
-
-    // Determine whether the separation text needs to be updated based on the
-    // next token.
-    switch (next) {
-      case Token::kRBRACE:
-        break;
-      case Token::kNEWLINE:
-      case Token::kSEMICOLON:
-      case Token::kPERIOD:
-      case Token::kCOMMA:
-      case Token::kRPAREN:
-      case Token::kLBRACK:
-      case Token::kRBRACK:
-      case Token::kINTERPOL_VAR:
-      case Token::kINTERPOL_START:
-      case Token::kINTERPOL_END:
-        separator = NULL;
-        break;
-      case Token::kLPAREN:
-        if (curr == Token::kCATCH) {
-          separator = &Symbols::Blank();
-        } else {
-          separator = NULL;
-        }
-        break;
-      case Token::kELSE:
-        separator = &Symbols::Blank();
-        break;
-      default:
-        // Do nothing.
-        break;
-    }
-
-    // Update the few cases where both tokens need to be taken into account.
-    if (((curr == Token::kIF) || (curr == Token::kFOR)) &&
-        (next == Token::kLPAREN)) {
-      separator = &Symbols::Blank();
-    } else if ((curr == Token::kASSIGN) && (next == Token::kLPAREN)) {
-      separator = &Symbols::Blank();
-    } else if ((curr == Token::kRETURN || curr == Token::kCONDITIONAL ||
-                Token::IsBinaryOperator(curr) ||
-                Token::IsEqualityOperator(curr)) &&
-               (next == Token::kLPAREN)) {
-      separator = &Symbols::Blank();
-    } else if ((curr == Token::kLBRACE) && (next == Token::kRBRACE)) {
-      separator = NULL;
-    } else if ((curr == Token::kSEMICOLON) && (next != Token::kNEWLINE)) {
-      separator = &Symbols::Blank();
-    } else if ((curr == Token::kIS) && (next == Token::kNOT)) {
-      separator = NULL;
-    } else if ((prev == Token::kIS) && (curr == Token::kNOT)) {
-      separator = &Symbols::Blank();
-    } else if ((curr == Token::kIDENT) &&
-               ((next == Token::kINCR) || (next == Token::kDECR))) {
-      separator = NULL;
-    } else if (((curr == Token::kINCR) || (curr == Token::kDECR)) &&
-               (next == Token::kIDENT)) {
-      separator = NULL;
-    }
-
-    // Add the separator.
-    if (separator != NULL) {
-      literals.Add(*separator);
-    }
-
-    // Account for indentation in case we printed a newline.
-    if (curr == Token::kNEWLINE) {
-      for (int i = 0; i < indent; i++) {
-        literals.Add(Symbols::TwoSpaces());
-      }
-    }
-
-    // Setup for next iteration.
-    prev = curr;
-    curr = next;
-  }
-  const Array& source = Array::Handle(Array::MakeFixedLength(literals));
-  return String::ConcatAll(source);
-}
-
-intptr_t TokenStream::ComputeSourcePosition(TokenPosition tok_pos) const {
-  Zone* zone = Thread::Current()->zone();
-  Iterator iterator(zone, *this, TokenPosition::kMinSource,
-                    Iterator::kAllTokens);
-  intptr_t src_pos = 0;
-  Token::Kind kind = iterator.CurrentTokenKind();
-  while ((iterator.CurrentPosition() < tok_pos) && (kind != Token::kEOS)) {
-    iterator.Advance();
-    kind = iterator.CurrentTokenKind();
-    src_pos++;
-  }
-  return src_pos;
-}
-
-RawTokenStream* TokenStream::New() {
-  ASSERT(Object::token_stream_class() != Class::null());
-  RawObject* raw = Object::Allocate(TokenStream::kClassId,
-                                    TokenStream::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawTokenStream*>(raw);
-}
-
-RawTokenStream* TokenStream::New(intptr_t len) {
-  if (len < 0 || len > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in TokenStream::New: invalid len %" Pd "\n", len);
-  }
-  uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
-  ASSERT(data != NULL);
-  Zone* zone = Thread::Current()->zone();
-  const ExternalTypedData& stream = ExternalTypedData::Handle(
-      zone, ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, len,
-                                   Heap::kOld));
-  stream.AddFinalizer(data, DataFinalizer, len);
-  const TokenStream& result = TokenStream::Handle(zone, TokenStream::New());
-  result.SetStream(stream);
-  return result.raw();
-}
-
-// CompressedTokenMap maps String and LiteralToken keys to Smi values.
-// It also supports lookup by TokenDescriptor.
-class CompressedTokenTraits {
- public:
-  static const char* Name() { return "CompressedTokenTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Scanner::TokenDescriptor& descriptor,
-                      const Object& key) {
-    if (!key.IsLiteralToken()) {
-      return false;
-    }
-    const LiteralToken& token = LiteralToken::Cast(key);
-    return (token.literal() == descriptor.literal->raw()) &&
-           (token.kind() == descriptor.kind);
-  }
-
-  // Only for non-descriptor lookup and table expansion.
-  static bool IsMatch(const Object& a, const Object& b) {
-    return a.raw() == b.raw();
-  }
-
-  static uword Hash(const Scanner::TokenDescriptor& descriptor) {
-    return descriptor.literal->Hash();
-  }
-
-  static uword Hash(const Object& key) {
-    if (key.IsLiteralToken()) {
-      return String::HashRawSymbol(LiteralToken::Cast(key).literal());
-    } else {
-      return String::Cast(key).Hash();
-    }
-  }
-};
-typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
-
-// Helper class for creation of compressed token stream data.
-class CompressedTokenStreamData : public Scanner::TokenCollector {
- public:
-  static const intptr_t kInitialBufferSize = 16 * KB;
-  static const bool kPrintTokenObjects = false;
-
-  CompressedTokenStreamData(const GrowableObjectArray& ta,
-                            CompressedTokenMap* map,
-                            Obfuscator* obfuscator)
-      : buffer_(NULL),
-        stream_(&buffer_, Reallocate, kInitialBufferSize),
-        token_objects_(ta),
-        tokens_(map),
-        str_(String::Handle()),
-        value_(Object::Handle()),
-        fresh_index_smi_(Smi::Handle()),
-        num_tokens_collected_(0),
-        obfuscator_(obfuscator) {}
-  virtual ~CompressedTokenStreamData() {}
-
-  virtual void AddToken(const Scanner::TokenDescriptor& token) {
-    if (token.kind == Token::kIDENT) {  // Identifier token.
-      AddIdentToken(*token.literal);
-    } else if (token.kind == Token::kINTERPOL_VAR) {
-      str_ = token.literal->raw();
-      str_ = obfuscator_->Rename(str_);
-
-      Scanner::TokenDescriptor token_copy = token;
-      token_copy.literal = &str_;
-      AddLiteralToken(token_copy);
-    } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
-      AddLiteralToken(token);
-    } else {  // Keyword, pseudo keyword etc.
-      ASSERT(token.kind < Token::kNumTokens);
-      AddSimpleToken(token.kind);
-    }
-    num_tokens_collected_++;
-  }
-
-  // Return the compressed token stream.
-  uint8_t* GetStream() const { return buffer_; }
-
-  // Return the compressed token stream length.
-  intptr_t Length() const { return stream_.bytes_written(); }
-
-  intptr_t NumTokens() const { return num_tokens_collected_; }
-
- private:
-  // Add an IDENT token into the stream and the token hash map.
-  void AddIdentToken(const String& ident) {
-    ASSERT(ident.IsSymbol());
-    const intptr_t fresh_index = token_objects_.Length();
-    str_ = ident.raw();
-    str_ = obfuscator_->Rename(str_);
-    fresh_index_smi_ = Smi::New(fresh_index);
-    intptr_t index = Smi::Value(
-        Smi::RawCast(tokens_->InsertOrGetValue(ident, fresh_index_smi_)));
-    if (index == fresh_index) {
-      token_objects_.Add(str_);
-      if (kPrintTokenObjects) {
-        int iid = Isolate::Current()->main_port() % 1024;
-        OS::PrintErr("%03x ident <%s -> %s>\n", iid, ident.ToCString(),
-                     str_.ToCString());
-      }
-    }
-    WriteIndex(index);
-  }
-
-  // Add a LITERAL token into the stream and the token hash map.
-  void AddLiteralToken(const Scanner::TokenDescriptor& descriptor) {
-    ASSERT(descriptor.literal->IsSymbol());
-    bool is_present = false;
-    value_ = tokens_->GetOrNull(descriptor, &is_present);
-    intptr_t index = -1;
-    if (is_present) {
-      ASSERT(value_.IsSmi());
-      index = Smi::Cast(value_).Value();
-    } else {
-      const intptr_t fresh_index = token_objects_.Length();
-      fresh_index_smi_ = Smi::New(fresh_index);
-      const LiteralToken& lit = LiteralToken::Handle(
-          LiteralToken::New(descriptor.kind, *descriptor.literal));
-      if (lit.IsNull()) {
-        // Convert token to an error.
-        ASSERT(descriptor.kind == Token::kINTEGER);
-        Scanner::TokenDescriptor errorDesc = descriptor;
-        errorDesc.kind = Token::kERROR;
-        errorDesc.literal = &String::Handle(Symbols::NewFormatted(
-            Thread::Current(), "integer literal %s is out of range",
-            descriptor.literal->ToCString()));
-        AddLiteralToken(errorDesc);
-        return;
-      }
-      index = Smi::Value(
-          Smi::RawCast(tokens_->InsertOrGetValue(lit, fresh_index_smi_)));
-      token_objects_.Add(lit);
-      if (kPrintTokenObjects) {
-        int iid = Isolate::Current()->main_port() % 1024;
-        printf("lit    %03x  %p  %p  %p  <%s>\n", iid, token_objects_.raw(),
-               lit.literal(), lit.value(),
-               String::Handle(lit.literal()).ToCString());
-      }
-    }
-    WriteIndex(index);
-  }
-
-  // Add a simple token into the stream.
-  void AddSimpleToken(intptr_t kind) { stream_.WriteUnsigned(kind); }
-
-  void WriteIndex(intptr_t value) {
-    stream_.WriteUnsigned(value + Token::kNumTokens);
-  }
-
-  static uint8_t* Reallocate(uint8_t* ptr,
-                             intptr_t old_size,
-                             intptr_t new_size) {
-    void* new_ptr = ::realloc(reinterpret_cast<void*>(ptr), new_size);
-    return reinterpret_cast<uint8_t*>(new_ptr);
-  }
-
-  uint8_t* buffer_;
-  WriteStream stream_;
-  const GrowableObjectArray& token_objects_;
-  CompressedTokenMap* tokens_;
-  String& str_;
-  Object& value_;
-  Smi& fresh_index_smi_;
-  intptr_t num_tokens_collected_;
-  Obfuscator* obfuscator_;
-
-  DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
-};
-
-RawTokenStream* TokenStream::New(const String& source,
-                                 const String& private_key,
-                                 bool use_shared_tokens) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
-  GrowableObjectArray& token_objects = GrowableObjectArray::Handle(zone);
-  Array& token_objects_map = Array::Handle(zone);
-  if (use_shared_tokens) {
-    // Use the shared token objects array in the object store. Allocate
-    // a new array if necessary.
-    ObjectStore* store = thread->isolate()->object_store();
-    if (store->token_objects() == GrowableObjectArray::null()) {
-      OpenSharedTokenList(thread->isolate());
-    }
-    token_objects = store->token_objects();
-    token_objects_map = store->token_objects_map();
-  } else {
-    // Use new, non-shared token array.
-    const int kInitialPrivateCapacity = 256;
-    token_objects =
-        GrowableObjectArray::New(kInitialPrivateCapacity, Heap::kOld);
-    token_objects_map = HashTables::New<CompressedTokenMap>(
-        kInitialPrivateCapacity, Heap::kOld);
-  }
-  Obfuscator obfuscator(thread, private_key);
-  CompressedTokenMap map(token_objects_map.raw());
-  CompressedTokenStreamData data(token_objects, &map, &obfuscator);
-  Scanner scanner(source, private_key);
-  scanner.ScanAll(&data);
-  INC_STAT(thread, num_tokens_scanned, data.NumTokens());
-
-  // Create and setup the token stream object.
-  const ExternalTypedData& stream = ExternalTypedData::Handle(
-      zone,
-      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data.GetStream(),
-                             data.Length(), Heap::kOld));
-  intptr_t external_size = data.Length();
-  stream.AddFinalizer(data.GetStream(), DataFinalizer, external_size);
-  const TokenStream& result = TokenStream::Handle(zone, New());
-  result.SetPrivateKey(private_key);
-  {
-    NoSafepointScope no_safepoint;
-    result.SetStream(stream);
-    result.SetTokenObjects(token_objects);
-  }
-
-  token_objects_map = map.Release().raw();
-  if (use_shared_tokens) {
-    thread->isolate()->object_store()->set_token_objects_map(token_objects_map);
-  }
-  return result.raw();
-}
-
-void TokenStream::OpenSharedTokenList(Isolate* isolate) {
-  const int kInitialSharedCapacity = 5 * 1024;
-  ObjectStore* store = isolate->object_store();
-  ASSERT(store->token_objects() == GrowableObjectArray::null());
-  const GrowableObjectArray& token_objects = GrowableObjectArray::Handle(
-      GrowableObjectArray::New(kInitialSharedCapacity, Heap::kOld));
-  store->set_token_objects(token_objects);
-  const Array& token_objects_map = Array::Handle(
-      HashTables::New<CompressedTokenMap>(kInitialSharedCapacity, Heap::kOld));
-  store->set_token_objects_map(token_objects_map);
-}
-
-void TokenStream::CloseSharedTokenList(Isolate* isolate) {
-  isolate->object_store()->set_token_objects(GrowableObjectArray::Handle());
-  isolate->object_store()->set_token_objects_map(Array::null_array());
-}
-
-const char* TokenStream::ToCString() const {
-  return "TokenStream";
-}
-
-TokenStream::Iterator::Iterator(Zone* zone,
-                                const TokenStream& tokens,
-                                TokenPosition token_pos,
-                                Iterator::StreamType stream_type)
-    : tokens_(TokenStream::Handle(zone, tokens.raw())),
-      data_(ExternalTypedData::Handle(zone, tokens.GetStream())),
-      stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
-      token_objects_(Array::Handle(
-          zone,
-          GrowableObjectArray::Handle(zone, tokens.TokenObjects()).data())),
-      obj_(Object::Handle(zone)),
-      cur_token_pos_(token_pos.Pos()),
-      cur_token_kind_(Token::kILLEGAL),
-      cur_token_obj_index_(-1),
-      stream_type_(stream_type) {
-  ASSERT(token_pos != TokenPosition::kNoSource);
-  if (token_pos.IsReal()) {
-    SetCurrentPosition(token_pos);
-  }
-}
-
-void TokenStream::Iterator::SetStream(const TokenStream& tokens,
-                                      TokenPosition token_pos) {
-  tokens_ = tokens.raw();
-  data_ = tokens.GetStream();
-  stream_.SetStream(reinterpret_cast<uint8_t*>(data_.DataAddr(0)),
-                    data_.Length());
-  token_objects_ = GrowableObjectArray::Handle(tokens.TokenObjects()).data();
-  obj_ = Object::null();
-  cur_token_pos_ = token_pos.Pos();
-  cur_token_kind_ = Token::kILLEGAL;
-  cur_token_obj_index_ = -1;
-  SetCurrentPosition(token_pos);
-}
-
-bool TokenStream::Iterator::IsValid() const {
-  return !tokens_.IsNull();
-}
-
-Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
-  intptr_t saved_position = stream_.Position();
-  Token::Kind kind = Token::kILLEGAL;
-  intptr_t value = -1;
-  intptr_t count = 0;
-  while (count < num_tokens && value != Token::kEOS) {
-    value = ReadToken();
-    if ((stream_type_ == kAllTokens) ||
-        (static_cast<Token::Kind>(value) != Token::kNEWLINE)) {
-      count += 1;
-    }
-  }
-  if (value < Token::kNumTokens) {
-    kind = static_cast<Token::Kind>(value);
-  } else {
-    value = value - Token::kNumTokens;
-    obj_ = token_objects_.At(value);
-    if (obj_.IsLiteralToken()) {
-      const LiteralToken& literal_token = LiteralToken::Cast(obj_);
-      kind = literal_token.kind();
-    } else {
-      ASSERT(obj_.IsString());  // Must be an identifier.
-      kind = Token::kIDENT;
-    }
-  }
-  stream_.SetPosition(saved_position);
-  return kind;
-}
-
-TokenPosition TokenStream::Iterator::CurrentPosition() const {
-  return TokenPosition(cur_token_pos_);
-}
-
-void TokenStream::Iterator::SetCurrentPosition(TokenPosition token_pos) {
-  stream_.SetPosition(token_pos.value());
-  Advance();
-}
-
-void TokenStream::Iterator::Advance() {
-  intptr_t value;
-  do {
-    cur_token_pos_ = stream_.Position();
-    value = ReadToken();
-  } while ((stream_type_ == kNoNewlines) &&
-           (static_cast<Token::Kind>(value) == Token::kNEWLINE));
-  if (value < Token::kNumTokens) {
-    cur_token_kind_ = static_cast<Token::Kind>(value);
-    cur_token_obj_index_ = -1;
-    return;
-  }
-  cur_token_obj_index_ = value - Token::kNumTokens;
-  obj_ = token_objects_.At(cur_token_obj_index_);
-  if (obj_.IsLiteralToken()) {
-    const LiteralToken& literal_token = LiteralToken::Cast(obj_);
-    cur_token_kind_ = literal_token.kind();
-    return;
-  }
-  ASSERT(obj_.IsString());  // Must be an identifier.
-  cur_token_kind_ = Token::kIDENT;
-}
-
-RawObject* TokenStream::Iterator::CurrentToken() const {
-  if (cur_token_obj_index_ != -1) {
-    return token_objects_.At(cur_token_obj_index_);
-  } else {
-    return Smi::New(cur_token_kind_);
-  }
-}
-
-RawString* TokenStream::Iterator::CurrentLiteral() const {
-  obj_ = CurrentToken();
-  return MakeLiteralToken(obj_);
-}
-
-RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
-  if (obj.IsString()) {
-    return reinterpret_cast<RawString*>(obj.raw());
-  } else if (obj.IsSmi()) {
-    Token::Kind kind = static_cast<Token::Kind>(
-        Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
-    ASSERT(kind < Token::kNumTokens);
-    return Symbols::Token(kind).raw();
-  } else {
-    ASSERT(obj.IsLiteralToken());  // Must be a literal token.
-    const LiteralToken& literal_token = LiteralToken::Cast(obj);
-    return literal_token.literal();
-  }
-}
-
 bool Script::HasSource() const {
   return raw_ptr()->source_ != String::null();
 }
 
 RawString* Script::Source() const {
-  String& source = String::Handle(raw_ptr()->source_);
-  if (source.IsNull()) {
-    if (kind() == RawScript::kKernelTag) {
-      return String::null();
-    }
-    return GenerateSource();
-  }
   return raw_ptr()->source_;
-}
-
-RawString* Script::GenerateSource() const {
-  const TokenStream& token_stream = TokenStream::Handle(tokens());
-  if (token_stream.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
-    return String::null();
-  }
-  return token_stream.GenerateSource();
 }
 
 void Script::set_compile_time_constants(const Array& value) const {
@@ -10257,10 +9550,7 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  const String& source = String::Handle(zone, Source());
-  const String& key = Symbols::Empty();
   const Object& line_separator = Object::Handle(zone);
-  Smi& value = Smi::Handle(zone);
 
   if (kind() == RawScript::kKernelTag) {
     const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
@@ -10271,6 +9561,7 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
       return info.raw();
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
+    Smi& value = Smi::Handle(zone);
     intptr_t line_count = line_starts_data.Length();
     ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
@@ -10311,78 +9602,8 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
     return info.raw();
   }
 
-  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
-  String& tokenValue = String::Handle(zone);
-  ASSERT(!tkns.IsNull());
-  TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
-                             TokenStream::Iterator::kAllTokens);
-  int current_line = -1;
-  Scanner s(source, key);
-  s.Scan();
-  bool skippedNewline = false;
-  while (tkit.CurrentTokenKind() != Token::kEOS) {
-    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
-      // Skip newlines from the token stream.
-      skippedNewline = true;
-      tkit.Advance();
-      continue;
-    }
-    if (s.current_token().kind != tkit.CurrentTokenKind()) {
-      // Suppose we have a multiline string with interpolation:
-      //
-      // 10    '''
-      // 11    bar
-      // 12    baz
-      // 13    foo is $foo
-      // 14    '''
-      //
-      // In the token stream, this becomes something like:
-      //
-      // 10    string('bar\nbaz\nfoo is\n')
-      // 11    newline
-      // 12    newline
-      // 13    string('') interpol_var(foo) string('\n')
-      // 14
-      //
-      // In order to keep the token iterator and the scanner in sync,
-      // we need to skip the extra empty string before the
-      // interpolation.
-      if (skippedNewline &&
-          (s.current_token().kind == Token::kINTERPOL_VAR ||
-           s.current_token().kind == Token::kINTERPOL_START) &&
-          tkit.CurrentTokenKind() == Token::kSTRING) {
-        tokenValue = tkit.CurrentLiteral();
-        if (tokenValue.Length() == 0) {
-          tkit.Advance();
-        }
-      }
-    }
-    skippedNewline = false;
-    ASSERT(s.current_token().kind == tkit.CurrentTokenKind());
-    int token_line = s.current_token().position.line;
-    if (token_line != current_line) {
-      // emit line
-      info.Add(line_separator);
-      value = Smi::New(token_line + line_offset());
-      info.Add(value);
-      current_line = token_line;
-    }
-    // TODO(hausner): Could optimize here by not reporting tokens
-    // that will never be a location used by the debugger, e.g.
-    // braces, semicolons, most keywords etc.
-    value = Smi::New(tkit.CurrentPosition().Pos());
-    info.Add(value);
-    int column = s.current_token().position.column;
-    // On the first line of the script we must add the column offset.
-    if (token_line == 1) {
-      column += col_offset();
-    }
-    value = Smi::New(column);
-    info.Add(value);
-    tkit.Advance();
-    s.Scan();
-  }
-  return info.raw();
+  UNREACHABLE();
+  return GrowableObjectArray::null();
 }
 
 const char* Script::GetKindAsCString() const {
@@ -10464,33 +9685,6 @@ void Script::set_load_timestamp(int64_t value) const {
   StoreNonPointer(&raw_ptr()->load_timestamp_, value);
 }
 
-void Script::set_tokens(const TokenStream& value) const {
-  StorePointer(&raw_ptr()->tokens_, value.raw());
-}
-
-void Script::Tokenize(const String& private_key, bool use_shared_tokens) const {
-  if (kind() == RawScript::kKernelTag) {
-    return;
-  }
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
-  if (!tkns.IsNull()) {
-    // Already tokenized.
-    return;
-  }
-
-  // Get the source, scan and allocate the token stream.
-  VMTagScope tagScope(thread, VMTag::kCompileScannerTagId);
-  CSTAT_TIMER_SCOPE(thread, scanner_timer);
-  const String& src = String::Handle(zone, Source());
-  const TokenStream& ts = TokenStream::Handle(
-      zone, TokenStream::New(src, private_key, use_shared_tokens));
-  set_tokens(ts);
-  INC_STAT(thread, src_length, src.Length());
-}
-
 void Script::SetLocationOffset(intptr_t line_offset,
                                intptr_t col_offset) const {
   ASSERT(line_offset >= 0);
@@ -10510,35 +9704,7 @@ intptr_t Script::GetTokenLineUsingLineStarts(
   TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   if (line_starts_data.IsNull()) {
     ASSERT(kind() != RawScript::kKernelTag);
-    const TokenStream& tkns = TokenStream::Handle(zone, tokens());
-
-    intptr_t line_count = 0;
-    {
-      // Evaluate the number of lines in the script.
-      TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
-                                 TokenStream::Iterator::kAllTokens);
-      while (tkit.CurrentTokenKind() != Token::kEOS) {
-        if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
-          line_count++;
-        }
-        tkit.Advance();
-      }
-    }
-    line_starts_data = TypedData::New(kTypedDataInt32ArrayCid, line_count + 1);
-
-    intptr_t cur_line = 0;
-    TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
-                               TokenStream::Iterator::kAllTokens);
-    line_starts_data.SetInt32(cur_line, 0);
-    while (tkit.CurrentTokenKind() != Token::kEOS) {
-      if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
-        cur_line++;
-        line_starts_data.SetInt32(cur_line << 2,
-                                  tkit.CurrentPosition().value() + 1);
-      }
-      tkit.Advance();
-    }
-    set_line_starts(line_starts_data);
+    UNREACHABLE();
   }
 
   if (kind() == RawScript::kKernelTag) {
@@ -10611,50 +9777,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     return;
   }
 
-  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
-  if (tkns.IsNull()) {
-    ASSERT((Dart::vm_snapshot_kind() == Snapshot::kFullAOT));
-    *line = -1;
-    if (column != NULL) {
-      *column = -1;
-    }
-    if (token_len != NULL) {
-      *token_len = 1;
-    }
-    return;
-  }
-  if (column == NULL) {
-    TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
-                               TokenStream::Iterator::kAllTokens);
-    intptr_t cur_line = line_offset() + 1;
-    while ((tkit.CurrentPosition() < token_pos) &&
-           (tkit.CurrentTokenKind() != Token::kEOS)) {
-      if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
-        cur_line++;
-      }
-      tkit.Advance();
-    }
-    *line = cur_line;
-  } else {
-    const String& src = String::Handle(zone, Source());
-    intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
-    Scanner scanner(src, Symbols::Empty());
-    scanner.ScanTo(src_pos);
-    intptr_t relative_line = scanner.CurrentPosition().line;
-    *line = relative_line + line_offset();
-    *column = scanner.CurrentPosition().column;
-    if (token_len != NULL) {
-      if (scanner.current_token().literal != NULL) {
-        *token_len = scanner.current_token().literal->Length();
-      } else {
-        *token_len = 1;
-      }
-    }
-    // On the first line of the script we must add the column offset.
-    if (relative_line == 1) {
-      *column += col_offset();
-    }
-  }
+  UNREACHABLE();
 }
 
 void Script::TokenRangeAtLine(intptr_t line_number,
@@ -10681,87 +9804,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
     return;
   }
 
-  Zone* zone = Thread::Current()->zone();
-  *first_token_index = TokenPosition::kNoSource;
-  *last_token_index = TokenPosition::kNoSource;
-  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
-  line_number -= line_offset();
-  if (line_number < 1) line_number = 1;
-  TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
-                             TokenStream::Iterator::kAllTokens);
-  // Scan through the token stream to the required line.
-  intptr_t cur_line = 1;
-  while (cur_line < line_number && tkit.CurrentTokenKind() != Token::kEOS) {
-    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
-      cur_line++;
-    }
-    tkit.Advance();
-  }
-  if (tkit.CurrentTokenKind() == Token::kEOS) {
-    // End of token stream before reaching required line.
-    return;
-  }
-  if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
-    // No tokens on the current line. If there is a valid token afterwards, put
-    // it into first_token_index.
-    while (tkit.CurrentTokenKind() == Token::kNEWLINE &&
-           tkit.CurrentTokenKind() != Token::kEOS) {
-      tkit.Advance();
-    }
-    if (tkit.CurrentTokenKind() != Token::kEOS) {
-      *first_token_index = tkit.CurrentPosition();
-    }
-    return;
-  }
-  *first_token_index = tkit.CurrentPosition();
-  // We cannot do "CurrentPosition() - 1" for the last token, because we do not
-  // know whether the previous token is a simple one or not.
-  TokenPosition end_pos = *first_token_index;
-  while (tkit.CurrentTokenKind() != Token::kNEWLINE &&
-         tkit.CurrentTokenKind() != Token::kEOS) {
-    end_pos = tkit.CurrentPosition();
-    tkit.Advance();
-  }
-  *last_token_index = end_pos;
-}
-
-int32_t Script::SourceFingerprint() const {
-  return SourceFingerprint(TokenPosition(TokenPosition::kMinSourcePos),
-                           TokenPosition(TokenPosition::kMaxSourcePos));
-}
-
-int32_t Script::SourceFingerprint(TokenPosition start,
-                                  TokenPosition end) const {
-  if (kind() == RawScript::kKernelTag) {
-    // TODO(30756): Implemented.
-    return 0;
-  }
-  uint32_t result = 0;
-  Zone* zone = Thread::Current()->zone();
-  TokenStream::Iterator tokens_iterator(
-      zone, TokenStream::Handle(zone, tokens()), start);
-  Object& obj = Object::Handle(zone);
-  String& literal = String::Handle(zone);
-  while ((tokens_iterator.CurrentTokenKind() != Token::kEOS) &&
-         (tokens_iterator.CurrentPosition() < end)) {
-    uint32_t val = 0;
-    obj = tokens_iterator.CurrentToken();
-    if (obj.IsSmi()) {
-      val = Smi::Cast(obj).Value();
-    } else {
-      literal = tokens_iterator.MakeLiteralToken(obj);
-      if (tokens_iterator.CurrentTokenKind() == Token::kIDENT ||
-          tokens_iterator.CurrentTokenKind() == Token::kINTERPOL_VAR) {
-        literal = String::RemovePrivateKey(literal);
-      }
-      val = literal.Hash();
-    }
-    result = 31 * result + val;
-    tokens_iterator.Advance();
-  }
-  result = result & ((static_cast<uint32_t>(1) << 31) - 1);
-  ASSERT(result <= static_cast<uint32_t>(kMaxInt32));
-  return result;
+  UNREACHABLE();
 }
 
 RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
@@ -10815,7 +9858,6 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t length = src.Length();
@@ -11342,7 +10384,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
       metadata = kernel::EvaluateMetadata(
           field, /* is_annotations_offset = */ obj.IsLibrary());
     } else {
-      metadata = Parser::ParseMetadata(field);
+      UNREACHABLE();
     }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
@@ -12210,12 +11252,14 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 // Invoke the function, or noSuchMethod if it is null.
-static RawObject* InvokeInstanceFunction(const Instance& receiver,
-                                         const Function& function,
-                                         const String& target_name,
-                                         const Array& args,
-                                         const Array& args_descriptor_array,
-                                         bool respect_reflectable) {
+static RawObject* InvokeInstanceFunction(
+    const Instance& receiver,
+    const Function& function,
+    const String& target_name,
+    const Array& args,
+    const Array& args_descriptor_array,
+    bool respect_reflectable,
+    const TypeArguments& instantiator_type_args) {
   // Note "args" is already the internal arguments with the receiver as the
   // first element.
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
@@ -12223,6 +11267,11 @@ static RawObject* InvokeInstanceFunction(const Instance& receiver,
       (respect_reflectable && !function.is_reflectable())) {
     return DartEntry::InvokeNoSuchMethod(receiver, target_name, args,
                                          args_descriptor_array);
+  }
+  RawObject* type_error = function.DoArgumentTypesMatch(args, args_descriptor,
+                                                        instantiator_type_args);
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -12285,9 +11334,16 @@ RawObject* Library::InvokeSetter(const String& setter_name,
   Object& obj = Object::Handle(LookupLocalOrReExportObject(setter_name));
   const String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
-
+  AbstractType& setter_type = AbstractType::Handle();
+  AbstractType& argument_type = AbstractType::Handle(value.GetType(Heap::kOld));
   if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
+    setter_type ^= field.type();
+    if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
+        !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
+                            Object::null_type_arguments(), NULL)) {
+      return ThrowTypeError(field.token_pos(), value, setter_type, setter_name);
+    }
     if (field.is_final() || (respect_reflectable && !field.is_reflectable())) {
       const int kNumArgs = 1;
       const Array& args = Array::Handle(Array::New(kNumArgs));
@@ -12316,6 +11372,13 @@ RawObject* Library::InvokeSetter(const String& setter_name,
         AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
         internal_setter_name, args, Object::null_array(),
         InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+  }
+
+  setter_type ^= setter.ParameterTypeAt(0);
+  if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
+      !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
+                          Object::null_type_arguments(), NULL)) {
+    return ThrowTypeError(setter.token_pos(), value, setter_type, setter_name);
   }
 
   return DartEntry::InvokeFunction(setter, args);
@@ -12359,7 +11422,7 @@ RawObject* Library::Invoke(const String& function_name,
   const Array& args_descriptor_array = Array::Handle(
       ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-
+  const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
@@ -12367,7 +11430,11 @@ RawObject* Library::Invoke(const String& function_name,
         function_name, args, arg_names, InvocationMirror::kTopLevel,
         InvocationMirror::kMethod);
   }
-
+  RawObject* type_error =
+      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
+  if (type_error != Error::null()) {
+    return type_error;
+  }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
 
@@ -13087,7 +12154,7 @@ RawObject* Namespace::GetMetadata() const {
       metadata =
           kernel::EvaluateMetadata(field, /* is_annotations_offset = */ true);
     } else {
-      metadata = Parser::ParseMetadata(field);
+      UNREACHABLE();
     }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
@@ -13238,7 +12305,9 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const ExternalTypedData& metadata_payloads,
     const ExternalTypedData& metadata_mappings,
     const ExternalTypedData& constants_table,
-    const Array& scripts) {
+    const Array& scripts,
+    const Array& libraries_cache,
+    const Array& classes_cache) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
@@ -13250,6 +12319,8 @@ RawKernelProgramInfo* KernelProgramInfo::New(
                     metadata_mappings.raw());
   info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
   info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
+  info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
+  info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
   return info.raw();
 }
 
@@ -13282,7 +12353,117 @@ void KernelProgramInfo::set_potential_pragma_functions(
   StorePointer(&raw_ptr()->potential_pragma_functions_, candidates.raw());
 }
 
-RawError* Library::CompileAll() {
+void KernelProgramInfo::set_libraries_cache(const Array& cache) const {
+  StorePointer(&raw_ptr()->libraries_cache_, cache.raw());
+}
+
+typedef UnorderedHashMap<SmiTraits> IntHashMap;
+
+RawLibrary* KernelProgramInfo::LookupLibrary(Thread* thread,
+                                             const Smi& name_index) const {
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_LIBRARY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  Array& data = thread->ArrayHandle();
+  Library& result = thread->LibraryHandle();
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  {
+    data ^= libraries_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result ^= table.GetOrNull(name_index);
+    table.Release();
+  }
+  return result.raw();
+}
+
+RawLibrary* KernelProgramInfo::InsertLibrary(Thread* thread,
+                                             const Smi& name_index,
+                                             const Library& lib) const {
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_LIBRARY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  Array& data = thread->ArrayHandle();
+  Library& result = thread->LibraryHandle();
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  {
+    data ^= libraries_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result ^= table.GetOrNull(name_index);
+    table.Release();
+  }
+  if (result.IsNull()) {
+    Isolate* isolate = thread->isolate();
+    SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
+    data ^= libraries_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result ^= table.InsertOrGetValue(name_index, lib);
+    set_libraries_cache(table.Release());
+  }
+  return result.raw();
+}
+
+void KernelProgramInfo::set_classes_cache(const Array& cache) const {
+  StorePointer(&raw_ptr()->classes_cache_, cache.raw());
+}
+
+RawClass* KernelProgramInfo::LookupClass(Thread* thread,
+                                         const Smi& name_index) const {
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_CLASS_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  Array& data = thread->ArrayHandle();
+  Class& result = thread->ClassHandle();
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  {
+    data ^= classes_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result ^= table.GetOrNull(name_index);
+    table.Release();
+  }
+  return result.raw();
+}
+
+RawClass* KernelProgramInfo::InsertClass(Thread* thread,
+                                         const Smi& name_index,
+                                         const Class& klass) const {
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_CLASS_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  Array& data = thread->ArrayHandle();
+  Class& result = thread->ClassHandle();
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  {
+    data ^= classes_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result ^= table.GetOrNull(name_index);
+    table.Release();
+  }
+  if (result.IsNull()) {
+    Isolate* isolate = thread->isolate();
+    SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
+    data ^= classes_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result ^= table.InsertOrGetValue(name_index, klass);
+    set_classes_cache(table.Release());
+  }
+  return result.raw();
+}
+
+RawError* Library::CompileAll(bool ignore_error /* = false */) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone);
@@ -13297,10 +12478,12 @@ RawError* Library::CompileAll() {
       cls = it.GetNextClass();
       error = cls.EnsureIsFinalized(thread);
       if (!error.IsNull()) {
+        if (ignore_error) continue;
         return error.raw();
       }
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
+        if (ignore_error) continue;
         return error.raw();
       }
     }
@@ -13318,6 +12501,7 @@ RawError* Library::CompileAll() {
     if (!func.HasCode()) {
       result = Compiler::CompileFunction(thread, func);
       if (result.IsError()) {
+        if (ignore_error) continue;
         return Error::Cast(result).raw();
       }
     }
@@ -13328,6 +12512,7 @@ RawError* Library::CompileAll() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 RawError* Library::ReadAllBytecode() {
   Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -13369,50 +12554,6 @@ RawError* Library::ReadAllBytecode() {
   return Error::null();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-RawError* Library::ParseAll(Thread* thread) {
-  Zone* zone = thread->zone();
-  Error& error = Error::Handle(zone);
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  Library& lib = Library::Handle(zone);
-  Class& cls = Class::Handle(zone);
-  for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      error = cls.EnsureIsFinalized(thread);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-      error = Compiler::ParseAllFunctions(cls);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-    }
-  }
-
-  // Inner functions get added to the closures array. As part of compilation
-  // more closures can be added to the end of the array. Compile all the
-  // closures until we have reached the end of the "worklist".
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, Isolate::Current()->object_store()->closure_functions());
-  Function& func = Function::Handle(zone);
-  for (int i = 0; i < closures.Length(); i++) {
-    func ^= closures.At(i);
-    if (!func.HasCode()) {
-      error = Compiler::ParseFunction(thread, func);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-      func.ClearICDataArray();
-      func.ClearCode();
-    }
-  }
-  return error.raw();
-}
 
 // Return Function::null() if function does not exist in libs.
 RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
@@ -13685,8 +12826,6 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
     uword size = PcDescriptors::InstanceSize(data->length());
     RawObject* raw =
         Object::Allocate(PcDescriptors::kClassId, size, Heap::kOld);
-    INC_STAT(thread, total_code_size, size);
-    INC_STAT(thread, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(data->length());
@@ -13703,8 +12842,6 @@ RawPcDescriptors* PcDescriptors::New(intptr_t length) {
     uword size = PcDescriptors::InstanceSize(length);
     RawObject* raw =
         Object::Allocate(PcDescriptors::kClassId, size, Heap::kOld);
-    INC_STAT(thread, total_code_size, size);
-    INC_STAT(thread, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
@@ -14085,8 +13222,6 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
     uword size = LocalVarDescriptors::InstanceSize(num_variables);
     RawObject* raw =
         Object::Allocate(LocalVarDescriptors::kClassId, size, Heap::kOld);
-    INC_STAT(Thread::Current(), total_code_size, size);
-    INC_STAT(Thread::Current(), vardesc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_variables);
@@ -15481,8 +14616,6 @@ void Code::set_is_alive(bool value) const {
 void Code::set_stackmaps(const Array& maps) const {
   ASSERT(maps.IsOld());
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
-  INC_STAT(Thread::Current(), total_code_size,
-           maps.IsNull() ? 0 : maps.Length() * sizeof(uword));
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
@@ -15793,8 +14926,6 @@ RawCode* Code::FinalizeCode(const char* name,
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
       assembler->CodeSize(), assembler->has_single_entry_point(),
       compiler == nullptr ? 0 : compiler->UncheckedEntryOffset()));
-  INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
-  INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
   // Important: if GC is triggerred at any point between Instructions::New
   // and here it would write protect instructions object that we are trying
   // to fill in.
@@ -15833,8 +14964,6 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    INC_STAT(Thread::Current(), total_code_size,
-             object_pool.Length() * sizeof(uintptr_t));
     code.set_object_pool(object_pool.raw());
 
     if (FLAG_write_protect_code) {
@@ -15868,8 +14997,6 @@ RawCode* Code::FinalizeCode(const char* name,
     // pushed onto the stack.
     code.SetPrologueOffset(assembler->CodeSize());
   }
-  INC_STAT(Thread::Current(), total_code_size,
-           code.comments().comments_.Length());
 #endif
   return code.raw();
 }
@@ -15901,8 +15028,6 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs = Instructions::ZoneHandle(
       Instructions::New(bytecode_size, true /* has_single_entry_point */, 0));
-  INC_STAT(Thread::Current(), total_instr_size, bytecode_size);
-  INC_STAT(Thread::Current(), total_code_size, bytecode_size);
 
   // Copy the bytecode data into the instruction area. No fixups to apply.
   MemoryRegion instrs_region(reinterpret_cast<void*>(instrs.PayloadStart()),
@@ -15912,10 +15037,10 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
   instrs_region.CopyFrom(0, bytecode_region);
 
   // TODO(regis): Keep following lines or not?
-  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   // TODO(regis): Do we need to notify CodeObservers for bytecode too?
   // If so, provide a better name using ToLibNamePrefixedQualifiedCString().
 #ifndef PRODUCT
+  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
                            0 /* prologue_offset */, instrs.Size(),
                            false /* optimized */, nullptr);
@@ -15929,8 +15054,6 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    INC_STAT(Thread::Current(), total_code_size,
-             object_pool.Length() * sizeof(uintptr_t));
     code.set_object_pool(object_pool.raw());
 
     if (FLAG_write_protect_code) {
@@ -15939,12 +15062,12 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
                              instrs.raw()->Size(), VirtualMemory::kReadExecute);
     }
   }
+#ifndef PRODUCT
   // No Code::Comments to set. Default is 0 length Comments.
   // No prologue was ever entered, optimistically assume nothing was ever
   // pushed onto the stack.
   code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
-  INC_STAT(Thread::Current(), total_code_size,
-           code.comments().comments_.Length());
+#endif
   return code.raw();
 }
 
@@ -16924,6 +16047,10 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   Zone* zone = Thread::Current()->zone();
 
   Class& klass = Class::Handle(zone, clazz());
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  if (klass.NumTypeArguments() > 0) {
+    type_args ^= GetTypeArguments();
+  }
 
   const String& internal_getter_name =
       String::Handle(zone, Field::GetterName(getter_name));
@@ -16948,7 +16075,8 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   return InvokeInstanceFunction(*this, function, internal_getter_name, args,
-                                args_descriptor, respect_reflectable);
+                                args_descriptor, respect_reflectable,
+                                type_args);
 }
 
 RawObject* Instance::InvokeSetter(const String& setter_name,
@@ -16957,6 +16085,11 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
   Zone* zone = Thread::Current()->zone();
 
   const Class& klass = Class::Handle(zone, clazz());
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  if (klass.NumTypeArguments() > 0) {
+    type_args ^= GetTypeArguments();
+  }
+
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
   const Function& setter = Function::Handle(
@@ -16971,7 +16104,8 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   return InvokeInstanceFunction(*this, setter, internal_setter_name, args,
-                                args_descriptor, respect_reflectable);
+                                args_descriptor, respect_reflectable,
+                                type_args);
 }
 
 RawObject* Instance::Invoke(const String& function_name,
@@ -16988,6 +16122,11 @@ RawObject* Instance::Invoke(const String& function_name,
   const Array& args_descriptor = Array::Handle(
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  if (klass.NumTypeArguments() > 0) {
+    type_args ^= GetTypeArguments();
+  }
+
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
     const String& getter_name =
@@ -17002,9 +16141,9 @@ RawObject* Instance::Invoke(const String& function_name,
       const Array& getter_args_descriptor = Array::Handle(
           zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length()));
       const Object& getter_result = Object::Handle(
-          zone,
-          InvokeInstanceFunction(*this, function, getter_name, getter_args,
-                                 getter_args_descriptor, respect_reflectable));
+          zone, InvokeInstanceFunction(*this, function, getter_name,
+                                       getter_args, getter_args_descriptor,
+                                       respect_reflectable, type_args));
       if (getter_result.IsError()) {
         return getter_result.raw();
       }
@@ -17017,7 +16156,8 @@ RawObject* Instance::Invoke(const String& function_name,
 
   // Found an ordinary method.
   return InvokeInstanceFunction(*this, function, function_name, args,
-                                args_descriptor, respect_reflectable);
+                                args_descriptor, respect_reflectable,
+                                type_args);
 }
 
 RawObject* Instance::Evaluate(const Class& method_cls,

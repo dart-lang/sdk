@@ -16,7 +16,8 @@ import '../fasta_codes.dart'
         messageExpectedHexDigit,
         messageMissingExponent,
         messageUnexpectedDollarInString,
-        messageUnterminatedComment;
+        messageUnterminatedComment,
+        templateUnterminatedString;
 
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
@@ -119,7 +120,7 @@ abstract class AbstractScanner implements Scanner {
   int currentAsUnicode(int next);
 
   /**
-   * Returns the character at the next poisition. Like in [advance], the
+   * Returns the character at the next position. Like in [advance], the
    * [Utf8BytesScanner] returns a UTF-8 byte, while the [StringScanner] returns
    * a UTF-16 code unit.
    */
@@ -906,7 +907,7 @@ abstract class AbstractScanner implements Scanner {
       commentsTail = null;
     } else {
       // It is the responsibility of the caller to construct the token
-      // being appended with preceeding comments if any
+      // being appended with preceding comments if any
       assert(comments == null || token.isSynthetic || token is ErrorToken);
     }
   }
@@ -1017,7 +1018,7 @@ abstract class AbstractScanner implements Scanner {
 
   /**
    * [next] is the first character after the quote.
-   * [start] is the scanOffset of the quote.
+   * [quoteStart] is the scanOffset of the quote.
    *
    * The token contains a substring of the source file, including the
    * string quotes, backslashes for escaping. For interpolated strings,
@@ -1027,7 +1028,8 @@ abstract class AbstractScanner implements Scanner {
    *
    * gives StringToken("a $), StringToken(b) and StringToken( c").
    */
-  int tokenizeSingleLineString(int next, int quoteChar, int start) {
+  int tokenizeSingleLineString(int next, int quoteChar, int quoteStart) {
+    int start = quoteStart;
     bool asciiOnly = true;
     while (!identical(next, quoteChar)) {
       if (identical(next, $BACKSLASH)) {
@@ -1044,7 +1046,7 @@ abstract class AbstractScanner implements Scanner {
               identical(next, $CR) ||
               identical(next, $EOF))) {
         if (!asciiOnly) handleUnicode(start);
-        unterminatedString(quoteChar, start,
+        unterminatedString(quoteChar, quoteStart, start,
             asciiOnly: asciiOnly, isMultiLine: false, isRaw: false);
         return next;
       }
@@ -1103,17 +1105,17 @@ abstract class AbstractScanner implements Scanner {
     return next;
   }
 
-  int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
+  int tokenizeSingleLineRawString(int next, int quoteChar, int quoteStart) {
     bool asciiOnly = true;
     while (next != $EOF) {
       if (identical(next, quoteChar)) {
-        if (!asciiOnly) handleUnicode(start);
+        if (!asciiOnly) handleUnicode(quoteStart);
         next = advance();
-        appendSubstringToken(TokenType.STRING, start, asciiOnly);
+        appendSubstringToken(TokenType.STRING, quoteStart, asciiOnly);
         return next;
       } else if (identical(next, $LF) || identical(next, $CR)) {
-        if (!asciiOnly) handleUnicode(start);
-        unterminatedString(quoteChar, start,
+        if (!asciiOnly) handleUnicode(quoteStart);
+        unterminatedString(quoteChar, quoteStart, quoteStart,
             asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
         return next;
       } else if (next > 127) {
@@ -1121,16 +1123,16 @@ abstract class AbstractScanner implements Scanner {
       }
       next = advance();
     }
-    if (!asciiOnly) handleUnicode(start);
-    unterminatedString(quoteChar, start,
+    if (!asciiOnly) handleUnicode(quoteStart);
+    unterminatedString(quoteChar, quoteStart, quoteStart,
         asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
     return next;
   }
 
-  int tokenizeMultiLineRawString(int quoteChar, int start) {
+  int tokenizeMultiLineRawString(int quoteChar, int quoteStart) {
     bool asciiOnlyString = true;
     bool asciiOnlyLine = true;
-    int unicodeStart = start;
+    int unicodeStart = quoteStart;
     int next = advance(); // Advance past the (last) quote (of three).
     outer:
     while (!identical(next, $EOF)) {
@@ -1156,19 +1158,20 @@ abstract class AbstractScanner implements Scanner {
         if (identical(next, quoteChar)) {
           if (!asciiOnlyLine) handleUnicode(unicodeStart);
           next = advance();
-          appendSubstringToken(TokenType.STRING, start, asciiOnlyString);
+          appendSubstringToken(TokenType.STRING, quoteStart, asciiOnlyString);
           return next;
         }
       }
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    unterminatedString(quoteChar, start,
+    unterminatedString(quoteChar, quoteStart, quoteStart,
         asciiOnly: asciiOnlyLine, isMultiLine: true, isRaw: true);
     return next;
   }
 
-  int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
-    if (raw) return tokenizeMultiLineRawString(quoteChar, start);
+  int tokenizeMultiLineString(int quoteChar, int quoteStart, bool raw) {
+    if (raw) return tokenizeMultiLineRawString(quoteChar, quoteStart);
+    int start = quoteStart;
     bool asciiOnlyString = true;
     bool asciiOnlyLine = true;
     int unicodeStart = start;
@@ -1215,7 +1218,7 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    unterminatedString(quoteChar, start,
+    unterminatedString(quoteChar, quoteStart, start,
         asciiOnly: asciiOnlyString, isMultiLine: true, isRaw: false);
     return next;
   }
@@ -1230,15 +1233,25 @@ abstract class AbstractScanner implements Scanner {
     return advanceAfterError(shouldAdvance);
   }
 
-  void unterminatedString(int quoteChar, int start,
+  void unterminatedString(int quoteChar, int quoteStart, int start,
       {bool asciiOnly, bool isMultiLine, bool isRaw}) {
     String suffix = new String.fromCharCodes(
         isMultiLine ? [quoteChar, quoteChar, quoteChar] : [quoteChar]);
     String prefix = isRaw ? 'r$suffix' : suffix;
 
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
-    appendErrorToken(new UnterminatedString(prefix, tokenStart, stringOffset));
+    // Ensure that the error is reported on a visible token
+    int errorStart = tokenStart < stringOffset ? tokenStart : quoteStart;
+    if (reportErrors) {
+      addError(errorStart, stringOffset - errorStart,
+          templateUnterminatedString.withArguments(prefix, suffix));
+    } else {
+      appendErrorToken(
+          new UnterminatedString(prefix, errorStart, stringOffset));
+    }
   }
+
+  void addError(int charOffset, int length, Message message);
 
   int advanceAfterError(bool shouldAdvance) {
     if (atEndOfFile()) return $EOF;

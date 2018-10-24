@@ -39,15 +39,6 @@ class TaskResolutionTest extends Object
     return new TestAnalysisResult(path, content, unit, errors);
   }
 
-  @override
-  void setAnalysisOptions({bool enableSuperMixins}) {
-    var analysisOptions = new AnalysisOptionsImpl();
-    if (enableSuperMixins != null) {
-      analysisOptions.enableSuperMixins = enableSuperMixins;
-    }
-    analysisContext.analysisOptions = analysisOptions;
-  }
-
   void setUp() {
     sdk = new MockSdk(resourceProvider: resourceProvider);
 

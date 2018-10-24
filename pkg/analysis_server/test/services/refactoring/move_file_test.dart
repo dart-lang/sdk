@@ -22,13 +22,6 @@ main() {
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 
-  @failingTest
-  test_dart_uris_are_unmodified() async {
-    // TODO(dantup): See _computeNewUri implementation which currently only
-    // handles relative + package: urls (package url handling is also incomplete)
-    fail('Not yet implemented/tested');
-  }
-
   test_file_containing_imports_exports_parts() async {
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/1111/b.dart';
@@ -44,7 +37,7 @@ import 'dart:math';
 import '22/c.dart';
 export '333/d.dart';
 part 'a.dart';
-part '/absolute/uri.dart';
+part '${convertAbsolutePathToUri('/absolute/uri.dart')}';
 ''');
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
@@ -58,7 +51,7 @@ import 'dart:math';
 import 'c.dart';
 export '../333/d.dart';
 part '../a.dart';
-part '/absolute/uri.dart';
+part '${convertAbsolutePathToUri('/absolute/uri.dart')}';
 ''');
   }
 
@@ -107,6 +100,26 @@ import '22/test.dart';
     assertFileChangeResult(pathA, '''
 import 'new_name.dart';
 ''');
+    assertNoFileChange(testFile);
+  }
+
+  test_file_imported_with_package_uri() async {
+    // Set up package uri resolution for local package.
+    packageMap['my_package'] = [getFolder('/project/lib')];
+    configureDriver();
+
+    String pathA = '/project/000/1111/a.dart';
+    testFile = '/project/lib/test.dart';
+    addSource(pathA, '''
+  import 'package:my_package/test.dart';
+  ''');
+    addTestSource('');
+    // perform refactoring
+    _createRefactoring('/project/lib/222/new_name.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+  import 'package:my_package/222/new_name.dart';
+  ''');
     assertNoFileChange(testFile);
   }
 
@@ -172,7 +185,8 @@ part '22/new_name.dart';
     // TODO(dantup): These paths should all use convertPath so they're as expected
     // on Windows.
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
-        expectedMessage: '/tmp does not belong to an analysis root.');
+        expectedMessage:
+            '${convertPath('/tmp')} does not belong to an analysis root.');
   }
 
   test_nonexistent_file_returns_failure() async {
@@ -194,7 +208,7 @@ part '22/new_name.dart';
     _createRefactoring('/project2', oldName: '/project');
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            'Renaming an analysis root is not supported (/project)');
+            'Renaming an analysis root is not supported (${convertPath('/project')})');
   }
 
   test_renaming_part_that_uses_uri_in_part_of() async {
@@ -235,13 +249,13 @@ part of '../../a.dart';
     // Allow passing an oldName for when we don't want to rename testSource,
     // but otherwise fall back to that.
     if (oldName != null) {
-      refactoring =
-          new MoveFileRefactoring(resourceProvider, workspace, null, oldName);
+      refactoring = new MoveFileRefactoring(
+          resourceProvider, workspace, null, convertPath(oldName));
     } else {
       refactoring = new MoveFileRefactoring(
           resourceProvider, workspace, testSource, null);
     }
-    refactoring.newFile = newName;
+    refactoring.newFile = convertPath(newName);
   }
 
   Future _assertFailedRefactoring(RefactoringProblemSeverity expectedSeverity,

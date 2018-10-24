@@ -5,7 +5,7 @@
 #ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
 #define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
-#include "dart_api.h"
+#include "include/dart_api.h"
 
 /** \mainpage Dart Tools Embedding API Reference
  *
@@ -217,7 +217,7 @@ typedef void (*Dart_ServiceStreamCancelCallback)(const char* stream_id);
  * \return Success if the callbacks were added.  Otherwise, returns an
  *   error handle.
  */
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback);
 
@@ -266,8 +266,8 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  */
 typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback);
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback);
 
 /**
  * Returns true if isolate is currently reloading.
@@ -441,5 +441,49 @@ typedef void (*Dart_EmbedderTimelineStopRecording)();
 DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
     Dart_EmbedderTimelineStartRecording start_recording,
     Dart_EmbedderTimelineStopRecording stop_recording);
+
+/*
+ * =======
+ * Metrics
+ * =======
+ */
+
+/**
+ * Return metrics gathered for the VM and individual isolates.
+ *
+ * NOTE: Metrics are not available in PRODUCT builds of Dart.
+ * Calling the metric functions on a PRODUCT build might return invalid metrics.
+ */
+DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
+DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte
+DART_EXPORT int64_t Dart_VMPeakRSSMetric();       // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldCapacityMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldExternalMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewCapacityMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewExternalMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapGlobalUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapGlobalUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
+DART_EXPORT int64_t
+Dart_IsolateRunnableHeapSizeMetric(Dart_Isolate isolate);  // Byte
 
 #endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_

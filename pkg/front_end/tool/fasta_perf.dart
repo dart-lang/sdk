@@ -94,7 +94,7 @@ Future setup(Uri entryUri, {bool strongMode: false}) async {
     ..sdkRoot = sdkRoot
     // Because this is only used to create a uriResolver, we don't allow any
     // whitelisting of error messages in the error handler.
-    ..onError = onErrorHandler(false)
+    ..onDiagnostic = onDiagnosticMessageHandler(false)
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..target = createTarget(isFlutter: false, strongMode: strongMode);
@@ -230,9 +230,8 @@ generateKernel(Uri entryUri,
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..reportMessages = true
-    ..onError = onErrorHandler(strongMode)
-    ..strongMode = strongMode
+    ..onDiagnostic = onDiagnosticMessageHandler(strongMode)
+    ..legacyMode = !strongMode
     ..target = createTarget(isFlutter: false, strongMode: strongMode)
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;

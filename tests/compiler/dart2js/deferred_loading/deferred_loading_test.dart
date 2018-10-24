@@ -61,7 +61,7 @@ String outputUnitString(OutputUnit unit) {
 
     if (importPrefixes.containsKey(import.name)) {
       var existing = importPrefixes[import.name];
-      var current = import.enclosingLibrary.canonicalUri;
+      var current = import.enclosingLibraryUri;
       Expect.equals(
           existing,
           current,
@@ -71,7 +71,7 @@ String outputUnitString(OutputUnit unit) {
           '    We require using unique prefixes on these tests to make '
           'the expectations more readable.');
     }
-    importPrefixes[import.name] = import.enclosingLibrary.canonicalUri;
+    importPrefixes[import.name] = import.enclosingLibraryUri;
   }
   return 'OutputUnit(${unit.name}, {$sb})';
 }
@@ -89,11 +89,11 @@ class OutputUnitDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backend.outputUnitData, backendStrategy.closureDataLookup)
+            closedWorld.outputUnitData, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -104,11 +104,11 @@ class OutputUnitDataComputer extends DataComputer {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    OutputUnitData data = compiler.backend.outputUnitData;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    OutputUnitData data = closedWorld.outputUnitData;
     String value = outputUnitString(data.outputUnitForClass(cls));
 
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
 
     _registerValue(
@@ -124,7 +124,7 @@ class OutputUnitDataComputer extends DataComputer {
 class OutputUnitIrComputer extends IrDataExtractor {
   final JsToElementMap _elementMap;
   final OutputUnitData _data;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
 
   OutputUnitIrComputer(
       DiagnosticReporter reporter,

@@ -11,6 +11,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'calls.dart';
 import 'native_code.dart';
@@ -155,6 +156,36 @@ class _SummaryNormalizer extends StatementVisitor {
       }
     }
   }
+
+  @override
+  void visitCreateConcreteType(CreateConcreteType expr) {
+    for (int i = 0; i < expr.flattenedTypeArgs.length; ++i) {
+      expr.flattenedTypeArgs[i] =
+          _normalizeExpr(expr.flattenedTypeArgs[i], true);
+      if (_inLoop) return;
+    }
+  }
+
+  @override
+  void visitCreateRuntimeType(CreateRuntimeType expr) {
+    for (int i = 0; i < expr.flattenedTypeArgs.length; ++i) {
+      expr.flattenedTypeArgs[i] =
+          _normalizeExpr(expr.flattenedTypeArgs[i], true);
+      if (_inLoop) return;
+    }
+  }
+
+  @override
+  void visitTypeCheck(TypeCheck expr) {
+    expr.arg = _normalizeExpr(expr.arg, true);
+    if (_inLoop) return;
+    expr.type = _normalizeExpr(expr.type, true);
+  }
+
+  @override
+  void visitExtract(Extract expr) {
+    expr.arg = _normalizeExpr(expr.arg, true);
+  }
 }
 
 /// Detects whether the control flow can pass through the function body and
@@ -241,32 +272,43 @@ class _FallthroughDetector extends ast.StatementVisitor<bool> {
   bool visitFunctionDeclaration(FunctionDeclaration node) => true;
 }
 
+enum FieldSummaryType { kFieldGuard, kInitializer }
+
 /// Create a type flow summary for a member from the kernel AST.
 class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final Target target;
   final TypeEnvironment _environment;
   final EntryPointsListener _entryPointsListener;
   final NativeCodeOracle _nativeCodeOracle;
+  final GenericInterfacesInfo _genericInterfacesInfo;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
 
   Summary _summary;
-  Map<VariableDeclaration, Join> _variables;
+  Map<VariableDeclaration, Join> _variableJoins;
+  Map<VariableDeclaration, TypeExpr> _variables;
   Join _returnValue;
   Parameter _receiver;
   ConstantAllocationCollector constantAllocationCollector;
+  RuntimeTypeTranslator _translator;
+
+  // Currently only used for factory constructors.
+  Map<TypeParameter, TypeExpr> _fnTypeVariables;
 
   SummaryCollector(this.target, this._environment, this._entryPointsListener,
-      this._nativeCodeOracle) {
+      this._nativeCodeOracle, this._genericInterfacesInfo) {
+    assertx(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
   }
 
-  Summary createSummary(Member member) {
+  Summary createSummary(Member member,
+      {fieldSummaryType: FieldSummaryType.kInitializer}) {
     debugPrint("===== ${member} =====");
     assertx(!member.isAbstract);
 
-    _variables = <VariableDeclaration, Join>{};
+    _variableJoins = <VariableDeclaration, Join>{};
+    _variables = <VariableDeclaration, TypeExpr>{};
     _returnValue = null;
     _receiver = null;
 
@@ -274,7 +316,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     if (member is Field) {
       if (hasReceiver) {
-        _summary = new Summary(parameterCount: 1, positionalParameterCount: 1);
+        final int numArgs =
+            fieldSummaryType == FieldSummaryType.kInitializer ? 1 : 2;
+        _summary = new Summary(
+            parameterCount: numArgs, positionalParameterCount: numArgs);
         // TODO(alexmarkov): subclass cone
         _receiver = _declareParameter(
             "this", member.enclosingClass.rawType, null,
@@ -283,12 +328,25 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       } else {
         _summary = new Summary();
       }
-      assertx(member.initializer != null);
-      _summary.result = _visit(member.initializer);
+
+      _translator = new RuntimeTypeTranslator(member.enclosingClass, _summary,
+          _receiver, null, _genericInterfacesInfo);
+
+      if (fieldSummaryType == FieldSummaryType.kInitializer) {
+        assertx(member.initializer != null);
+        _summary.result = _visit(member.initializer);
+      } else {
+        Parameter valueParam = _declareParameter("value", member.type, null);
+        TypeExpr runtimeType = _translator.translate(member.type);
+        final check = new TypeCheck(valueParam, runtimeType, null);
+        _summary.add(check);
+        _summary.result = check;
+      }
     } else {
       FunctionNode function = member.function;
 
-      final firstParamIndex = hasReceiver ? 1 : 0;
+      final numTypeParameters = numTypeParams(member);
+      final firstParamIndex = (hasReceiver ? 1 : 0) + numTypeParameters;
 
       _summary = new Summary(
           parameterCount: firstParamIndex +
@@ -299,6 +357,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           requiredParameterCount:
               firstParamIndex + function.requiredParameterCount);
 
+      if (numTypeParameters > 0) {
+        _fnTypeVariables = <TypeParameter, TypeExpr>{};
+        for (int i = 0; i < numTypeParameters; ++i) {
+          _fnTypeVariables[function.typeParameters[i]] =
+              _declareParameter(function.typeParameters[i].name, null, null);
+        }
+      }
+
       if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
         _receiver = _declareParameter(
@@ -306,6 +372,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
             isReceiver: true);
         _environment.thisType = member.enclosingClass?.thisType;
       }
+
+      _translator = new RuntimeTypeTranslator(member.enclosingClass, _summary,
+          _receiver, _fnTypeVariables, _genericInterfacesInfo);
 
       for (VariableDeclaration param in function.positionalParameters) {
         _declareParameter(param.name, param.type, param.initializer);
@@ -316,11 +385,13 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
       int count = firstParamIndex;
       for (VariableDeclaration param in function.positionalParameters) {
-        Join v = _declareVariable(param);
+        Join v =
+            _declareVariable(param, useTypeCheck: param.isGenericCovariantImpl);
         v.values.add(_summary.statements[count++]);
       }
       for (VariableDeclaration param in function.namedParameters) {
-        Join v = _declareVariable(param);
+        Join v =
+            _declareVariable(param, useTypeCheck: param.isGenericCovariantImpl);
         v.values.add(_summary.statements[count++]);
       }
       assertx(count == _summary.parameterCount);
@@ -377,6 +448,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final List<Type> args = <Type>[];
     final List<String> names = <String>[];
 
+    final numTypeParameters = numTypeParams(member);
+    for (int i = 0; i < numTypeParameters; ++i) {
+      args.add(const AnyType());
+    }
+
     if (hasReceiverArg(member)) {
       assertx(member.enclosingClass != null);
       Type receiver = new Type.cone(member.enclosingClass.rawType);
@@ -422,8 +498,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   TypeExpr _visit(TreeNode node) => node.accept(this);
 
-  Args<TypeExpr> _visitArguments(TypeExpr receiver, Arguments arguments) {
+  Args<TypeExpr> _visitArguments(TypeExpr receiver, Arguments arguments,
+      {bool passTypeArguments: false}) {
     final args = <TypeExpr>[];
+    if (passTypeArguments) {
+      for (var type in arguments.types) {
+        args.add(_translator.translate(type));
+      }
+    }
     if (receiver != null) {
       args.add(receiver);
     }
@@ -451,8 +533,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Parameter _declareParameter(
       String name, DartType type, Expression initializer,
       {bool isReceiver: false}) {
-    Type staticType =
-        isReceiver ? new ConeType(type) : new Type.fromStatic(type);
+    Type staticType;
+    if (type != null) {
+      staticType = isReceiver ? new ConeType(type) : new Type.fromStatic(type);
+    }
     final param = new Parameter(name, staticType);
     _summary.add(param);
     assertx(param.index < _summary.parameterCount);
@@ -474,17 +558,30 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return param;
   }
 
-  Join _declareVariable(VariableDeclaration decl, {bool addInitType: false}) {
-    Join v = new Join(decl.name, decl.type);
-    _summary.add(v);
-    _variables[decl] = v;
+  Join _declareVariable(VariableDeclaration decl,
+      {bool addInitType: false, bool useTypeCheck: false}) {
+    Join join = new Join(decl.name, decl.type);
+    _summary.add(join);
+    _variableJoins[decl] = join;
+
+    TypeExpr variable = join;
+    if (useTypeCheck) {
+      TypeExpr runtimeType = _translator.translate(decl.type);
+      variable = new TypeCheck(variable, runtimeType, decl);
+      _summary.add(variable);
+      _summary.add(new Use(variable));
+    }
+
+    _variables[decl] = variable;
+
     if (decl.initializer != null) {
       TypeExpr initType = _visit(decl.initializer);
       if (addInitType) {
-        v.values.add(initType);
+        join.values.add(initType);
       }
     }
-    return v;
+
+    return join;
   }
 
   // TODO(alexmarkov): Avoid declaring variables with static types.
@@ -520,7 +617,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   void _addUse(TypeExpr arg) {
     if (arg is Narrow) {
       _addUse(arg.arg);
-    } else if (arg is Join || arg is Call) {
+    } else if (arg is Join || arg is Call || arg is TypeCheck) {
       _summary.add(new Use(arg));
     } else {
       assertx(arg is Type || arg is Parameter);
@@ -571,19 +668,24 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   void _handleNestedFunctionNode(FunctionNode node) {
-    var oldReturn = _returnValue;
-    var oldVariables = _variables;
+    final oldReturn = _returnValue;
+    final oldVariableJoins = _variableJoins;
+    final oldVariables = _variables;
     _returnValue = null;
-    _variables = <VariableDeclaration, Join>{};
+    _variableJoins = <VariableDeclaration, Join>{};
+    _variableJoins.addAll(oldVariableJoins);
+    _variables = <VariableDeclaration, TypeExpr>{};
     _variables.addAll(oldVariables);
 
     // Approximate parameters of nested functions with static types.
+    // TODO(sjindel/tfa): Use TypeCheck for closure parameters.
     node.positionalParameters.forEach(_declareVariableWithStaticType);
     node.namedParameters.forEach(_declareVariableWithStaticType);
 
     _visit(node.body);
 
     _returnValue = oldReturn;
+    _variableJoins = oldVariableJoins;
     _variables = oldVariables;
   }
 
@@ -595,7 +697,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitAsExpression(AsExpression node) {
     TypeExpr operand = _visit(node.operand);
     Type type = new Type.fromStatic(node.type);
-    return _makeNarrow(operand, type);
+
+    TypeExpr result = _makeNarrow(operand, type);
+
+    TypeExpr runtimeType = _translator.translate(node.type);
+    if (runtimeType is Statement) {
+      result = new TypeCheck(operand, runtimeType, /*parameter=*/ null);
+      _summary.add(result);
+    }
+
+    return result;
   }
 
   @override
@@ -626,9 +737,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitConstructorInvocation(ConstructorInvocation node) {
-    final receiver =
+    ConcreteType klass =
         _entryPointsListener.addAllocatedClass(node.constructedType.classNode);
-
+    TypeExpr receiver =
+        _translator.instantiateConcreteType(klass, node.arguments.types);
     final args = _visitArguments(receiver, node.arguments);
     _makeCall(node, new DirectSelector(node.target), args);
     return receiver;
@@ -718,9 +830,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     node.expressions.forEach(_visit);
     Class concreteClass =
         target.concreteListLiteralClass(_environment.coreTypes);
-    return concreteClass != null
-        ? _entryPointsListener.addAllocatedClass(concreteClass)
-        : _staticType(node);
+    if (concreteClass != null) {
+      return _translator.instantiateConcreteType(
+          _entryPointsListener.addAllocatedClass(concreteClass),
+          [node.typeArgument]);
+    }
+    return _staticType(node);
   }
 
   @override
@@ -738,9 +853,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
     Class concreteClass =
         target.concreteMapLiteralClass(_environment.coreTypes);
-    return concreteClass != null
-        ? _entryPointsListener.addAllocatedClass(concreteClass)
-        : _staticType(node);
+    if (concreteClass != null) {
+      return _translator.instantiateConcreteType(
+          _entryPointsListener.addAllocatedClass(concreteClass),
+          [node.keyType, node.valueType]);
+    }
+    return _staticType(node);
   }
 
   @override
@@ -917,7 +1035,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitStaticInvocation(StaticInvocation node) {
-    final args = _visitArguments(null, node.arguments);
+    final args = _visitArguments(null, node.arguments,
+        passTypeArguments: node.target.isFactory);
     final target = node.target;
     assertx((target is! Field) && !target.isGetter && !target.isSetter);
     return _makeCall(node, new DirectSelector(target), args);
@@ -969,7 +1088,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitVariableGet(VariableGet node) {
-    Join v = _variables[node.variable];
+    final v = _variables[node.variable];
     if (v == null) {
       throw 'Unable to find variable ${node.variable}';
     }
@@ -984,7 +1103,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitVariableSet(VariableSet node) {
-    Join v = _variables[node.variable];
+    Join v = _variableJoins[node.variable];
     assertx(v != null, details: node);
 
     TypeExpr value = _visit(node.value);
@@ -1221,6 +1340,141 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 }
 
+class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
+  final Class enclosingClass;
+  final Summary summary;
+  final Map<TypeParameter, TypeExpr> functionTypeVariables;
+  final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
+  final TypeExpr receiver;
+  final GenericInterfacesInfo genericInterfacesInfo;
+
+  RuntimeTypeTranslator(this.enclosingClass, this.summary, this.receiver,
+      this.functionTypeVariables, this.genericInterfacesInfo) {}
+
+  // Create a type translator which can be used only for types with no free type
+  // variables.
+  RuntimeTypeTranslator.forClosedTypes(this.genericInterfacesInfo)
+      : enclosingClass = null,
+        summary = null,
+        functionTypeVariables = null,
+        receiver = null {}
+
+  TypeExpr instantiateConcreteType(ConcreteType type, List<DartType> typeArgs) {
+    if (typeArgs.isEmpty) return type;
+
+    // This function is very similar to 'visitInterfaceType', but with
+    // many small differences.
+    final klass = type.classNode;
+    final substitution = Substitution.fromPairs(klass.typeParameters, typeArgs);
+    final flattenedTypeArgs =
+        genericInterfacesInfo.flattenedTypeArgumentsFor(klass);
+    final flattenedTypeExprs = new List<TypeExpr>(flattenedTypeArgs.length);
+
+    bool createConcreteType = true;
+    bool allAnyType = true;
+    for (int i = 0; i < flattenedTypeArgs.length; ++i) {
+      final typeExpr =
+          translate(substitution.substituteType(flattenedTypeArgs[i]));
+      if (typeExpr != const AnyType()) allAnyType = false;
+      if (typeExpr is Statement) createConcreteType = false;
+      flattenedTypeExprs[i] = typeExpr;
+    }
+
+    if (allAnyType) return type;
+
+    if (createConcreteType) {
+      return new ConcreteType(type.classId, type.classNode,
+          new List<Type>.from(flattenedTypeExprs));
+    } else {
+      final instantiate = new CreateConcreteType(type, flattenedTypeExprs);
+      summary.add(instantiate);
+      return instantiate;
+    }
+  }
+
+  // Creates a TypeExpr representing the set of types which can flow through a
+  // given DartType.
+  //
+  // Will return AnyType, RuntimeType or Statement.
+  TypeExpr translate(DartType type) {
+    final cached = typesCache[type];
+    if (cached != null) return cached;
+
+    // During type translation, loops can arise via super-bounded types:
+    //
+    //   class A<T> extends Comparable<A<T>> {}
+    //
+    // Creating the factored type arguments of A will lead to an infinite loop.
+    // We break such loops by inserting an 'AnyType' in place of the currently
+    // processed type, ensuring we try to build 'A<T>' in the process of
+    // building 'A<T>'.
+    typesCache[type] = const AnyType();
+    final result = type.accept(this);
+    assertx(result is AnyType || result is RuntimeType || result is Statement);
+    typesCache[type] = result;
+    return result;
+  }
+
+  @override
+  TypeExpr defaultDartType(DartType node) => const AnyType();
+
+  @override
+  TypeExpr visitDynamicType(DynamicType type) => new RuntimeType(type, null);
+  @override
+  TypeExpr visitVoidType(VoidType type) => new RuntimeType(type, null);
+  @override
+  TypeExpr visitBottomType(BottomType type) => new RuntimeType(type, null);
+
+  @override
+  visitTypedefType(TypedefType node) => translate(node.unalias);
+
+  @override
+  visitInterfaceType(InterfaceType type) {
+    if (type.typeArguments.isEmpty) return new RuntimeType(type, null);
+
+    final substitution = Substitution.fromPairs(
+        type.classNode.typeParameters, type.typeArguments);
+    final flattenedTypeArgs =
+        genericInterfacesInfo.flattenedTypeArgumentsFor(type.classNode);
+    final flattenedTypeExprs = new List<TypeExpr>(flattenedTypeArgs.length);
+
+    bool createRuntimeType = true;
+    for (var i = 0; i < flattenedTypeArgs.length; ++i) {
+      final typeExpr =
+          translate(substitution.substituteType(flattenedTypeArgs[i]));
+      if (typeExpr == const AnyType()) return const AnyType();
+      if (typeExpr is! RuntimeType) createRuntimeType = false;
+      flattenedTypeExprs[i] = typeExpr;
+    }
+
+    if (createRuntimeType) {
+      return new RuntimeType(new InterfaceType(type.classNode),
+          new List<RuntimeType>.from(flattenedTypeExprs));
+    } else {
+      final instantiate =
+          new CreateRuntimeType(type.classNode, flattenedTypeExprs);
+      summary.add(instantiate);
+      return instantiate;
+    }
+  }
+
+  @override
+  visitTypeParameterType(TypeParameterType type) {
+    if (functionTypeVariables != null) {
+      final result = functionTypeVariables[type.parameter];
+      if (result != null) return result;
+    }
+    if (type.parameter.parent is! Class) return const AnyType();
+    assertx(type.parameter.parent == enclosingClass);
+
+    assertx(receiver != null);
+    final extract = new Extract(receiver, enclosingClass,
+        enclosingClass.typeParameters.indexOf(type.parameter));
+    summary.add(extract);
+    return extract;
+  }
+}
+
 class EmptyEntryPointsListener implements EntryPointsListener {
   final Map<Class, IntClassId> _classIds = <Class, IntClassId>{};
   int _classIdCounter = 0;
@@ -1234,7 +1488,7 @@ class EmptyEntryPointsListener implements EntryPointsListener {
   @override
   ConcreteType addAllocatedClass(Class c) {
     final classId = (_classIds[c] ??= new IntClassId(++_classIdCounter));
-    return new ConcreteType(classId, c.rawType);
+    return new ConcreteType(classId, c, null);
   }
 
   @override
@@ -1246,16 +1500,21 @@ class EmptyEntryPointsListener implements EntryPointsListener {
 
 class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
   final TypeEnvironment _environment;
-  final SummaryCollector _summaryColector;
+  final SummaryCollector _summaryCollector;
 
-  CreateAllSummariesVisitor(Target target, this._environment)
-      : _summaryColector = new SummaryCollector(target, _environment,
-            new EmptyEntryPointsListener(), new NativeCodeOracle(null, null));
+  CreateAllSummariesVisitor(
+      Target target, this._environment, GenericInterfacesInfo hierarchy)
+      : _summaryCollector = new SummaryCollector(
+            target,
+            _environment,
+            new EmptyEntryPointsListener(),
+            new NativeCodeOracle(null, null),
+            hierarchy);
 
   @override
   defaultMember(Member m) {
     if (!m.isAbstract && !(m is Field && m.initializer == null)) {
-      _summaryColector.createSummary(m);
+      _summaryCollector.createSummary(m);
     }
   }
 }

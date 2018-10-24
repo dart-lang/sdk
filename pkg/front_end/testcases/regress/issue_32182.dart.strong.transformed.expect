@@ -15,7 +15,7 @@ class M extends core::Object {
     return 42;
 }
 abstract class _C&A&M extends self::A<self::A<dynamic>> implements self::M {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_C&A&M
     : super self::A::•()
     ;
   method m() → dynamic

@@ -32,8 +32,6 @@ class AotCallSpecializer : public CallSpecializer {
 
   virtual bool TryReplaceInstanceOfWithRangeCheck(InstanceCallInstr* call,
                                                   const AbstractType& type);
-  virtual bool TryReplaceTypeCastWithRangeCheck(InstanceCallInstr* call,
-                                                const AbstractType& type);
 
  private:
   // Attempt to build ICData for call using propagated class-ids.

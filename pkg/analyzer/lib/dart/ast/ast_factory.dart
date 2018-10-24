@@ -702,8 +702,9 @@ abstract class AstFactory {
   /**
    * Returns a newly created instance creation expression.
    */
-  InstanceCreationExpression instanceCreationExpression(Token keyword,
-      ConstructorName constructorName, ArgumentList argumentList);
+  InstanceCreationExpression instanceCreationExpression(
+      Token keyword, ConstructorName constructorName, ArgumentList argumentList,
+      {TypeArgumentList typeArguments});
 
   /**
    * Returns a newly created integer literal.

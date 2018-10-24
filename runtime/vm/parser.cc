@@ -9,14 +9,12 @@
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
-#include "vm/ast_transformer.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/frontend/scope_builder.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/growable_array.h"
@@ -39,35 +37,14 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/timeline.h"
-#include "vm/timer.h"
 #include "vm/zone.h"
 
 namespace dart {
-
-DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
-DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
-// TODO(floitsch): remove the conditional-directive flag, once we publicly
-// committed to the current version.
-DEFINE_FLAG(bool,
-            conditional_directives,
-            true,
-            "Enable conditional directives");
-DEFINE_FLAG(
-    bool,
-    await_is_keyword,
-    false,
-    "await and yield are treated as proper keywords in synchronous code.");
-
-DECLARE_FLAG(bool, profile_vm);
-DECLARE_FLAG(bool, trace_service);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
 #define I (isolate())
 #define Z (zone())
-
-// Quick synthetic token position.
-#define ST(token_pos) ((token_pos).ToSynthetic())
 
 ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
     : thread_(thread),
@@ -341,45 +318,6 @@ void ParsedFunction::AllocateBytecodeVariables(intptr_t num_stack_locals) {
   first_parameter_index_ = VariableIndex(function().num_fixed_parameters());
   num_stack_locals_ = num_stack_locals;
 }
-
-void Parser::ParseCompilationUnit(const Library& library,
-                                  const Script& script) {
-  UNREACHABLE();
-}
-
-void Parser::ParseClass(const Class& cls) {
-  UNREACHABLE();
-}
-
-RawObject* Parser::ParseFunctionParameters(const Function& func) {
-  UNREACHABLE();
-  return Object::null();
-}
-
-void Parser::ParseFunction(ParsedFunction* parsed_function) {
-  UNREACHABLE();
-}
-
-RawObject* Parser::ParseMetadata(const Field& meta_data) {
-  UNREACHABLE();
-  return Object::null();
-}
-
-ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
-  UNREACHABLE();
-  return NULL;
-}
-
-ArgumentListNode* Parser::BuildNoSuchMethodArguments(
-    TokenPosition call_pos,
-    const String& function_name,
-    const ArgumentListNode& function_args,
-    const LocalVariable* temp_for_last_arg,
-    bool is_super_invocation) {
-  UNREACHABLE();
-  return NULL;
-}
-
 
 }  // namespace dart
 

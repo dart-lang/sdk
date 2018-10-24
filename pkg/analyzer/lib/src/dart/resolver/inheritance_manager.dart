@@ -125,6 +125,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
+  @deprecated
   ExecutableElement lookupInheritance(
       ClassElement classElt, String memberName) {
     if (memberName == null || memberName.isEmpty) {
@@ -149,6 +150,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
+  @deprecated
   ExecutableElement lookupMember(ClassElement classElt, String memberName) {
     ExecutableElement element = _lookupMemberInClass(classElt, memberName);
     if (element != null) {
@@ -167,6 +169,7 @@ class InheritanceManager {
    * @param memberName the name of the class member to query
    * @return a list of overridden methods
    */
+  @deprecated
   List<ExecutableElement> lookupOverrides(
       ClassElement classElt, String memberName) {
     List<ExecutableElement> result = new List<ExecutableElement>();
@@ -191,47 +194,6 @@ class InheritanceManager {
       }
     }
     return result;
-  }
-
-  /**
-   * This method takes some inherited [FunctionType], and resolves all the parameterized types
-   * in the function type, dependent on the class in which it is being overridden.
-   *
-   * @param baseFunctionType the function type that is being overridden
-   * @param memberName the name of the member, this is used to lookup the inheritance path of the
-   *          override
-   * @param definingType the type that is overriding the member
-   * @return the passed function type with any parameterized types substituted
-   */
-  // TODO(jmesserly): investigate why this is needed in ErrorVerifier's override
-  // checking. There seems to be some rare cases where we get partially
-  // substituted type arguments, and the function types don't compare equally.
-  FunctionType substituteTypeArgumentsInMemberFromInheritance(
-      FunctionType baseFunctionType,
-      String memberName,
-      InterfaceType definingType) {
-    // if the baseFunctionType is null, or does not have any parameters,
-    // return it.
-    if (baseFunctionType == null || baseFunctionType.typeArguments.isEmpty) {
-      return baseFunctionType;
-    }
-    // First, generate the path from the defining type to the overridden member
-    Queue<InterfaceType> inheritancePath = new Queue<InterfaceType>();
-    _computeInheritancePath(inheritancePath, definingType, memberName);
-    if (inheritancePath == null || inheritancePath.isEmpty) {
-      // TODO(jwren) log analysis engine error
-      return baseFunctionType;
-    }
-    FunctionType functionTypeToReturn = baseFunctionType;
-    // loop backward through the list substituting as we go:
-    while (!inheritancePath.isEmpty) {
-      InterfaceType lastType = inheritancePath.removeLast();
-      List<DartType> parameterTypes = lastType.element.type.typeArguments;
-      List<DartType> argumentTypes = lastType.typeArguments;
-      functionTypeToReturn =
-          functionTypeToReturn.substitute2(argumentTypes, parameterTypes);
-    }
-    return functionTypeToReturn;
   }
 
   /**
@@ -334,78 +296,6 @@ class InheritanceManager {
     }
     _classLookup[classElt] = resultMap;
     return resultMap;
-  }
-
-  /**
-   * Compute and return the inheritance path given the context of a type and a member that is
-   * overridden in the inheritance path (for which the type is in the path).
-   *
-   * @param chain the inheritance path that is built up as this method calls itself recursively,
-   *          when this method is called an empty [Queue] should be provided
-   * @param currentType the current type in the inheritance path
-   * @param memberName the name of the member that is being looked up the inheritance path
-   */
-  void _computeInheritancePath(Queue<InterfaceType> chain,
-      InterfaceType currentType, String memberName) {
-    // TODO (jwren) create a public version of this method which doesn't require
-    // the initial chain to be provided, then provided tests for this
-    // functionality in InheritanceManagerTest
-    chain.add(currentType);
-    ClassElement classElt = currentType.element;
-    // Base case- reached Object
-    if (currentType.isObject) {
-      // Looked up the chain all the way to Object, return null.
-      // This should never happen.
-      return;
-    }
-    // If we are done, return the chain
-    // We are not done if this is the first recursive call on this method.
-    if (chain.length != 1) {
-      // We are done however if the member is in this classElt
-      if (_lookupMemberInClass(classElt, memberName) != null) {
-        return;
-      }
-    }
-    // Mixins- note that mixins call lookupMemberInClass, not lookupMember
-    List<InterfaceType> mixins = classElt.mixins;
-    for (int i = mixins.length - 1; i >= 0; i--) {
-      ClassElement mixinElement = mixins[i].element;
-      if (mixinElement != null) {
-        ExecutableElement elt = _lookupMemberInClass(mixinElement, memberName);
-        if (elt != null) {
-          // this is equivalent (but faster than) calling this method
-          // recursively
-          // (return computeInheritancePath(chain, mixins[i], memberName);)
-          chain.add(mixins[i]);
-          return;
-        }
-      }
-    }
-    // Superclass
-    InterfaceType supertype = classElt.supertype;
-    if (supertype != null &&
-        lookupMember(supertype.element, memberName) != null) {
-      _computeInheritancePath(chain, supertype, memberName);
-      return;
-    }
-    // Superclass constraints
-    for (InterfaceType interfaceType in classElt.superclassConstraints) {
-      ClassElement interfaceElement = interfaceType.element;
-      if (interfaceElement != null &&
-          lookupMember(interfaceElement, memberName) != null) {
-        _computeInheritancePath(chain, interfaceType, memberName);
-        return;
-      }
-    }
-    // Interfaces
-    for (InterfaceType interfaceType in classElt.interfaces) {
-      ClassElement interfaceElement = interfaceType.element;
-      if (interfaceElement != null &&
-          lookupMember(interfaceElement, memberName) != null) {
-        _computeInheritancePath(chain, interfaceType, memberName);
-        return;
-      }
-    }
   }
 
   /**

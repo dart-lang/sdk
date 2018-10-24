@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,6 +87,21 @@ class OpType {
   bool inStaticMethodBody = false;
 
   /**
+   * Indicates whether the completion location is in the body of a method.
+   */
+  bool inMethodBody = false;
+
+  /**
+   * Indicates whether the completion location is in the body of a function.
+   */
+  bool inFunctionBody = false;
+
+  /**
+   * Indicates whether the completion location is in the body of a constructor.
+   */
+  bool inConstructorBody = false;
+
+  /**
    * Indicates whether the completion target is prefixed.
    */
   bool isPrefixed = false;
@@ -116,10 +131,19 @@ class OpType {
 
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
-    var mthDecl =
-        target.containingNode.getAncestor((p) => p is MethodDeclaration);
+    var methodDeclaration =
+        target.containingNode.getAncestor((node) => node is MethodDeclaration);
+    optype.inMethodBody = methodDeclaration != null;
     optype.inStaticMethodBody =
-        mthDecl is MethodDeclaration && mthDecl.isStatic;
+        methodDeclaration is MethodDeclaration && methodDeclaration.isStatic;
+
+    var functionDeclaration = target.containingNode
+        .getAncestor((node) => node is FunctionDeclaration);
+    optype.inFunctionBody = functionDeclaration != null;
+
+    var constructorDeclaration = target.containingNode
+        .getAncestor((node) => node is ConstructorDeclaration);
+    optype.inConstructorBody = constructorDeclaration != null;
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
@@ -464,7 +488,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.name)) {
       TypeName type = node.type;
       if (type != null) {
-        SimpleIdentifier prefix = type.name;
+        Identifier prefix = type.name;
         if (prefix != null) {
           optype.includeConstructorSuggestions = true;
           optype.isPrefixed = true;
@@ -784,9 +808,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           List<ParameterElement> parameters = element.parameters;
           ParameterElement parameterElement = parameters.firstWhere((e) {
             if (e is DefaultFieldFormalParameterElementImpl) {
-              return e.field?.name == node.name.label.name;
+              return e.field?.name == node.name.label?.name;
             }
-            return e.isNamed && e.name == node.name.label.name;
+            return e.isNamed && e.name == node.name.label?.name;
           }, orElse: () => null);
           // Suggest tear-offs.
           if (parameterElement?.type is FunctionType) {

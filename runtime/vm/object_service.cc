@@ -402,26 +402,6 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void LiteralToken::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
-void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  AddCommonObjectProperties(&jsobj, "Object", ref);
-  // TODO(johnmccutchan): Generate a stable id. TokenStreams hang off
-  // a Script object but do not have a back reference to generate a stable id.
-  jsobj.AddServiceId(*this);
-  if (ref) {
-    return;
-  }
-  const String& private_key = String::Handle(PrivateKey());
-  jsobj.AddProperty("privateKey", private_key);
-  // TODO(johnmccutchan): Add support for printing LiteralTokens and add
-  // them to members array.
-  JSONArray members(&jsobj, "members");
-}
-
 // See also Dart_ScriptGetTokenInfo.
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -456,7 +436,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // Print the line number table
   const GrowableObjectArray& lineNumberArray =
       GrowableObjectArray::Handle(GenerateLineNumberArray());
-  if (!lineNumberArray.IsNull()) {
+  if (!lineNumberArray.IsNull() && (lineNumberArray.Length() > 0)) {
     JSONArray tokenPosTable(&jsobj, "tokenPosTable");
 
     Object& value = Object::Handle();

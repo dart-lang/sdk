@@ -44,11 +44,11 @@ main(List<String> args) async {
   // TODO(johnniwinther): Find out why these steps cannot be read.
   Expect.setEquals([
     '/builders/pkg-mac10.11-release-be/builds/-1/'
-        'steps/third_party/pkg_tested unit tests',
+        'steps/third_party pkg_tested unit tests',
     '/builders/pkg-linux-release-be/builds/-1/steps/'
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
     '/builders/pkg-win7-release-be/builds/-1/steps/'
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
   ], failingUris,
       "Unexpected failing buildbot uris:\n ${failingUris.join('\n ')}");
 

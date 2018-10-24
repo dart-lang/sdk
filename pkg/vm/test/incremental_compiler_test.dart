@@ -29,8 +29,7 @@ main() {
   final sdkRoot = computePlatformBinariesLocation();
   final options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..strongMode = true
-    ..target = new VmTarget(new TargetFlags(strongMode: true))
+    ..target = new VmTarget(new TargetFlags())
     ..linkedDependencies = <Uri>[platformKernel]
     ..onDiagnostic = (DiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");

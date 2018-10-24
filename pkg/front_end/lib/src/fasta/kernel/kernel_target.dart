@@ -9,7 +9,6 @@ import 'dart:async' show Future;
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        Block,
         CanonicalName,
         Class,
         Component,
@@ -17,7 +16,6 @@ import 'package:kernel/ast.dart'
         DartType,
         EmptyStatement,
         Expression,
-        ExpressionStatement,
         Field,
         FieldInitializer,
         FunctionNode,
@@ -30,17 +28,16 @@ import 'package:kernel/ast.dart'
         NamedExpression,
         NullLiteral,
         Procedure,
-        ProcedureKind,
         RedirectingInitializer,
         Source,
-        Statement,
         StringLiteral,
         SuperInitializer,
-        Throw,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
         VariableGet;
+
+import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
@@ -63,6 +60,7 @@ import '../messages.dart'
         noLength,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
+        templateInferredPackageUri,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
@@ -93,8 +91,7 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder;
+        TypeDeclarationBuilder;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -119,8 +116,6 @@ class KernelTarget extends TargetImplementation {
 
   Component component;
 
-  final List<LocatedMessage> errors = <LocatedMessage>[];
-
   final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
 
   final NamedTypeBuilder objectType =
@@ -128,11 +123,13 @@ class KernelTarget extends TargetImplementation {
 
   final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
 
-  bool get strongMode => backendTarget.strongMode;
+  bool get strongMode => !backendTarget.legacyMode;
 
   bool get disableTypeInference => backendTarget.disableTypeInference;
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
+
+  final List<Object> clonedFormals = <Object>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
@@ -152,8 +149,40 @@ class KernelTarget extends TargetImplementation {
     uriToSource[uri] = new Source(lineStarts, sourceCode);
   }
 
-  void read(Uri uri) {
-    loader.read(uri, -1, accessor: loader.first);
+  void setEntryPoints(List<Uri> entryPoints) {
+    Map<String, Uri> packagesMap;
+    for (Uri entryPoint in entryPoints) {
+      String scheme = entryPoint.scheme;
+      Uri fileUri;
+      switch (scheme) {
+        case "package":
+        case "dart":
+        case "data":
+          break;
+        default:
+          // Attempt to reverse-lookup [entryPoint] in package config.
+          String asString = "$entryPoint";
+          packagesMap ??= uriTranslator.packages.asMap();
+          for (String packageName in packagesMap.keys) {
+            String prefix = "${packagesMap[packageName]}";
+            if (asString.startsWith(prefix)) {
+              Uri reversed = Uri.parse(
+                  "package:$packageName/${asString.substring(prefix.length)}");
+              if (entryPoint == uriTranslator.translate(reversed)) {
+                loader.addProblem(
+                    templateInferredPackageUri.withArguments(reversed),
+                    -1,
+                    1,
+                    entryPoint);
+                fileUri = entryPoint;
+                entryPoint = reversed;
+                break;
+              }
+            }
+          }
+      }
+      loader.read(entryPoint, -1, accessor: loader.first, fileUri: fileUri);
+    }
   }
 
   @override
@@ -225,55 +254,41 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(LocatedMessage message, {bool isFullComponent}) {
-    if (message != null) {
-      context.report(message, Severity.error);
-      errors.add(message);
-    }
-    component = erroneousComponent(isFullComponent);
-  }
-
   @override
   Future<Component> buildOutlines({CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
-    return withCrashReporting<Component>(
-        () async {
-          loader.createTypeInferenceEngine();
-          await loader.buildOutlines();
-          loader.coreLibrary.becomeCoreLibrary();
-          dynamicType.bind(loader.coreLibrary["dynamic"]);
-          loader.resolveParts();
-          loader.computeLibraryScopes();
-          objectType.bind(loader.coreLibrary["Object"]);
-          bottomType.bind(loader.coreLibrary["Null"]);
-          loader.resolveTypes();
-          loader.computeDefaultTypes(
-              dynamicType, bottomType, objectClassBuilder);
-          List<SourceClassBuilder> myClasses = collectMyClasses();
-          loader.checkSemantics(myClasses);
-          loader.finishTypeVariables(objectClassBuilder, dynamicType);
-          loader.buildComponent();
-          installDefaultSupertypes();
-          installDefaultConstructors(myClasses);
-          loader.resolveConstructors();
-          component = link(new List<Library>.from(loader.libraries),
-              nameRoot: nameRoot);
-          computeCoreTypes();
-          loader.computeHierarchy();
-          loader.performTopLevelInference(myClasses);
-          loader.checkSupertypes(myClasses);
-          loader.checkOverrides(myClasses);
-          loader.checkAbstractMembers(myClasses);
-          loader.checkRedirectingFactories(myClasses);
-          loader.addNoSuchMethodForwarders(myClasses);
-          return component;
-        },
-        () => loader?.currentUriForCrashReporting,
-        onInputError: (LocatedMessage message) {
-          ticker.logMs("Got unrecoverable error");
-          handleInputError(message, isFullComponent: false);
-          return component;
-        });
+    return withCrashReporting<Component>(() async {
+      loader.createTypeInferenceEngine();
+      await loader.buildOutlines();
+      loader.coreLibrary.becomeCoreLibrary();
+      dynamicType.bind(loader.coreLibrary["dynamic"]);
+      loader.resolveParts();
+      loader.computeLibraryScopes();
+      objectType.bind(loader.coreLibrary["Object"]);
+      bottomType.bind(loader.coreLibrary["Null"]);
+      loader.resolveTypes();
+      loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
+      List<SourceClassBuilder> myClasses = collectMyClasses();
+      loader.checkSemantics(myClasses);
+      loader.finishTypeVariables(objectClassBuilder, dynamicType);
+      loader.buildComponent();
+      installDefaultSupertypes();
+      installSyntheticConstructors(myClasses);
+      loader.resolveConstructors();
+      component =
+          link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
+      computeCoreTypes();
+      loader.computeHierarchy();
+      loader.performTopLevelInference(myClasses);
+      loader.checkSupertypes(myClasses);
+      loader.checkBounds();
+      loader.checkOverrides(myClasses);
+      loader.checkAbstractMembers(myClasses);
+      loader.checkRedirectingFactories(myClasses);
+      loader.addNoSuchMethodForwarders(myClasses);
+      loader.checkMixins(myClasses);
+      return component;
+    }, () => loader?.currentUriForCrashReporting);
   }
 
   /// Build the kernel representation of the component loaded by this
@@ -287,102 +302,40 @@ class KernelTarget extends TargetImplementation {
   @override
   Future<Component> buildComponent({bool verify: false}) async {
     if (loader.first == null) return null;
-    if (errors.isNotEmpty) {
-      handleInputError(null, isFullComponent: true);
+    return withCrashReporting<Component>(() async {
+      ticker.logMs("Building component");
+      await loader.buildBodies();
+      finishClonedParameters();
+      loader.finishDeferredLoadTearoffs();
+      loader.finishNoSuchMethodForwarders();
+      List<SourceClassBuilder> myClasses = collectMyClasses();
+      loader.finishNativeMethods();
+      loader.finishPatchMethods();
+      finishAllConstructors(myClasses);
+      runBuildTransformations();
+
+      if (verify) this.verify();
+      handleRecoverableErrors(loader.unhandledErrors);
       return component;
-    }
-
-    return withCrashReporting<Component>(
-        () async {
-          ticker.logMs("Building component");
-          await loader.buildBodies();
-          loader.finishDeferredLoadTearoffs();
-          loader.finishNoSuchMethodForwarders();
-          List<SourceClassBuilder> myClasses = collectMyClasses();
-          loader.finishNativeMethods();
-          loader.finishPatchMethods();
-          finishAllConstructors(myClasses);
-          runBuildTransformations();
-
-          if (verify) this.verify();
-          if (errors.isNotEmpty) {
-            handleInputError(null, isFullComponent: true);
-          }
-          handleRecoverableErrors(loader.unhandledErrors);
-          return component;
-        },
-        () => loader?.currentUriForCrashReporting,
-        onInputError: (LocatedMessage message) {
-          ticker.logMs("Got unrecoverable error");
-          handleInputError(message, isFullComponent: true);
-          return component;
-        });
+    }, () => loader?.currentUriForCrashReporting);
   }
 
   /// Adds a synthetic field named `#errors` to the main library that contains
   /// [recoverableErrors] formatted.
   ///
   /// If [recoverableErrors] is empty, this method does nothing.
-  ///
-  /// If there's no main library, this method uses [erroneousComponent] to
-  /// replace [component].
   void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
     if (recoverableErrors.isEmpty) return;
     KernelLibraryBuilder mainLibrary = loader.first;
-    if (mainLibrary == null) {
-      component = erroneousComponent(true);
-      return;
-    }
+    if (mainLibrary == null) return;
     List<Expression> expressions = <Expression>[];
     for (LocatedMessage error in recoverableErrors) {
-      errors.add(error);
       expressions.add(new StringLiteral(context.format(error, Severity.error)));
     }
     mainLibrary.library.addMember(new Field(new Name("#errors"),
         initializer: new ListLiteral(expressions, isConst: true),
         isConst: true,
         isStatic: true));
-  }
-
-  Component erroneousComponent(bool isFullComponent) {
-    Uri uri = loader.first?.uri ?? Uri.parse("error:error");
-    Uri fileUri = loader.first?.fileUri ?? uri;
-    KernelLibraryBuilder library =
-        new KernelLibraryBuilder(uri, fileUri, loader, null);
-    loader.first = library;
-    if (isFullComponent) {
-      // If this is an outline, we shouldn't add an executable main
-      // method. Similarly considerations apply to separate compilation. It
-      // could also make sense to add a way to mark .dill files as having
-      // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
-          null,
-          0,
-          null,
-          "#main",
-          null,
-          null,
-          ProcedureKind.Method,
-          library,
-          -1,
-          -1,
-          -1,
-          -1);
-      library.addBuilder(mainBuilder.name, mainBuilder, -1);
-      mainBuilder.body = new Block(new List<Statement>.from(errors.map(
-          (LocatedMessage message) => new ExpressionStatement(new Throw(
-              new StringLiteral(context.format(message, Severity.error)))))));
-    }
-
-    // Clear libraries to avoid having 'the same' library added in both outline
-    // and body building. As loader.libraries is used in the incremental
-    // compiler that will causes problems (i.e. it cannot serialize because 2
-    // libraries has the same URI).
-    loader.libraries.clear();
-
-    loader.libraries.add(library.library);
-    library.build(loader.coreLibrary);
-    return link(<Library>[library.library]);
   }
 
   /// Creates a component by combining [libraries] with the libraries of
@@ -456,14 +409,19 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed Object as implicit superclass");
   }
 
-  void installDefaultConstructors(List<SourceClassBuilder> builders) {
+  void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
       if (builder.target != objectClass) {
-        installDefaultConstructor(builder);
+        if (builder.isPatch) continue;
+        if (builder.isMixinApplication) {
+          installForwardingConstructors(builder);
+        } else {
+          installDefaultConstructor(builder);
+        }
       }
     }
-    ticker.logMs("Installed default constructors");
+    ticker.logMs("Installed synthetic constructors");
   }
 
   KernelClassBuilder get objectClassBuilder => objectType.declaration;
@@ -472,81 +430,69 @@ class KernelTarget extends TargetImplementation {
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
-    if (builder.isMixinApplication && !builder.isNamedMixinApplication) return;
+    assert(!builder.isMixinApplication);
     // TODO(askesc): Make this check light-weight in the absence of patches.
     if (builder.target.constructors.isNotEmpty) return;
     if (builder.target.redirectingFactoryConstructors.isNotEmpty) return;
     for (Procedure proc in builder.target.procedures) {
       if (proc.isFactory) return;
     }
-    if (builder.isPatch) return;
 
-    /// Quotes below are from [Dart Programming Language Specification, 4th
-    /// Edition](
+    /// From [Dart Programming Language Specification, 4th Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    if (builder.isNamedMixinApplication) {
-      /// >A mixin application of the form S with M; defines a class C with
-      /// >superclass S.
-      /// >...
-
-      /// >Let LM be the library in which M is declared. For each generative
-      /// >constructor named qi(Ti1 ai1, . . . , Tiki aiki), i in 1..n of S
-      /// >that is accessible to LM , C has an implicitly declared constructor
-      /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
-      /// >super(ai1,...,aiki);.
-      TypeDeclarationBuilder supertype = builder;
-      while (supertype.isMixinApplication) {
-        SourceClassBuilder named = supertype;
-        TypeBuilder type = named.supertype;
-        if (type is NamedTypeBuilder) {
-          supertype = type.declaration;
-        } else {
-          unhandled("${type.runtimeType}", "installDefaultConstructor",
-              builder.charOffset, builder.fileUri);
-        }
-      }
-      if (supertype is KernelClassBuilder) {
-        Map<TypeParameter, DartType> substitutionMap =
-            computeKernelSubstitutionMap(
-                builder.getSubstitutionMap(supertype, builder.fileUri,
-                    builder.charOffset, dynamicType),
-                builder.parent);
-        if (supertype.cls.constructors.isEmpty) {
-          builder
-              .addSyntheticConstructor(makeDefaultConstructor(builder.target));
-        } else {
-          for (Constructor constructor in supertype.cls.constructors) {
-            builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-                builder.target,
-                builder.cls.mixin,
-                constructor,
-                substitutionMap));
-          }
-        }
-      } else if (supertype is InvalidTypeBuilder) {
-        builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
-      } else {
-        unhandled("${supertype.runtimeType}", "installDefaultConstructor",
-            builder.charOffset, builder.fileUri);
-      }
-    } else {
-      /// >Iff no constructor is specified for a class C, it implicitly has a
-      /// >default constructor C() : super() {}, unless C is class Object.
-      // The superinitializer is installed below in [finishConstructors].
-      builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
-    }
+    /// >Iff no constructor is specified for a class C, it implicitly has a
+    /// >default constructor C() : super() {}, unless C is class Object.
+    // The superinitializer is installed below in [finishConstructors].
+    builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
   }
 
-  Map<TypeParameter, DartType> computeKernelSubstitutionMap(
-      Map<TypeVariableBuilder, TypeBuilder> substitutionMap,
-      LibraryBuilder library) {
-    if (substitutionMap == null) return const <TypeParameter, DartType>{};
-    Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
-    substitutionMap
-        .forEach((TypeVariableBuilder variable, TypeBuilder argument) {
-      result[variable.target] = argument.build(library);
-    });
-    return result;
+  void installForwardingConstructors(SourceClassBuilder builder) {
+    assert(builder.isMixinApplication);
+    if (builder.library.loader != loader) return;
+    if (builder.target.constructors.isNotEmpty) {
+      // These were installed by a subclass in the recursive call below.
+      return;
+    }
+
+    /// From [Dart Programming Language Specification, 4th Edition](
+    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
+    /// >A mixin application of the form S with M; defines a class C with
+    /// >superclass S.
+    /// >...
+
+    /// >Let LM be the library in which M is declared. For each generative
+    /// >constructor named qi(Ti1 ai1, . . . , Tiki aiki), i in 1..n of S
+    /// >that is accessible to LM , C has an implicitly declared constructor
+    /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
+    /// >super(ai1,...,aiki);.
+    TypeBuilder type = builder.supertype;
+    TypeDeclarationBuilder supertype;
+    if (type is NamedTypeBuilder) {
+      supertype = type.declaration;
+    } else {
+      unhandled("${type.runtimeType}", "installForwardingConstructors",
+          builder.charOffset, builder.fileUri);
+    }
+    if (supertype.isMixinApplication) {
+      installForwardingConstructors(supertype);
+    }
+    if (supertype is KernelClassBuilder) {
+      if (supertype.cls.constructors.isEmpty) {
+        builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+      } else {
+        Map<TypeParameter, DartType> substitutionMap =
+            builder.getSubstitutionMap(supertype.target);
+        for (Constructor constructor in supertype.cls.constructors) {
+          builder.addSyntheticConstructor(makeMixinApplicationConstructor(
+              builder.target, builder.cls.mixin, constructor, substitutionMap));
+        }
+      }
+    } else if (supertype is InvalidTypeBuilder) {
+      builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+    } else {
+      unhandled("${supertype.runtimeType}", "installForwardingConstructors",
+          builder.charOffset, builder.fileUri);
+    }
   }
 
   Constructor makeMixinApplicationConstructor(Class cls, Class mixin,
@@ -571,7 +517,9 @@ class KernelTarget extends TargetImplementation {
       positional.add(new VariableGet(positionalParameters.last));
     }
     for (VariableDeclaration formal in constructor.function.namedParameters) {
-      namedParameters.add(copyFormal(formal));
+      VariableDeclaration clone = copyFormal(formal);
+      clonedFormals..add(formal)..add(clone)..add(substitutionMap);
+      namedParameters.add(clone);
       named.add(new NamedExpression(
           formal.name, new VariableGet(namedParameters.last)));
     }
@@ -586,6 +534,27 @@ class KernelTarget extends TargetImplementation {
         name: constructor.name,
         initializers: <Initializer>[initializer],
         isSynthetic: true);
+  }
+
+  void finishClonedParameters() {
+    for (int i = 0; i < clonedFormals.length; i += 3) {
+      // Note that [original] may itself be clone. If so, it was added to
+      // [clonedFormals] before [clone], so it's initializers are already in
+      // place.
+      VariableDeclaration original = clonedFormals[i];
+      VariableDeclaration clone = clonedFormals[i + 1];
+      if (original.initializer != null) {
+        // TODO(ahe): It is unclear if it is legal to use type variables in
+        // default values, but Fasta is currently allowing it, and the VM
+        // accepts it. If it isn't legal, the we can speed this up by using a
+        // single cloner without substitution.
+        CloneVisitor cloner =
+            new CloneVisitor(typeSubstitution: clonedFormals[i + 2]);
+        clone.initializer = cloner.clone(original.initializer)..parent = clone;
+      }
+    }
+    clonedFormals.clear();
+    ticker.logMs("Cloned default values of formals");
   }
 
   Constructor makeDefaultConstructor(Class enclosingClass) {
@@ -813,7 +782,8 @@ class KernelTarget extends TargetImplementation {
   }
 
   void verify() {
-    errors.addAll(verifyComponent(component));
+    // TODO(ahe): How to handle errors.
+    verifyComponent(component);
     ticker.logMs("Verified component");
   }
 

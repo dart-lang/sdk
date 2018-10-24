@@ -20,12 +20,18 @@ class S extends core::Object {
     ;
 }
 abstract class _Named&S&M = self::S with self::M {
+  synthetic constructor •() → self::_Named&S&M
+    : super self::S::•()
+    ;
 }
 abstract class _Named&S&M&N = self::_Named&S&M with self::N {
+  synthetic constructor •() → self::_Named&S&M&N
+    : super self::_Named&S&M::•()
+    ;
 }
 class Named = self::_Named&S&M&N with self::M {
   synthetic constructor •() → self::Named
-    : super self::S::•()
+    : super self::_Named&S&M&N::•()
     ;
 }
 static method main() → dynamic

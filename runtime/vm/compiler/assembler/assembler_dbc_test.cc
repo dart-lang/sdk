@@ -8,6 +8,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {

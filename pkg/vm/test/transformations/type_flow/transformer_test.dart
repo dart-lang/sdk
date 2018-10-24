@@ -18,7 +18,7 @@ import '../../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
 runTestCase(Uri source) async {
-  final target = new TestingVmTarget(new TargetFlags(strongMode: true));
+  final target = new TestingVmTarget(new TargetFlags());
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 
@@ -39,8 +39,9 @@ main() {
     final testCasesDir = new Directory(
         pkgVmDir + '/testcases/transformations/type_flow/transformer');
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+    for (var entry in testCasesDir
+        .listSync(recursive: true, followLinks: false)
+        .reversed) {
       if (entry.path.endsWith(".dart")) {
         test(entry.path, () => runTestCase(entry.uri));
       }

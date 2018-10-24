@@ -14,9 +14,9 @@
 #include "platform/globals.h"
 
 #include "vm/clustered_snapshot.h"
-#include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
+#include "vm/timer.h"
 
 using dart::bin::File;
 
@@ -101,7 +101,8 @@ BENCHMARK(CorelibCompileAll) {
   TransitionNativeToVM transition(thread);
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
-  const Error& error = Error::Handle(Library::CompileAll());
+  const Error& error =
+      Error::Handle(Library::CompileAll(/*ignore_error=*/true));
   if (!error.IsNull()) {
     OS::PrintErr("Unexpected error in CorelibCompileAll benchmark:\n%s",
                  error.ToErrorCString());
@@ -110,72 +111,6 @@ BENCHMARK(CorelibCompileAll) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
-
-#ifndef PRODUCT
-
-BENCHMARK(CorelibCompilerStats) {
-  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
-  TransitionNativeToVM transition(thread);
-  CompilerStats* stats = thread->isolate()->aggregate_compiler_stats();
-  ASSERT(stats != NULL);
-  stats->EnableBenchmark();
-  Timer timer(true, "Compiler stats compiling all of Core lib");
-  timer.Start();
-  const Error& error = Error::Handle(Library::CompileAll());
-  if (!error.IsNull()) {
-    OS::PrintErr("Unexpected error in CorelibCompileAll benchmark:\n%s",
-                 error.ToErrorCString());
-  }
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-}
-
-BENCHMARK(Dart2JSCompilerStats) {
-  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
-  SetupDart2JSPackagePath();
-  char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
-  char* script = NULL;
-  if (dart_root != NULL) {
-    HANDLESCOPE(thread);
-    script = OS::SCreate(NULL, "import '%s/pkg/compiler/lib/compiler.dart';",
-                         dart_root);
-    Dart_Handle lib = TestCase::LoadTestScript(
-        script, reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
-    EXPECT_VALID(lib);
-  } else {
-    Dart_Handle lib = TestCase::LoadTestScript(
-        "import 'pkg/compiler/lib/compiler.dart';",
-        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
-    EXPECT_VALID(lib);
-  }
-  CompilerStats* stats = thread->isolate()->aggregate_compiler_stats();
-  ASSERT(stats != NULL);
-  stats->EnableBenchmark();
-  Timer timer(true, "Compile all of dart2js benchmark");
-  timer.Start();
-#if !defined(PRODUCT)
-  // Constant in product mode.
-  const bool old_flag = FLAG_background_compilation;
-  FLAG_background_compilation = false;
-#endif
-  Dart_Handle result = Dart_CompileAll();
-#if !defined(PRODUCT)
-  FLAG_background_compilation = old_flag;
-#endif
-  EXPECT_VALID(result);
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-  free(dart_root);
-  free(script);
-}
-
-#endif  // !PRODUCT
 
 // This file is created by the target //runtime/bin:gen_kernel_bytecode_dill
 // which is depended on by run_vm_tests.
@@ -203,36 +138,10 @@ static char* ComputeGenKernelKernelPath(const char* arg) {
   return strdup(buffer);
 }
 
-BENCHMARK(GenKernelKernelLoadKernel) {
-  char* dill_path = ComputeGenKernelKernelPath(Benchmark::Executable());
-  File* file = File::Open(NULL, dill_path, File::kRead);
-  EXPECT(file != NULL);
-  bin::RefCntReleaseScope<File> rs(file);
-  intptr_t kernel_buffer_size = file->Length();
-  uint8_t* kernel_buffer =
-      reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-  EXPECT(kernel_buffer != NULL);
-  bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
-  EXPECT(read_fully);
-
-  Timer timer(true, "GenKernelKernelLoadKernel benchmark");
-  timer.Start();
-
-  Dart_Handle result =
-      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-  EXPECT_VALID(result);
-
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-  free(dill_path);
-  free(kernel_buffer);
-}
-
-BENCHMARK(GenKernelKernelReadAllBytecode) {
+static int64_t GenKernelKernelBenchmark(const char* name,
+                                        bool benchmark_load,
+                                        bool benchmark_read_bytecode) {
+  EXPECT(benchmark_load || benchmark_read_bytecode);
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
@@ -250,6 +159,11 @@ BENCHMARK(GenKernelKernelReadAllBytecode) {
   bool enable_interpreter_orig = FLAG_enable_interpreter;
   FLAG_enable_interpreter = true;
 
+  Timer timer(true, name);
+  if (benchmark_load) {
+    timer.Start();
+  }
+
   Dart_Handle result =
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
   EXPECT_VALID(result);
@@ -257,18 +171,49 @@ BENCHMARK(GenKernelKernelReadAllBytecode) {
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
-  Timer timer(true, "GenKernelKernelLoadKernel benchmark");
-  timer.Start();
+  if (benchmark_read_bytecode && !benchmark_load) {
+    timer.Start();
+  }
 
-  result = Dart_ReadAllBytecode();
-  EXPECT_VALID(result);
+  if (benchmark_read_bytecode) {
+    result = Dart_ReadAllBytecode();
+    EXPECT_VALID(result);
+  }
 
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
   FLAG_enable_interpreter = enable_interpreter_orig;
   free(dill_path);
   free(kernel_buffer);
+  return elapsed_time;
+}
+
+BENCHMARK(GenKernelKernelLoadKernel) {
+  benchmark->set_score(
+      GenKernelKernelBenchmark("GenKernelKernelLoadKernel benchmark",
+                               /* benchmark_load */ true,
+                               /* benchmark_read_bytecode */ false));
+}
+
+BENCHMARK(GenKernelKernelReadAllBytecode) {
+  benchmark->set_score(
+      GenKernelKernelBenchmark("GenKernelKernelReadAllBytecode benchmark",
+                               /* benchmark_load */ false,
+                               /* benchmark_read_bytecode */ true));
+}
+
+BENCHMARK(GenKernelKernelCombined) {
+  benchmark->set_score(
+      GenKernelKernelBenchmark("GenKernelKernelCombined benchmark",
+                               /* benchmark_load */ true,
+                               /* benchmark_read_bytecode */ true));
+}
+
+BENCHMARK(GenKernelKernelMaxRSS) {
+  GenKernelKernelBenchmark("GenKernelKernelMaxRSS benchmark",
+                           /* benchmark_load */ false,
+                           /* benchmark_read_bytecode */ true);
+  benchmark->set_score(bin::Process::MaxRSS());
 }
 
 //

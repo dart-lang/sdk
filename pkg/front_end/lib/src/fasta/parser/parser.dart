@@ -4350,6 +4350,29 @@ class Parser {
     return token;
   }
 
+  Token parseConstructorInvocationArguments(Token token) {
+    Token next = token.next;
+    if (!optional('(', next)) {
+      // Recovery: Check for invalid type parameters
+      TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
+      if (typeArg == noTypeParamOrArg) {
+        reportRecoverableError(
+            token, fasta.templateExpectedButGot.withArguments('('));
+      } else {
+        reportRecoverableError(
+            token, fasta.messageConstructorWithTypeArguments);
+        token = typeArg.parseArguments(token, this);
+        listener.handleInvalidTypeArguments(token);
+        next = token.next;
+      }
+      if (!optional('(', next)) {
+        rewriter.insertParens(token, false);
+      }
+    }
+    token = parseArguments(token);
+    return token;
+  }
+
   /// ```
   /// newExpression:
   ///   'new' type ('.' identifier)? arguments
@@ -4360,7 +4383,7 @@ class Parser {
     assert(optional('new', newKeyword));
     listener.beginNewExpression(newKeyword);
     token = parseConstructorReference(newKeyword);
-    token = parseRequiredArguments(token);
+    token = parseConstructorInvocationArguments(token);
     listener.endNewExpression(newKeyword);
     return token;
   }
@@ -4370,7 +4393,7 @@ class Parser {
     Token begin = token;
     listener.beginImplicitCreationExpression(token);
     token = parseConstructorReference(token, typeArg);
-    token = parseRequiredArguments(token);
+    token = parseConstructorInvocationArguments(token);
     listener.endImplicitCreationExpression(begin);
     return token;
   }
@@ -4418,7 +4441,7 @@ class Parser {
     }
     listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token);
-    token = parseRequiredArguments(token);
+    token = parseConstructorInvocationArguments(token);
     listener.endConstExpression(constKeyword);
     return token;
   }

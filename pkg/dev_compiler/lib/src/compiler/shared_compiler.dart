@@ -157,3 +157,27 @@ abstract class SharedCompiler<Library> {
     return js.call('#.# = #', args);
   }
 }
+
+/// Whether a variable with [name] is referenced in the [node].
+bool variableIsReferenced(String name, JS.Node node) {
+  var finder = _IdentifierFinder.instance;
+  finder.nameToFind = name;
+  finder.found = false;
+  node.accept(finder);
+  return finder.found;
+}
+
+class _IdentifierFinder extends JS.BaseVisitor<void> {
+  String nameToFind;
+  bool found = false;
+
+  static final instance = _IdentifierFinder();
+
+  visitIdentifier(node) {
+    if (node.name == nameToFind) found = true;
+  }
+
+  visitNode(node) {
+    if (!found) super.visitNode(node);
+  }
+}

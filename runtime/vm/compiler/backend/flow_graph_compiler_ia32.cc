@@ -7,7 +7,6 @@
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
-#include "vm/ast_printer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
@@ -748,7 +747,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
 }
 
-void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
+void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   // TOS: return address.
   // +1 : receiver.
   // Sequence node has one return node, its input is load field node.
@@ -758,7 +757,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ ret();
 }
 
-void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
+void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   // TOS: return address.
   // +1 : value
   // +2 : receiver.

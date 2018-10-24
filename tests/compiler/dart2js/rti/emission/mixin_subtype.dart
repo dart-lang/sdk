@@ -71,7 +71,7 @@ class GI<T> {}
 /*class: GJ:checkedInstance,checks=[],typeArgument*/
 class GJ<T> {}
 
-/*class: GM:checkedInstance,checks=[$asGA,$asGB,$asGI,$asGJ,$isGA,$isGB,$isGI,$isGJ],typeArgument*/
+/*class: GM:checkedInstance,checks=[$asGB,$asGI,$asGJ,$isGA,$isGB,$isGI,$isGJ],typeArgument*/
 mixin GM<T> on GA<T>, GB<List<T>> implements GI<Iterable<T>>, GJ<Set<T>> {}
 
 /*class: GC:checkedInstance,checks=[$asGB,$isGA,$isGB],typeArgument*/

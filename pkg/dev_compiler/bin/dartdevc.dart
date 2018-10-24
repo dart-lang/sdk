@@ -9,15 +9,23 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:dev_compiler/src/compiler/shared_command.dart';
 
-Future main(List<String> args) async {
+/// The entry point for the Dart Dev Compiler.
+///
+/// [sendPort] may be passed in when started in an isolate. If provided, it is
+/// used for bazel worker communication instead of stdin/stdout.
+Future main(List<String> args, [SendPort sendPort]) async {
   // Always returns a new modifiable list.
   var parsedArgs = ParsedArguments.from(args);
 
   if (parsedArgs.isWorker) {
-    await _CompilerWorker(parsedArgs).run();
+    var workerConnection = sendPort == null
+        ? new StdAsyncWorkerConnection()
+        : new SendPortAsyncWorkerConnection(sendPort);
+    await _CompilerWorker(parsedArgs, workerConnection).run();
   } else if (parsedArgs.isBatch) {
     await runBatch(parsedArgs);
   } else {
@@ -32,7 +40,8 @@ class _CompilerWorker extends AsyncWorkerLoop {
   final ParsedArguments _startupArgs;
   InitializedCompilerState _compilerState;
 
-  _CompilerWorker(this._startupArgs) : super();
+  _CompilerWorker(this._startupArgs, AsyncWorkerConnection workerConnection)
+      : super(connection: workerConnection);
 
   /// Performs each individual work request.
   Future<WorkResponse> performRequest(WorkRequest request) async {

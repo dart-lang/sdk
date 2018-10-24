@@ -19,7 +19,8 @@ import '../fasta_codes.dart'
         templateConflictsWithMember,
         templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning;
+        templateConflictsWithSetterWarning,
+        templateSupertypeIsIllegal;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -147,6 +148,20 @@ class SourceClassBuilder extends KernelClassBuilder {
     constructors.forEach(buildBuilders);
     actualCls.supertype =
         supertype?.buildSupertype(library, charOffset, fileUri);
+    if (!isMixinDeclaration &&
+        actualCls.supertype != null &&
+        actualCls.superclass.isMixinDeclaration) {
+      // Declared mixins have interfaces that can be implemented, but they
+      // cannot be extended.  However, a mixin declaration with a single
+      // superclass constraint is encoded with the constraint as the supertype,
+      // and that is allowed to be a mixin's interface.
+      library.addProblem(
+          templateSupertypeIsIllegal.withArguments(actualCls.superclass.name),
+          charOffset,
+          noLength,
+          fileUri);
+      actualCls.supertype = null;
+    }
     actualCls.mixedInType =
         mixedInType?.buildMixedInType(library, charOffset, fileUri);
     actualCls.isMixinDeclaration = isMixinDeclaration;

@@ -31,10 +31,15 @@ import 'recognized_methods.dart' show RecognizedMethods;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
+// This symbol is used as the name in assert assignable's to indicate it comes
+// from an explicit 'as' check.  This will cause the runtime to throw the right
+// exception.
+const String symbolForTypeCast = ' in type cast';
+
 void generateBytecode(Component component,
-    {bool strongMode: true,
-    bool dropAST: false,
+    {bool dropAST: false,
     bool omitSourcePositions: false,
+    bool useFutureBytecodeFormat: false,
     Map<String, String> environmentDefines,
     ErrorReporter errorReporter}) {
   final coreTypes = new CoreTypes(component);
@@ -42,12 +47,19 @@ void generateBytecode(Component component,
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
+      new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final constantsBackend =
       new VmConstantsBackend(environmentDefines, coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
-  new BytecodeGenerator(component, coreTypes, hierarchy, typeEnvironment,
-          constantsBackend, strongMode, omitSourcePositions, errorReporter)
+  new BytecodeGenerator(
+          component,
+          coreTypes,
+          hierarchy,
+          typeEnvironment,
+          constantsBackend,
+          omitSourcePositions,
+          useFutureBytecodeFormat,
+          errorReporter)
       .visitComponent(component);
   if (dropAST) {
     new DropAST().visitComponent(component);
@@ -60,8 +72,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final ClassHierarchy hierarchy;
   final TypeEnvironment typeEnvironment;
   final ConstantsBackend constantsBackend;
-  final bool strongMode;
   final bool omitSourcePositions;
+  final bool useFutureBytecodeFormat;
   final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
@@ -97,8 +109,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.hierarchy,
       this.typeEnvironment,
       this.constantsBackend,
-      this.strongMode,
       this.omitSourcePositions,
+      this.useFutureBytecodeFormat,
       this.errorReporter)
       : recognizedMethods = new RecognizedMethods(typeEnvironment) {
     component.addMetadataRepository(metadata);
@@ -154,7 +166,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         _genNativeCall(nativeName);
       } else {
         node.function?.body?.accept(this);
-        // TODO(alexmarkov): figure out when 'return null' should be generated.
+        // BytecodeAssembler eliminates this bytecode if it is unreachable.
         asm.emitPushNull();
       }
       _genReturnTOS();
@@ -217,10 +229,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure _objectSimpleInstanceOf;
   Procedure get objectSimpleInstanceOf => _objectSimpleInstanceOf ??=
       libraryIndex.getMember('dart:core', 'Object', '_simpleInstanceOf');
-
-  Procedure _objectAs;
-  Procedure get objectAs =>
-      _objectAs ??= libraryIndex.getMember('dart:core', 'Object', '_as');
 
   Field _closureInstantiatorTypeArguments;
   Field get closureInstantiatorTypeArguments =>
@@ -616,6 +624,48 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genJumpIfFalse(!negated, dest);
   }
 
+  /// Returns value of the given expression if it is a bool constant.
+  /// Otherwise, returns `null`.
+  bool _constantConditionValue(Expression condition) {
+    // TODO(dartbug.com/34585): use constant evaluator to evaluate
+    // expressions in a non-constant context.
+    if (condition is Not) {
+      final operand = _constantConditionValue(condition.operand);
+      return (operand != null) ? !operand : null;
+    }
+    if (condition is BoolLiteral) {
+      return condition.value;
+    }
+    Constant constant;
+    if (condition is ConstantExpression) {
+      constant = condition.constant;
+    } else if ((condition is StaticGet && condition.target.isConst) ||
+        (condition is StaticInvocation && condition.isConst) ||
+        (condition is VariableGet && condition.variable.isConst)) {
+      constant = _evaluateConstantExpression(condition);
+    }
+    if (constant is BoolConstant) {
+      return constant.value;
+    }
+    return null;
+  }
+
+  void _genConditionAndJumpIf(Expression condition, bool value, Label dest) {
+    final bool constantValue = _constantConditionValue(condition);
+    if (constantValue != null) {
+      if (constantValue == value) {
+        asm.emitJump(dest);
+      }
+      return;
+    }
+    bool negated = _genCondition(condition);
+    if (value) {
+      _genJumpIfTrue(negated, dest);
+    } else {
+      _genJumpIfFalse(negated, dest);
+    }
+  }
+
   int _getDefaultParamConstIndex(VariableDeclaration param) {
     if (param.initializer == null) {
       return cp.add(const ConstantNull());
@@ -703,7 +753,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     locals = new LocalVariables(node);
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
     constantEvaluator = new ConstantEvaluator(constantsBackend, typeEnvironment,
-        coreTypes, strongMode, /* enableAsserts = */ true, errorReporter)
+        coreTypes, /* enableAsserts = */ true,
+        errorReporter: errorReporter)
       ..env = new EvaluationEnvironment();
     labeledStatements = <LabeledStatement, Label>{};
     switchCases = <SwitchCase, Label>{};
@@ -751,8 +802,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void end(Member node) {
     if (!hasErrors) {
-      metadata.mapping[node] = new BytecodeMetadata(
-          cp, asm.bytecode, asm.exceptionsTable, nullableFields, closures);
+      final formatVersion = useFutureBytecodeFormat
+          ? futureBytecodeFormatVersion
+          : stableBytecodeFormatVersion;
+      metadata.mapping[node] = new BytecodeMetadata(formatVersion, cp,
+          asm.bytecode, asm.exceptionsTable, nullableFields, closures);
     }
 
     typeEnvironment.thisType = null;
@@ -1183,7 +1237,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     function.body.accept(this);
 
-    // TODO(alexmarkov): figure out when 'return null' should be generated.
+    // BytecodeAssembler eliminates this bytecode if it is unreachable.
     asm.emitPushNull();
     _genReturnTOS();
 
@@ -1475,16 +1529,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (typeEnvironment.isTop(type)) {
       return;
     }
-    if (node.isTypeError) {
-      _genAssertAssignable(type);
-    } else {
-      _genPushInstantiatorAndFunctionTypeArguments([type]);
-      asm.emitPushConstant(cp.add(new ConstantType(type)));
-      final argDescIndex = cp.add(new ConstantArgDesc(4));
-      final icdataIndex = cp.add(new ConstantICData(
-          InvocationKind.method, objectAs.name, argDescIndex));
-      asm.emitInstanceCall(4, icdataIndex);
-    }
+
+    _genAssertAssignable(type, name: node.isTypeError ? '' : symbolForTypeCast);
   }
 
   @override
@@ -1509,8 +1555,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final Label done = new Label();
     final int temp = locals.tempIndexInFrame(node);
 
-    final bool negated = _genCondition(node.condition);
-    _genJumpIfFalse(negated, otherwisePart);
+    _genConditionAndJumpIf(node.condition, false, otherwisePart);
 
     node.then.accept(this);
     asm.emitPopLocal(temp);
@@ -1704,18 +1749,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final int temp = locals.tempIndexInFrame(node);
     final isOR = (node.operator == '||');
 
-    bool negated = _genCondition(node.left);
-    if (negated != isOR) {
-      // OR: if (condition == true)
-      // AND: if ((!condition) == true)
-      asm.emitJumpIfTrue(shortCircuit);
-    } else {
-      // OR: if ((!condition) != true)
-      // AND: if (condition != true)
-      asm.emitJumpIfFalse(shortCircuit);
-    }
+    _genConditionAndJumpIf(node.left, isOR, shortCircuit);
 
-    negated = _genCondition(node.right);
+    bool negated = _genCondition(node.right);
     if (negated) {
       asm.emitBooleanNegateTOS();
     }
@@ -1997,6 +2033,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitStaticInvocation(StaticInvocation node) {
+    if (node.isConst) {
+      _genPushConstExpr(node);
+      return;
+    }
     Arguments args = node.arguments;
     final target = node.target;
     if (target == unsafeCast) {
@@ -2163,8 +2203,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final Label done = new Label();
     asm.emitJumpIfNoAsserts(done);
 
-    final bool negated = _genCondition(node.condition);
-    _genJumpIfTrue(negated, done);
+    _genConditionAndJumpIf(node.condition, true, done);
 
     _genPushInt(omitSourcePositions ? 0 : node.conditionStartOffset);
     _genPushInt(omitSourcePositions ? 0 : node.conditionEndOffset);
@@ -2226,16 +2265,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitDoStatement(DoStatement node) {
-    final Label join = new Label();
+    if (asm.isUnreachable) {
+      // Bail out before binding a label which allows backward jumps,
+      // as it is not handled by local unreachable code elimination.
+      return;
+    }
+
+    final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
     asm.emitCheckStack();
 
     node.body.accept(this);
 
-    // TODO(alexmarkov): do we need to break this critical edge in CFG?
-    bool negated = _genCondition(node.condition);
-    _genJumpIfTrue(negated, join);
+    _genConditionAndJumpIf(node.condition, true, join);
   }
 
   @override
@@ -2275,8 +2318,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _genStoreVar(capturedIteratorVar);
     }
 
+    if (asm.isUnreachable) {
+      // Bail out before binding a label which allows backward jumps,
+      // as it is not handled by local unreachable code elimination.
+      return;
+    }
+
     final Label done = new Label();
-    final Label join = new Label();
+    final Label join = new Label(allowsBackwardJumps: true);
 
     asm.bind(join);
     asm.emitCheckStack();
@@ -2317,37 +2366,44 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitForStatement(ForStatement node) {
     _enterScope(node);
+    try {
+      visitList(node.variables, this);
 
-    visitList(node.variables, this);
+      if (asm.isUnreachable) {
+        // Bail out before binding a label which allows backward jumps,
+        // as it is not handled by local unreachable code elimination.
+        return;
+      }
 
-    final Label done = new Label();
-    final Label join = new Label();
-    asm.bind(join);
+      final Label done = new Label();
+      final Label join = new Label(allowsBackwardJumps: true);
+      asm.bind(join);
 
-    asm.emitCheckStack();
+      asm.emitCheckStack();
 
-    if (node.condition != null) {
-      bool negated = _genCondition(node.condition);
-      _genJumpIfFalse(negated, done);
+      if (node.condition != null) {
+        _genConditionAndJumpIf(node.condition, false, done);
+      }
+
+      node.body.accept(this);
+
+      if (locals.currentContextSize > 0) {
+        asm.emitPush(locals.contextVarIndexInFrame);
+        asm.emitCloneContext();
+        asm.emitPopLocal(locals.contextVarIndexInFrame);
+      }
+
+      for (var update in node.updates) {
+        update.accept(this);
+        asm.emitDrop1();
+      }
+
+      asm.emitJump(join);
+
+      asm.bind(done);
+    } finally {
+      _leaveScope();
     }
-
-    node.body.accept(this);
-
-    if (locals.currentContextSize > 0) {
-      asm.emitPush(locals.contextVarIndexInFrame);
-      asm.emitCloneContext();
-      asm.emitPopLocal(locals.contextVarIndexInFrame);
-    }
-
-    for (var update in node.updates) {
-      update.accept(this);
-      asm.emitDrop1();
-    }
-
-    asm.emitJump(join);
-
-    asm.bind(done);
-    _leaveScope();
   }
 
   @override
@@ -2361,8 +2417,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   visitIfStatement(IfStatement node) {
     final Label otherwisePart = new Label();
 
-    final bool negated = _genCondition(node.condition);
-    _genJumpIfFalse(negated, otherwisePart);
+    _genConditionAndJumpIf(node.condition, false, otherwisePart);
 
     node.then.accept(this);
 
@@ -2423,12 +2478,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     node.expression.accept(this);
 
+    if (asm.isUnreachable) {
+      // Bail out before binding labels which allow backward jumps,
+      // as they are not handled by local unreachable code elimination.
+      return;
+    }
+
     final int temp = locals.tempIndexInFrame(node);
     asm.emitPopLocal(temp);
 
     final Label done = new Label();
-    final List<Label> caseLabels =
-        new List<Label>.generate(node.cases.length, (_) => new Label());
+    final List<Label> caseLabels = new List<Label>.generate(
+        node.cases.length, (_) => new Label(allowsBackwardJumps: true));
     final equalsArgDesc = cp.add(new ConstantArgDesc(2));
 
     Label defaultLabel = done;
@@ -2542,6 +2603,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     tryBlock.endPC = asm.offsetInWords;
     tryBlock.handlerPC = asm.offsetInWords;
 
+    // Exception handlers are reachable although there are no labels or jumps.
+    asm.isUnreachable = false;
+
     asm.emitSetFrame(locals.frameSize);
 
     _restoreContextForTryBlock(node);
@@ -2586,6 +2650,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitTryCatch(TryCatch node) {
+    if (asm.isUnreachable) {
+      return;
+    }
+
     final Label done = new Label();
 
     final TryBlock tryBlock = _startTryBlock(node);
@@ -2652,17 +2720,22 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitTryFinally(TryFinally node) {
+    if (asm.isUnreachable) {
+      return;
+    }
+
     final TryBlock tryBlock = _startTryBlock(node);
     finallyBlocks[node] = <FinallyBlock>[];
 
     node.body.accept(this);
 
-    // TODO(alexmarkov): Do not generate normal continuation if control
-    // does not return from body.
-    final normalContinuation =
-        new FinallyBlock(() {/* do nothing (fall through) */});
-    finallyBlocks[node].add(normalContinuation);
-    asm.emitJump(normalContinuation.entry);
+    if (!asm.isUnreachable) {
+      final normalContinuation = new FinallyBlock(() {
+        /* do nothing (fall through) */
+      });
+      finallyBlocks[node].add(normalContinuation);
+      asm.emitJump(normalContinuation.entry);
+    }
 
     _endTryBlock(node, tryBlock);
 
@@ -2708,14 +2781,19 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitWhileStatement(WhileStatement node) {
+    if (asm.isUnreachable) {
+      // Bail out before binding a label which allows backward jumps,
+      // as it is not handled by local unreachable code elimination.
+      return;
+    }
+
     final Label done = new Label();
-    final Label join = new Label();
+    final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
     asm.emitCheckStack();
 
-    bool negated = _genCondition(node.condition);
-    _genJumpIfFalse(negated, done);
+    _genConditionAndJumpIf(node.condition, false, done);
 
     node.body.accept(this);
 
@@ -2730,9 +2808,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       throw 'YieldStatement must be desugared: $node';
     }
 
+    if (asm.isUnreachable) {
+      return;
+    }
+
     // 0 is reserved for normal entry, yield points are counted from 1.
     final int yieldIndex = yieldPoints.length + 1;
-    final Label continuationLabel = new Label();
+    final Label continuationLabel = new Label(allowsBackwardJumps: true);
     yieldPoints.add(continuationLabel);
 
     // :await_jump_var = #index

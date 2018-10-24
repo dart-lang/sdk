@@ -8,16 +8,27 @@ import 'compiler_context.dart' show CompilerContext;
 
 import 'messages.dart'
     show
+        LocatedMessage,
         Message,
         noLength,
+        templateInternalProblemDebugAbort,
         templateInternalProblemUnexpected,
         templateInternalProblemUnhandled,
         templateInternalProblemUnimplemented,
         templateInternalProblemUnsupported;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show Severity, severityTexts;
 
-export 'deprecated_problems.dart' show DebugAbort;
+class DebugAbort {
+  final LocatedMessage message;
+
+  DebugAbort(Uri uri, int charOffset, Severity severity, StackTrace trace)
+      : message = templateInternalProblemDebugAbort
+            .withArguments(severityTexts[severity], "$trace")
+            .withLocation(uri, charOffset, noLength);
+
+  toString() => "DebugAbort: ${message.message}";
+}
 
 /// Used to report an internal error.
 ///

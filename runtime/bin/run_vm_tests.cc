@@ -245,18 +245,20 @@ static int Main(int argc, const char** argv) {
   int arg_pos = 1;
   bool start_kernel_isolate = false;
   if (strstr(argv[arg_pos], "--dfe") == argv[arg_pos]) {
-    const char* delim = strstr(argv[1], "=");
+    const char* delim = strstr(argv[arg_pos], "=");
     if (delim == NULL || strlen(delim + 1) == 0) {
-      bin::Log::PrintErr("Invalid value for the option: %s\n", argv[1]);
+      bin::Log::PrintErr("Invalid value for the option: %s\n", argv[arg_pos]);
       PrintUsage();
       return 1;
     }
     kernel_snapshot = strdup(delim + 1);
-    // VM needs '--use-dart-frontend' option, which we will insert in place
-    // of '--dfe' option.
-    argv[arg_pos] = strdup("--use-dart-frontend");
+    // Remove this flag from the list by shifting all arguments down.
+    for (intptr_t i = arg_pos; i < argc - 1; i++) {
+      argv[i] = argv[i + 1];
+    }
+    argv[argc - 1] = nullptr;
+    argc--;
     start_kernel_isolate = true;
-    ++arg_pos;
   }
 
   if (arg_pos == argc - 1 && strcmp(argv[arg_pos], "--benchmarks") == 0) {
@@ -275,8 +277,12 @@ static int Main(int argc, const char** argv) {
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 
-  const char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-  ASSERT(error == NULL);
+  char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  if (error != NULL) {
+    bin::Log::PrintErr("Failed to parse flags: %s\n", error);
+    free(error);
+    return 1;
+  }
 
   TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
   TesterState::create_callback = CreateIsolateAndSetup;
@@ -286,13 +292,17 @@ static int Main(int argc, const char** argv) {
 
   error = Dart::Init(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
-      CreateIsolateAndSetup /* create */, NULL /* shutdown */,
-      CleanupIsolate /* cleanup */, NULL /* thread_exit */,
+      CreateIsolateAndSetup /* create */, nullptr /* shutdown */,
+      CleanupIsolate /* cleanup */, nullptr /* thread_exit */,
       dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
-      NULL /* entropy_source */, NULL /* get_service_assets */,
+      nullptr /* entropy_source */, nullptr /* get_service_assets */,
       start_kernel_isolate);
-  ASSERT(error == NULL);
+  if (error != nullptr) {
+    bin::Log::PrintErr("Failed to initialize VM: %s\n", error);
+    free(error);
+    return 1;
+  }
 
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();
@@ -300,7 +310,11 @@ static int Main(int argc, const char** argv) {
   Benchmark::RunAll(argv[0]);
 
   error = Dart::Cleanup();
-  ASSERT(error == NULL);
+  if (error != nullptr) {
+    bin::Log::PrintErr("Failed shutdown VM: %s\n", error);
+    free(error);
+    return 1;
+  }
 
   TestCaseBase::RunAllRaw();
 

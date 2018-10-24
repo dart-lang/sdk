@@ -56,6 +56,27 @@ class ObjectVisitor {
   DISALLOW_COPY_AND_ASSIGN(ObjectVisitor);
 };
 
+class ExtensibleObjectVisitor : public ObjectVisitor {
+ public:
+  explicit ExtensibleObjectVisitor(GrowableArray<ObjectVisitor*>* visitors)
+      : visitors_(visitors) {}
+
+  virtual ~ExtensibleObjectVisitor() {}
+
+  virtual void VisitObject(RawObject* obj) {
+    for (intptr_t i = 0; i < visitors_->length(); i++) {
+      visitors_->At(i)->VisitObject(obj);
+    }
+  }
+
+  void Add(ObjectVisitor* visitor) { visitors_->Add(visitor); }
+
+ private:
+  GrowableArray<ObjectVisitor*>* visitors_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExtensibleObjectVisitor);
+};
+
 // An object finder visitor interface.
 class FindObjectVisitor {
  public:

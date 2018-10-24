@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library test.src.serialization.elements_test;
 
 import 'dart:async';
 
@@ -1227,7 +1225,7 @@ class D {
   test_class_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('class C<T extends List<U>, U> {}');
     checkElementText(library, r'''
-class C<T extends List<U>, U> {
+notSimplyBounded class C<T extends List<U>, U> {
 }
 ''');
   }
@@ -1235,7 +1233,7 @@ class C<T extends List<U>, U> {
   test_class_type_parameters_f_bound_simple() async {
     var library = await checkLibrary('class C<T extends U, U> {}');
     checkElementText(library, r'''
-class C<T extends U, U> {
+notSimplyBounded class C<T extends U, U> {
 }
 ''');
   }
@@ -5799,7 +5797,7 @@ class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
     checkElementText(library, r'''
-class C<S extends num, T extends C<S, T>> {
+notSimplyBounded class C<S extends num, T extends C<S, T>> {
 }
 C<num, C<num, dynamic>> c;
 ''');
@@ -5815,7 +5813,7 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T>> {
 }
 class B {
   C<C<dynamic>> c3;
@@ -5831,7 +5829,7 @@ class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
     checkElementText(library, r'''
-class C<T extends C<T, U>, U extends num> {
+notSimplyBounded class C<T extends C<T, U>, U extends num> {
 }
 C<C<dynamic, num>, num> c;
 ''');
@@ -8246,7 +8244,7 @@ class D {
     var library = await checkLibrary('typedef void F<T extends F>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-typedef F<T extends () → void> = void Function();
+notSimplyBounded typedef F<T extends () → void> = void Function();
 ''');
   }
 
@@ -8255,21 +8253,29 @@ typedef F<T extends () → void> = void Function();
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-typedef F<T extends List<() → void>> = void Function();
+notSimplyBounded typedef F<T extends List<() → void>> = void Function();
 ''');
   }
 
   test_typedef_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
-typedef F<T extends List<U>, U> = U Function(T t);
+notSimplyBounded typedef F<T extends List<U>, U> = U Function(T t);
 ''');
   }
 
   test_typedef_type_parameters_f_bound_simple() async {
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
-typedef F<T extends U, U> = U Function(T t);
+notSimplyBounded typedef F<T extends U, U> = U Function(T t);
+''');
+  }
+
+  test_typedef_type_parameters_f_bound_simple_new_syntax() async {
+    var library =
+        await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
+    checkElementText(library, r'''
+notSimplyBounded typedef F<T extends U, U> = U Function(T t);
 ''');
   }
 

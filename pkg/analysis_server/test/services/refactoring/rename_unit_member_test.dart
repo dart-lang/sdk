@@ -234,7 +234,7 @@ main() {
 class A {}
 ''');
     await indexTestUnit('''
-import "${convertPathForImport('/other/lib.dart')}";
+import "${convertAbsolutePathToUri('/other/lib.dart')}";
 main() {
   A a;
 }

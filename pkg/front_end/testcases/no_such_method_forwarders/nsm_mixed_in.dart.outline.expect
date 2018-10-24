@@ -9,6 +9,9 @@ class A extends core::Object {
     ;
 }
 abstract class _B&Object&A = core::Object with self::A {
+  synthetic constructor •() → self::_B&Object&A
+    : super core::Object::•()
+    ;
 }
 class B extends self::_B&Object&A {
   synthetic constructor •() → self::B

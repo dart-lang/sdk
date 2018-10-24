@@ -6,7 +6,8 @@ library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
 import '../elements/entities.dart'
-    show ClassEntity, FieldEntity, LibraryEntity, MemberEntity, TypedefEntity;
+    show ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
+import '../elements/entity_utils.dart' as utils;
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'sorter.dart' show Sorter;
@@ -51,10 +52,6 @@ class _ConstantOrdering
       if (r != 0) return r;
     }
     return 0;
-  }
-
-  int compareLibraries(LibraryEntity a, LibraryEntity b) {
-    return _sorter.compareLibrariesByLocation(a, b);
   }
 
   int compareClasses(ClassEntity a, ClassEntity b) {
@@ -185,8 +182,8 @@ class _ConstantOrdering
     if (r != 0) return r;
     r = a.import.name.compareTo(b.import.name);
     if (r != 0) return r;
-    return compareLibraries(
-        a.import.enclosingLibrary, b.import.enclosingLibrary);
+    return utils.compareLibrariesUris(
+        a.import.enclosingLibraryUri, b.import.enclosingLibraryUri);
   }
 
   int visitDeferredGlobal(

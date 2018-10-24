@@ -14,20 +14,54 @@ class InferredType {
   static const int flagNullable = 1 << 0;
   static const int flagInt = 1 << 1;
 
-  InferredType(Class concreteClass, bool nullable, bool isInt)
-      : this._byReference(getClassReference(concreteClass),
-            (nullable ? flagNullable : 0) | (isInt ? flagInt : 0));
+  // For Parameters and Fields, whether a type-check is required at assignment
+  // (invocation/setter). Not meaningful on other kernel nodes.
+  static const int flagSkipCheck = 1 << 2;
 
-  InferredType._byReference(this._concreteClassReference, this._flags);
+  // Entire list may be null if no type arguments were inferred.
+  // Will always be null if `concreteClass` is null.
+  //
+  // Each component may be null if that particular type argument was not
+  // inferred.
+  //
+  // Otherwise, a non-null type argument indicates that that particular type
+  // argument (in the runtime type) is always exactly a particular `DartType`.
+  final List<DartType> exactTypeArguments;
+
+  InferredType(Class concreteClass, bool nullable, bool isInt,
+      {List<DartType> exactTypeArguments, bool skipCheck: false})
+      : this._byReference(
+            getClassReference(concreteClass),
+            (nullable ? flagNullable : 0) |
+                (isInt ? flagInt : 0) |
+                (skipCheck ? flagSkipCheck : 0),
+            exactTypeArguments);
+
+  InferredType._byReference(
+      this._concreteClassReference, this._flags, this.exactTypeArguments) {
+    assert(exactTypeArguments == null || _concreteClassReference != null);
+  }
 
   Class get concreteClass => _concreteClassReference?.asClass;
 
   bool get nullable => (_flags & flagNullable) != 0;
   bool get isInt => (_flags & flagInt) != 0;
+  bool get skipCheck => (_flags & flagSkipCheck) != 0;
 
   @override
-  String toString() =>
-      "${concreteClass != null ? concreteClass : (isInt ? 'int' : '!')}${nullable ? '?' : ''}";
+  String toString() {
+    final base =
+        "${concreteClass != null ? concreteClass : (isInt ? 'int' : '!')}";
+    final suffix = "${nullable ? '?' : ''}";
+    String typeArgs = "";
+    if (exactTypeArguments != null) {
+      typeArgs =
+          exactTypeArguments.map((t) => t != null ? "$t" : "?").join(", ");
+      typeArgs = "<" + typeArgs + ">";
+    }
+    final skip = skipCheck ? " (skip check)" : "";
+    return base + suffix + typeArgs + skip;
+  }
 }
 
 /// Repository for [InferredType].
@@ -40,6 +74,8 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
 
   @override
   void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
+    // TODO(sjindel/tfa): Implement serialization of type arguments when can use
+    // them for optimizations.
     sink.writeCanonicalNameReference(
         getCanonicalNameOfClass(metadata.concreteClass));
     sink.writeByte(metadata._flags);
@@ -47,9 +83,11 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
 
   @override
   InferredType readFromBinary(Node node, BinarySource source) {
+    // TODO(sjindel/tfa): Implement serialization of type arguments when can use
+    // them for optimizations.
     final concreteClassReference =
         source.readCanonicalNameReference()?.getReference();
     final flags = source.readByte();
-    return new InferredType._byReference(concreteClassReference, flags);
+    return new InferredType._byReference(concreteClassReference, flags, null);
   }
 }

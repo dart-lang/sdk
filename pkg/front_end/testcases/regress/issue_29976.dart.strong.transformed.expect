@@ -7,13 +7,15 @@
 //
 // pkg/front_end/testcases/regress/issue_29976.dart:9:15: Error: String starting with ' must end with '.
 //     "x${x*"'"é'}x
-//               ^
+//               ^^^
 //
 // pkg/front_end/testcases/regress/issue_29976.dart:9:7: Error: Can't find '}' to match '${'.
 //     "x${x*"'"é'}x
 //       ^
 //
-// pkg/front_end/testcases/regress/issue_29976.dart:12:1: Error: String starting with " must end with ".
+// pkg/front_end/testcases/regress/issue_29976.dart:9:5: Error: String starting with " must end with ".
+//     "x${x*"'"é'}x
+//     ^^^^^^^^^^^^^^...
 //
 // pkg/front_end/testcases/regress/issue_29976.dart:12:1: Error: Expected a declaration, but got ''.
 //

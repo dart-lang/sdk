@@ -178,8 +178,11 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
-  ASSERT(Thread::Current()->IsMutatorThread() ||
-         Isolate::Current()->mutator_thread()->IsAtSafepoint());
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT((thread == nullptr) || thread->IsMutatorThread() ||
+         thread->isolate()->mutator_thread()->IsAtSafepoint());
+#endif
   const uword start_address = reinterpret_cast<uword>(address);
   const uword end_address = start_address + size;
   const uword page_address = Utils::RoundDown(start_address, PageSize());

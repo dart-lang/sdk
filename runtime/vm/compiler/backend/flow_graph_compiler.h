@@ -589,13 +589,12 @@ class FlowGraphCompiler : public ValueObject {
                                       TokenPosition token_pos,
                                       intptr_t deopt_id);
 
-  bool NeedsEdgeCounter(TargetEntryInstr* block);
+  bool NeedsEdgeCounter(BlockEntryInstr* block);
 
   void EmitEdgeCounter(intptr_t edge_id);
 #endif  // !defined(TARGET_ARCH_DBC)
-  void RecordCatchEntryMoves(
-      Environment* env = NULL,
-      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
+  void RecordCatchEntryMoves(Environment* env = NULL,
+                             intptr_t try_index = kInvalidTryIndex);
 
   void EmitCallsiteMetadata(TokenPosition token_pos,
                             intptr_t deopt_id,
@@ -689,7 +688,7 @@ class FlowGraphCompiler : public ValueObject {
 
   intptr_t CurrentTryIndex() const {
     if (current_block_ == NULL) {
-      return CatchClauseNode::kInvalidTryIndex;
+      return kInvalidTryIndex;
     }
     return current_block_->try_index();
   }
@@ -873,10 +872,14 @@ class FlowGraphCompiler : public ValueObject {
       Label* is_not_instance_lbl);
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
+
+  void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
+                                        intptr_t type_arguments_field_offset);
+
 #endif  // !defined(TARGET_ARCH_DBC)
 
-  void GenerateInlinedGetter(intptr_t offset);
-  void GenerateInlinedSetter(intptr_t offset);
+  void GenerateGetterIntrinsic(intptr_t offset);
+  void GenerateSetterIntrinsic(intptr_t offset);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);

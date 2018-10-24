@@ -20,6 +20,7 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         Procedure,
+        RedirectingFactoryConstructor,
         ReturnStatement,
         VoidType,
         MethodInvocation,
@@ -40,7 +41,10 @@ import 'package:kernel/clone.dart' show CloneWithoutBody;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution, getSubstitutionMap;
+import 'package:kernel/type_algebra.dart' show Substitution, substitute;
+
+import 'package:kernel/type_algebra.dart' as type_algebra
+    show getSubstitutionMap;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -50,6 +54,7 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        messageGenericFunctionTypeUsedAsActualTypeArgument,
         messageImplementsFutureOr,
         messagePatchClassOrigin,
         messagePatchClassTypeVariablesMismatch,
@@ -58,12 +63,19 @@ import '../fasta_codes.dart'
         noLength,
         templateFactoryRedirecteeHasTooFewPositionalParameters,
         templateFactoryRedirecteeInvalidReturnType,
+        templateGenericFunctionTypeInferredAsActualTypeArgument,
+        templateIllegalMixinDueToConstructors,
+        templateIllegalMixinDueToConstructorsCause,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
+        templateIncorrectTypeArgument,
+        templateIncorrectTypeArgumentInSupertype,
+        templateIncorrectTypeArgumentInSupertypeInferred,
         templateInterfaceCheckContext,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract,
+        templateMixinApplicationIncompatibleSupertype,
         templateNamedMixinOverrideContext,
         templateOverriddenMethodCause,
         templateOverrideFewerNamedArguments,
@@ -92,11 +104,11 @@ import 'kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        KernelLibraryBuilder,
         KernelFunctionBuilder,
+        KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
-        KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -159,6 +171,9 @@ abstract class KernelClassBuilder
           new List<DartType>.filled(typeVariables.length, null, growable: true);
       for (int i = 0; i < result.length; ++i) {
         result[i] = typeVariables[i].defaultType.build(library);
+      }
+      if (library is KernelLibraryBuilder) {
+        library.inferredTypes.addAll(result);
       }
       return result;
     }
@@ -266,6 +281,122 @@ abstract class KernelClassBuilder
             problemsOffsets[interface],
             noLength);
       });
+    }
+  }
+
+  void checkBoundsInSupertype(
+      Supertype supertype, TypeEnvironment typeEnvironment) {
+    KernelLibraryBuilder library = this.library;
+
+    List<Object> boundViolations = typeEnvironment.findBoundViolations(
+        new InterfaceType(supertype.classNode, supertype.typeArguments),
+        allowSuperBounded: false,
+        typedefInstantiations: library.typedefInstantiations);
+    if (boundViolations != null) {
+      for (int i = 0; i < boundViolations.length; i += 3) {
+        DartType argument = boundViolations[i];
+        TypeParameter variable = boundViolations[i + 1];
+        DartType enclosingType = boundViolations[i + 2];
+
+        Message message;
+        bool inferred = library.inferredTypes.contains(argument);
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message =
+                templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
+                    argument,
+                    typeEnvironment.getGenericTypeName(enclosingType),
+                    supertype.classNode.name,
+                    name);
+          } else {
+            message = templateIncorrectTypeArgumentInSupertype.withArguments(
+                argument,
+                typeEnvironment.getGenericTypeName(enclosingType),
+                supertype.classNode.name,
+                name);
+          }
+        }
+
+        library.reportBoundViolation(message, charOffset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
+    KernelLibraryBuilder library = this.library;
+
+    // Check in bounds of own type variables.
+    for (TypeParameter parameter in cls.typeParameters) {
+      List<Object> violations = typeEnvironment.findBoundViolations(
+          parameter.bound,
+          allowSuperBounded: false,
+          typedefInstantiations: library.typedefInstantiations);
+      if (violations != null) {
+        for (int i = 0; i < violations.length; i += 3) {
+          DartType argument = violations[i];
+          TypeParameter variable = violations[i + 1];
+          DartType enclosingType = violations[i + 2];
+          if (library.inferredTypes.contains(argument)) {
+            // Inference in type expressions in the supertypes boils down to
+            // instantiate-to-bound which shouldn't produce anything that breaks
+            // the bounds after the non-simplicity checks are done.  So, any
+            // violation here is the result of non-simple bounds, and the error
+            // is reported elsewhere.
+            continue;
+          }
+
+          Message message;
+          if (argument is FunctionType && argument.typeParameters.length > 0) {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+            variable = null;
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+
+          library.reportBoundViolation(message, parameter.fileOffset, variable);
+        }
+      }
+    }
+
+    // Check in supers.
+    if (cls.supertype != null) {
+      checkBoundsInSupertype(cls.supertype, typeEnvironment);
+    }
+    if (cls.mixedInType != null) {
+      checkBoundsInSupertype(cls.mixedInType, typeEnvironment);
+    }
+    if (cls.implementedTypes != null) {
+      for (Supertype supertype in cls.implementedTypes) {
+        checkBoundsInSupertype(supertype, typeEnvironment);
+      }
+    }
+
+    // Check in members.
+    for (Field field in cls.fields) {
+      library.checkBoundsInField(field, typeEnvironment);
+    }
+    for (Procedure procedure in cls.procedures) {
+      library.checkBoundsInFunctionNode(procedure.function, typeEnvironment);
+    }
+    for (Constructor constructor in cls.constructors) {
+      library.checkBoundsInFunctionNode(constructor.function, typeEnvironment);
+    }
+    for (RedirectingFactoryConstructor redirecting
+        in cls.redirectingFactoryConstructors) {
+      library.checkBoundsInFunctionNodeParts(
+          typeEnvironment, redirecting.fileOffset,
+          typeParameters: redirecting.typeParameters,
+          positionalParameters: redirecting.positionalParameters,
+          namedParameters: redirecting.namedParameters);
     }
   }
 
@@ -595,7 +726,7 @@ abstract class KernelClassBuilder
   void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
       KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
     CloneWithoutBody cloner = new CloneWithoutBody(
-        typeSubstitution: getSubstitutionMap(
+        typeSubstitution: type_algebra.getSubstitutionMap(
             hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)),
         cloneAnnotations: false);
     Procedure cloned = cloner.clone(procedure)..isExternal = false;
@@ -655,10 +786,7 @@ abstract class KernelClassBuilder
   /// class was modified.
   bool addNoSuchMethodForwarders(
       KernelTarget target, ClassHierarchy hierarchy) {
-    if (cls.isAbstract ||
-        !hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass)) {
-      return false;
-    }
+    if (cls.isAbstract) return false;
 
     Set<Name> existingForwardersNames = new Set<Name>();
     Set<Name> existingSetterForwardersNames = new Set<Name>();
@@ -667,14 +795,19 @@ abstract class KernelClassBuilder
         leastConcreteSuperclass != null && leastConcreteSuperclass.isAbstract) {
       leastConcreteSuperclass = leastConcreteSuperclass.superclass;
     }
-    if (leastConcreteSuperclass != null &&
-        hasUserDefinedNoSuchMethod(
-            leastConcreteSuperclass, hierarchy, target.objectClass)) {
+    if (leastConcreteSuperclass != null) {
+      bool superHasUserDefinedNoSuchMethod = hasUserDefinedNoSuchMethod(
+          leastConcreteSuperclass, hierarchy, target.objectClass);
       List<Member> concrete =
           hierarchy.getDispatchTargets(leastConcreteSuperclass);
       for (Member member
           in hierarchy.getInterfaceMembers(leastConcreteSuperclass)) {
-        if (ClassHierarchy.findMemberByName(concrete, member.name) == null) {
+        if ((superHasUserDefinedNoSuchMethod ||
+                leastConcreteSuperclass.enclosingLibrary.compareTo(
+                            member.enclosingClass.enclosingLibrary) !=
+                        0 &&
+                    member.name.isPrivate) &&
+            ClassHierarchy.findMemberByName(concrete, member.name) == null) {
           existingForwardersNames.add(member.name);
         }
       }
@@ -696,9 +829,23 @@ abstract class KernelClassBuilder
     List<Member> concrete = hierarchy.getDispatchTargets(cls);
     List<Member> declared = hierarchy.getDeclaredMembers(cls);
 
+    bool clsHasUserDefinedNoSuchMethod =
+        hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
     bool changed = false;
     for (Member member in hierarchy.getInterfaceMembers(cls)) {
+      // We generate a noSuchMethod forwarder for [member] in [cls] if the
+      // following three conditions are satisfied simultaneously:
+      // 1) There is a user-defined noSuchMethod in [cls] or [member] is private
+      //    and the enclosing library of [member] is different from that of
+      //    [cls].
+      // 2) There is no implementation of [member] in [cls].
+      // 3) The superclass of [cls] has no forwarder for [member].
       if (member is Procedure &&
+          (clsHasUserDefinedNoSuchMethod ||
+              cls.enclosingLibrary
+                          .compareTo(member.enclosingClass.enclosingLibrary) !=
+                      0 &&
+                  member.name.isPrivate) &&
           ClassHierarchy.findMemberByName(concrete, member.name) == null &&
           !existingForwardersNames.contains(member.name)) {
         if (ClassHierarchy.findMemberByName(declared, member.name) != null) {
@@ -710,7 +857,9 @@ abstract class KernelClassBuilder
         }
         existingForwardersNames.add(member.name);
         changed = true;
+        continue;
       }
+
       if (member is Field &&
           ClassHierarchy.findMemberByName(concrete, member.name) == null &&
           !existingForwardersNames.contains(member.name)) {
@@ -793,7 +942,7 @@ abstract class KernelClassBuilder
                         interfaceMember.fileOffset, noLength)
               ] +
               inheritedContext(isInterfaceCheck, declaredMember));
-    } else if (library.loader.target.backendTarget.strongMode &&
+    } else if (!library.loader.target.backendTarget.legacyMode &&
         declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
@@ -861,7 +1010,7 @@ abstract class KernelClassBuilder
       VariableDeclaration declaredParameter,
       bool isInterfaceCheck,
       {bool asIfDeclaredParameter = false}) {
-    if (!library.loader.target.backendTarget.strongMode) return false;
+    if (library.loader.target.backendTarget.legacyMode) return false;
 
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
@@ -1193,6 +1342,46 @@ abstract class KernelClassBuilder
     return isMixinApplication
         ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
         : name;
+  }
+
+  void checkMixinDeclaration() {
+    assert(cls.isMixinDeclaration);
+    for (Declaration constructory in constructors.local.values) {
+      if (!constructory.isSynthetic &&
+          (constructory.isFactory || constructory.isConstructor)) {
+        addProblem(
+            templateIllegalMixinDueToConstructors
+                .withArguments(fullNameForErrors),
+            charOffset,
+            noLength,
+            context: [
+              templateIllegalMixinDueToConstructorsCause
+                  .withArguments(fullNameForErrors)
+                  .withLocation(
+                      constructory.fileUri, constructory.charOffset, noLength)
+            ]);
+      }
+    }
+  }
+
+  void checkMixinApplication(ClassHierarchy hierarchy) {
+    // A mixin declaration can only be applied to a class that implements all
+    // the declaration's superclass constraints.
+    InterfaceType supertype = cls.supertype.asInterfaceType;
+    Substitution substitution = Substitution.fromSupertype(cls.mixedInType);
+    for (Supertype constraint in cls.mixedInClass.superclassConstraints()) {
+      InterfaceType interface =
+          substitution.substituteSupertype(constraint).asInterfaceType;
+      if (hierarchy.getTypeAsInstanceOf(supertype, interface.classNode) !=
+          interface) {
+        library.addProblem(
+            templateMixinApplicationIncompatibleSupertype.withArguments(
+                supertype, interface, cls.mixedInType.asInterfaceType),
+            cls.fileOffset,
+            noLength,
+            cls.fileUri);
+      }
+    }
   }
 
   @override
@@ -1529,5 +1718,55 @@ abstract class KernelClassBuilder
         checkRedirectingFactory(constructor, typeEnvironment);
       }
     }
+  }
+
+  /// Returns a map which maps the type variables of [superclass] to their
+  /// respective values as defined by the superclass clause of this class (and
+  /// its superclasses).
+  ///
+  /// It's assumed that [superclass] is a superclass of this class.
+  ///
+  /// For example, given:
+  ///
+  ///     class Box<T> {}
+  ///     class BeatBox extends Box<Beat> {}
+  ///     class Beat {}
+  ///
+  /// We have:
+  ///
+  ///     [[BeatBox]].getSubstitutionMap([[Box]]) -> {[[Box::T]]: Beat]]}.
+  ///
+  /// It's an error if [superclass] isn't a superclass.
+  Map<TypeParameter, DartType> getSubstitutionMap(Class superclass) {
+    Supertype supertype = target.supertype;
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    List<DartType> arguments;
+    List<TypeParameter> variables;
+    Class classNode;
+
+    while (classNode != superclass) {
+      classNode = supertype.classNode;
+      arguments = supertype.typeArguments;
+      variables = classNode.typeParameters;
+      supertype = classNode.supertype;
+      if (variables.isNotEmpty) {
+        Map<TypeParameter, DartType> directSubstitutionMap =
+            <TypeParameter, DartType>{};
+        for (int i = 0; i < variables.length; i++) {
+          DartType argument =
+              i < arguments.length ? arguments[i] : const DynamicType();
+          if (substitutionMap != null) {
+            // TODO(ahe): Investigate if requiring the caller to use
+            // `substituteDeep` from `package:kernel/type_algebra.dart` instead
+            // of `substitute` is faster. If so, we can simply this code.
+            argument = substitute(argument, substitutionMap);
+          }
+          directSubstitutionMap[variables[i]] = argument;
+        }
+        substitutionMap = directSubstitutionMap;
+      }
+    }
+
+    return substitutionMap;
   }
 }

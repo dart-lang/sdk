@@ -11,19 +11,23 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
+import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
+import 'closure.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'elements.dart';
 
 /// Environment for fast lookup of component libraries.
 class JProgramEnv {
-  final Set<ir.Component> _components;
+  final Iterable<ir.Component> _components;
   final Map<Uri, JLibraryEnv> _libraryMap = {};
 
   JProgramEnv(this._components);
@@ -55,12 +59,37 @@ class JProgramEnv {
 
 /// Environment for fast lookup of library classes and members.
 class JLibraryEnv {
+  /// Tag used for identifying serialized [JLibraryEnv] objects in a
+  /// debugging data stream.
+  static const String tag = 'library-env';
+
   final ir.Library library;
   final Map<String, JClassEnv> _classMap = {};
   final Map<String, ir.Member> _memberMap;
   final Map<String, ir.Member> _setterMap;
 
   JLibraryEnv(this.library, this._memberMap, this._setterMap);
+
+  /// Deserializes a [JLibraryEnv] object from [source].
+  factory JLibraryEnv.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Library library = source.readLibraryNode();
+    Map<String, ir.Member> memberMap =
+        source.readStringMap(source.readMemberNode);
+    Map<String, ir.Member> setterMap =
+        source.readStringMap(source.readMemberNode);
+    source.end(tag);
+    return new JLibraryEnv(library, memberMap, setterMap);
+  }
+
+  /// Serializes this [JLibraryEnv] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeLibraryNode(library);
+    sink.writeStringMap(_memberMap, sink.writeMemberNode);
+    sink.writeStringMap(_setterMap, sink.writeMemberNode);
+    sink.end(tag);
+  }
 
   void registerClass(String name, JClassEnv classEnv) {
     _classMap[name] = classEnv;
@@ -94,16 +123,64 @@ class JLibraryEnv {
 }
 
 class JLibraryData {
+  /// Tag used for identifying serialized [JLibraryData] objects in a
+  /// debugging data stream.
+  static const String tag = 'library-data';
+
   final ir.Library library;
   // TODO(johnniwinther): Avoid direct access to [imports]. It might be null if
   // it hasn't been computed for the corresponding [KLibraryData].
   final Map<ir.LibraryDependency, ImportEntity> imports;
 
   JLibraryData(this.library, this.imports);
+
+  factory JLibraryData.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Library library = source.readLibraryNode();
+    int importCount = source.readInt();
+    Map<ir.LibraryDependency, ImportEntity> imports;
+    if (importCount > 0) {
+      // TODO(johnniwinther): Deserialize imports.
+    }
+    source.end(tag);
+    return new JLibraryData(library, imports);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeLibraryNode(library);
+    if (imports == null) {
+      sink.writeInt(0);
+    } else {
+      sink.writeInt(imports.length);
+      // TODO(johnniwinther): Serialize imports.
+    }
+    sink.end(tag);
+  }
 }
+
+/// Enum used for identifying [JClassEnv] subclasses in serialization.
+enum JClassEnvKind { node, closure, record }
 
 /// Member data for a class.
 abstract class JClassEnv {
+  /// Deserializes a [JClassEnv] object from [source].
+  factory JClassEnv.readFromDataSource(DataSource source) {
+    JClassEnvKind kind = source.readEnum(JClassEnvKind.values);
+    switch (kind) {
+      case JClassEnvKind.node:
+        return new JClassEnvImpl.readFromDataSource(source);
+      case JClassEnvKind.closure:
+        return new ClosureClassEnv.readFromDataSource(source);
+      case JClassEnvKind.record:
+        return new RecordEnv.readFromDataSource(source);
+    }
+    throw new UnsupportedError("Unsupported JClassEnvKind $kind");
+  }
+
+  /// Serializes this [JClassEnv] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// The [ir.Class] that defined the class, if any.
   ir.Class get cls;
 
@@ -137,25 +214,53 @@ abstract class JClassEnv {
 
 /// Environment for fast lookup of class members.
 class JClassEnvImpl implements JClassEnv {
+  /// Tag used for identifying serialized [JClassEnv] objects in a
+  /// debugging data stream.
+  static const String tag = 'class-env';
+
   final ir.Class cls;
   final Map<String, ir.Member> _constructorMap;
   final Map<String, ir.Member> _memberMap;
   final Map<String, ir.Member> _setterMap;
   final List<ir.Member> _members; // in declaration order.
-  final bool _isSuperMixinApplication;
+  final bool isSuperMixinApplication;
 
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
 
   JClassEnvImpl(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members, this._isSuperMixinApplication);
+      this._setterMap, this._members, this.isSuperMixinApplication);
+
+  factory JClassEnvImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Class cls = source.readClassNode();
+    Map<String, ir.Member> constructorMap =
+        source.readStringMap(source.readMemberNode);
+    Map<String, ir.Member> memberMap =
+        source.readStringMap(source.readMemberNode);
+    Map<String, ir.Member> setterMap =
+        source.readStringMap(source.readMemberNode);
+    List<ir.Member> members = source.readMemberNodes();
+    bool isSuperMixinApplication = source.readBool();
+    source.end(tag);
+    return new JClassEnvImpl(cls, constructorMap, memberMap, setterMap, members,
+        isSuperMixinApplication);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JClassEnvKind.node);
+    sink.begin(tag);
+    sink.writeClassNode(cls);
+    sink.writeStringMap(_constructorMap, sink.writeMemberNode);
+    sink.writeStringMap(_memberMap, sink.writeMemberNode);
+    sink.writeStringMap(_setterMap, sink.writeMemberNode);
+    sink.writeMemberNodes(_members);
+    sink.writeBool(isSuperMixinApplication);
+    sink.end(tag);
+  }
 
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
-
-  bool get isSuperMixinApplication {
-    assert(_isSuperMixinApplication != null);
-    return _isSuperMixinApplication;
-  }
 
   /// Return the [MemberEntity] for the member [name] in [cls]. If [setter] is
   /// `true`, the setter or assignable field corresponding to [name] is
@@ -198,9 +303,30 @@ class JClassEnvImpl implements JClassEnv {
 }
 
 class RecordEnv implements JClassEnv {
-  final Map<String, MemberEntity> _memberMap;
+  /// Tag used for identifying serialized [RecordEnv] objects in a
+  /// debugging data stream.
+  static const String tag = 'record-env';
+
+  final Map<String, IndexedMember> _memberMap;
 
   RecordEnv(this._memberMap);
+
+  factory RecordEnv.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    Map<String, IndexedMember> _memberMap =
+        source.readStringMap(() => source.readMember());
+    source.end(tag);
+    return new RecordEnv(_memberMap);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JClassEnvKind.record);
+    sink.begin(tag);
+    sink.writeStringMap(
+        _memberMap, (IndexedMember member) => sink.writeMember(member));
+    sink.end(tag);
+  }
 
   @override
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
@@ -241,7 +367,28 @@ class RecordEnv implements JClassEnv {
 }
 
 class ClosureClassEnv extends RecordEnv {
+  /// Tag used for identifying serialized [ClosureClassEnv] objects in a
+  /// debugging data stream.
+  static const String tag = 'closure-class-env';
+
   ClosureClassEnv(Map<String, MemberEntity> memberMap) : super(memberMap);
+
+  factory ClosureClassEnv.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    Map<String, IndexedMember> _memberMap =
+        source.readStringMap(() => source.readMember());
+    source.end(tag);
+    return new ClosureClassEnv(_memberMap);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JClassEnvKind.closure);
+    sink.begin(tag);
+    sink.writeStringMap(
+        _memberMap, (IndexedMember member) => sink.writeMember(member));
+    sink.end(tag);
+  }
 
   @override
   MemberEntity lookupMember(IrToElementMap elementMap, String name,
@@ -254,7 +401,27 @@ class ClosureClassEnv extends RecordEnv {
   }
 }
 
+/// Enum used for identifying [JClassData] subclasses in serialization.
+enum JClassDataKind { node, closure, record }
+
 abstract class JClassData {
+  /// Deserializes a [JClassData] object from [source].
+  factory JClassData.readFromDataSource(DataSource source) {
+    JClassDataKind kind = source.readEnum(JClassDataKind.values);
+    switch (kind) {
+      case JClassDataKind.node:
+        return new JClassDataImpl.readFromDataSource(source);
+      case JClassDataKind.closure:
+        return new ClosureClassData.readFromDataSource(source);
+      case JClassDataKind.record:
+        return new RecordClassData.readFromDataSource(source);
+    }
+    throw new UnsupportedError("Unexpected JClassDataKind $kind");
+  }
+
+  /// Serializes this [JClassData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   ClassDefinition get definition;
 
   InterfaceType get thisType;
@@ -270,6 +437,10 @@ abstract class JClassData {
 }
 
 class JClassDataImpl implements JClassData {
+  /// Tag used for identifying serialized [JClassDataImpl] objects in a
+  /// debugging data stream.
+  static const String tag = 'class-data';
+
   final ir.Class cls;
   final ClassDefinition definition;
   bool isMixinApplication;
@@ -284,9 +455,38 @@ class JClassDataImpl implements JClassData {
 
   JClassDataImpl(this.cls, this.definition);
 
+  factory JClassDataImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Class cls = source.readClassNode();
+    ClassDefinition definition = new ClassDefinition.readFromDataSource(source);
+    source.end(tag);
+    return new JClassDataImpl(cls, definition);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JClassDataKind.node);
+    sink.begin(tag);
+    sink.writeClassNode(cls);
+    definition.writeToDataSink(sink);
+    sink.end(tag);
+  }
+
   bool get isEnumClass => cls != null && cls.isEnum;
 
   DartType get callType => null;
+}
+
+/// Enum used for identifying [JMemberData] subclasses in serialization.
+enum JMemberDataKind {
+  function,
+  field,
+  constructor,
+  constructorBody,
+  signature,
+  generatorBody,
+  closureFunction,
+  closureField,
 }
 
 abstract class JMemberData {
@@ -295,6 +495,35 @@ abstract class JMemberData {
   InterfaceType getMemberThisType(JsToElementMap elementMap);
 
   ClassTypeVariableAccess get classTypeVariableAccess;
+
+  JMemberData();
+
+  /// Deserializes a [JMemberData] object from [source].
+  factory JMemberData.readFromDataSource(DataSource source) {
+    JMemberDataKind kind = source.readEnum(JMemberDataKind.values);
+    switch (kind) {
+      case JMemberDataKind.function:
+        return new FunctionDataImpl.readFromDataSource(source);
+      case JMemberDataKind.field:
+        return new JFieldDataImpl.readFromDataSource(source);
+      case JMemberDataKind.constructor:
+        return new JConstructorDataImpl.readFromDataSource(source);
+      case JMemberDataKind.constructorBody:
+        return new ConstructorBodyDataImpl.readFromDataSource(source);
+      case JMemberDataKind.signature:
+        return new SignatureFunctionData.readFromDataSource(source);
+      case JMemberDataKind.generatorBody:
+        return new GeneratorBodyFunctionData.readFromDataSource(source);
+      case JMemberDataKind.closureFunction:
+        return new ClosureFunctionData.readFromDataSource(source);
+      case JMemberDataKind.closureField:
+        return new ClosureFieldData.readFromDataSource(source);
+    }
+    throw new UnsupportedError("Unexpected JMemberDataKind $kind");
+  }
+
+  /// Serializes this [JMemberData] to [sink].
+  void writeToDataSink(DataSink sink);
 }
 
 abstract class JMemberDataImpl implements JMemberData {
@@ -354,12 +583,42 @@ abstract class FunctionDataMixin implements FunctionData {
 class FunctionDataImpl extends JMemberDataImpl
     with FunctionDataMixin
     implements FunctionData {
+  /// Tag used for identifying serialized [FunctionDataImpl] objects in a
+  /// debugging data stream.
+  static const String tag = 'function-data';
+
   final ir.FunctionNode functionNode;
   FunctionType _type;
 
   FunctionDataImpl(
       ir.Member node, this.functionNode, MemberDefinition definition)
       : super(node, definition);
+
+  factory FunctionDataImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Member node = source.readMemberNode();
+    ir.FunctionNode functionNode;
+    if (node is ir.Procedure) {
+      functionNode = node.function;
+    } else if (node is ir.Constructor) {
+      functionNode = node.function;
+    } else {
+      throw new UnsupportedError(
+          "Unexpected member node $node (${node.runtimeType}).");
+    }
+    MemberDefinition definition =
+        new MemberDefinition.readFromDataSource(source);
+    source.end(tag);
+    return new FunctionDataImpl(node, functionNode, definition);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberDataKind.function);
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    definition.writeToDataSink(sink);
+    sink.end(tag);
+  }
 
   FunctionType getFunctionType(covariant JsToElementMapBase elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
@@ -398,17 +657,43 @@ class FunctionDataImpl extends JMemberDataImpl
 }
 
 class SignatureFunctionData implements FunctionData {
-  final FunctionType functionType;
+  /// Tag used for identifying serialized [SignatureFunctionData] objects in a
+  /// debugging data stream.
+  static const String tag = 'signature-function-data';
+
   final MemberDefinition definition;
   final InterfaceType memberThisType;
   final ClassTypeVariableAccess classTypeVariableAccess;
   final List<ir.TypeParameter> typeParameters;
 
-  SignatureFunctionData(this.definition, this.memberThisType, this.functionType,
+  SignatureFunctionData(this.definition, this.memberThisType,
       this.typeParameters, this.classTypeVariableAccess);
 
+  factory SignatureFunctionData.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    MemberDefinition definition =
+        new MemberDefinition.readFromDataSource(source);
+    InterfaceType memberThisType = source.readDartType(allowNull: true);
+    List<ir.TypeParameter> typeParameters = source.readTypeParameterNodes();
+    ClassTypeVariableAccess classTypeVariableAccess =
+        source.readEnum(ClassTypeVariableAccess.values);
+    source.end(tag);
+    return new SignatureFunctionData(
+        definition, memberThisType, typeParameters, classTypeVariableAccess);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberDataKind.signature);
+    sink.begin(tag);
+    definition.writeToDataSink(sink);
+    sink.writeDartType(memberThisType, allowNull: true);
+    sink.writeTypeParameterNodes(typeParameters);
+    sink.writeEnum(classTypeVariableAccess);
+    sink.end(tag);
+  }
+
   FunctionType getFunctionType(covariant JsToElementMapBase elementMap) {
-    return functionType;
+    throw new UnsupportedError("SignatureFunctionData.getFunctionType");
   }
 
   List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap) {
@@ -455,9 +740,32 @@ abstract class DelegatedFunctionData implements FunctionData {
 }
 
 class GeneratorBodyFunctionData extends DelegatedFunctionData {
+  /// Tag used for identifying serialized [GeneratorBodyFunctionData] objects in
+  /// a debugging data stream.
+  static const String tag = 'generator-body-data';
+
   final MemberDefinition definition;
+
   GeneratorBodyFunctionData(FunctionData baseData, this.definition)
       : super(baseData);
+
+  factory GeneratorBodyFunctionData.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    // TODO(johnniwinther): Share the original base data on deserialization.
+    FunctionData baseData = new JMemberData.readFromDataSource(source);
+    MemberDefinition definition =
+        new MemberDefinition.readFromDataSource(source);
+    source.end(tag);
+    return new GeneratorBodyFunctionData(baseData, definition);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberDataKind.generatorBody);
+    sink.begin(tag);
+    baseData.writeToDataSink(sink);
+    definition.writeToDataSink(sink);
+    sink.end(tag);
+  }
 }
 
 abstract class JConstructorData extends FunctionData {
@@ -467,12 +775,43 @@ abstract class JConstructorData extends FunctionData {
 
 class JConstructorDataImpl extends FunctionDataImpl
     implements JConstructorData {
+  /// Tag used for identifying serialized [JConstructorDataImpl] objects in a
+  /// debugging data stream.
+  static const String tag = 'constructor-data';
+
   ConstantConstructor _constantConstructor;
-  ConstructorBodyEntity constructorBody;
+  JConstructorBody constructorBody;
 
   JConstructorDataImpl(
       ir.Member node, ir.FunctionNode functionNode, MemberDefinition definition)
       : super(node, functionNode, definition);
+
+  factory JConstructorDataImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Member node = source.readMemberNode();
+    ir.FunctionNode functionNode;
+    if (node is ir.Procedure) {
+      functionNode = node.function;
+    } else if (node is ir.Constructor) {
+      functionNode = node.function;
+    } else {
+      throw new UnsupportedError(
+          "Unexpected member node $node (${node.runtimeType}).");
+    }
+    MemberDefinition definition =
+        new MemberDefinition.readFromDataSource(source);
+    source.end(tag);
+    return new JConstructorDataImpl(node, functionNode, definition);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberDataKind.constructor);
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    definition.writeToDataSink(sink);
+    assert(constructorBody == null);
+    sink.end(tag);
+  }
 
   ConstantConstructor getConstructorConstant(
       JsToElementMapBase elementMap, ConstructorEntity constructor) {
@@ -496,9 +835,39 @@ class JConstructorDataImpl extends FunctionDataImpl
 }
 
 class ConstructorBodyDataImpl extends FunctionDataImpl {
+  /// Tag used for identifying serialized [ConstructorBodyDataImpl] objects in
+  /// a debugging data stream.
+  static const String tag = 'constructor-body-data';
+
   ConstructorBodyDataImpl(
       ir.Member node, ir.FunctionNode functionNode, MemberDefinition definition)
       : super(node, functionNode, definition);
+
+  factory ConstructorBodyDataImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Member node = source.readMemberNode();
+    ir.FunctionNode functionNode;
+    if (node is ir.Procedure) {
+      functionNode = node.function;
+    } else if (node is ir.Constructor) {
+      functionNode = node.function;
+    } else {
+      throw new UnsupportedError(
+          "Unexpected member node $node (${node.runtimeType}).");
+    }
+    MemberDefinition definition =
+        new MemberDefinition.readFromDataSource(source);
+    source.end(tag);
+    return new ConstructorBodyDataImpl(node, functionNode, definition);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberDataKind.constructorBody);
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    definition.writeToDataSink(sink);
+    sink.end(tag);
+  }
 
   // TODO(johnniwinther,sra): Constructor bodies should access type variables
   // through `this`.
@@ -522,6 +891,10 @@ abstract class JFieldData extends JMemberData {
 }
 
 class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
+  /// Tag used for identifying serialized [JFieldDataImpl] objects in
+  /// a debugging data stream.
+  static const String tag = 'field-data';
+
   DartType _type;
   bool _isConstantComputed = false;
   ConstantValue _constantValue;
@@ -529,6 +902,23 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
 
   JFieldDataImpl(ir.Field node, MemberDefinition definition)
       : super(node, definition);
+
+  factory JFieldDataImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Member node = source.readMemberNode();
+    MemberDefinition definition =
+        new MemberDefinition.readFromDataSource(source);
+    source.end(tag);
+    return new JFieldDataImpl(node, definition);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(JMemberDataKind.field);
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    definition.writeToDataSink(sink);
+    sink.end(tag);
+  }
 
   ir.Field get node => super.node;
 
@@ -543,8 +933,8 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
             new Constantifier(elementMap).visit(node.initializer);
       } else {
         failedAt(
-            definition.member,
-            "Unexpected field ${definition.member} in "
+            definition.location,
+            "Unexpected field ${definition} in "
             "FieldDataImpl.getFieldConstant");
       }
     }
@@ -572,8 +962,8 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
     assert(
         value != null,
         failedAt(
-            definition.member,
-            "Field ${definition.member} doesn't have a "
+            definition.location,
+            "Field ${definition} doesn't have a "
             "constant initial value."));
     return value;
   }
@@ -586,18 +976,51 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
 }
 
 class JTypedefData {
-  final TypedefEntity element;
+  /// Tag used for identifying serialized [JTypedefData] objects in
+  /// a debugging data stream.
+  static const String tag = 'typedef-data';
+
   final TypedefType rawType;
 
-  JTypedefData(this.element, this.rawType);
+  JTypedefData(this.rawType);
+
+  factory JTypedefData.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    TypedefType rawType = source.readDartType();
+    source.end(tag);
+    return new JTypedefData(rawType);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeDartType(rawType);
+    sink.end(tag);
+  }
 }
 
 class JTypeVariableData {
+  /// Tag used for identifying serialized [JTypeVariableData] objects in
+  /// a debugging data stream.
+  static const String tag = 'type-variable-data';
+
   final ir.TypeParameter node;
   DartType _bound;
   DartType _defaultType;
 
   JTypeVariableData(this.node);
+
+  factory JTypeVariableData.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.TypeParameter node = source.readTypeParameterNode();
+    source.end(tag);
+    return new JTypeVariableData(node);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeTypeParameterNode(node);
+    sink.end(tag);
+  }
 
   DartType getBound(IrToElementMap elementMap) {
     return _bound ??= elementMap.getDartType(node.bound);

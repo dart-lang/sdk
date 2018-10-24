@@ -1012,7 +1012,7 @@ class Namer {
     // apply. So we can directly grab a name.
     if (element is JSEntity) {
       return _disambiguateInternalMember(
-          element, () => (element as JSEntity).declaredEntity.name);
+          element, () => (element as JSEntity).declaredName);
     }
 
     // If the name of the field might clash with another field,

@@ -29,7 +29,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
 import 'package:dev_compiler/src/analyzer/module_compiler.dart'
-    show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
+    show CompilerOptions, JSModuleFile, ModuleCompiler;
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:js/js.dart';
@@ -293,15 +293,14 @@ class WebCompileCommand extends Command {
       }
       resources.newFile(fileName, sourceCode);
 
-      var unit = BuildUnit(libraryName, "", [fileName]);
-
-      JSModuleFile module = compiler.compile(unit, compilerOptions);
+      compilerOptions.moduleName = path.toUri(libraryName).toString();
+      JSModuleFile module = compiler.compile([fileName], compilerOptions);
 
       var moduleCode = '';
       if (module.isValid) {
-        moduleCode = module
-            .getCode(ModuleFormat.legacyConcat, unit.name, unit.name + '.map')
-            .code;
+        var name = compilerOptions.moduleName;
+        moduleCode =
+            module.getCode(ModuleFormat.legacyConcat, name, name + '.map').code;
       }
 
       return CompileResult(

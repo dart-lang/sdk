@@ -7,7 +7,7 @@ class A extends core::Object {
   final field core::int index;
   final field core::String _name;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#13
@@ -31,7 +31,7 @@ ConstantPool {
 }
 ]  static const field core::List<self::A> values = const <self::A>[self::A::elem1, self::A::elem2, self::A::elem3, self::A::elem4];
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -45,7 +45,7 @@ ConstantPool {
 }
 ]  static const field self::A elem1 = const self::A::•(0, "A.elem1");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -59,7 +59,7 @@ ConstantPool {
 }
 ]  static const field self::A elem2 = const self::A::•(1, "A.elem2");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -73,7 +73,7 @@ ConstantPool {
 }
 ]  static const field self::A elem3 = const self::A::•(2, "A.elem3");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -87,7 +87,7 @@ ConstantPool {
 }
 ]  static const field self::A elem4 = const self::A::•(3, "A.elem4");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-7]
@@ -115,14 +115,12 @@ ConstantPool {
     : self::A::index = index, self::A::_name = _name, super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -135,7 +133,7 @@ ConstantPool {
 class B extends core::Object {
   final field core::int i;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-6]
@@ -161,7 +159,7 @@ ConstantPool {
 class C extends self::B {
   final field core::int j;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-8]
@@ -193,7 +191,7 @@ class D extends core::Object {
   final field dynamic x;
   final field dynamic y;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   EntryOptional        2, 1, 0
   LoadConstant         r2, CP#0
   Frame                0
@@ -226,7 +224,7 @@ ConstantPool {
 }
 class E<T extends core::Object = dynamic> extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -246,7 +244,7 @@ ConstantPool {
 }
 class F<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::E<core::Map<self::F::P, self::F::Q>> {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -265,7 +263,7 @@ ConstantPool {
     ;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -280,7 +278,7 @@ ConstantPool {
 ]static const field self::A c1 = self::A::elem3;
 static const field core::String c2 = "hello!";
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushInt              6
@@ -290,7 +288,7 @@ ConstantPool {
 }
 ]static const field core::int c3 = self::c2.{core::String::length};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -304,7 +302,7 @@ ConstantPool {
 }
 ]static const field self::C c4 = const self::C::•(1, 2, 3);
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -319,7 +317,7 @@ ConstantPool {
 ]static const field self::D c5 = const self::D::•(const self::B::•(4));
 static field core::double fieldWithDoubleLiteralInitializer = 1.0;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#3
@@ -372,7 +370,7 @@ ConstantPool {
   core::print(self::c5);
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushInt              42
@@ -446,7 +444,7 @@ ConstantPool {
   core::print(const self::D::•(const self::C::•(4, 5, 6), const <core::String, core::Object>{"foo": 42, "bar": const self::B::•(self::c2.{core::String::length})}));
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -517,7 +515,7 @@ ConstantPool {
   core::print(<core::String>["a", a.{core::int::toString}(), "b"]);
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   CheckFunctionTypeArgs 1, 0
@@ -633,7 +631,7 @@ ConstantPool {
   core::print(<self::test_map_literal::T, core::int>{c: 4});
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#0
@@ -659,7 +657,7 @@ ConstantPool {
   core::print(#_private_symbol);
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 1, 0
@@ -688,12 +686,10 @@ ConstantPool {
   core::print(self::test_type_literal::T);
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#1
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -703,12 +699,10 @@ ConstantPool {
 ]static method testGenericConstInstance() → dynamic
   return const self::F::•<core::int, core::String>();
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -717,13 +711,11 @@ ConstantPool {
 ]static method testGenericFunctionTypeLiteral() → dynamic
   return <X extends core::Object = dynamic>(X) → X;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#0
   PushStatic           CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -732,7 +724,7 @@ ConstantPool {
 ]static method testFieldWithDoubleLiteralInitializer() → dynamic
   return self::fieldWithDoubleLiteralInitializer;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

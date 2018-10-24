@@ -36,8 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_rev": "9858ee7d79cf09b50d6b5bc13fb950ae5f357954",
-  "co19_2_rev": "9484b81650d8c5bedf72abc541960dd1c90b2329",
+  "co19_2_rev": "77825446f59893bb2b20f2e9517a4567e0371193",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -64,7 +63,7 @@ vars = {
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
   "csslib_tag" : "0.14.4+1",
-  "dart2js_info_tag" : "0.5.6+4",
+  "dart2js_info_tag" : "0.5.13",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -80,7 +79,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.0",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.23.0",
+  "dartdoc_tag" : "v0.24.1",
   "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
   "fixnum_tag": "0.10.8",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
@@ -96,7 +95,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.68",
+  "linter_tag": "0.1.70",
   "logging_tag": "0.11.3+2",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
@@ -134,7 +133,7 @@ vars = {
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "1.0.0",
+  "test_tag": "1.3.4",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
@@ -165,9 +164,15 @@ deps = {
       ],
       "dep_type": "cipd",
   },
-
-  Var("dart_root") + "/tests/co19/src":
-      Var("dart_git") + "co19.git" + "@" + Var("co19_rev"),
+  Var("dart_root") + "/third_party/d8": {
+      "packages": [
+          {
+              "package": "dart/d8",
+              "version": "version:6.9.427.23+1",
+          },
+      ],
+      "dep_type": "cipd",
+  },
 
   Var("dart_root") + "/tests/co19_2/src":
       Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +
@@ -381,20 +386,6 @@ deps = {
 # TODO(iposva): Move the necessary tools so that hooks can be run
 # without the runtime being available.
 hooks = [
-  {
-    'name': 'd8_testing_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '--recursive',
-      '--directory',
-      Var('dart_root') + '/third_party/d8',
-    ],
-  },
   {
     "name": "firefox_jsshell",
     "pattern": ".",

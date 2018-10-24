@@ -301,7 +301,7 @@ class ProcessedOptionsTest {
     // .packages file should be ignored.
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var processed = new ProcessedOptions(
         options: raw,
         inputs: [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
@@ -319,7 +319,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..packagesFileUri = new Uri()
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages.asMap(), isEmpty);
@@ -334,7 +334,7 @@ class ProcessedOptionsTest {
     var errors = [];
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options = new ProcessedOptions(options: raw);
     var result = await options.validateOptions();
     expect(errors.single.message, messageMissingInput.message);
@@ -345,7 +345,7 @@ class ProcessedOptionsTest {
     var errors = [];
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
@@ -371,7 +371,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
@@ -389,7 +389,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
@@ -408,7 +408,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
@@ -425,7 +425,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
@@ -447,7 +447,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
@@ -466,7 +466,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
+      ..onDiagnostic = errors.add;
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);

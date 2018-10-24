@@ -530,7 +530,7 @@ class X509Certificate {
 class RawDatagramSocket {
   @patch
   static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress = true}) {
+      {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) {
     throw UnsupportedError("RawDatagramSocket.bind");
   }
 }

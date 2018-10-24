@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Base1 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -22,7 +22,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 1, 0
@@ -33,12 +33,10 @@ ConstantPool {
 }
 ]  method foo<T extends core::Object = dynamic>(self::Base1::foo::T a1, core::int a2) → void {}
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushInt              42
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -46,7 +44,7 @@ ConstantPool {
 ]  get bar() → dynamic
     return 42;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull
@@ -58,7 +56,7 @@ ConstantPool {
 }
 class A extends self::Base1 {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -76,7 +74,7 @@ ConstantPool {
     : super self::Base1::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -85,8 +83,6 @@ Bytecode {
   PushInt              2
   PushConstant         CP#3
   IndirectStaticCall   4, CP#2
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -98,14 +94,12 @@ ConstantPool {
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base1::foo}<core::String>("a1", 2);
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -115,14 +109,12 @@ ConstantPool {
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base1::foo};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -132,7 +124,7 @@ ConstantPool {
 ]  method testSuperGet() → dynamic
     return super.{self::Base1::bar};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -141,8 +133,6 @@ Bytecode {
   IndirectStaticCall   1, CP#1
   PushConstant         CP#3
   InstanceCall         3, CP#5
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -156,7 +146,7 @@ ConstantPool {
 ]  method testSuperCallViaGetter() → dynamic
     return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base1::bar}.call<core::int>("param");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -177,7 +167,7 @@ ConstantPool {
 }
 abstract class Base2 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -200,7 +190,7 @@ ConstantPool {
 }
 abstract class B extends self::Base2 {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -218,7 +208,7 @@ ConstantPool {
     : super self::Base2::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-6]
@@ -254,8 +244,6 @@ Bytecode {
   PushConstant         CP#9
   IndirectStaticCall   2, CP#8
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = String 'foo'
@@ -272,7 +260,7 @@ ConstantPool {
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base2::foo}<core::double>("a1", 3.14, 5);
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -291,8 +279,6 @@ Bytecode {
   IndirectStaticCall   4, CP#3
   PushConstant         CP#6
   IndirectStaticCall   2, CP#5
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -307,7 +293,7 @@ ConstantPool {
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base2::foo};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -327,8 +313,6 @@ Bytecode {
   PushConstant         CP#6
   IndirectStaticCall   2, CP#5
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = String 'bar'
@@ -342,7 +326,7 @@ ConstantPool {
 ]  method testSuperGet() → dynamic
     return super.{self::Base2::bar};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -365,8 +349,6 @@ Bytecode {
   PushConstant         CP#8
   InstanceCall         3, CP#10
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgs [dart.core::int]
@@ -384,7 +366,7 @@ ConstantPool {
 ]  method testSuperCallViaGetter() → dynamic
     return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base2::bar}.call<core::int>("param");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -424,7 +406,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

@@ -292,7 +292,7 @@ class HGraph {
       Compiler compiler,
       JClosedWorld closedWorld) {
     ConstantValue wrapper = new DeferredGlobalConstantValue(constant, unit);
-    compiler.backend.outputUnitData.registerConstantDeferredUse(wrapper, unit);
+    closedWorld.outputUnitData.registerConstantDeferredUse(wrapper, unit);
     return addConstant(wrapper, closedWorld,
         sourceInformation: sourceInformation);
   }

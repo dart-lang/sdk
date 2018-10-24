@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
@@ -273,7 +274,8 @@ bool FlowGraphCompiler::IsEmptyBlock(BlockEntryInstr* block) const {
   return !block->IsCatchBlockEntry() && !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
          !block->next()->AsGoto()->HasNonRedundantParallelMove() &&
-         !block->IsIndirectEntry() && !flow_graph().IsEntryPoint(block);
+         !block->IsIndirectEntry() && !block->IsFunctionEntry() &&
+         !block->IsOsrEntry();
 }
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
@@ -323,10 +325,14 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
-  TargetEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
+  BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
   if (entry == nullptr) {
     entry = flow_graph().graph_entry()->normal_entry();
   }
+  if (entry == nullptr) {
+    entry = flow_graph().graph_entry()->osr_entry();
+  }
+  ASSERT(entry != nullptr);
   Label* target = GetJumpLabel(entry);
 
   if (target->IsBound()) {
@@ -414,11 +420,8 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
                                               intptr_t try_index) {
 #if defined(DART_PRECOMPILER)
   env = env ? env : pending_deoptimization_env_;
-  try_index = try_index != CatchClauseNode::kInvalidTryIndex
-                  ? try_index
-                  : CurrentTryIndex();
-  if (is_optimizing() && env != nullptr &&
-      (try_index != CatchClauseNode::kInvalidTryIndex)) {
+  try_index = try_index != kInvalidTryIndex ? try_index : CurrentTryIndex();
+  if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
     CatchBlockEntryInstr* catch_block =
         flow_graph().graph_entry()->GetCatchEntry(try_index);
@@ -511,29 +514,11 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
                        line.ToCString());
 }
 
-static void LoopInfoComment(
-    Assembler* assembler,
-    const BlockEntryInstr& block,
-    const ZoneGrowableArray<BlockEntryInstr*>& loop_headers) {
-  if (Assembler::EmittingComments()) {
-    for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
-      for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
-           !loop_it.Done(); loop_it.Advance()) {
-        if (loop_it.Current() == block.preorder_number()) {
-          assembler->Comment("  Loop %" Pd "", loop_id);
-        }
-      }
-    }
-  }
-}
-
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
-  const ZoneGrowableArray<BlockEntryInstr*>* loop_headers = NULL;
   if (Assembler::EmittingComments()) {
-    // 'loop_headers' were cleared, recompute.
-    loop_headers = flow_graph().ComputeLoops();
-    ASSERT(loop_headers != NULL);
+    // The loop_info fields were cleared, recompute.
+    flow_graph().ComputeLoops();
   }
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
@@ -552,7 +537,11 @@ void FlowGraphCompiler::VisitBlocks() {
     }
 #endif
 
-    LoopInfoComment(assembler(), *entry, *loop_headers);
+    if (Assembler::EmittingComments()) {
+      for (LoopInfo* l = entry->loop_info(); l != nullptr; l = l->outer()) {
+        assembler()->Comment("  Loop %" Pd "", l->id());
+      }
+    }
 
     entry->set_offset(assembler()->CodeSize());
     BeginCodeSourceRange();
@@ -978,12 +967,6 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
       exception_handlers_list_->FinalizeExceptionHandlers(code.PayloadStart()));
   code.set_exception_handlers(handlers);
-  if (FLAG_compiler_stats) {
-    Thread* thread = Thread::Current();
-    INC_STAT(thread, total_code_size,
-             ExceptionHandlers::InstanceSize(handlers.num_entries()));
-    INC_STAT(thread, total_code_size, handlers.num_entries() * sizeof(uword));
-  }
 }
 
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
@@ -1099,20 +1082,15 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
     }
   }
   code.set_static_calls_target_table(targets);
-  INC_STAT(Thread::Current(), total_code_size,
-           targets.Length() * sizeof(uword));
 }
 
 void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
   const Array& inlined_id_array =
       Array::Handle(zone(), code_source_map_builder_->InliningIdToFunction());
-  INC_STAT(Thread::Current(), total_code_size,
-           inlined_id_array.Length() * sizeof(uword));
   code.set_inlined_id_to_function(inlined_id_array);
 
   const CodeSourceMap& map =
       CodeSourceMap::Handle(code_source_map_builder_->Finalize());
-  INC_STAT(Thread::Current(), total_code_size, map.Length() * sizeof(uint8_t));
   code.set_code_source_map(map);
 
 #if defined(DEBUG)
@@ -1137,35 +1115,57 @@ bool FlowGraphCompiler::TryIntrinsify() {
     // Though for implicit getters, which have only the receiver as parameter,
     // there are no checks necessary in any case and we can therefore intrinsify
     // them even in checked mode and strong mode.
-    if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
-      const Field& field = Field::Handle(function().accessor_field());
-      ASSERT(!field.IsNull());
-
-      // Only intrinsify getter if the field cannot contain a mutable double.
-      // Reading from a mutable double box requires allocating a fresh double.
-      if (field.is_instance() &&
-          (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
-        SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-        GenerateInlinedGetter(field.Offset());
-        SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-        return !isolate()->use_field_guards();
-      }
-      return false;
-    } else if (parsed_function().function().kind() ==
-               RawFunction::kImplicitSetter) {
-      if (!isolate()->argument_type_checks()) {
+    switch (parsed_function().function().kind()) {
+      case RawFunction::kImplicitGetter: {
         const Field& field = Field::Handle(function().accessor_field());
         ASSERT(!field.IsNull());
 
+        // Only intrinsify getter if the field cannot contain a mutable double.
+        // Reading from a mutable double box requires allocating a fresh double.
         if (field.is_instance() &&
-            (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+            (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-          GenerateInlinedSetter(field.Offset());
+          GenerateGetterIntrinsic(field.Offset());
           SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
           return !isolate()->use_field_guards();
         }
         return false;
       }
+      case RawFunction::kImplicitSetter: {
+        if (!isolate()->argument_type_checks()) {
+          const Field& field = Field::Handle(function().accessor_field());
+          ASSERT(!field.IsNull());
+
+          if (field.is_instance() &&
+              (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+            SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
+            GenerateSetterIntrinsic(field.Offset());
+            SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
+            return !isolate()->use_field_guards();
+          }
+          return false;
+        }
+        break;
+      }
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+      case RawFunction::kMethodExtractor: {
+        auto& extracted_method = Function::ZoneHandle(
+            parsed_function().function().extracted_method_closure());
+        auto& klass = Class::Handle(extracted_method.Owner());
+        const intptr_t type_arguments_field_offset =
+            klass.NumTypeArguments() > 0
+                ? (klass.type_arguments_field_offset() - kHeapObjectTag)
+                : 0;
+
+        SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
+        GenerateMethodExtractorIntrinsic(extracted_method,
+                                         type_arguments_field_offset);
+        SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
+        return true;
+      }
+#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+      default:
+        break;
     }
   }
 
@@ -1261,7 +1261,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
     const Array& arguments_descriptor =
         Array::Handle(ic_data_in.arguments_descriptor());
     EmitMegamorphicInstanceCall(name, arguments_descriptor, deopt_id, token_pos,
-                                locs, CatchClauseNode::kInvalidTryIndex);
+                                locs, kInvalidTryIndex);
     return;
   }
 
@@ -1358,11 +1358,11 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 
 #if !defined(TARGET_ARCH_DBC)
 // TODO(vegorov) enable edge-counters on DBC if we consider them beneficial.
-bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
+bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
-  return FLAG_reorder_basic_blocks && (!block->last_instruction()->IsGoto() ||
-                                       flow_graph().IsEntryPoint(block));
+  return FLAG_reorder_basic_blocks &&
+         (!block->last_instruction()->IsGoto() || block->IsFunctionEntry());
 }
 
 // Allocate a register that is not explictly blocked.
@@ -2009,7 +2009,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     __ Bind(&next_test);
   }
   if (add_megamorphic_call) {
-    int try_index = CatchClauseNode::kInvalidTryIndex;
+    int try_index = kInvalidTryIndex;
     EmitMegamorphicInstanceCall(function_name, arguments_descriptor, deopt_id,
                                 token_index, locs, try_index);
   }
@@ -2268,8 +2268,8 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
                           instruction()->token_pos(), try_index_);
   AddMetadataForRuntimeCall(compiler);
   compiler->RecordSafepoint(locs, num_args_);
-  if ((try_index_ != CatchClauseNode::kInvalidTryIndex) ||
-      (compiler->CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
+  if ((try_index_ != kInvalidTryIndex) ||
+      (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), num_args_);
     compiler->RecordCatchEntryMoves(env, try_index_);

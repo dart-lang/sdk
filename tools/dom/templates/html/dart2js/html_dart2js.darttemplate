@@ -159,3 +159,6 @@ class HtmlElement extends Element implements NoncedElement {
  */
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+
+WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');
+

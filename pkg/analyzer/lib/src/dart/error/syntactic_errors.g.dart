@@ -69,6 +69,25 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _CONST_AND_VAR,
   _CONST_CLASS,
   _VAR_AS_TYPE_NAME,
+  _CONST_FACTORY,
+  _CONST_METHOD,
+  _CONTINUE_WITHOUT_LABEL_IN_CASE,
+  _COVARIANT_AFTER_FINAL,
+  _COVARIANT_AND_STATIC,
+  _COVARIANT_MEMBER,
+  _DEFERRED_AFTER_PREFIX,
+  _DIRECTIVE_AFTER_DECLARATION,
+  _DUPLICATED_MODIFIER,
+  _DUPLICATE_DEFERRED,
+  _DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
+  _DUPLICATE_PREFIX,
+  _ENUM_IN_CLASS,
+  _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+  _EXTERNAL_TYPEDEF,
+  _EXTRANEOUS_MODIFIER,
+  _FACTORY_TOP_LEVEL_DECLARATION,
+  _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+  _FINAL_AND_COVARIANT,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -118,15 +137,78 @@ const ParserErrorCode _CONST_CLASS = const ParserErrorCode(
     correction:
         "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).");
 
+const ParserErrorCode _CONST_FACTORY = const ParserErrorCode('CONST_FACTORY',
+    r"Only redirecting factory constructors can be declared to be 'const'.",
+    correction:
+        "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.");
+
+const ParserErrorCode _CONST_METHOD = const ParserErrorCode('CONST_METHOD',
+    r"Getters, setters and methods can't be declared to be 'const'.",
+    correction: "Try removing the 'const' keyword.");
+
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
     'CONTINUE_OUTSIDE_OF_LOOP',
     r"A continue statement can't be used outside of a loop or switch statement.",
     correction: "Try removing the continue statement.");
 
+const ParserErrorCode _CONTINUE_WITHOUT_LABEL_IN_CASE = const ParserErrorCode(
+    'CONTINUE_WITHOUT_LABEL_IN_CASE',
+    r"A continue statement in a switch statement must have a label as a target.",
+    correction:
+        "Try adding a label associated with one of the case clauses to the continue statement.");
+
+const ParserErrorCode _COVARIANT_AFTER_FINAL = const ParserErrorCode(
+    'COVARIANT_AFTER_FINAL',
+    r"The modifier 'covariant' should be before the modifier 'final'.",
+    correction: "Try re-ordering the modifiers.");
+
 const ParserErrorCode _COVARIANT_AFTER_VAR = const ParserErrorCode(
     'COVARIANT_AFTER_VAR',
     r"The modifier 'covariant' should be before the modifier 'var'.",
     correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _COVARIANT_AND_STATIC = const ParserErrorCode(
+    'COVARIANT_AND_STATIC',
+    r"Members can't be declared to be both 'covariant' and 'static'.",
+    correction: "Try removing either the 'covariant' or 'static' keyword.");
+
+const ParserErrorCode _COVARIANT_MEMBER = const ParserErrorCode(
+    'COVARIANT_MEMBER',
+    r"Getters, setters and methods can't be declared to be 'covariant'.",
+    correction: "Try removing the 'covariant' keyword.");
+
+const ParserErrorCode _DEFERRED_AFTER_PREFIX = const ParserErrorCode(
+    'DEFERRED_AFTER_PREFIX',
+    r"The deferred keyword should come immediately before the prefix ('as' clause).",
+    correction: "Try moving the deferred keyword before the prefix.");
+
+const ParserErrorCode _DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode(
+    'DIRECTIVE_AFTER_DECLARATION',
+    r"Directives must appear before any declarations.",
+    correction: "Try moving the directive before any declarations.");
+
+const ParserErrorCode _DUPLICATED_MODIFIER = const ParserErrorCode(
+    'DUPLICATED_MODIFIER', r"The modifier '#lexeme' was already specified.",
+    correction: "Try removing all but one occurance of the modifier.");
+
+const ParserErrorCode _DUPLICATE_DEFERRED = const ParserErrorCode(
+    'DUPLICATE_DEFERRED',
+    r"An import directive can only have one 'deferred' keyword.",
+    correction: "Try removing all but one 'deferred' keyword.");
+
+const ParserErrorCode _DUPLICATE_LABEL_IN_SWITCH_STATEMENT =
+    const ParserErrorCode('DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
+        r"The label '#name' was already used in this switch statement.",
+        correction: "Try choosing a different name for this label.");
+
+const ParserErrorCode _DUPLICATE_PREFIX = const ParserErrorCode(
+    'DUPLICATE_PREFIX',
+    r"An import directive can only have one prefix ('as' clause).",
+    correction: "Try removing all but one prefix.");
+
+const ParserErrorCode _ENUM_IN_CLASS = const ParserErrorCode(
+    'ENUM_IN_CLASS', r"Enums can't be declared inside classes.",
+    correction: "Try moving the enum to the top-level.");
 
 const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCode(
     'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
@@ -135,6 +217,12 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
 
 const ParserErrorCode _EXPECTED_INSTEAD = const ParserErrorCode(
     'EXPECTED_INSTEAD', r"Expected '#string' instead of this.");
+
+const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
+    const ParserErrorCode('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
+        r"Export directives must preceed part directives.",
+        correction:
+            "Try moving the export directives before the part directives.");
 
 const ParserErrorCode _EXTERNAL_AFTER_CONST = const ParserErrorCode(
     'EXTERNAL_AFTER_CONST',
@@ -166,6 +254,29 @@ const ParserErrorCode _EXTERNAL_FIELD = const ParserErrorCode(
 const ParserErrorCode _EXTERNAL_METHOD_WITH_BODY = const ParserErrorCode(
     'EXTERNAL_METHOD_WITH_BODY',
     r"An external or native method can't have a body.");
+
+const ParserErrorCode _EXTERNAL_TYPEDEF = const ParserErrorCode(
+    'EXTERNAL_TYPEDEF', r"Typedefs can't be declared to be 'external'.",
+    correction: "Try removing the keyword 'external'.");
+
+const ParserErrorCode _EXTRANEOUS_MODIFIER = const ParserErrorCode(
+    'EXTRANEOUS_MODIFIER', r"Can't have modifier '#lexeme' here.",
+    correction: "Try removing '#lexeme'.");
+
+const ParserErrorCode _FACTORY_TOP_LEVEL_DECLARATION = const ParserErrorCode(
+    'FACTORY_TOP_LEVEL_DECLARATION',
+    r"Top-level declarations can't be declared to be 'factory'.",
+    correction: "Try removing the keyword 'factory'.");
+
+const ParserErrorCode _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
+    const ParserErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
+        r"Field formal parameters can only be used in a constructor.",
+        correction: "Try removing 'this.'.");
+
+const ParserErrorCode _FINAL_AND_COVARIANT = const ParserErrorCode(
+    'FINAL_AND_COVARIANT',
+    r"Members can't be declared to be both 'final' and 'covariant'.",
+    correction: "Try removing either the 'final' or 'covariant' keyword.");
 
 const ParserErrorCode _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE =
     const ParserErrorCode('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',

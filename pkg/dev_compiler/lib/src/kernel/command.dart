@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
-import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
@@ -104,7 +103,7 @@ Future<CompilerResult> _compile(List<String> args,
       (argResults['multi-root'] as Iterable<String>)
           .map(Uri.base.resolve)
           .toList(),
-      StandardFileSystem.instance);
+      fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
     if (uri.scheme == '') {
@@ -221,6 +220,11 @@ Future<CompilerResult> _compile(List<String> args,
   var jsModule =
       compiler.emitModule(component, result.inputSummaries, summaryModules);
 
+  // TODO(jmesserly): support for multiple output formats?
+  //
+  // Also the old Analyzer backend had some code to make debugging better when
+  // --single-out-file is used, but that option does not appear to be used by
+  // any of our build systems.
   var jsCode = jsProgramToCode(jsModule, options.moduleFormats.first,
       buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),

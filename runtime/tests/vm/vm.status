@@ -17,11 +17,13 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fail
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
+cc/Profiler_FunctionInline: Pass, Fail # Flaky failure.
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 dart/data_uri_import_test/none: SkipByDesign
-dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT (hot-reload -> issue 34199).
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
+dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
+dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
@@ -47,6 +49,9 @@ dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/simd128float32_test: Skip # compilers not aware of Simd128
 dart/truncating_ints_test: SkipByDesign # The test requires int64.
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
+
+[ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
+dart/entrypoints/*: SkipByDesign  # Only supported in the Dart 2 JIT and test optimizations - hence disabled on hotreload bots.
 
 [ ($compiler == dartk || $compiler == dartkb) ]
 cc/DartAPI_New: Fail # Issue #33041
@@ -83,7 +88,6 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime == vm && $mode == product && $compiler == dartk ]
-cc/GenKernelKernelReadAllBytecode: Crash
 cc/CorelibIsolateStartup: Timeout, Pass
 
 [ $runtime != vm ]
@@ -104,10 +108,9 @@ cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give 
 cc/Service_Profile: Skip
 cc/GenKernelKernelLoadKernel: Skip  # Issue 34542.
 cc/GenKernelKernelReadAllBytecode: Skip  # Issue 34393.
+cc/GenKernelKernelCombined: Skip  # Issue 34393.
+cc/GenKernelKernelMaxRSS: Skip  # Issue 34393.
 dart/appjit_bytecode_simple_test: Skip  # Issue 34393.
-
-[ $system == windows && $arch == ia32 ]
-cc/BitTestImmediate: Crash # Issue 34723
 
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
@@ -150,9 +153,6 @@ dart/data_uri_import_test/wrongmime: Crash
 cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
 cc/Profiler_CodeTicks: Fail # dartbug.com/33337
 
-[ $arch == ia32 && $compiler != dartk && $compiler != dartkp && $compiler != dartkb && $system == windows && $runtime == vm && $mode == debug ]
-cc/BitTestImmediate: Crash # dartbug.com/34252
-
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
 cc/Profiler_ClosureAllocation: Pass, Fail # Issue 31137
@@ -168,7 +168,7 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 cc/PrintJSON: Crash
 cc/Service_TokenStream: Crash
 
-[ ($compiler == dartk || $compiler == dartkb) && $mode == debug && $runtime == vm ]
+[ ($compiler == dartk || $compiler == dartkb) && $runtime == vm ]
 dart/appjit_cha_deopt_test: Pass, RuntimeError # Issue 34627
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -329,69 +329,16 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 
 # Tests that use functionality not supported in Dart 2.
 [ ($compiler == dartk || $compiler == dartkb) || $compiler == dartkp ]
-cc/CanonicalizationInScriptSnapshots: SkipByDesign # Script snapshots unsupported.
 cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
-cc/DartAPI_LazyLoadDeoptimizes: SkipByDesign # Issue 33043, Dart_LoadSource unsupported.
-cc/DartAPI_LoadLibraryPatch_Error1: SkipByDesign # Dart_LibraryLoadPatch unsupported.
-cc/DartAPI_LoadLibraryPatch_Error2: SkipByDesign
-cc/DartAPI_LoadLibraryPatch_Error3: SkipByDesign
-cc/DartAPI_LoadPatch: SkipByDesign
-cc/DartAPI_LoadPatchSignatureMismatch: SkipByDesign
-cc/DartAPI_LoadSource: SkipByDesign # Dart_LoadSource unsupported.
-cc/DartAPI_LoadSource_LateLoad: SkipByDesign
-cc/DartAPI_ParsePatchLibrary: SkipByDesign
-cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
-cc/Parser_AllocateVariables_CaptureLoopVar: SkipByDesign # VM parser tests.
-cc/Parser_AllocateVariables_CapturedVar: SkipByDesign
-cc/Parser_AllocateVariables_Issue7681: SkipByDesign
-cc/Parser_AllocateVariables_MiddleChain: SkipByDesign
-cc/Parser_AllocateVariables_NestedCapturedVar: SkipByDesign
-cc/Parser_AllocateVariables_TwoChains: SkipByDesign
-cc/ScriptSnapshot: SkipByDesign # Script snapshots unsupported.
-cc/ScriptSnapshot2: SkipByDesign
-cc/SourcePosition_Async: SkipByDesign # VM parser tests (Issue 32704)
-cc/SourcePosition_BitwiseOperations: SkipByDesign
-cc/SourcePosition_ForLoop: SkipByDesign
-cc/SourcePosition_If: SkipByDesign
-cc/SourcePosition_IfElse: SkipByDesign
-cc/SourcePosition_InstanceCalls: SkipByDesign
-cc/SourcePosition_InstanceFields: SkipByDesign
-cc/SourcePosition_LoadIndexed: SkipByDesign
-cc/SourcePosition_StoreIndexed: SkipByDesign
-cc/SourcePosition_Switch: SkipByDesign
-cc/SourcePosition_TryCatchFinally: SkipByDesign
-cc/SourcePosition_While: SkipByDesign
-cc/SourcePosition_WhileContinueBreak: SkipByDesign
 cc/CompileFunctionOnHelperThread: SkipByDesign
 cc/CompileFunction: SkipByDesign
 cc/InvokeDynamic_CompileError: SkipByDesign
 cc/InvokeStatic_CompileError: SkipByDesign
 cc/DartEntry: SkipByDesign
 cc/FindCodeObject: SkipByDesign
-cc/Parser_TopLevel: SkipByDesign
 cc/DartDynamicResolve: SkipByDesign
 cc/DartStaticResolve: SkipByDesign
-cc/AllocateNewObjectCodegen: SkipByDesign
-cc/InstanceCallCodegen: SkipByDesign
-cc/StaticCallCodegen: SkipByDesign
-cc/SimpleReturnCodegen: SkipByDesign
-cc/SmiReturnCodegen: SkipByDesign
-cc/SimpleStaticCallCodegen: SkipByDesign
-cc/StaticCallReturnParameterCodegen: SkipByDesign
-cc/StaticCallReturnParameterCodegen: SkipByDesign
-cc/StaticCallSmiParamSumCodegen: SkipByDesign
-cc/SmiAddCodegen: SkipByDesign
-cc/GenericAddCodegen: SkipByDesign
-cc/SmiBinaryOpCodegen: SkipByDesign
-cc/BoolNotCodegen: SkipByDesign
-cc/BoolAndCodegen: SkipByDesign
-cc/BinaryOpCodegen: SkipByDesign
-cc/SmiUnaryOpCodegen: SkipByDesign
-cc/DoubleUnaryOpCodegen: SkipByDesign
-cc/ParseClassDefinition: SkipByDesign
 cc/CompileScript: SkipByDesign
-cc/DartAPI_LoadLibraryPatch_1: SkipByDesign
-cc/StackMapCodegen: SkipByDesign
 
 [ $compiler == precompiler || $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
@@ -401,10 +348,10 @@ dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart/slow_path_shared_stub_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
+dart/slow_path_shared_stub_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
-dart/stack_overflow_shared_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
+dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 
 [ ($runtime == vm || $runtime == dart_precompiled) && !$preview_dart_2 ]
 *:SkipByDesign # Deprecating all Dart1 modes of execution

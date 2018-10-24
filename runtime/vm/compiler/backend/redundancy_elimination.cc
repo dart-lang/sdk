@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/hash_map.h"
 #include "vm/stack_frame.h"
 
@@ -1340,7 +1341,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->LoopHeaders();
+      flow_graph()->GetLoopHierarchy().headers();
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
@@ -1361,7 +1362,7 @@ void LICM::Optimize() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->LoopHeaders();
+      flow_graph()->GetLoopHierarchy().headers();
 
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
@@ -1372,8 +1373,8 @@ void LICM::Optimize() {
     BlockEntryInstr* pre_header = header->ImmediateDominator();
     if (pre_header == NULL) continue;
 
-    for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-         loop_it.Advance()) {
+    for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+         !loop_it.Done(); loop_it.Advance()) {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
@@ -1882,7 +1883,7 @@ class LoadOptimizer : public ValueObject {
 
   void MarkLoopInvariantLoads() {
     const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-        graph_->LoopHeaders();
+        graph_->GetLoopHierarchy().headers();
 
     ZoneGrowableArray<BitVector*>* invariant_loads =
         new (Z) ZoneGrowableArray<BitVector*>(loop_headers.length());
@@ -1896,14 +1897,14 @@ class LoadOptimizer : public ValueObject {
       }
 
       BitVector* loop_gen = new (Z) BitVector(Z, aliased_set_->max_place_id());
-      for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-           loop_it.Advance()) {
+      for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+           !loop_it.Done(); loop_it.Advance()) {
         const intptr_t preorder_number = loop_it.Current();
         loop_gen->AddAll(gen_[preorder_number]);
       }
 
-      for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-           loop_it.Advance()) {
+      for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+           !loop_it.Done(); loop_it.Advance()) {
         const intptr_t preorder_number = loop_it.Current();
         loop_gen->RemoveAll(kill_[preorder_number]);
       }

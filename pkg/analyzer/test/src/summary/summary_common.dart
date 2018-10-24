@@ -1120,6 +1120,31 @@ class E {}
     expect(cls.executables, isEmpty);
   }
 
+  test_class_alias_notSimplyBoundedSlot() {
+    var cls = serializeClassText(
+        'class C<T extends C> = D with E; class D {} class E {}');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_alias_notSimplyBoundedSlot_simple_because_non_generic() {
+    // If no type parameters are specified, then the class is simply bounded, so
+    // there is no reason to assign it a slot.
+    var cls = serializeClassText('class C = D with E; class D {} class E {}');
+    expect(cls.notSimplyBoundedSlot, 0);
+  }
+
+  test_class_alias_notSimplyBoundedSlot_simple_by_syntax() {
+    // If no bounds are specified, then the class is simply bounded by sintax
+    // alone, so there is no reason to assign it a slot.
+    var cls =
+        serializeClassText('class C<T> = D with E; class D {} class E {}');
+    expect(cls.notSimplyBoundedSlot, 0);
+  }
+
   test_class_alias_private() {
     serializeClassText('class _C = _D with _E; class _D {} class _E {}',
         className: '_C');
@@ -1359,6 +1384,137 @@ class E {}
   test_class_non_alias_flag() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.isMixinApplication, false);
+  }
+
+  test_class_notSimplyBounded_circularity_via_typedef() {
+    // C's type parameter T is not simply bounded because its bound, F, expands
+    // to `dynamic F(C)`, which refers to C.
+    UnlinkedClass cls =
+        serializeClassText('class C<T extends F> {} typedef F(C value);');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_notSimplyBounded_circularity_with_type_params() {
+    // C's type parameter T is simply bounded because even though it refers to
+    // C, it specifies a bound.
+    UnlinkedClass cls = serializeClassText('class C<T extends C<dynamic>> {}');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(cls.notSimplyBoundedSlot)));
+    }
+  }
+
+  test_class_notSimplyBounded_dependency_with_type_params() {
+    // C's type parameter T is simply bounded because even though it refers to
+    // non-simply-bounded type D, it specifies a bound.
+    UnlinkedClass cls = serializeClassText(
+        'class C<T extends D<dynamic>> {} class D<T extends D<T>> {}');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(cls.notSimplyBoundedSlot)));
+    }
+  }
+
+  test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type() {
+    UnlinkedClass cls =
+        serializeClassText('class C<T extends void Function(T)> {}');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_notSimplyBounded_function_typed_bound_complex_via_return_type() {
+    UnlinkedClass cls =
+        serializeClassText('class C<T extends T Function()> {}');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_notSimplyBounded_function_typed_bound_simple() {
+    UnlinkedClass cls =
+        serializeClassText('class C<T extends void Function()> {}');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(cls.notSimplyBoundedSlot)));
+    }
+  }
+
+  test_class_notSimplyBounded_refers_to_circular_typedef() {
+    // C's type parameter T has a bound of F, which is a circular typedef.  This
+    // is illegal in Dart, but we need to make sure it doesn't lead to a crash
+    // or infinite loop.
+    UnlinkedClass cls = serializeClassText(
+        'class C<T extends F> {} typedef F(G value); typedef G(F value);');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+  }
+
+  test_class_notSimplyBoundedSlot() {
+    var cls = serializeClassText('class C<T extends C> {}');
+    expect(cls.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_notSimplyBoundedSlot_complex_by_cycle() {
+    var cls =
+        serializeClassText('class C<T extends D> {} class D<T extends C> {}');
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_notSimplyBoundedSlot_complex_by_reference_to_cycle() {
+    var cls =
+        serializeClassText('class C<T extends D> {} class D<T extends D> {}');
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_notSimplyBoundedSlot_complex_by_use_of_parameter() {
+    var cls = serializeClassText('class C<T extends D<T>> {} class D<T> {}');
+    if (!skipFullyLinkedData) {
+      expect(
+          linked.units[0].notSimplyBounded, contains(cls.notSimplyBoundedSlot));
+    }
+  }
+
+  test_class_notSimplyBoundedSlot_simple_because_non_generic() {
+    // If no type parameters are specified, then the class is simply bounded, so
+    // there is no reason to assign it a slot.
+    var cls = serializeClassText('class C {}');
+    expect(cls.notSimplyBoundedSlot, 0);
+  }
+
+  test_class_notSimplyBoundedSlot_simple_by_lack_of_cycles() {
+    var cls = serializeClassText('class C<T extends D> {} class D<T> {}');
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(cls.notSimplyBoundedSlot)));
+    }
+  }
+
+  test_class_notSimplyBoundedSlot_simple_by_syntax() {
+    // If no bounds are specified, then the class is simply bounded by syntax
+    // alone, so there is no reason to assign it a slot.
+    var cls = serializeClassText('class C<T> {}');
+    expect(cls.notSimplyBoundedSlot, 0);
   }
 
   test_class_private() {
@@ -9065,6 +9221,69 @@ var v = (() {
     checkParamTypeRef(findParameter(parameters, 'y').type, 1);
   }
 
+  test_new_typedef_notSimplyBoundedSlot() {
+    var typedef =
+        serializeTypedefText('typedef F<T extends F> = void Function();');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          contains(typedef.notSimplyBoundedSlot));
+    }
+  }
+
+  test_new_typedef_notSimplyBoundedSlot_simple_no_bounds() {
+    // If no bounds are specified, then the typedef is simply bounded, however
+    // it still gets a slot because all typedefs are assigned a slot.
+    var typedef = serializeTypedefText('typedef F<T> = void Function();');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(typedef.notSimplyBoundedSlot)));
+    }
+  }
+
+  test_new_typedef_notSimplyBoundedSlot_simple_non_generic() {
+    // If no type parameters are specified, then the typedef is simply bounded,
+    // however it still gets a slot because all typedefs are assigned a slot.
+    var typedef = serializeTypedefText('typedef F = void Function();');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(typedef.notSimplyBoundedSlot)));
+    }
+  }
+
+  test_old_typedef_notSimplyBoundedSlot() {
+    var typedef = serializeTypedefText('typedef void F<T extends F>();');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          contains(typedef.notSimplyBoundedSlot));
+    }
+  }
+
+  test_old_typedef_notSimplyBoundedSlot_simple_because_non_generic() {
+    // If no type parameters are specified, then the typedef is simply bounded,
+    // however it still gets a slot because all typedefs are assigned a slot.
+    var typedef = serializeTypedefText('typedef void F();');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(typedef.notSimplyBoundedSlot)));
+    }
+  }
+
+  test_old_typedef_notSimplyBoundedSlot_simple_no_bounds() {
+    // If no bounds are specified, then the typedef is simply bounded, however
+    // it still gets a slot because all typedefs are assigned a slot.
+    var typedef = serializeTypedefText('typedef void F<T>();');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          isNot(contains(typedef.notSimplyBoundedSlot)));
+    }
+  }
+
   test_parameter_visibleRange_abstractMethod() {
     UnlinkedExecutable m = findExecutable('m',
         executables:
@@ -9757,6 +9976,66 @@ typedef F();''';
         unlinkedUnits[0].publicNamespace.names[0].kind, ReferenceKind.typedef);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'F');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    UnlinkedTypedef typedef = serializeTypedefText(
+        'typedef F = void Function(C c); class C<T extends C<T>> {}');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          contains(typedef.notSimplyBoundedSlot));
+    }
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    UnlinkedTypedef typedef = serializeTypedefText(
+        'typedef F = void Function(C); class C<T extends C<T>> {}');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          contains(typedef.notSimplyBoundedSlot));
+    }
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_param_type_old_style() {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    UnlinkedTypedef typedef =
+        serializeTypedefText('typedef void F(C c); class C<T extends C<T>> {}');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          contains(typedef.notSimplyBoundedSlot));
+    }
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_return_type_new_style() {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    UnlinkedTypedef typedef = serializeTypedefText(
+        'typedef F = C Function(); class C<T extends C<T>> {}');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          contains(typedef.notSimplyBoundedSlot));
+    }
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_return_type_old_style() {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    UnlinkedTypedef typedef =
+        serializeTypedefText('typedef C F(); class C<T extends C<T>> {}');
+    expect(typedef.notSimplyBoundedSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(linked.units[0].notSimplyBounded,
+          contains(typedef.notSimplyBoundedSlot));
+    }
   }
 
   test_typedef_param_none() {

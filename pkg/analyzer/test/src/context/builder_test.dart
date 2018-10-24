@@ -241,28 +241,29 @@ linter:
     _expectEqualOptions(options, expected);
   }
 
+  @failingTest
   void test_cmdline_options_override_options_file() {
-    ArgParser argParser = new ArgParser();
-    defineAnalysisArguments(argParser);
-    ArgResults argResults = argParser.parse(['--$enableSuperMixinFlag']);
-    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
-
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
-    expected.previewDart2 = true;
-
-    String path = resourceProvider.convertPath('/some/directory/path');
-    String filePath =
-        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(filePath, '''
-analyzer:
-  language:
-    enablePreviewDart2: true
-''');
-
-    AnalysisOptions options = builder.getAnalysisOptions(path);
-    _expectEqualOptions(options, expected);
+    fail('No clear choice of option to override.');
+//    ArgParser argParser = new ArgParser();
+//    defineAnalysisArguments(argParser);
+//    ArgResults argResults = argParser.parse(['--$enableSuperMixinFlag']);
+//    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+//        options: createContextBuilderOptions(argResults));
+//
+//    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+//    expected.previewDart2 = true;
+//
+//    String path = resourceProvider.convertPath('/some/directory/path');
+//    String filePath =
+//        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+//    resourceProvider.newFile(filePath, '''
+//analyzer:
+//  language:
+//    enablePreviewDart2: true
+//''');
+//
+//    AnalysisOptions options = builder.getAnalysisOptions(path);
+//    _expectEqualOptions(options, expected);
   }
 
   void test_convertPackagesToMap_noPackages() {
@@ -298,7 +299,6 @@ analyzer:
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
     defaultOptions.enableLazyAssignmentOperators =
         !defaultOptions.enableLazyAssignmentOperators;
-    defaultOptions.enableSuperMixins = !defaultOptions.enableSuperMixins;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, defaultOptions);
@@ -712,19 +712,17 @@ linter:
 
   void test_getAnalysisOptions_default_overrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    defaultOptions.enableSuperMixins = false;
-    defaultOptions.enableLazyAssignmentOperators = true;
+    defaultOptions.implicitDynamic = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
-    expected.enableLazyAssignmentOperators = true;
+    expected.implicitDynamic = false;
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(filePath, '''
 analyzer:
-  language:
-    enableSuperMixins : true
+  strong-mode:
+    implicit-dynamic: false
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -753,10 +751,8 @@ analyzer:
   void test_getAnalysisOptions_includes() {
     _defineMockLintRules();
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    defaultOptions.enableSuperMixins = false;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
     expected.lint = true;
     expected.lintRules = <Linter>[
       _mockLintRule,
@@ -775,9 +771,6 @@ somepkg:../../../mypkgs/somepkg/lib
 ''');
     resourceProvider.newFile(pathContext.join(path, 'bar.yaml'), '''
 include: package:somepkg/here.yaml
-analyzer:
-  language:
-    enableSuperMixins : true
 linter:
   rules:
     - mock_lint_rule2
@@ -821,14 +814,14 @@ linter:
 
   void test_getAnalysisOptions_noDefault_overrides() {
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
+    expected.implicitDynamic = false;
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(filePath, '''
 analyzer:
-  language:
-    enableSuperMixins : true
+  strong-mode:
+    implicit-dynamic: false
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -926,7 +919,6 @@ linter:
     expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableLazyAssignmentOperators,
         expected.enableLazyAssignmentOperators);
-    expect(actual.enableSuperMixins, expected.enableSuperMixins);
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
     expect(actual.generateSdkErrors, expected.generateSdkErrors);

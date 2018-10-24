@@ -28,8 +28,8 @@ class Q<T extends core::Object = dynamic> extends core::Object {
     : self::Q::result = result, super core::Object::•()
     ;
 }
-static method foo1([@vm.inferred-type.metadata=dart.core::_GrowableList] core::List<self::T1> list) → dynamic {
-  [@vm.direct-call.metadata=#lib::T3::run] [@vm.direct-call.metadata=#lib::T1::go??] [@vm.inferred-type.metadata=#lib::T3] [@vm.direct-call.metadata=#lib::Q::result??] [@vm.direct-call.metadata=dart._internal::ListIterable::first] [@vm.direct-call.metadata=dart.collection::_ListBase&Object&ListMixin::map] [@vm.inferred-type.metadata=dart._internal::MappedListIterable] list.{core::Iterable::map}<self::Q<self::T1>>((self::T1 t1) → self::Q<self::T1> => new self::Q::•<self::T1>(t1)).{core::Iterable::first}.{self::Q::result}.{self::T1::go}().{self::T3::run}();
+static method foo1([@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::T1>] core::List<self::T1> list) → dynamic {
+  [@vm.direct-call.metadata=#lib::T3::run] [@vm.direct-call.metadata=#lib::T1::go??] [@vm.inferred-type.metadata=#lib::T3] [@vm.direct-call.metadata=#lib::Q::result??] [@vm.direct-call.metadata=dart._internal::ListIterable::first] [@vm.direct-call.metadata=dart.collection::_ListBase&Object&ListMixin::map] [@vm.inferred-type.metadata=dart._internal::MappedListIterable<#lib::T1, ?>] list.{core::Iterable::map}<self::Q<self::T1>>((self::T1 t1) → self::Q<self::T1> => new self::Q::•<self::T1>(t1)).{core::Iterable::first}.{self::Q::result}.{self::T1::go}().{self::T3::run}();
 }
 static method foo2NewValue() → self::Q<dynamic>
   return new self::Q::•<self::T2>(new self::T2::•());

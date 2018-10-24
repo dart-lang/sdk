@@ -25,15 +25,10 @@
       "tests/angular/",
       "tests/co19_2/",
       "tests/compiler/",
-      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart/",
-      "tests/html/",
-      "tests/isolate/",
       "tests/kernel/",
-      "tests/language/",
       "tests/language_2/",
-      "tests/lib/",
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -63,15 +58,10 @@
       "tests/angular/",
       "tests/co19_2/",
       "tests/compiler/",
-      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart/",
-      "tests/html/",
-      "tests/isolate/",
       "tests/kernel/",
-      "tests/language/",
       "tests/language_2/",
-      "tests/lib/",
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -111,21 +101,17 @@
       "samples/",
       "samples-dev/",
       "tools/",
+      "third_party/gsutil/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/observatory_pub_packages/packages/",
       "tests/angular/",
       "tests/co19_2/",
       "tests/compiler/",
-      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart/",
-      "tests/html/",
-      "tests/isolate/",
       "tests/kernel/",
-      "tests/language/",
       "tests/language_2/",
-      "tests/lib/",
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -144,7 +130,8 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
-      ".packages"
+      ".packages",
+      ".vpython"
     ]
   },
   "configurations": {
@@ -557,17 +544,9 @@
     },
     {
       "builders": [
-        "vm-kernel-linux-debug-ia32",
-        "vm-kernel-linux-debug-simdbc64",
-        "vm-kernel-linux-debug-x64",
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
         "vm-kernel-linux-release-ia32",
-        "vm-kernel-mac-debug-simdbc64",
-        "vm-kernel-mac-debug-x64",
-        "vm-kernel-mac-product-x64",
-        "vm-kernel-mac-release-simdbc64",
-        "vm-kernel-mac-release-x64",
         "vm-kernel-win-debug-ia32",
         "vm-kernel-win-debug-x64",
         "vm-kernel-win-product-x64",
@@ -596,7 +575,15 @@
       "builders": [
         "vm-kernel-linux-product-x64",
         "vm-kernel-linux-release-simdbc64",
-        "vm-kernel-linux-release-x64"
+        "vm-kernel-linux-release-x64",
+        "vm-kernel-linux-debug-ia32",
+        "vm-kernel-linux-debug-simdbc64",
+        "vm-kernel-linux-debug-x64",
+        "vm-kernel-mac-product-x64",
+        "vm-kernel-mac-release-simdbc64",
+        "vm-kernel-mac-release-x64",
+        "vm-kernel-mac-debug-simdbc64",
+        "vm-kernel-mac-debug-x64"
       ],
       "meta": {
         "description": "This configuration is for the co19_2 kernel builder group."
@@ -913,7 +900,7 @@
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js_hostasserts"
         },
@@ -980,7 +967,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1051,7 +1038,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1112,7 +1099,7 @@
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1122,7 +1109,7 @@
             "-ndart2js-minified-faststartup-linux-d8",
             "--dart2js-batch"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1194,7 +1181,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 4,
           "fileset": "dart2js"
         },
@@ -1205,7 +1192,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 4,
           "fileset": "dart2js"
         },
@@ -1632,7 +1619,7 @@
           "tests": ["pkg"]
         },
         {
-          "name": "third_party/pkg_tested unit tests",
+          "name": "third_party pkg_tested unit tests",
           "arguments": [
             "-nunittest-asserts-${system}"],
           "tests": ["pkg_tested"]
@@ -1683,13 +1670,37 @@
       ]
     },
     {
+      "builders": [
+        "flutter-analyze",
+        "flutter-analyze-analyzer"
+      ],
+      "meta": {
+        "description": "This configuration is used for analyzing flutter."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "analyze flutter",
+          "script": "tools/bots/flutter/analyze_flutter.sh"
+        }
+      ]
+    },
+    {
       "builders": ["fuzz-linux"],
       "meta": {
         "description": "This configuration is used for fuzz testing."
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart (aot and jit)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
@@ -1699,11 +1710,11 @@
           ]
         },
         {
-          "name": "build dart 32bit",
+          "name": "build dart (jit)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=ia32,simarm",
+            "--arch=ia32,simarm,simdbc,simdbc64",
             "runtime"
           ]
         },

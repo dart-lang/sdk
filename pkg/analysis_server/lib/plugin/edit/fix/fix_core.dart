@@ -24,7 +24,9 @@ class Fix {
    */
   static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix a, Fix b) {
     if (a.kind.priority != b.kind.priority) {
-      return a.kind.priority - b.kind.priority;
+      // A higher priority indicates a higher relevance
+      // and should be sorted before a lower priority.
+      return b.kind.priority - a.kind.priority;
     }
     return a.change.message.compareTo(b.change.message);
   };

@@ -30,67 +30,7 @@ namespace bin {
     return false;                                                              \
   }
 
-#define kLibrarySourceNamePrefix "/vmservice"
 static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
-static const char* const kVMServiceIOLibraryScriptResourceName =
-    "vmservice_io.dart";
-
-struct ResourcesEntry {
-  const char* path_;
-  const char* resource_;
-  int length_;
-};
-
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DART2_ONLY_MODE)
-ResourcesEntry __service_bin_resources_[] = {{NULL, NULL, 0}};
-#else
-extern ResourcesEntry __service_bin_resources_[];
-#endif
-
-class Resources {
- public:
-  static const int kNoSuchInstance = -1;
-  static int ResourceLookup(const char* path, const char** resource) {
-    ResourcesEntry* table = ResourcesTable();
-    for (int i = 0; table[i].path_ != NULL; i++) {
-      const ResourcesEntry& entry = table[i];
-      if (strcmp(path, entry.path_) == 0) {
-        *resource = entry.resource_;
-        ASSERT(entry.length_ > 0);
-        return entry.length_;
-      }
-    }
-    return kNoSuchInstance;
-  }
-
-  static const char* Path(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* entry = At(idx);
-    if (entry == NULL) {
-      return NULL;
-    }
-    ASSERT(entry->path_ != NULL);
-    return entry->path_;
-  }
-
- private:
-  static ResourcesEntry* At(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* table = ResourcesTable();
-    for (int i = 0; table[i].path_ != NULL; i++) {
-      if (idx == i) {
-        return &table[i];
-      }
-    }
-    return NULL;
-  }
-  static ResourcesEntry* ResourcesTable() {
-    return &__service_bin_resources_[0];
-  }
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
-};
 
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -149,27 +89,6 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
 const char* VmService::error_msg_ = NULL;
 char VmService::server_uri_[kServerUriStringBufferSize];
 
-bool VmService::LoadForGenPrecompiled(bool use_dart_frontend) {
-  Dart_Handle result;
-  Dart_SetLibraryTagHandler(LibraryTagHandler);
-  Dart_Handle library;
-  if (use_dart_frontend) {
-    // The vmservice_io library should have already been loaded as part of
-    // creating the service isolate, we should be able to look it up.
-    library =
-        Dart_LookupLibrary(Dart_NewStringFromCString(kVMServiceIOLibraryUri));
-  } else {
-    library = LookupOrLoadLibrary(kVMServiceIOLibraryScriptResourceName);
-  }
-  ASSERT(library != Dart_Null());
-  SHUTDOWN_ON_ERROR(library);
-  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
-  SHUTDOWN_ON_ERROR(result);
-  result = Dart_FinalizeLoading(false);
-  SHUTDOWN_ON_ERROR(result);
-  return true;
-}
-
 void VmService::SetNativeResolver() {
   Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
   Dart_Handle library = Dart_LookupLibrary(url);
@@ -180,7 +99,6 @@ void VmService::SetNativeResolver() {
 
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
-                      bool running_precompiled,
                       bool dev_mode_server,
                       bool trace_loading,
                       bool deterministic) {
@@ -197,25 +115,13 @@ bool VmService::Setup(const char* server_ip,
                                               trace_loading);
   SHUTDOWN_ON_ERROR(result);
 
-  if (running_precompiled) {
-    Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
-    Dart_Handle library = Dart_LookupLibrary(url);
-    SHUTDOWN_ON_ERROR(library);
-    result = Dart_SetRootLibrary(library);
-    SHUTDOWN_ON_ERROR(library);
-    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
-    SHUTDOWN_ON_ERROR(result);
-  } else {
-    // Load main script.
-    Dart_SetLibraryTagHandler(LibraryTagHandler);
-    Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
-    ASSERT(library != Dart_Null());
-    SHUTDOWN_ON_ERROR(library);
-    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
-    SHUTDOWN_ON_ERROR(result);
-    result = Dart_FinalizeLoading(false);
-    SHUTDOWN_ON_ERROR(result);
-  }
+  Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
+  Dart_Handle library = Dart_LookupLibrary(url);
+  SHUTDOWN_ON_ERROR(library);
+  result = Dart_SetRootLibrary(library);
+  SHUTDOWN_ON_ERROR(library);
+  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+  SHUTDOWN_ON_ERROR(result);
 
   // Make runnable.
   Dart_ExitScope();
@@ -229,7 +135,7 @@ bool VmService::Setup(const char* server_ip,
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
 
-  Dart_Handle library = Dart_RootLibrary();
+  library = Dart_RootLibrary();
   SHUTDOWN_ON_ERROR(library);
 
   // Set HTTP server state.
@@ -307,78 +213,6 @@ void VmService::SetServerAddress(const char* server_uri) {
   }
   strncpy(server_uri_, server_uri, kServerUriStringBufferSize);
   server_uri_[kServerUriStringBufferSize - 1] = '\0';
-}
-
-Dart_Handle VmService::GetSource(const char* name) {
-  const intptr_t kBufferSize = 512;
-  char buffer[kBufferSize];
-  snprintf(&buffer[0], kBufferSize - 1, "%s/%s", kLibrarySourceNamePrefix,
-           name);
-  const char* vmservice_source = NULL;
-  int r = Resources::ResourceLookup(buffer, &vmservice_source);
-  if (r == Resources::kNoSuchInstance) {
-    FATAL1("vm-service: Could not find embedded source file: %s ", buffer);
-  }
-  ASSERT(r != Resources::kNoSuchInstance);
-  return Dart_NewStringFromCString(vmservice_source);
-}
-
-Dart_Handle VmService::LoadScript(const char* name) {
-  Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
-  Dart_Handle source = GetSource(name);
-  return Dart_LoadScript(uri, Dart_Null(), source, 0, 0);
-}
-
-Dart_Handle VmService::LookupOrLoadLibrary(const char* name) {
-  Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
-  Dart_Handle library = Dart_LookupLibrary(uri);
-  if (!Dart_IsLibrary(library)) {
-    Dart_Handle source = GetSource(name);
-    library = Dart_LoadLibrary(uri, Dart_Null(), source, 0, 0);
-  }
-  return library;
-}
-
-Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
-  Dart_Handle uri = Dart_NewStringFromCString(name);
-  Dart_Handle source = GetSource(name);
-  return Dart_LoadSource(library, uri, Dart_Null(), source, 0, 0);
-}
-
-Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
-                                         Dart_Handle library,
-                                         Dart_Handle url) {
-  if (!Dart_IsLibrary(library)) {
-    return Dart_NewApiError("not a library");
-  }
-  if (!Dart_IsString(url)) {
-    return Dart_NewApiError("url is not a string");
-  }
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  Dart_Handle library_url = Dart_LibraryUrl(library);
-  const char* library_url_string = NULL;
-  result = Dart_StringToCString(library_url, &library_url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  if (tag == Dart_kImportTag) {
-    UNREACHABLE();
-    return Dart_Null();
-  }
-  ASSERT((tag == Dart_kSourceTag) || (tag == Dart_kCanonicalizeUrl));
-  if (tag == Dart_kCanonicalizeUrl) {
-    // url is already canonicalized.
-    return url;
-  }
-  Dart_Handle source = GetSource(url_string);
-  if (Dart_IsError(source)) {
-    return source;
-  }
-  return Dart_LoadSource(library, url, Dart_Null(), source, 0, 0);
 }
 
 }  // namespace bin

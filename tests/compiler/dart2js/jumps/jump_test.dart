@@ -37,9 +37,9 @@ class JumpDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
-    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new JumpsIrChecker(
             compiler.reporter, actualMap, localsMap.getLocalsMap(member))

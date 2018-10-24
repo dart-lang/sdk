@@ -2007,8 +2007,8 @@ class NullError extends Error implements NoSuchMethodError {
       : _method = match == null ? null : JS('', '#.method', match);
 
   String toString() {
-    if (_method == null) return 'NullError: $_message';
-    return "NullError: method not found: '$_method' on null";
+    if (_method == null) return 'NoSuchMethodError: $_message';
+    return "NoSuchMethodError: method not found: '$_method' on null";
   }
 }
 
@@ -2360,7 +2360,7 @@ abstract class Closure implements Function {
     int applyTrampolineIndex,
     var reflectionInfo,
     bool isStatic,
-    jsArguments,
+    bool isIntercepted,
     String propertyName,
   ) {
     JS_EFFECT(() {
@@ -2446,12 +2446,7 @@ abstract class Closure implements Function {
 
     // Create a closure and "monkey" patch it with call stubs.
     var trampoline = function;
-    var isIntercepted = false;
     if (!isStatic) {
-      if (JS('bool', '#.length == 1', jsArguments)) {
-        // Intercepted call.
-        isIntercepted = true;
-      }
       trampoline = forwardCallTo(receiver, function, isIntercepted);
       JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
@@ -2793,16 +2788,14 @@ abstract class Closure implements Function {
 
 /// Called from implicit method getter (aka tear-off).
 closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
-    isStatic, jsArguments, name) {
+    isStatic, isIntercepted, name) {
   return Closure.fromTearOff(
       receiver,
-      JSArray.markFixedList(functions),
+      JS('JSArray', '#', functions),
       applyTrampolineIndex,
-      reflectionInfo is List
-          ? JSArray.markFixedList(reflectionInfo)
-          : reflectionInfo,
+      reflectionInfo,
       JS('bool', '!!#', isStatic),
-      jsArguments,
+      JS('bool', '!!#', isIntercepted),
       JS('String', '#', name));
 }
 
@@ -3407,13 +3400,13 @@ intTypeCast(value) {
 
 void propertyTypeError(value, property) {
   String name = isCheckPropertyToJsConstructorName(property);
-  throw new TypeErrorImplementation(value, name);
+  throw new TypeErrorImplementation(value, unminifyOrTag(name));
 }
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
-  String expectedType = property.substring(3, property.length);
-  throw new CastErrorImplementation(value, expectedType);
+  String name = isCheckPropertyToJsConstructorName(property);
+  throw new CastErrorImplementation(value, unminifyOrTag(name));
 }
 
 /**
@@ -3537,12 +3530,12 @@ stringSuperNativeTypeCast(value, property) {
 listTypeCheck(value) {
   if (value == null) return value;
   if (value is List) return value;
-  throw new TypeErrorImplementation(value, 'List');
+  throw new TypeErrorImplementation(value, 'List<dynamic>');
 }
 
 listTypeCast(value) {
   if (value is List || value == null) return value;
-  throw new CastErrorImplementation(value, 'List');
+  throw new CastErrorImplementation(value, 'List<dynamic>');
 }
 
 listSuperTypeCheck(value, property) {

@@ -13,6 +13,7 @@
 # passed to Fasta.
 
 set -e
+set -x
 
 OPTIONS=()
 GEN_KERNEL_OPTIONS=()
@@ -29,8 +30,6 @@ for arg in "$@"; do
     GEN_KERNEL_OPTIONS+=("$arg")
     OPTIONS+=("$arg")
     ;;
-    --sync-async | \
-    --no-sync-async | \
     --tfa | \
     --no-tfa | \
     -D* )

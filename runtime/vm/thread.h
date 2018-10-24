@@ -25,7 +25,6 @@ class Array;
 class CompilerState;
 class Class;
 class Code;
-class CompilerStats;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -35,6 +34,7 @@ class HandleScope;
 class Heap;
 class HierarchyInfo;
 class Instance;
+class Interpreter;
 class Isolate;
 class Library;
 class LongJumpScope;
@@ -402,6 +402,11 @@ class Thread : public BaseThread {
     type_usage_info_ = value;
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Interpreter* interpreter() const { return interpreter_; }
+  void set_interpreter(Interpreter* value) { interpreter_ = value; }
+#endif
+
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
 
   void IncrementNoCallbackScopeDepth() {
@@ -616,8 +621,6 @@ class Thread : public BaseThread {
   static intptr_t async_stack_trace_offset() {
     return OFFSET_OF(Thread, async_stack_trace_);
   }
-
-  CompilerStats* compiler_stats() { return compiler_stats_; }
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -887,8 +890,6 @@ class Thread : public BaseThread {
 
   RawError* sticky_error_;
 
-  CompilerStats* compiler_stats_;
-
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
@@ -910,6 +911,10 @@ class Thread : public BaseThread {
 
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Interpreter* interpreter_;
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.

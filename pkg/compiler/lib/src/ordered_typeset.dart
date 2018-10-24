@@ -11,6 +11,7 @@ import 'common.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'serialization/serialization.dart';
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are
@@ -30,11 +31,79 @@ import 'elements/types.dart';
  *     C: [C, B, A, Object]
  */
 class OrderedTypeSet {
+  /// Tag used for identifying serialized [OrderedTypeSet] objects in a
+  /// debugging data stream.
+  static const String tag = 'ordered-type-set';
+
   final List<Link<InterfaceType>> _levels;
   final Link<InterfaceType> types;
   final Link<InterfaceType> _supertypes;
 
   OrderedTypeSet.internal(this._levels, this.types, this._supertypes);
+
+  /// Deserializes a [OrderedTypeSet] object from [source].
+  factory OrderedTypeSet.readFromDataSource(DataSource source) {
+    // TODO(johnniwinther): Make the deserialized type sets share their
+    // internal links like the original type sets do?
+    source.begin(tag);
+    int typesCount = source.readInt();
+    LinkBuilder<InterfaceType> typeLinkBuilder =
+        new LinkBuilder<InterfaceType>();
+    List<Link<InterfaceType>> links = [];
+    for (int i = 0; i < typesCount; i++) {
+      links.add(typeLinkBuilder.addLast(source.readDartType()));
+    }
+    Link<InterfaceType> types =
+        typeLinkBuilder.toLink(const Link<InterfaceType>());
+    links.add(const Link<InterfaceType>());
+
+    int supertypesCount = source.readInt();
+    LinkBuilder<InterfaceType> supertypeLinkBuilder =
+        new LinkBuilder<InterfaceType>();
+    for (int i = 0; i < supertypesCount; i++) {
+      supertypeLinkBuilder.addLast(source.readDartType());
+    }
+    Link<InterfaceType> supertypes =
+        supertypeLinkBuilder.toLink(const Link<InterfaceType>());
+
+    int levelCount = source.readInt();
+    List<Link<InterfaceType>> levels =
+        new List<Link<InterfaceType>>(levelCount);
+    for (int i = 0; i < levelCount; i++) {
+      levels[i] = links[source.readInt()];
+    }
+    source.end(tag);
+    return new OrderedTypeSet.internal(levels, types, supertypes);
+  }
+
+  /// Serializes this [OrderedTypeSet] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    List<InterfaceType> typeList = types.toList();
+    sink.writeInt(typeList.length);
+    for (InterfaceType type in typeList) {
+      sink.writeDartType(type);
+    }
+    List<InterfaceType> supertypeList = _supertypes.toList();
+    sink.writeInt(supertypeList.length);
+    for (InterfaceType supertype in supertypeList) {
+      sink.writeDartType(supertype);
+    }
+    List<int> levelList = [];
+    Link<InterfaceType> link = types;
+    while (link != null) {
+      int index = _levels.indexOf(link);
+      if (index != -1) {
+        levelList.add(index);
+      }
+      link = link.tail;
+    }
+    sink.writeInt(levelList.length);
+    for (int level in levelList) {
+      sink.writeInt(level);
+    }
+    sink.end(tag);
+  }
 
   factory OrderedTypeSet.singleton(InterfaceType type) {
     Link<InterfaceType> types =

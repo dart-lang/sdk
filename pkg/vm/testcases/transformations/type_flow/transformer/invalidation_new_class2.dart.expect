@@ -33,7 +33,7 @@ abstract class D extends core::Object {
     ;
 }
 abstract class _E&D&C extends self::D implements self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_E&D&C
     : super self::D::•()
     ;
 }

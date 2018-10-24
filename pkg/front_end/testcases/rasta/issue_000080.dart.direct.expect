@@ -11,6 +11,9 @@ class Mixin extends core::Object {
     return 87;
 }
 abstract class _Foo&Object&Mixin = core::Object with self::Mixin {
+  synthetic constructor •() → self::_Foo&Object&Mixin
+    : super core::Object::•()
+    ;
 }
 class Foo extends self::_Foo&Object&Mixin {
   synthetic constructor •() → self::Foo

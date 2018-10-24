@@ -27,8 +27,6 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../crash.dart' show Crash;
 
-import '../deprecated_problems.dart' show deprecated_InputError;
-
 import '../fasta_codes.dart'
     show
         Code,
@@ -178,6 +176,11 @@ class DietListener extends StackListener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
+  }
+
+  @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
   }
 
   @override
@@ -634,8 +637,6 @@ class DietListener extends StackListener {
       listener.checkEmpty(token.next.charOffset);
     } on DebugAbort {
       rethrow;
-    } on deprecated_InputError {
-      rethrow;
     } catch (e, s) {
       throw new Crash(uri, token.charOffset, e, s);
     }
@@ -828,8 +829,6 @@ class DietListener extends StackListener {
       listenerFinishFunction(listener, startToken, metadata, kind,
           metadataConstants, formals, asyncModifier, body);
     } on DebugAbort {
-      rethrow;
-    } on deprecated_InputError {
       rethrow;
     } catch (e, s) {
       throw new Crash(uri, token.charOffset, e, s);

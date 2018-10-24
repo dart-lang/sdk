@@ -152,9 +152,18 @@ class AstBuilder extends StackListener {
 
   void _handleInstanceCreation(Token token) {
     MethodInvocation arguments = pop();
-    ConstructorName constructorName = pop();
+    ConstructorName constructorName;
+    TypeArgumentList typeArguments;
+    var object = pop();
+    if (object is _ConstructorNameWithInvalidTypeArgs) {
+      constructorName = object.name;
+      typeArguments = object.invalidTypeArgs;
+    } else {
+      constructorName = object;
+    }
     push(ast.instanceCreationExpression(
-        token, constructorName, arguments.argumentList));
+        token, constructorName, arguments.argumentList,
+        typeArguments: typeArguments));
   }
 
   @override
@@ -2566,6 +2575,17 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    TypeArgumentList invalidTypeArgs = pop();
+    var node = pop();
+    if (node is ConstructorName) {
+      push(new _ConstructorNameWithInvalidTypeArgs(node, invalidTypeArgs));
+    } else {
+      throw new UnimplementedError();
+    }
+  }
+
+  @override
   void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
       int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
@@ -2928,4 +2948,11 @@ class _Modifiers {
         ? finalConstOrVarKeyword
         : null;
   }
+}
+
+class _ConstructorNameWithInvalidTypeArgs {
+  final ConstructorName name;
+  final TypeArgumentList invalidTypeArgs;
+
+  _ConstructorNameWithInvalidTypeArgs(this.name, this.invalidTypeArgs);
 }

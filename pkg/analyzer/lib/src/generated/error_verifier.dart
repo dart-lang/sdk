@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -74,12 +73,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The manager for the inheritance mappings.
    */
-  final InheritanceManager _inheritanceManager;
-
-  /**
-   * The manager for the inheritance mappings.
-   */
-  final InheritanceManager2 _inheritanceManager2;
+  final InheritanceManager2 _inheritanceManager;
 
   /**
    * A flag indicating whether the visitor is currently within a constructor
@@ -273,12 +267,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
-  /**
-   * If `true`, mixins are allowed to inherit from types other than Object, and
-   * are allowed to reference `super`.
-   */
-  final bool enableSuperMixins;
-
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
   /// Setting this flag to `true` disables the check for conflicting generics.
@@ -292,13 +280,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(
-      ErrorReporter errorReporter,
-      this._currentLibrary,
-      this._typeProvider,
-      this._inheritanceManager,
-      this._inheritanceManager2,
-      this.enableSuperMixins,
+  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
+      this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
       {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
@@ -318,6 +301,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _typeSystem = _currentLibrary.context.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
   }
+
+  /**
+   * If `true`, mixins are allowed to inherit from types other than Object, and
+   * are allowed to reference `super`.
+   */
+  @deprecated
+  bool get enableSuperMixins => false;
 
   ClassElement get enclosingClass => _enclosingClass;
 
@@ -976,15 +966,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     try {
       _isInStaticMethod = node.isStatic;
       _enclosingFunction = node.declaredElement;
-      SimpleIdentifier identifier = node.name;
-      String methodName = "";
-      if (identifier != null) {
-        methodName = identifier.name;
-      }
       TypeAnnotation returnType = node.returnType;
-      if (node.isSetter || node.isGetter) {
-        _checkForMismatchedAccessorTypes(node, methodName);
-      }
       if (node.isSetter) {
         _checkForInvalidModifierOnBody(
             node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
@@ -1939,8 +1921,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                 mixinName, mixinElement)) {
               problemReported = true;
             }
-            if (!enableSuperMixins &&
-                _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+            if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
               problemReported = true;
             }
             if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
@@ -2449,16 +2430,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_enclosingClass == null) {
       return;
     }
+    InterfaceType enclosingType = _enclosingClass.type;
+    Uri libraryUri = _currentLibrary.source.uri;
 
     // method declared in the enclosing class vs. inherited getter/setter
     for (MethodElement method in _enclosingClass.methods) {
       String name = method.name;
 
       // find inherited property accessor
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      inherited ??=
-          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+      ExecutableElement inherited = _inheritanceManager
+          .getInherited(enclosingType, new Name(libraryUri, name))
+          ?.element;
+      inherited ??= _inheritanceManager
+          .getInherited(enclosingType, new Name(libraryUri, '$name='))
+          ?.element;
 
       if (method.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2482,10 +2467,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      inherited ??=
-          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+      ExecutableElement inherited = _inheritanceManager
+          .getInherited(enclosingType, new Name(libraryUri, name))
+          ?.element;
+      inherited ??= _inheritanceManager
+          .getInherited(enclosingType, new Name(libraryUri, '$name='))
+          ?.element;
 
       if (accessor.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -3920,8 +3907,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check to make sure that all similarly typed accessors are of the same type
    * (including inherited accessors).
    *
-   * See [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES], and
-   * [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE].
+   * See [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES].
    */
   void _checkForMismatchedAccessorTypes(
       Declaration accessorDeclaration, String accessorTextName) {
@@ -3929,7 +3915,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         accessorDeclaration.declaredElement as ExecutableElement;
     if (accessorElement is PropertyAccessorElement) {
       PropertyAccessorElement counterpartAccessor = null;
-      ClassElement enclosingClassForCounterpart = null;
       if (accessorElement.isGetter) {
         counterpartAccessor = accessorElement.correspondingSetter;
       } else {
@@ -3943,31 +3928,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       if (counterpartAccessor == null) {
-        // If the accessor is declared in a class, check the superclasses.
-        if (_enclosingClass != null) {
-          // Figure out the correct identifier to lookup in the inheritance graph,
-          // if 'x', then 'x=', or if 'x=', then 'x'.
-          String lookupIdentifier = accessorElement.name;
-          if (StringUtilities.endsWithChar(lookupIdentifier, 0x3D)) {
-            lookupIdentifier =
-                lookupIdentifier.substring(0, lookupIdentifier.length - 1);
-          } else {
-            lookupIdentifier += "=";
-          }
-          // lookup with the identifier.
-          ExecutableElement elementFromInheritance = _inheritanceManager
-              .lookupInheritance(_enclosingClass, lookupIdentifier);
-          // Verify that we found something, and that it is an accessor
-          if (elementFromInheritance != null &&
-              elementFromInheritance is PropertyAccessorElement) {
-            enclosingClassForCounterpart =
-                elementFromInheritance.enclosingElement as ClassElement;
-            counterpartAccessor = elementFromInheritance;
-          }
-        }
-        if (counterpartAccessor == null) {
-          return;
-        }
+        return;
       }
       // Default of null == no accessor or no type (dynamic)
       DartType getterType = null;
@@ -3985,23 +3946,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (setterType != null &&
           getterType != null &&
           !_typeSystem.isAssignableTo(getterType, setterType)) {
-        if (enclosingClassForCounterpart == null) {
-          _errorReporter.reportTypeErrorForNode(
-              StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-              accessorDeclaration,
-              [accessorTextName, setterType, getterType]);
-        } else {
-          _errorReporter.reportTypeErrorForNode(
-              StaticWarningCode
-                  .MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,
-              accessorDeclaration,
-              [
-                accessorTextName,
-                setterType,
-                getterType,
-                enclosingClassForCounterpart.displayName
-              ]);
-        }
+        _errorReporter.reportTypeErrorForNode(
+            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+            accessorDeclaration,
+            [accessorTextName, getterType, setterType, accessorTextName]);
       }
     }
   }
@@ -4154,7 +4102,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForMixinReferencesSuper(
       TypeName mixinName, ClassElement mixinElement) {
-    if (!enableSuperMixins && mixinElement.hasReferenceToSuper) {
+    if (mixinElement.hasReferenceToSuper) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
           mixinName,
@@ -4204,7 +4152,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = new Name(mixinLibraryUri, name);
 
-      var superMemberType = _inheritanceManager2.getMember(
+      var superMemberType = _inheritanceManager.getMember(
           enclosingType, nameObject,
           forMixinIndex: mixinIndex, forSuper: true);
 
@@ -4218,7 +4166,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
 
       FunctionType mixinMemberType =
-          _inheritanceManager2.getMember(mixinType, nameObject);
+          _inheritanceManager.getMember(mixinType, nameObject, forSuper: true);
 
       if (mixinMemberType != null &&
           !_typeSystem.isOverrideSubtypeOf(superMemberType, mixinMemberType)) {
@@ -5103,7 +5051,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Element element = name.staticElement;
     if (element is ExecutableElement) {
       // OK, static
-      if (element.isStatic) {
+      if (element.isStatic || element is ConstructorElement) {
         return;
       }
       _errorReporter.reportErrorForNode(
@@ -6500,10 +6448,10 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor {
       return;
     }
 
-    final type = node.type;
-    if (type is TypeImpl && type.hasTypeParameterReferenceInBound) {
-      _errorReporter.reportErrorForNode(
-          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
+    var element = node.name.staticElement;
+    if (element is TypeParameterizedElement && !element.isSimplyBounded) {
+      _errorReporter
+          .reportErrorForNode(StrongModeCode.NOT_INSTANTIATED_BOUND, node, []);
     }
   }
 }

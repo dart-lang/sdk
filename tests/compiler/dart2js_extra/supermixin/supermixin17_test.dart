@@ -12,7 +12,7 @@ class SuperC = S with M;
 class SuperA {
 }
 
-class SuperB extends SuperA {
+class SuperB extends SuperA implements SuperC {
 }
 
 mixin Mixin on SuperC, SuperA {

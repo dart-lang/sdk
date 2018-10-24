@@ -105,7 +105,10 @@ compile_platform("vm_legacy_platform") {
     "$root_out_dir/vm_outline.dill",
   ]
 
-  args = [ "dart:core" ]
+  args = [
+    "--legacy-mode",
+    "dart:core",
+  ]
 }
 
 compile_platform("vm_platform") {
@@ -121,7 +124,7 @@ compile_platform("vm_platform") {
   ]
 
   args = [
-    "--strong-mode",
+    "--exclude-source",
     "dart:core",
   ]
 

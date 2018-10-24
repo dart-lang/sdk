@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -77,7 +77,7 @@ abstract class FixesMixin implements ServerPlugin {
     FixesRequest request = await getFixesRequest(parameters);
     FixGenerator generator = new FixGenerator(getFixContributors(path));
     GeneratorResult<EditGetFixesResult> result =
-        await generator.generateFixesResponse(request);
+        generator.generateFixesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

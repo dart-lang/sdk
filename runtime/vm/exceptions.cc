@@ -540,7 +540,7 @@ void Exceptions::JumpToFrame(Thread* thread,
   // TODO(regis): We still possibly need to unwind interpreter frames if they
   // are callee frames of the C++ frame handling the exception.
   if (FLAG_enable_interpreter) {
-    Interpreter* interpreter = thread->isolate()->interpreter();
+    Interpreter* interpreter = thread->interpreter();
     if ((interpreter != NULL) && interpreter->HasFrame(frame_pointer)) {
       interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
                                thread);

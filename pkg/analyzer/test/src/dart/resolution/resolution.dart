@@ -61,6 +61,16 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     newFile('/test/lib/test.dart', content: content);
   }
 
+  void assertConstructorElement(
+      ConstructorElement expected, ConstructorElement actual) {
+    if (expected is ConstructorMember && actual is ConstructorMember) {
+      expect(expected.baseElement, same(actual.baseElement));
+      // TODO(brianwilkerson) Compare the type arguments of the two members.
+    } else {
+      expect(expected, same(actual));
+    }
+  }
+
   void assertConstructors(ClassElement class_, List<String> expected) {
     expect(
       class_.constructors.map((c) => c.toString()).toList(),
@@ -182,9 +192,12 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
     var actualConstructorElement = getNodeElement(creation);
     if (creation.constructorName.name != null) {
-      expect(
+      // TODO(brianwilkerson) This used to enforce that the two elements were
+      // the same object, but the changes to the AstRewriteVisitor broke that.
+      // We should explore re-establishing this restriction for performance.
+      assertConstructorElement(
         creation.constructorName.name.staticElement,
-        same(actualConstructorElement),
+        actualConstructorElement,
       );
     }
 
@@ -312,8 +325,6 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     findNode = new FindNode(result.content, result.unit);
     findElement = new FindElement(result.unit);
   }
-
-  void setAnalysisOptions({bool enableSuperMixins});
 
   Element _unwrapHandle(Element element) {
     if (element is ElementHandle && element is! Member) {

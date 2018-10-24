@@ -6,6 +6,7 @@ library dart2js.call_structure;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart' show ParameterStructure;
+import '../serialization/serialization.dart';
 import '../util/util.dart';
 import 'selector.dart' show Selector;
 
@@ -14,6 +15,10 @@ import 'selector.dart' show Selector;
 // TODO(johnniwinther): Should isGetter/isSetter be part of the call structure
 // instead of the selector?
 class CallStructure {
+  /// Tag used for identifying serialized [CallStructure] objects in a debugging
+  /// data stream.
+  static const String tag = 'call-structure';
+
   static const CallStructure NO_ARGS = const CallStructure.unnamed(0);
   static const CallStructure ONE_ARG = const CallStructure.unnamed(1);
   static const CallStructure TWO_ARGS = const CallStructure.unnamed(2);
@@ -41,6 +46,25 @@ class CallStructure {
     }
     return new NamedCallStructure(
         argumentCount, namedArguments, typeArgumentCount);
+  }
+
+  /// Deserializes a [CallStructure] object from [source].
+  factory CallStructure.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    int argumentCount = source.readInt();
+    List<String> namedArguments = source.readStrings();
+    int typeArgumentCount = source.readInt();
+    source.end(tag);
+    return new CallStructure(argumentCount, namedArguments, typeArgumentCount);
+  }
+
+  /// Serializes this [CallStructure] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(argumentCount);
+    sink.writeStrings(namedArguments);
+    sink.writeInt(typeArgumentCount);
+    sink.end(tag);
   }
 
   CallStructure withTypeArgumentCount(int typeArgumentCount) =>

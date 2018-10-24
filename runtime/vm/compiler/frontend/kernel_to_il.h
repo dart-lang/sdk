@@ -38,8 +38,7 @@ struct YieldContinuation {
   YieldContinuation(Instruction* entry, intptr_t try_index)
       : entry(entry), try_index(try_index) {}
 
-  YieldContinuation()
-      : entry(NULL), try_index(CatchClauseNode::kInvalidTryIndex) {}
+  YieldContinuation() : entry(NULL), try_index(kInvalidTryIndex) {}
 };
 
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
@@ -57,7 +56,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraph();
 
  private:
-  BlockEntryInstr* BuildPrologue(TargetEntryInstr* normal_entry,
+  BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);

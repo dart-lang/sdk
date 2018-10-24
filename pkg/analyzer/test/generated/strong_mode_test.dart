@@ -28,9 +28,7 @@ main() {
   });
 }
 
-/**
- * Strong mode static analyzer local type inference tests
- */
+/// Strong mode static analyzer local type inference tests
 @reflectiveTest
 class StrongModeLocalInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
@@ -2792,9 +2790,7 @@ class B<T2, U2> {
   }
 }
 
-/**
- * Strong mode static analyzer end to end tests
- */
+/// Strong mode static analyzer end to end tests
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
     with StrongModeStaticTypeAnalyzer2TestCases {
@@ -2846,6 +2842,69 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
   @failingTest
   test_notInstantiatedBound_class_error_recursion_less_direct() {
     return super.test_notInstantiatedBound_class_error_recursion_less_direct();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion_typedef() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_class_error_recursion_typedef();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_argument() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_argument();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_argument2() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_argument2();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_direct() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_direct();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_indirect() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_indirect();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_functionType() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_functionType();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_typedef_argument() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_typedef_argument();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_typedef_argument2() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_typedef_argument2();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_typedef_direct() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_typedef_direct();
   }
 }
 

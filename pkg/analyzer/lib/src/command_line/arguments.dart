@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.command_line.arguments;
 
 import 'dart:collection';
 
@@ -20,6 +18,7 @@ const String bazelAnalysisOptionsPath =
 const String declarationCastsFlag = 'declaration-casts';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
+@deprecated
 const String enableSuperMixinFlag = 'supermixin';
 const String flutterAnalysisOptionsPath =
     'package:flutter/analysis_options_user.yaml';
@@ -44,10 +43,6 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
     }
   }
 
-  if (args.wasParsed(enableSuperMixinFlag)) {
-    options.enableSuperMixins = args[enableSuperMixinFlag];
-    verbose('$enableSuperMixinFlag = ${options.enableSuperMixins}');
-  }
   if (args.wasParsed(implicitCastsFlag)) {
     options.implicitCasts = args[implicitCastsFlag];
     verbose('$implicitCastsFlag = ${options.implicitCasts}');
@@ -203,11 +198,6 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: false,
       negatable: false,
       hide: hide || ddc);
-  parser.addFlag(enableSuperMixinFlag,
-      help: 'Relax restrictions on mixins (DEP 34).',
-      defaultsTo: false,
-      negatable: false,
-      hide: hide);
   if (!ddc) {
     parser.addFlag(lintsFlag,
         help: 'Show lint results.', defaultsTo: false, negatable: true);

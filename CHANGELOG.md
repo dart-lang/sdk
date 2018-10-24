@@ -1,3 +1,193 @@
+## 2.1.0-dev.8.0
+
+#### `dart:html`
+Fixed Service Workers and any Promise/Future API with a Dictionary parameter.
+
+APIs in dart:html (that take a Dictionary) will receive a Dart Map parameter.
+The Map parameter must be converted to a Dictionary before passing to the
+browser's API.  Before this change, any Promise/Future API with a
+Map/Dictionary parameter never called the Promise and didn't return a Dart
+Future - now it does.
+
+This caused a number of breaks especially in Service Workers (register, etc.).
+Here is a complete list of the fixed APIs:
+
+* BackgroundFetchManager
+  * `Future<BackgroundFetchRegistration> fetch(String id, Object requests, [Map options])`
+
+* CacheStorage
+  * `Future match(/*RequestInfo*/ request, [Map options])`
+
+* CanMakePayment
+  * `Future<List<Client>> matchAll([Map options])`
+
+* CookieStore
+  * `Future getAll([Map options])`
+  * `Future set(String name, String value, [Map options])`
+
+* CredentialsContainer
+  * `Future get([Map options])`
+  * `Future create([Map options])`
+
+* ImageCapture
+  * `Future setOptions(Map photoSettings)`
+
+* MediaCapabilities
+  * `Future<MediaCapabilitiesInfo> decodingInfo(Map configuration)`
+  * `Future<MediaCapabilitiesInfo> encodingInfo(Map configuration)`
+
+* MediaStreamTrack
+  * `Future applyConstraints([Map constraints])`
+
+* Navigator
+  * `Future requestKeyboardLock([List<String> keyCodes])`
+  * `Future requestMidiAccess([Map options])`
+  * `Future share([Map data])`
+
+* OffscreenCanvas
+  * `Future<Blob> convertToBlob([Map options])`
+
+* PaymentInstruments
+  * `Future set(String instrumentKey, Map details)`
+
+* Permissions
+  * `Future<PermissionStatus> query(Map permission)`
+  * `Future<PermissionStatus> request(Map permissions)`
+  * `Future<PermissionStatus> revoke(Map permission)`
+
+* PushManager
+  * `Future permissionState([Map options])`
+  * `Future<PushSubscription> subscribe([Map options])`
+
+* RtcPeerConnection
+  * **CHANGED**
+
+    ```dart
+    Future createAnswer([options_OR_successCallback,
+                         RtcPeerConnectionErrorCallback failureCallback,
+                         Map mediaConstraints])
+    ```
+
+    to
+
+    `Future<RtcSessionDescription> createAnswer([Map options])`
+
+  * **CHANGED**
+
+    ```dart
+    Future createOffer([options_OR_successCallback,
+                        RtcPeerConnectionErrorCallback failureCallback,
+                        Map rtcOfferOptions])
+    ```
+
+    to
+
+    `Future<RtcSessionDescription> createOffer([Map options])`
+
+  * **CHANGED**
+
+    ```dart
+    Future setLocalDescription(Map description, VoidCallback successCallback,
+                               [RtcPeerConnectionErrorCallback failureCallback])
+    ```
+
+    to
+
+    `Future setLocalDescription(Map description)`
+  * **CHANGED**
+
+    ```dart
+    Future setLocalDescription(Map description, VoidCallback successCallback,
+                               [RtcPeerConnectionErrorCallback failureCallback])
+    ```
+
+    to
+
+    `Future setRemoteDescription(Map description)`
+
+* ServiceWorkerContainer
+  * `Future<ServiceWorkerRegistration> register(String url, [Map options])`
+
+* ServiceWorkerRegistration
+  * `Future<List<Notification>> getNotifications([Map filter])`
+  * `Future showNotification(String title, [Map options])`
+
+* VRDevice
+  * `Future requestSession([Map options])`
+  * `Future supportsSession([Map options])`
+
+* VRSession
+  * `Future requestFrameOfReference(String type, [Map options])`
+
+* Window
+  * `Future fetch(/*RequestInfo*/ input, [Map init])`
+
+* WorkerGlobalScope
+  * `Future fetch(/*RequestInfo*/ input, [Map init])`
+
+In addition, exposed Service Worker "self" as a static getter named "instance".
+The instance is exposed on four different Service Worker classes and can throw
+a InstanceTypeError if the instance isn't of the class expected
+(WorkerGlobalScope.instance will always work and not throw):
+
+*   SharedWorkerGlobalScope.instance
+*   DedicatedWorkerGlobalScope.instance
+*   ServiceWorkerGlobalScope.instance
+*   WorkerGlobalScope.instance
+
+### Language
+
+*   Allow integer literals to be used in double contexts.
+    An integer literal used in a place where a double is required is now
+    interpreted as a double value. The numerical value of the literal needs
+    to be precisely representable as a double value.
+
+*   Integer literals compiled to JavaScript are now allowed to have any
+    value that can be exactly represented as a JavaScript `Number`.
+    They were previously limited to such numbers that were also representable
+    as signed 64-bit integers.
+
+### Core library changes
+
+*   Add `HashMap.fromEntries` and `LinkedHashmap.fromEntries` constructors.
+
+### Tool Changes
+
+#### Linter
+
+Bumped the linter to `0.1.70` which includes the following new lints:
+
+* `avoid_returning_null_for_void`
+* `sort_pub_dependencies`
+* `prefer_mixin`
+* `avoid_implementing_value_types`
+* `flutter_style_todos`
+* `avoid_void_async`
+* `prefer_void_to_null`
+
+and improvements:
+
+* fix NPE in `prefer_iterable_whereType`
+* improved message display for `await_only_futures`
+* performance improvements for `null_closures`
+* mixin support
+* update to `sort_constructors_first` to apply to all members
+* update `unnecessary_this` to work on field initializers
+* updated `unawaited_futures` to ignore assignments within cascades
+* improved handling of constant expressions with generic type params
+* NPE fix for `invariant_booleans`
+* improved docs for `unawaited_futures`
+* `unawaited_futures` updated to check cascades
+* relaxed `void_checks` (allowing `T Function()` to be assigned to `void Function()`)
+* fixed false positives in `lines_longer_than_80_chars`
+
+#### dart2js
+
+*   Breaking change: duplicate keys in a const map are not allowed and produce a
+    compile-time error.  Dart2js used to report this as a warning before. Note
+    this is already an error in dartanalyzer and DDC and will be an error in
+    other tools in the future as well.
+
 ## 2.1.0-dev.7.1
 
 * Cherry-pick 6b67cd784bbd13d5b6127cba44281a879fa7275c to dev
@@ -58,6 +248,8 @@
 ## 2.1.0-dev.6.0
 
 ## 2.1.0-dev.5.0
+
+### Core library changes
 
 #### `dart:core`
 

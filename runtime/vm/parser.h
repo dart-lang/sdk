@@ -13,11 +13,11 @@
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler_stats.h"
 #include "vm/hash_table.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
+#include "vm/scopes.h"
 #include "vm/token.h"
 
 namespace dart {
@@ -47,44 +47,6 @@ struct ParamList;
 struct QualIdent;
 class TopLevel;
 class RecursionChecker;
-
-// We cache compile time constants during compilation.  This allows us
-// to look them up when the same code gets compiled again.  During
-// background compilation, we are not able to evaluate the constants
-// so this cache is necessary to support background compilation.
-//
-// We cache the constants with the script itself. This is helpful during isolate
-// reloading, as it allows us to reference the compile time constants associated
-// with a particular version of a script. The map key is simply the
-// TokenPosition where the constant is defined.
-class ConstMapKeyEqualsTraits {
- public:
-  static const char* Name() { return "ConstMapKeyEqualsTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    const Smi& key1 = Smi::Cast(a);
-    const Smi& key2 = Smi::Cast(b);
-    return (key1.Value() == key2.Value());
-  }
-  static bool IsMatch(const TokenPosition& key1, const Object& b) {
-    const Smi& key2 = Smi::Cast(b);
-    return (key1.value() == key2.Value());
-  }
-  static uword Hash(const Object& obj) {
-    const Smi& key = Smi::Cast(obj);
-    return HashValue(key.Value());
-  }
-  static uword Hash(const TokenPosition& key) { return HashValue(key.value()); }
-  // Used by CacheConstantValue if a new constant is added to the map.
-  static RawObject* NewKey(const TokenPosition& key) {
-    return Smi::New(key.value());
-  }
-
- private:
-  static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
-};
-typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -276,29 +238,6 @@ class ParsedFunction : public ZoneAllocated {
 
 class Parser : public ValueObject {
  public:
-  // Parse the top level of a whole script file and register declared classes
-  // in the given library.
-  static void ParseCompilationUnit(const Library& library,
-                                   const Script& script);
-
-  // Parse top level of a class and register all functions/fields.
-  static void ParseClass(const Class& cls);
-
-  static void ParseFunction(ParsedFunction* parsed_function);
-
-  // Parse and evaluate the metadata expressions at token_pos in the
-  // class namespace of class cls (which can be the implicit toplevel
-  // class if the metadata is at the top-level).
-  static RawObject* ParseMetadata(const Field& meta_data);
-
-  // Build a function containing the initializer expression of the
-  // given static field.
-  static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
-
-  static void InsertCachedConstantValue(const Script& script,
-                                        TokenPosition token_pos,
-                                        const Instance& value);
-
   // Parse a function to retrieve parameter information that is not retained in
   // the Function object. Returns either an error if the parse fails (which
   // could be the case for local functions), or a flat array of entries for each
@@ -311,20 +250,8 @@ class Parser : public ValueObject {
     kParameterMetadataOffset,
     kParameterEntrySize,
   };
-  static RawObject* ParseFunctionParameters(const Function& func);
 
  private:
-  friend class EffectGraphVisitor;  // For BuildNoSuchMethodArguments.
-
-  // Build arguments for a NoSuchMethodCall. If LocalVariable temp is not NULL,
-  // the last argument is stored in temp.
-  static ArgumentListNode* BuildNoSuchMethodArguments(
-      TokenPosition call_pos,
-      const String& function_name,
-      const ArgumentListNode& function_args,
-      const LocalVariable* temp,
-      bool is_super_invocation);
-
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };
 

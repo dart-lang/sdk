@@ -17,7 +17,7 @@ class M extends core::Object {
   }
 }
 abstract class _A&Object&M extends core::Object implements self::M {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_A&Object&M
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation i) → dynamic {

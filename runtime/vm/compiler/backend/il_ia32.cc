@@ -197,7 +197,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsFpuRegister()) {
     const double value_as_double = Double::Cast(value_).value();
-    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    uword addr = FindDoubleConstant(value_as_double);
     if (addr == 0) {
       __ pushl(EAX);
       __ LoadObject(EAX, value_);
@@ -211,7 +211,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsDoubleStackSlot()) {
     const double value_as_double = Double::Cast(value_).value();
-    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    uword addr = FindDoubleConstant(value_as_double);
     if (addr == 0) {
       __ pushl(EAX);
       __ LoadObject(EAX, value_);
@@ -5926,8 +5926,11 @@ void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->CanFallThroughTo(normal_entry())) {
-    __ jmp(compiler->GetJumpLabel(normal_entry()));
+  BlockEntryInstr* entry = normal_entry();
+  if (entry == nullptr) entry = osr_entry();
+
+  if (!compiler->CanFallThroughTo(entry)) {
+    __ jmp(compiler->GetJumpLabel(entry));
   }
 }
 

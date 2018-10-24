@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef IntFunc = (core::int) → dynamic;
 class C1 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -25,7 +25,7 @@ ConstantPool {
 }
 class C2 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -45,7 +45,7 @@ ConstantPool {
 }
 class C3 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -65,7 +65,7 @@ ConstantPool {
 }
 class C4 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -85,7 +85,7 @@ ConstantPool {
 }
 class C5 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -105,7 +105,7 @@ ConstantPool {
 }
 class C6 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -125,7 +125,7 @@ ConstantPool {
 }
 class C7 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -145,7 +145,7 @@ ConstantPool {
 }
 class C8 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -165,7 +165,7 @@ ConstantPool {
 }
 class A<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic> extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -183,7 +183,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
   CheckFunctionTypeArgs 2, 0
@@ -484,7 +484,7 @@ L2:
 class B extends core::Object {
   field core::int foo = null;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -503,7 +503,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
   AllocateContext      4
@@ -772,7 +772,7 @@ Closure CP#29 {
 }
 class C extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -790,7 +790,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
   AllocateContext      1
@@ -936,8 +936,6 @@ Closure CP#4 {
   LoadContextVar       0
   AddInt
   ReturnTOS
-  PushNull
-  ReturnTOS
 
 }
 
@@ -977,7 +975,7 @@ Closure CP#19 {
     }
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
   Push                 FP[-5]
@@ -1078,7 +1076,7 @@ Closure CP#4 {
 }
 class D<T extends core::Object = dynamic> extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -1096,7 +1094,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                3
   CheckStack
   AllocateContext      1
@@ -1131,8 +1129,6 @@ Bytecode {
   Push                 r0
   StoreFieldTOS        CP#5
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = Type #lib::D::T
@@ -1163,8 +1159,6 @@ Closure CP#4 {
   Push                 r0
   LoadContextVar       0
   ReturnTOS
-  PushNull
-  ReturnTOS
 
 }
 ]  method foo(generic-covariant-impl self::D::T t) → dynamic {
@@ -1172,7 +1166,7 @@ Closure CP#4 {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                4
   CheckStack
   AllocateContext      1
@@ -1204,11 +1198,6 @@ Bytecode {
   Drop1
   Push                 r0
   LoadContextVar       0
-  ReturnTOS
-  Push                 r0
-  LoadContextParent
-  PopLocal             r0
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -1264,7 +1253,7 @@ Closure CP#0 {
   return x;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   CheckFunctionTypeArgs 8, 0
@@ -1349,7 +1338,7 @@ ConstantPool {
   core::print(<core::Type>[self::callWithArgs::T1, self::callWithArgs::T2, self::callWithArgs::T3, self::callWithArgs::T4, self::callWithArgs::T5, self::callWithArgs::T6, self::callWithArgs::T7, self::callWithArgs::T8]);
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -1409,7 +1398,7 @@ ConstantPool {
   new self::A::•<core::List<self::C1>, core::List<self::C2>>().{self::A::foo}<core::List<self::C3>, core::List<self::C4>>();
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                7
   CheckStack
   Allocate             CP#14
@@ -1460,8 +1449,6 @@ Bytecode {
   Push                 r5
   PopLocal             r4
   Push                 r4
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -1529,7 +1516,7 @@ L2:
   return intFunc;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

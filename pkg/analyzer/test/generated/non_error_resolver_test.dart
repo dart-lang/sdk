@@ -34,32 +34,8 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
 
   @override
   @failingTest // Does not work with old task model
-  test_infer_mixin() {
-    return super.test_infer_mixin();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
-  test_infer_mixin_multiplyConstrained() {
-    return super.test_infer_mixin_multiplyConstrained();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
   test_infer_mixin_new_syntax() {
     return super.test_infer_mixin_new_syntax();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
-  test_infer_mixin_with_substitution() {
-    return super.test_infer_mixin_with_substitution();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
-  test_infer_mixin_with_substitution_functionType() {
-    return super.test_infer_mixin_with_substitution_functionType();
   }
 
   @override
@@ -96,12 +72,6 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
   @failingTest // Does not work with old task model
   test_mixinInference_with_actual_mixins() {
     return super.test_mixinInference_with_actual_mixins();
-  }
-
-  @override
-  @failingTest // Does not work with old task model
-  test_mixinInference_with_actual_mixins_supermixins_enabled() {
-    return super.test_mixinInference_with_actual_mixins_supermixins_enabled();
   }
 
   @override
@@ -1318,19 +1288,6 @@ class A extends Object with M {
     assertErrors(source, [
       CompileTimeErrorCode.CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
     ]);
-    verify([source]);
-  }
-
-  test_constConstructorWithMixinWithField_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-class M {
-}
-class A extends Object with M {
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2678,58 +2635,6 @@ class C implements A, B {
     verify([source]);
   }
 
-  test_infer_mixin() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-
-class B {}
-
-class M<T> extends A<T> {}
-
-class C extends A<B> with M {}
-''');
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    ClassElement classC =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
-    expect(classC.mixins, hasLength(1));
-    expect(classC.mixins[0].toString(), 'M<B>');
-  }
-
-  test_infer_mixin_multiplyConstrained() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-
-abstract class B<U> {}
-
-class C {}
-
-class D {}
-
-class M<T, U> extends A<T> with B<U> {}
-
-class E extends A<C> implements B<D> {}
-
-class F extends E with M {}
-''');
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    ClassElement classF =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('F');
-    expect(classF.mixins, hasLength(1));
-    expect(classF.mixins[0].toString(), 'M<C, D>');
-  }
-
   test_infer_mixin_new_syntax() async {
     Source source = addSource('''
 abstract class A<T> {}
@@ -2748,51 +2653,6 @@ class C extends A<B> with M {}
         resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.mixins, hasLength(1));
     expect(classC.mixins[0].toString(), 'M<B>');
-  }
-
-  test_infer_mixin_with_substitution() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-
-class B {}
-
-class M<T> extends A<List<T>> {}
-
-class C extends A<List<B>> with M {}
-''');
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    ClassElement classC =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
-    expect(classC.mixins, hasLength(1));
-    expect(classC.mixins[0].toString(), 'M<B>');
-  }
-
-  test_infer_mixin_with_substitution_functionType() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-
-class B {}
-
-class M<T, U> extends A<T Function(U)> {}
-
-class C extends A<int Function(String)> with M {}
-''');
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    CompilationUnit unit = analysisResult.unit;
-    ClassElement classC =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
-    expect(classC.mixins, hasLength(1));
-    expect(classC.mixins[0].toString(), 'M<int, String>');
   }
 
   test_infer_mixin_with_substitution_functionType_new_syntax() async {
@@ -3795,6 +3655,29 @@ enum E {
     verify([source]);
   }
 
+  test_methodCallTypeInference_mixinType() async {
+    Source source = addSource('''
+main() {
+  C<int> c = f();
+}
+
+class C<T> {}
+
+mixin M<T> on C<T> {}
+
+M<T> f<T>() => null;
+''');
+    var result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var main = result.unit.declarations[0] as FunctionDeclaration;
+    var body = main.functionExpression.body as BlockFunctionBody;
+    var cDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var fInvocation =
+        cDeclaration.variables.variables[0].initializer as MethodInvocation;
+    expect(fInvocation.staticInvokeType.toString(), '() → M<int>');
+  }
+
   test_methodDeclaration_scope_signature() async {
     Source source = addSource(r'''
 const app = 0;
@@ -4039,48 +3922,6 @@ void main () {
     expect(xElem.type.toString(), 'int');
   }
 
-  test_mixinInference_with_actual_mixins_supermixins_enabled() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-class I<X> {}
-
-mixin M0<T> on I<T> {}
-
-mixin M1<T> on I<T> {
-  T foo() => null;
-}
-
-class A = I<int> with M0, M1;
-
-void main () {
-  var x = new A().foo();
-}
-''');
-    var result = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    var main = result.unit.declarations.last as FunctionDeclaration;
-    var mainBody = main.functionExpression.body as BlockFunctionBody;
-    var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
-    var xElem = xDecl.variables.variables[0].declaredElement;
-    expect(xElem.type.toString(), 'int');
-  }
-
-  test_mixinInheritsFromNotObject_classDeclaration_extends() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource(r'''
-class A {}
-class B extends A {}
-class C extends A with B {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_mixinInheritsFromNotObject_classDeclaration_extends_new_syntax() async {
     Source source = addSource(r'''
 class A {}
@@ -4101,32 +3942,6 @@ class C extends Object with B {}''');
     verify([source]);
   }
 
-  test_mixinInheritsFromNotObject_classDeclaration_with() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource(r'''
-class A {}
-class B extends Object with A {}
-class C extends Object with B {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_mixinInheritsFromNotObject_typeAlias_extends() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource(r'''
-class A {}
-class B extends A {}
-class C = A with B;''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_mixinInheritsFromNotObject_typeAlias_extends_new_syntax() async {
     Source source = addSource(r'''
 class A {}
@@ -4137,38 +3952,11 @@ class C = A with B;''');
     verify([source]);
   }
 
-  test_mixinInheritsFromNotObject_typeAlias_with() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource(r'''
-class A {}
-class B extends Object with A {}
-class C = Object with B;''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_mixinInheritsFromNotObject_typedef_mixTypeAlias() async {
     Source source = addSource(r'''
 class A {}
 class B = Object with A;
 class C = Object with B;''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_mixinReferencesSuper() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource(r'''
-class A {
-  toString() => super.toString();
-}
-class B extends Object with A {}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

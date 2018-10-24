@@ -223,6 +223,35 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   return Code::null();
 }
 
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+RawCode* StubCode::GetBuildMethodExtractorStub() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler assembler(&object_pool_wrapper);
+  StubCode::GenerateBuildMethodExtractorStub(&assembler);
+
+  const char* name = "BuildMethodExtractor";
+  const Code& stub = Code::Handle(
+      Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */));
+#ifndef PRODUCT
+  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
+    LogBlock lb;
+    THR_Print("Code for isolate stub '%s': {\n", name);
+    DisassembleToStdout formatter;
+    stub.Disassemble(&formatter);
+    THR_Print("}\n");
+    const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
+    object_pool.DebugPrint();
+  }
+#endif  // !PRODUCT
+  return stub.raw();
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
+  UNIMPLEMENTED();
+  return nullptr;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+#endif  // !defined(TARGET_ARCH_DBC)
+
 const StubEntry* StubCode::UnoptimizedStaticCallEntry(
     intptr_t num_args_tested) {
 // These stubs are not used by DBC.

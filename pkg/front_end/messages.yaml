@@ -464,9 +464,10 @@ ClassInClass:
     - "class C { class B {} }"
 
 EnumInClass:
+  index: 74
   template: "Enums can't be declared inside classes."
   tip: "Try moving the enum to the top-level."
-  analyzerCode: ENUM_IN_CLASS
+  analyzerCode: ParserErrorCode.ENUM_IN_CLASS
   script:
     - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
 
@@ -479,9 +480,10 @@ TypedefInClass:
     - "abstract class C { typedef int F(int x); }"
 
 CovariantMember:
+  index: 67
   template: "Getters, setters and methods can't be declared to be 'covariant'."
   tip: "Try removing the 'covariant' keyword."
-  analyzerCode: COVARIANT_MEMBER
+  analyzerCode: ParserErrorCode.COVARIANT_MEMBER
   script:
     - "static covariant get x => 0;"
     - "covariant int m() => 0;"
@@ -532,9 +534,10 @@ ConstAndVar:
     - "class C { var const x; }"
 
 ConstFactory:
+  index: 62
   template: "Only redirecting factory constructors can be declared to be 'const'."
   tip: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
-  analyzerCode: CONST_FACTORY
+  analyzerCode: ParserErrorCode.CONST_FACTORY
   script:
     - "class C { const factory C() {} }"
 
@@ -575,16 +578,18 @@ ConstConstructorWithBody:
     - "class C { const C() {} }"
 
 ConstMethod:
+  index: 63
   template: "Getters, setters and methods can't be declared to be 'const'."
   tip: "Try removing the 'const' keyword."
-  analyzerCode: CONST_METHOD
+  analyzerCode: ParserErrorCode.CONST_METHOD
   script:
     - "class C { const m() {} }"
 
 CovariantAfterFinal:
+  index: 65
   template: "The modifier 'covariant' should be before the modifier 'final'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: COVARIANT_AFTER_FINAL
+  analyzerCode: ParserErrorCode.COVARIANT_AFTER_FINAL
   script:
     - "final covariant f;"
 
@@ -597,17 +602,19 @@ CovariantAfterVar:
     - "var covariant f;"
 
 CovariantAndStatic:
+  index: 66
   template: "Members can't be declared to be both 'covariant' and 'static'."
   tip: "Try removing either the 'covariant' or 'static' keyword."
-  analyzerCode: COVARIANT_AND_STATIC
+  analyzerCode: ParserErrorCode.COVARIANT_AND_STATIC
   script:
     - "class C { covariant static A f; }"
     - "class C { static covariant A f; }"
 
 DuplicatedModifier:
+  index: 70
   template: "The modifier '#lexeme' was already specified."
   tip: "Try removing all but one occurance of the modifier."
-  analyzerCode: DUPLICATED_MODIFIER
+  analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
   script:
     - "class C { const const m; }"
     - "class C { external external f(); }"
@@ -701,9 +708,10 @@ ConstConstructorWithNonConstSuper:
   analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
 
 ExtraneousModifier:
+  index: 77
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."
-  analyzerCode: EXTRANEOUS_MODIFIER
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER
   script:
     - "var String foo; main(){}"
     - "var set foo; main(){}"
@@ -733,9 +741,10 @@ ExtraneousModifier:
     - "static typedef foo();"
 
 FinalAndCovariant:
+  index: 80
   template: "Members can't be declared to be both 'final' and 'covariant'."
   tip: "Try removing either the 'final' or 'covariant' keyword."
-  analyzerCode: FINAL_AND_COVARIANT
+  analyzerCode: ParserErrorCode.FINAL_AND_COVARIANT
   script:
     - "class C { covariant final f = 5; }"
     - "class C { final covariant f = 5; }"
@@ -860,16 +869,18 @@ ContinueLabelNotTarget:
   analyzerCode: LABEL_UNDEFINED
 
 ContinueWithoutLabelInCase:
+  index: 64
   template: "A continue statement in a switch statement must have a label as a target."
   tip: "Try adding a label associated with one of the case clauses to the continue statement."
-  analyzerCode: CONTINUE_WITHOUT_LABEL_IN_CASE
+  analyzerCode: ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE
   script:
     - "main() { switch (x) {case 1: continue;} }"
 
 DuplicateLabelInSwitchStatement:
+  index: 72
   template: "The label '#name' was already used in this switch statement."
   tip: "Try choosing a different name for this label."
-  analyzerCode: DUPLICATE_LABEL_IN_SWITCH_STATEMENT
+  analyzerCode: ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT
   statement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
 
@@ -1258,9 +1269,10 @@ ConstructorWithTypeParameters:
 ConstructorWithTypeArguments:
   template: "A constructor invocation can't have type arguments on the constructor name."
   tip: "Try to place the type arguments on the class name."
-  analyzerCode: UNDEFINED_CLASS
+  analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
+    - "class C<X> { C.foo(); } bar() { C.foo<int>(); }"
 
 ConstructorWithWrongName:
   template: "The name of a constructor must match the name of the enclosing class."
@@ -1282,9 +1294,10 @@ ConstructorCyclic:
     - "class C { C.foo() : this.bar(); C.bar() : this.foo(); }"
 
 FieldInitializerOutsideConstructor:
+  index: 79
   template: "Field formal parameters can only be used in a constructor."
   tip: "Try removing 'this.'."
-  analyzerCode: FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
   script:
     - "class C { void m(this.x); }"
 
@@ -1424,6 +1437,10 @@ NotAType:
   severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
 
+NotATypeContext:
+  template: "This isn't a type."
+  severity: CONTEXT
+
 NotAPrefixInTypeAnnotation:
   template: "'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix."
   severity: ERROR_LEGACY_WARNING
@@ -1465,6 +1482,10 @@ FastaUsageLong:
       -v, --verbose
         Display verbose information.
 
+      -Dname
+      -Dname=value
+        Ignored for now.
+
       --
         Stop option parsing, the rest of the command line is assumed to be
         file names or arguments to the Dart program.
@@ -1500,6 +1521,20 @@ FastaUsageLong:
       --sdk=<sdk>
         Location of the SDK sources for use when compiling additional platform
         libraries.
+
+      --supermixin
+        Ignored for now.
+
+      --single-root-scheme=String
+      --single-root-base=<dir>
+        Specify a custom URI scheme and a location on disk where such URIs are
+        mapped to.
+
+        When specified, the compiler can be invoked with inputs using the custom
+        URI scheme. The compiler can ignore the exact location of files on disk
+        and as a result to produce output that is independendent of the absolute
+        location of files on disk. This is mostly useful for integrating with
+        build systems.
 
       --fatal=errors
       --fatal=warnings
@@ -1539,10 +1574,6 @@ InternalProblemUnexpected:
 
 InternalProblemUnsupported:
   template: "Unsupported operation: '#name'."
-  severity: INTERNAL_PROBLEM
-
-InternalProblemSuperclassNotFound:
-  template: "Superclass not found '#name'."
   severity: INTERNAL_PROBLEM
 
 InternalProblemNotFound:
@@ -1608,6 +1639,14 @@ InternalProblemDebugAbort:
   template: "Compilation aborted due to fatal '#name' at:\n#string"
   severity: INTERNAL_PROBLEM
 
+InternalProblemNoInferredTypeStored:
+  template: "There's no inferred type for '#name'."
+  severity: INTERNAL_PROBLEM
+
+InternalProblemStoringMultipleInferredTypes:
+  template: "There's already an inferred type (#type) for '#name'."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED
@@ -1631,14 +1670,16 @@ MissingPrefixInDeferredImport:
   analyzerCode: ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT
 
 DeferredAfterPrefix:
+  index: 68
   template: "The deferred keyword should come immediately before the prefix ('as' clause)."
   tip: "Try moving the deferred keyword before the prefix."
-  analyzerCode: DEFERRED_AFTER_PREFIX
+  analyzerCode: ParserErrorCode.DEFERRED_AFTER_PREFIX
 
 DuplicateDeferred:
+  index: 71
   template: "An import directive can only have one 'deferred' keyword."
   tip: "Try removing all but one 'deferred' keyword."
-  analyzerCode: DUPLICATE_DEFERRED
+  analyzerCode: ParserErrorCode.DUPLICATE_DEFERRED
 
 DeferredTypeAnnotation:
   template: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
@@ -1647,9 +1688,10 @@ DeferredTypeAnnotation:
   analyzerCode: TYPE_ANNOTATION_DEFERRED_CLASS
 
 DuplicatePrefix:
+  index: 73
   template: "An import directive can only have one prefix ('as' clause)."
   tip: "Try removing all but one prefix."
-  analyzerCode: DUPLICATE_PREFIX
+  analyzerCode: ParserErrorCode.DUPLICATE_PREFIX
 
 PrefixAfterCombinator:
   index: 6
@@ -1821,7 +1863,6 @@ ConflictsWithTypeVariableCause:
 
 DeclaredMemberConflictsWithInheritedMember:
   template: "Can't declare a member that conflicts with an inherited one."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: DECLARED_MEMBER_CONFLICTS_WITH_INHERITED
   script:
     - >-
@@ -1996,9 +2037,10 @@ ExternalMethodWithBody:
     - "class C {foo() native 'bar' {}}"
 
 ExternalTypedef:
+  index: 76
   template: "Typedefs can't be declared to be 'external'."
   tip: "Try removing the keyword 'external'."
-  analyzerCode: EXTERNAL_TYPEDEF
+  analyzerCode: ParserErrorCode.EXTERNAL_TYPEDEF
   script:
     - "external typedef F();"
 
@@ -2032,16 +2074,18 @@ ImportAfterPart:
     - "part 'foo.dart'; import 'bar.dart';"
 
 ExportAfterPart:
+  index: 75
   template: "Export directives must preceed part directives."
   tip: "Try moving the export directives before the part directives."
-  analyzerCode: EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  analyzerCode: ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
     - "part 'foo.dart'; export 'bar.dart';"
 
 DirectiveAfterDeclaration:
+  index: 69
   template: "Directives must appear before any declarations."
   tip: "Try moving the directive before any declarations."
-  analyzerCode: DIRECTIVE_AFTER_DECLARATION
+  analyzerCode: ParserErrorCode.DIRECTIVE_AFTER_DECLARATION
   script:
     - "class foo { } import 'bar.dart';"
     - "class foo { } export 'bar.dart';"
@@ -2099,9 +2143,10 @@ PartOfTwoLibrariesContext:
   severity: CONTEXT
 
 FactoryTopLevelDeclaration:
+  index: 78
   template: "Top-level declarations can't be declared to be 'factory'."
   tip: "Try removing the keyword 'factory'."
-  analyzerCode: FACTORY_TOP_LEVEL_DECLARATION
+  analyzerCode: ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION
   script:
     - "factory class C {}"
 
@@ -2833,10 +2878,6 @@ AmbiguousSupertypes:
   template: "'#name' can't implement both '#type' and '#type2'"
   analyzerCode: AMBIGUOUS_SUPERTYPES
 
-CantUseSuperBoundedTypeForInstanceCreation:
-  template: "Can't use a super-bounded type for instance creation. Got '#type'."
-  tip: "Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference."
-
 MixinInferenceNoMatchingClass:
   template: "Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
   analyzerCode: MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
@@ -3166,3 +3207,90 @@ RedirectingFactoryIncompatibleTypeArgument:
 SyntheticToken:
   template: "This couldn't be parsed."
   frontendInternal: true
+
+IncorrectTypeArgument:
+  template: "Type argument '#type' violates the corresponding type variable bound of '#name'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class C<T extends num> {}
+    main() { new C<String>(); }
+
+IncorrectTypeArgumentInSupertype:
+  template: "Type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class A<T extends num> {}
+    class B extends A<String> {}
+
+IncorrectTypeArgumentInReturnType:
+  template: "Type argument '#type' violates the corresponding type variable bound of '#name' in the return type."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class A<T extends num> {}
+    A<String> foo() => null;
+
+IncorrectTypeArgumentInferred:
+  template: "Inferred type argument '#type' violates the corresponding type variable bound of '#name'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    void foo<T extends num>(T t) {}
+    main() { foo("bar"); }
+
+IncorrectTypeArgumentInSupertypeInferred:
+  template: "Inferred type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class A<T extends A<T>> {}
+    class B extends A {}
+
+IncorrectTypeArgumentVariable:
+  template: "Bound of this variable is violated."
+  severity: CONTEXT
+
+InferredPackageUri:
+  template: "Interpreting this as package URI, '#uri'."
+  severity: WARNING
+  frontendInternal: true
+  script:
+    "main.dart": |
+      main() {}
+    ".packages": |
+      example:./
+
+MixinApplicationIncompatibleSupertype:
+  template: "'#type' doesn't implement '#type2' so it can't be used with '#type3'."
+  analyzerCode: MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
+  script: >-
+    class I {}
+    mixin M on I {}
+    class C = Object with M;
+
+GenericFunctionTypeUsedAsActualTypeArgument:
+  template: Unexpected generic function type found in a type argument.
+  tip: Try using a non-generic function type.
+  analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
+  script:
+    - >-
+      typedef F = List<T> Function<T>(T);
+      main() {
+        List<F> list1;
+      }
+    - >-
+      typedef F = List<T> Function<T>(T);
+      main() {
+        new List<F>();
+      }
+
+GenericFunctionTypeInferredAsActualTypeArgument:
+  template: Unexpected generic function type '#type' inferred as a type argument.
+  tip: Try providing a non-generic function type explicitly.
+  analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
+  script:
+    foo<X>(X x) => null;
+    bar<Y>(Y y) => null;
+    main() { foo(bar); }

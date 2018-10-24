@@ -16,11 +16,12 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_emitter/sorter.dart';
 import '../js_model/element_map.dart';
+import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
+import '../serialization/serialization.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -270,7 +271,7 @@ class InferrerEngineImpl extends InferrerEngine {
   final CompilerOutput _compilerOutput;
 
   /// The [JClosedWorld] on which inference reasoning is based.
-  final JClosedWorld closedWorld;
+  final JsClosedWorld closedWorld;
   final InferredDataBuilder inferredDataBuilder;
 
   final TypeSystem types;
@@ -287,30 +288,19 @@ class InferrerEngineImpl extends InferrerEngine {
 
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
-  final Sorter sorter;
-  final JsToElementMap _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
-  final ClosureDataLookup _closureDataLookup;
-
   InferrerEngineImpl(
       this.options,
       this.progress,
       this.reporter,
       this._compilerOutput,
-      this._elementMap,
-      this._globalLocalsMap,
-      this._closureDataLookup,
       this.closedWorld,
       this.noSuchMethodRegistry,
       this.mainElement,
-      this.sorter,
       this.inferredDataBuilder)
       : this.types = new TypeSystem(
-            closedWorld,
-            new KernelTypeSystemStrategy(
-                _elementMap, _globalLocalsMap, _closureDataLookup));
+            closedWorld, new KernelTypeSystemStrategy(closedWorld));
 
-  ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+  ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
   void forEachElementMatching(
       Selector selector, AbstractValue mask, bool f(MemberEntity element)) {
@@ -670,12 +660,13 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Returns the body node for [member].
   ir.Node computeMemberBody(MemberEntity member) {
-    MemberDefinition definition = _elementMap.getMemberDefinition(member);
+    MemberDefinition definition =
+        closedWorld.elementMap.getMemberDefinition(member);
     switch (definition.kind) {
       case MemberKind.regular:
         ir.Member node = definition.node;
         if (node is ir.Field) {
-          return getFieldInitializer(_elementMap, member);
+          return getFieldInitializer(closedWorld.elementMap, member);
         } else if (node is ir.Procedure) {
           return node.function;
         }
@@ -790,12 +781,10 @@ class InferrerEngineImpl extends InferrerEngine {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
         options,
         closedWorld,
-        _closureDataLookup,
         this,
         member,
         body,
-        _elementMap,
-        _globalLocalsMap.getLocalsMap(member));
+        closedWorld.globalLocalsMap.getLocalsMap(member));
     return visitor.run();
   }
 
@@ -824,13 +813,13 @@ class InferrerEngineImpl extends InferrerEngine {
   /// Returns the [ConstantValue] for the initial value of [field], or
   /// `null` if the initializer is not a constant value.
   ConstantValue getFieldConstant(FieldEntity field) {
-    return _elementMap.getFieldConstantValue(field);
+    return closedWorld.elementMap.getFieldConstantValue(field);
   }
 
   /// Returns `true` if [cls] has a 'call' method.
   bool hasCallType(ClassEntity cls) {
-    return _elementMap.types
-            .getCallType(_elementMap.elementEnvironment.getThisType(cls)) !=
+    return closedWorld.elementMap.types
+            .getCallType(closedWorld.elementEnvironment.getThisType(cls)) !=
         null;
   }
 
@@ -1270,14 +1259,12 @@ class InferrerEngineImpl extends InferrerEngine {
 }
 
 class KernelTypeSystemStrategy implements TypeSystemStrategy {
-  JsToElementMap _elementMap;
-  GlobalLocalsMap _globalLocalsMap;
-  ClosureDataLookup _closureDataLookup;
+  final JsClosedWorld _closedWorld;
 
-  KernelTypeSystemStrategy(
-      this._elementMap, this._globalLocalsMap, this._closureDataLookup);
+  KernelTypeSystemStrategy(this._closedWorld);
 
-  JElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
 
   @override
   bool checkClassEntity(ClassEntity cls) => true;
@@ -1296,7 +1283,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
-    forEachOrderedParameter(_globalLocalsMap, _elementMap, function, f);
+    forEachOrderedParameter(
+        _closedWorld.globalLocalsMap, _closedWorld.elementMap, function, f);
   }
 
   @override
@@ -1305,18 +1293,19 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
       covariant JLocal parameter,
       TypeSystem types) {
     MemberEntity context = parameter.memberContext;
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
+    KernelToLocalsMap localsMap =
+        _closedWorld.globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =
         localsMap.getFunctionNodeForParameter(parameter);
-    DartType type = localsMap.getLocalType(_elementMap, parameter);
+    DartType type = localsMap.getLocalType(_closedWorld.elementMap, parameter);
     MemberEntity member;
     bool isClosure = false;
     if (functionNode.parent is ir.Member) {
-      member = _elementMap.getMember(functionNode.parent);
+      member = _closedWorld.elementMap.getMember(functionNode.parent);
     } else if (functionNode.parent is ir.FunctionExpression ||
         functionNode.parent is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(functionNode.parent);
+          _closedWorld.closureDataLookup.getClosureInfo(functionNode.parent);
       member = info.callMethod;
       isClosure = true;
     }
@@ -1372,16 +1361,100 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
 }
 
 class KernelGlobalTypeInferenceElementData
-    extends GlobalTypeInferenceElementData {
+    implements GlobalTypeInferenceElementData {
+  /// Tag used for identifying serialized [GlobalTypeInferenceElementData]
+  /// objects in a debugging data stream.
+  static const String tag = 'global-type-inference-element-data';
+
   // TODO(johnniwinther): Rename this together with [typeOfSend].
-  Map<ir.Node, AbstractValue> _sendMap;
+  Map<ir.TreeNode, AbstractValue> _sendMap;
 
   Map<ir.ForInStatement, AbstractValue> _iteratorMap;
   Map<ir.ForInStatement, AbstractValue> _currentMap;
   Map<ir.ForInStatement, AbstractValue> _moveNextMap;
 
+  KernelGlobalTypeInferenceElementData();
+
+  KernelGlobalTypeInferenceElementData.internal(
+      this._sendMap, this._iteratorMap, this._currentMap, this._moveNextMap);
+
+  /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
+  factory KernelGlobalTypeInferenceElementData.readFromDataSource(
+      DataSource source, AbstractValueDomain abstractValueDomain) {
+    source.begin(tag);
+    Map<ir.TreeNode, AbstractValue> sendMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    Map<ir.ForInStatement, AbstractValue> iteratorMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    Map<ir.ForInStatement, AbstractValue> currentMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    Map<ir.ForInStatement, AbstractValue> moveNextMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    source.end(tag);
+    return new KernelGlobalTypeInferenceElementData.internal(
+        sendMap, iteratorMap, currentMap, moveNextMap);
+  }
+
+  /// Serializes this [GlobalTypeInferenceElementData] to [sink].
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+    sink.begin(tag);
+    sink.writeTreeNodeMap(
+        _sendMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.writeTreeNodeMap(
+        _iteratorMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.writeTreeNodeMap(
+        _currentMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.writeTreeNodeMap(
+        _moveNextMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.end(tag);
+  }
+
   @override
-  AbstractValue typeOfSend(ir.Node node) {
+  void compress() {
+    if (_sendMap != null) {
+      _sendMap.removeWhere(_mapsToNull);
+      if (_sendMap.isEmpty) {
+        _sendMap = null;
+      }
+    }
+    if (_iteratorMap != null) {
+      _iteratorMap.removeWhere(_mapsToNull);
+      if (_iteratorMap.isEmpty) {
+        _iteratorMap = null;
+      }
+    }
+    if (_currentMap != null) {
+      _currentMap.removeWhere(_mapsToNull);
+      if (_currentMap.isEmpty) {
+        _currentMap = null;
+      }
+    }
+    if (_moveNextMap != null) {
+      _moveNextMap.removeWhere(_mapsToNull);
+      if (_moveNextMap.isEmpty) {
+        _moveNextMap = null;
+      }
+    }
+  }
+
+  @override
+  AbstractValue typeOfSend(ir.TreeNode node) {
     if (_sendMap == null) return null;
     return _sendMap[node];
   }
@@ -1426,14 +1499,16 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void setTypeMask(ir.Node node, AbstractValue mask) {
-    _sendMap ??= <ir.Node, AbstractValue>{};
+  void setTypeMask(ir.TreeNode node, AbstractValue mask) {
+    _sendMap ??= <ir.TreeNode, AbstractValue>{};
     _sendMap[node] = mask;
   }
 
   @override
-  AbstractValue typeOfGetter(ir.Node node) {
+  AbstractValue typeOfGetter(ir.TreeNode node) {
     if (_sendMap == null) return null;
     return _sendMap[node];
   }
 }
+
+bool _mapsToNull(ir.TreeNode node, AbstractValue value) => value == null;

@@ -45,6 +45,7 @@ class CompilerContext {
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
+  // TODO(ahe): Remove this.
   final List<Object> errors = <Object>[];
 
   final List<Uri> dependencies = <Uri>[];
@@ -82,6 +83,7 @@ class CompilerContext {
     return command_line_reporting.format(message.withoutLocation(), severity);
   }
 
+  // TODO(ahe): Remove this.
   void logError(Object message, Severity severity) {
     errors.add(message);
     errors.add(severity);

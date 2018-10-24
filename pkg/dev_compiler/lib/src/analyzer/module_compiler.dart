@@ -44,18 +44,23 @@ import 'extension_types.dart' show ExtensionTypeSet;
 
 /// Compiles a set of Dart files into a single JavaScript module.
 ///
-/// For a single [BuildUnit] definition, this will produce a [JSModuleFile].
-/// Those objects are record types that record the data consumed and produced
-/// for a single compile.
+/// For a single build unit, this will produce a [JSModuleFile].
+///
+/// A build unit is a collection of Dart sources that is sufficient to be
+/// compiled together. This can be as small as a single Dart library file, but
+/// if the library has parts, or if the library has cyclic dependencies on other
+/// libraries, those must be included as well. A common build unit is the lib
+/// directory of a Dart package.
 ///
 /// This class exists to cache global state associated with a single in-memory
-/// AnalysisContext, such as information about extension types in the Dart SDK.
-/// It can be used once to produce a single module, or reused to save warm-up
-/// time. (Currently there is no warm up, but there may be in the future.)
+/// [AnalysisContext], such as information about extension types in the Dart
+/// SDK. It can be used once to produce a single module, or reused to save
+/// warm-up time. (Currently there is no warm up, but there may be in the
+/// future.)
 ///
 /// The SDK source code is assumed to be immutable for the life of this class.
 ///
-/// For all other files, it is up to the [AnalysisContext] to decide whether or
+/// For all other files, it is up to the analysis context to decide whether or
 /// not any caching is performed. By default an analysis context will assume
 /// sources are immutable for the life of the context, and cache information
 /// about them.
@@ -133,14 +138,14 @@ class ModuleCompiler {
   /// *Warning* - this may require resolving the entire world.
   /// If that is not desired, the analysis context must be pre-configured using
   /// summaries before calling this method.
-  JSModuleFile compile(BuildUnit unit, CompilerOptions options) {
+  JSModuleFile compile(List<String> sourcePaths, CompilerOptions options) {
     var trees = <CompilationUnit>[];
     var errors = <AnalysisError>[];
 
     var librariesToCompile = Queue<LibraryElement>();
 
     var compilingSdk = false;
-    for (var sourcePath in unit.sources) {
+    for (var sourcePath in sourcePaths) {
       var sourceUri = sourcePathToUri(sourcePath);
       if (sourceUri.scheme == "dart") {
         compilingSdk = true;
@@ -201,9 +206,9 @@ class ModuleCompiler {
       }
     }
 
-    var codeGenerator =
+    var compiler =
         CodeGenerator(context, summaryData, options, _extensionTypes, errors);
-    return codeGenerator.compile(unit, trees);
+    return compiler.compile(trees);
   }
 
   Iterable<AnalysisError> _filterJsErrors(
@@ -256,6 +261,10 @@ class CompilerOptions extends SharedCompilerOptions {
   /// [summaryModules].
   final String moduleRoot;
 
+  /// *deprecated* If specified, `dartdevc` will synthesize library names that
+  /// are relative to this path for all libraries in the JS module.
+  final String libraryRoot;
+
   CompilerOptions(
       {bool sourceMap = true,
       this.sourceMapComment = true,
@@ -269,7 +278,8 @@ class CompilerOptions extends SharedCompilerOptions {
       Map<String, String> bazelMapping = const {},
       this.summaryOutPath,
       Map<String, String> summaryModules = const {},
-      this.moduleRoot})
+      this.moduleRoot,
+      this.libraryRoot})
       : super(
             sourceMap: sourceMap,
             summarizeApi: summarizeApi,
@@ -286,6 +296,7 @@ class CompilerOptions extends SharedCompilerOptions {
         unsafeForceCompile = args['unsafe-force-compile'] as bool,
         summaryOutPath = args['summary-out'] as String,
         moduleRoot = args['module-root'] as String,
+        libraryRoot = _getLibraryRoot(args),
         super.fromArguments(args, args['module-root'] as String,
             args['summary-extension'] as String);
 
@@ -312,27 +323,15 @@ class CompilerOptions extends SharedCompilerOptions {
       ..addOption('module-root',
           help: '(deprecated) used to determine the default module name and\n'
               'summary import name if those are not provided.',
-          hide: hide);
+          hide: hide)
+      ..addOption('library-root',
+          help: '(deprecated) used to name libraries inside the module.');
   }
-}
 
-/// A unit of Dart code that can be built into a single JavaScript module.
-class BuildUnit {
-  /// The name of this module.
-  final String name;
-
-  /// All library names are relative to this path/prefix.
-  final String libraryRoot;
-
-  /// The list of sources in this module.
-  ///
-  /// The set of Dart files can be arbitrarily large, but it must contain
-  /// complete libraries including all of their parts, as well as all libraries
-  /// that are part of a library cycle.
-  final List<String> sources;
-
-  BuildUnit(String modulePath, this.libraryRoot, this.sources)
-      : name = '${path.toUri(modulePath)}';
+  static String _getLibraryRoot(ArgResults args) {
+    var root = args['library-root'] as String;
+    return root != null ? path.absolute(root) : path.current;
+  }
 }
 
 /// The output of Dart->JS compilation.

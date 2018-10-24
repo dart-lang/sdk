@@ -7,6 +7,7 @@ library entities;
 import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
 import '../common.dart';
+import '../serialization/serialization.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'names.dart';
@@ -37,15 +38,22 @@ abstract class LibraryEntity extends Entity {
 /// Stripped down super interface for import entities.
 ///
 /// The [name] property corresponds to the prefix name, if any.
-abstract class ImportEntity extends Entity {
-  /// The library where this import occurs (where the import is declared).
-  LibraryEntity get enclosingLibrary;
+class ImportEntity {
+  final String name;
+
+  /// The canonical URI of the library where this import occurs
+  /// (where the import is declared).
+  final Uri enclosingLibraryUri;
 
   /// Whether the import is a deferred import.
-  bool get isDeferred;
+  final bool isDeferred;
 
   /// The target import URI.
-  Uri get uri;
+  final Uri uri;
+
+  ImportEntity(this.isDeferred, this.name, this.uri, this.enclosingLibraryUri);
+
+  String toString() => 'import($name:${isDeferred ? ' deferred' : ''})';
 }
 
 /// Stripped down super interface for class like entities.
@@ -251,6 +259,10 @@ abstract class Local extends Entity {}
 
 /// The structure of function parameters.
 class ParameterStructure {
+  /// Tag used for identifying serialized [ParameterStructure] objects in a
+  /// debugging data stream.
+  static const String tag = 'parameter-structure';
+
   /// The number of required (positional) parameters.
   final int requiredParameters;
 
@@ -276,6 +288,28 @@ class ParameterStructure {
         type.parameterTypes.length + type.optionalParameterTypes.length,
         type.namedParameters,
         type.typeVariables.length);
+  }
+
+  /// Deserializes a [ParameterStructure] object from [source].
+  factory ParameterStructure.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    int requiredParameters = source.readInt();
+    int positionalParameters = source.readInt();
+    List<String> namedParameters = source.readStrings();
+    int typeParameters = source.readInt();
+    source.end(tag);
+    return new ParameterStructure(requiredParameters, positionalParameters,
+        namedParameters, typeParameters);
+  }
+
+  /// Serializes this [ParameterStructure] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(requiredParameters);
+    sink.writeInt(positionalParameters);
+    sink.writeStrings(namedParameters);
+    sink.writeInt(typeParameters);
+    sink.end(tag);
   }
 
   /// The number of optional parameters (positional or named).

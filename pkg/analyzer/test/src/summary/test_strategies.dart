@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
-import 'package:analyzer/src/summary/one_phase.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
@@ -281,9 +280,20 @@ class SerializedMockSdk {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class SummaryBaseTestStrategy {
+  /// Add the given package bundle as a dependency so that it may be referenced
+  /// by the files under test.
+  void addBundle(String path, PackageBundle bundle);
+
   /// Add the given source file so that it may be referenced by the file under
   /// test.
   void addNamedSource(String filePath, String contents);
+
+  /// Link together the given file, along with any other files passed to
+  /// [addNamedSource], to form a package bundle.  Reset the state of the
+  /// buffers accumulated by [addNamedSource] and [addBundle] so that further
+  /// bundles can be created.
+  PackageBundleBuilder createPackageBundle(String text,
+      {String path: '/test.dart', String uri});
 }
 
 /// Abstract base class for black-box tests of summaries.
@@ -318,99 +328,6 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
   /// Serialize the given library [text], then deserialize it and store its
   /// summary in [lib].
   void serializeLibraryText(String text, {bool allowErrors: false});
-}
-
-/// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
-/// generation using the new one-phase API.
-class SummaryBlackBoxTestStrategyOnePhase
-    implements SummaryBlackBoxTestStrategy {
-  /// Information about the files to be summarized.
-  final _filesToSummarize = _FilesToLink<CompilationUnit>();
-
-  final _testUriString = absUri('/test.dart');
-
-  bool _allowMissingFiles = false;
-
-  @override
-  LinkedLibrary linked;
-
-  @override
-  List<UnlinkedUnit> unlinkedUnits;
-
-  SummaryBlackBoxTestStrategyOnePhase() {
-    // TODO(paulberry): cache the bundle?
-    _filesToSummarize.summaryDataStore
-        .addBundle(null, new MockSdk().getLinkedBundle());
-  }
-
-  @override
-  void set allowMissingFiles(bool value) {
-    _allowMissingFiles = value;
-  }
-
-  @override
-  bool get containsNonConstExprs => false;
-
-  @override
-  bool get skipFullyLinkedData => false;
-
-  @override
-  void addNamedSource(String filePath, String contents) {
-    _filesToSummarize.uriToUnit[absUri(filePath)] = _parseText(contents);
-  }
-
-  @override
-  void serializeLibraryText(String text, {bool allowErrors = false}) {
-    addNamedSource('/test.dart', text);
-    var assembler = PackageBundleAssembler();
-    summarize(_filesToSummarize.uriToUnit, _filesToSummarize.summaryDataStore,
-        assembler, (name) => null, _allowMissingFiles);
-    var result = assembler.assemble();
-    linked = _findLinkedLibrary(result, _testUriString);
-    unlinkedUnits =
-        _findUnlinkedUnits(result, _testUriString, _allowMissingFiles);
-  }
-
-  static LinkedLibrary _findLinkedLibrary(
-      PackageBundle bundle, String uriString) {
-    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-      if (bundle.linkedLibraryUris[i] == uriString) {
-        return bundle.linkedLibraries[i];
-      }
-    }
-    throw new StateError('LinkedLibrary $uriString not found in bundle');
-  }
-
-  static List<UnlinkedUnit> _findUnlinkedUnits(
-      PackageBundle bundle, String uriString, bool allowMissingFiles) {
-    var uriToUnlinkedUnit = <String, UnlinkedUnit>{};
-    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      uriToUnlinkedUnit[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
-    }
-    var unlinkedDefiningUnit = uriToUnlinkedUnit[uriString];
-    var unlinkedUnits = <UnlinkedUnit>[unlinkedDefiningUnit];
-    var definingUnitUri = Uri.parse(uriString);
-    for (String relativeUriStr in unlinkedDefiningUnit.publicNamespace.parts) {
-      Uri relativeUri;
-      try {
-        relativeUri = Uri.parse(relativeUriStr);
-      } on FormatException {
-        unlinkedUnits.add(new UnlinkedUnitBuilder());
-        continue;
-      }
-
-      UnlinkedUnit unit = uriToUnlinkedUnit[
-          resolveRelativeUri(definingUnitUri, relativeUri).toString()];
-      if (unit == null) {
-        if (!allowMissingFiles) {
-          fail('Test referred to unknown unit $relativeUriStr');
-        }
-      } else {
-        unlinkedUnits.add(unit);
-      }
-    }
-    return unlinkedUnits;
-  }
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -469,18 +386,7 @@ abstract class SummaryLinkerTestStrategy extends SummaryBaseTestStrategy {
 
   LibraryElementInBuildUnit get testLibrary;
 
-  /// Add the given package bundle as a dependency so that it may be referenced
-  /// by the files under test.
-  void addBundle(String path, PackageBundle bundle);
-
   void createLinker(String text, {String path: '/test.dart'});
-
-  /// Link together the given file, along with any other files passed to
-  /// [addNamedSource], to form a package bundle.  Reset the state of the
-  /// buffers accumulated by [addNamedSource] and [addBundle] so that further
-  /// bundles can be created.
-  PackageBundleBuilder createPackageBundle(String text,
-      {String path: '/test.dart', String uri});
 }
 
 /// Implementation of [SummaryLinkerTestStrategy] that drives summary generation
@@ -504,11 +410,6 @@ class SummaryLinkerTestStrategyTwoPhase extends _SummaryBaseTestStrategyTwoPhase
   bool get _allowMissingFiles => false;
 
   @override
-  void addBundle(String path, PackageBundle bundle) {
-    _filesToLink.summaryDataStore.addBundle(path, bundle);
-  }
-
-  @override
   void createLinker(String text, {String path: '/test.dart'}) {
     _linkerInputs = _createLinkerInputs(text, path: path);
     Map<String, LinkedLibraryBuilder> linkedLibraries = setupForLink(
@@ -517,24 +418,6 @@ class SummaryLinkerTestStrategyTwoPhase extends _SummaryBaseTestStrategyTwoPhase
         _linkerInputs.getDeclaredVariable);
     linker = new Linker(linkedLibraries, _linkerInputs.getDependency,
         _linkerInputs.getUnit, null);
-  }
-
-  @override
-  PackageBundleBuilder createPackageBundle(String text,
-      {String path: '/test.dart', String uri}) {
-    PackageBundleAssembler assembler = new PackageBundleAssembler();
-    _LinkerInputs linkerInputs =
-        _createLinkerInputs(text, path: path, uri: uri);
-    Map<String, LinkedLibraryBuilder> linkedLibraries = link(
-        linkerInputs.linkedLibraries,
-        linkerInputs.getDependency,
-        linkerInputs.getUnit,
-        linkerInputs.getDeclaredVariable);
-    linkedLibraries.forEach(assembler.addLinkedLibrary);
-    linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {
-      assembler.addUnlinkedUnitViaUri(uri, unit);
-    });
-    return assembler.assemble();
   }
 }
 
@@ -619,10 +502,33 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   bool get _allowMissingFiles;
 
   @override
+  void addBundle(String path, PackageBundle bundle) {
+    _filesToLink.summaryDataStore.addBundle(path, bundle);
+  }
+
+  @override
   void addNamedSource(String filePath, String contents) {
     CompilationUnit unit = _parseText(contents);
     UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
     _filesToLink.uriToUnit[absUri(filePath)] = unlinkedUnit;
+  }
+
+  @override
+  PackageBundleBuilder createPackageBundle(String text,
+      {String path: '/test.dart', String uri}) {
+    PackageBundleAssembler assembler = new PackageBundleAssembler();
+    _LinkerInputs linkerInputs =
+        _createLinkerInputs(text, path: path, uri: uri);
+    Map<String, LinkedLibraryBuilder> linkedLibraries = link(
+        linkerInputs.linkedLibraries,
+        linkerInputs.getDependency,
+        linkerInputs.getUnit,
+        linkerInputs.getDeclaredVariable);
+    linkedLibraries.forEach(assembler.addLinkedLibrary);
+    linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {
+      assembler.addUnlinkedUnitViaUri(uri, unit);
+    });
+    return assembler.assemble();
   }
 
   UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>

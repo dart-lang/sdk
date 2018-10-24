@@ -121,9 +121,8 @@ void ConstantPropagator::Join(Object* left, const Object& right) {
 // Analysis of blocks.  Called at most once per block.  The block is already
 // marked as reachable.  All instructions in the block are analyzed.
 void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
-  const GrowableArray<Definition*>& defs = *block->initial_definitions();
-  for (intptr_t i = 0; i < defs.length(); ++i) {
-    defs[i]->Accept(this);
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
   }
   ASSERT(ForwardInstructionIterator(block).Done());
 
@@ -131,6 +130,33 @@ void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
   // reachable if a call in the try-block is reachable.
   for (intptr_t i = 0; i < block->SuccessorCount(); ++i) {
     SetReachable(block->SuccessorAt(i));
+  }
+}
+
+void ConstantPropagator::VisitFunctionEntry(FunctionEntryInstr* block) {
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
+  }
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+void ConstantPropagator::VisitOsrEntry(OsrEntryInstr* block) {
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
+  }
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
+  for (auto def : *block->initial_definitions()) {
+    def->Accept(this);
+  }
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
   }
 }
 
@@ -148,16 +174,6 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 }
 
 void ConstantPropagator::VisitIndirectEntry(IndirectEntryInstr* block) {
-  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    it.Current()->Accept(this);
-  }
-}
-
-void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
-  const GrowableArray<Definition*>& defs = *block->initial_definitions();
-  for (intptr_t i = 0; i < defs.length(); ++i) {
-    defs[i]->Accept(this);
-  }
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
   }
@@ -1443,7 +1459,6 @@ void ConstantPropagator::Transform() {
       if (!reachable_->Contains(if_true->preorder_number())) {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
         ASSERT(if_false->parallel_move() == NULL);
-        ASSERT(if_false->loop_info() == NULL);
         join = new (Z) JoinEntryInstr(if_false->block_id(),
                                       if_false->try_index(), DeoptId::kNone);
         join->InheritDeoptTarget(Z, if_false);
@@ -1451,7 +1466,6 @@ void ConstantPropagator::Transform() {
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
-        ASSERT(if_true->loop_info() == NULL);
         join = new (Z) JoinEntryInstr(if_true->block_id(), if_true->try_index(),
                                       DeoptId::kNone);
         join->InheritDeoptTarget(Z, if_true);

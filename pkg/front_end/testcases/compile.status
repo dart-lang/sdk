@@ -79,7 +79,7 @@ rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: Fail
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
-rasta/super: Fail
+rasta/super: RuntimeError
 rasta/super_initializer: Fail
 rasta/super_operator: Fail
 rasta/try_label: Fail
@@ -101,6 +101,7 @@ regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
+regress/issue_32200: RuntimeError # Invalid type.
 regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError

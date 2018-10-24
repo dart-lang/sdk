@@ -4,6 +4,8 @@
 
 library front_end.diagnostic_message;
 
+import '../fasta/fasta_codes.dart' show Code, FormattedMessage;
+
 import '../fasta/severity.dart' show Severity;
 
 /// The type of a diagnostic message callback. For example:
@@ -32,7 +34,29 @@ abstract class DiagnosticMessage {
   Iterable<String> get plainTextFormatted;
 
   Severity get severity;
+}
 
-  // TODO(ahe): Rename this, it's actually an error code.
-  int get index;
+/// This method is subject to change.
+Uri getMessageUri(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.uri : null;
+}
+
+/// This method is subject to change.
+Code getMessageCodeObject(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.code : null;
+}
+
+/// This method is subject to change.
+String getMessageHeaderText(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.message : null;
+}
+
+/// This method is subject to change.
+int getMessageCode(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.code.index : -1;
+}
+
+/// This method is subject to change.
+Map<String, dynamic> getMessageArguments(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.arguments : null;
 }

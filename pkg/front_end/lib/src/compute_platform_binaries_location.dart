@@ -7,7 +7,7 @@ import "dart:io" show Platform;
 /// Computes the location of platform binaries, that is, compiled `.dill` files
 /// of the platform libraries that are used to avoid recompiling those
 /// libraries.
-Uri computePlatformBinariesLocation() {
+Uri computePlatformBinariesLocation({bool forceBuildDir: false}) {
   // The directory of the Dart VM executable.
   Uri vmDirectory = Uri.base
       .resolveUri(new Uri.file(Platform.resolvedExecutable))
@@ -15,7 +15,7 @@ Uri computePlatformBinariesLocation() {
   if (vmDirectory.path.endsWith("/bin/")) {
     // Looks like the VM is in a `/bin/` directory, so this is running from a
     // built SDK.
-    return vmDirectory.resolve("../lib/_internal/");
+    return vmDirectory.resolve(forceBuildDir ? "../../" : "../lib/_internal/");
   } else {
     // We assume this is running from a build directory (for example,
     // `out/ReleaseX64` or `xcodebuild/ReleaseX64`).

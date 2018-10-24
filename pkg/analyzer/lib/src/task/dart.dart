@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
@@ -2855,15 +2854,17 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices.
-    InheritanceManager inheritanceManager = new InheritanceManager(
-        libraryElement,
-        includeAbstractFromSuperclasses: true);
+    var inheritanceManager2 = new InheritanceManager2(context.typeSystem);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, typeProvider, libraryElement,
         typeSystem: typeSystem));
-    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
+    unit.accept(new OverrideVerifier(
+      inheritanceManager2,
+      libraryElement,
+      errorReporter,
+    ));
     // Find to-do comments.
     new ToDoFinder(errorReporter).findIn(unit);
     //
@@ -3151,11 +3152,9 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     // Infer instance members.
     //
-    var inheritanceManager = new InheritanceManager(
-        resolutionMap.elementDeclaredByCompilationUnit(unit).library);
-    InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
-        typeProvider, (_) => inheritanceManager,
-        typeSystem: context.typeSystem);
+    var inheritance = new InheritanceManager2(context.typeSystem);
+    InstanceMemberInferrer inferrer =
+        new InstanceMemberInferrer(typeProvider, inheritance);
     inferrer.inferCompilationUnit(unit.declaredElement);
     //
     // Record outputs.
@@ -5569,21 +5568,16 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     // Compute inheritance and override errors.
     //
     var typeSystem = libraryElement.context.typeSystem;
-    var inheritanceManager2 = new InheritanceManager2(typeSystem);
+    var inheritanceManager = new InheritanceManager2(typeSystem);
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        typeSystem, inheritanceManager2, errorReporter);
+        typeSystem, inheritanceManager, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        libraryElement,
-        typeProvider,
-        new InheritanceManager(libraryElement),
-        inheritanceManager2,
-        context.analysisOptions.enableSuperMixins,
+        errorReporter, libraryElement, typeProvider, inheritanceManager, false,
         disableConflictingGenericsCheck: true);
     unit.accept(errorVerifier);
     //

@@ -59,7 +59,7 @@ void main(List<String> args) {
   ClassHierarchy sharedClassHierarchy = buildClassHierarchy();
   int coldHierarchyTime = watch.elapsedMicroseconds;
   var shaker = new TreeShaker(coreTypes, sharedClassHierarchy, component,
-      strongMode: strongMode);
+      legacyMode: !strongMode);
   if (options['diagnose']) {
     print(shaker.getDiagnosticString());
   }
@@ -80,7 +80,7 @@ void main(List<String> args) {
     watch.reset();
     var hierarchy = getClassHierarchy();
     hotHierarchyTime += watch.elapsedMicroseconds;
-    new TreeShaker(coreTypes, hierarchy, component, strongMode: strongMode);
+    new TreeShaker(coreTypes, hierarchy, component, legacyMode: !strongMode);
     hotTreeShakingTime += watch.elapsedMicroseconds;
   }
   hotHierarchyTime ~/= numberOfTrials;

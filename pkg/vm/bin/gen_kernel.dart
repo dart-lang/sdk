@@ -26,7 +26,6 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false)
-  ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true)
   ..addFlag('sync-async',
       help: 'Start `async` functions synchronously', defaultsTo: true)
   ..addFlag('embed-sources',
@@ -46,7 +45,9 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
   ..addFlag('drop-ast',
-      help: 'Drop AST for members with bytecode', defaultsTo: false);
+      help: 'Drop AST for members with bytecode', defaultsTo: false)
+  ..addFlag('use-future-bytecode-format',
+      help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -79,12 +80,11 @@ Future<int> compile(List<String> arguments) async {
   final String filename = options.rest.single;
   final String kernelBinaryFilename = options['output'] ?? "$filename.dill";
   final String packages = options['packages'];
-  final bool strongMode = options['strong-mode'];
   final bool aot = options['aot'];
-  final bool syncAsync = options['sync-async'];
   final bool tfa = options['tfa'];
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
+  final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final Map<String, String> environmentDefines = {};
@@ -97,9 +97,7 @@ Future<int> compile(List<String> arguments) async {
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
-    ..strongMode = strongMode
-    ..target = new VmTarget(
-        new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
+    ..target = new VmTarget(new TargetFlags(syncAsync: true))
     ..linkedDependencies = <Uri>[
       Uri.base.resolveUri(new Uri.file(platformKernel))
     ]
@@ -119,6 +117,7 @@ Future<int> compile(List<String> arguments) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       dropAST: dropAST,
+      useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,
       enableConstantEvaluation: enableConstantEvaluation);
 

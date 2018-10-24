@@ -949,8 +949,8 @@ main() {
 Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
       _expectId(mainElement, kind, 'PI);', length: 0),
@@ -974,8 +974,8 @@ main() {
 Random bar() => null;
 ''', addToDriver: false);
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
       _expectId(mainElement, kind, 'PI;', length: 0),
@@ -998,8 +998,8 @@ main() {
 math.Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var length = 'math.'.length;
     var expected = [
@@ -1020,7 +1020,7 @@ main() {
   p.Future;
 }
 ''');
-    Element mainElement = await _findElement('main');
+    Element mainElement = _findElement('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'p.'.length;
     {

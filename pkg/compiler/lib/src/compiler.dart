@@ -360,6 +360,7 @@ abstract class Compiler {
   void generateJavaScriptCode(
       GlobalTypeInferenceResults globalInferenceResults) {
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
+    backendStrategy.registerJClosedWorld(closedWorld);
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Compiling...');
     phase = PHASE_COMPILING;
@@ -402,7 +403,7 @@ abstract class Compiler {
         enqueuer.createCodegenEnqueuer(closedWorld, globalInferenceResults);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
     codegenEnqueuer.applyImpact(backend.onCodegenStart(
-        closedWorld, _codegenWorldBuilder, backendStrategy.sorter));
+        closedWorld, _codegenWorldBuilder, closedWorld.sorter));
     return codegenEnqueuer;
   }
 
@@ -410,14 +411,11 @@ abstract class Compiler {
   JClosedWorld closeResolution(FunctionEntity mainFunction) {
     phase = PHASE_DONE_RESOLVING;
 
-    KClosedWorld closedWorld = resolutionWorldBuilder.closeWorld(reporter);
-    OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
-    JClosedWorld closedWorldRefiner =
-        backendStrategy.createJClosedWorld(closedWorld);
-
-    backend.onDeferredLoadComplete(result);
-
-    return closedWorldRefiner;
+    KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
+    OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
+    JClosedWorld jClosedWorld =
+        backendStrategy.createJClosedWorld(kClosedWorld, result);
+    return jClosedWorld;
   }
 
   /**

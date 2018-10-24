@@ -15,7 +15,8 @@ import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/services/kythe/kythe_visitors.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -57,6 +58,7 @@ class KytheDomainHandler extends AbstractRequestHandler {
           <KytheGetKytheEntriesResult>[];
       AnalysisResult result = await server.getAnalysisResult(file);
       CompilationUnit unit = result?.unit;
+      TypeSystem typeSystem = result.libraryElement.context.typeSystem;
       if (unit != null && result.exists) {
         List<KytheEntry> entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
@@ -65,7 +67,7 @@ class KytheDomainHandler extends AbstractRequestHandler {
             server.resourceProvider,
             entries,
             file,
-            new InheritanceManager(result.libraryElement),
+            new InheritanceManager2(typeSystem),
             result.content));
         allResults.add(new KytheGetKytheEntriesResult(entries, files));
       }

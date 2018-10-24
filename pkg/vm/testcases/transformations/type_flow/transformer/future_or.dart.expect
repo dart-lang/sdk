@@ -14,11 +14,11 @@ class B extends self::A {
     ;
 }
 [@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
-static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future] dynamic x) → void {}
+static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {}
 static method foo1_a2([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {}
-static method foo1_a3([@vm.inferred-type.metadata=dart.async::_Future] dynamic x) → void {}
+static method foo1_a3([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {}
 static method foo1_a4([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {}
-static method foo1([@vm.inferred-type.metadata=dart.async::_Future] asy::Future<self::A> a1, [@vm.inferred-type.metadata=#lib::B] self::A a2, [@vm.inferred-type.metadata=dart.async::_Future] asy::FutureOr<self::A> a3, [@vm.inferred-type.metadata=#lib::B] asy::FutureOr<self::A> a4) → void {
+static method foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future<self::A> a1, [@vm.inferred-type.metadata=#lib::B] self::A a2, [@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::FutureOr<self::A> a3, [@vm.inferred-type.metadata=#lib::B] asy::FutureOr<self::A> a4) → void {
   self::foo1_a1(a1);
   self::foo1_a2(a2);
   self::foo1_a3(a3);
@@ -37,6 +37,6 @@ static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future
 static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function] self::unknown.call();
 static method main(core::List<core::String> args) → dynamic {
-  self::foo1([@vm.inferred-type.metadata=dart.async::_Future] asy::Future::value<self::B>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future] asy::Future::value<self::B>(new self::B::•()), new self::B::•());
+  self::foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•());
   self::foo2(self::getDynamic() as{TypeError} asy::Future<self::A>, self::getDynamic() as{TypeError} self::A, self::getDynamic() as{TypeError} asy::FutureOr<self::A>, self::getDynamic() as{TypeError} asy::FutureOr<self::A>);
 }

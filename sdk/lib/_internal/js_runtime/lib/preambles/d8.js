@@ -292,7 +292,13 @@ if (typeof global != "undefined") self = global;  // Node.js.
       //    at init.currentScript (/tmp/foo.js:308:19)
       //    at /tmp/foo.js:320:7
       //    at /tmp/foo.js:331:4
-      var re = new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "mg");
+      // Sometimes the 'init.currentScript' line is in the format without the
+      // function name, so match with or without parentheses.
+
+      //              vvvvvvvvvvvv Optional prefix up to '('.
+      var re = /^ *at (?:[^(]*\()?(.*):[0-9]*:[0-9]*\)?$/mg
+      //              Optional ')' at end           ^^^
+
       var lastMatch = null;
       do {
         var match = re.exec(stack);

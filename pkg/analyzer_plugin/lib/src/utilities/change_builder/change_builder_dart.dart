@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,7 +23,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:charcode/ascii.dart';
-import 'package:meta/meta.dart';
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -388,8 +387,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeOverrideOfInheritedMember(ExecutableElement member,
-      {StringBuffer displayTextBuffer, String returnTypeGroupName}) {
+  void writeOverride(
+    FunctionType signature, {
+    StringBuffer displayTextBuffer,
+    String returnTypeGroupName,
+    bool invokeSuper: false,
+  }) {
     void withCarbonCopyBuffer(f()) {
       this._carbonCopyBuffer = displayTextBuffer;
       try {
@@ -399,32 +402,30 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
 
+    ExecutableElement element = signature.element;
     String prefix = getIndent(1);
     String prefix2 = getIndent(2);
-    ElementKind elementKind = member.kind;
-    // TODO(brianwilkerson) Look for a non-abstract inherited member farther up
-    // in the superclass chain that we could invoke.
-    bool isAbstract = member.isAbstract;
+    ElementKind elementKind = element.kind;
+
     bool isGetter = elementKind == ElementKind.GETTER;
     bool isSetter = elementKind == ElementKind.SETTER;
     bool isMethod = elementKind == ElementKind.METHOD;
-    bool isOperator = isMethod && (member as MethodElement).isOperator;
-    String memberName = member.displayName;
-    write(prefix);
+    bool isOperator = isMethod && (element as MethodElement).isOperator;
+    String memberName = element.displayName;
 
     // @override
     writeln('@override');
     write(prefix);
 
     if (isGetter) {
-      writeln('// TODO: implement ${member.displayName}');
+      writeln('// TODO: implement ${element.displayName}');
       write(prefix);
     }
 
     // return type
-    DartType returnType = member.type.returnType;
+    DartType returnType = signature.returnType;
     bool typeWritten = writeType(returnType,
-        groupName: returnTypeGroupName, methodBeingCopied: member);
+        groupName: returnTypeGroupName, methodBeingCopied: element);
     if (typeWritten) {
       write(' ');
     }
@@ -446,26 +447,26 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // parameters + body
     if (isGetter) {
-      if (isAbstract) {
-        write(' => ');
-        selectAll(() {
-          write('null');
-        });
-        writeln(';');
-      } else {
+      if (invokeSuper) {
         write(' => ');
         selectAll(() {
           write('super.');
           write(memberName);
         });
         writeln(';');
+      } else {
+        write(' => ');
+        selectAll(() {
+          write('null');
+        });
+        write(';');
       }
       displayTextBuffer?.write(' => …');
     } else {
-      List<ParameterElement> parameters = member.parameters;
+      List<ParameterElement> parameters = signature.parameters;
       withCarbonCopyBuffer(() {
-        writeTypeParameters(member.typeParameters, methodBeingCopied: member);
-        writeParameters(parameters, methodBeingCopied: member);
+        writeTypeParameters(signature.typeFormals, methodBeingCopied: element);
+        writeParameters(parameters, methodBeingCopied: element);
       });
       writeln(' {');
 
@@ -474,7 +475,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       writeln('// TODO: implement $memberName');
 
       if (isSetter) {
-        if (!isAbstract) {
+        if (invokeSuper) {
           write(prefix2);
           selectAll(() {
             write('super.');
@@ -486,7 +487,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           writeln();
         }
       } else if (returnType.isVoid) {
-        if (!isAbstract) {
+        if (invokeSuper) {
           write(prefix2);
           selectAll(() {
             write('super.');
@@ -504,11 +505,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       } else {
         write(prefix2);
-        if (isAbstract) {
-          selectAll(() {
-            write('return null;');
-          });
-        } else {
+        if (invokeSuper) {
           selectAll(() {
             write('return super.');
             write(memberName);
@@ -521,12 +518,16 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
             }
             write(');');
           });
+        } else {
+          selectAll(() {
+            write('return null;');
+          });
         }
         writeln();
       }
       // close method
       write(prefix);
-      writeln('}');
+      write('}');
       displayTextBuffer?.write(' { … }');
     }
   }
@@ -930,47 +931,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   DartType _getVisibleType(DartType type,
       {ExecutableElement methodBeingCopied}) {
+    Element element = type.element;
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
-      TypeParameterElement parameterElement = type.element;
-      Element parameterParent = parameterElement.enclosingElement;
-      while (parameterParent is GenericFunctionTypeElement ||
-          parameterParent is ParameterElement) {
-        parameterParent = parameterParent.enclosingElement;
+      Element enclosing = element.enclosingElement;
+      while (enclosing is GenericFunctionTypeElement ||
+          enclosing is ParameterElement) {
+        enclosing = enclosing.enclosingElement;
       }
-      // TODO(brianwilkerson) This needs to compare the parameterParent with
-      // each of the parents of the _enclosingExecutable. (That means that we
-      // only need the most closely enclosing element.)
-      if (parameterParent == _enclosingExecutable ||
-          parameterParent == _enclosingClass ||
-          parameterParent == methodBeingCopied) {
+      if (enclosing == _enclosingExecutable ||
+          enclosing == _enclosingClass ||
+          enclosing == methodBeingCopied) {
         return type;
-      }
-      if (_enclosingClass != null &&
-          methodBeingCopied != null &&
-          parameterParent is ClassElement &&
-          parameterParent == methodBeingCopied.enclosingElement) {
-        // The parameter is from the class enclosing the methodBeingCopied. That
-        // means that somewhere along the inheritance chain there must be a type
-        // argument corresponding to the type parameter (either a concrete type
-        // or a type parameter of the _enclosingClass). That's the visible type
-        // that needs to be returned.
-        _InheritanceChain chain = new _InheritanceChain(
-            subtype: _enclosingClass, supertype: parameterParent);
-        while (chain != null) {
-          DartType mappedType = chain.mapParameter(parameterElement);
-          if (mappedType is TypeParameterType) {
-            parameterElement = mappedType.element;
-            chain = chain.next;
-          } else {
-            return mappedType;
-          }
-        }
-        return parameterElement.type;
       }
       return null;
     }
-    Element element = type.element;
     if (element == null) {
       return type;
     }
@@ -1533,91 +1508,6 @@ class _EnclosingElementFinder {
       }
       node = node.parent;
     }
-  }
-}
-
-class _InheritanceChain {
-  final _InheritanceChain next;
-
-  final InterfaceType supertype;
-
-  /**
-   * Return the shortest inheritance chain from a [subtype] to a [supertype], or
-   * `null` if [subtype] does not inherit from [supertype].
-   */
-  factory _InheritanceChain(
-      {@required ClassElement subtype, @required ClassElement supertype}) {
-    List<_InheritanceChain> allChainsFrom(
-        _InheritanceChain next, ClassElement subtype) {
-      List<_InheritanceChain> chains = <_InheritanceChain>[];
-      InterfaceType supertypeType = subtype.supertype;
-      ClassElement supertypeElement = supertypeType.element;
-      if (supertypeElement == supertype) {
-        chains.add(new _InheritanceChain._(next, supertypeType));
-      } else if (supertypeType.isObject) {
-        // Don't add this chain and don't recurse.
-      } else {
-        chains.addAll(allChainsFrom(
-            new _InheritanceChain._(next, supertypeType), supertypeElement));
-      }
-      for (InterfaceType mixinType in subtype.mixins) {
-        ClassElement mixinElement = mixinType.element;
-        if (mixinElement == supertype) {
-          chains.add(new _InheritanceChain._(next, mixinType));
-        }
-      }
-      for (InterfaceType interfaceType in subtype.interfaces) {
-        ClassElement interfaceElement = interfaceType.element;
-        if (interfaceElement == supertype) {
-          chains.add(new _InheritanceChain._(next, interfaceType));
-        } else if (supertypeType.isObject) {
-          // Don't add this chain and don't recurse.
-        } else {
-          chains.addAll(allChainsFrom(
-              new _InheritanceChain._(next, interfaceType), interfaceElement));
-        }
-      }
-      return chains;
-    }
-
-    List<_InheritanceChain> chains = allChainsFrom(null, subtype);
-    if (chains.isEmpty) {
-      return null;
-    }
-    _InheritanceChain shortestChain = chains.removeAt(0);
-    int shortestLength = shortestChain.length;
-    for (_InheritanceChain chain in chains) {
-      int length = chain.length;
-      if (length < shortestLength) {
-        shortestChain = chain;
-        shortestLength = length;
-      }
-    }
-    return shortestChain;
-  }
-
-  /**
-   * Initialize a newly created link in an inheritance chain.
-   */
-  _InheritanceChain._(this.next, this.supertype);
-
-  /**
-   * Return the number of links in the chain starting with this link.
-   */
-  int get length {
-    if (next == null) {
-      return 1;
-    }
-    return next.length + 1;
-  }
-
-  DartType mapParameter(TypeParameterElement typeParameter) {
-    Element parameterParent = typeParameter.enclosingElement;
-    if (parameterParent is ClassElement) {
-      int index = parameterParent.typeParameters.indexOf(typeParameter);
-      return supertype.typeArguments[index];
-    }
-    return null;
   }
 }
 
