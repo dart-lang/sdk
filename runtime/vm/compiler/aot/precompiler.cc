@@ -705,7 +705,7 @@ void Precompiler::AddConstObject(const Instance& instance) {
     return;
   }
 
-  // Can't ask immediate objects if they're canoncial.
+  // Can't ask immediate objects if they're canonical.
   if (instance.IsSmi()) return;
 
   // Some Instances in the ObjectPool aren't const objects, such as

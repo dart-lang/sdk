@@ -2291,8 +2291,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ addq(RSI, Immediate(Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-  __ LoadClassId(R10, kInstanceReg);
-  __ cmpq(R10, Immediate(kClosureCid));
+  if (n >= 4) {
+    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, kInstanceReg);
+  } else {
+    __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+  }
+  __ cmpq(kInstanceCidOrFunction, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
@@ -2596,10 +2600,6 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Bind(&no_error);
 #endif
 
-  // Need to handle slow cases of [Smi]s here because the
-  // [SubtypeTestCache]-based stubs do not handle [Smi]s.
-  __ BranchIfSmi(kInstanceReg, &call_runtime);
-
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(kSubtypeTestCacheReg, Object::null_object());
   __ BranchIf(EQUAL, &call_runtime);
@@ -2622,6 +2622,9 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ CompareObject(kTmp, Object::null_object());
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
+  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
+  __ BranchIfSmi(kInstanceReg, &is_complex_case);
+
   // Fall through to &is_simple_case
 
   __ Bind(&is_simple_case);
@@ -2642,14 +2645,16 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
 
   __ Bind(&call_runtime);
 
-  // We cannot really ensure here that dynamic/Object never occur here (though
-  // it is guaranteed at dart_precompiled_runtime time).  This is because we do
-  // constant evaluation with default stubs and only install optimized versions
-  // before writing out the AOT snapshot.  So dynamic/Object will run with
-  // default stub in constant evaluation.
+  // We cannot really ensure here that dynamic/Object/void never occur here
+  // (though it is guaranteed at dart_precompiled_runtime time).  This is
+  // because we do constant evaluation with default stubs and only install
+  // optimized versions before writing out the AOT snapshot.
+  // So dynamic/Object/void will run with default stub in constant evaluation.
   __ CompareObject(kDstTypeReg, Type::dynamic_type());
   __ BranchIf(EQUAL, &done);
   __ CompareObject(kDstTypeReg, Type::Handle(Type::ObjectType()));
+  __ BranchIf(EQUAL, &done);
+  __ CompareObject(kDstTypeReg, Type::void_type());
   __ BranchIf(EQUAL, &done);
 
   InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
