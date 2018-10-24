@@ -4499,6 +4499,8 @@ The null object is the sole instance of the built-in class \code{Null}.
 Attempting to instantiate \code{Null} causes a run-time error.
 It is a compile-time error for a class to extend, mix in or implement \code{Null}.
 The \code{Null} class extends the \code{Object} class and declares no methods except those also declared by \code{Object}.
+\commentary{As such, it does not override the \code{==} operator inherited
+from the \code{Object} class.}
 
 \LMHash{}
 The static type of \NULL{} is the \code{Null} type.
@@ -4608,6 +4610,8 @@ It is a compile-time error for a class to extend, mix in or implement \code{int}
 It is a compile-time error for a class to extend, mix in or implement \code{double}.
 It is a compile-time error for any class other than \code{int} and \code{double} to extend, mix in or implement \code{num}.
 
+\LMHash{}
+The instances of \code{int} and \code{double} all override the \code{==} operator inherited from the \code{Object} class.
 
 \subsection{Booleans}
 \LMLabel{booleans}
@@ -4625,6 +4629,10 @@ They are the {\em boolean literals}.
 Both {\em true} and {\em false} are instances of the built-in class \code{bool},
 and there are no other objects that implement \code{bool}.
 It is a compile-time error for a class to extend, mix in or implement \code{bool}.
+
+\LMHash{}
+The \code{bool} class does not override the \code{==} operator inherited from
+the \code{Object} class.
 
 \LMHash{}
 Invoking the getter \code{runtimeType} on a boolean value returns the \code{Type} object that is the value of the expression \code{bool}.
@@ -4814,6 +4822,8 @@ It is a compile-time error if a non-raw string literal contains a character sequ
 \LMHash{}
 All string literals evaluate to instances of the built-in class \code{String}.
 It is a compile-time error for a class to extend, mix in or implement \code{String}.
+The \code{String} class overrides the \code{==} operator inherited from
+the \code{Object} class.
 The static type of a string literal is \code{String}.
 
 
@@ -4900,6 +4910,10 @@ representing the private identifier \code{\_\id} of the containing library.
 All occurrences of \code{\#\_\id} {\em in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
+
+\LMHash{}
+The objects created by symbol literals all override
+the \code{==} operator inherited from the \code{Object} class.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not.
@@ -4993,6 +5007,10 @@ $o_{i+1}, 0 \le i < n$.
 The result of the evaluation is $a$.
 \end{itemize}
 
+\LMHash{}
+The objects created by list literals do not override
+the \code{==} operator inherited from the \code{Object} class.
+
 \commentary{
 Note that this document does not specify an order in which the elements are set.
 This allows for parallel assignments into the list if an implementation so desires.
@@ -5057,8 +5075,10 @@ It is a compile-time error if either a key or a value of an entry in a constant 
 It is a compile-time error if the key of an entry in a constant map literal is an instance of
 a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
 unless the key is a string or an integer,
-or the key expression is a literal symbol or
-an invocation of a constant constructor of class \code{Symbol}.
+or the key expression evaluates to an instance of the built-in
+class \code{Symbol} which was originally obtained by evaluation of a
+literal symbol or
+a constant invocation of a constructor of the \code{Symbol} class.
 % Needs 'free': `const <int, Function(Function<X>(X))>{}` is OK, but
 % `X` is not free.
 It is a compile-time error if a type argument of a constant map literal
@@ -5105,6 +5125,10 @@ The operator \syntax{`[]='} is invoked on $m$ with first argument $u_i$ and seco
 \item
 The result of the evaluation is $m$.
 \end{itemize}
+
+\LMHash{}
+The objects created by map literals do not override
+the \code{==} operator inherited from the \code{Object} class.
 
 \LMHash{}
 A run-time map literal
@@ -6527,6 +6551,9 @@ which is an instance of a class whose interface is a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 corresponding to the signature in the function declaration $f$,
 using the current bindings of type variables, if any.
+If $f$ denotes a static method or top-level function,
+the corresponding class does not override the \code{==} operator
+inherited from the \code{Object} class.
 %
 An invocation of $o$ with a given argument list will bind actuals to formals
 in the same way as an invocation of $f$
@@ -9382,8 +9409,10 @@ Note that the values of the expressions are known at compile time, and are indep
 It is a compile-time error if the class $C$ has an implementation of
 the operator \code{==} other than the one inherited from \code{Object},
 unless the expression evaluates to a string or an integer,
-or the expression is a literal symbol or
-an invocation of a constant constructor of class \code{Symbol}.
+or the expression evaluates to an instance of the built-in
+class \code{Symbol} which was initially obtained by evaluation of a
+literal symbol or
+a constant invocation of a constructor of the \code{Symbol} class.
 
 \rationale{
 The prohibition on user defined equality allows us to implement the switch efficiently for user defined types.
@@ -10920,6 +10949,8 @@ and the actual types of declarations
 
 \LMHash{}
 When types are reified as instances of the built-in class \code{Type},
+those objects override the \code{==} operator
+inherited from the \code{Object} class, so that
 two \code{Type} objects are equal according to operator \syntax{`=='}
 if{}f the corresponding types are subtypes of each other.
 
