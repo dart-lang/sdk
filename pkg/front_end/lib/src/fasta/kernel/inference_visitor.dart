@@ -876,18 +876,10 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         }
       }
     }
-    bool hadExplicitTypeArguments =
-        getExplicitTypeArguments(node.arguments) != null;
     var inferenceResult = inferrer.inferMethodInvocation(
         node, node.receiver, node.fileOffset, node._isImplicitCall, typeContext,
         desugaredInvocation: node);
     node.inferredType = inferenceResult.type;
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (!hadExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInMethodInvocation(
-          node, inferrer.thisType?.classNode, inferrer.typeSchemaEnvironment,
-          inferred: true);
-    }
   }
 
   void visitNamedFunctionExpressionJudgment(

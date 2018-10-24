@@ -1603,6 +1603,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             interfaceMember, receiverType);
     var calleeType = getCalleeType(interfaceMember, receiverType);
     var functionType = getCalleeFunctionType(calleeType, !isImplicitCall);
+
     if (interfaceMember != null &&
         calleeType is! DynamicType &&
         calleeType != coreTypes.functionClass.rawType &&
@@ -1641,6 +1642,39 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         parent?.replaceChild(expression, errorNode);
       }
     }
+
+    // If [arguments] were inferred, check them.
+    // TODO(dmitryas): Figure out why [library] is sometimes null.
+    if (library != null) {
+      // [actualReceiverType], [interfaceTarget], and [actualMethodName] below
+      // are for a workaround for the cases like the following:
+      //
+      //     class C1 { var f = new C2(); }
+      //     class C2 { int call<X extends num>(X x) => 42; }
+      //     main() { C1 c = new C1(); c.f("foobar"); }
+      DartType actualReceiverType;
+      Member interfaceTarget;
+      Name actualMethodName;
+      if (calleeType is InterfaceType) {
+        actualReceiverType = calleeType;
+        interfaceTarget = null;
+        actualMethodName = callName;
+      } else {
+        actualReceiverType = receiverType;
+        interfaceTarget = interfaceMember is Member ? interfaceMember : null;
+        actualMethodName = methodName;
+      }
+      library.checkBoundsInMethodInvocation(
+          actualReceiverType,
+          typeSchemaEnvironment,
+          this,
+          actualMethodName,
+          interfaceTarget,
+          arguments,
+          fileOffset,
+          inferred: getExplicitTypeArguments(arguments) == null);
+    }
+
     return new ExpressionInferenceResult(null, inferredType);
   }
 

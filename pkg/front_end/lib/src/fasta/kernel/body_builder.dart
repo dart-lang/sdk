@@ -215,11 +215,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   /// invocations are to be resolved in a separate step.
   final List<Expression> redirectingFactoryInvocations = <Expression>[];
 
-  /// In some cases checks of the type arguments in method invocations can't be
-  /// done right away, because some type arguments within the receiver
-  /// expression are yet to be inferred.
-  final List<MethodInvocation> delayedBoundsChecks = <MethodInvocation>[];
-
   BodyBuilder(
       this.library,
       this.member,
@@ -563,11 +558,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     resolveRedirectingFactoryTargets();
-    for (MethodInvocation node in delayedBoundsChecks) {
-      library.checkBoundsInMethodInvocation(
-          node, classBuilder?.target, typeEnvironment);
-    }
-    delayedBoundsChecks.clear();
   }
 
   @override
@@ -838,11 +828,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     resolveRedirectingFactoryTargets();
-    for (MethodInvocation node in delayedBoundsChecks) {
-      library.checkBoundsInMethodInvocation(
-          node, classBuilder?.target, typeEnvironment);
-    }
-    delayedBoundsChecks.clear();
   }
 
   void resolveRedirectingFactoryTargets() {
@@ -4571,7 +4556,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           receiver, callName, forest.castArguments(arguments),
           isImplicitCall: true)
         ..fileOffset = forest.readOffset(arguments);
-      delayedBoundsChecks.add(node);
       return node;
     }
 
@@ -4594,7 +4578,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           receiver, name, forest.castArguments(arguments),
           isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
         ..fileOffset = offset;
-      delayedBoundsChecks.add(node);
       return node;
     }
   }
