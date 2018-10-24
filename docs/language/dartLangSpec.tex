@@ -606,8 +606,8 @@ No state is ever shared between isolates.
 Isolates are created by spawning (\ref{spawningAnIsolate}).
 
 
-\section{Errors}
-\LMLabel{errors}
+\section{Errors and Warnings}
+\LMLabel{errorsAndWarnings}
 
 \LMHash{}
 This specification distinguishes between several kinds of errors.
@@ -647,6 +647,12 @@ When an isolate fails with a compile-time error as described above, control retu
 This is necessary so that the embedder can clean up resources etc.
 It is then the embedder's decision whether to terminate the isolate or not.
 }
+
+\LMHash{}
+{\em Compile-time warnings} are situations that do not preclude execution,
+but which are unlikely to be intended,
+and likely to cause bugs or inconveniences.
+A compile-time warning must be reported by a Dart compiler before the associated code is executed.
 
 \LMHash{}
 When this specification says that a {\em run-time error} occurs,
@@ -699,11 +705,11 @@ the same set of variable names in the same order,
 with the same type and modifiers.
 
 \LMHash{}
-An initialized variable declaration that contains one or more terms of the form
+An \syntax{<initializedVariableDeclaration>} that contains one or more terms of the form
 \syntax{<initializedIdentifier>}
-(\commentary{a declaration that declares two or more initialized variables})
+(\commentary{that is, a declaration that declares two or more initialized variables})
 is equivalent to multiple variable declarations declaring
-the same set of variable names in the same order,
+the same set of variable names, in the same order,
 with the same initialization, type, and modifiers.
 
 \commentary{
@@ -737,7 +743,8 @@ but in this situation \id{} is still a referencing identifier.
 }
 
 \LMHash{}
-An {\em initialized variable} is a variable whose declaring identifier is
+An {\em initializing variable declaration}
+is a variable declaration whose declaring identifier is
 immediately followed by `\code{=}' and an {\em initializing expression}.
 
 \LMHash{}
@@ -832,7 +839,8 @@ A mutable static class variable introduces a static setter into the immediately 
 A mutable instance variable introduces an instance setter into the immediately enclosing class.
 
 \LMHash{}
-Let $v$ be an initialized variable and let $e$ be the associated initializing expression.
+Let $v$ be variable declared in an initializing variable declaration,
+and let $e$ be the associated initializing expression.
 It is a compile-time error if the static type of $e$ is not assignable to the declared type of $v$.
 It is a compile-time error if a final instance variable whose declaration has an initializer expression
 is also initialized by a constructor, either by an initializing formal or an initializer list entry.
@@ -1499,7 +1507,7 @@ It is a compile-time error if an instance method $m_1$ overrides an instance mem
 \LMHash{}
 %% TODO(eernst): We need to use the concept of 'correctly overrides' rather than 'is a subtype of', e.g., to treat `void` correctly.
 It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
-It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
+It is a compile-time warning if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
 
 \commentary{
 A method declaration may conflict with other declarations
@@ -1605,7 +1613,7 @@ is not 0.
 It is a compile-time error to declare an optional parameter in an operator.
 
 \LMHash{}
-It is a compile-time error if the return type of a user-declared operator
+It is a compile-time warning if the return type of a user-declared operator
 \syntax{`[]='}
 is explicitly declared and not \VOID{}.
 
@@ -1993,10 +2001,12 @@ We could enforce this via the grammar, but we'd have to specify the evaluation r
 }
 
 \LMHash{}
-It is a compile-time error if a setter declares a return type other than \VOID{}.
+It is a compile-time warning if a setter declares a return type other than \VOID{}.
 It is a compile-time error if a setter $m_1$ overrides (\ref{inheritanceAndOverriding}) a setter $m_2$
 and the parameter type of $m_1$ is not a supertype of the parameter type of $m_2$.
-It is a compile-time error if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$,
+It is a compile-time warning if a class has
+a setter named $v=$ with argument type $T$ and
+a getter named $v$ with return type $S$,
 and $S$ may not be assigned to $T$.
 
 \commentary{
@@ -2358,13 +2368,17 @@ It is a compile-time error if $k$'s initializer list contains an initializer for
 It is a compile-time error if $k$ includes an initializing formal for a final variable $f$ whose declaration includes an initialization expression.
 
 \LMHash{}
-Each final instance variable $f$ declared in the immediately enclosing class must have an initializer in $k$'s initializer list unless it has already been initialized by one of the following means:
+Let $f$ be a final instance variable declared in
+the immediately enclosing class.
+A compile-time error occurs unless $f$ is initialized
+by one of the following means:
 \begin{itemize}
-\item Initialization at the declaration of $f$.
-\item Initialization by means of an initializing formal of $k$.
+\item $f$ is declared by an initializing variable declaration.
+\item $f$ is initialized by means of an initializing formal of $k$.
+\item $f$ has an initializer in $k$'s initializer list.
 \end{itemize}
 
-or a compile-time error occurs.
+\LMHash{}
 It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is not an instance variable declared in the immediately surrounding class.
 
 \commentary{
@@ -5832,7 +5846,7 @@ An isolate's memory is finite, as is the space available to its thread's call st
 It is possible for a running isolate to exhaust its memory or stack, resulting in a run-time error that cannot be effectively caught, which will force the isolate to be suspended.
 
 \commentary{
-As discussed in section \ref{errors}, the handling of a suspended isolate is the responsibility of the embedder.
+As discussed in section \ref{errorsAndWarnings}, the handling of a suspended isolate is the responsibility of the embedder.
 }
 
 
@@ -7384,8 +7398,8 @@ Then, the variable $v$ is bound to $o$.
 If no error occurs, the value of the assignment expression is $o$.
 
 \commentary{
-If $v$ is a final variable, a compile-time error has occurred,
-but a type check may cause a dynamic error.
+If $v$ is a final variable, a compile-time error has occurred and execution is unspecified.
+But a program with no compile-time errors may incur a dynamic type error.
 }
 
 % add local functions per bug 23218
@@ -8815,9 +8829,11 @@ The type of a local variable with a declaration of one of the forms
 is \DYNAMIC{}.
 
 \LMHash{}
-Let $v$ be an initialized local variable and let $e$ be the associated initializing expression.
+Let $v$ be a local variable declared by an initializing variable declaration,
+and let $e$ be the associated initializing expression.
 It is a compile-time error if the static type of $e$ is not assignable to the type of $v$.
-It is a compile-time error if a local variable $v$ is final and $v$ is not an initialized variable.
+It is a compile-time error if a local variable $v$ is final,
+and the declaration of $v$ is not an initializing variable declaration.
 
 \commentary{
 It is also a compile-time error to assign to a final local variable
@@ -9493,7 +9509,7 @@ There are obviously situations where code does not fall through, and yet does no
 }
 
 \LMHash{}
-It is a compile-time error if all of the following conditions hold:
+It is a compile-time warning if all of the following conditions hold:
 \begin{itemize}
 \item The switch statement does not have a default clause.
 \item The static type of $e$ is an enumerated type with elements $\id_1, \ldots, \id_n$.
@@ -9501,7 +9517,7 @@ It is a compile-time error if all of the following conditions hold:
 \end{itemize}
 
 \commentary{
-In other words, an error will be raised if a switch statement over an enum is not exhaustive.
+In other words, a warning will be emitted if a switch statement over an enum is not exhaustive.
 }
 
 
@@ -9736,8 +9752,8 @@ In the case of a generator function, the value returned by the function is the i
 }
 
 \LMHash{}
-Let $f$ be the function immediately enclosing a return statement of the form \RETURN{};.
-It is a compile-time error if $f$ is neither a generator nor a generative constructor and either:
+Let $f$ be the function immediately enclosing a return statement of the form \code{\RETURN{};}.
+It is a compile-time warning if $f$ is neither a generator nor a generative constructor and either:
 \begin{itemize}
 %% TODO(eernst): Integrating generalized-void.md, "may not be assigned
 %% to void" is useless. Update, also considering invalid_returns.md.
@@ -9747,7 +9763,8 @@ It is a compile-time error if $f$ is neither a generator nor a generative constr
 \end{itemize}
 
 \commentary{
-Hence, a compile-time error will not be raised if $f$ has no declared return type,
+Hence, a compile-time warning will not be raised if $f$ has no declared return type,
+%% TODO(eernst): Update when integrating generalized-void.md!
 since the return type would be \DYNAMIC{} and \DYNAMIC{} may be assigned to \VOID{} and to \code{Future<Null>}.
 However, any synchronous non-generator function that declares a return type must return an expression explicitly.
 }
@@ -10436,7 +10453,7 @@ In contrast a library comprises both imports and their usage; the library is und
 }
 
 \LMHash{}
-It is a compile-time error to import two different libraries with the same name unless their name is the empty string.
+It is a compile-time warning to import two different libraries with the same name unless their name is the empty string.
 
 \commentary{
 A widely disseminated library should be given a name that will not conflict with other such libraries.
