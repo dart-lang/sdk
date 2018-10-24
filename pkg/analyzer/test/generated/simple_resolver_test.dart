@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1037,7 +1038,45 @@ class C = Object with A;''');
     verify([source]);
   }
 
+  test_isValidMixin_badSuperclass_withSuperMixins() async {
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A extends B {}
+class B {}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_isValidMixin_constructor() async {
+    Source source = addSource(r'''
+class A {
+  A() {}
+}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isFalse);
+    await computeAnalysisResult(source);
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+    );
+    verify([source]);
+  }
+
+  test_isValidMixin_constructor_withSuperMixins() async {
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   A() {}
@@ -1074,6 +1113,24 @@ class C = Object with A;''');
     verify([source]);
   }
 
+  test_isValidMixin_factoryConstructor_withSuperMixins() async {
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  factory A() => null;
+}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_isValidMixin_super() async {
     Source source = addSource(r'''
 class A {
@@ -1093,7 +1150,43 @@ class C = Object with A;''');
     verify([source]);
   }
 
+  test_isValidMixin_super_withSuperMixins() async {
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  toString() {
+    return super.toString();
+  }
+}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_isValidMixin_valid() async {
+    Source source = addSource('''
+class A {}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_isValidMixin_valid_withSuperMixins() async {
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource('''
 class A {}
 class C = Object with A;''');

@@ -5577,7 +5577,11 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter, libraryElement, typeProvider, inheritanceManager, false,
+        errorReporter,
+        libraryElement,
+        typeProvider,
+        inheritanceManager,
+        context.analysisOptions.enableSuperMixins,
         disableConflictingGenericsCheck: true);
     unit.accept(errorVerifier);
     //

@@ -905,6 +905,11 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
 
+  test_basic_language() async {
+    await _driveBasic();
+    expect(analysisOptions.enableSuperMixins, isTrue);
+  }
+
   test_includeDirective() async {
     String testDir = path.join(
         testDirectory, 'data', 'options_include_directive_tests_project');

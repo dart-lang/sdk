@@ -20,8 +20,6 @@ const _binaryName = 'dartanalyzer';
 /// *Visible for testing.*
 ExitHandler exitHandler = exit;
 
-T cast<T>(dynamic value) => value as T;
-
 /// Print the given [message] to stderr and exit with the given [exitCode].
 void printAndFail(String message, {int exitCode: 15}) {
   errorSink.writeln(message);
@@ -112,6 +110,11 @@ class CommandLineOptions {
   /// Whether to enable parsing via the Fasta parser.
   final bool useFastaParser;
 
+  /// Whether to enable the Dart 2.0 Preview.
+  ///
+  /// This flag is deprecated and hard-coded to `true`.
+  bool get previewDart2 => true;
+
   /// Batch mode (for unit testing)
   final bool batchMode;
 
@@ -144,10 +147,10 @@ class CommandLineOptions {
   /// Whether implicit dynamic is enabled (mainly for strong mode users)
   final bool implicitDynamic;
 
+  // TODO(devoncarew): Deprecate and remove this flag.
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
-  // TODO(devoncarew): Deprecate and remove this flag.
   /// Emit output in a verbose mode.
   final bool verbose;
 
@@ -212,17 +215,16 @@ class CommandLineOptions {
   Map<String, String> get definedVariables =>
       contextBuilderOptions.declaredVariables;
 
+  /// Whether to relax restrictions on mixins (DEP 34).
+  bool get enableSuperMixins =>
+      contextBuilderOptions.defaultOptions.enableSuperMixins;
+
   /// The path to a `.packages` configuration file
   String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
 
   /// The path to the package root
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
-
-  /// Whether to enable the Dart 2.0 Preview.
-  ///
-  /// This flag is deprecated and hard-coded to `true`.
-  bool get previewDart2 => true;
 
   /// The source files to analyze
   List<String> get sourceFiles => _sourceFiles;
@@ -643,3 +645,5 @@ Run "dartanalyzer -h -v" for verbose help output, including less commonly used o
 For more information, see https://www.dartlang.org/tools/analyzer.\n''');
   }
 }
+
+T cast<T>(dynamic value) => value as T;

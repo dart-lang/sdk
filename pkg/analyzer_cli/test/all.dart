@@ -14,6 +14,7 @@ import 'package_prefix_test.dart' as package_prefix_test;
 import 'perf_report_test.dart' as perf_report_test;
 import 'reporter_test.dart' as reporter_test;
 import 'sdk_ext_test.dart' as sdk_ext_test;
+import 'super_mixin_test.dart' as super_mixin_test;
 import 'strong_mode_test.dart' as strong_mode_test;
 
 main() {
@@ -29,5 +30,6 @@ main() {
   perf_report_test.main();
   reporter_test.main();
   sdk_ext_test.main();
+  super_mixin_test.main();
   strong_mode_test.main();
 }

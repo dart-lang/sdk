@@ -1856,6 +1856,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
+      if (forSuperInvocation) {
+        bool inOldStyleSuperMixin = inMixin &&
+            type.superclass != null &&
+            !type.superclass.isObject &&
+            element.context.analysisOptions.enableSuperMixins;
+        if (inOldStyleSuperMixin) {
+          acceptAbstract = true;
+        }
+      }
+
       if (!inMixin || acceptAbstract) {
         var mixins = type.mixins;
         startMixinIndex ??= mixins.length;

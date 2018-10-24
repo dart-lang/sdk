@@ -51,6 +51,33 @@ class ContextConfigurationTest extends AbstractContextTest {
   YamlMap parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
+  test_configure_bad_options_contents() {
+    configureContext('''
+analyzer:
+  language:
+    enableSuperMixins true; # misformatted
+''');
+    expect(analysisOptions.enableSuperMixins, false);
+  }
+
+  test_configure_enableSuperMixins() {
+    configureContext('''
+analyzer:
+  language:
+    enableSuperMixins: true
+''');
+    expect(analysisOptions.enableSuperMixins, true);
+  }
+
+  test_configure_enableSuperMixins_badValue() {
+    configureContext('''
+analyzer:
+  language:
+    enableSuperMixins: true;
+''');
+    expect(analysisOptions.enableSuperMixins, false);
+  }
+
   test_configure_error_processors() {
     configureContext('''
 analyzer:
@@ -528,6 +555,14 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 
+  test_analyzer_language_supported() {
+    validate('''
+analyzer:
+  language:
+    enableSuperMixins: true
+''', []);
+  }
+
   test_analyzer_language_supports_empty() {
     validate('''
 analyzer:
@@ -540,14 +575,14 @@ analyzer:
 analyzer:
   language:
     unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   test_analyzer_language_unsupported_value() {
     validate('''
 analyzer:
-  strong-mode:
-    implicit-dynamic: foo
+  language:
+    enableSuperMixins: foo
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 

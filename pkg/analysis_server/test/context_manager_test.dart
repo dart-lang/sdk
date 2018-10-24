@@ -13,10 +13,8 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -26,6 +24,8 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart' as path;
@@ -1807,6 +1807,8 @@ abstract class ContextManagerWithOptionsTest extends ContextManagerTest {
 embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
+  language:
+    enableSuperMixins: true
   errors:
     unused_local_variable: false
 linter:
@@ -1821,6 +1823,7 @@ linter:
     // Verify options were set.
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
+    expect(analysisOptions.enableSuperMixins, isTrue);
 
     // Remove options.
     deleteOptionsFile();
@@ -1829,6 +1832,7 @@ linter:
     // Verify defaults restored.
     expect(errorProcessors, isEmpty);
     expect(lints, isEmpty);
+    expect(analysisOptions.enableSuperMixins, isFalse);
   }
 
   @failingTest
@@ -1855,6 +1859,8 @@ test_pack:lib/''');
     // Setup analysis options
     newFile('$projPath/$optionsFileName', content: r'''
 analyzer:
+  language:
+    enableSuperMixins: true
   errors:
     unused_local_variable: false
 linter:
@@ -1867,6 +1873,7 @@ linter:
     await pumpEventQueue();
 
     // Verify options were set.
+    expect(analysisOptions.enableSuperMixins, isTrue);
     expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
 
@@ -1875,6 +1882,7 @@ linter:
     await pumpEventQueue();
 
     // Verify defaults restored.
+    expect(analysisOptions.enableSuperMixins, isFalse);
     expect(lints, hasLength(1));
     expect(lints.first, const TypeMatcher<AvoidAs>());
     expect(errorProcessors, hasLength(1));
@@ -1895,6 +1903,8 @@ include: other_options.yaml
 ''');
     newFile('$projPath/other_options.yaml', content: r'''
 analyzer:
+  language:
+    enableSuperMixins: true
   errors:
     unused_local_variable: false
 linter:
@@ -1905,6 +1915,7 @@ linter:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
     // Verify options were set.
+    expect(analysisOptions.enableSuperMixins, isTrue);
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
     expect(lints[0].name, 'camel_case_types');
@@ -1922,6 +1933,8 @@ linter:
     String booLibPosixPath = '/my/pkg/boo/lib';
     newFile('$booLibPosixPath/other_options.yaml', content: r'''
 analyzer:
+  language:
+    enableSuperMixins: true
   errors:
     unused_local_variable: false
 linter:
@@ -1938,6 +1951,7 @@ include: package:boo/other_options.yaml
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
     // Verify options were set.
+    expect(analysisOptions.enableSuperMixins, isTrue);
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
     expect(lints[0].name, 'camel_case_types');
@@ -1995,6 +2009,8 @@ embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
   strong-mode: true
+  language:
+    enableSuperMixins: true
   errors:
     missing_return: false
 linter:
@@ -2010,6 +2026,8 @@ test_pack:lib/''');
 analyzer:
   exclude:
     - 'test/**'
+  language:
+    enableSuperMixins: true
   errors:
     unused_local_variable: false
 linter:
@@ -2028,8 +2046,12 @@ linter:
 
     // Verify options.
     // * from `_embedder.yaml`:
-    // TODO(brianwilkerson) Figure out what to use in place of 'strongMode'.
+    // TODO(brianwilkerson) Figure out what to use in place of 'strongMode' and
+    // why 'enableSuperMixins' is assumed to come from two different sources.
 //    expect(analysisOptions.strongMode, isTrue);
+    expect(analysisOptions.enableSuperMixins, isTrue);
+    // * from analysis options:
+    expect(analysisOptions.enableSuperMixins, isTrue);
 
     // * verify tests are excluded
     expect(

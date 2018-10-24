@@ -16,15 +16,15 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
@@ -279,7 +279,8 @@ class AbstractStrongTest {
   Future<CompilationUnit> check(
       {bool declarationCasts: true,
       bool implicitCasts: true,
-      bool implicitDynamic: true}) async {
+      bool implicitDynamic: true,
+      bool superMixins: false}) async {
     _checkCalled = true;
 
     File mainFile =
@@ -291,6 +292,7 @@ class AbstractStrongTest {
     analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
+    analysisOptions.enableSuperMixins = superMixins;
 
     var mockSdk = new MockSdk(resourceProvider: _resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
@@ -369,12 +371,14 @@ class AbstractStrongTest {
   Future<CompilationUnit> checkFile(String content,
       {bool declarationCasts: true,
       bool implicitCasts: true,
-      bool implicitDynamic: true}) async {
+      bool implicitDynamic: true,
+      bool superMixins: false}) async {
     addFile(content);
     return await check(
         declarationCasts: declarationCasts,
         implicitCasts: implicitCasts,
-        implicitDynamic: implicitDynamic);
+        implicitDynamic: implicitDynamic,
+        superMixins: superMixins);
   }
 
   void setUp() {

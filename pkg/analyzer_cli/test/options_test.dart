@@ -60,6 +60,7 @@ main() {
         expect(options.disableHints, isFalse);
         expect(options.lints, isFalse);
         expect(options.displayVersion, isFalse);
+        expect(options.enableSuperMixins, isFalse);
         expect(options.infosAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);
@@ -93,6 +94,12 @@ main() {
         CommandLineOptions options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
         expect(options.disableCacheFlushing, isTrue);
+      });
+
+      test('enable super mixins', () {
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--supermixin', 'foo.dart']);
+        expect(options.enableSuperMixins, isTrue);
       });
 
       test('hintsAreFatal', () {

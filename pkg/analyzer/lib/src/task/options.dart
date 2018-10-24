@@ -73,18 +73,20 @@ class AnalyzerOptions {
     exclude,
     language,
     plugins,
-    strong_mode,
+    strong_mode
   ];
 
   /// Supported `analyzer` strong-mode options.
   static const List<String> strongModeOptions = const [
     declarationCasts, // deprecated
     implicitCasts,
-    implicitDynamic,
+    implicitDynamic
   ];
 
   /// Supported `analyzer` language options.
-  static const List<String> languageOptions = const [];
+  static const List<String> languageOptions = const [
+    enableSuperMixins,
+  ];
 }
 
 /// Validates `analyzer` options.
@@ -116,20 +118,15 @@ class ErrorBuilder {
 
   /// Create a builder for the given [supportedOptions].
   ErrorBuilder(List<String> supportedOptions) {
-    assert(supportedOptions != null);
-    if (supportedOptions.isEmpty) {
-      code = noProposalCode;
-    } else if (supportedOptions.length == 1) {
-      proposal = "'${supportedOptions.join()}'";
-      code = singularProposalCode;
-    } else {
+    assert(supportedOptions != null && !supportedOptions.isEmpty);
+    if (supportedOptions.length > 1) {
       proposal = StringUtilities.printListOfQuotedNames(supportedOptions);
       code = pluralProposalCode;
+    } else {
+      proposal = "'${supportedOptions.join()}'";
+      code = singularProposalCode;
     }
   }
-
-  AnalysisOptionsWarningCode get noProposalCode =>
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES;
 
   AnalysisOptionsWarningCode get pluralProposalCode =>
       AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
@@ -139,12 +136,8 @@ class ErrorBuilder {
 
   /// Report an unsupported [node] value, defined in the given [scopeName].
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
-    if (proposal != null) {
-      reporter.reportErrorForSpan(
-          code, node.span, [scopeName, node.value, proposal]);
-    } else {
-      reporter.reportErrorForSpan(code, node.span, [scopeName, node.value]);
-    }
+    reporter
+        .reportErrorForSpan(code, node.span, [scopeName, node.value, proposal]);
   }
 }
 
@@ -387,10 +380,6 @@ class LanguageOptionValidator extends OptionsValidator {
             if (AnalyzerOptions.enablePreviewDart2 == key) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
-                  k.span);
-            } else if (AnalyzerOptions.enableSuperMixins == key) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,
                   k.span);
             } else if (!AnalyzerOptions.languageOptions.contains(key)) {
               builder.reportError(reporter, AnalyzerOptions.language, k);
@@ -637,7 +626,9 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      // Currently no supported language options.
+      if (feature == AnalyzerOptions.enableSuperMixins) {
+        options.enableSuperMixins = boolValue;
+      }
     }
   }
 
