@@ -30,7 +30,8 @@ main() async {
 List<GeneratedContent> get allTargets {
   List<GeneratedContent> targets = <GeneratedContent>[];
   targets.add(codegen_analysis_server.target);
-  targets.add(codegen_dart_protocol.target(false));
+  targets.add(codegen_dart_protocol.clientTarget(false));
+  targets.add(codegen_dart_protocol.serverTarget(false));
   targets.add(codegen_java_types.targetDir);
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
