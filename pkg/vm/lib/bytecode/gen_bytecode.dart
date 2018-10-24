@@ -1594,7 +1594,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // Remove type arguments as they are only passed to instance allocation,
     // and not passed to a constructor.
     final args =
-        new Arguments(node.arguments.positional, named: node.arguments.named);
+        new Arguments(node.arguments.positional, named: node.arguments.named)
+          ..parent = node;
     _genArguments(null, args);
     _genStaticCallWithArgs(node.target, args, hasReceiver: true);
     asm.emitDrop1();
