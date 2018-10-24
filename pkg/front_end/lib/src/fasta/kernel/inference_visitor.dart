@@ -511,8 +511,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     InvocationExpression read = node.read;
     DartType readType;
     if (read != null) {
-      var readMember =
-          inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+      var readMember = inferrer.findMethodInvocationMember(receiverType, read,
+          instrumented: false);
       var calleeFunctionType = inferrer.getCalleeFunctionType(
           inferrer.getCalleeType(readMember, receiverType), false);
       inferrer.ensureAssignable(
@@ -956,8 +956,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
     DartType readType;
     if (node.read != null) {
-      var readMember =
-          inferrer.findPropertyGetMember(receiverType, node.read, silent: true);
+      var readMember = inferrer.findPropertyGetMember(receiverType, node.read,
+          instrumented: false);
       readType = inferrer.getCalleeType(readMember, receiverType);
       inferrer.handlePropertyGetContravariance(
           node.receiver,

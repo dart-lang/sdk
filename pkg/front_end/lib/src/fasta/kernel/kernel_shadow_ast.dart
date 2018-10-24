@@ -425,8 +425,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
     DartType combinedType;
     if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
-      combinerMember =
-          inferrer.findMethodInvocationMember(readType, combiner, silent: true);
+      combinerMember = inferrer.findMethodInvocationMember(readType, combiner,
+          instrumented: false);
       if (combinerMember is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
             .isOverloadedArithmeticOperatorAndType(combinerMember, readType);
@@ -485,7 +485,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
         MethodInvocation equalsInvocation = nullAwareCombiner.condition;
         inferrer.findMethodInvocationMember(
             greatestClosure(inferrer.coreTypes, writeContext), equalsInvocation,
-            silent: true);
+            instrumented: false);
         // Note: the case of readType=null only happens for erroneous code.
         combinedType = readType == null
             ? rhsType
