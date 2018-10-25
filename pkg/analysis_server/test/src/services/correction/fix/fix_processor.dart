@@ -25,6 +25,14 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// The errors in the file for which fixes are being computed.
   List<AnalysisError> _errors;
 
+  /// The source change associated with the fix that was found, or `null` if
+  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
+  SourceChange change;
+
+  /// The result of applying the [change] to the file content, or `null` if
+  //  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
+  String resultCode;
+
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
 
@@ -32,7 +40,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       {bool Function(AnalysisError) errorFilter, String target}) async {
     AnalysisError error = await _findErrorToFix(errorFilter);
     Fix fix = await _assertHasFix(error);
-    SourceChange change = fix.change;
+    change = fix.change;
 
     // apply to "file"
     List<SourceFileEdit> fileEdits = change.edits;
@@ -44,8 +52,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       fileContent = getFile(target).readAsStringSync();
     }
 
-    String resultCode =
-        SourceEdit.applySequence(fileContent, change.edits[0].edits);
+    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
   }
@@ -54,7 +61,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       {String target}) async {
     AnalysisError error = await _findErrorToFixOfType(errorCode);
     Fix fix = await _assertHasFixAllFix(error);
-    SourceChange change = fix.change;
+    change = fix.change;
 
     // apply to "file"
     List<SourceFileEdit> fileEdits = change.edits;
@@ -66,10 +73,18 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       fileContent = getFile(target).readAsStringSync();
     }
 
-    String resultCode =
-        SourceEdit.applySequence(fileContent, change.edits[0].edits);
+    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
+  }
+
+  void assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
+      [List<LinkedEditSuggestion> expectedSuggestions]) {
+    List<Position> expectedPositions = _findResultPositions(expectedStrings);
+    expect(group.positions, unorderedEquals(expectedPositions));
+    if (expectedSuggestions != null) {
+      expect(group.suggestions, unorderedEquals(expectedSuggestions));
+    }
   }
 
   /// Compute fixes and ensure that there is no fix of the [kind] being tested by
@@ -77,6 +92,13 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   Future<void> assertNoFix({bool Function(AnalysisError) errorFilter}) async {
     AnalysisError error = await _findErrorToFix(errorFilter);
     await _assertNoFix(error);
+  }
+
+  List<LinkedEditSuggestion> expectedSuggestions(
+      LinkedEditSuggestionKind kind, List<String> values) {
+    return values.map((value) {
+      return new LinkedEditSuggestion(value, kind);
+    }).toList();
   }
 
   @override
@@ -192,6 +214,15 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       }
     }
     return null;
+  }
+
+  List<Position> _findResultPositions(List<String> searchStrings) {
+    List<Position> positions = <Position>[];
+    for (String search in searchStrings) {
+      int offset = resultCode.indexOf(search);
+      positions.add(new Position(testFile, offset));
+    }
+    return positions;
   }
 }
 
