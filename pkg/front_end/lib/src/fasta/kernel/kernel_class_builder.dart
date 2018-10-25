@@ -41,6 +41,9 @@ import 'package:kernel/clone.dart' show CloneWithoutBody;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import 'package:kernel/src/bounds_checks.dart'
+    show findBoundViolations, getGenericTypeName;
+
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 import 'package:kernel/type_algebra.dart' as type_algebra
@@ -288,8 +291,9 @@ abstract class KernelClassBuilder
       Supertype supertype, TypeEnvironment typeEnvironment) {
     KernelLibraryBuilder library = this.library;
 
-    List<Object> boundViolations = typeEnvironment.findBoundViolations(
+    List<Object> boundViolations = findBoundViolations(
         new InterfaceType(supertype.classNode, supertype.typeArguments),
+        typeEnvironment,
         allowSuperBounded: false,
         typedefInstantiations: library.typedefInstantiations);
     if (boundViolations != null) {
@@ -313,13 +317,13 @@ abstract class KernelClassBuilder
             message =
                 templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
                     argument,
-                    typeEnvironment.getGenericTypeName(enclosingType),
+                    getGenericTypeName(enclosingType),
                     supertype.classNode.name,
                     name);
           } else {
             message = templateIncorrectTypeArgumentInSupertype.withArguments(
                 argument,
-                typeEnvironment.getGenericTypeName(enclosingType),
+                getGenericTypeName(enclosingType),
                 supertype.classNode.name,
                 name);
           }
@@ -335,8 +339,8 @@ abstract class KernelClassBuilder
 
     // Check in bounds of own type variables.
     for (TypeParameter parameter in cls.typeParameters) {
-      List<Object> violations = typeEnvironment.findBoundViolations(
-          parameter.bound,
+      List<Object> violations = findBoundViolations(
+          parameter.bound, typeEnvironment,
           allowSuperBounded: false,
           typedefInstantiations: library.typedefInstantiations);
       if (violations != null) {
@@ -359,7 +363,7 @@ abstract class KernelClassBuilder
             variable = null;
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           }
 
           library.reportBoundViolation(message, parameter.fileOffset, variable);

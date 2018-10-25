@@ -39,6 +39,12 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
+import 'package:kernel/src/bounds_checks.dart'
+    show
+        findBoundViolations,
+        findBoundViolationsElementwise,
+        getGenericTypeName;
+
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -1374,10 +1380,9 @@ class KernelLibraryBuilder
 
   void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
     if (!loader.target.strongMode) return;
-    List<Object> boundViolations = typeEnvironment.findBoundViolations(
-        field.type,
-        allowSuperBounded: true,
-        typedefInstantiations: typedefInstantiations);
+    List<Object> boundViolations = findBoundViolations(
+        field.type, typeEnvironment,
+        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     if (boundViolations != null) {
       for (int i = 0; i < boundViolations.length; i += 3) {
         DartType argument = boundViolations[i];
@@ -1397,10 +1402,10 @@ class KernelLibraryBuilder
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           }
         }
 
@@ -1418,8 +1423,8 @@ class KernelLibraryBuilder
     if (!loader.target.strongMode) return;
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
-        List<Object> violations = typeEnvironment.findBoundViolations(
-            parameter.bound,
+        List<Object> violations = findBoundViolations(
+            parameter.bound, typeEnvironment,
             allowSuperBounded: false,
             typedefInstantiations: typedefInstantiations);
         if (violations != null) {
@@ -1444,11 +1449,10 @@ class KernelLibraryBuilder
             } else {
               if (inferred) {
                 message = templateIncorrectTypeArgumentInferred.withArguments(
-                    argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                    argument, getGenericTypeName(enclosingType));
               } else {
-                message = templateIncorrectTypeArgument.withArguments(argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                message = templateIncorrectTypeArgument.withArguments(
+                    argument, getGenericTypeName(enclosingType));
               }
             }
 
@@ -1459,8 +1463,8 @@ class KernelLibraryBuilder
     }
     if (positionalParameters != null) {
       for (VariableDeclaration formal in positionalParameters) {
-        List<Object> violations = typeEnvironment.findBoundViolations(
-            formal.type,
+        List<Object> violations = findBoundViolations(
+            formal.type, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations);
         if (violations != null) {
@@ -1485,11 +1489,10 @@ class KernelLibraryBuilder
             } else {
               if (inferred) {
                 message = templateIncorrectTypeArgumentInferred.withArguments(
-                    argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                    argument, getGenericTypeName(enclosingType));
               } else {
-                message = templateIncorrectTypeArgument.withArguments(argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                message = templateIncorrectTypeArgument.withArguments(
+                    argument, getGenericTypeName(enclosingType));
               }
             }
 
@@ -1500,8 +1503,8 @@ class KernelLibraryBuilder
     }
     if (namedParameters != null) {
       for (VariableDeclaration named in namedParameters) {
-        List<Object> violations = typeEnvironment.findBoundViolations(
-            named.type,
+        List<Object> violations = findBoundViolations(
+            named.type, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations);
         if (violations != null) {
@@ -1526,11 +1529,10 @@ class KernelLibraryBuilder
             } else {
               if (inferred) {
                 message = templateIncorrectTypeArgumentInferred.withArguments(
-                    argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                    argument, getGenericTypeName(enclosingType));
               } else {
-                message = templateIncorrectTypeArgument.withArguments(argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                message = templateIncorrectTypeArgument.withArguments(
+                    argument, getGenericTypeName(enclosingType));
               }
             }
 
@@ -1540,7 +1542,7 @@ class KernelLibraryBuilder
       }
     }
     if (returnType != null) {
-      List<Object> violations = typeEnvironment.findBoundViolations(returnType,
+      List<Object> violations = findBoundViolations(returnType, typeEnvironment,
           allowSuperBounded: true,
           typedefInstantiations: typedefInstantiations);
       if (violations != null) {
@@ -1559,7 +1561,7 @@ class KernelLibraryBuilder
             variable = null;
           } else {
             message = templateIncorrectTypeArgumentInReturnType.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           }
 
           reportBoundViolation(message, offset, variable);
@@ -1599,7 +1601,7 @@ class KernelLibraryBuilder
       DartType type, TypeEnvironment typeEnvironment, int offset,
       {bool inferred = false, bool allowSuperBounded = true}) {
     if (!loader.target.strongMode) return;
-    List<Object> violations = typeEnvironment.findBoundViolations(type,
+    List<Object> violations = findBoundViolations(type, typeEnvironment,
         allowSuperBounded: allowSuperBounded,
         typedefInstantiations: typedefInstantiations);
     if (violations != null) {
@@ -1620,10 +1622,10 @@ class KernelLibraryBuilder
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           }
         }
 
@@ -1637,7 +1639,7 @@ class KernelLibraryBuilder
       {bool inferred = false}) {
     if (!loader.target.strongMode) return;
     if (node.type == null) return;
-    List<Object> violations = typeEnvironment.findBoundViolations(node.type,
+    List<Object> violations = findBoundViolations(node.type, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       for (int i = 0; i < violations.length; i += 3) {
@@ -1657,10 +1659,10 @@ class KernelLibraryBuilder
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(enclosingType));
           }
         }
 
@@ -1677,10 +1679,9 @@ class KernelLibraryBuilder
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    List<Object> violations = typeEnvironment.findBoundViolations(
-        constructedType,
-        allowSuperBounded: false,
-        typedefInstantiations: typedefInstantiations);
+    List<Object> violations = findBoundViolations(
+        constructedType, typeEnvironment,
+        allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       String constructedTypeName = "${klass.name}::${constructor.name.name}";
       for (int i = 0; i < violations.length; i += 3) {
@@ -1689,7 +1690,7 @@ class KernelLibraryBuilder
         DartType enclosingType = violations[i + 2];
         String enclosingName = enclosingType == constructedType
             ? constructedTypeName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1724,10 +1725,9 @@ class KernelLibraryBuilder
     assert(factory.isFactory);
     Class klass = factory.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    List<Object> violations = typeEnvironment.findBoundViolations(
-        constructedType,
-        allowSuperBounded: false,
-        typedefInstantiations: typedefInstantiations);
+    List<Object> violations = findBoundViolations(
+        constructedType, typeEnvironment,
+        allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       String constructedTypeName = "${klass.name}::${factory.name.name}";
       for (int i = 0; i < violations.length; i += 3) {
@@ -1736,7 +1736,7 @@ class KernelLibraryBuilder
         DartType enclosingType = violations[i + 2];
         String enclosingName = enclosingType == constructedType
             ? constructedTypeName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1772,8 +1772,8 @@ class KernelLibraryBuilder
     List<DartType> arguments = node.arguments.types;
     // The following error is to be reported elsewhere.
     if (parameters.length != arguments.length) return;
-    List<Object> violations = typeEnvironment.findBoundViolationsElementwise(
-        parameters, arguments,
+    List<Object> violations = findBoundViolationsElementwise(
+        parameters, arguments, typeEnvironment,
         typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       String targetName;
@@ -1788,7 +1788,7 @@ class KernelLibraryBuilder
         DartType enclosingType = violations[i + 2];
         String enclosingName = enclosingType == null
             ? targetName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(enclosingType);
 
         Message message;
         if (argument is FunctionType) {
@@ -1858,8 +1858,8 @@ class KernelLibraryBuilder
       instantiatedMethodParameters[i].bound =
           substitute(methodParameters[i].bound, substitutionMap);
     }
-    List<Object> violations = typeEnvironment.findBoundViolationsElementwise(
-        instantiatedMethodParameters, arguments.types,
+    List<Object> violations = findBoundViolationsElementwise(
+        instantiatedMethodParameters, arguments.types, typeEnvironment,
         typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       String targetName = "${klass.name}";
@@ -1877,7 +1877,7 @@ class KernelLibraryBuilder
         DartType enclosingType = violations[i + 2];
         String enclosingName = enclosingType == null
             ? targetName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
