@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 3.9
+# Dart VM Service Protocol 3.11
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
