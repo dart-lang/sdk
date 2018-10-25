@@ -13,6 +13,9 @@ namespace bin {
 // Bootstraps 'dart:io'.
 void BootstrapDartIo();
 
+// Cleans up 'dart:io'.
+void CleanupDartIo();
+
 // Lets dart:io know where the system temporary directory is located.
 // Currently only wired up on Android.
 void SetSystemTempDirectory(const char* system_temp);
