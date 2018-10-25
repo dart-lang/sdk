@@ -9301,6 +9301,8 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
     const Type& static_type,
     const Instance& value,
     bool print_trace /* = false */) {
+  ASSERT(!value.IsNull());  // Should be handled by the caller.
+
   const TypeArguments& static_type_args =
       TypeArguments::Handle(static_type.arguments());
 
