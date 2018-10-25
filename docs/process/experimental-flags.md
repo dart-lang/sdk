@@ -27,11 +27,11 @@ need the ability to land incomplete features to facilitate a number of tasks:
 ## Solution
 
 To ensure completed & supported features can be differentiated from incomplete
-features in-progress, we will put all in-progress features behind a single set of
-flags. Changes to features behind these flags are not considered breaking (even
-if the feature behind the flag was in a stable SDK), and they are subject to
-removal at any time. For details about breaking changes, see the breaking change
-process.
+features in-progress, we will put all in-progress features behind a single set
+of flags. Changes to features behind these flags are not considered breaking
+(even if the feature behind the flag was in a stable SDK), and they are subject
+to removal at any time. For details about breaking changes, see the breaking
+change process.
 
 All new features that meet one of the following criteria must be developed
 behind a flag (when possible):
@@ -50,7 +50,10 @@ Further, it is recommended to consider developing behind a flag when:
 
 ### Flag format for CLI-based tools
 
-Flags consist of one or more words, combined using dashes, using all lower-case. The single source of truth of these flags shall be a single shared .dart file. The tools are expected to offer a framework for querying these flags so that the implementation of the tools can easily access new flags.
+Flags consist of one or more words, combined using dashes, using all lower-case.
+The single source of truth of these flags shall be a single shared .dart file.
+The tools are expected to offer a framework for querying these flags so that the
+implementation of the tools can easily access new flags.
 
 The flags are passed to CLI-based tools using the `--enable-experiment` flag
 (short-form `-e`). Multiple flags can be passed by using multiple flags, or by
@@ -64,7 +67,8 @@ dart -e super-mixins -e no-slow-checks -e preview-dart3
 ```
 
 If the user passes a flag that is not recognized (for example, when the flag is
-no longer supported), the tool is required to inform about this by printing to stderr, and not fail.
+no longer supported), the tool is required to inform about this by printing to
+stderr, and not fail.
 
 ```
 dart -ee super_mixins
@@ -78,16 +82,17 @@ passing these flags. The support should be generic and flexible so that no UI
 change is required when we add or remove a flag. This is expected to take one of
 two forms:
 
-- Experiments affecting analysis can be enabled in `analysis_options.yaml` under a single `enable-experiments:` key, e.g. to enable the flags `super-mixins` &
-`no-slow-checks`:
+- Experiments affecting analysis can be enabled in `analysis_options.yaml` under
+  a single `enable-experiments:` key, e.g. to enable the flags `super-mixins` &
+  `no-slow-checks`:
 
-```
-analyzer:
-  enable-experiments:
-    - super-mixins
-    - no-slow-checks
-```
+    ```
+    analyzer:
+    enable-experiments:
+        - super-mixins
+        - no-slow-checks
+    ```
 
-- Experiments affecting launch/run behavior, can be enabled in the IDE specific run
-Configuration, by passing the same `--enable-experiment` flag as listed in the CLI
-section.
+- Experiments affecting launch/run behavior, can be enabled in the IDE specific
+  run Configuration, by passing the same `--enable-experiment` flag as listed in
+  the CLI section.
