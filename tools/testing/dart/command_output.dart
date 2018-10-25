@@ -75,6 +75,10 @@ class CommandOutput extends UniqueObject {
       // std::abort terminates with exit code 3 on Windows.
       if (exitCode == 3 || exitCode == browserCrashExitCode) return true;
 
+      // When VM is built with Crashpad support we get STATUS_FATAL_APP_EXIT
+      // for all crashes that Crashpad has intercepted.
+      if (exitCode == 0x40000015) return true;
+
       // If a program receives an uncaught system exception, the program
       // terminates with the exception code as exit code.
       // https://msdn.microsoft.com/en-us/library/cc704588.aspx lists status
