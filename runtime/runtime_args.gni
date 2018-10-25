@@ -42,9 +42,6 @@ declare_args() {
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
 
-  # TODO(vegorov): Can we eliminate this?
-  dart_zlib_path = "//third_party/zlib"
-
   # Whether to link the standalone VM against tcmalloc. The standalone build of
   # the VM enables this only for Linux builds.
   dart_use_tcmalloc = false

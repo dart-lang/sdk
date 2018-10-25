@@ -234,7 +234,7 @@ template("build_gen_snapshot_dart_io") {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
-    deps += [ "$dart_zlib_path" ]
+    deps += [ "//third_party/zlib" ]
 
     custom_sources_filter = [
       "*_test.cc",
@@ -330,7 +330,7 @@ template("dart_io") {
 
     defines = []
     deps = [
-      "$dart_zlib_path",
+      "//third_party/zlib",
     ]
     if (is_mac || is_ios) {
       libs = [
@@ -663,7 +663,7 @@ template("dart_executable") {
              ":standalone_dart_io",
              ":libdart_builtin",
              "//third_party/boringssl",
-             "$dart_zlib_path",
+             "//third_party/zlib",
            ] + extra_deps
 
     defines = extra_defines
@@ -888,8 +888,8 @@ executable("run_vm_tests") {
     ":generate_snapshot_test_dat_file",
     ":libdart_builtin",
     ":standalone_dart_io",
-    "$dart_zlib_path",
     "..:libdart_jit",
+    "//third_party/zlib",
   ]
   include_dirs = [
     "..",
