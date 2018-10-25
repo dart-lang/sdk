@@ -18,15 +18,28 @@ import '../type_algebra.dart' show substitute;
 
 import '../type_environment.dart' show TypeEnvironment;
 
-// TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed
-// to typedefs are preserved in the Kernel output.
-List<Object> findTypeArgumentIssues(
+class TypeArgumentIssue {
+  // The type argument that violated the bound.
+  final DartType argument;
+
+  // The type parameter with the bound that was violated.
+  final TypeParameter typeParameter;
+
+  // The enclosing type of the issue, that is, the one with [typeParameter].
+  final DartType enclosingType;
+
+  TypeArgumentIssue(this.argument, this.typeParameter, this.enclosingType);
+}
+
+// TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
+// typedefs are preserved in the Kernel output.
+List<TypeArgumentIssue> findTypeArgumentIssues(
     DartType type, TypeEnvironment typeEnvironment,
     {bool allowSuperBounded = false,
     Map<FunctionType, List<DartType>> typedefInstantiations}) {
   List<TypeParameter> variables;
   List<DartType> arguments;
-  List<Object> typedefRhsResult;
+  List<TypeArgumentIssue> typedefRhsResult;
 
   if (typedefInstantiations != null &&
       typedefInstantiations.containsKey(type)) {
@@ -53,29 +66,29 @@ List<Object> findTypeArgumentIssues(
     variables = type.typedefNode.typeParameters;
     arguments = type.typeArguments;
   } else if (type is FunctionType) {
-    List<Object> result = <Object>[];
+    List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
     for (TypeParameter parameter in type.typeParameters) {
       result.addAll(findTypeArgumentIssues(parameter.bound, typeEnvironment,
               allowSuperBounded: true,
               typedefInstantiations: typedefInstantiations) ??
-          const <Object>[]);
+          const <TypeArgumentIssue>[]);
     }
     for (DartType formal in type.positionalParameters) {
       result.addAll(findTypeArgumentIssues(formal, typeEnvironment,
               allowSuperBounded: true,
               typedefInstantiations: typedefInstantiations) ??
-          const <Object>[]);
+          const <TypeArgumentIssue>[]);
     }
     for (NamedType named in type.namedParameters) {
       result.addAll(findTypeArgumentIssues(named.type, typeEnvironment,
               allowSuperBounded: true,
               typedefInstantiations: typedefInstantiations) ??
-          const <Object>[]);
+          const <TypeArgumentIssue>[]);
     }
     result.addAll(findTypeArgumentIssues(type.returnType, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations) ??
-        const <Object>[]);
+        const <TypeArgumentIssue>[]);
     return result.isEmpty ? null : result;
   } else {
     return null;
@@ -83,8 +96,8 @@ List<Object> findTypeArgumentIssues(
 
   if (variables == null) return null;
 
-  List<Object> result;
-  List<Object> argumentsResult;
+  List<TypeArgumentIssue> result;
+  List<TypeArgumentIssue> argumentsResult;
 
   Map<TypeParameter, DartType> substitutionMap =
       new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
@@ -92,31 +105,28 @@ List<Object> findTypeArgumentIssues(
     DartType argument = arguments[i];
     if (argument is FunctionType && argument.typeParameters.length > 0) {
       // Generic function types aren't allowed as type arguments either.
-      result ??= <Object>[];
-      result.add(argument);
-      result.add(variables[i]);
-      result.add(type);
+      result ??= <TypeArgumentIssue>[];
+      result.add(new TypeArgumentIssue(argument, variables[i], type));
     } else if (!typeEnvironment.isSubtypeOf(
         argument, substitute(variables[i].bound, substitutionMap))) {
-      result ??= <Object>[];
-      result.add(argument);
-      result.add(variables[i]);
-      result.add(type);
+      result ??= <TypeArgumentIssue>[];
+      result.add(new TypeArgumentIssue(argument, variables[i], type));
     }
 
-    List<Object> violations = findTypeArgumentIssues(argument, typeEnvironment,
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        argument, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
-      argumentsResult ??= <Object>[];
-      argumentsResult.addAll(violations);
+    if (issues != null) {
+      argumentsResult ??= <TypeArgumentIssue>[];
+      argumentsResult.addAll(issues);
     }
   }
   if (argumentsResult != null) {
-    result ??= <Object>[];
+    result ??= <TypeArgumentIssue>[];
     result.addAll(argumentsResult);
   }
   if (typedefRhsResult != null) {
-    result ??= <Object>[];
+    result ??= <TypeArgumentIssue>[];
     result.addAll(typedefRhsResult);
   }
 
@@ -140,36 +150,36 @@ List<Object> findTypeArgumentIssues(
     DartType argument = arguments[i];
     if (argument is FunctionType && argument.typeParameters.length > 0) {
       // Generic function types aren't allowed as type arguments either.
-      result ??= <Object>[];
-      result.add(argumentsToReport[i]);
-      result.add(variables[i]);
-      result.add(type);
+      result ??= <TypeArgumentIssue>[];
+      result
+          .add(new TypeArgumentIssue(argumentsToReport[i], variables[i], type));
     } else if (!typeEnvironment.isSubtypeOf(
         argument, substitute(variables[i].bound, substitutionMap))) {
-      result ??= <Object>[];
-      result.add(argumentsToReport[i]);
-      result.add(variables[i]);
-      result.add(type);
+      result ??= <TypeArgumentIssue>[];
+      result
+          .add(new TypeArgumentIssue(argumentsToReport[i], variables[i], type));
     }
   }
   if (argumentsResult != null) {
-    result ??= <Object>[];
+    result ??= <TypeArgumentIssue>[];
     result.addAll(argumentsResult);
   }
   if (typedefRhsResult != null) {
-    result ??= <Object>[];
+    result ??= <TypeArgumentIssue>[];
     result.addAll(typedefRhsResult);
   }
   return result;
 }
 
-// TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed
-// to typedefs are preserved in the Kernel output.
-List<Object> findTypeArgumentIssuesForInvocation(List<TypeParameter> parameters,
-    List<DartType> arguments, TypeEnvironment typeEnvironment,
+// TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
+// typedefs are preserved in the Kernel output.
+List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
+    List<TypeParameter> parameters,
+    List<DartType> arguments,
+    TypeEnvironment typeEnvironment,
     {Map<FunctionType, List<DartType>> typedefInstantiations}) {
   assert(arguments.length == parameters.length);
-  List<Object> result;
+  List<TypeArgumentIssue> result;
   var substitutionMap = <TypeParameter, DartType>{};
   for (int i = 0; i < arguments.length; ++i) {
     substitutionMap[parameters[i]] = arguments[i];
@@ -178,23 +188,20 @@ List<Object> findTypeArgumentIssuesForInvocation(List<TypeParameter> parameters,
     DartType argument = arguments[i];
     if (argument is FunctionType && argument.typeParameters.length > 0) {
       // Generic function types aren't allowed as type arguments either.
-      result ??= <Object>[];
-      result.add(argument);
-      result.add(parameters[i]);
-      result.add(null);
+      result ??= <TypeArgumentIssue>[];
+      result.add(new TypeArgumentIssue(argument, parameters[i], null));
     } else if (!typeEnvironment.isSubtypeOf(
         argument, substitute(parameters[i].bound, substitutionMap))) {
-      result ??= <Object>[];
-      result.add(argument);
-      result.add(parameters[i]);
-      result.add(null);
+      result ??= <TypeArgumentIssue>[];
+      result.add(new TypeArgumentIssue(argument, parameters[i], null));
     }
 
-    List<Object> violations = findTypeArgumentIssues(argument, typeEnvironment,
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        argument, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
-      result ??= <Object>[];
-      result.addAll(violations);
+    if (issues != null) {
+      result ??= <TypeArgumentIssue>[];
+      result.addAll(issues);
     }
   }
   return result;
