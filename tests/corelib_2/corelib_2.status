@@ -59,10 +59,6 @@ int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
 string_from_environment3_test/03: Crash
 
-[ $compiler == dartkb ]
-bigint_from_test: RuntimeError, Pass # Issue 34901
-bigint_test: Skip # Issue 34901
-
 [ $compiler == fasta ]
 bool_from_environment2_test/03: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
@@ -421,7 +417,7 @@ symbol_test/01: MissingCompileTimeError
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
 list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
-[ $arch == simarm || $arch == simarm64 || $arch == simdbc64 || $compiler == dartkb ]
+[ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
 bigint_parse_radix_test: Skip # Issue 31659
 bigint_test: Skip # Issue 31659
 
