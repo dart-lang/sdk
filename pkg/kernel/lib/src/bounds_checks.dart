@@ -20,7 +20,8 @@ import '../type_environment.dart' show TypeEnvironment;
 
 // TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed
 // to typedefs are preserved in the Kernel output.
-List<Object> findBoundViolations(DartType type, TypeEnvironment typeEnvironment,
+List<Object> findTypeArgumentIssues(
+    DartType type, TypeEnvironment typeEnvironment,
     {bool allowSuperBounded = false,
     Map<FunctionType, List<DartType>> typedefInstantiations}) {
   List<TypeParameter> variables;
@@ -40,7 +41,7 @@ List<Object> findBoundViolations(DartType type, TypeEnvironment typeEnvironment,
         typeParameters: functionType.typeParameters,
         requiredParameterCount: functionType.requiredParameterCount,
         typedefReference: null);
-    typedefRhsResult = findBoundViolations(cloned, typeEnvironment,
+    typedefRhsResult = findTypeArgumentIssues(cloned, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     type = new TypedefType(functionType.typedef, typedefInstantiations[type]);
   }
@@ -54,24 +55,24 @@ List<Object> findBoundViolations(DartType type, TypeEnvironment typeEnvironment,
   } else if (type is FunctionType) {
     List<Object> result = <Object>[];
     for (TypeParameter parameter in type.typeParameters) {
-      result.addAll(findBoundViolations(parameter.bound, typeEnvironment,
+      result.addAll(findTypeArgumentIssues(parameter.bound, typeEnvironment,
               allowSuperBounded: true,
               typedefInstantiations: typedefInstantiations) ??
           const <Object>[]);
     }
     for (DartType formal in type.positionalParameters) {
-      result.addAll(findBoundViolations(formal, typeEnvironment,
+      result.addAll(findTypeArgumentIssues(formal, typeEnvironment,
               allowSuperBounded: true,
               typedefInstantiations: typedefInstantiations) ??
           const <Object>[]);
     }
     for (NamedType named in type.namedParameters) {
-      result.addAll(findBoundViolations(named.type, typeEnvironment,
+      result.addAll(findTypeArgumentIssues(named.type, typeEnvironment,
               allowSuperBounded: true,
               typedefInstantiations: typedefInstantiations) ??
           const <Object>[]);
     }
-    result.addAll(findBoundViolations(type.returnType, typeEnvironment,
+    result.addAll(findTypeArgumentIssues(type.returnType, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations) ??
         const <Object>[]);
@@ -103,7 +104,7 @@ List<Object> findBoundViolations(DartType type, TypeEnvironment typeEnvironment,
       result.add(type);
     }
 
-    List<Object> violations = findBoundViolations(argument, typeEnvironment,
+    List<Object> violations = findTypeArgumentIssues(argument, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       argumentsResult ??= <Object>[];
@@ -164,7 +165,7 @@ List<Object> findBoundViolations(DartType type, TypeEnvironment typeEnvironment,
 
 // TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed
 // to typedefs are preserved in the Kernel output.
-List<Object> findBoundViolationsElementwise(List<TypeParameter> parameters,
+List<Object> findTypeArgumentIssuesForInvocation(List<TypeParameter> parameters,
     List<DartType> arguments, TypeEnvironment typeEnvironment,
     {Map<FunctionType, List<DartType>> typedefInstantiations}) {
   assert(arguments.length == parameters.length);
@@ -189,7 +190,7 @@ List<Object> findBoundViolationsElementwise(List<TypeParameter> parameters,
       result.add(null);
     }
 
-    List<Object> violations = findBoundViolations(argument, typeEnvironment,
+    List<Object> violations = findTypeArgumentIssues(argument, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       result ??= <Object>[];

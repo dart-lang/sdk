@@ -41,8 +41,8 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/src/bounds_checks.dart'
     show
-        findBoundViolations,
-        findBoundViolationsElementwise,
+        findTypeArgumentIssues,
+        findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
 
 import 'package:kernel/type_algebra.dart' show substitute;
@@ -1380,7 +1380,7 @@ class KernelLibraryBuilder
 
   void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
     if (!loader.target.strongMode) return;
-    List<Object> boundViolations = findBoundViolations(
+    List<Object> boundViolations = findTypeArgumentIssues(
         field.type, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     if (boundViolations != null) {
@@ -1423,7 +1423,7 @@ class KernelLibraryBuilder
     if (!loader.target.strongMode) return;
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
-        List<Object> violations = findBoundViolations(
+        List<Object> violations = findTypeArgumentIssues(
             parameter.bound, typeEnvironment,
             allowSuperBounded: false,
             typedefInstantiations: typedefInstantiations);
@@ -1463,7 +1463,7 @@ class KernelLibraryBuilder
     }
     if (positionalParameters != null) {
       for (VariableDeclaration formal in positionalParameters) {
-        List<Object> violations = findBoundViolations(
+        List<Object> violations = findTypeArgumentIssues(
             formal.type, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations);
@@ -1503,7 +1503,7 @@ class KernelLibraryBuilder
     }
     if (namedParameters != null) {
       for (VariableDeclaration named in namedParameters) {
-        List<Object> violations = findBoundViolations(
+        List<Object> violations = findTypeArgumentIssues(
             named.type, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations);
@@ -1542,7 +1542,8 @@ class KernelLibraryBuilder
       }
     }
     if (returnType != null) {
-      List<Object> violations = findBoundViolations(returnType, typeEnvironment,
+      List<Object> violations = findTypeArgumentIssues(
+          returnType, typeEnvironment,
           allowSuperBounded: true,
           typedefInstantiations: typedefInstantiations);
       if (violations != null) {
@@ -1601,7 +1602,7 @@ class KernelLibraryBuilder
       DartType type, TypeEnvironment typeEnvironment, int offset,
       {bool inferred = false, bool allowSuperBounded = true}) {
     if (!loader.target.strongMode) return;
-    List<Object> violations = findBoundViolations(type, typeEnvironment,
+    List<Object> violations = findTypeArgumentIssues(type, typeEnvironment,
         allowSuperBounded: allowSuperBounded,
         typedefInstantiations: typedefInstantiations);
     if (violations != null) {
@@ -1639,7 +1640,7 @@ class KernelLibraryBuilder
       {bool inferred = false}) {
     if (!loader.target.strongMode) return;
     if (node.type == null) return;
-    List<Object> violations = findBoundViolations(node.type, typeEnvironment,
+    List<Object> violations = findTypeArgumentIssues(node.type, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       for (int i = 0; i < violations.length; i += 3) {
@@ -1679,7 +1680,7 @@ class KernelLibraryBuilder
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    List<Object> violations = findBoundViolations(
+    List<Object> violations = findTypeArgumentIssues(
         constructedType, typeEnvironment,
         allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
@@ -1725,7 +1726,7 @@ class KernelLibraryBuilder
     assert(factory.isFactory);
     Class klass = factory.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    List<Object> violations = findBoundViolations(
+    List<Object> violations = findTypeArgumentIssues(
         constructedType, typeEnvironment,
         allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
     if (violations != null) {
@@ -1772,7 +1773,7 @@ class KernelLibraryBuilder
     List<DartType> arguments = node.arguments.types;
     // The following error is to be reported elsewhere.
     if (parameters.length != arguments.length) return;
-    List<Object> violations = findBoundViolationsElementwise(
+    List<Object> violations = findTypeArgumentIssuesForInvocation(
         parameters, arguments, typeEnvironment,
         typedefInstantiations: typedefInstantiations);
     if (violations != null) {
@@ -1858,7 +1859,7 @@ class KernelLibraryBuilder
       instantiatedMethodParameters[i].bound =
           substitute(methodParameters[i].bound, substitutionMap);
     }
-    List<Object> violations = findBoundViolationsElementwise(
+    List<Object> violations = findTypeArgumentIssuesForInvocation(
         instantiatedMethodParameters, arguments.types, typeEnvironment,
         typedefInstantiations: typedefInstantiations);
     if (violations != null) {

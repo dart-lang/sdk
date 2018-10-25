@@ -42,7 +42,7 @@ import 'package:kernel/clone.dart' show CloneWithoutBody;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/src/bounds_checks.dart'
-    show findBoundViolations, getGenericTypeName;
+    show findTypeArgumentIssues, getGenericTypeName;
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
@@ -291,7 +291,7 @@ abstract class KernelClassBuilder
       Supertype supertype, TypeEnvironment typeEnvironment) {
     KernelLibraryBuilder library = this.library;
 
-    List<Object> boundViolations = findBoundViolations(
+    List<Object> boundViolations = findTypeArgumentIssues(
         new InterfaceType(supertype.classNode, supertype.typeArguments),
         typeEnvironment,
         allowSuperBounded: false,
@@ -339,7 +339,7 @@ abstract class KernelClassBuilder
 
     // Check in bounds of own type variables.
     for (TypeParameter parameter in cls.typeParameters) {
-      List<Object> violations = findBoundViolations(
+      List<Object> violations = findTypeArgumentIssues(
           parameter.bound, typeEnvironment,
           allowSuperBounded: false,
           typedefInstantiations: library.typedefInstantiations);
