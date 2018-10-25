@@ -66,22 +66,46 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Ensure that replacing the double would not change the semantics
-    if (isDoubleContext(node)) {
-      rule.reportLintForToken(node.literal);
+    if (canReplaceWithIntLiteral(node)) {
+      rule.reportLint(node);
     }
   }
 
-  bool isDoubleContext(AstNode child) {
-    final node = child.parent;
-    if (node == null) {
-      return false;
-    } else if (node is VariableDeclarationList) {
-      return node.type?.type?.name == 'double';
-    } else if (node is ArgumentList) {
-      // TODO(danrubel): Determine type associated with this argument
-    } else if (node is Expression) {
-      // TODO(danrubel): Determine type of expression
+  /// Determine if the given literal can be replaced by an int literal.
+  bool canReplaceWithIntLiteral(DoubleLiteral literal) {
+    // TODO(danrubel): Consider moving this into analyzer
+    final AstNode parent = literal.parent;
+    if (parent is ArgumentList) {
+      return literal.staticParameterElement?.type?.name == 'double';
+    } else if (parent is NamedExpression) {
+      AstNode argList = parent.parent;
+      if (argList is ArgumentList) {
+        return parent.staticParameterElement?.type?.name == 'double';
+      }
+    } else if (parent is ExpressionFunctionBody) {
+      return hasDoubleReturnType(parent.parent);
+    } else if (parent is ReturnStatement) {
+      BlockFunctionBody body =
+          parent.getAncestor((a) => a is BlockFunctionBody);
+      return hasDoubleReturnType(body.parent);
+    } else if (parent is VariableDeclaration) {
+      AstNode varList = parent.parent;
+      if (varList is VariableDeclarationList) {
+        return varList.type?.type?.name == 'double';
+      }
     }
-    return isDoubleContext(node);
+    return false;
+  }
+
+  bool hasDoubleReturnType(AstNode node) {
+    if (node is FunctionExpression) {
+      var functDeclaration = node.parent;
+      if (functDeclaration is FunctionDeclaration) {
+        return functDeclaration.returnType?.type?.name == 'double';
+      }
+    } else if (node is MethodDeclaration) {
+      return node.returnType?.type?.name == 'double';
+    }
+    return false;
   }
 }
