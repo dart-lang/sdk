@@ -4538,6 +4538,7 @@ abstract class DartType extends Node {
   const DartType();
 
   accept(DartTypeVisitor v);
+  accept1(DartTypeVisitor1 v, arg);
 
   bool operator ==(Object other);
 
@@ -4562,6 +4563,7 @@ class InvalidType extends DartType {
   const InvalidType();
 
   accept(DartTypeVisitor v) => v.visitInvalidType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitInvalidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
@@ -4573,6 +4575,7 @@ class DynamicType extends DartType {
   const DynamicType();
 
   accept(DartTypeVisitor v) => v.visitDynamicType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitDynamicType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
@@ -4584,6 +4587,7 @@ class VoidType extends DartType {
   const VoidType();
 
   accept(DartTypeVisitor v) => v.visitVoidType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitVoidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
@@ -4595,6 +4599,7 @@ class BottomType extends DartType {
   const BottomType();
 
   accept(DartTypeVisitor v) => v.visitBottomType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitBottomType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is BottomType;
@@ -4627,6 +4632,7 @@ class InterfaceType extends DartType {
   }
 
   accept(DartTypeVisitor v) => v.visitInterfaceType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitInterfaceType(this, arg);
 
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
@@ -4697,6 +4703,7 @@ class FunctionType extends DartType {
   Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitFunctionType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeParameters, v);
@@ -4812,6 +4819,7 @@ class TypedefType extends DartType {
   Typedef get typedefNode => typedefReference.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitTypedefType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitTypedefType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeArguments, v);
@@ -4900,6 +4908,7 @@ class TypeParameterType extends DartType {
   TypeParameterType(this.parameter, [this.promotedBound]);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
 
   visitChildren(Visitor v) {}
 
