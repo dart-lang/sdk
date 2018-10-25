@@ -564,8 +564,9 @@ uri_parse_test: Pass, Slow
 uri_test: Pass, Slow
 
 [ $compiler == dartkb || $compiler == dartkp ]
-bigint_parse_radix_test: Pass, Timeout # --no_intrinsify
-bigint_test: Pass, Timeout # --no_intrinsify
+bigint_parse_radix_test: Pass, Slow # --no_intrinsify
+bigint_test/03: SkipSlow # --no_intrinsify
+bigint_test/15: SkipSlow # --no_intrinsify
 
 [ $compiler == precompiler || $runtime == vm && !$checked && !$strong ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
