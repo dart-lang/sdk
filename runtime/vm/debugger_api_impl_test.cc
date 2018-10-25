@@ -248,8 +248,7 @@ DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
   UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
 
   if (!KernelIsolate::IsRunning()) {
-    return Api::NewHandle(
-        T, lib.Evaluate(expr, Array::empty_array(), Array::empty_array()));
+    UNREACHABLE();
   } else {
     Dart_KernelCompilationResult compilation_result;
     {

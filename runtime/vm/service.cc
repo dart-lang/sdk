@@ -2489,76 +2489,12 @@ static bool BuildScope(Thread* thread,
 }
 
 static bool Evaluate(Thread* thread, JSONStream* js) {
-  if (CheckDebuggerDisabled(thread, js)) {
-    return true;
-  }
-
-  const char* target_id = js->LookupParam("targetId");
-  if (target_id == NULL) {
-    PrintMissingParamError(js, "targetId");
-    return true;
-  }
-  const char* expr = js->LookupParam("expression");
-  if (expr == NULL) {
-    PrintMissingParamError(js, "expression");
-    return true;
-  }
-
-  Zone* zone = thread->zone();
-  const GrowableObjectArray& names =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  const GrowableObjectArray& values =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  if (BuildScope(thread, js, names, values)) {
-    return true;
-  }
-  const Array& names_array = Array::Handle(zone, Array::MakeFixedLength(names));
-  const Array& values_array =
-      Array::Handle(zone, Array::MakeFixedLength(values));
-
-  const String& expr_str = String::Handle(zone, String::New(expr));
-  ObjectIdRing::LookupResult lookup_result;
-  Object& obj =
-      Object::Handle(zone, LookupHeapObject(thread, target_id, &lookup_result));
-  if (obj.raw() == Object::sentinel().raw()) {
-    if (lookup_result == ObjectIdRing::kCollected) {
-      PrintSentinel(js, kCollectedSentinel);
-    } else if (lookup_result == ObjectIdRing::kExpired) {
-      PrintSentinel(js, kExpiredSentinel);
-    } else {
-      PrintInvalidParamError(js, "targetId");
-    }
-    return true;
-  }
-  if (obj.IsLibrary()) {
-    const Library& lib = Library::Cast(obj);
-    const Object& result =
-        Object::Handle(zone, lib.Evaluate(expr_str, names_array, values_array));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
-    const Object& result =
-        Object::Handle(zone, cls.Evaluate(expr_str, names_array, values_array));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  if ((obj.IsInstance() || obj.IsNull()) && !ContainsNonInstance(obj)) {
-    // We don't use Instance::Cast here because it doesn't allow null.
-    Instance& instance = Instance::Handle(zone);
-    instance ^= obj.raw();
-    const Class& receiver_cls = Class::Handle(zone, instance.clazz());
-    const Object& result = Object::Handle(
-        zone,
-        instance.Evaluate(receiver_cls, expr_str, names_array, values_array));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "Cannot evaluate against a VM-internal object",
-                 js->method());
+  // If a compilation service is available, this RPC invocation will have been
+  // intercepted by RunningIsolates.routeRequest.
+  js->PrintError(
+      kExpressionCompilationError,
+      "%s: No compilation service available; cannot evaluate from source.",
+      js->method());
   return true;
 }
 
@@ -2940,34 +2876,12 @@ static const MethodParameter* evaluate_in_frame_params[] = {
 };
 
 static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
-  if (CheckDebuggerDisabled(thread, js)) {
-    return true;
-  }
-
-  Isolate* isolate = thread->isolate();
-  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
-  if (framePos >= stack->Length()) {
-    PrintInvalidParamError(js, "frameIndex");
-    return true;
-  }
-  ActivationFrame* frame = stack->FrameAt(framePos);
-
-  Zone* zone = thread->zone();
-  const GrowableObjectArray& names =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  const GrowableObjectArray& values =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  if (BuildScope(thread, js, names, values)) {
-    return true;
-  }
-
-  const char* expr = js->LookupParam("expression");
-  const String& expr_str = String::Handle(zone, String::New(expr));
-
-  const Object& result =
-      Object::Handle(zone, frame->Evaluate(expr_str, names, values));
-  result.PrintJSON(js, true);
+  // If a compilation service is available, this RPC invocation will have been
+  // intercepted by RunningIsolates.routeRequest.
+  js->PrintError(
+      kExpressionCompilationError,
+      "%s: No compilation service available; cannot evaluate from source.",
+      js->method());
   return true;
 }
 

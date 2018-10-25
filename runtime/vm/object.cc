@@ -3346,14 +3346,6 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   return true;
 }
 
-RawFunction* Function::EvaluateHelper(const Class& cls,
-                                      const String& expr,
-                                      const Array& param_names,
-                                      bool is_static) {
-  UNREACHABLE();
-  return Function::null();
-}
-
 // Conventions:
 // * For throwing a NSM in a class klass we use its runtime type as receiver,
 //   i.e., klass.RareType().
@@ -3581,34 +3573,6 @@ RawObject* Class::Invoke(const String& function_name,
     return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
-}
-
-RawObject* Class::Evaluate(const String& expr,
-                           const Array& param_names,
-                           const Array& param_values) const {
-  return Evaluate(expr, param_names, param_values, Object::empty_array(),
-                  Object::null_type_arguments());
-}
-
-RawObject* Class::Evaluate(const String& expr,
-                           const Array& param_names,
-                           const Array& param_values,
-                           const Array& type_param_names,
-                           const TypeArguments& type_param_values) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  if (id() < kInstanceCid || id() == kTypeArgumentsCid) {
-    const Instance& exception = Instance::Handle(String::New(
-        "Expressions can be evaluated only with regular Dart instances"));
-    const Instance& stacktrace = Instance::Handle();
-    return UnhandledException::New(exception, stacktrace);
-  }
-
-  ASSERT(Library::Handle(library()).kernel_data() ==
-             ExternalTypedData::null() ||
-         !FLAG_enable_kernel_expression_compilation);
-  const Function& eval_func = Function::Handle(
-      Function::EvaluateHelper(*this, expr, param_names, true));
-  return DartEntry::InvokeFunction(eval_func, param_values);
 }
 
 static RawObject* EvaluateCompiledExpressionHelper(
@@ -8934,35 +8898,8 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
     return closure.raw();
   }
 
-  // This is the first time a closure for this field is requested.
-  // Create the closure and a new static field in which it is stored.
-  const char* field_name = String::Handle(zone, name()).ToCString();
-  String& expr_src = String::Handle(zone);
-  if (make_setter) {
-    expr_src = String::NewFormatted("(%s_) { return %s = %s_; }", field_name,
-                                    field_name, field_name);
-  } else {
-    expr_src = String::NewFormatted("() { return %s; }", field_name);
-  }
-  Object& result =
-      Object::Handle(zone, field_owner.Evaluate(expr_src, Object::empty_array(),
-                                                Object::empty_array()));
-  ASSERT(result.IsInstance());
-  // The caller may expect the closure to be allocated in old space. Copy
-  // the result here, since Object::Clone() is a private method.
-  result = Object::Clone(result, Heap::kOld);
-
-  closure_field = Field::New(closure_name,
-                             true,   // is_static
-                             true,   // is_final
-                             true,   // is_const
-                             false,  // is_reflectable
-                             field_owner, Object::dynamic_type(),
-                             this->token_pos(), this->end_token_pos());
-  closure_field.SetStaticValue(Instance::Cast(result), true);
-  field_owner.AddField(closure_field);
-
-  return Instance::RawCast(result.raw());
+  UNREACHABLE();
+  return Instance::null();
 }
 
 RawInstance* Field::GetterClosure() const {
@@ -11458,26 +11395,6 @@ RawObject* Library::Invoke(const String& function_name,
     return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
-}
-
-RawObject* Library::Evaluate(const String& expr,
-                             const Array& param_names,
-                             const Array& param_values) const {
-  return Evaluate(expr, param_names, param_values, Array::empty_array(),
-                  TypeArguments::null_type_arguments());
-}
-
-RawObject* Library::Evaluate(const String& expr,
-                             const Array& param_names,
-                             const Array& param_values,
-                             const Array& type_param_names,
-                             const TypeArguments& type_param_values) const {
-  ASSERT(kernel_data() == ExternalTypedData::null() ||
-         !FLAG_enable_kernel_expression_compilation);
-  // Evaluate the expression as a static function of the toplevel class.
-  Class& top_level_class = Class::Handle(toplevel_class());
-  ASSERT(top_level_class.is_finalized());
-  return top_level_class.Evaluate(expr, param_names, param_values);
 }
 
 RawObject* Library::EvaluateCompiledExpression(
@@ -16180,36 +16097,6 @@ RawObject* Instance::Invoke(const String& function_name,
   return InvokeInstanceFunction(*this, function, function_name, args,
                                 args_descriptor, respect_reflectable,
                                 type_args);
-}
-
-RawObject* Instance::Evaluate(const Class& method_cls,
-                              const String& expr,
-                              const Array& param_names,
-                              const Array& param_values) const {
-  return Evaluate(method_cls, expr, param_names, param_values,
-                  Object::empty_array(), TypeArguments::null_type_arguments());
-}
-
-RawObject* Instance::Evaluate(const Class& method_cls,
-                              const String& expr,
-                              const Array& param_names,
-                              const Array& param_values,
-                              const Array& type_param_names,
-                              const TypeArguments& type_param_values) const {
-  const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
-  PassiveObject& param = PassiveObject::Handle();
-  args.SetAt(0, *this);
-  for (intptr_t i = 0; i < param_values.Length(); i++) {
-    param = param_values.At(i);
-    args.SetAt(i + 1, param);
-  }
-
-  const Library& library = Library::Handle(method_cls.library());
-  ASSERT(library.kernel_data() == ExternalTypedData::null() ||
-         !FLAG_enable_kernel_expression_compilation);
-  const Function& eval_func = Function::Handle(
-      Function::EvaluateHelper(method_cls, expr, param_names, false));
-  return DartEntry::InvokeFunction(eval_func, args);
 }
 
 RawObject* Instance::EvaluateCompiledExpression(

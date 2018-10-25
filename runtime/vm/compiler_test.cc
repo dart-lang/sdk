@@ -173,8 +173,7 @@ TEST_CASE(EvalExpression) {
   const Class& receiver_cls = Class::Handle(obj.clazz());
 
   if (!KernelIsolate::IsRunning()) {
-    val = Instance::Cast(obj).Evaluate(
-        receiver_cls, expr_text, Array::empty_array(), Array::empty_array());
+    UNREACHABLE();
   } else {
     RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
     Library& lib_handle = Library::ZoneHandle(raw_library);

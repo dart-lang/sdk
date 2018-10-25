@@ -1268,14 +1268,6 @@ class Class : public Object {
   // expression fails. The method has the formal (type) parameters given in
   // (type_)param_names, and is invoked with the (type)argument values given in
   // (type_)param_values.
-  RawObject* Evaluate(const String& expr,
-                      const Array& param_names,
-                      const Array& param_values) const;
-  RawObject* Evaluate(const String& expr,
-                      const Array& param_names,
-                      const Array& param_values,
-                      const Array& type_param_names,
-                      const TypeArguments& type_param_values) const;
   RawObject* EvaluateCompiledExpression(
       const uint8_t* kernel_bytes,
       intptr_t kernel_length,
@@ -2857,11 +2849,6 @@ class Function : public Object {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
 
-  static RawFunction* EvaluateHelper(const Class& cls,
-                                     const String& expr,
-                                     const Array& param_names,
-                                     bool is_static);
-
   static RawFunction* New(const String& name,
                           RawFunction::Kind kind,
                           bool is_static,
@@ -3800,16 +3787,6 @@ class Library : public Object {
   // evaluating the expression fails. The method has the formal (type)
   // parameters given in (type_)param_names, and is invoked with the (type)
   // argument values given in (type_)param_values.
-  RawObject* Evaluate(const String& expr,
-                      const Array& param_names,
-                      const Array& param_values) const;
-
-  RawObject* Evaluate(const String& expr,
-                      const Array& param_names,
-                      const Array& param_values,
-                      const Array& type_param_names,
-                      const TypeArguments& type_arguments) const;
-
   RawObject* EvaluateCompiledExpression(
       const uint8_t* kernel_bytes,
       intptr_t kernel_length,
@@ -5795,18 +5772,6 @@ class Instance : public Object {
   // evaluating the expression fails. The method has the formal (type)
   // parameters given in (type_)param_names, and is invoked with the (type)
   // argument values given in (type_)param_values.
-  RawObject* Evaluate(const Class& method_cls,
-                      const String& expr,
-                      const Array& param_names,
-                      const Array& param_values) const;
-
-  RawObject* Evaluate(const Class& method_cls,
-                      const String& expr,
-                      const Array& param_names,
-                      const Array& param_values,
-                      const Array& type_param_names,
-                      const TypeArguments& type_param_values) const;
-
   RawObject* EvaluateCompiledExpression(
       const Class& method_cls,
       const uint8_t* kernel_bytes,

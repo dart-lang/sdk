@@ -333,10 +333,6 @@ class ActivationFrame : public ZoneAllocated {
       const GrowableObjectArray& param_values,
       const GrowableObjectArray& type_params_names);
 
-  RawObject* Evaluate(const String& expr,
-                      const GrowableObjectArray& names,
-                      const GrowableObjectArray& values);
-
   RawObject* EvaluateCompiledExpression(const uint8_t* kernel_bytes,
                                         intptr_t kernel_length,
                                         const Array& arguments,
