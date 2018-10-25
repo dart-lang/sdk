@@ -779,6 +779,7 @@ class WindowsCoreDumpEnabler(object):
     pass
 
   def __enter__(self):
+    print "INFO: Enabling coredump archiving into %s" % (WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER)
     os.environ['DART_CRASHPAD_CRASHES_DIR'] = WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER
 
   def __exit__(self, *_):
@@ -800,6 +801,8 @@ class BaseCoreDumpArchiver(object):
     self._output_directory = output_directory
 
   def __enter__(self):
+    print "INFO: Core dump archiving is activated"
+
     # Cleanup any stale files
     if self._cleanup():
       print "WARNING: Found and removed stale coredumps"
@@ -817,6 +820,15 @@ class BaseCoreDumpArchiver(object):
         sys.stdout.flush()
 
         self._archive(archive_crashes)
+      else:
+        print "INFO: No unexpected crashes recorded"
+        dumps = self._find_all_coredumps()
+        if dumps:
+          print "INFO: However there are %d core dumps found" % len(dumps)
+          for dump in dumps:
+            print "INFO:        -> %s" % dump
+          print
+
     finally:
       self._cleanup()
 
@@ -897,6 +909,12 @@ class BaseCoreDumpArchiver(object):
       os.unlink(tarname)
     print '--- Done ---\n'
 
+  def _find_all_coredumps(self):
+    """Return coredumps that were recorded (if supported by the platform).
+    This method will be overriden by concrete platform specific implementations.
+    """
+    return []
+
   def _find_unexpected_crashes(self):
     """Load coredumps file. Each line has the following format:
 
@@ -960,6 +978,10 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
       found = True
       os.unlink(core)
     return found
+
+  def _find_all_coredumps(self):
+    pattern = os.path.join(self._search_dir, '*.dmp')
+    return [core_filename for core_filename in glob.glob(pattern)]
 
   def _find_coredump_file(self, crash):
     if self._dumps_by_pid is None:
