@@ -11,8 +11,6 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show
@@ -44,7 +42,6 @@ int findIdentifierLength(String search) {
  */
 abstract class RefactoringTest extends AbstractSingleUnitTest {
   SearchEngine searchEngine;
-  AstProvider astProvider;
 
   SourceChange refactoringChange;
 
@@ -170,6 +167,5 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     searchEngine = new SearchEngineImpl([driver]);
-    astProvider = new AstProviderForDriver(driver);
   }
 }

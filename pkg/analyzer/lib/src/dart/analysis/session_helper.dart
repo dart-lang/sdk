@@ -4,8 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 /// A wrapper around [AnalysisSession] that provides additional utilities.
 ///
@@ -32,6 +35,23 @@ class AnalysisSessionHelper {
     }
   }
 
+  /// Return the declaration of the [element], or `null` is the [element]
+  /// is synthetic.
+  Future<ElementDeclarationResult> getElementDeclaration(
+      Element element) async {
+    if (element.isSynthetic || element.nameOffset == -1) {
+      return null;
+    }
+
+    var path = element.source.fullName;
+    var resolveResult = await session.getResolvedAst(path);
+    var unit = resolveResult.unit;
+    var locator = NodeLocator(element.nameOffset);
+    var declaration = locator.searchWithin(unit)?.parent;
+
+    return ElementDeclarationResult(resolveResult, declaration);
+  }
+
   /// Return the [PropertyAccessorElement] with the given [name] that is
   /// exported from the library with the given [uri], or `null` if the
   /// library does not export a top-level accessor with such name.
@@ -47,4 +67,13 @@ class AnalysisSessionHelper {
       return null;
     }
   }
+}
+
+/// The result of searching an [Element] declaration in the resolved AST for
+/// the file where it is defined.
+class ElementDeclarationResult {
+  final ResolveResult resolveResult;
+  final AstNode declaration;
+
+  ElementDeclarationResult(this.resolveResult, this.declaration);
 }

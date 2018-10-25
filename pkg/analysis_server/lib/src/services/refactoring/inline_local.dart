@@ -14,8 +14,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -26,7 +26,6 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class InlineLocalRefactoringImpl extends RefactoringImpl
     implements InlineLocalRefactoring {
   final SearchEngine searchEngine;
-  final AstProvider astProvider;
   final ResolveResult resolveResult;
   final int offset;
   CorrectionUtils utils;
@@ -36,7 +35,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   List<SearchMatch> _references;
 
   InlineLocalRefactoringImpl(
-      this.searchEngine, this.astProvider, this.resolveResult, this.offset) {
+      this.searchEngine, this.resolveResult, this.offset) {
     utils =
         new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
   }
@@ -79,8 +78,10 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         Element element = offsetNode.staticElement;
         if (element is LocalVariableElement) {
           _variableElement = element;
-          AstNode name = await astProvider.getResolvedNameForElement(element);
-          _variableNode = name.parent as VariableDeclaration;
+          var declarationResult =
+              await AnalysisSessionHelper(resolveResult.session)
+                  .getElementDeclaration(element);
+          _variableNode = declarationResult.declaration;
         }
       }
     }

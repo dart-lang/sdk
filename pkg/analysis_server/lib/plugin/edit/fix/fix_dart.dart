@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 
 /**
  * Complete with top-level declarations with the given [name].
@@ -21,11 +20,6 @@ typedef Future<List<TopLevelDeclarationInSource>> GetTopLevelDeclarations(
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartFixContext implements FixContext {
-  /**
-   * The provider for parsed or resolved ASTs.
-   */
-  AstProvider get astProvider;
-
   /**
    * The function to get top-level declarations from.
    */

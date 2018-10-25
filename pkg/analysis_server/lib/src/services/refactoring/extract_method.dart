@@ -24,7 +24,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -74,7 +73,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       'execution flows exit. Semantics may not be preserved.';
 
   final SearchEngine searchEngine;
-  final AstProvider astProvider;
   final ResolveResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
@@ -119,8 +117,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(this.searchEngine, this.astProvider,
-      this.resolveResult, this.selectionOffset, this.selectionLength) {
+  ExtractMethodRefactoringImpl(this.searchEngine, this.resolveResult,
+      this.selectionOffset, this.selectionLength) {
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils =
         new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
@@ -455,7 +453,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (parent is ClassDeclaration) {
       ClassElement classElement = parent.declaredElement;
       return validateCreateMethod(
-          searchEngine, astProvider, classElement, name);
+          searchEngine, ResolvedUnitCache(resolveResult), classElement, name);
     }
     // OK
     return new Future<RefactoringStatus>.value(result);

@@ -53,7 +53,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
@@ -62,7 +61,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -516,14 +514,6 @@ class AnalysisServer {
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .catchError((_) => null);
-  }
-
-  /**
-   * Return the [AstProvider] for the given [path].
-   */
-  AstProvider getAstProvider(String path) {
-    nd.AnalysisDriver analysisDriver = getAnalysisDriver(path);
-    return new AstProviderForDriver(analysisDriver);
   }
 
   /**

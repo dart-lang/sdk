@@ -205,7 +205,7 @@ void test() {}
 
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = new ConvertMethodToGetterRefactoring(
-        searchEngine, astProvider, element);
+        searchEngine, testAnalysisResult.session, element);
   }
 
   void _createRefactoringForString(String search) {

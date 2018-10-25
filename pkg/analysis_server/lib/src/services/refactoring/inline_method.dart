@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -188,7 +187,6 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final AstProvider astProvider;
   final ResolveResult resolveResult;
   final int offset;
   ResolvedUnitCache _unitCache;
@@ -210,11 +208,11 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
   final List<_ReferenceProcessor> _referenceProcessors = [];
-  final Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
+  final Set<Element> _alreadyMadeAsync = new Set<Element>();
 
   InlineMethodRefactoringImpl(
-      this.searchEngine, this.astProvider, this.resolveResult, this.offset) {
-    _unitCache = new ResolvedUnitCache(astProvider, resolveResult.unit);
+      this.searchEngine, this.resolveResult, this.offset) {
+    _unitCache = new ResolvedUnitCache(resolveResult);
     utils =
         new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
   }
@@ -312,20 +310,16 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<FunctionDeclaration> _computeFunctionDeclaration() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    CompilationUnit unit = await _unitCache.getUnit(_methodElement);
+    var resolveResult = await _unitCache.getResolvedAst(_methodElement);
     return new NodeLocator(_methodElement.nameOffset)
-        .searchWithin(unit)
+        .searchWithin(resolveResult.unit)
         .getAncestor((n) => n is FunctionDeclaration) as FunctionDeclaration;
   }
 
   Future<MethodDeclaration> _computeMethodDeclaration() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    CompilationUnit unit = await _unitCache.getUnit(_methodElement);
+    var resolveResult = await _unitCache.getResolvedAst(_methodElement);
     return new NodeLocator(_methodElement.nameOffset)
-        .searchWithin(unit)
+        .searchWithin(resolveResult.unit)
         .getAncestor((n) => n is MethodDeclaration) as MethodDeclaration;
   }
 
@@ -369,8 +363,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element as ExecutableElement;
     _isAccessor = element is PropertyAccessorElement;
-    _methodUnit = await _unitCache.getUnit(element);
-    _methodUtils = new CorrectionUtils(_methodUnit);
+
+    var methodAstResult = await _unitCache.getResolvedAst(element);
+    _methodUnit = methodAstResult.unit;
+    _methodUtils =
+        new CorrectionUtils(_methodUnit, buffer: methodAstResult.content);
+
     // class member
     bool isClassMember = element.enclosingElement is ClassElement;
     if (element is MethodElement || _isAccessor && isClassMember) {
@@ -379,7 +377,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       _methodParameters = methodDeclaration.parameters;
       _methodBody = methodDeclaration.body;
       // prepare mode
-      isDeclaration = node == methodDeclaration.name;
+      isDeclaration = resolveResult.uri == element.source.uri &&
+          node.offset == element.nameOffset;
       deleteSource = isDeclaration;
       inlineAll = deleteSource;
       return new RefactoringStatus();
@@ -393,7 +392,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       _methodParameters = functionDeclaration.functionExpression.parameters;
       _methodBody = functionDeclaration.functionExpression.body;
       // prepare mode
-      isDeclaration = node == functionDeclaration.name;
+      isDeclaration = resolveResult.uri == element.source.uri &&
+          node.offset == element.nameOffset;
       deleteSource = isDeclaration;
       inlineAll = deleteSource;
       return new RefactoringStatus();
@@ -467,9 +467,11 @@ class _ReferenceProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     refElement = reference.element;
+
     // prepare CorrectionUtils
-    CompilationUnit refUnit = await ref._unitCache.getUnit(refElement);
-    _refUtils = new CorrectionUtils(refUnit);
+    var result = await ref._unitCache.getResolvedAst(refElement);
+    _refUtils = new CorrectionUtils(result.unit, buffer: result.content);
+
     // prepare node and environment
     _node = _refUtils.findNode(reference.sourceRange.offset);
     Statement refStatement = _node.getAncestor((node) => node is Statement);
@@ -608,7 +610,7 @@ class _ReferenceProcessor {
               return;
             }
           }
-          if (ref._alreadyMadeAsync.add(body)) {
+          if (ref._alreadyMadeAsync.add(refElement)) {
             SourceRange bodyStart = range.startLength(body, 0);
             _addRefEdit(newSourceEdit_range(bodyStart, 'async '));
           }

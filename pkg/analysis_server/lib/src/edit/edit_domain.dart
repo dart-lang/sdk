@@ -32,9 +32,8 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
@@ -568,14 +567,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       for (engine.AnalysisError error in result.errors) {
         int errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
-          AstProvider astProvider = new AstProviderForDriver(driver);
           DartFixContext context = new _DartFixContextImpl(
-              server.resourceProvider,
-              result.driver,
-              astProvider,
-              unit,
-              error,
-              errorsCopy);
+              server.resourceProvider, result.driver, unit, error, errorsCopy);
           List<Fix> fixes =
               await new DartFixContributor().computeFixes(context);
           if (fixes.isNotEmpty) {
@@ -619,8 +612,8 @@ class EditDomainHandler extends AbstractRequestHandler {
           kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
         }
         // Try EXTRACT_METHOD.
-        if (new ExtractMethodRefactoring(searchEngine,
-                server.getAstProvider(file), analysisResult, offset, length)
+        if (new ExtractMethodRefactoring(
+                searchEngine, analysisResult, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_METHOD);
         }
@@ -634,23 +627,28 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
     // check elements
     {
-      Element element = await server.getElementAtOffset(file, offset);
-      if (element != null) {
-        // try CONVERT_METHOD_TO_GETTER
-        if (element is ExecutableElement) {
-          Refactoring refactoring = new ConvertMethodToGetterRefactoring(
-              searchEngine, server.getAstProvider(file), element);
-          RefactoringStatus status = await refactoring.checkInitialConditions();
-          if (!status.hasFatalError) {
-            kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        var node = new NodeLocator(offset).searchWithin(analysisResult.unit);
+        var element = server.getElementOfNode(node);
+        if (element != null) {
+          // try CONVERT_METHOD_TO_GETTER
+          if (element is ExecutableElement) {
+            Refactoring refactoring = new ConvertMethodToGetterRefactoring(
+                searchEngine, analysisResult.session, element);
+            RefactoringStatus status =
+                await refactoring.checkInitialConditions();
+            if (!status.hasFatalError) {
+              kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
+            }
           }
-        }
-        // try RENAME
-        {
-          RenameRefactoring renameRefactoring = new RenameRefactoring(
-              refactoringWorkspace, server.getAstProvider(file), element);
-          if (renameRefactoring != null) {
-            kinds.add(RefactoringKind.RENAME);
+          // try RENAME
+          {
+            RenameRefactoring renameRefactoring = new RenameRefactoring(
+                refactoringWorkspace, analysisResult.session, element);
+            if (renameRefactoring != null) {
+              kinds.add(RefactoringKind.RENAME);
+            }
           }
         }
       }
@@ -723,9 +721,6 @@ class _DartFixContextImpl implements DartFixContext {
   final AnalysisDriver analysisDriver;
 
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
   @override
@@ -734,8 +729,8 @@ class _DartFixContextImpl implements DartFixContext {
   @override
   final List<engine.AnalysisError> errors;
 
-  _DartFixContextImpl(this.resourceProvider, this.analysisDriver,
-      this.astProvider, this.unit, this.error, this.errors);
+  _DartFixContextImpl(this.resourceProvider, this.analysisDriver, this.unit,
+      this.error, this.errors);
 
   @override
   GetTopLevelDeclarations get getTopLevelDeclarations =>
@@ -940,20 +935,28 @@ class _RefactoringManager {
     }
     // create a new Refactoring instance
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
-      Element element = await server.getElementAtOffset(file, offset);
-      if (element != null) {
-        if (element is ExecutableElement) {
-          refactoring = new ConvertGetterToMethodRefactoring(
-              searchEngine, server.getAstProvider(file), element);
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        var node = new NodeLocator(offset).searchWithin(analysisResult.unit);
+        var element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is ExecutableElement) {
+            refactoring = new ConvertGetterToMethodRefactoring(
+                searchEngine, analysisResult.session, element);
+          }
         }
       }
     }
     if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
-      Element element = await server.getElementAtOffset(file, offset);
-      if (element != null) {
-        if (element is ExecutableElement) {
-          refactoring = new ConvertMethodToGetterRefactoring(
-              searchEngine, server.getAstProvider(file), element);
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        var node = new NodeLocator(offset).searchWithin(analysisResult.unit);
+        var element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is ExecutableElement) {
+            refactoring = new ConvertMethodToGetterRefactoring(
+                searchEngine, analysisResult.session, element);
+          }
         }
       }
     }
@@ -971,8 +974,8 @@ class _RefactoringManager {
     if (kind == RefactoringKind.EXTRACT_METHOD) {
       var analysisResult = await server.getAnalysisResult(file);
       if (analysisResult != null) {
-        refactoring = new ExtractMethodRefactoring(searchEngine,
-            server.getAstProvider(file), analysisResult, offset, length);
+        refactoring = new ExtractMethodRefactoring(
+            searchEngine, analysisResult, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
@@ -989,14 +992,20 @@ class _RefactoringManager {
       var analysisResult = await server.getAnalysisResult(file);
       if (analysisResult != null) {
         refactoring = new InlineLocalRefactoring(
-            searchEngine, server.getAstProvider(file), analysisResult, offset);
+          searchEngine,
+          analysisResult,
+          offset,
+        );
       }
     }
     if (kind == RefactoringKind.INLINE_METHOD) {
       var analysisResult = await server.getAnalysisResult(file);
       if (analysisResult != null) {
         refactoring = new InlineMethodRefactoring(
-            searchEngine, server.getAstProvider(file), analysisResult, offset);
+          searchEngine,
+          analysisResult,
+          offset,
+        );
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
@@ -1009,41 +1018,44 @@ class _RefactoringManager {
 //          server.resourceProvider, searchEngine, context, source, file);
     }
     if (kind == RefactoringKind.RENAME) {
-      AstNode node = await server.getNodeAtOffset(file, offset);
-      Element element = server.getElementOfNode(node);
-      if (node != null && element != null) {
-        int feedbackOffset = node.offset;
-        int feedbackLength = node.length;
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        var node = new NodeLocator(offset).searchWithin(analysisResult.unit);
+        var element = server.getElementOfNode(node);
+        if (node != null && element != null) {
+          int feedbackOffset = node.offset;
+          int feedbackLength = node.length;
 
-        if (element is FieldFormalParameterElement) {
-          element = (element as FieldFormalParameterElement).field;
-        }
-
-        // Use the prefix offset/length when renaming an import directive.
-        if (node is ImportDirective && element is ImportElement) {
-          if (node.prefix != null) {
-            feedbackOffset = node.prefix.offset;
-            feedbackLength = node.prefix.length;
-          } else {
-            feedbackOffset = -1;
-            feedbackLength = 0;
+          if (element is FieldFormalParameterElement) {
+            element = (element as FieldFormalParameterElement).field;
           }
-        }
 
-        // Rename the class when on `new` in an instance creation.
-        if (node is InstanceCreationExpression) {
-          InstanceCreationExpression creation = node;
-          var typeIdentifier = creation.constructorName.type.name;
-          element = typeIdentifier.staticElement;
-          feedbackOffset = typeIdentifier.offset;
-          feedbackLength = typeIdentifier.length;
-        }
+          // Use the prefix offset/length when renaming an import directive.
+          if (node is ImportDirective && element is ImportElement) {
+            if (node.prefix != null) {
+              feedbackOffset = node.prefix.offset;
+              feedbackLength = node.prefix.length;
+            } else {
+              feedbackOffset = -1;
+              feedbackLength = 0;
+            }
+          }
 
-        // do create the refactoring
-        refactoring = new RenameRefactoring(
-            refactoringWorkspace, server.getAstProvider(file), element);
-        feedback = new RenameFeedback(
-            feedbackOffset, feedbackLength, 'kind', 'oldName');
+          // Rename the class when on `new` in an instance creation.
+          if (node is InstanceCreationExpression) {
+            InstanceCreationExpression creation = node;
+            var typeIdentifier = creation.constructorName.type.name;
+            element = typeIdentifier.staticElement;
+            feedbackOffset = typeIdentifier.offset;
+            feedbackLength = typeIdentifier.length;
+          }
+
+          // do create the refactoring
+          refactoring = new RenameRefactoring(
+              refactoringWorkspace, analysisResult.session, element);
+          feedback = new RenameFeedback(
+              feedbackOffset, feedbackLength, 'kind', 'oldName');
+        }
       }
     }
     if (refactoring == null) {

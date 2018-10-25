@@ -655,13 +655,14 @@ class CorrectionUtils {
   String _endOfLine;
 
   CorrectionUtils(this.unit, {String buffer}) {
-    CompilationUnitElement unitElement = unit.declaredElement;
-    AnalysisContext context = unitElement.context;
-    if (context == null) {
-      throw new CancelCorrectionException();
+    var unitElement = unit.declaredElement;
+    _library = unitElement.library;
+
+    if (buffer != null) {
+      _buffer = buffer;
+    } else {
+      _buffer = unitElement.context.getContents(unitElement.source).data;
     }
-    this._library = unitElement.library;
-    this._buffer = buffer ?? context.getContents(unitElement.source).data;
   }
 
   /**

@@ -32,7 +32,6 @@ import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -64,13 +63,9 @@ typedef bool ElementPredicate(Element argument);
  */
 class DartFixContextImpl extends FixContextImpl implements DartFixContext {
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
-  DartFixContextImpl(FixContext fixContext, this.astProvider, this.unit)
-      : super.from(fixContext);
+  DartFixContextImpl(FixContext fixContext, this.unit) : super.from(fixContext);
 
   GetTopLevelDeclarations get getTopLevelDeclarations =>
       analysisDriver.getTopLevelNameDeclarations;
@@ -128,8 +123,8 @@ class DartFixContributor implements FixContributor {
           context.analysisDriver,
           allAnalysisErrors[i],
           allAnalysisErrors);
-      final DartFixContextImpl dartFixContextI = new DartFixContextImpl(
-          fixContextI, context.astProvider, context.unit);
+      final DartFixContextImpl dartFixContextI =
+          new DartFixContextImpl(fixContextI, context.unit);
       final FixProcessor processorI = new FixProcessor(dartFixContextI);
       final List<Fix> fixesListI = await processorI.compute();
       for (Fix f in fixesListI) {
@@ -189,7 +184,6 @@ class FixProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
   ResourceProvider resourceProvider;
-  AstProvider astProvider;
   GetTopLevelDeclarations getTopLevelDeclarations;
   CompilationUnit unit;
   AnalysisError error;
@@ -230,7 +224,6 @@ class FixProcessor {
 
   FixProcessor(DartFixContext dartContext) {
     resourceProvider = dartContext.resourceProvider;
-    astProvider = dartContext.astProvider;
     getTopLevelDeclarations = dartContext.getTopLevelDeclarations;
 
     driver = dartContext.analysisDriver;
@@ -778,7 +771,7 @@ class FixProcessor {
     AstNode argumentList = namedExpression.parent;
 
     // Prepare the invoked element.
-    var context = new _ExecutableParameters(astProvider, argumentList.parent);
+    var context = new _ExecutableParameters(sessionHelper, argumentList.parent);
     if (context == null) {
       return;
     }
@@ -830,7 +823,7 @@ class FixProcessor {
     List<Expression> arguments = argumentList.arguments;
 
     // Prepare the invoked element.
-    var context = new _ExecutableParameters(astProvider, node.parent);
+    var context = new _ExecutableParameters(sessionHelper, node.parent);
     if (context == null) {
       return;
     }
@@ -2477,9 +2470,9 @@ class FixProcessor {
           !getter.variable.isSynthetic &&
           getter.variable.setter == null &&
           getter.enclosingElement is ClassElement) {
-        AstNode name =
-            await astProvider.getParsedNameForElement(getter.variable);
-        AstNode variable = name?.parent;
+        var declarationResult =
+            await sessionHelper.getElementDeclaration(getter.variable);
+        AstNode variable = declarationResult.declaration;
         if (variable is VariableDeclaration &&
             variable.parent is VariableDeclarationList &&
             variable.parent.parent is FieldDeclaration) {
@@ -4201,14 +4194,15 @@ class _ClosestElementFinder {
  * [ExecutableElement], its parameters, and operations on them.
  */
 class _ExecutableParameters {
-  final AstProvider astProvider;
+  final AnalysisSessionHelper sessionHelper;
   final ExecutableElement executable;
 
   final List<ParameterElement> required = [];
   final List<ParameterElement> optionalPositional = [];
   final List<ParameterElement> named = [];
 
-  factory _ExecutableParameters(AstProvider astProvider, AstNode invocation) {
+  factory _ExecutableParameters(
+      AnalysisSessionHelper sessionHelper, AstNode invocation) {
     Element element;
     if (invocation is InstanceCreationExpression) {
       element = invocation.staticElement;
@@ -4216,14 +4210,14 @@ class _ExecutableParameters {
     if (invocation is MethodInvocation) {
       element = invocation.methodName.staticElement;
     }
-    if (element is ExecutableElement) {
-      return new _ExecutableParameters._(astProvider, element);
+    if (element is ExecutableElement && !element.isSynthetic) {
+      return new _ExecutableParameters._(sessionHelper, element);
     } else {
       return null;
     }
   }
 
-  _ExecutableParameters._(this.astProvider, this.executable) {
+  _ExecutableParameters._(this.sessionHelper, this.executable) {
     for (var parameter in executable.parameters) {
       if (parameter.isNotOptional) {
         required.add(parameter);
@@ -4242,10 +4236,8 @@ class _ExecutableParameters {
    * be found.
    */
   Future<FormalParameterList> getParameterList() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    var name = await astProvider.getParsedNameForElement(executable);
-    AstNode targetDeclaration = name?.parent;
+    var result = await sessionHelper.getElementDeclaration(executable);
+    var targetDeclaration = result.declaration;
     if (targetDeclaration is ConstructorDeclaration) {
       return targetDeclaration.parameters;
     } else if (targetDeclaration is FunctionDeclaration) {
@@ -4262,10 +4254,9 @@ class _ExecutableParameters {
    * or `null` is cannot be found.
    */
   Future<FormalParameter> getParameterNode(ParameterElement element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    var name = await astProvider.getParsedNameForElement(element);
-    for (AstNode node = name; node != null; node = node.parent) {
+    var result = await sessionHelper.getElementDeclaration(element);
+    var declaration = result.declaration;
+    for (AstNode node = declaration; node != null; node = node.parent) {
       if (node is FormalParameter && node.parent is FormalParameterList) {
         return node;
       }

@@ -11,12 +11,10 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -24,10 +22,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  * A [Refactoring] for renaming [ImportElement]s.
  */
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
-  final AstProvider astProvider;
+  final AnalysisSession session;
 
   RenameImportRefactoringImpl(
-      RefactoringWorkspace workspace, this.astProvider, ImportElement element)
+      RefactoringWorkspace workspace, this.session, ImportElement element)
       : super(workspace, element);
 
   @override
@@ -112,7 +110,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     LibraryElement library = element.library;
-    CompilationUnit unit = await astProvider.getParsedUnitForElement(library);
+    String path = library.source.fullName;
+    CompilationUnit unit = (await session.getParsedAstSync(path)).unit;
     int index = library.imports.indexOf(element);
     return unit.directives.where((d) => d is ImportDirective).toList()[index];
   }
@@ -127,9 +126,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Source source = reference.element.source;
-    AnalysisSession currentSession = astProvider.driver.currentSession;
-    ParseResult result = await currentSession.getParsedAst(source.fullName);
-    CompilationUnit unit = result.unit;
+    CompilationUnit unit = (await session.getParsedAst(source.fullName)).unit;
     NodeLocator nodeLocator = new NodeLocator(reference.range.offset);
     AstNode node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {

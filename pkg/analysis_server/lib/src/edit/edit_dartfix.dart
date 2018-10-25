@@ -15,7 +15,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -208,7 +207,6 @@ class EditDartFix {
     final dartContext = new DartFixContextImpl(
         new FixContextImpl(
             server.resourceProvider, result.driver, error, result.errors),
-        new AstProviderForDriver(result.driver),
         result.unit);
     final processor = new FixProcessor(dartContext);
     Fix fix = await processor.computeFix();

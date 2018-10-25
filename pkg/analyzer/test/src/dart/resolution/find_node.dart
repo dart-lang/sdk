@@ -28,6 +28,10 @@ class FindNode {
     return _node(search, (n) => n is CascadeExpression);
   }
 
+  ClassDeclaration classDeclaration(String search) {
+    return _node(search, (n) => n is ClassDeclaration);
+  }
+
   CommentReference commentReference(String search) {
     return _node(search, (n) => n is CommentReference);
   }

@@ -14,10 +14,10 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -26,9 +26,9 @@ import 'package:analyzer/src/generated/source.dart';
  * cause any conflicts.
  */
 Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
-    AstProvider astProvider, ClassElement classElement, String name) {
+    ResolvedUnitCache unitCache, ClassElement classElement, String name) {
   return new _ClassMemberValidator.forCreate(
-          searchEngine, astProvider, classElement, name)
+          searchEngine, unitCache, classElement, name)
       .validate();
 }
 
@@ -36,12 +36,12 @@ Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
  * A [Refactoring] for renaming class member [Element]s.
  */
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
-  final AstProvider astProvider;
+  final AnalysisSession session;
 
   _ClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(
-      RefactoringWorkspace workspace, this.astProvider, Element element)
+      RefactoringWorkspace workspace, this.session, Element element)
       : super(workspace, element);
 
   @override
@@ -58,7 +58,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = new _ClassMemberValidator.forRename(
-        searchEngine, astProvider, element, newName);
+        searchEngine, ResolvedUnitCache.empty(session), element, newName);
     return _validator.validate();
   }
 
@@ -145,17 +145,15 @@ class _ClassMemberValidator {
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
-      this.searchEngine, AstProvider astProvider, this.elementClass, this.name)
-      : unitCache = new ResolvedUnitCache(astProvider),
-        isRename = false,
+      this.searchEngine, this.unitCache, this.elementClass, this.name)
+      : isRename = false,
         library = null,
         element = null,
         elementKind = ElementKind.METHOD;
 
   _ClassMemberValidator.forRename(
-      this.searchEngine, AstProvider astProvider, Element element, this.name)
-      : unitCache = new ResolvedUnitCache(astProvider),
-        isRename = true,
+      this.searchEngine, this.unitCache, Element element, this.name)
+      : isRename = true,
         library = element.library,
         element = element,
         elementClass = element.enclosingElement,
@@ -260,12 +258,13 @@ class _ClassMemberValidator {
     Future<List<LocalElement>> getLocalElements(Element element) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
-      var unitElement = unitCache.getUnitElement(element);
+
+      var unitResult = await unitCache.getResolvedAst(element);
+      var unitElement = unitResult.unit.declaredElement;
       var localElements = localElementMap[unitElement];
       if (localElements == null) {
-        var unit = await unitCache.getUnit(unitElement);
         var collector = new _LocalElementsCollector(name);
-        unit.accept(collector);
+        unitResult.unit.accept(collector);
         localElements = collector.elements;
         localElementMap[unitElement] = localElements;
       }

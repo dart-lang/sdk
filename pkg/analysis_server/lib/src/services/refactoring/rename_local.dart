@@ -12,24 +12,24 @@ import 'package:analysis_server/src/services/refactoring/naming_conventions.dart
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A [Refactoring] for renaming [LocalElement]s.
  */
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
-  final AstProvider astProvider;
+  final AnalysisSession session;
   final ResolvedUnitCache unitCache;
 
   List<LocalElement> elements = [];
 
   RenameLocalRefactoringImpl(
-      RefactoringWorkspace workspace, this.astProvider, LocalElement element)
-      : unitCache = new ResolvedUnitCache(astProvider),
+      RefactoringWorkspace workspace, this.session, LocalElement element)
+      : unitCache = ResolvedUnitCache.empty(session),
         super(workspace, element);
 
   @override
@@ -53,10 +53,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     RefactoringStatus result = new RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
-      CompilationUnit unit = await unitCache.getUnit(element);
-      if (unit != null) {
-        unit.accept(new _ConflictValidatorVisitor(result, newName, element));
-      }
+      var unitResult = await unitCache.getResolvedAst(element);
+      var unit = unitResult.unit;
+      unit.accept(new _ConflictValidatorVisitor(result, newName, element));
     }
     return result;
   }

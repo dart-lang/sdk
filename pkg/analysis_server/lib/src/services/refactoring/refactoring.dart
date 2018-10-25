@@ -22,11 +22,11 @@ import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
@@ -40,9 +40,9 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
    * [element] and all the corresponding hierarchy elements.
    */
   factory ConvertGetterToMethodRefactoring(SearchEngine searchEngine,
-      AstProvider astProvider, PropertyAccessorElement element) {
+      AnalysisSession session, PropertyAccessorElement element) {
     return new ConvertGetterToMethodRefactoringImpl(
-        searchEngine, astProvider, element);
+        searchEngine, session, element);
   }
 }
 
@@ -55,9 +55,9 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
    * [element] and all the corresponding hierarchy elements.
    */
   factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
-      AstProvider astProvider, ExecutableElement element) {
+      AnalysisSession session, ExecutableElement element) {
     return new ConvertMethodToGetterRefactoringImpl(
-        searchEngine, astProvider, element);
+        searchEngine, session, element);
   }
 }
 
@@ -142,14 +142,10 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractMethodRefactoring] instance.
    */
-  factory ExtractMethodRefactoring(
-      SearchEngine searchEngine,
-      AstProvider astProvider,
-      ResolveResult resolveResult,
-      int selectionOffset,
-      int selectionLength) {
-    return new ExtractMethodRefactoringImpl(searchEngine, astProvider,
-        resolveResult, selectionOffset, selectionLength);
+  factory ExtractMethodRefactoring(SearchEngine searchEngine,
+      ResolveResult resolveResult, int selectionOffset, int selectionLength) {
+    return new ExtractMethodRefactoringImpl(
+        searchEngine, resolveResult, selectionOffset, selectionLength);
   }
 
   /**
@@ -278,10 +274,9 @@ abstract class InlineLocalRefactoring implements Refactoring {
   /**
    * Returns a new [InlineLocalRefactoring] instance.
    */
-  factory InlineLocalRefactoring(SearchEngine searchEngine,
-      AstProvider astProvider, ResolveResult resolveResult, int offset) {
-    return new InlineLocalRefactoringImpl(
-        searchEngine, astProvider, resolveResult, offset);
+  factory InlineLocalRefactoring(
+      SearchEngine searchEngine, ResolveResult resolveResult, int offset) {
+    return new InlineLocalRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
   /**
@@ -302,10 +297,9 @@ abstract class InlineMethodRefactoring implements Refactoring {
   /**
    * Returns a new [InlineMethodRefactoring] instance.
    */
-  factory InlineMethodRefactoring(SearchEngine searchEngine,
-      AstProvider astProvider, ResolveResult resolveResult, int offset) {
-    return new InlineMethodRefactoringImpl(
-        searchEngine, astProvider, resolveResult, offset);
+  factory InlineMethodRefactoring(
+      SearchEngine searchEngine, ResolveResult resolveResult, int offset) {
+    return new InlineMethodRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
   /**
@@ -441,7 +435,7 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(RefactoringWorkspace workspace,
-      AstProvider astProvider, Element element) {
+      AnalysisSession session, Element element) {
     if (element == null) {
       return null;
     }
@@ -452,11 +446,10 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameUnitMemberRefactoringImpl(workspace, element);
     }
     if (element is ConstructorElement) {
-      return new RenameConstructorRefactoringImpl(
-          workspace, astProvider, element);
+      return new RenameConstructorRefactoringImpl(workspace, session, element);
     }
     if (element is ImportElement) {
-      return new RenameImportRefactoringImpl(workspace, astProvider, element);
+      return new RenameImportRefactoringImpl(workspace, session, element);
     }
     if (element is LabelElement) {
       return new RenameLabelRefactoringImpl(workspace, element);
@@ -465,11 +458,10 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameLibraryRefactoringImpl(workspace, element);
     }
     if (element is LocalElement) {
-      return new RenameLocalRefactoringImpl(workspace, astProvider, element);
+      return new RenameLocalRefactoringImpl(workspace, session, element);
     }
     if (element.enclosingElement is ClassElement) {
-      return new RenameClassMemberRefactoringImpl(
-          workspace, astProvider, element);
+      return new RenameClassMemberRefactoringImpl(workspace, session, element);
     }
     return null;
   }
@@ -510,29 +502,22 @@ abstract class RenameRefactoring implements Refactoring {
  * TODO(scheglov) consider moving to request-bound object.
  */
 class ResolvedUnitCache {
-  final AstProvider _astProvider;
-  final Map<CompilationUnitElement, CompilationUnit> _map = {};
+  final AnalysisSession _session;
+  final Map<String, ResolveResult> _map = {};
 
-  ResolvedUnitCache(this._astProvider, [CompilationUnit unit]) {
-    if (unit != null) {
-      _map[unit.declaredElement] = unit;
-    }
+  ResolvedUnitCache(ResolveResult result) : _session = result.session {
+    _map[result.path] = result;
   }
 
-  Future<CompilationUnit> getUnit(Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    CompilationUnitElement unitElement = getUnitElement(element);
-    CompilationUnit unit = _map[unitElement];
-    if (unit == null) {
-      unit = await _astProvider.getResolvedUnitForElement(element);
-      _map[unitElement] = unit;
-    }
-    return unit;
-  }
+  ResolvedUnitCache.empty(AnalysisSession session) : _session = session;
 
-  CompilationUnitElement getUnitElement(Element element) {
-    return element.getAncestor((e) => e is CompilationUnitElement)
-        as CompilationUnitElement;
+  Future<ResolveResult> getResolvedAst(Element element) async {
+    var path = element.source.fullName;
+    var result = _map[path];
+    if (result == null) {
+      result = await _session.getResolvedAst(path);
+      _map[path] = result;
+    }
+    return result;
   }
 }

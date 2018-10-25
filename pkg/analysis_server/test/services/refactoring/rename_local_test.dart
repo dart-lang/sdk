@@ -442,29 +442,42 @@ main() {
   }
 
   test_createChange_parameter_named_inOtherFile() async {
-    await indexTestUnit('''
+    var a = convertPath('/project/a.dart');
+    var b = convertPath('/project/b.dart');
+
+    newFile(a, content: r'''
 class A {
   A({test});
 }
 ''');
-    await indexUnit('/project/test2.dart', '''
-import 'test.dart';
+    newFile(b, content: r'''
+import 'a.dart';
+
 main() {
   new A(test: 2);
 }
 ''');
-    // configure refactoring
+    driver.addFile(a);
+    driver.addFile(b);
+
+    var session = driver.currentSession;
+    testAnalysisResult = await session.getResolvedAst(a);
+    testFile = testAnalysisResult.path;
+    testCode = testAnalysisResult.content;
+    testUnit = testAnalysisResult.unit;
+
     createRenameRefactoringAtString('test});');
     expect(refactoring.refactoringName, 'Rename Parameter');
     refactoring.newName = 'newName';
-    // validate change
+
     await assertSuccessfulRefactoring('''
 class A {
   A({newName});
 }
 ''');
-    assertFileChangeResult('/project/test2.dart', '''
-import 'test.dart';
+    assertFileChangeResult(b, '''
+import 'a.dart';
+
 main() {
   new A(newName: 2);
 }
