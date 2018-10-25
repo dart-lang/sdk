@@ -830,10 +830,11 @@ class BaseCoreDumpArchiver(object):
         files.add(core)
       else:
         missing.append(crash)
-    if self._output_directory is None:
+    if (self._output_directory is None
+        or os.environ.containsKey('BUILDBOT_BUILDERNAME')):
       self._upload(files)
     else:
-      # --output_directory is specified, copy the dump to the output_directory instead
+      # This is a sharded test run: copy the dump to the output_directory
       self._copy(files)
 
     if missing:
