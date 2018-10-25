@@ -197,6 +197,9 @@ vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
 vm/regress_33469_test/04: MissingCompileTimeError
+vm/regression_32912_test/01: MissingCompileTimeError
+vm/regression_32912_test/02: MissingCompileTimeError
+vm/regression_32912_test/03: MissingCompileTimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $fasta ]

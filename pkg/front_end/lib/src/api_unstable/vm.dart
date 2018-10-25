@@ -37,6 +37,7 @@ export '../fasta/fasta_codes.dart'
         messageConstEvalContext,
         messageConstEvalFailedAssertion,
         noLength,
+        templateConstEvalFreeTypeParameter,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateKey,
         templateConstEvalFailedAssertionWithMessage,

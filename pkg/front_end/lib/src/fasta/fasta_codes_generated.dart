@@ -1098,6 +1098,37 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        DartType
+            _type)> templateConstEvalFreeTypeParameter = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed.""",
+    withArguments: _withArgumentsConstEvalFreeTypeParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeConstEvalFreeTypeParameter =
+    const Code<Message Function(DartType _type)>(
+  "ConstEvalFreeTypeParameter",
+  templateConstEvalFreeTypeParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalFreeTypeParameter(DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeConstEvalFreeTypeParameter,
+      message:
+          """The type '${type}' is not a constant because it depends on a type parameter, only instantiated types are allowed.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         Constant _constant,
         DartType _type,
