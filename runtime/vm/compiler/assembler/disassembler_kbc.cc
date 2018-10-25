@@ -128,21 +128,18 @@ static void FormatA_D(char* buf,
   Apply(&buf, &size, pc, op2, bc, "");
 }
 
-// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
-// remove it once bytecode instruction set is finalized.
-//
-// static void FormatA_X(char* buf,
-//                      intptr_t size,
-//                      uword pc,
-//                      uint32_t op,
-//                      Fmt op1,
-//                      Fmt op2,
-//                      Fmt op3) {
-//  const int32_t a = (op & 0xFF00) >> 8;
-//  const int32_t bc = static_cast<int32_t>(op) >> 16;
-//  Apply(&buf, &size, pc, op1, a, ", ");
-//  Apply(&buf, &size, pc, op2, bc, "");
-// }
+static void FormatA_X(char* buf,
+                      intptr_t size,
+                      uword pc,
+                      uint32_t op,
+                      Fmt op1,
+                      Fmt op2,
+                      Fmt op3) {
+  const int32_t a = (op & 0xFF00) >> 8;
+  const int32_t bc = static_cast<int32_t>(op) >> 16;
+  Apply(&buf, &size, pc, op1, a, ", ");
+  Apply(&buf, &size, pc, op2, bc, "");
+}
 
 static void FormatX(char* buf,
                     intptr_t size,

@@ -186,7 +186,7 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                5
   CheckStack
-  CheckFunctionTypeArgs 2, 0
+  CheckFunctionTypeArgs 2, r0
   AllocateContext      1
   PopLocal             r1
   Push                 r1
@@ -368,10 +368,10 @@ Closure CP#10 {
   StoreLocal           r0
   PushConstant         CP#5
   JumpIfEqStrict       L1
-  CheckFunctionTypeArgs 0, 2
+  CheckFunctionTypeArgs 0, r2
   Jump                 L2
 L1:
-  CheckFunctionTypeArgs 2, 0
+  CheckFunctionTypeArgs 2, r0
 L2:
   Push                 r0
   Push                 FP[-5]
@@ -420,10 +420,10 @@ Closure CP#0 {
   StoreLocal           r0
   PushConstant         CP#5
   JumpIfEqStrict       L1
-  CheckFunctionTypeArgs 0, 2
+  CheckFunctionTypeArgs 0, r2
   Jump                 L2
 L1:
-  CheckFunctionTypeArgs 2, 0
+  CheckFunctionTypeArgs 2, r0
 L2:
   Push                 r0
   Push                 FP[-5]
@@ -1256,7 +1256,7 @@ Closure CP#0 {
 Bytecode (version: stable) {
   Entry                2
   CheckStack
-  CheckFunctionTypeArgs 8, 0
+  CheckFunctionTypeArgs 8, r0
   PushConstant         CP#0
   StoreLocal           r1
   Push                 r1
@@ -1486,10 +1486,10 @@ Closure CP#0 {
   StoreLocal           r0
   PushConstant         CP#5
   JumpIfEqStrict       L1
-  CheckFunctionTypeArgs 0, 2
+  CheckFunctionTypeArgs 0, r2
   Jump                 L2
 L1:
-  CheckFunctionTypeArgs 1, 0
+  CheckFunctionTypeArgs 1, r0
 L2:
   Push                 r0
   Push                 FP[-6]

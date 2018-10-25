@@ -163,7 +163,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kFrame: const Format(
       Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kCheckFunctionTypeArgs: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
@@ -253,7 +253,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kThrow: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kMoveSpecial: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.spe, Operand.none]),
+      Encoding.kAX, const [Operand.spe, Operand.xeg, Operand.none]),
   Opcode.kSetFrame: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kBooleanNegateTOS: const Format(

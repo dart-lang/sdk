@@ -171,7 +171,7 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                1
   CheckStack
-  CheckFunctionTypeArgs 2, 0
+  CheckFunctionTypeArgs 2, r0
   Push                 FP[-5]
   PushNull
   Push                 r0
@@ -299,7 +299,7 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                1
   CheckStack
-  CheckFunctionTypeArgs 2, 0
+  CheckFunctionTypeArgs 2, r0
   JumpIfNotZeroTypeArgs L1
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0

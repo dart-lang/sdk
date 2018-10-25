@@ -222,7 +222,7 @@ Bytecode (version: stable) {
   LoadConstant         r3, CP#3
   Frame                1
   CheckStack
-  CheckFunctionTypeArgs 2, 4
+  CheckFunctionTypeArgs 2, r4
   PushNull
   Push                 r4
   InstantiateType      CP#4

@@ -121,11 +121,8 @@ class BytecodeAssembler {
   int _encodeAD(Opcode opcode, int ra, int rd) =>
       _uint8(opcode.index) | (_uint8(ra) << 8) | (_uint16(rd) << 16);
 
-// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
-// remove it once bytecode instruction set is finalized.
-//
-//  int _encodeAX(Opcode opcode, int ra, int rx) =>
-//      _uint8(opcode.index) | (_uint8(ra) << 8) | (_int16(rx) << 16);
+  int _encodeAX(Opcode opcode, int ra, int rx) =>
+      _uint8(opcode.index) | (_uint8(ra) << 8) | (_int16(rx) << 16);
 
   int _encodeD(Opcode opcode, int rd) =>
       _uint8(opcode.index) | (_uint16(rd) << 16);
@@ -350,8 +347,8 @@ class BytecodeAssembler {
     emitWord(_encode0(Opcode.kCloneContext));
   }
 
-  void emitMoveSpecial(int ra, SpecialIndex rd) {
-    emitWord(_encodeAD(Opcode.kMoveSpecial, ra, rd.index));
+  void emitMoveSpecial(SpecialIndex ra, int rx) {
+    emitWord(_encodeAX(Opcode.kMoveSpecial, ra.index, rx));
   }
 
   void emitInstantiateType(int rd) {

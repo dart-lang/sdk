@@ -2617,8 +2617,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _restoreContextForTryBlock(node);
 
-    asm.emitMoveSpecial(_exceptionVar(node), SpecialIndex.exception);
-    asm.emitMoveSpecial(_stackTraceVar(node), SpecialIndex.stackTrace);
+    asm.emitMoveSpecial(SpecialIndex.exception, _exceptionVar(node));
+    asm.emitMoveSpecial(SpecialIndex.stackTrace, _stackTraceVar(node));
 
     final capturedExceptionVar = locals.capturedExceptionVar(node);
     if (capturedExceptionVar != null) {
