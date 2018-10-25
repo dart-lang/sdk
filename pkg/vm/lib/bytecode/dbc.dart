@@ -303,3 +303,17 @@ enum SpecialIndex {
 }
 
 bool isJump(Opcode opcode) => BytecodeFormats[opcode].encoding == Encoding.kT;
+
+// Bytecode instructions reference constant pool indices using
+// unsigned 16-bit operands.
+const int constantPoolIndexLimit = 1 << 16;
+
+// Local variables are referenced using 16-bit signed operands.
+const int localVariableIndexLimit = 1 << 15;
+
+// Captured variables are referenced using 16-bit unsigned operands.
+const int capturedVariableIndexLimit = 1 << 16;
+
+// Base class for exceptions thrown when certain limit of bytecode
+// format is exceeded.
+abstract class BytecodeLimitExceededException {}
