@@ -569,13 +569,17 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
                                       const InferredTypeMetadata* result_type,
-                                      intptr_t type_args_count) {
+                                      intptr_t type_args_count,
+                                      bool use_unchecked_entry) {
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z)
       StaticCallInstr(position, target, type_args_count, argument_names,
                       arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
   SetResultTypeForStaticCall(call, target, argument_count, result_type);
+  if (use_unchecked_entry) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
   Push(call);
   return Fragment(call);
 }

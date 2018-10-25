@@ -2442,10 +2442,11 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     const Array& argument_names,
     ICData::RebindRule rebind_rule,
     const InferredTypeMetadata* result_type,
-    intptr_t type_args_count) {
-  return flow_graph_builder_->StaticCall(position, target, argument_count,
-                                         argument_names, rebind_rule,
-                                         result_type, type_args_count);
+    intptr_t type_args_count,
+    bool use_unchecked_entry) {
+  return flow_graph_builder_->StaticCall(
+      position, target, argument_count, argument_names, rebind_rule,
+      result_type, type_args_count, use_unchecked_entry);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -3317,9 +3318,11 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
     SkipCanonicalNameReference();  // skip target_reference.
 
-    instructions +=
-        StaticCall(position, Function::ZoneHandle(Z, function.raw()),
-                   /* argument_count = */ 2, ICData::kSuper);
+    instructions += StaticCall(
+        position, Function::ZoneHandle(Z, function.raw()),
+        /* argument_count = */ 2, Array::null_array(), ICData::kSuper,
+        /*result_type=*/nullptr, /*type_args_len=*/0,
+        /*use_unchecked_entry=*/!FLAG_precompiled_mode);
     instructions += Drop();  // Drop result of the setter invocation.
   }
 
@@ -3961,7 +3964,8 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     return instructions +
            StaticCall(position, Function::ZoneHandle(Z, function.raw()),
                       argument_count, argument_names, ICData::kSuper,
-                      &result_type, type_args_len);
+                      &result_type, type_args_len,
+                      /*use_unchecked_entry_point=*/!FLAG_precompiled_mode);
   }
 }
 
