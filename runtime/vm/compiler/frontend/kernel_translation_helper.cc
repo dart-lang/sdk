@@ -1915,6 +1915,10 @@ void KernelReaderHelper::SkipDartType() {
     case kSimpleFunctionType:
       SkipFunctionType(true);
       return;
+    case kTypedefType:
+      ReadUInt();             // read index for canonical name.
+      SkipListOfDartTypes();  // read list of types.
+      return;
     case kTypeParameterType:
       ReadUInt();              // read index for parameter.
       SkipOptionalDartType();  // read bound bound.
@@ -1962,7 +1966,7 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
   }
 
   if (!simple) {
-    SkipCanonicalNameReference();  // read typedef reference.
+    SkipOptionalDartType();  // read typedef type.
   }
 
   SkipDartType();  // read return type.
@@ -2846,7 +2850,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   }
 
   if (!simple) {
-    helper_->SkipCanonicalNameReference();  // read typedef reference.
+    helper_->SkipOptionalDartType();  // read typedef type.
   }
 
   BuildTypeInternal();  // read return type.

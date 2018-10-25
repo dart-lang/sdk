@@ -4666,8 +4666,7 @@ class FunctionType extends DartType {
   final List<NamedType> namedParameters; // Must be sorted.
 
   /// The [Typedef] this function type is created for.
-  @nocoq
-  Reference typedefReference;
+  TypedefType typedefType;
 
   final DartType returnType;
   int _hashCode;
@@ -4676,12 +4675,25 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
-      this.typedefReference})
+      Reference typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
-            requiredParameterCount ?? positionalParameters.length;
+            requiredParameterCount ?? positionalParameters.length,
+        this.typedefType = typedefReference == null
+            ? null
+            : new TypedefType.byReference(typedefReference,
+                new List.filled(typeParameters.length, const DynamicType()));
 
-  /// The [Typedef] this function type is created for.
+  @nocoq
+  Reference get typedefReference => typedefType?.typedefReference;
+
+  void set typedefReference(Reference ref) {
+    typedefType = ref == null
+        ? null
+        : new TypedefType.byReference(
+            ref, new List.filled(typeParameters.length, const DynamicType()));
+  }
+
   Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
