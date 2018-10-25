@@ -564,6 +564,7 @@ uri_parse_test: Pass, Slow
 uri_test: Pass, Slow
 
 [ $compiler == dartkb || $compiler == dartkp ]
+bigint_parse_radix_test: Pass, Timeout # --no_intrinsify
 bigint_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == precompiler || $runtime == vm && !$checked && !$strong ]
