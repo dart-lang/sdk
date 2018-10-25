@@ -21,6 +21,7 @@ abstract class Link implements FileSystemEntity {
     return overrides.createLink(path);
   }
 
+  @pragma("vm:entry-point")
   factory Link.fromRawPath(Uint8List rawPath) {
     // TODO(bkonyi): handle overrides
     return new _Link.fromRawPath(rawPath);
