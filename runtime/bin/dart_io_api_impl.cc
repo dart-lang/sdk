@@ -23,6 +23,10 @@ void BootstrapDartIo() {
   EventHandler::Start();
 }
 
+void CleanupDartIo() {
+  EventHandler::Stop();
+}
+
 void SetSystemTempDirectory(const char* system_temp) {
   Directory::SetSystemTemp(system_temp);
 }
