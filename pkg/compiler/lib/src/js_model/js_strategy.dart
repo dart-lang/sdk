@@ -1206,9 +1206,9 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
     return _targetResults.typeOfSend(node);
   }
 
-  AbstractValue typeOfListLiteral(MemberEntity owner,
+  AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain) {
-    return _resultOf(owner).typeOfListLiteral(listLiteral) ??
+    return _globalInferenceResults.typeOfListLiteral(listLiteral) ??
         abstractValueDomain.dynamicType;
   }
 

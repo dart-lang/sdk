@@ -2738,8 +2738,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           listInstruction, type, sourceInformation);
     }
 
-    AbstractValue type = _typeInferenceMap.typeOfListLiteral(
-        targetElement, node, abstractValueDomain);
+    AbstractValue type =
+        _typeInferenceMap.typeOfListLiteral(node, abstractValueDomain);
     if (!abstractValueDomain.containsAll(type)) {
       listInstruction.instructionType = type;
     }
@@ -3369,13 +3369,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         function == commonElements.jsArrayTypedConstructor;
 
     _inferredTypeOfNewList(ir.StaticInvocation node) {
-      MemberEntity element = sourceElement is ConstructorBodyEntity
-          ? (sourceElement as ConstructorBodyEntity).constructor
-          : sourceElement;
-
-      return globalInferenceResults
-              .resultOfMember(element)
-              .typeOfNewList(node) ??
+      return globalInferenceResults.typeOfNewList(node) ??
           abstractValueDomain.dynamicType;
     }
 
