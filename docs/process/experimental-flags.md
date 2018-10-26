@@ -83,12 +83,12 @@ change is required when we add or remove a flag. This is expected to take one of
 two forms:
 
 - Experiments affecting analysis can be enabled in `analysis_options.yaml` under
-  a single `enable-experiments:` key, e.g. to enable the flags `super-mixins` &
+  a single `enable-experiment:` key, e.g. to enable the flags `super-mixins` &
   `no-slow-checks`:
 
   ```
   analyzer:
-    enable-experiments:
+    enable-experiment:
       - super-mixins
       - no-slow-checks
   ```
