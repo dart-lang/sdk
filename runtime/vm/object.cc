@@ -16674,14 +16674,7 @@ const char* Instance::ToCString() const {
     if (IsClosure()) {
       return Closure::Cast(*this).ToCString();
     }
-    const Class& cls = Class::Handle(clazz());
-    TypeArguments& type_arguments = TypeArguments::Handle();
-    const intptr_t num_type_arguments = cls.NumTypeArguments();
-    if (num_type_arguments > 0) {
-      type_arguments = GetTypeArguments();
-    }
-    const Type& type =
-        Type::Handle(Type::New(cls, type_arguments, TokenPosition::kNoSource));
+    const AbstractType& type = AbstractType::Handle(GetType(Heap::kNew));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(), "Instance of '%s'",
                        type_name.ToCString());
