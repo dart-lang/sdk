@@ -283,6 +283,9 @@ class ConstructorElementHandle extends ExecutableElementHandle
   bool get isConst => actualElement.isConst;
 
   @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+
+  @override
   bool get isDefaultConstructor => actualElement.isDefaultConstructor;
 
   @override
@@ -1153,6 +1156,9 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   DartType get propagatedType => null;
 
   @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+
+  @override
   PropertyAccessorElement get setter => actualElement.setter;
 }
 
@@ -1231,6 +1237,9 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   FunctionElement get initializer => actualElement.initializer;
+
+  @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
   @override
   bool get isConst => actualElement.isConst;

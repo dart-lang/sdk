@@ -12,8 +12,8 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -28,7 +28,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 
@@ -164,23 +163,12 @@ class LibraryAnalyzer {
    * Compute [_constants] in all units.
    */
   void _computeConstants() {
-    ConstantEvaluationEngine evaluationEngine = new ConstantEvaluationEngine(
-        _typeProvider, _declaredVariables,
-        forAnalysisDriver: true, typeSystem: _context.typeSystem);
-
-    List<_ConstantNode> nodes = [];
-    Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
-    for (ConstantEvaluationTarget constant in _constants) {
-      var node = new _ConstantNode(evaluationEngine, nodeMap, constant);
-      nodes.add(node);
-      nodeMap[constant] = node;
-    }
-
-    for (_ConstantNode node in nodes) {
-      if (!node.isEvaluated) {
-        new _ConstantWalker(evaluationEngine).walk(node);
-      }
-    }
+    computeConstants(
+      _typeProvider,
+      _context.typeSystem,
+      _declaredVariables,
+      _constants.toList(),
+    );
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
@@ -718,58 +706,6 @@ class UnitAnalysisResult {
   final List<AnalysisError> errors;
 
   UnitAnalysisResult(this.file, this.unit, this.errors);
-}
-
-/**
- * [Node] that is used to compute constants in dependency order.
- */
-class _ConstantNode extends Node<_ConstantNode> {
-  final ConstantEvaluationEngine evaluationEngine;
-  final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap;
-  final ConstantEvaluationTarget constant;
-
-  bool isEvaluated = false;
-
-  _ConstantNode(this.evaluationEngine, this.nodeMap, this.constant);
-
-  @override
-  List<_ConstantNode> computeDependencies() {
-    List<ConstantEvaluationTarget> targets = [];
-    evaluationEngine.computeDependencies(constant, targets.add);
-    return targets.map(_getNode).toList();
-  }
-
-  _ConstantNode _getNode(ConstantEvaluationTarget constant) {
-    return nodeMap.putIfAbsent(
-        constant, () => new _ConstantNode(evaluationEngine, nodeMap, constant));
-  }
-}
-
-/**
- * [DependencyWalker] for computing constants and detecting cycles.
- */
-class _ConstantWalker extends DependencyWalker<_ConstantNode> {
-  final ConstantEvaluationEngine evaluationEngine;
-
-  _ConstantWalker(this.evaluationEngine);
-
-  @override
-  void evaluate(_ConstantNode node) {
-    evaluationEngine.computeConstantValue(node.constant);
-    node.isEvaluated = true;
-  }
-
-  @override
-  void evaluateScc(List<_ConstantNode> scc) {
-    var constantsInCycle = scc.map((node) => node.constant);
-    for (_ConstantNode node in scc) {
-      if (node.constant is ConstructorElementImpl) {
-        (node.constant as ConstructorElementImpl).isCycleFree = false;
-      }
-      evaluationEngine.generateCycleError(constantsInCycle, node.constant);
-      node.isEvaluated = true;
-    }
-  }
 }
 
 /**
