@@ -139,4 +139,10 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
     registerNode(node);
     super.visitStaticInvocation(node);
   }
+
+  @override
+  void visitLabeledStatement(ir.LabeledStatement node) {
+    registerNode(node);
+    super.visitLabeledStatement(node);
+  }
 }

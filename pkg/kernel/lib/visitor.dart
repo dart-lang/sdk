@@ -261,6 +261,20 @@ class DartTypeVisitor<R> {
   R visitTypedefType(TypedefType node) => defaultDartType(node);
 }
 
+class DartTypeVisitor1<R, T> {
+  R defaultDartType(DartType node, T arg) => null;
+
+  R visitInvalidType(InvalidType node, T arg) => defaultDartType(node, arg);
+  R visitDynamicType(DynamicType node, T arg) => defaultDartType(node, arg);
+  R visitVoidType(VoidType node, T arg) => defaultDartType(node, arg);
+  R visitBottomType(BottomType node, T arg) => defaultDartType(node, arg);
+  R visitInterfaceType(InterfaceType node, T arg) => defaultDartType(node, arg);
+  R visitFunctionType(FunctionType node, T arg) => defaultDartType(node, arg);
+  R visitTypeParameterType(TypeParameterType node, T arg) =>
+      defaultDartType(node, arg);
+  R visitTypedefType(TypedefType node, T arg) => defaultDartType(node, arg);
+}
+
 class ConstantVisitor<R> {
   R defaultConstant(Constant node) => null;
 

@@ -1828,15 +1828,17 @@ class BinaryBuilder {
         var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
-        var typedefReference = readTypedefReference();
+        var typedefType = readDartTypeOption();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
-        return new FunctionType(positional, returnType,
-            typeParameters: typeParameters,
-            requiredParameterCount: requiredParameterCount,
-            namedParameters: named,
-            typedefReference: typedefReference);
+        return new FunctionType(
+          positional,
+          returnType,
+          typeParameters: typeParameters,
+          requiredParameterCount: requiredParameterCount,
+          namedParameters: named,
+        )..typedefType = typedefType;
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
         var returnType = readDartType();

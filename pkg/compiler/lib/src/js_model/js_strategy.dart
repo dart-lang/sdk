@@ -628,6 +628,7 @@ class JsClosedWorldBuilder {
 
     return new OutputUnitData.from(
         data,
+        map.toBackendLibrary,
         convertClassMap,
         convertMemberMap,
         (m) => convertMap<ConstantValue, OutputUnit>(
@@ -883,12 +884,12 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
 
   ConstantValue visitFunction(FunctionConstantValue constant, _) {
-    return new FunctionConstantValue(toBackendEntity(constant.element),
-        typeConverter.convert(constant.type));
+    return new FunctionConstantValue(
+        toBackendEntity(constant.element), typeConverter.visit(constant.type));
   }
 
   ConstantValue visitList(ListConstantValue constant, _) {
-    var type = typeConverter.convert(constant.type);
+    DartType type = typeConverter.visit(constant.type);
     List<ConstantValue> entries = _handleValues(constant.entries);
     if (identical(entries, constant.entries) && type == constant.type) {
       return constant;
@@ -897,7 +898,7 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitMap(MapConstantValue constant, _) {
-    var type = typeConverter.convert(constant.type);
+    var type = typeConverter.visit(constant.type);
     List<ConstantValue> keys = _handleValues(constant.keys);
     List<ConstantValue> values = _handleValues(constant.values);
     if (identical(keys, constant.keys) &&
@@ -909,20 +910,19 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitConstructed(ConstructedConstantValue constant, _) {
-    var type = typeConverter.convert(constant.type);
-    if (type == constant.type && constant.fields.isEmpty) {
-      return constant;
-    }
-    var fields = <FieldEntity, ConstantValue>{};
+    DartType type = typeConverter.visit(constant.type);
+    Map<FieldEntity, ConstantValue> fields = {};
     constant.fields.forEach((f, v) {
-      fields[toBackendEntity(f)] = v.accept(this, null);
+      FieldEntity backendField = toBackendEntity(f);
+      assert(backendField != null, "No backend field for $f.");
+      fields[backendField] = v.accept(this, null);
     });
     return new ConstructedConstantValue(type, fields);
   }
 
   ConstantValue visitType(TypeConstantValue constant, _) {
-    var type = typeConverter.convert(constant.type);
-    var representedType = typeConverter.convert(constant.representedType);
+    DartType type = typeConverter.visit(constant.type);
+    DartType representedType = typeConverter.visit(constant.representedType);
     if (type == constant.type && representedType == constant.representedType) {
       return constant;
     }
@@ -930,17 +930,15 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitInterceptor(InterceptorConstantValue constant, _) {
-    return new InterceptorConstantValue(toBackendEntity(constant.cls));
-  }
-
-  ConstantValue visitDeferred(DeferredConstantValue constant, _) {
-    throw new UnsupportedError("DeferredConstantValue with --use-kernel");
+    // Interceptor constants are only created in the SSA graph builder.
+    throw new UnsupportedError(
+        "Unexpected visitInterceptor ${constant.toStructuredText()}");
   }
 
   ConstantValue visitDeferredGlobal(DeferredGlobalConstantValue constant, _) {
-    var referenced = constant.referenced.accept(this, null);
-    if (referenced == constant.referenced) return constant;
-    return new DeferredGlobalConstantValue(referenced, constant.unit);
+    // Deferred global constants are only created in the SSA graph builder.
+    throw new UnsupportedError(
+        "Unexpected DeferredGlobalConstantValue ${constant.toStructuredText()}");
   }
 
   ConstantValue visitInstantiation(InstantiationConstantValue constant, _) {
@@ -964,14 +962,15 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 }
 
-class TypeConverter extends DartTypeVisitor<DartType, Null> {
+class TypeConverter implements DartTypeVisitor<DartType, Null> {
   final Entity Function(Entity) toBackendEntity;
+
   TypeConverter(this.toBackendEntity);
 
   Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables =
       <FunctionTypeVariable, FunctionTypeVariable>{};
 
-  DartType convert(DartType type) => type.accept(this, null);
+  DartType visit(DartType type, [_]) => type.accept(this, null);
 
   List<DartType> convertTypes(List<DartType> types) => _visitList(types);
 
@@ -983,14 +982,13 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
   }
 
   DartType visitFunctionTypeVariable(FunctionTypeVariable type, _) {
-    return _functionTypeVariables[type];
+    DartType result = _functionTypeVariables[type];
+    assert(result != null,
+        "Function type variable $type not found in $_functionTypeVariables");
+    return result;
   }
 
   DartType visitFunctionType(FunctionType type, _) {
-    var returnType = type.returnType.accept(this, null);
-    var parameterTypes = _visitList(type.parameterTypes);
-    var optionalParameterTypes = _visitList(type.optionalParameterTypes);
-    var namedParameterTypes = _visitList(type.namedParameterTypes);
     List<FunctionTypeVariable> typeVariables = <FunctionTypeVariable>[];
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       typeVariables.add(_functionTypeVariables[typeVariable] =
@@ -1000,6 +998,11 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
       _functionTypeVariables[typeVariable].bound =
           typeVariable.bound?.accept(this, null);
     }
+    DartType returnType = type.returnType.accept(this, null);
+    List<DartType> parameterTypes = _visitList(type.parameterTypes);
+    List<DartType> optionalParameterTypes =
+        _visitList(type.optionalParameterTypes);
+    List<DartType> namedParameterTypes = _visitList(type.namedParameterTypes);
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       _functionTypeVariables.remove(typeVariable);
     }
@@ -1008,16 +1011,21 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
   }
 
   DartType visitInterfaceType(InterfaceType type, _) {
-    var element = toBackendEntity(type.element);
-    var args = _visitList(type.typeArguments);
+    ClassEntity element = toBackendEntity(type.element);
+    List<DartType> args = _visitList(type.typeArguments);
     return new InterfaceType(element, args);
   }
 
   DartType visitTypedefType(TypedefType type, _) {
-    var element = toBackendEntity(type.element);
-    var args = _visitList(type.typeArguments);
-    var unaliased = convert(type.unaliased);
+    TypedefEntity element = toBackendEntity(type.element);
+    List<DartType> args = _visitList(type.typeArguments);
+    DartType unaliased = visit(type.unaliased);
     return new TypedefType(element, args, unaliased);
+  }
+
+  @override
+  DartType visitFutureOrType(FutureOrType type, _) {
+    return new FutureOrType(visit(type.typeArgument));
   }
 
   List<DartType> _visitList(List<DartType> list) =>
@@ -1206,9 +1214,9 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
     return _targetResults.typeOfSend(node);
   }
 
-  AbstractValue typeOfListLiteral(MemberEntity owner,
+  AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain) {
-    return _resultOf(owner).typeOfListLiteral(listLiteral) ??
+    return _globalInferenceResults.typeOfListLiteral(listLiteral) ??
         abstractValueDomain.dynamicType;
   }
 

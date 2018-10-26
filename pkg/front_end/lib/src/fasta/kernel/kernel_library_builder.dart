@@ -39,6 +39,13 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
+import 'package:kernel/src/bounds_checks.dart'
+    show
+        TypeArgumentIssue,
+        findTypeArgumentIssues,
+        findTypeArgumentIssuesForInvocation,
+        getGenericTypeName;
+
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -1358,15 +1365,15 @@ class KernelLibraryBuilder
     addToExportScope(name, member);
   }
 
-  void reportBoundViolation(
-      Message message, int fileOffset, TypeParameter violated) {
+  void reportTypeArgumentIssues(
+      Message message, int fileOffset, TypeParameter typeParameter) {
     List<LocatedMessage> context;
-    if (violated != null && violated.fileOffset != -1) {
+    if (typeParameter != null && typeParameter.fileOffset != -1) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       context = <LocatedMessage>[
         messageIncorrectTypeArgumentVariable.withLocation(
-            violated.location.file, violated.fileOffset, noLength)
+            typeParameter.location.file, typeParameter.fileOffset, noLength)
       ];
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
@@ -1374,15 +1381,13 @@ class KernelLibraryBuilder
 
   void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
     if (!loader.target.strongMode) return;
-    List<Object> boundViolations = typeEnvironment.findBoundViolations(
-        field.type,
-        allowSuperBounded: true,
-        typedefInstantiations: typedefInstantiations);
-    if (boundViolations != null) {
-      for (int i = 0; i < boundViolations.length; i += 3) {
-        DartType argument = boundViolations[i];
-        TypeParameter variable = boundViolations[i + 1];
-        DartType enclosingType = boundViolations[i + 2];
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        field.type, typeEnvironment,
+        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
+    if (issues != null) {
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
 
         Message message;
         bool inferred = inferredTypes.contains(argument);
@@ -1393,18 +1398,18 @@ class KernelLibraryBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(issue.enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(issue.enclosingType));
           }
         }
 
-        reportBoundViolation(message, field.fileOffset, variable);
+        reportTypeArgumentIssues(message, field.fileOffset, typeParameter);
       }
     }
   }
@@ -1418,16 +1423,15 @@ class KernelLibraryBuilder
     if (!loader.target.strongMode) return;
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
-        List<Object> violations = typeEnvironment.findBoundViolations(
-            parameter.bound,
+        List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+            parameter.bound, typeEnvironment,
             allowSuperBounded: false,
             typedefInstantiations: typedefInstantiations);
-        if (violations != null) {
+        if (issues != null) {
           int offset = parameter.fileOffset;
-          for (int i = 0; i < violations.length; i += 3) {
-            DartType argument = violations[i];
-            TypeParameter variable = violations[i + 1];
-            DartType enclosingType = violations[i + 2];
+          for (TypeArgumentIssue issue in issues) {
+            DartType argument = issue.argument;
+            TypeParameter typeParameter = issue.typeParameter;
 
             Message message;
             bool inferred = inferredTypes.contains(argument);
@@ -1440,35 +1444,33 @@ class KernelLibraryBuilder
               } else {
                 message = messageGenericFunctionTypeUsedAsActualTypeArgument;
               }
-              variable = null;
+              typeParameter = null;
             } else {
               if (inferred) {
                 message = templateIncorrectTypeArgumentInferred.withArguments(
-                    argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                    argument, getGenericTypeName(issue.enclosingType));
               } else {
-                message = templateIncorrectTypeArgument.withArguments(argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                message = templateIncorrectTypeArgument.withArguments(
+                    argument, getGenericTypeName(issue.enclosingType));
               }
             }
 
-            reportBoundViolation(message, offset, variable);
+            reportTypeArgumentIssues(message, offset, typeParameter);
           }
         }
       }
     }
     if (positionalParameters != null) {
       for (VariableDeclaration formal in positionalParameters) {
-        List<Object> violations = typeEnvironment.findBoundViolations(
-            formal.type,
+        List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+            formal.type, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations);
-        if (violations != null) {
+        if (issues != null) {
           int offset = formal.fileOffset;
-          for (int i = 0; i < violations.length; i += 3) {
-            DartType argument = violations[i];
-            TypeParameter variable = violations[i + 1];
-            DartType enclosingType = violations[i + 2];
+          for (TypeArgumentIssue issue in issues) {
+            DartType argument = issue.argument;
+            TypeParameter typeParameter = issue.typeParameter;
 
             Message message;
             bool inferred = inferredTypes.contains(argument);
@@ -1481,35 +1483,33 @@ class KernelLibraryBuilder
               } else {
                 message = messageGenericFunctionTypeUsedAsActualTypeArgument;
               }
-              variable = null;
+              typeParameter = null;
             } else {
               if (inferred) {
                 message = templateIncorrectTypeArgumentInferred.withArguments(
-                    argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                    argument, getGenericTypeName(issue.enclosingType));
               } else {
-                message = templateIncorrectTypeArgument.withArguments(argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                message = templateIncorrectTypeArgument.withArguments(
+                    argument, getGenericTypeName(issue.enclosingType));
               }
             }
 
-            reportBoundViolation(message, offset, variable);
+            reportTypeArgumentIssues(message, offset, typeParameter);
           }
         }
       }
     }
     if (namedParameters != null) {
       for (VariableDeclaration named in namedParameters) {
-        List<Object> violations = typeEnvironment.findBoundViolations(
-            named.type,
+        List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+            named.type, typeEnvironment,
             allowSuperBounded: true,
             typedefInstantiations: typedefInstantiations);
-        if (violations != null) {
+        if (issues != null) {
           int offset = named.fileOffset;
-          for (int i = 0; i < violations.length; i += 3) {
-            DartType argument = violations[i];
-            TypeParameter variable = violations[i + 1];
-            DartType enclosingType = violations[i + 2];
+          for (TypeArgumentIssue issue in issues) {
+            DartType argument = issue.argument;
+            TypeParameter typeParameter = issue.typeParameter;
 
             Message message;
             bool inferred = inferredTypes.contains(argument);
@@ -1522,33 +1522,32 @@ class KernelLibraryBuilder
               } else {
                 message = messageGenericFunctionTypeUsedAsActualTypeArgument;
               }
-              variable = null;
+              typeParameter = null;
             } else {
               if (inferred) {
                 message = templateIncorrectTypeArgumentInferred.withArguments(
-                    argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                    argument, getGenericTypeName(issue.enclosingType));
               } else {
-                message = templateIncorrectTypeArgument.withArguments(argument,
-                    typeEnvironment.getGenericTypeName(enclosingType));
+                message = templateIncorrectTypeArgument.withArguments(
+                    argument, getGenericTypeName(issue.enclosingType));
               }
             }
 
-            reportBoundViolation(message, offset, variable);
+            reportTypeArgumentIssues(message, offset, typeParameter);
           }
         }
       }
     }
     if (returnType != null) {
-      List<Object> violations = typeEnvironment.findBoundViolations(returnType,
+      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+          returnType, typeEnvironment,
           allowSuperBounded: true,
           typedefInstantiations: typedefInstantiations);
-      if (violations != null) {
+      if (issues != null) {
         int offset = fileOffset;
-        for (int i = 0; i < violations.length; i += 3) {
-          DartType argument = violations[i];
-          TypeParameter variable = violations[i + 1];
-          DartType enclosingType = violations[i + 2];
+        for (TypeArgumentIssue issue in issues) {
+          DartType argument = issue.argument;
+          TypeParameter typeParameter = issue.typeParameter;
 
           // We don't need to check if [argument] was inferred or specified
           // here, because inference in return types boils down to instantiate-
@@ -1556,13 +1555,13 @@ class KernelLibraryBuilder
           Message message;
           if (argument is FunctionType && argument.typeParameters.length > 0) {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
-            variable = null;
+            typeParameter = null;
           } else {
             message = templateIncorrectTypeArgumentInReturnType.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(issue.enclosingType));
           }
 
-          reportBoundViolation(message, offset, variable);
+          reportTypeArgumentIssues(message, offset, typeParameter);
         }
       }
     }
@@ -1599,14 +1598,14 @@ class KernelLibraryBuilder
       DartType type, TypeEnvironment typeEnvironment, int offset,
       {bool inferred = false, bool allowSuperBounded = true}) {
     if (!loader.target.strongMode) return;
-    List<Object> violations = typeEnvironment.findBoundViolations(type,
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        type, typeEnvironment,
         allowSuperBounded: allowSuperBounded,
         typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
-      for (int i = 0; i < violations.length; i += 3) {
-        DartType argument = violations[i];
-        TypeParameter variable = violations[i + 1];
-        DartType enclosingType = violations[i + 2];
+    if (issues != null) {
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1616,18 +1615,18 @@ class KernelLibraryBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(issue.enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(issue.enclosingType));
           }
         }
 
-        reportBoundViolation(message, offset, variable);
+        reportTypeArgumentIssues(message, offset, typeParameter);
       }
     }
   }
@@ -1637,13 +1636,13 @@ class KernelLibraryBuilder
       {bool inferred = false}) {
     if (!loader.target.strongMode) return;
     if (node.type == null) return;
-    List<Object> violations = typeEnvironment.findBoundViolations(node.type,
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        node.type, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
-      for (int i = 0; i < violations.length; i += 3) {
-        DartType argument = violations[i];
-        TypeParameter variable = violations[i + 1];
-        DartType enclosingType = violations[i + 2];
+    if (issues != null) {
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1653,18 +1652,18 @@ class KernelLibraryBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(issue.enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument, getGenericTypeName(issue.enclosingType));
           }
         }
 
-        reportBoundViolation(message, node.fileOffset, variable);
+        reportTypeArgumentIssues(message, node.fileOffset, typeParameter);
       }
     }
   }
@@ -1677,19 +1676,17 @@ class KernelLibraryBuilder
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    List<Object> violations = typeEnvironment.findBoundViolations(
-        constructedType,
-        allowSuperBounded: false,
-        typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        constructedType, typeEnvironment,
+        allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
+    if (issues != null) {
       String constructedTypeName = "${klass.name}::${constructor.name.name}";
-      for (int i = 0; i < violations.length; i += 3) {
-        DartType argument = violations[i];
-        TypeParameter variable = violations[i + 1];
-        DartType enclosingType = violations[i + 2];
-        String enclosingName = enclosingType == constructedType
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        String enclosingName = issue.enclosingType == constructedType
             ? constructedTypeName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(issue.enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1699,7 +1696,7 @@ class KernelLibraryBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
@@ -1710,7 +1707,7 @@ class KernelLibraryBuilder
           }
         }
 
-        reportBoundViolation(message, node.fileOffset, variable);
+        reportTypeArgumentIssues(message, node.fileOffset, typeParameter);
       }
     }
   }
@@ -1724,19 +1721,17 @@ class KernelLibraryBuilder
     assert(factory.isFactory);
     Class klass = factory.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    List<Object> violations = typeEnvironment.findBoundViolations(
-        constructedType,
-        allowSuperBounded: false,
-        typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        constructedType, typeEnvironment,
+        allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
+    if (issues != null) {
       String constructedTypeName = "${klass.name}::${factory.name.name}";
-      for (int i = 0; i < violations.length; i += 3) {
-        DartType argument = violations[i];
-        TypeParameter variable = violations[i + 1];
-        DartType enclosingType = violations[i + 2];
-        String enclosingName = enclosingType == constructedType
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        String enclosingName = issue.enclosingType == constructedType
             ? constructedTypeName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(issue.enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1746,7 +1741,7 @@ class KernelLibraryBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
@@ -1757,7 +1752,7 @@ class KernelLibraryBuilder
           }
         }
 
-        reportBoundViolation(message, node.fileOffset, variable);
+        reportTypeArgumentIssues(message, node.fileOffset, typeParameter);
       }
     }
   }
@@ -1772,23 +1767,22 @@ class KernelLibraryBuilder
     List<DartType> arguments = node.arguments.types;
     // The following error is to be reported elsewhere.
     if (parameters.length != arguments.length) return;
-    List<Object> violations = typeEnvironment.findBoundViolationsElementwise(
-        parameters, arguments,
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        parameters, arguments, typeEnvironment,
         typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
+    if (issues != null) {
       String targetName;
       if (klass == null) {
         targetName = "${node.target.name.name}";
       } else {
         targetName = "${klass.name}::${node.target.name.name}";
       }
-      for (int i = 0; i < violations.length; i += 3) {
-        DartType argument = violations[i];
-        TypeParameter variable = violations[i + 1];
-        DartType enclosingType = violations[i + 2];
-        String enclosingName = enclosingType == null
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        String enclosingName = issue.enclosingType == null
             ? targetName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(issue.enclosingType);
 
         Message message;
         if (argument is FunctionType) {
@@ -1798,7 +1792,7 @@ class KernelLibraryBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
@@ -1809,7 +1803,7 @@ class KernelLibraryBuilder
           }
         }
 
-        reportBoundViolation(message, node.fileOffset, variable);
+        reportTypeArgumentIssues(message, node.fileOffset, typeParameter);
       }
     }
   }
@@ -1858,10 +1852,10 @@ class KernelLibraryBuilder
       instantiatedMethodParameters[i].bound =
           substitute(methodParameters[i].bound, substitutionMap);
     }
-    List<Object> violations = typeEnvironment.findBoundViolationsElementwise(
-        instantiatedMethodParameters, arguments.types,
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        instantiatedMethodParameters, arguments.types, typeEnvironment,
         typedefInstantiations: typedefInstantiations);
-    if (violations != null) {
+    if (issues != null) {
       String targetName = "${klass.name}";
       if (klassArguments.length > 0) {
         targetName += "<${klassArguments[0]}";
@@ -1871,13 +1865,12 @@ class KernelLibraryBuilder
         targetName += ">";
       }
       targetName += "::${name.name}";
-      for (int i = 0; i < violations.length; i += 3) {
-        DartType argument = violations[i];
-        TypeParameter variable = violations[i + 1];
-        DartType enclosingType = violations[i + 2];
-        String enclosingName = enclosingType == null
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        String enclosingName = issue.enclosingType == null
             ? targetName
-            : typeEnvironment.getGenericTypeName(enclosingType);
+            : getGenericTypeName(issue.enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1887,7 +1880,7 @@ class KernelLibraryBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
@@ -1898,7 +1891,7 @@ class KernelLibraryBuilder
           }
         }
 
-        reportBoundViolation(message, offset, variable);
+        reportTypeArgumentIssues(message, offset, typeParameter);
       }
     }
   }

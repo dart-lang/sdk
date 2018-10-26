@@ -173,6 +173,13 @@ class ArgumentError extends Error {
         message = "Must not be null",
         invalidValue = null;
 
+  /**
+   * Throws if [argument] is `null`.
+   */
+  static void checkNotNull(Object argument, [String name]) {
+    if (argument == null) throw ArgumentError.notNull(name);
+  }
+
   // Helper functions for toString overridden in subclasses.
   String get _errorName => "Invalid argument${!_hasValue ? "(s)" : ""}";
   String get _errorExplanation => "";

@@ -1156,8 +1156,7 @@ void BytecodeFlowGraphBuilder::BuildMoveSpecial() {
   }
 
   LocalVariable* special_var = nullptr;
-  switch (DecodeOperandD().value()) {
-    // TODO(alexmarkov): Move these constants to constants_kbc.h
+  switch (DecodeOperandA().value()) {
     case KernelBytecode::kExceptionSpecialIndex:
       ASSERT(exception_var_ != nullptr);
       special_var = exception_var_;
@@ -1171,7 +1170,7 @@ void BytecodeFlowGraphBuilder::BuildMoveSpecial() {
   }
 
   code_ += B->LoadLocal(special_var);
-  StoreLocal(DecodeOperandA());
+  StoreLocal(DecodeOperandX());
   code_ += B->Drop();
 }
 

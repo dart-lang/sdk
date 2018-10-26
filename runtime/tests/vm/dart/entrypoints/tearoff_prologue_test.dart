@@ -1,4 +1,10 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
 // No type checks are removed here, but we can skip the argument count check.
+// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10
+// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10 -Denable_inlining=true
 
 import "package:expect/expect.dart";
 import "common.dart";
@@ -13,7 +19,7 @@ class C<T> {
   }
 }
 
-test(List<String> args) {
+main(List<String> args) {
   var c = new C<int>();
   var f = c.samir1;
 

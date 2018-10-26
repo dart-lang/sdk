@@ -850,7 +850,18 @@ class Thread : public BaseThread {
     defined(TARGET_ARCH_X64)
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 #endif
-  // End accessed from generated code.
+
+  // JumpToExceptionHandler state:
+  RawObject* active_exception_;
+  RawObject* active_stacktrace_;
+  uword resume_pc_;
+
+  // ---- End accessed from generated code. ----
+
+  // The layout of Thread object up to this point should not depend
+  // on DART_PRECOMPILED_RUNTIME, as it is accessed from generated code.
+  // The code is generated without DART_PRECOMPILED_RUNTIME, but used with
+  // DART_PRECOMPILED_RUNTIME.
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
@@ -882,11 +893,6 @@ class Thread : public BaseThread {
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
   RawGrowableObjectArray* pending_functions_;
-
-  // JumpToExceptionHandler state:
-  RawObject* active_exception_;
-  RawObject* active_stacktrace_;
-  uword resume_pc_;
 
   RawError* sticky_error_;
 

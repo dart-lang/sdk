@@ -777,6 +777,12 @@ void ConstantEvaluator::EvaluatePartialTearoffInstantiation() {
   // read type arguments.
   intptr_t num_type_args = helper_->ReadListLength();
   const TypeArguments* type_args = &T.BuildTypeArguments(num_type_args);
+  if (!type_args->IsNull() && !type_args->IsInstantiated()) {
+    H.ReportError(
+        script_, TokenPosition::kNoSource,
+        "Type arguments in partial instantiations must be instantiated and are "
+        "therefore not allowed to depend on type parameters.");
+  }
 
   // Create new closure with the type arguments inserted, and other things
   // copied over.

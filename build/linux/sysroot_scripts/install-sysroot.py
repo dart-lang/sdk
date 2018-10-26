@@ -95,16 +95,15 @@ def main(args):
 
 def InstallDefaultSysrootForArch(target_arch):
   if target_arch == 'amd64':
-    InstallSysroot('Wheezy', 'amd64')
     InstallSysroot('Jessie', 'amd64')
   elif target_arch == 'arm':
-    InstallSysroot('Wheezy', 'arm')
+    InstallSysroot('Jessie', 'arm')
   elif target_arch == 'arm64':
     InstallSysroot('Jessie', 'arm64')
   elif target_arch == 'i386':
-    InstallSysroot('Wheezy', 'i386')
+    InstallSysroot('Jessie', 'i386')
   elif target_arch == 'mips':
-    InstallSysroot('Wheezy', 'mips')
+    InstallSysroot('Jessie', 'mips')
   else:
     raise Error('Unknown architecture: %s' % target_arch)
 

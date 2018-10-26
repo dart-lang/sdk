@@ -256,6 +256,18 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
+  List<E> readConstants<E extends ConstantValue>({bool emptyAsNull: false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = new List<E>(count);
+    for (int i = 0; i < count; i++) {
+      ConstantValue value = readConstant();
+      list[i] = value;
+    }
+    return list;
+  }
+
+  @override
   Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
       {bool emptyAsNull: false}) {
     int count = readInt();
@@ -276,6 +288,30 @@ abstract class DataSourceMixin implements DataSource {
       return readLibrary();
     }
     return null;
+  }
+
+  @override
+  List<ImportEntity> readImports({bool emptyAsNull: false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<ImportEntity> list = new List<ImportEntity>(count);
+    for (int i = 0; i < count; i++) {
+      list[i] = readImport();
+    }
+    return list;
+  }
+
+  @override
+  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull: false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<ImportEntity, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ImportEntity key = readImport();
+      V value = f();
+      map[key] = value;
+    }
+    return map;
   }
 }
 
@@ -545,6 +581,19 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
+  void writeConstants(Iterable<ConstantValue> values, {bool allowNull: false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ConstantValue value in values) {
+        writeConstant(value);
+      }
+    }
+  }
+
+  @override
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
       {bool allowNull: false}) {
     if (map == null) {
@@ -564,6 +613,34 @@ abstract class DataSinkMixin implements DataSink {
     writeBool(value != null);
     if (value != null) {
       writeLibrary(value);
+    }
+  }
+
+  @override
+  void writeImports(Iterable<ImportEntity> values, {bool allowNull: false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ImportEntity value in values) {
+        writeImport(value);
+      }
+    }
+  }
+
+  @override
+  void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
+      {bool allowNull: false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ImportEntity key, V value) {
+        writeImport(key);
+        f(value);
+      });
     }
   }
 }

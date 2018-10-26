@@ -479,7 +479,7 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                2
   CheckStack
-  CheckFunctionTypeArgs 1, 0
+  CheckFunctionTypeArgs 1, r0
   PushNull
   Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#1

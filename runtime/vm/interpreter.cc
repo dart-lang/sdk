@@ -2061,8 +2061,9 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(MoveSpecial, A_D);
-    FP[rA] = special_[rD];
+    BYTECODE(MoveSpecial, A_X);
+    ASSERT(rA < KernelBytecode::kSpecialIndexCount);
+    FP[rD] = special_[rA];
     DISPATCH();
   }
 

@@ -518,7 +518,7 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                2
   CheckStack
-  CheckFunctionTypeArgs 1, 0
+  CheckFunctionTypeArgs 1, r0
   PushConstant         CP#0
   PushConstant         CP#1
   PushInt              4
@@ -660,7 +660,7 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                1
   CheckStack
-  CheckFunctionTypeArgs 1, 0
+  CheckFunctionTypeArgs 1, r0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1

@@ -405,7 +405,8 @@ class ModelEmitter {
     // data.
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
-    mapping.addAll(compiler.deferredLoadTask.computeDeferredMap(
+    mapping.addAll(_closedWorld.outputUnitData.computeDeferredMap(
+        compiler.options, _closedWorld.elementEnvironment,
         omittedUnits:
             omittedFragments.map((fragemnt) => fragemnt.outputUnit).toSet()));
     compiler.outputProvider.createOutputSink(

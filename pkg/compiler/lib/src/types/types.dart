@@ -50,28 +50,22 @@ abstract class GlobalTypeInferenceMemberResult {
   /// The inferred return type when this result belongs to a function element.
   AbstractValue get returnType;
 
-  /// Returns the type of a list new expression [node].
-  AbstractValue typeOfNewList(ir.Node node);
-
-  /// Returns the type of a list literal [node].
-  AbstractValue typeOfListLiteral(ir.Node node);
-
   /// Returns the type of a send [node].
   // TODO(johnniwinther): Rename this.
-  AbstractValue typeOfSend(ir.Node node);
+  AbstractValue typeOfSend(ir.TreeNode node);
 
   /// Returns the type of the getter in a complex send-set [node], for example,
   /// the type of the `a.f` getter in `a.f += b`.
-  AbstractValue typeOfGetter(ir.Node node);
+  AbstractValue typeOfGetter(ir.TreeNode node);
 
   /// Returns the type of the iterator in a [loop].
-  AbstractValue typeOfIterator(ir.Node node);
+  AbstractValue typeOfIterator(ir.TreeNode node);
 
   /// Returns the type of the `moveNext` call of an iterator in a [loop].
-  AbstractValue typeOfIteratorMoveNext(ir.Node node);
+  AbstractValue typeOfIteratorMoveNext(ir.TreeNode node);
 
   /// Returns the type of the `current` getter of an iterator in a [loop].
-  AbstractValue typeOfIteratorCurrent(ir.Node node);
+  AbstractValue typeOfIteratorCurrent(ir.TreeNode node);
 }
 
 /// Internal data used during type-inference to store intermediate results about
@@ -86,26 +80,19 @@ abstract class GlobalTypeInferenceElementData {
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain);
 
   /// Compresses the inner representation by removing [AbstractValue] mappings
-  /// to `null`.
-  void compress();
+  /// to `null`. Returns the data object itself or `null` if the data object
+  /// was empty after compression.
+  GlobalTypeInferenceElementData compress();
 
   // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
   AbstractValue typeOfSend(ir.TreeNode node);
   AbstractValue typeOfGetter(ir.TreeNode node);
-
-  void setTypeMask(ir.TreeNode node, AbstractValue mask);
 
   AbstractValue typeOfIterator(ir.TreeNode node);
 
   AbstractValue typeOfIteratorMoveNext(ir.TreeNode node);
 
   AbstractValue typeOfIteratorCurrent(ir.TreeNode node);
-
-  void setIteratorTypeMask(ir.TreeNode node, AbstractValue mask);
-
-  void setMoveNextTypeMask(ir.TreeNode node, AbstractValue mask);
-
-  void setCurrentTypeMask(ir.TreeNode node, AbstractValue mask);
 }
 
 /// API to interact with the global type-inference engine.
@@ -148,7 +135,13 @@ abstract class GlobalTypeInferenceResults {
 
   /// Returns whether a fixed-length constructor call goes through a growable
   /// check.
-  bool isFixedArrayCheckedForGrowable(ir.Node node);
+  bool isFixedArrayCheckedForGrowable(ir.TreeNode node);
+
+  /// Returns the type of a list new expression [node].
+  AbstractValue typeOfNewList(ir.TreeNode node);
+
+  /// Returns the type of a list literal [node].
+  AbstractValue typeOfListLiteral(ir.TreeNode node);
 }
 
 /// Global analysis that infers concrete types.
@@ -204,6 +197,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   final Map<Local, AbstractValue> parameterResults;
   final Set<ir.TreeNode> checkedForGrowableLists;
   final Set<Selector> returnsListElementTypeSet;
+  final Map<ir.TreeNode, AbstractValue> _allocatedLists;
 
   GlobalTypeInferenceResultsImpl(
       this.closedWorld,
@@ -211,7 +205,8 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       this.memberResults,
       this.parameterResults,
       this.checkedForGrowableLists,
-      this.returnsListElementTypeSet)
+      this.returnsListElementTypeSet,
+      this._allocatedLists)
       : _deadFieldResult = new DeadFieldGlobalTypeInferenceResult(
             closedWorld.abstractValueDomain),
         _deadMethodResult = new DeadMethodGlobalTypeInferenceResult(
@@ -231,6 +226,9 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     Set<ir.TreeNode> checkedForGrowableLists = source.readTreeNodes().toSet();
     Set<Selector> returnsListElementTypeSet =
         source.readList(() => new Selector.readFromDataSource(source)).toSet();
+    Map<ir.TreeNode, AbstractValue> allocatedLists = source.readTreeNodeMap(
+        () => closedWorld.abstractValueDomain
+            .readAbstractValueFromDataSource(source));
     source.end(tag);
     return new GlobalTypeInferenceResultsImpl(
         closedWorld,
@@ -238,7 +236,8 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         memberResults,
         parameterResults,
         checkedForGrowableLists,
-        returnsListElementTypeSet);
+        returnsListElementTypeSet,
+        allocatedLists);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -255,6 +254,10 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     sink.writeTreeNodes(checkedForGrowableLists);
     sink.writeList(returnsListElementTypeSet,
         (Selector selector) => selector.writeToDataSink(sink));
+    sink.writeTreeNodeMap(
+        _allocatedLists,
+        (AbstractValue value) => closedWorld.abstractValueDomain
+            .writeAbstractValueToDataSink(sink, value));
     sink.end(tag);
   }
 
@@ -361,23 +364,25 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   @override
   bool isFixedArrayCheckedForGrowable(ir.Node ctorCall) =>
       checkedForGrowableLists.contains(ctorCall);
+
+  AbstractValue typeOfNewList(ir.Node node) => _allocatedLists[node];
+
+  AbstractValue typeOfListLiteral(ir.Node node) => _allocatedLists[node];
 }
 
 class GlobalTypeInferenceMemberResultImpl
     implements GlobalTypeInferenceMemberResult {
   /// Tag used for identifying serialized [GlobalTypeInferenceMemberResult]
   /// objects in a debugging data stream.
-  static const String tag = 'global-type-inference-mebmer-result';
+  static const String tag = 'global-type-inference-member-result';
 
   final GlobalTypeInferenceElementData _data;
-  final Map<ir.TreeNode, AbstractValue> _allocatedLists;
   final AbstractValue returnType;
   final AbstractValue type;
   final bool throwsAlways;
   final bool isCalledOnce;
 
-  GlobalTypeInferenceMemberResultImpl(
-      this._data, this._allocatedLists, this.returnType, this.type,
+  GlobalTypeInferenceMemberResultImpl(this._data, this.returnType, this.type,
       {this.throwsAlways, this.isCalledOnce});
 
   factory GlobalTypeInferenceMemberResultImpl.readFromDataSource(
@@ -387,8 +392,6 @@ class GlobalTypeInferenceMemberResultImpl
       return new GlobalTypeInferenceElementData.readFromDataSource(
           source, abstractValueDomain);
     });
-    Map<ir.TreeNode, AbstractValue> allocatedLists = source.readTreeNodeMap(
-        () => abstractValueDomain.readAbstractValueFromDataSource(source));
     AbstractValue returnType =
         abstractValueDomain.readAbstractValueFromDataSource(source);
     AbstractValue type =
@@ -396,8 +399,7 @@ class GlobalTypeInferenceMemberResultImpl
     bool throwsAlways = source.readBool();
     bool isCalledOnce = source.readBool();
     source.end(tag);
-    return new GlobalTypeInferenceMemberResultImpl(
-        data, allocatedLists, returnType, type,
+    return new GlobalTypeInferenceMemberResultImpl(data, returnType, type,
         throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
   }
 
@@ -406,10 +408,6 @@ class GlobalTypeInferenceMemberResultImpl
     sink.writeValueOrNull(_data, (GlobalTypeInferenceElementData data) {
       data.writeToDataSink(sink, abstractValueDomain);
     });
-    sink.writeTreeNodeMap(
-        _allocatedLists,
-        (AbstractValue value) =>
-            abstractValueDomain.writeAbstractValueToDataSink(sink, value));
     abstractValueDomain.writeAbstractValueToDataSink(sink, returnType);
     abstractValueDomain.writeAbstractValueToDataSink(sink, type);
     sink.writeBool(throwsAlways);
@@ -424,10 +422,6 @@ class GlobalTypeInferenceMemberResultImpl
       _data?.typeOfIteratorMoveNext(node);
   AbstractValue typeOfIteratorCurrent(ir.Node node) =>
       _data?.typeOfIteratorCurrent(node);
-
-  AbstractValue typeOfNewList(ir.Node node) => _allocatedLists[node];
-
-  AbstractValue typeOfListLiteral(ir.Node node) => _allocatedLists[node];
 }
 
 class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
@@ -462,6 +456,12 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
   GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member) {
     return _trivialMemberResult;
   }
+
+  @override
+  AbstractValue typeOfListLiteral(ir.TreeNode node) => null;
+
+  @override
+  AbstractValue typeOfNewList(ir.TreeNode node) => null;
 }
 
 class TrivialGlobalTypeInferenceMemberResult
@@ -493,12 +493,6 @@ class TrivialGlobalTypeInferenceMemberResult
 
   @override
   AbstractValue typeOfSend(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfListLiteral(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfNewList(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;
@@ -543,12 +537,6 @@ class DeadFieldGlobalTypeInferenceResult
   AbstractValue typeOfSend(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfListLiteral(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfNewList(ir.Node node) => null;
-
-  @override
   bool get isCalledOnce => false;
 
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
@@ -589,12 +577,6 @@ class DeadMethodGlobalTypeInferenceResult
 
   @override
   AbstractValue typeOfSend(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfListLiteral(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfNewList(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;

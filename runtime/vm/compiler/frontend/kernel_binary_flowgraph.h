@@ -43,8 +43,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
-        call_site_attributes_metadata_helper_(this, &type_translator_) {
-  }
+        call_site_attributes_metadata_helper_(this, &type_translator_) {}
 
   virtual ~StreamingFlowGraphBuilder() {}
 
@@ -220,7 +219,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
                       const InferredTypeMetadata* result_type = NULL,
-                      intptr_t type_args_len = 0);
+                      intptr_t type_args_len = 0,
+                      bool use_unchecked_entry = false);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,

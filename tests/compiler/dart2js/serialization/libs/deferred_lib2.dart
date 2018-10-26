@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10
+library deferred_constants1_lib2;
 
-import "tearoff.dart";
-
-main(args) => test(args);
+export 'deferred_lib3.dart' show C2, C3, C4, C5, C6, C7;

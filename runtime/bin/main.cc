@@ -978,10 +978,23 @@ static void ConfigureCrashpadClient(crashpad::CrashpadClient* client) {
   }
 
   std::vector<std::string> arguments;
-  if (!client->StartHandler(handler_path, crashes_dir_path, crashes_dir_path,
-                            url, annotations, arguments,
-                            /*restartable=*/true,
-                            /*asynchronous_start=*/false)) {
+
+  // Prevent crashpad_handler from inheriting our standard output and error
+  // handles. Otherwise we would not be able to close them ourselves making
+  // tests that rely on that fail.
+  HANDLE original_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
+  HANDLE original_stderr = GetStdHandle(STD_ERROR_HANDLE);
+  SetStdHandle(STD_OUTPUT_HANDLE, INVALID_HANDLE_VALUE);
+  SetStdHandle(STD_ERROR_HANDLE, INVALID_HANDLE_VALUE);
+  const bool success =
+      client->StartHandler(handler_path, crashes_dir_path, crashes_dir_path,
+                           url, annotations, arguments,
+                           /*restartable=*/true,
+                           /*asynchronous_start=*/false);
+  SetStdHandle(STD_OUTPUT_HANDLE, original_stdout);
+  SetStdHandle(STD_ERROR_HANDLE, original_stderr);
+
+  if (!success) {
     Log::PrintErr("Failed to start the crash handler!\n");
     Platform::Exit(kErrorExitCode);
   }

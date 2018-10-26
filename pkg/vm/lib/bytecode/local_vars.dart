@@ -832,6 +832,9 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     if (v.isCaptured) {
       v.index = _currentScope.contextOwner.contextUsed++;
+      if (v.index >= capturedVariableIndexLimit) {
+        throw new LocalVariableIndexOverflowException();
+      }
       v.originalParamSlotIndex = paramSlotIndex;
       return;
     }
@@ -843,6 +846,9 @@ class _Allocator extends RecursiveVisitor<Null> {
       v.index = paramSlotIndex;
     } else {
       v.index = _currentScope.localsUsed++;
+      if (v.index >= localVariableIndexLimit) {
+        throw new LocalVariableIndexOverflowException();
+      }
     }
     _updateFrameSize();
   }
@@ -1139,3 +1145,6 @@ class _Allocator extends RecursiveVisitor<Null> {
     _visit(node, temps: 3);
   }
 }
+
+class LocalVariableIndexOverflowException
+    extends BytecodeLimitExceededException {}

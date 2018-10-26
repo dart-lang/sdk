@@ -374,6 +374,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   final bool enableAsserts;
   final ErrorReporter errorReporter;
 
+  final isInstantiated = new IsInstantiatedVisitor().isInstantiated;
+
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Object> nodeCache;
 
@@ -475,7 +477,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitTypeLiteral(TypeLiteral node) {
-    final DartType type = evaluateDartType(node.type);
+    final DartType type = evaluateDartType(node, node.type);
     return canonicalize(new TypeLiteralConstant(type));
   }
 
@@ -496,7 +498,7 @@ class ConstantEvaluator extends RecursiveVisitor {
     for (int i = 0; i < node.expressions.length; ++i) {
       entries[i] = node.expressions[i].accept(this);
     }
-    final DartType typeArgument = evaluateDartType(node.typeArgument);
+    final DartType typeArgument = evaluateDartType(node, node.typeArgument);
     final ListConstant listConstant = new ListConstant(typeArgument, entries);
     return canonicalize(backend.lowerListConstant(listConstant));
   }
@@ -521,8 +523,8 @@ class ConstantEvaluator extends RecursiveVisitor {
       }
       entries[i] = new ConstantMapEntry(key, value);
     }
-    final DartType keyType = evaluateDartType(node.keyType);
-    final DartType valueType = evaluateDartType(node.valueType);
+    final DartType keyType = evaluateDartType(node, node.keyType);
+    final DartType valueType = evaluateDartType(node, node.valueType);
     final MapConstant mapConstant =
         new MapConstant(keyType, valueType, entries);
     return canonicalize(backend.lowerMapConstant(mapConstant));
@@ -548,7 +550,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       throw 'Constructor "$node" belongs to abstract class "${klass}".';
     }
 
-    final typeArguments = evaluateTypeArguments(node.arguments);
+    final typeArguments = evaluateTypeArguments(node, node.arguments);
     final positionals = evaluatePositionalArguments(node.arguments);
     final named = evaluateNamedArguments(node.arguments);
 
@@ -618,7 +620,7 @@ class ConstantEvaluator extends RecursiveVisitor {
             handleConstructorInvocation(
                 init.target,
                 evaluateSuperTypeArguments(
-                    constructor.enclosingClass.supertype),
+                    init, constructor.enclosingClass.supertype),
                 evaluatePositionalArguments(init.arguments),
                 evaluateNamedArguments(init.arguments));
           } else if (init is RedirectingInitializer) {
@@ -1000,7 +1002,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       if (nativeName != null) {
         final Constant constant = backend.buildConstantForNative(
             nativeName,
-            evaluateTypeArguments(node.arguments),
+            evaluateTypeArguments(node, node.arguments),
             evaluatePositionalArguments(node.arguments),
             evaluateNamedArguments(node.arguments),
             contextChain,
@@ -1029,7 +1031,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitAsExpression(AsExpression node) {
     final Constant constant = node.operand.accept(this);
-    ensureIsSubtype(constant, evaluateDartType(node.type), node);
+    ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
     return constant;
   }
 
@@ -1054,8 +1056,9 @@ class ConstantEvaluator extends RecursiveVisitor {
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==
           constant.procedure.function.typeParameters.length) {
+        final typeArguments = evaluateDartTypes(node, node.typeArguments);
         return canonicalize(
-            new PartialInstantiationConstant(constant, node.typeArguments));
+            new PartialInstantiationConstant(constant, typeArguments));
       }
       throw new Exception(
           'The number of type arguments supplied in the partial instantiation '
@@ -1107,21 +1110,30 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
   }
 
-  List<DartType> evaluateTypeArguments(Arguments arguments) {
-    return evaluateDartTypes(arguments.types);
+  List<DartType> evaluateTypeArguments(TreeNode node, Arguments arguments) {
+    return evaluateDartTypes(node, arguments.types);
   }
 
-  List<DartType> evaluateSuperTypeArguments(Supertype type) {
-    return evaluateDartTypes(type.typeArguments);
+  List<DartType> evaluateSuperTypeArguments(TreeNode node, Supertype type) {
+    return evaluateDartTypes(node, type.typeArguments);
   }
 
-  List<DartType> evaluateDartTypes(List<DartType> types) {
-    if (env.isEmpty) return types;
-    return types.map(evaluateDartType).toList();
+  List<DartType> evaluateDartTypes(TreeNode node, List<DartType> types) {
+    // TODO: Once the frontend gurantees that there are no free type variables
+    // left over after stubstitution, we can enable this shortcut again:
+    // if (env.isEmpty) return types;
+    return types.map((t) => evaluateDartType(node, t)).toList();
   }
 
-  DartType evaluateDartType(DartType type) {
-    return env.subsituteType(type);
+  DartType evaluateDartType(TreeNode node, DartType type) {
+    final result = env.subsituteType(type);
+
+    if (!isInstantiated(result)) {
+      errorReporter.freeTypeParameter(contextChain, node, type);
+      throw const _AbortCurrentEvaluation();
+    }
+
+    return result;
   }
 
   List<Constant> evaluatePositionalArguments(Arguments arguments) {
@@ -1315,6 +1327,7 @@ class _AbortCurrentEvaluation {
 abstract class ErrorReporter {
   const ErrorReporter();
 
+  freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type);
   invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
       DartType expectedType);
   invalidBinaryOperandType(List<TreeNode> context, TreeNode node,
@@ -1354,6 +1367,10 @@ abstract class ErrorReporterBase implements ErrorReporter {
       node = node.parent;
     }
     return node == null ? TreeNode.noOffset : node.fileOffset;
+  }
+
+  freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type) {
+    report(context, 'Expected type to be instantiated but was ${type}', node);
   }
 
   invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
@@ -1465,6 +1482,46 @@ class _SimpleErrorReporter extends ErrorReporterBase {
     final int fileOffset = getFileOffset(node);
 
     io.stderr.writeln('$uri:$fileOffset Constant evaluation error: $message');
+  }
+}
+
+class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
+  final _availableVariables = new Set<TypeParameter>();
+
+  bool isInstantiated(DartType type) {
+    return type.accept(this);
+  }
+
+  bool defaultDartType(DartType node) {
+    throw 'A visitor method seems to be unimplemented!';
+  }
+
+  bool visitInvalidType(InvalidType node) => true;
+  bool visitDynamicType(DynamicType node) => true;
+  bool visitVoidType(VoidType node) => true;
+  bool visitBottomType(BottomType node) => true;
+
+  bool visitTypeParameterType(TypeParameterType node) {
+    return _availableVariables.contains(node.parameter);
+  }
+
+  bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments
+        .every((DartType typeArgument) => typeArgument.accept(this));
+  }
+
+  bool visitFunctionType(FunctionType node) {
+    final parameters = node.typeParameters;
+    _availableVariables.addAll(parameters);
+    final bool result = node.returnType.accept(this) &&
+        node.positionalParameters.every((p) => p.accept(this)) &&
+        node.namedParameters.every((p) => p.type.accept(this));
+    _availableVariables.removeAll(parameters);
+    return result;
+  }
+
+  bool visitTypedefType(TypedefType node) {
+    return node.unalias.accept(this);
   }
 }
 

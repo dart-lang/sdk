@@ -129,8 +129,8 @@ Try #0 handler:
   Push                 r4
   LoadContextVar       7
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
@@ -406,8 +406,8 @@ Try #0 handler:
   SetFrame             10
   Push                 r6
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
@@ -675,8 +675,8 @@ Try #0 handler:
   Push                 r4
   LoadContextVar       8
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
@@ -1081,8 +1081,8 @@ Try #0 handler:
   Push                 r4
   LoadContextVar       7
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
@@ -1388,8 +1388,8 @@ Try #2 handler:
   Push                 r4
   LoadContextVar       11
   PopLocal             r4
-  MoveSpecial          r10, exception
-  MoveSpecial          r11, stackTrace
+  MoveSpecial          exception, r10
+  MoveSpecial          stackTrace, r11
   Push                 r4
   LoadContextParent
   Push                 r10
@@ -1475,8 +1475,8 @@ Try #1 handler:
   Push                 r4
   LoadContextVar       10
   PopLocal             r4
-  MoveSpecial          r8, exception
-  MoveSpecial          r9, stackTrace
+  MoveSpecial          exception, r8
+  MoveSpecial          stackTrace, r9
   Push                 r4
   LoadContextParent
   Push                 r8
@@ -1689,8 +1689,8 @@ Try #0 handler:
   Push                 r4
   LoadContextVar       9
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
@@ -1945,8 +1945,8 @@ Try #1 handler:
   Push                 r4
   LoadContextVar       7
   PopLocal             r4
-  MoveSpecial          r8, exception
-  MoveSpecial          r9, stackTrace
+  MoveSpecial          exception, r8
+  MoveSpecial          stackTrace, r9
   PushConstant         CP#11
   PushConstant         CP#12
   IndirectStaticCall   1, CP#4
@@ -1988,8 +1988,8 @@ Try #0 handler:
   Push                 r4
   LoadContextVar       6
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
@@ -2340,8 +2340,8 @@ Try #0 handler:
   Push                 r4
   LoadContextVar       7
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7

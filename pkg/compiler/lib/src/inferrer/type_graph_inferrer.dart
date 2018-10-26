@@ -89,26 +89,14 @@ class TypeGraphInferrer implements TypesInferrer {
   GlobalTypeInferenceResults buildResults() {
     inferrer.close();
 
-    Map<ir.TreeNode, AbstractValue> allocatedLists =
-        <ir.TreeNode, AbstractValue>{};
-    Set<ir.TreeNode> checkedForGrowableLists = new Set<ir.TreeNode>();
-    inferrer.types.allocatedLists
-        .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
-      ListTypeInformation info = inferrer.types.allocatedLists[node];
-      if (info.checksGrowable) {
-        checkedForGrowableLists.add(node);
-      }
-      allocatedLists[node] = typeInformation.type;
-    });
-
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
         <MemberEntity, GlobalTypeInferenceMemberResult>{};
     Map<Local, AbstractValue> parameterResults = <Local, AbstractValue>{};
 
     void createMemberResults(
         MemberEntity member, MemberTypeInformation typeInformation) {
-      GlobalTypeInferenceElementData data = inferrer.dataOfMember(member);
-      data.compress();
+      GlobalTypeInferenceElementData data =
+          inferrer.dataOfMember(member).compress();
       bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
 
       AbstractValue returnType;
@@ -132,7 +120,7 @@ class TypeGraphInferrer implements TypesInferrer {
           typeInformation.isCalledOnce(); //isMemberCalledOnce(member);
 
       memberResults[member] = new GlobalTypeInferenceMemberResultImpl(
-          data, allocatedLists, returnType, type,
+          data, returnType, type,
           throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
     }
 
@@ -163,13 +151,26 @@ class TypeGraphInferrer implements TypesInferrer {
       parameterResults[parameter] = type;
     });
 
+    Map<ir.TreeNode, AbstractValue> allocatedLists =
+        <ir.TreeNode, AbstractValue>{};
+    Set<ir.TreeNode> checkedForGrowableLists = new Set<ir.TreeNode>();
+    inferrer.types.allocatedLists
+        .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
+      ListTypeInformation info = inferrer.types.allocatedLists[node];
+      if (info.checksGrowable) {
+        checkedForGrowableLists.add(node);
+      }
+      allocatedLists[node] = typeInformation.type;
+    });
+
     GlobalTypeInferenceResults results = new GlobalTypeInferenceResultsImpl(
         closedWorld,
         _inferredDataBuilder.close(closedWorld),
         memberResults,
         parameterResults,
         checkedForGrowableLists,
-        inferrer.returnsListElementTypeSet);
+        inferrer.returnsListElementTypeSet,
+        allocatedLists);
 
     inferrer.clear();
 

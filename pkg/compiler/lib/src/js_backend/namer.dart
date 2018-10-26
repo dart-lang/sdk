@@ -2087,11 +2087,6 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitDeferred(DeferredConstantValue constant, [_]) {
-    addRoot('Deferred');
-  }
-
-  @override
   void visitDeferredGlobal(DeferredGlobalConstantValue constant, [_]) {
     addRoot('Deferred');
   }
@@ -2215,14 +2210,6 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
             'SyntheticConstantValue should never be named and '
             'never be subconstant');
     }
-  }
-
-  @override
-  int visitDeferred(DeferredConstantValue constant, [_]) {
-    // TODO(sra): Investigate that the use of hashCode here is probably a source
-    // of instability.
-    int hash = constant.import.hashCode;
-    return _combine(hash, _visit(constant.referenced));
   }
 
   @override

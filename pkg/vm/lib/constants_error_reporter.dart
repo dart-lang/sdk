@@ -25,6 +25,12 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
 
   ForwardConstantEvaluationErrors(this.typeEnvironment);
 
+  freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type) {
+    final message =
+        codes.templateConstEvalFreeTypeParameter.withArguments(type);
+    reportIt(context, message, node);
+  }
+
   duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
     final message = codes.templateConstEvalDuplicateKey.withArguments(key);
     reportIt(context, message, node);

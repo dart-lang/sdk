@@ -130,7 +130,7 @@ abstract class TestSuite {
     };
     if (configuration.copyCoreDumps && Platform.isWindows) {
       _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-          new Path(buildDir + '/crashpad_handler.exe').toNativePath();
+          new Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
     }
   }
 
@@ -710,6 +710,11 @@ class StandardTestSuite extends TestSuite {
     // TestSuite.enqueueNewTestCase().
     if (_testListPossibleFilenames?.contains(filename) == false) return;
     bool match = false;
+    // Note: have to use Path instead of a filename for matching because
+    // on Windows we need to convert backward slashes to forward slashes.
+    // Our display test names (and filters) are given using forward slashes
+    // while filenames on Windows use backwards slashes.
+    final Path filePath = new Path(filename);
     for (var regex in configuration.selectors.values) {
       String pattern = regex.pattern;
       if (pattern.contains("/")) {
@@ -722,13 +727,12 @@ class StandardTestSuite extends TestSuite {
       if (pattern != regex.pattern) {
         regex = new RegExp(pattern);
       }
-      if (regex.hasMatch(filename)) match = true;
+      if (regex.hasMatch(filePath.toString())) match = true;
       if (match) break;
     }
     if (!match) return;
 
     if (!isTestFile(filename)) return;
-    Path filePath = new Path(filename);
 
     var optionsFromFile = readOptionsFromFile(new Uri.file(filename));
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);

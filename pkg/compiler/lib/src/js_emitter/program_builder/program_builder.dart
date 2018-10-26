@@ -13,7 +13,7 @@ import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../../deferred_load.dart'
-    show DeferredLoadTask, OutputUnit, OutputUnitData;
+    show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
 import '../../io/source_information.dart';
@@ -63,7 +63,6 @@ class ProgramBuilder {
   final DiagnosticReporter _reporter;
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
-  final DeferredLoadTask _deferredLoadTask;
   final OutputUnitData _outputUnitData;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -109,7 +108,6 @@ class ProgramBuilder {
       this._reporter,
       this._elementEnvironment,
       this._commonElements,
-      this._deferredLoadTask,
       this._outputUnitData,
       this._worldBuilder,
       this._nativeCodegenEnqueuer,
@@ -338,7 +336,7 @@ class ProgramBuilder {
   /// Builds a map from loadId to outputs-to-load.
   Map<String, List<Fragment>> _buildLoadMap() {
     Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
-    _deferredLoadTask.hunksToLoad
+    _closedWorld.outputUnitData.hunksToLoad
         .forEach((String loadId, List<OutputUnit> outputUnits) {
       loadMap[loadId] = outputUnits
           .map((OutputUnit unit) => _outputs[unit])
@@ -383,8 +381,7 @@ class ProgramBuilder {
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
     DeferredFragment result = new DeferredFragment(
         librariesMap.outputUnit,
-        _deferredLoadTask.deferredPartFileName(librariesMap.name,
-            addExtension: false),
+        deferredPartFileName(_options, librariesMap.name, addExtension: false),
         librariesMap.name,
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
