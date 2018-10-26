@@ -4,9 +4,7 @@
 
 part of dart.convert;
 
-/**
- * Open-ended Encoding enum.
- */
+/// Open-ended Encoding enum.
 abstract class Encoding extends Codec<String, List<int>> {
   const Encoding();
 
@@ -16,22 +14,20 @@ abstract class Encoding extends Codec<String, List<int>> {
   Future<String> decodeStream(Stream<List<int>> byteStream) {
     return byteStream
         .transform(decoder)
-        .fold(new StringBuffer(), (buffer, string) => buffer..write(string))
+        .fold(StringBuffer(), (buffer, string) => buffer..write(string))
         .then((buffer) => buffer.toString());
   }
 
-  /**
-   * Name of the encoding.
-   *
-   * If the encoding is standardized, this is the lower-case version of one of
-   * the IANA official names for the character set (see
-   * http://www.iana.org/assignments/character-sets/character-sets.xml)
-   */
+  /// Name of the encoding.
+  ///
+  /// If the encoding is standardized, this is the lower-case version of one of
+  /// the IANA official names for the character set (see
+  /// http://www.iana.org/assignments/character-sets/character-sets.xml)
   String get name;
 
   // All aliases (in lowercase) of supported encoding from
   // http://www.iana.org/assignments/character-sets/character-sets.xml.
-  static Map<String, Encoding> _nameToEncoding = <String, Encoding>{
+  static final Map<String, Encoding> _nameToEncoding = <String, Encoding>{
     // ISO_8859-1:1987.
     "iso_8859-1:1987": latin1,
     "iso-ir-100": latin1,
@@ -61,16 +57,14 @@ abstract class Encoding extends Codec<String, List<int>> {
     "utf-8": utf8
   };
 
-  /**
-  * Gets an [Encoding] object from the name of the character set
-  * name. The names used are the IANA official names for the
-  * character set (see
-  * http://www.iana.org/assignments/character-sets/character-sets.xml).
-  *
-  * The [name] passed is case insensitive.
-  *
-  * If character set is not supported [:null:] is returned.
-  */
+  /// Gets an [Encoding] object from the name of the character set
+  /// name. The names used are the IANA official names for the
+  /// character set (see
+  /// http://www.iana.org/assignments/character-sets/character-sets.xml).
+  ///
+  /// The [name] passed is case insensitive.
+  ///
+  /// If character set is not supported [:null:] is returned.
   static Encoding getByName(String name) {
     if (name == null) return null;
     name = name.toLowerCase();
