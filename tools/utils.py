@@ -785,6 +785,14 @@ class WindowsCoreDumpEnabler(object):
   def __exit__(self, *_):
     del os.environ['DART_CRASHPAD_CRASHES_DIR']
 
+
+def TryUnlink(file):
+  try:
+    os.unlink(file)
+  except Exception as error:
+    print "ERROR: Failed to remove %s: %s" % (file, error)
+
+
 class BaseCoreDumpArchiver(object):
   """This class reads coredumps file written by UnexpectedCrashDumpArchiver
   into the current working directory and uploads all cores and binaries
@@ -800,11 +808,18 @@ class BaseCoreDumpArchiver(object):
     self._search_dir = search_dir
     self._output_directory = output_directory
 
+  def _safe_cleanup(self):
+    try:
+      return self._cleanup();
+    except Exception as error:
+      print "ERROR: Failure during cleanup: %s" % error
+      return False
+
   def __enter__(self):
     print "INFO: Core dump archiving is activated"
 
     # Cleanup any stale files
-    if self._cleanup():
+    if self._safe_cleanup():
       print "WARNING: Found and removed stale coredumps"
 
   def __exit__(self, *_):
@@ -828,9 +843,12 @@ class BaseCoreDumpArchiver(object):
           for dump in dumps:
             print "INFO:        -> %s" % dump
           print
+    except Exception as error:
+      print "ERROR: Failed to archive crashes: %s" % error
+      raise
 
     finally:
-      self._cleanup()
+      self._safe_cleanup()
 
   def _archive(self, crashes):
     files = set()
@@ -874,7 +892,8 @@ class BaseCoreDumpArchiver(object):
     # binaries are copied next to cores and named 'binary.<binary_name>'.
     name = os.path.basename(file)
     (prefix, suffix) = name.split('.', 1)
-    if prefix == 'binary':
+    is_binary = prefix == 'binary'
+    if is_binary:
       name = suffix
 
     tarname = '%s.tar.gz' % name
@@ -882,6 +901,9 @@ class BaseCoreDumpArchiver(object):
     # Compress the file.
     tar = tarfile.open(tarname, mode='w:gz')
     tar.add(file, arcname=name)
+    if is_binary and os.path.exists(file + '.pdb'):
+      # Also add a PDB file if there is one.
+      tar.add(file + '.pdb', arcname=name + '.pdb')
     tar.close()
     return tarname
 
@@ -906,7 +928,8 @@ class BaseCoreDumpArchiver(object):
       except Exception as error:
         print '!!! Failed to upload %s, error: %s' % (tarname, error)
 
-      os.unlink(tarname)
+      TryUnlink(tarname)
+
     print '--- Done ---\n'
 
   def _find_all_coredumps(self):
@@ -933,7 +956,8 @@ class BaseCoreDumpArchiver(object):
       found = True
     for binary in glob.glob(os.path.join(self._binaries_dir, 'binary.*')):
       found = True
-      os.unlink(binary)
+      TryUnlink(binary)
+
     return found
 
 class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
@@ -944,10 +968,7 @@ class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
     found = super(PosixCoreDumpArchiver, self)._cleanup()
     for core in glob.glob(os.path.join(self._search_dir, 'core.*')):
       found = True
-      try:
-        os.unlink(core)
-      except:
-        pass
+      TryUnlink(core)
     return found
 
   def _find_coredump_file(self, crash):
@@ -976,7 +997,7 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
     found = super(WindowsCoreDumpArchiver, self)._cleanup()
     for core in glob.glob(os.path.join(self._search_dir, '*')):
       found = True
-      os.unlink(core)
+      TryUnlink(core)
     return found
 
   def _find_all_coredumps(self):
