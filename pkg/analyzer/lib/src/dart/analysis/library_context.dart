@@ -65,7 +65,6 @@ class LibraryContext {
     load(targetLibrary);
 
     analysisContext = new RestrictedAnalysisContext(
-      fsState,
       analysisOptions,
       declaredVariables,
       sourceFactory,
