@@ -22,6 +22,7 @@ import 'summary.dart';
 import 'summary_collector.dart';
 import 'types.dart';
 import 'utils.dart';
+import '../pragma.dart';
 
 // TODO(alexmarkov)
 // Unordered list of various improvements in type flow analysis,

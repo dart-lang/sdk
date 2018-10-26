@@ -90,7 +90,12 @@ static RawError* BootstrapFromKernel(Thread* thread,
     return ApiError::New(msg, Heap::kOld);
   }
   kernel::KernelLoader loader(program);
+
   Isolate* isolate = thread->isolate();
+
+  if (isolate->obfuscate()) {
+    loader.ReadObfuscationProhibitions();
+  }
 
   // Load the bootstrap libraries in order (see object_store.h).
   Library& library = Library::Handle(zone);

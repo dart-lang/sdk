@@ -132,6 +132,12 @@ integer_parsed_mul_div_vm_test: Pass, Slow
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
+[ $builder_tag == obfuscated && $runtime == dart_precompiled ]
+apply_generic_function_test: SkipByDesign # Function.apply with named args
+apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
+dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
+error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
+
 # All static_tests have expected compile-time errors.
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta && $strong ]
 core_runtime_types_static_test: MissingCompileTimeError
@@ -309,10 +315,6 @@ splay_tree_from_iterable_test: RuntimeError
 
 [ $mode == release && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 bigint_parse_radix_test: Crash
-
-[ $runtime == dart_precompiled && $minified ]
-apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
-error_stack_trace1_test: Skip # Expects unobfuscated stack trace
 
 [ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
 bit_twiddling_test/int64: RuntimeError, OK # Requires fixed-size int64 support.

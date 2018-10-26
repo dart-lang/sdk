@@ -898,6 +898,20 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(ProcedureAttributesMetadataHelper);
 };
 
+class ObfuscationProhibitionsMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.obfuscation-prohibitions.metadata"; }
+
+  explicit ObfuscationProhibitionsMetadataHelper(KernelReaderHelper* helper);
+
+  void ReadProhibitions() { ReadMetadata(0); }
+
+ private:
+  void ReadMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(ObfuscationProhibitionsMetadataHelper);
+};
+
 struct CallSiteAttributesMetadata {
   const AbstractType* receiver_type = nullptr;
 };
@@ -1060,6 +1074,7 @@ class KernelReaderHelper {
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;
+  friend class ObfuscationProhibitionsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:
