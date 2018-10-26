@@ -60,7 +60,7 @@ The flags are passed to CLI-based tools using the `--enable-experiment` flag
 passing several comma-separated flags. Examples:
 
 ```
-dart --enable-experiment super_mixins
+dart --enable-experiment super-mixins
 dart -e super-mixins
 dart -e super-mixins,no-slow-checks,preview-dart3
 dart -e super-mixins -e no-slow-checks -e preview-dart3
@@ -71,8 +71,8 @@ no longer supported), the tool is required to inform about this by printing to
 stderr, and not fail.
 
 ```
-dart -ee super_mixins
-Unknown experiment flag 'super_mixins.'
+dart --enable-experiment better-mixins
+Unknown experiment flag 'better-mixins'.
 ```
 
 ### Flag format for UI-based tools (IDEs/editors/etc.)
@@ -86,12 +86,12 @@ two forms:
   a single `enable-experiments:` key, e.g. to enable the flags `super-mixins` &
   `no-slow-checks`:
 
-    ```
-    analyzer:
+  ```
+  analyzer:
     enable-experiments:
-        - super-mixins
-        - no-slow-checks
-    ```
+      - super-mixins
+      - no-slow-checks
+  ```
 
 - Experiments affecting launch/run behavior, can be enabled in the IDE specific
   run Configuration, by passing the same `--enable-experiment` flag as listed in
