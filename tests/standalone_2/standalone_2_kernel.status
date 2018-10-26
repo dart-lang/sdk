@@ -10,10 +10,12 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
+io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
+
 [ $builder_tag == asan ]
 io/file_test: Fail # Issue 34724
 io/http_server_response_test: Fail # Issue 34724
-io/process_sync_test: Fail # Issue 34724 (child process)
+io/process_sync_test: Pass, Fail # https://github.com/dart-lang/sdk/issues/34724
 io/signals_test: Fail # Issue 34724
 io/test_extension_fail_test: Fail # Issue 32187
 
@@ -61,7 +63,6 @@ io/http_bind_test: Pass, Slow
 [ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
 io/file_test: Fail # Memory leak (issue 34724)
 io/http_server_response_test: Fail # Memory leak (issue 34724)
-io/process_sync_test: Pass, RuntimeError # Issue 34734
 io/signals_test: Pass, RuntimeError # Issue 34734
 io/test_extension_fail_test: Fail # Memory leak (issue 34724)
 
