@@ -689,4 +689,49 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
   EXPECT_EQ(size_before, size_after);
 }
 
+ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
+  // Alternate between allocating new lists and truncating.
+  // For each list, the life cycle is
+  // 1) the list is allocated and filled with some elements
+  // 2) kNumLists other lists are allocated
+  // 3) the list's backing store is truncated; the list becomes unreachable
+  // 4) kNumLists other lists are allocated
+  // 5) the backing store becomes unreachable
+  // The goal is to cause truncation *during* concurrent mark or sweep, by
+  // truncating an array that had been alive for a while and will be visited by
+  // a GC triggering by the allocations in step 2.
+
+  intptr_t kMaxListLength = 100;
+  intptr_t kNumLists = 1000;
+  Array& lists = Array::Handle(Array::New(kNumLists));
+  Array& arrays = Array::Handle(Array::New(kNumLists));
+
+  GrowableObjectArray& list = GrowableObjectArray::Handle();
+  Array& array = Array::Handle();
+  Object& element = Object::Handle();
+
+  for (intptr_t i = 0; i < kNumLists; i++) {
+    list = GrowableObjectArray::New(Heap::kNew);
+    intptr_t length = i % kMaxListLength;
+    for (intptr_t j = 0; j < length; j++) {
+      list.Add(element, Heap::kNew);
+    }
+    lists.SetAt(i, list);
+  }
+
+  intptr_t kTruncations = 100000;
+  for (intptr_t i = 0; i < kTruncations; i++) {
+    list ^= lists.At(i % kNumLists);
+    array = Array::MakeFixedLength(list);
+    arrays.SetAt(i % kNumLists, array);
+
+    list = GrowableObjectArray::New(Heap::kOld);
+    intptr_t length = i % kMaxListLength;
+    for (intptr_t j = 0; j < length; j++) {
+      list.Add(element, Heap::kOld);
+    }
+    lists.SetAt(i % kNumLists, list);
+  }
+}
+
 }  // namespace dart
