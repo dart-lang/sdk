@@ -268,7 +268,7 @@ class IsolateReloadContext {
   void ClearReplacedObjectBits();
 
   // atomic_install:
-  void RunInvalidationVisitors();
+  void MarkAllFunctionsForRecompilation();
   void ResetUnoptimizedICsOnStack();
   void ResetMegamorphicCaches();
   void InvalidateWorld();

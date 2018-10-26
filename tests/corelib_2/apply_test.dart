@@ -31,7 +31,6 @@ confuse(x) => x;
 
 main() {
   testMap(res, func, map) {
-    map = symbolMapToStringMap(map);
     Expect.equals(res, Function.apply(func, null, map));
     Expect.equals(res, Function.apply(func, [], map));
   }
@@ -45,17 +44,16 @@ main() {
   testListTyped(res, Function func, list) => testList(res, func, list);
 
   test(res, func, list, map) {
-    map = symbolMapToStringMap(map);
     Expect.equals(res, Function.apply(func, list, map));
   }
 
   testList(42, test0, null);
   testList(42, test0, []);
-  testMap(42, test0a, {"a": 5});
+  testMap(42, test0a, {#a: 5});
   testList(42, test1, [41]);
-  test(42, test1a, [20], {"a": 22});
+  test(42, test1a, [20], {#a: 22});
   testList(42, test2, [20, 22]);
-  test(42, test2a, [10, 15], {"a": 17});
+  test(42, test2a, [10, 15], {#a: 17});
 
   // Test that "this" is correct when calling closurized functions.
   var cfoo = new C().foo;

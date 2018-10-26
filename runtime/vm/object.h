@@ -4104,9 +4104,7 @@ class KernelProgramInfo : public Object {
                                    const ExternalTypedData& metadata_payload,
                                    const ExternalTypedData& metadata_mappings,
                                    const ExternalTypedData& constants_table,
-                                   const Array& scripts,
-                                   const Array& libraries_cache,
-                                   const Array& classes_cache);
+                                   const Array& scripts);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
@@ -4154,20 +4152,6 @@ class KernelProgramInfo : public Object {
       const GrowableObjectArray& candidates) const;
 
   RawScript* ScriptAt(intptr_t index) const;
-
-  RawArray* libraries_cache() const { return raw_ptr()->libraries_cache_; }
-  void set_libraries_cache(const Array& cache) const;
-  RawLibrary* LookupLibrary(Thread* thread, const Smi& name_index) const;
-  RawLibrary* InsertLibrary(Thread* thread,
-                            const Smi& name_index,
-                            const Library& lib) const;
-
-  RawArray* classes_cache() const { return raw_ptr()->classes_cache_; }
-  void set_classes_cache(const Array& cache) const;
-  RawClass* LookupClass(Thread* thread, const Smi& name_index) const;
-  RawClass* InsertClass(Thread* thread,
-                        const Smi& name_index,
-                        const Class& klass) const;
 
  private:
   static RawKernelProgramInfo* New();
@@ -4945,12 +4929,19 @@ class Code : public Object {
                            Array* stackmaps,
                            StackMap* map) const;
 
+  enum CallKind {
+    kCallViaCode = 3,
+  };
+
   enum {
-    kSCallTableOffsetEntry = 0,
-    kSCallTableFunctionEntry = 1,
-    kSCallTableCodeEntry = 2,
+    kSCallTableKindAndOffset = 0,
+    kSCallTableCodeTarget = 1,
+    kSCallTableFunctionTarget = 2,
     kSCallTableEntryLength = 3,
   };
+
+  class KindField : public BitField<intptr_t, CallKind, 0, 2> {};
+  class OffsetField : public BitField<intptr_t, intptr_t, 2, 28> {};
 
   void set_static_calls_target_table(const Array& value) const;
   RawArray* static_calls_target_table() const {
@@ -7075,18 +7066,6 @@ class Smi : public Integer {
   friend class Object;
   friend class ReusableSmiHandleScope;
   friend class Thread;
-};
-
-class SmiTraits : AllStatic {
- public:
-  static const char* Name() { return "SmiTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    return Smi::Cast(a).Value() == Smi::Cast(b).Value();
-  }
-
-  static uword Hash(const Object& obj) { return Smi::Cast(obj).Value(); }
 };
 
 class Mint : public Integer {

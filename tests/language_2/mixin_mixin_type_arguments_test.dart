@@ -4,34 +4,45 @@
 
 import 'package:expect/expect.dart' show Expect;
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class A {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class B {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class C {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class D {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class E {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class F {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class M1<Tm1> {
   m1() => "M1<$Tm1>";
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class M2<Tm2> {
   m2() => "M2<$Tm2>";
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class M3<Tm3> {
   m3() => "M3<$Tm3>";
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class M4<Tm4> {
   m4() => "M4<$Tm4>";
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class M5<Tm5> {
   m5() => "M5<$Tm5>";
 }

@@ -9,12 +9,14 @@ final values = <int>[];
 class Mock {
   noSuchMethod(Invocation i) {
     var expected = i.isGetter ? #x : const Symbol("x=");
-    Expect.equals(expected, i.memberName);
+    Expect.equals(expected.toString(), i.memberName.toString());
     values.add(i.positionalArguments[0]);
   }
 }
 
 class Foo {
+  // Prevent obfuscation of 'x'.
+  @pragma("vm:entry-point")
   int x;
 }
 

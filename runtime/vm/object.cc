@@ -12244,9 +12244,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const ExternalTypedData& metadata_payloads,
     const ExternalTypedData& metadata_mappings,
     const ExternalTypedData& constants_table,
-    const Array& scripts,
-    const Array& libraries_cache,
-    const Array& classes_cache) {
+    const Array& scripts) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
@@ -12258,8 +12256,6 @@ RawKernelProgramInfo* KernelProgramInfo::New(
                     metadata_mappings.raw());
   info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
   info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
-  info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
-  info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
   return info.raw();
 }
 
@@ -12290,116 +12286,6 @@ void KernelProgramInfo::set_potential_natives(
 void KernelProgramInfo::set_potential_pragma_functions(
     const GrowableObjectArray& candidates) const {
   StorePointer(&raw_ptr()->potential_pragma_functions_, candidates.raw());
-}
-
-void KernelProgramInfo::set_libraries_cache(const Array& cache) const {
-  StorePointer(&raw_ptr()->libraries_cache_, cache.raw());
-}
-
-typedef UnorderedHashMap<SmiTraits> IntHashMap;
-
-RawLibrary* KernelProgramInfo::LookupLibrary(Thread* thread,
-                                             const Smi& name_index) const {
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_LIBRARY_HANDLESCOPE(thread);
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  REUSABLE_SMI_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  Library& result = thread->LibraryHandle();
-  Object& key = thread->ObjectHandle();
-  Smi& value = thread->SmiHandle();
-  {
-    data ^= libraries_cache();
-    ASSERT(!data.IsNull());
-    IntHashMap table(&key, &value, &data);
-    result ^= table.GetOrNull(name_index);
-    table.Release();
-  }
-  return result.raw();
-}
-
-RawLibrary* KernelProgramInfo::InsertLibrary(Thread* thread,
-                                             const Smi& name_index,
-                                             const Library& lib) const {
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_LIBRARY_HANDLESCOPE(thread);
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  REUSABLE_SMI_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  Library& result = thread->LibraryHandle();
-  Object& key = thread->ObjectHandle();
-  Smi& value = thread->SmiHandle();
-  {
-    data ^= libraries_cache();
-    ASSERT(!data.IsNull());
-    IntHashMap table(&key, &value, &data);
-    result ^= table.GetOrNull(name_index);
-    table.Release();
-  }
-  if (result.IsNull()) {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
-    data ^= libraries_cache();
-    ASSERT(!data.IsNull());
-    IntHashMap table(&key, &value, &data);
-    result ^= table.InsertOrGetValue(name_index, lib);
-    set_libraries_cache(table.Release());
-  }
-  return result.raw();
-}
-
-void KernelProgramInfo::set_classes_cache(const Array& cache) const {
-  StorePointer(&raw_ptr()->classes_cache_, cache.raw());
-}
-
-RawClass* KernelProgramInfo::LookupClass(Thread* thread,
-                                         const Smi& name_index) const {
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_CLASS_HANDLESCOPE(thread);
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  REUSABLE_SMI_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  Class& result = thread->ClassHandle();
-  Object& key = thread->ObjectHandle();
-  Smi& value = thread->SmiHandle();
-  {
-    data ^= classes_cache();
-    ASSERT(!data.IsNull());
-    IntHashMap table(&key, &value, &data);
-    result ^= table.GetOrNull(name_index);
-    table.Release();
-  }
-  return result.raw();
-}
-
-RawClass* KernelProgramInfo::InsertClass(Thread* thread,
-                                         const Smi& name_index,
-                                         const Class& klass) const {
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_CLASS_HANDLESCOPE(thread);
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  REUSABLE_SMI_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  Class& result = thread->ClassHandle();
-  Object& key = thread->ObjectHandle();
-  Smi& value = thread->SmiHandle();
-  {
-    data ^= classes_cache();
-    ASSERT(!data.IsNull());
-    IntHashMap table(&key, &value, &data);
-    result ^= table.GetOrNull(name_index);
-    table.Release();
-  }
-  if (result.IsNull()) {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
-    data ^= classes_cache();
-    ASSERT(!data.IsNull());
-    IntHashMap table(&key, &value, &data);
-    result ^= table.InsertOrGetValue(name_index, klass);
-    set_classes_cache(table.Release());
-  }
-  return result.raw();
 }
 
 RawError* Library::CompileAll(bool ignore_error /* = false */) {
@@ -14587,9 +14473,13 @@ void Code::set_static_calls_target_table(const Array& value) const {
   // FlowGraphCompiler::AddStaticCallTarget adds pc-offsets to the table while
   // emitting assembly. This guarantees that every succeeding pc-offset is
   // larger than the previously added one.
-  for (intptr_t i = kSCallTableEntryLength; i < value.Length();
-       i += kSCallTableEntryLength) {
-    ASSERT(value.At(i - kSCallTableEntryLength) < value.At(i));
+  const intptr_t count = value.Length() / kSCallTableEntryLength;
+  for (intptr_t i = 0; i < count - 1; ++i) {
+    auto left = Smi::Value(Smi::RawCast(
+        value.At(i * kSCallTableEntryLength + kSCallTableKindAndOffset)));
+    auto right = Smi::Value(Smi::RawCast(
+        value.At((i + 1) * kSCallTableEntryLength + kSCallTableKindAndOffset)));
+    ASSERT(OffsetField::decode(left) < OffsetField::decode(right));
   }
 #endif  // DEBUG
 }
@@ -14642,16 +14532,17 @@ intptr_t Code::BinarySearchInSCallTable(uword pc) const {
 #else
   NoSafepointScope no_safepoint;
   const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
-  RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - PayloadStart()));
+  const intptr_t pc_offset = pc - PayloadStart();
   intptr_t imin = 0;
-  intptr_t imax = table.Length() / kSCallTableEntryLength;
+  intptr_t imax = (table.Length() / kSCallTableEntryLength) - 1;
   while (imax >= imin) {
-    const intptr_t imid = ((imax - imin) / 2) + imin;
+    const intptr_t imid = imin + (imax - imin) / 2;
     const intptr_t real_index = imid * kSCallTableEntryLength;
-    RawObject* key_in_table = table.At(real_index);
-    if (key_in_table < key) {
+    const auto offset = OffsetField::decode(Smi::Value(
+        Smi::RawCast(table.At(real_index + kSCallTableKindAndOffset))));
+    if (offset < pc_offset) {
       imin = imid + 1;
-    } else if (key_in_table > key) {
+    } else if (offset > pc_offset) {
       imax = imid - 1;
     } else {
       return real_index;
@@ -14672,7 +14563,7 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   }
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
   Function& function = Function::Handle();
-  function ^= array.At(i + kSCallTableFunctionEntry);
+  function ^= array.At(i + kSCallTableFunctionTarget);
   return function.raw();
 #endif
 }
@@ -14688,7 +14579,7 @@ RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
   }
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
   Code& code = Code::Handle();
-  code ^= array.At(i + kSCallTableCodeEntry);
+  code ^= array.At(i + kSCallTableCodeTarget);
   return code.raw();
 #endif
 }
@@ -14701,8 +14592,8 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
   ASSERT(i >= 0);
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
   ASSERT(code.IsNull() ||
-         (code.function() == array.At(i + kSCallTableFunctionEntry)));
-  array.SetAt(i + kSCallTableCodeEntry, code);
+         (code.function() == array.At(i + kSCallTableFunctionTarget)));
+  array.SetAt(i + kSCallTableCodeTarget, code);
 #endif
 }
 
@@ -14714,14 +14605,14 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
   ASSERT(i >= 0);
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
 #if defined(DEBUG)
-  if (array.At(i + kSCallTableFunctionEntry) == Function::null()) {
+  if (array.At(i + kSCallTableFunctionTarget) == Function::null()) {
     ASSERT(!code.IsNull() && Object::Handle(code.owner()).IsClass());
   } else {
     ASSERT(code.IsNull() ||
-           (code.function() == array.At(i + kSCallTableFunctionEntry)));
+           (code.function() == array.At(i + kSCallTableFunctionTarget)));
   }
 #endif
-  array.SetAt(i + kSCallTableCodeEntry, code);
+  array.SetAt(i + kSCallTableCodeTarget, code);
 #endif
 }
 

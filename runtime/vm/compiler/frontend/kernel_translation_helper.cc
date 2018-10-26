@@ -31,9 +31,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
       canonical_names_(TypedData::Handle(Z)),
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
-      constants_(Array::Handle(Z)),
-      info_(KernelProgramInfo::Handle(Z)),
-      name_index_handle_(Smi::Handle(Z)) {}
+      constants_(Array::Handle(Z)) {}
 
 TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
     : thread_(thread),
@@ -45,9 +43,7 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
       canonical_names_(TypedData::Handle(Z)),
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
-      constants_(Array::Handle(Z)),
-      info_(KernelProgramInfo::Handle(Z)),
-      name_index_handle_(Smi::Handle(Z)) {}
+      constants_(Array::Handle(Z)) {}
 
 void TranslationHelper::Reset() {
   string_offsets_ = TypedData::null();
@@ -79,7 +75,6 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
   SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
-  SetKernelProgramInfo(info);
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
@@ -112,10 +107,6 @@ void TranslationHelper::SetMetadataMappings(
 void TranslationHelper::SetConstants(const Array& constants) {
   ASSERT(constants_.IsNull());
   constants_ = constants.raw();
-}
-
-void TranslationHelper::SetKernelProgramInfo(const KernelProgramInfo& info) {
-  info_ = info.raw();
 }
 
 intptr_t TranslationHelper::StringOffset(StringIndex index) const {
@@ -486,47 +477,24 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   // This ASSERT is just a sanity check.
   ASSERT(IsLibrary(kernel_library) ||
          IsAdministrative(CanonicalNameParent(kernel_library)));
-  {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawLibrary* raw_lib;
-    name_index_handle_ = Smi::New(kernel_library);
-    raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
-    if (raw_lib != Library::null()) {
-      return raw_lib;
-    }
-  }
-
   const String& library_name =
       DartSymbolPlain(CanonicalNameString(kernel_library));
   ASSERT(!library_name.IsNull());
-  const Library& library =
-      Library::Handle(Z, Library::LookupLibrary(thread_, library_name));
-  ASSERT(!library.IsNull());
-  name_index_handle_ = Smi::New(kernel_library);
-  return info_.InsertLibrary(thread_, name_index_handle_, library);
+  RawLibrary* library = Library::LookupLibrary(thread_, library_name);
+  ASSERT(library != Object::null());
+  return library;
 }
 
 RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
-  {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawClass* raw_class;
-    name_index_handle_ = Smi::New(kernel_class);
-    raw_class = info_.LookupClass(thread_, name_index_handle_);
-    if (raw_class != Class::null()) {
-      return raw_class;
-    }
-  }
-
   const String& class_name = DartClassName(kernel_class);
   NameIndex kernel_library = CanonicalNameParent(kernel_class);
   Library& library =
       Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
-  const Class& klass =
-      Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
-  ASSERT(!klass.IsNull());
-  name_index_handle_ = Smi::New(kernel_class);
-  return info_.InsertClass(thread_, name_index_handle_, klass);
+  RawClass* klass = library.LookupClassAllowPrivate(class_name);
+
+  ASSERT(klass != Object::null());
+  return klass;
 }
 
 RawField* TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
@@ -1422,12 +1390,12 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
     Reader reader(H.metadata_mappings());
     reader.set_offset(mappings_offset);
 
-    intptr_t prev_node_offset = 0;
+    intptr_t prev_node_offset = -1;
     for (intptr_t i = 0; i < mappings_num; ++i) {
       intptr_t node_offset = reader.ReadUInt32();
       intptr_t md_offset = reader.ReadUInt32();
 
-      ASSERT((node_offset > 0) && (md_offset >= 0));
+      ASSERT((node_offset >= 0) && (md_offset >= 0));
       ASSERT(node_offset > prev_node_offset);
       prev_node_offset = node_offset;
     }
@@ -1713,6 +1681,28 @@ ProcedureAttributesMetadataHelper::GetProcedureAttributes(
   ProcedureAttributesMetadata metadata;
   ReadMetadata(node_offset, &metadata);
   return metadata;
+}
+
+ObfuscationProhibitionsMetadataHelper::ObfuscationProhibitionsMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+void ObfuscationProhibitionsMetadataHelper::ReadMetadata(intptr_t node_offset) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return;
+  }
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+  Obfuscator O(Thread::Current(), String::Handle());
+
+  intptr_t len = helper_->ReadUInt32();
+  for (int i = 0; i < len; ++i) {
+    StringIndex name = helper_->ReadStringReference();
+    O.PreventRenaming(translation_helper_.DartSymbolPlain(name));
+  }
+  return;
 }
 
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(

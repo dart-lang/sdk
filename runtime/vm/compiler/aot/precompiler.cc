@@ -479,12 +479,18 @@ void Precompiler::AddCalleesOf(const Function& function) {
 
   const Array& table = Array::Handle(Z, code.static_calls_target_table());
   Object& entry = Object::Handle(Z);
+  Class& cls = Class::Handle(Z);
   Function& target = Function::Handle(Z);
-  for (intptr_t i = 0; i < table.Length(); i++) {
-    entry = table.At(i);
+
+  for (intptr_t i = 0; i < table.Length(); i += Code::kSCallTableEntryLength) {
+    entry = table.At(i + Code::kSCallTableFunctionTarget);
     if (entry.IsFunction()) {
-      target ^= entry.raw();
-      AddFunction(target);
+      AddFunction(Function::Cast(entry));
+    }
+    entry = table.At(i + Code::kSCallTableCodeTarget);
+    if (entry.IsCode() && Code::Cast(entry).IsAllocationStubCode()) {
+      cls ^= Code::Cast(entry).owner();
+      AddInstantiatedClass(cls);
     }
   }
 
@@ -497,7 +503,6 @@ void Precompiler::AddCalleesOf(const Function& function) {
   MegamorphicCache& cache = MegamorphicCache::Handle(Z);
   String& selector = String::Handle(Z);
   Field& field = Field::Handle(Z);
-  Class& cls = Class::Handle(Z);
   Instance& instance = Instance::Handle(Z);
   Code& target_code = Code::Handle(Z);
   for (intptr_t i = 0; i < pool.Length(); i++) {
@@ -1954,8 +1959,8 @@ void Precompiler::BindStaticCalls() {
     explicit BindStaticCallsVisitor(Zone* zone)
         : code_(Code::Handle(zone)),
           table_(Array::Handle(zone)),
-          pc_offset_(Smi::Handle(zone)),
-          target_(Function::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          target_(Object::Handle(zone)),
           target_code_(Code::Handle(zone)) {}
 
     void Visit(const Function& function) {
@@ -1967,12 +1972,14 @@ void Precompiler::BindStaticCalls() {
 
       for (intptr_t i = 0; i < table_.Length();
            i += Code::kSCallTableEntryLength) {
-        pc_offset_ ^= table_.At(i + Code::kSCallTableOffsetEntry);
-        target_ ^= table_.At(i + Code::kSCallTableFunctionEntry);
+        kind_and_offset_ ^= table_.At(i + Code::kSCallTableKindAndOffset);
+        auto kind = Code::KindField::decode(kind_and_offset_.Value());
+        ASSERT(kind == Code::kCallViaCode);
+        auto pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
+        target_ = table_.At(i + Code::kSCallTableFunctionTarget);
         if (target_.IsNull()) {
-          target_code_ ^= table_.At(i + Code::kSCallTableCodeEntry);
-          ASSERT(!target_code_.IsNull());
-          ASSERT(!target_code_.IsFunctionCode());
+          target_ = table_.At(i + Code::kSCallTableCodeTarget);
+          ASSERT(!Code::Cast(target_).IsFunctionCode());
           // Allocation stub or AllocateContext or AllocateArray or ...
         } else {
           // Static calls initially call the CallStaticFunction stub because
@@ -1980,9 +1987,10 @@ void Precompiler::BindStaticCalls() {
           // static call targets are compiled.
           // Cf. runtime entry PatchStaticCall called from CallStaticFunction
           // stub.
-          ASSERT(target_.HasCode());
-          target_code_ ^= target_.CurrentCode();
-          uword pc = pc_offset_.Value() + code_.PayloadStart();
+          const auto& fun = Function::Cast(target_);
+          ASSERT(fun.HasCode());
+          target_code_ ^= fun.CurrentCode();
+          uword pc = pc_offset + code_.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
         }
       }
@@ -1995,8 +2003,8 @@ void Precompiler::BindStaticCalls() {
    private:
     Code& code_;
     Array& table_;
-    Smi& pc_offset_;
-    Function& target_;
+    Smi& kind_and_offset_;
+    Object& target_;
     Code& target_code_;
   };
 
@@ -2565,10 +2573,6 @@ Obfuscator::~Obfuscator() {
 }
 
 void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
-  // Prevent renaming of classes and method names mentioned in the
-  // entry points lists.
-  PreventRenaming(isolate->embedder_entry_points());
-
 // Prevent renaming of all pseudo-keywords and operators.
 // Note: not all pseudo-keywords are mentioned in DART_KEYWORD_LIST
 // (for example 'hide', 'show' and async related keywords are omitted).
@@ -2672,25 +2676,6 @@ RawString* Obfuscator::ObfuscationState::RenameImpl(const String& name,
     renames_.UpdateOrInsert(name, renamed_);
   }
   return renamed_.raw();
-}
-
-void Obfuscator::PreventRenaming(Dart_QualifiedFunctionName entry_points[]) {
-  for (intptr_t i = 0; entry_points[i].function_name != NULL; i++) {
-    const char* class_name = entry_points[i].class_name;
-    const char* function_name = entry_points[i].function_name;
-
-    const size_t class_name_len = strlen(class_name);
-    if (strncmp(function_name, class_name, class_name_len) == 0 &&
-        function_name[class_name_len] == '.') {
-      const char* ctor_name = function_name + class_name_len + 1;
-      if (ctor_name[0] != '\0') {
-        PreventRenaming(ctor_name);
-      }
-    } else {
-      PreventRenaming(function_name);
-    }
-    PreventRenaming(class_name);
-  }
 }
 
 static const char* const kGetterPrefix = "get:";

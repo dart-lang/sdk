@@ -122,6 +122,8 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  ASSERT(!function.IsNull());
+
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.

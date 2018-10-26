@@ -16,7 +16,6 @@ import 'package:vm/metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadataRepository;
 import 'package:vm/metadata/unreachable.dart'
     show UnreachableNodeMetadataRepository;
-
 import 'package:vm/metadata/call_site_attributes.dart'
     show CallSiteAttributesMetadataRepository;
 

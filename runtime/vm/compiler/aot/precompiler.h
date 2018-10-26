@@ -9,6 +9,7 @@
 #include "vm/hash_map.h"
 #include "vm/hash_table.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -439,13 +440,13 @@ class Obfuscator : public ValueObject {
   // Serialize renaming map as a malloced array of strings.
   static const char** SerializeMap(Thread* thread);
 
+  void PreventRenaming(const char* name);
+  void PreventRenaming(const String& name) { state_->PreventRenaming(name); }
+
  private:
   // Populate renaming map with names that should have identity renaming.
   // (or in other words: with those names that should not be renamed).
   void InitializeRenamingMap(Isolate* isolate);
-  void PreventRenaming(Dart_QualifiedFunctionName* entry_points);
-  void PreventRenaming(const char* name);
-  void PreventRenaming(const String& name) { state_->PreventRenaming(name); }
 
   // ObjectStore::obfuscation_map() is an Array with two elements:
   // first element is the last used rename and the second element is
@@ -562,6 +563,7 @@ class Obfuscator {
     return name.raw();
   }
 
+  void PreventRenaming(const String& name) {}
   static void ObfuscateSymbolInstance(Thread* thread,
                                       const Instance& instance) {}
 

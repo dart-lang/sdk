@@ -918,10 +918,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_"))),
       megamorphic_lookup_mutex_(
           new Mutex(NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_"))),
-      kernel_data_lib_cache_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_"))),
-      kernel_data_class_cache_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_"))),
       message_handler_(NULL),
       spawn_state_(NULL),
       defer_finalization_count_(0),
@@ -1003,10 +999,6 @@ Isolate::~Isolate() {
   constant_canonicalization_mutex_ = NULL;
   delete megamorphic_lookup_mutex_;
   megamorphic_lookup_mutex_ = NULL;
-  delete kernel_data_lib_cache_mutex_;
-  kernel_data_lib_cache_mutex_ = NULL;
-  delete kernel_data_class_cache_mutex_;
-  kernel_data_class_cache_mutex_ = NULL;
   delete pending_deopts_;
   pending_deopts_ = NULL;
   delete message_handler_;

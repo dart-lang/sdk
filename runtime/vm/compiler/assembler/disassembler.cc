@@ -332,32 +332,47 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   {
     THR_Print("Static call target functions {\n");
-    const Array& table = Array::Handle(zone, code.static_calls_target_table());
-    Smi& offset = Smi::Handle(zone);
-    Function& function = Function::Handle(zone);
-    Code& code = Code::Handle(zone);
-    for (intptr_t i = 0; i < table.Length();
-         i += Code::kSCallTableEntryLength) {
-      offset ^= table.At(i + Code::kSCallTableOffsetEntry);
-      function ^= table.At(i + Code::kSCallTableFunctionEntry);
-      code ^= table.At(i + Code::kSCallTableCodeEntry);
-      if (function.IsNull()) {
-        Class& cls = Class::Handle(zone);
-        cls ^= code.owner();
-        if (cls.IsNull()) {
-          THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
-                    code.QualifiedName(), code.raw());
-        } else {
-          THR_Print("  0x%" Px ": allocation stub for %s, %p\n",
-                    start + offset.Value(), cls.ToCString(), code.raw());
+    const auto& table = Array::Handle(zone, code.static_calls_target_table());
+    auto& cls = Class::Handle(zone);
+    auto& kind_and_offset = Smi::Handle(zone);
+    auto& function = Function::Handle(zone);
+    auto& code = Code::Handle(zone);
+    if (!table.IsNull()) {
+      for (intptr_t i = 0; i < table.Length();
+           i += Code::kSCallTableEntryLength) {
+        kind_and_offset ^= table.At(i + Code::kSCallTableKindAndOffset);
+        function ^= table.At(i + Code::kSCallTableFunctionTarget);
+        code ^= table.At(i + Code::kSCallTableCodeTarget);
+
+        auto kind = Code::KindField::decode(kind_and_offset.Value());
+        auto offset = Code::OffsetField::decode(kind_and_offset.Value());
+
+        const char* skind = nullptr;
+        switch (kind) {
+          case Code::kCallViaCode:
+            skind = "call-via-code";
+            break;
+          default:
+            UNREACHABLE();
         }
-      } else {
-        THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
-                  function.ToFullyQualifiedCString(), code.raw());
+        if (!code.IsNull()) {
+          cls ^= code.owner();
+          if (cls.IsNull()) {
+            THR_Print("  0x%" Px ": %s, %p (%s)\n", start + offset,
+                      code.QualifiedName(), code.raw(), skind);
+          } else {
+            THR_Print("  0x%" Px ": allocation stub for %s, %p (%s)\n",
+                      start + offset, cls.ToCString(), code.raw(), skind);
+          }
+        } else {
+          THR_Print("  0x%" Px ": %s, %p (%s)\n", start + offset,
+                    function.ToFullyQualifiedCString(), code.raw(), skind);
+        }
       }
     }
-    THR_Print("}\n");
   }
+  THR_Print("}\n");
+
   if (optimized && FLAG_trace_inlining_intervals) {
     code.DumpInlineIntervals();
   }

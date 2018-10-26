@@ -8,6 +8,7 @@ part of dart.io;
  * [Link] objects are references to filesystem links.
  *
  */
+@pragma("vm:entry-point")
 abstract class Link implements FileSystemEntity {
   /**
    * Creates a Link object.
