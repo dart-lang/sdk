@@ -923,13 +923,18 @@ class FlowGraphCompiler : public ValueObject {
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
    public:
+    Code::CallKind call_kind;
     const intptr_t offset;
     const Function* function;  // Can be NULL.
     const Code* code;          // Can be NULL.
-    StaticCallsStruct(intptr_t offset_arg,
+    StaticCallsStruct(Code::CallKind call_kind,
+                      intptr_t offset_arg,
                       const Function* function_arg,
                       const Code* code_arg)
-        : offset(offset_arg), function(function_arg), code(code_arg) {
+        : call_kind(call_kind),
+          offset(offset_arg),
+          function(function_arg),
+          code(code_arg) {
       ASSERT((function == NULL) || function->IsZoneHandle());
       ASSERT((code == NULL) || code->IsZoneHandle());
     }

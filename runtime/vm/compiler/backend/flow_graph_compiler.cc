@@ -702,14 +702,14 @@ void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
 
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
   ASSERT(func.IsZoneHandle());
-  static_calls_target_table_.Add(
-      new (zone()) StaticCallsStruct(assembler()->CodeSize(), &func, NULL));
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kCallViaCode, assembler()->CodeSize(), &func, NULL));
 }
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
   ASSERT(code.IsZoneHandle());
-  static_calls_target_table_.Add(
-      new (zone()) StaticCallsStruct(assembler()->CodeSize(), NULL, &code));
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kCallViaCode, assembler()->CodeSize(), NULL, &code));
 }
 
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
@@ -1063,22 +1063,28 @@ void FlowGraphCompiler::FinalizeCatchEntryMovesMap(const Code& code) {
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   ASSERT(code.static_calls_target_table() == Array::null());
-  const Array& targets =
-      Array::Handle(zone(), Array::New((static_calls_target_table_.length() *
-                                        Code::kSCallTableEntryLength),
-                                       Heap::kOld));
-  Smi& smi_offset = Smi::Handle(zone());
-  for (intptr_t i = 0; i < static_calls_target_table_.length(); i++) {
+  const auto& calls = static_calls_target_table_;
+  const intptr_t array_length = calls.length() * Code::kSCallTableEntryLength;
+  const auto& targets =
+      Array::Handle(zone(), Array::New(array_length, Heap::kOld));
+
+  auto& kind_and_offset = Smi::Handle(zone());
+  for (intptr_t i = 0; i < calls.length(); i++) {
+    auto entry = calls[i];
+    kind_and_offset = Smi::New(Code::KindField::encode(entry->call_kind) |
+                               Code::OffsetField::encode(entry->offset));
     const intptr_t target_ix = Code::kSCallTableEntryLength * i;
-    smi_offset = Smi::New(static_calls_target_table_[i]->offset);
-    targets.SetAt(target_ix + Code::kSCallTableOffsetEntry, smi_offset);
-    if (static_calls_target_table_[i]->function != NULL) {
-      targets.SetAt(target_ix + Code::kSCallTableFunctionEntry,
-                    *static_calls_target_table_[i]->function);
+    targets.SetAt(target_ix + Code::kSCallTableKindAndOffset, kind_and_offset);
+
+    const Object* target = nullptr;
+    if (entry->function != nullptr) {
+      target = calls[i]->function;
+      targets.SetAt(target_ix + Code::kSCallTableFunctionTarget, *target);
     }
-    if (static_calls_target_table_[i]->code != NULL) {
-      targets.SetAt(target_ix + Code::kSCallTableCodeEntry,
-                    *static_calls_target_table_[i]->code);
+    if (entry->code != NULL) {
+      ASSERT(target == nullptr);
+      target = calls[i]->code;
+      targets.SetAt(target_ix + Code::kSCallTableCodeTarget, *target);
     }
   }
   code.set_static_calls_target_table(targets);

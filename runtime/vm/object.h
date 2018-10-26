@@ -4929,12 +4929,19 @@ class Code : public Object {
                            Array* stackmaps,
                            StackMap* map) const;
 
+  enum CallKind {
+    kCallViaCode = 3,
+  };
+
   enum {
-    kSCallTableOffsetEntry = 0,
-    kSCallTableFunctionEntry = 1,
-    kSCallTableCodeEntry = 2,
+    kSCallTableKindAndOffset = 0,
+    kSCallTableCodeTarget = 1,
+    kSCallTableFunctionTarget = 2,
     kSCallTableEntryLength = 3,
   };
+
+  class KindField : public BitField<intptr_t, CallKind, 0, 2> {};
+  class OffsetField : public BitField<intptr_t, intptr_t, 2, 28> {};
 
   void set_static_calls_target_table(const Array& value) const;
   RawArray* static_calls_target_table() const {
