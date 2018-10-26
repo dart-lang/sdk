@@ -5029,6 +5029,14 @@ DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library) {
   RETURN_TYPE_ERROR(Z, library, Library);
 }
 
+static void CheckIsEntryPoint(const Class& klass) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // This is not a completely thorough check that the class is an entry-point,
+  // but it catches most missing annotations.
+  RELEASE_ASSERT(klass.has_pragma());
+#endif
+}
+
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                                       Dart_Handle class_name) {
   DARTSCOPE(Thread::Current());
@@ -5047,6 +5055,7 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
     return Api::NewError("Class '%s' not found in library '%s'.",
                          cls_name.ToCString(), lib_name.ToCString());
   }
+  CheckIsEntryPoint(cls);
   return Api::NewHandle(T, cls.RareType());
 }
 
@@ -5075,6 +5084,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
     return Api::NewError("Type '%s' not found in library '%s'.",
                          name_str.ToCString(), lib_name.ToCString());
   }
+  CheckIsEntryPoint(cls);
   if (cls.NumTypeArguments() == 0) {
     if (number_of_type_arguments != 0) {
       return Api::NewError(

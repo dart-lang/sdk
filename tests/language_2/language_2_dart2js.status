@@ -251,7 +251,7 @@ full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
-generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_function_dcall_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_typedef_test: RuntimeError
 identical_closure2_test: RuntimeError # non JS number semantics
@@ -505,7 +505,7 @@ full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 function_subtype_inline2_test: RuntimeError
 generic_function_bounds_test: RuntimeError
-generic_function_dcall_test: RuntimeError
+generic_function_dcall_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError

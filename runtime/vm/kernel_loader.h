@@ -174,6 +174,8 @@ class KernelLoader : public ValueObject {
 
   static void FinishLoading(const Class& klass);
 
+  void ReadObfuscationProhibitions();
+
   const Array& ReadConstantTable();
 
   // Check for the presence of a (possibly const) constructor for the

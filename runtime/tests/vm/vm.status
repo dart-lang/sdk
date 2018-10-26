@@ -355,3 +355,7 @@ dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-tri
 
 [ ($runtime == vm || $runtime == dart_precompiled) && !$preview_dart_2 ]
 *:SkipByDesign # Deprecating all Dart1 modes of execution
+
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
+dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
