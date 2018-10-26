@@ -1509,6 +1509,18 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       }
     }
   }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    Array& array_ = Array::Handle(zone);
+    KernelProgramInfo& info_ = KernelProgramInfo::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      info_ ^= refs.At(id);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_libraries_cache(array_);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_classes_cache(array_);
+    }
+  }
 };
 
 class CodeSerializationCluster : public SerializationCluster {
