@@ -49,6 +49,9 @@ class _LibraryData {
   /// Cache of [_ClassData] for classes in this library.
   Map<String, _ClassData> _classes;
 
+  /// Cache of [ir.Typedef] nodes for typedefs in this library.
+  Map<String, ir.Typedef> _typedefs;
+
   /// Cache of [_MemberData] for members in this library.
   Map<String, _MemberData> _members;
 
@@ -65,6 +68,20 @@ class _LibraryData {
       }
     }
     return _classes[name];
+  }
+
+  ir.Typedef lookupTypedef(String name) {
+    if (_typedefs == null) {
+      _typedefs = {};
+      for (ir.Typedef typedef in node.typedefs) {
+        assert(
+            !_typedefs.containsKey(typedef.name),
+            "Duplicate typedef '${typedef.name}' in $_typedefs "
+            "trying to add $typedef.");
+        _typedefs[typedef.name] = typedef;
+      }
+    }
+    return _typedefs[name];
   }
 
   /// Returns the [_MemberData] for the member uniquely identified by [name] in

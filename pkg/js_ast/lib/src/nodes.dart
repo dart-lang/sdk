@@ -1645,7 +1645,7 @@ class LiteralNumber extends Literal {
 class ArrayInitializer extends Expression {
   final List<Expression> elements;
 
-  ArrayInitializer(this.elements);
+  ArrayInitializer(this.elements) : assert(!elements.contains(null));
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayInitializer(this);
 

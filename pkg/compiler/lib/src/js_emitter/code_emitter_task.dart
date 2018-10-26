@@ -179,7 +179,6 @@ class CodeEmitterTask extends CompilerTask {
           compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
-          compiler.deferredLoadTask,
           closedWorld.outputUnitData,
           compiler.codegenWorldBuilder,
           backend.nativeCodegenEnqueuer,

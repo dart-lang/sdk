@@ -16,12 +16,14 @@ enum DataKind {
   uri,
   libraryNode,
   classNode,
+  typedefNode,
   memberNode,
   treeNode,
   typeParameterNode,
   dartType,
   sourceSpan,
   constant,
+  import,
 }
 
 /// Enum used for identifying the enclosing entity of a member in serialization.
@@ -123,10 +125,14 @@ class DartTypeWriter
 
   void visitFunctionTypeVariable(covariant FunctionTypeVariable type,
       List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.functionTypeVariable);
     int index = functionTypeVariables.indexOf(type);
-    assert(index != -1);
-    _sink.writeInt(index);
+    if (index == -1) {
+      // TODO(johnniwinther): Avoid free variables.
+      _sink._writeDartType(const DynamicType(), functionTypeVariables);
+    } else {
+      _sink.writeEnum(DartTypeKind.functionTypeVariable);
+      _sink.writeInt(index);
+    }
   }
 
   void visitFunctionType(covariant FunctionType type,
@@ -172,5 +178,52 @@ class DartTypeWriter
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.futureOr);
     _sink._writeDartType(type.typeArgument, functionTypeVariables);
+  }
+}
+
+/// Data sink helper that canonicalizes [E] values using indices.
+class IndexedSink<E> {
+  final AbstractDataSink _sink;
+  final Map<E, int> _cache = {};
+
+  IndexedSink(this._sink);
+
+  /// Write a reference to [value] to the data sink.
+  ///
+  /// If [value] has not been canonicalized yet, [writeValue] is called to
+  /// serialize the [value] itself.
+  void write(E value, void writeValue(E value)) {
+    int index = _cache[value];
+    if (index == null) {
+      index = _cache.length;
+      _cache[value] = index;
+      _sink._writeIntInternal(index);
+      writeValue(value);
+    } else {
+      _sink._writeIntInternal(index);
+    }
+  }
+}
+
+/// Data source helper reads canonicalized [E] values through indices.
+class IndexedSource<E> {
+  final AbstractDataSource _source;
+  final List<E> _cache = [];
+
+  IndexedSource(this._source);
+
+  /// Reads a reference to an [E] value from the data source.
+  ///
+  /// If the value hasn't yet been read, [readValue] is called to deserialize
+  /// the value itself.
+  E read(E readValue()) {
+    int index = _source._readIntInternal();
+    if (index >= _cache.length) {
+      E value = readValue();
+      _cache.add(value);
+      return value;
+    } else {
+      return _cache[index];
+    }
   }
 }

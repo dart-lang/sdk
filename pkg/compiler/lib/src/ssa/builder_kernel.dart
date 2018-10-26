@@ -1370,7 +1370,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
     ImportEntity import = _elementMap.getImport(checkLoad.import);
-    String loadId = deferredLoadTask.getImportDeferName(
+    String loadId = closedWorld.outputUnitData.getImportDeferName(
         _elementMap.getSpannable(targetElement, checkLoad), import);
     HInstruction prefixConstant = graph.addConstantString(loadId, closedWorld);
     HInstruction uriConstant =
@@ -1386,7 +1386,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
-    String loadId = deferredLoadTask.getImportDeferName(
+    String loadId = closedWorld.outputUnitData.getImportDeferName(
         _elementMap.getSpannable(targetElement, loadLibrary),
         _elementMap.getImport(loadLibrary.import));
     // TODO(efortuna): Source information!

@@ -140,7 +140,12 @@ class JLibraryData {
     int importCount = source.readInt();
     Map<ir.LibraryDependency, ImportEntity> imports;
     if (importCount > 0) {
-      // TODO(johnniwinther): Deserialize imports.
+      imports = {};
+      for (int i = 0; i < importCount; i++) {
+        int index = source.readInt();
+        ImportEntity import = source.readImport();
+        imports[library.dependencies[index]] = import;
+      }
     }
     source.end(tag);
     return new JLibraryData(library, imports);
@@ -153,7 +158,15 @@ class JLibraryData {
       sink.writeInt(0);
     } else {
       sink.writeInt(imports.length);
-      // TODO(johnniwinther): Serialize imports.
+      int index = 0;
+      for (ir.LibraryDependency node in library.dependencies) {
+        ImportEntity import = imports[node];
+        if (import != null) {
+          sink.writeInt(index);
+          sink.writeImport(import);
+        }
+        index++;
+      }
     }
     sink.end(tag);
   }
@@ -980,19 +993,22 @@ class JTypedefData {
   /// a debugging data stream.
   static const String tag = 'typedef-data';
 
+  final ir.Typedef node;
   final TypedefType rawType;
 
-  JTypedefData(this.rawType);
+  JTypedefData(this.node, this.rawType);
 
   factory JTypedefData.readFromDataSource(DataSource source) {
     source.begin(tag);
+    ir.Typedef node = source.readTypedefNode();
     TypedefType rawType = source.readDartType();
     source.end(tag);
-    return new JTypedefData(rawType);
+    return new JTypedefData(node, rawType);
   }
 
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
+    sink.writeTypedefNode(node);
     sink.writeDartType(rawType);
     sink.end(tag);
   }

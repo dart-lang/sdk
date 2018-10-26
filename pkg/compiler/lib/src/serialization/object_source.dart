@@ -40,16 +40,16 @@ class ObjectSource extends AbstractDataSource {
   }
 
   @override
-  String _readString() => _read();
+  String _readStringInternal() => _read();
 
   @override
-  E _readEnum<E>(List<E> values) => _read();
+  E _readEnumInternal<E>(List<E> values) => _read();
 
   @override
-  Uri _readUri() => _read();
+  Uri _readUriInternal() => _read();
 
   @override
-  int _readInt() => _read();
+  int _readIntInternal() => _read();
 
   @override
   String get _errorContext {

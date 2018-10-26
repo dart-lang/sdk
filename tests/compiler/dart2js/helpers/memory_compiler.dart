@@ -77,6 +77,7 @@ Future<CompilationResult> runCompiler(
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
+    Uri libraryRoot,
     Uri packageRoot,
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider,
@@ -91,6 +92,7 @@ Future<CompilationResult> runCompiler(
       outputProvider: outputProvider,
       options: options,
       showDiagnostics: showDiagnostics,
+      libraryRoot: libraryRoot,
       packageRoot: packageRoot,
       packageConfig: packageConfig,
       packagesDiscoveryProvider: packagesDiscoveryProvider);
@@ -111,11 +113,12 @@ CompilerImpl compilerFor(
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
+    Uri libraryRoot,
     Uri packageRoot,
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   retainDataForTesting = true;
-  Uri libraryRoot = Uri.base.resolve('sdk/');
+  libraryRoot ??= Uri.base.resolve('sdk/');
   Uri platformBinaries = computePlatformBinariesLocation();
 
   if (packageRoot == null &&

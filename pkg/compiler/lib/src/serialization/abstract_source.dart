@@ -13,7 +13,19 @@ abstract class AbstractDataSource extends DataSourceMixin
   EntityLookup _entityLookup;
   LocalLookup _localLookup;
 
-  AbstractDataSource({this.useDataKinds: false});
+  IndexedSource<String> _stringIndex;
+  IndexedSource<Uri> _uriIndex;
+  IndexedSource<_MemberData> _memberNodeIndex;
+  IndexedSource<ImportEntity> _importIndex;
+
+  Map<Type, IndexedSource> _generalCaches = {};
+
+  AbstractDataSource({this.useDataKinds: false}) {
+    _stringIndex = new IndexedSource<String>(this);
+    _uriIndex = new IndexedSource<Uri>(this);
+    _memberNodeIndex = new IndexedSource<_MemberData>(this);
+    _importIndex = new IndexedSource<ImportEntity>(this);
+  }
 
   void begin(String tag) {
     if (useDataKinds) _begin(tag);
@@ -51,6 +63,12 @@ abstract class AbstractDataSource extends DataSourceMixin
   LocalLookup get localLookup {
     assert(_localLookup != null);
     return _localLookup;
+  }
+
+  @override
+  E readCached<E>(E f()) {
+    IndexedSource source = _generalCaches[E] ??= new IndexedSource<E>(this);
+    return source.read(f);
   }
 
   IndexedLibrary readLibrary() {
@@ -98,8 +116,8 @@ abstract class AbstractDataSource extends DataSourceMixin
   SourceSpan readSourceSpan() {
     _checkDataKind(DataKind.sourceSpan);
     Uri uri = _readUri();
-    int begin = _readInt();
-    int end = _readInt();
+    int begin = _readIntInternal();
+    int end = _readIntInternal();
     return new SourceSpan(uri, begin, end);
   }
 
@@ -173,7 +191,11 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   _MemberData _readMemberData() {
-    MemberContextKind kind = _readEnum(MemberContextKind.values);
+    return _memberNodeIndex.read(_readMemberDataInternal);
+  }
+
+  _MemberData _readMemberDataInternal() {
+    MemberContextKind kind = _readEnumInternal(MemberContextKind.values);
     switch (kind) {
       case MemberContextKind.cls:
         _ClassData cls = _readClassData();
@@ -205,6 +227,18 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _readClassData().node;
   }
 
+  ir.Typedef _readTypedefNode() {
+    _LibraryData library = _readLibraryData();
+    String name = _readString();
+    return library.lookupTypedef(name);
+  }
+
+  @override
+  ir.Typedef readTypedefNode() {
+    _checkDataKind(DataKind.typedefNode);
+    return _readTypedefNode();
+  }
+
   _LibraryData _readLibraryData() {
     Uri canonicalUri = _readUri();
     return componentLookup.getLibraryDataByUri(canonicalUri);
@@ -219,7 +253,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   @override
   E readEnum<E>(List<E> values) {
     _checkDataKind(DataKind.enumValue);
-    return _readEnum(values);
+    return _readEnumInternal(values);
   }
 
   @override
@@ -228,10 +262,18 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _readUri();
   }
 
+  Uri _readUri() {
+    return _uriIndex.read(_readUriInternal);
+  }
+
   @override
   bool readBool() {
     _checkDataKind(DataKind.bool);
-    int value = _readInt();
+    return _readBool();
+  }
+
+  bool _readBool() {
+    int value = _readIntInternal();
     assert(value == 0 || value == 1);
     return value == 1;
   }
@@ -242,10 +284,14 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _readString();
   }
 
+  String _readString() {
+    return _stringIndex.read(_readStringInternal);
+  }
+
   @override
   int readInt() {
     _checkDataKind(DataKind.int);
-    return _readInt();
+    return _readIntInternal();
   }
 
   @override
@@ -261,17 +307,14 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   ConstantValue _readConstant() {
-    ConstantValueKind kind = _readEnum(ConstantValueKind.values);
-    ConstantValue constant;
+    ConstantValueKind kind = _readEnumInternal(ConstantValueKind.values);
     switch (kind) {
       case ConstantValueKind.BOOL:
         bool value = readBool();
-        constant = new BoolConstantValue(value);
-        break;
+        return new BoolConstantValue(value);
       case ConstantValueKind.INT:
         BigInt value = BigInt.parse(readString());
-        constant = new IntConstantValue(value);
-        break;
+        return new IntConstantValue(value);
       case ConstantValueKind.DOUBLE:
         ByteData data = new ByteData(8);
         data.setUint16(0, readInt());
@@ -279,24 +322,51 @@ abstract class AbstractDataSource extends DataSourceMixin
         data.setUint16(4, readInt());
         data.setUint16(6, readInt());
         double value = data.getFloat64(0);
-        constant = new DoubleConstantValue(value);
-        break;
+        return new DoubleConstantValue(value);
       case ConstantValueKind.STRING:
         String value = readString();
-        constant = new StringConstantValue(value);
-        break;
+        return new StringConstantValue(value);
       case ConstantValueKind.NULL:
-        constant = const NullConstantValue();
-        break;
-      default:
-        // TODO(johnniwinther): Support remaining constant values.
-        throw new UnsupportedError("Unexpected constant value kind ${kind}.");
+        return const NullConstantValue();
+      case ConstantValueKind.FUNCTION:
+        IndexedFunction function = readMember();
+        DartType type = readDartType();
+        return new FunctionConstantValue(function, type);
+      case ConstantValueKind.LIST:
+        DartType type = readDartType();
+        List<ConstantValue> entries = readConstants();
+        return new ListConstantValue(type, entries);
+      case ConstantValueKind.MAP:
+        DartType type = readDartType();
+        List<ConstantValue> keys = readConstants();
+        List<ConstantValue> values = readConstants();
+        return new MapConstantValue(type, keys, values);
+      case ConstantValueKind.CONSTRUCTED:
+        InterfaceType type = readDartType();
+        Map<FieldEntity, ConstantValue> fields =
+            readMemberMap<FieldEntity, ConstantValue>(() => readConstant());
+        return new ConstructedConstantValue(type, fields);
+      case ConstantValueKind.TYPE:
+        DartType representedType = readDartType();
+        DartType type = readDartType();
+        return new TypeConstantValue(representedType, type);
+      case ConstantValueKind.INSTANTIATION:
+        List<DartType> typeArguments = readDartTypes();
+        ConstantValue function = readConstant();
+        return new InstantiationConstantValue(typeArguments, function);
+      case ConstantValueKind.NON_CONSTANT:
+        return new NonConstantValue();
+      case ConstantValueKind.DEFERRED_GLOBAL:
+      case ConstantValueKind.INTERCEPTOR:
+      case ConstantValueKind.SYNTHETIC:
+        // These are only created in the SSA graph builder.
+        throw new UnsupportedError("Unsupported constant value kind ${kind}.");
     }
-    return constant;
+    throw new UnsupportedError("Unexpexted constant value kind ${kind}.");
   }
 
   ir.TreeNode _readTreeNode() {
-    _TreeNodeKind kind = _readEnum(_TreeNodeKind.values);
+    _TreeNodeKind kind = _readEnumInternal(_TreeNodeKind.values);
     switch (kind) {
       case _TreeNodeKind.cls:
         return _readClassData().node;
@@ -311,7 +381,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         return _readTypeParameter();
       case _TreeNodeKind.node:
         _MemberData data = _readMemberData();
-        int index = _readInt();
+        int index = _readIntInternal();
         ir.TreeNode treeNode = data.getTreeNodeByIndex(index);
         assert(treeNode != null,
             "No TreeNode found for index $index in ${data.node}.$_errorContext");
@@ -321,7 +391,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   ir.FunctionNode _readFunctionNode() {
-    _FunctionNodeKind kind = _readEnum(_FunctionNodeKind.values);
+    _FunctionNodeKind kind = _readEnumInternal(_FunctionNodeKind.values);
     switch (kind) {
       case _FunctionNodeKind.procedure:
         ir.Procedure procedure = _readMemberData().node;
@@ -346,21 +416,21 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   ir.TypeParameter _readTypeParameter() {
-    _TypeParameterKind kind = _readEnum(_TypeParameterKind.values);
+    _TypeParameterKind kind = _readEnumInternal(_TypeParameterKind.values);
     switch (kind) {
       case _TypeParameterKind.cls:
         ir.Class cls = _readClassData().node;
-        return cls.typeParameters[_readInt()];
+        return cls.typeParameters[_readIntInternal()];
       case _TypeParameterKind.functionNode:
         ir.FunctionNode functionNode = _readFunctionNode();
-        return functionNode.typeParameters[_readInt()];
+        return functionNode.typeParameters[_readIntInternal()];
     }
     throw new UnsupportedError("Unexpected _TypeParameterKind kind $kind");
   }
 
   void _checkDataKind(DataKind expectedKind) {
     if (!useDataKinds) return;
-    DataKind actualKind = _readEnum(DataKind.values);
+    DataKind actualKind = _readEnumInternal(DataKind.values);
     assert(
         actualKind == expectedKind,
         "Invalid data kind. "
@@ -391,6 +461,24 @@ abstract class AbstractDataSource extends DataSourceMixin
     throw new UnsupportedError("Unexpected local kind $kind");
   }
 
+  @override
+  ImportEntity readImport() {
+    _checkDataKind(DataKind.import);
+    return _readImport();
+  }
+
+  ImportEntity _readImport() {
+    return _importIndex.read(_readImportInternal);
+  }
+
+  ImportEntity _readImportInternal() {
+    String name = readStringOrNull();
+    Uri uri = _readUri();
+    Uri enclosingLibraryUri = _readUri();
+    bool isDeferred = _readBool();
+    return new ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
+  }
+
   /// Actual deserialization of a section begin tag, implemented by subclasses.
   void _begin(String tag);
 
@@ -398,18 +486,18 @@ abstract class AbstractDataSource extends DataSourceMixin
   void _end(String tag);
 
   /// Actual deserialization of a string value, implemented by subclasses.
-  String _readString();
+  String _readStringInternal();
 
   /// Actual deserialization of a non-negative integer value, implemented by
   /// subclasses.
-  int _readInt();
+  int _readIntInternal();
 
   /// Actual deserialization of a URI value, implemented by subclasses.
-  Uri _readUri();
+  Uri _readUriInternal();
 
   /// Actual deserialization of an enum value in [values], implemented by
   /// subclasses.
-  E _readEnum<E>(List<E> values);
+  E _readEnumInternal<E>(List<E> values);
 
   /// Returns a string representation of the current state of the data source
   /// useful for debugging in consistencies between serialization and

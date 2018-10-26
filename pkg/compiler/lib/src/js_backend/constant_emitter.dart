@@ -385,11 +385,6 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   @override
-  jsAst.Expression visitDeferred(DeferredConstantValue constant, [_]) {
-    return constantReferenceGenerator(constant.referenced);
-  }
-
-  @override
   jsAst.Expression visitDeferredGlobal(DeferredGlobalConstantValue constant,
       [_]) {
     return constantReferenceGenerator(constant.referenced);

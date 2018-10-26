@@ -15,7 +15,8 @@ import '../../common.dart';
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../deferred_load.dart' show OutputUnit, OutputUnitData;
+import '../../deferred_load.dart'
+    show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -1489,7 +1490,7 @@ class Emitter extends js_emitter.EmitterBase {
     }
 
     createDeferredLoadingData(
-        compiler.deferredLoadTask.hunksToLoad, deferredLoadHashes, store);
+        _closedWorld.outputUnitData.hunksToLoad, deferredLoadHashes, store);
 
     return new jsAst.Block(parts);
   }
@@ -1516,8 +1517,10 @@ class Emitter extends js_emitter.EmitterBase {
         if (index == null) {
           index = fragmentIndexes[fragment] = fragmentIndexes.length;
           uris.add(js.escapedString(
-              compiler.deferredLoadTask.deferredPartFileName(fragment.name)));
-          hashes.add(deferredLoadHashes[fragment]);
+              deferredPartFileName(compiler.options, fragment.name)));
+          _DeferredOutputUnitHash hash = deferredLoadHashes[fragment];
+          assert(hash != null, "No hash for $fragment in $deferredLoadHashes.");
+          hashes.add(hash);
         }
         indexes.add(js.number(index));
       }
@@ -1632,8 +1635,9 @@ class Emitter extends js_emitter.EmitterBase {
         outputListeners.add(locationCollector);
       }
 
-      String partPrefix = compiler.deferredLoadTask
-          .deferredPartFileName(outputUnit.name, addExtension: false);
+      String partPrefix = deferredPartFileName(
+          compiler.options, outputUnit.name,
+          addExtension: false);
       CodeOutput output = new StreamCodeOutput(
           compiler.outputProvider
               .createOutputSink(partPrefix, 'part.js', OutputType.jsPart),
@@ -1710,7 +1714,8 @@ class Emitter extends js_emitter.EmitterBase {
     // data.
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
-    mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
+    mapping.addAll(_closedWorld.outputUnitData
+        .computeDeferredMap(compiler.options, _elementEnvironment));
     compiler.outputProvider.createOutputSink(
         compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))

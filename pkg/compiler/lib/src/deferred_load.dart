@@ -8,13 +8,12 @@ import 'dart:collection' show Queue;
 
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'common_elements.dart' show KElementEnvironment;
+import 'common_elements.dart' show ElementEnvironment, KElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
     show
         ConstantValue,
         ConstructedConstantValue,
-        DeferredConstantValue,
         TypeConstantValue,
         DeferredGlobalConstantValue,
         InstantiationConstantValue;
@@ -23,6 +22,7 @@ import 'elements/entities.dart';
 import 'kernel/kelements.dart' show KLocalFunction;
 import 'library_loader.dart';
 import 'serialization/serialization.dart';
+import 'options.dart';
 import 'universe/use.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -99,16 +99,6 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
 
-  /// A mapping from the name of a defer import to all the output units it
-  /// depends on in a list of lists to be loaded in the order they appear.
-  ///
-  /// For example {"lib1": [[lib1_lib2_lib3], [lib1_lib2, lib1_lib3],
-  /// [lib1]]} would mean that in order to load "lib1" first the hunk
-  /// lib1_lib2_lib2 should be loaded, then the hunks lib1_lib2 and lib1_lib3
-  /// can be loaded in parallel. And finally lib1 can be loaded.
-  final Map<String, List<OutputUnit>> hunksToLoad =
-      new Map<String, List<OutputUnit>>();
-
   /// A cache of the result of calling `computeImportDeferName` on the keys of
   /// this map.
   final Map<ImportEntity, String> _importDeferName = <ImportEntity, String>{};
@@ -127,7 +117,7 @@ abstract class DeferredLoadTask extends CompilerTask {
   Map<ConstantValue, ImportSet> _constantToSet =
       new Map<ConstantValue, ImportSet>();
 
-  Iterable<ImportEntity> get allDeferredImports =>
+  Iterable<ImportEntity> get _allDeferredImports =>
       _deferredImportDescriptions.keys;
 
   /// Because the token-stream is forgotten later in the program, we cache a
@@ -151,29 +141,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
   DiagnosticReporter get reporter => compiler.reporter;
-
-  /// Returns the unique name for the given deferred [import].
-  String getImportDeferName(Spannable node, ImportEntity import) {
-    String name = _importDeferName[import];
-    if (name == null) {
-      reporter.internalError(node, "No deferred name for $import.");
-    }
-    return name;
-  }
-
-  /// Returns the names associated with each deferred import in [unit].
-  Iterable<String> getImportNames(OutputUnit unit) {
-    return unit._imports.map((i) => _importDeferName[i]);
-  }
-
-  void registerConstantDeferredUse(
-      DeferredConstantValue constant, ImportEntity import) {
-    if (!isProgramSplit || disableProgramSplit) return;
-    var newSet = importSets.singleton(import);
-    assert(
-        _constantToSet[constant] == null || _constantToSet[constant] == newSet);
-    _constantToSet[constant] = newSet;
-  }
 
   /// Given [imports] that refer to an element from a library, determine whether
   /// the element is explicitly deferred.
@@ -554,16 +521,6 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
 
     for (ConstantValue dependency in dependencies.constants) {
-      // TODO(sigmund): either delete DeferredConstantValue or use it to
-      // represent deferred TypeConstantValues below.
-      if (dependency is DeferredConstantValue) {
-        if (_shouldAddDeferredDependency(newSet)) {
-          queue.addConstant(
-              dependency, importSets.singleton(dependency.import));
-        }
-        continue;
-      }
-
       if (dependency is TypeConstantValue) {
         var type = dependency.representedType;
         var imports = const <ImportEntity>[];
@@ -618,10 +575,11 @@ abstract class DeferredLoadTask extends CompilerTask {
     _allOutputUnits.sort();
   }
 
-  void _setupHunksToLoad() {
+  Map<String, List<OutputUnit>> _setupHunksToLoad() {
+    Map<String, List<OutputUnit>> hunksToLoad = {};
     Set<String> usedImportNames = new Set<String>();
 
-    for (ImportEntity import in allDeferredImports) {
+    for (ImportEntity import in _allDeferredImports) {
       String result = computeImportDeferName(import, compiler);
       assert(result != null);
       // Note: tools that process the json file to build multi-part initial load
@@ -645,7 +603,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     List<OutputUnit> sortedOutputUnits = _allOutputUnits.reversed.toList();
 
     // For each deferred import we find out which outputUnits to load.
-    for (ImportEntity import in allDeferredImports) {
+    for (ImportEntity import in _allDeferredImports) {
       // We expect to find an entry for any call to `loadLibrary`, even if
       // there is no code to load. In that case, the entry will be an empty
       // list.
@@ -657,6 +615,7 @@ abstract class DeferredLoadTask extends CompilerTask {
         }
       }
     }
+    return hunksToLoad;
   }
 
   /// Returns a name for a deferred import.
@@ -794,7 +753,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   OutputUnitData _buildResult() {
     _createOutputUnits();
-    _setupHunksToLoad();
+    Map<String, List<OutputUnit>> hunksToLoad = _setupHunksToLoad();
     Map<ClassEntity, OutputUnit> classMap = <ClassEntity, OutputUnit>{};
     Map<MemberEntity, OutputUnit> memberMap = <MemberEntity, OutputUnit>{};
     Map<Local, OutputUnit> localFunctionMap = <Local, OutputUnit>{};
@@ -817,7 +776,10 @@ abstract class DeferredLoadTask extends CompilerTask {
         memberMap,
         localFunctionMap,
         constantMap,
-        _allOutputUnits);
+        _allOutputUnits,
+        _importDeferName,
+        hunksToLoad,
+        _deferredImportDescriptions);
   }
 
   /// Frees up strategy-specific temporary data.
@@ -845,62 +807,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// These checks are already done by the shared front-end, so they can be
   /// skipped by the new compiler pipeline.
   void checkForDeferredErrorCases(LibraryEntity library);
-
-  /// Returns a json-style map for describing what files that are loaded by a
-  /// given deferred import.
-  /// The mapping is structured as:
-  /// library uri -> {"name": library name, "files": (prefix -> list of files)}
-  /// Where
-  ///
-  /// - <library uri> is the relative uri of the library making a deferred
-  ///   import.
-  /// - <library name> is the name of the library, or "<unnamed>" if it is
-  ///   unnamed.
-  /// - <prefix> is the `as` prefix used for a given deferred import.
-  /// - <list of files> is a list of the filenames the must be loaded when that
-  ///   import is loaded.
-  Map<String, Map<String, dynamic>> computeDeferredMap(
-      {Set<OutputUnit> omittedUnits}) {
-    omittedUnits ??= Set();
-    Map<String, Map<String, dynamic>> mapping = {};
-
-    _deferredImportDescriptions.keys.forEach((ImportEntity import) {
-      List<OutputUnit> outputUnits = hunksToLoad[_importDeferName[import]];
-      ImportDescription description = _deferredImportDescriptions[import];
-      String getName(LibraryEntity library) {
-        var name = elementEnvironment.getLibraryName(library);
-        return name == '' ? '<unnamed>' : name;
-      }
-
-      Map<String, dynamic> libraryMap = mapping.putIfAbsent(
-          description.importingUri,
-          () => <String, dynamic>{
-                "name": getName(description._importingLibrary),
-                "imports": <String, List<String>>{}
-              });
-
-      List<String> partFileNames = outputUnits
-          .where((outputUnit) => !omittedUnits.contains(outputUnit))
-          .map((outputUnit) => deferredPartFileName(outputUnit.name))
-          .toList();
-      libraryMap["imports"][_importDeferName[import]] = partFileNames;
-    });
-    return mapping;
-  }
-
-  /// Returns the filename for the output-unit named [name].
-  ///
-  /// The filename is of the form "<main output file>_<name>.part.js".
-  /// If [addExtension] is false, the ".part.js" suffix is left out.
-  String deferredPartFileName(String name, {bool addExtension: true}) {
-    assert(name != "");
-    String outPath = compiler.options.outputUri != null
-        ? compiler.options.outputUri.path
-        : "out";
-    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
-    String extension = addExtension ? ".part.js" : "";
-    return "${outName}_$name$extension";
-  }
 
   bool ignoreEntityInDump(Entity element) => false;
 
@@ -995,12 +901,16 @@ class ImportDescription {
 
   final LibraryEntity _importingLibrary;
 
+  ImportDescription.internal(
+      this.importingUri, this.prefix, this._importingLibrary);
+
   ImportDescription(
       ImportEntity import, LibraryEntity importingLibrary, Uri mainLibraryUri)
-      : importingUri = uri_extras.relativize(
-            mainLibraryUri, importingLibrary.canonicalUri, false),
-        prefix = import.name,
-        _importingLibrary = importingLibrary;
+      : this.internal(
+            uri_extras.relativize(
+                mainLibraryUri, importingLibrary.canonicalUri, false),
+            import.name,
+            importingLibrary);
 }
 
 /// Indirectly represents a deferred import in an [ImportSet].
@@ -1283,6 +1193,20 @@ class OutputUnitData {
   final Map<Local, OutputUnit> _localFunctionToUnit;
   final Map<ConstantValue, OutputUnit> _constantToUnit;
   final Iterable<OutputUnit> outputUnits;
+  final Map<ImportEntity, String> _importDeferName;
+
+  /// A mapping from the name of a defer import to all the output units it
+  /// depends on in a list of lists to be loaded in the order they appear.
+  ///
+  /// For example {"lib1": [[lib1_lib2_lib3], [lib1_lib2, lib1_lib3],
+  /// [lib1]]} would mean that in order to load "lib1" first the hunk
+  /// lib1_lib2_lib2 should be loaded, then the hunks lib1_lib2 and lib1_lib3
+  /// can be loaded in parallel. And finally lib1 can be loaded.
+  final Map<String, List<OutputUnit>> hunksToLoad;
+
+  /// Because the token-stream is forgotten later in the program, we cache a
+  /// description of each deferred import.
+  final Map<ImportEntity, ImportDescription> _deferredImportDescriptions;
 
   OutputUnitData(
       this.isProgramSplit,
@@ -1291,11 +1215,15 @@ class OutputUnitData {
       this._memberToUnit,
       this._localFunctionToUnit,
       this._constantToUnit,
-      this.outputUnits);
+      this.outputUnits,
+      this._importDeferName,
+      this.hunksToLoad,
+      this._deferredImportDescriptions);
 
   // Creates J-world data from the K-world data.
-  OutputUnitData.from(
+  factory OutputUnitData.from(
       OutputUnitData other,
+      LibraryEntity convertLibrary(LibraryEntity library),
       Map<ClassEntity, OutputUnit> Function(
               Map<ClassEntity, OutputUnit>, Map<Local, OutputUnit>)
           convertClassMap,
@@ -1303,35 +1231,44 @@ class OutputUnitData {
               Map<MemberEntity, OutputUnit>, Map<Local, OutputUnit>)
           convertMemberMap,
       Map<ConstantValue, OutputUnit> Function(Map<ConstantValue, OutputUnit>)
-          convertConstantMap)
-      : isProgramSplit = other.isProgramSplit,
-        mainOutputUnit = other.mainOutputUnit,
-        this.outputUnits = other.outputUnits,
-        _memberToUnit =
-            convertMemberMap(other._memberToUnit, other._localFunctionToUnit),
-        _classToUnit =
-            convertClassMap(other._classToUnit, other._localFunctionToUnit),
+          convertConstantMap) {
+    Map<ClassEntity, OutputUnit> classToUnit =
+        convertClassMap(other._classToUnit, other._localFunctionToUnit);
+    Map<MemberEntity, OutputUnit> memberToUnit =
+        convertMemberMap(other._memberToUnit, other._localFunctionToUnit);
+    Map<ConstantValue, OutputUnit> constantToUnit =
+        convertConstantMap(other._constantToUnit);
+    Map<ImportEntity, ImportDescription> deferredImportDescriptions = {};
+    other._deferredImportDescriptions
+        .forEach((ImportEntity import, ImportDescription description) {
+      deferredImportDescriptions[import] = new ImportDescription.internal(
+          description.importingUri,
+          description.prefix,
+          convertLibrary(description._importingLibrary));
+    });
+
+    return new OutputUnitData(
+        other.isProgramSplit,
+        other.mainOutputUnit,
+        classToUnit,
+        memberToUnit,
         // Local functions only make sense in the K-world model.
-        _localFunctionToUnit = const <Local, OutputUnit>{},
-        _constantToUnit = convertConstantMap(other._constantToUnit);
+        const <Local, OutputUnit>{},
+        constantToUnit,
+        other.outputUnits,
+        other._importDeferName,
+        other.hunksToLoad,
+        deferredImportDescriptions);
+  }
 
   /// Deserializes an [OutputUnitData] object from [source].
   factory OutputUnitData.readFromDataSource(DataSource source) {
     source.begin(tag);
     bool isProgramSplit = source.readBool();
-    List<ImportEntity> imports = source.readList(() {
-      String name = source.readString();
-      Uri uri = source.readUri();
-      Uri enclosingLibraryUri = source.readUri();
-      bool isDeferred = source.readBool();
-      return new ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
-    });
     List<OutputUnit> outputUnits = source.readList(() {
       bool isMainOutput = source.readBool();
       String name = source.readString();
-      Set<ImportEntity> importSet = source.readList(() {
-        return imports[source.readInt()];
-      }).toSet();
+      Set<ImportEntity> importSet = source.readImports().toSet();
       return new OutputUnit(isMainOutput, name, importSet);
     });
     OutputUnit mainOutputUnit = outputUnits[source.readInt()];
@@ -1345,6 +1282,21 @@ class OutputUnitData {
     Map<ConstantValue, OutputUnit> constantToUnit = source.readConstantMap(() {
       return outputUnits[source.readInt()];
     });
+    Map<ImportEntity, String> importDeferName =
+        source.readImportMap(source.readString);
+    Map<String, List<OutputUnit>> hunksToLoad = source.readStringMap(() {
+      return source.readList(() {
+        return outputUnits[source.readInt()];
+      });
+    });
+    Map<ImportEntity, ImportDescription> deferredImportDescriptions =
+        source.readImportMap(() {
+      String importingUri = source.readString();
+      String prefix = source.readString();
+      LibraryEntity importingLibrary = source.readLibrary();
+      return new ImportDescription.internal(
+          importingUri, prefix, importingLibrary);
+    });
     source.end(tag);
     return new OutputUnitData(
         isProgramSplit,
@@ -1354,33 +1306,22 @@ class OutputUnitData {
         // Local functions only make sense in the K-world model.
         const <Local, OutputUnit>{},
         constantToUnit,
-        outputUnits);
+        outputUnits,
+        importDeferName,
+        hunksToLoad,
+        deferredImportDescriptions);
   }
 
   /// Serializes this [OutputUnitData] to [sink].
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeBool(isProgramSplit);
-    Map<ImportEntity, int> importIndex = {};
-    for (OutputUnit outputUnit in outputUnits) {
-      for (ImportEntity import in outputUnit._imports) {
-        importIndex[import] ??= importIndex.length;
-      }
-    }
-    sink.writeList(importIndex.keys, (ImportEntity import) {
-      sink.writeString(import.name);
-      sink.writeUri(import.uri);
-      sink.writeUri(import.enclosingLibraryUri);
-      sink.writeBool(import.isDeferred);
-    });
     Map<OutputUnit, int> outputUnitIndices = {};
     sink.writeList(outputUnits, (OutputUnit outputUnit) {
       outputUnitIndices[outputUnit] = outputUnitIndices.length;
       sink.writeBool(outputUnit.isMainOutput);
       sink.writeString(outputUnit.name);
-      sink.writeList(outputUnit._imports, (ImportEntity import) {
-        sink.writeInt(importIndex[import]);
-      });
+      sink.writeImports(outputUnit._imports);
     });
     sink.writeInt(outputUnitIndices[mainOutputUnit]);
     sink.writeClassMap(_classToUnit, (OutputUnit outputUnit) {
@@ -1391,6 +1332,19 @@ class OutputUnitData {
     });
     sink.writeConstantMap(_constantToUnit, (OutputUnit outputUnit) {
       sink.writeInt(outputUnitIndices[outputUnit]);
+    });
+    sink.writeImportMap(_importDeferName, sink.writeString);
+    sink.writeStringMap(hunksToLoad, (List<OutputUnit> outputUnits) {
+      sink.writeList(
+          outputUnits,
+          (OutputUnit outputUnit) =>
+              sink.writeInt(outputUnitIndices[outputUnit]));
+    });
+    sink.writeImportMap(_deferredImportDescriptions,
+        (ImportDescription importDescription) {
+      sink.writeString(importDescription.importingUri);
+      sink.writeString(importDescription.prefix);
+      sink.writeLibrary(importDescription._importingLibrary);
     });
     sink.end(tag);
   }
@@ -1459,6 +1413,77 @@ class OutputUnitData {
     assert(_memberToUnit[newEntity] == null);
     _memberToUnit[newEntity] = outputUnitForMember(existingEntity);
   }
+
+  /// Returns the unique name for the given deferred [import].
+  String getImportDeferName(Spannable node, ImportEntity import) {
+    String name = _importDeferName[import];
+    if (name == null) {
+      throw new SpannableAssertionFailure(
+          node, "No deferred name for $import.");
+    }
+    return name;
+  }
+
+  /// Returns the names associated with each deferred import in [unit].
+  Iterable<String> getImportNames(OutputUnit unit) {
+    return unit._imports.map((i) => _importDeferName[i]);
+  }
+
+  /// Returns a json-style map for describing what files that are loaded by a
+  /// given deferred import.
+  /// The mapping is structured as:
+  /// library uri -> {"name": library name, "files": (prefix -> list of files)}
+  /// Where
+  ///
+  /// - <library uri> is the relative uri of the library making a deferred
+  ///   import.
+  /// - <library name> is the name of the library, or "<unnamed>" if it is
+  ///   unnamed.
+  /// - <prefix> is the `as` prefix used for a given deferred import.
+  /// - <list of files> is a list of the filenames the must be loaded when that
+  ///   import is loaded.
+  Map<String, Map<String, dynamic>> computeDeferredMap(
+      CompilerOptions options, ElementEnvironment elementEnvironment,
+      {Set<OutputUnit> omittedUnits}) {
+    omittedUnits ??= Set();
+    Map<String, Map<String, dynamic>> mapping = {};
+
+    _deferredImportDescriptions.keys.forEach((ImportEntity import) {
+      List<OutputUnit> outputUnits = hunksToLoad[_importDeferName[import]];
+      ImportDescription description = _deferredImportDescriptions[import];
+      String getName(LibraryEntity library) {
+        var name = elementEnvironment.getLibraryName(library);
+        return name == '' ? '<unnamed>' : name;
+      }
+
+      Map<String, dynamic> libraryMap = mapping.putIfAbsent(
+          description.importingUri,
+          () => <String, dynamic>{
+                "name": getName(description._importingLibrary),
+                "imports": <String, List<String>>{}
+              });
+
+      List<String> partFileNames = outputUnits
+          .where((outputUnit) => !omittedUnits.contains(outputUnit))
+          .map((outputUnit) => deferredPartFileName(options, outputUnit.name))
+          .toList();
+      libraryMap["imports"][_importDeferName[import]] = partFileNames;
+    });
+    return mapping;
+  }
+}
+
+/// Returns the filename for the output-unit named [name].
+///
+/// The filename is of the form "<main output file>_<name>.part.js".
+/// If [addExtension] is false, the ".part.js" suffix is left out.
+String deferredPartFileName(CompilerOptions options, String name,
+    {bool addExtension: true}) {
+  assert(name != "");
+  String outPath = options.outputUri != null ? options.outputUri.path : "out";
+  String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
+  String extension = addExtension ? ".part.js" : "";
+  return "${outName}_$name$extension";
 }
 
 class Dependencies {
