@@ -130,7 +130,7 @@ abstract class TestSuite {
     };
     if (configuration.copyCoreDumps && Platform.isWindows) {
       _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-          new Path(buildDir + '/crashpad_handler.exe').toNativePath();
+          new Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
     }
   }
 
