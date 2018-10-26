@@ -5,14 +5,11 @@
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -186,8 +183,7 @@ class BaseFixProcessorTest extends AbstractSingleUnitTest {
    * Computes fixes for the given [error] in [testUnit].
    */
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    DartFixContext fixContext = new _DartFixContextImpl(
-        resourceProvider, driver, testUnit, error, await _computeErrors());
+    var fixContext = new DartFixContextImpl(testAnalysisResult, error);
     return await new DartFixContributor().computeFixes(fixContext);
   }
 
@@ -356,7 +352,8 @@ part 'my_part.dart';
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
     driver.configure(sourceFactory: sourceFactory);
-    testUnit = (await driver.getResult(convertPath(testFile))).unit;
+    testAnalysisResult = await driver.getResult(convertPath(testFile));
+    testUnit = testAnalysisResult.unit;
     // prepare fix
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
@@ -3741,28 +3738,4 @@ Function finalVar() {
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
-}
-
-class _DartFixContextImpl implements DartFixContext {
-  @override
-  final ResourceProvider resourceProvider;
-
-  @override
-  final AnalysisDriver analysisDriver;
-
-  @override
-  final CompilationUnit unit;
-
-  @override
-  final AnalysisError error;
-
-  @override
-  final List<AnalysisError> errors;
-
-  _DartFixContextImpl(this.resourceProvider, this.analysisDriver, this.unit,
-      this.error, this.errors);
-
-  @override
-  GetTopLevelDeclarations get getTopLevelDeclarations =>
-      analysisDriver.getTopLevelNameDeclarations;
 }

@@ -120,8 +120,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   ExtractMethodRefactoringImpl(this.searchEngine, this.resolveResult,
       this.selectionOffset, this.selectionLength) {
     selectionRange = new SourceRange(selectionOffset, selectionLength);
-    utils =
-        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
+    utils = new CorrectionUtils(resolveResult);
   }
 
   @override
@@ -392,8 +391,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
     }
     // done
-    addLibraryImports(resolveResult.session.resourceProvider.pathContext,
-        change, resolveResult.libraryElement, librariesToImport);
+    await addLibraryImports(resolveResult.session, change,
+        resolveResult.libraryElement, librariesToImport);
     return change;
   }
 

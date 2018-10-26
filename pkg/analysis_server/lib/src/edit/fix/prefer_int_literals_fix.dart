@@ -7,8 +7,8 @@ import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 
 class PreferIntLiteralsFix extends LinterFix {
   final literalsToConvert = <DoubleLiteral>[];
@@ -16,11 +16,12 @@ class PreferIntLiteralsFix extends LinterFix {
   PreferIntLiteralsFix(EditDartFix dartFix) : super(dartFix);
 
   @override
-  Future<void> applyLocalFixes(AnalysisResult result) async {
+  Future<void> applyLocalFixes(ResolveResult result) async {
     while (literalsToConvert.isNotEmpty) {
       DoubleLiteral literal = literalsToConvert.removeLast();
       AssistProcessor processor = new AssistProcessor(
-          new EditDartFixAssistContext(dartFix, source, result.unit, literal));
+        new DartAssistContextImpl(result, literal.offset, 0),
+      );
       List<Assist> assists =
           await processor.computeAssist(DartAssistKind.CONVERT_TO_INT_LITERAL);
       final location = dartFix.locationDescription(result, literal.offset);

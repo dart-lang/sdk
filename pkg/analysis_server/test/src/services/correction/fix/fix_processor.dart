@@ -5,12 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -168,9 +165,8 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    DartFixContext fixContext = new _DartFixContextImpl(
-        resourceProvider, driver, testUnit, error, await _computeErrors());
-    return await new DartFixContributor().computeFixes(fixContext);
+    var context = new DartFixContextImpl(testAnalysisResult, error);
+    return await new DartFixContributor().computeFixes(context);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,
@@ -217,29 +213,4 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     }
     return positions;
   }
-}
-
-/// A Dart fix context optimized for testing.
-class _DartFixContextImpl implements DartFixContext {
-  @override
-  final ResourceProvider resourceProvider;
-
-  @override
-  final AnalysisDriver analysisDriver;
-
-  @override
-  final CompilationUnit unit;
-
-  @override
-  final AnalysisError error;
-
-  @override
-  final List<AnalysisError> errors;
-
-  _DartFixContextImpl(this.resourceProvider, this.analysisDriver, this.unit,
-      this.error, this.errors);
-
-  @override
-  GetTopLevelDeclarations get getTopLevelDeclarations =>
-      analysisDriver.getTopLevelNameDeclarations;
 }

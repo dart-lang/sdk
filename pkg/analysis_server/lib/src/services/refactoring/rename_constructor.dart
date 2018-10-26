@@ -122,8 +122,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var result = await AnalysisSessionHelper(session)
         .getElementDeclaration(classElement);
     ClassDeclaration classNode = result.declaration;
-    var utils = new CorrectionUtils(classNode.parent,
-        buffer: result.resolveResult.content);
+    var utils = new CorrectionUtils(result.resolveResult);
     var location = utils.prepareNewConstructorLocation(classNode);
     doSourceChange_addElementEdit(
         change,

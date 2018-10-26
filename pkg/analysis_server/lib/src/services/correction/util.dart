@@ -7,6 +7,8 @@ import 'dart:math';
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -15,7 +17,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
@@ -27,16 +28,11 @@ import 'package:path/path.dart' as pathos;
  * Adds edits to the given [change] that ensure that all the [libraries] are
  * imported into the given [targetLibrary].
  */
-void addLibraryImports(pathos.Context pathContext, SourceChange change,
-    LibraryElement targetLibrary, Set<Source> libraries) {
-  CorrectionUtils libUtils;
-  try {
-    CompilationUnitElement unitElement = targetLibrary.definingCompilationUnit;
-    CompilationUnit unitAst = getParsedUnit(unitElement);
-    libUtils = new CorrectionUtils(unitAst);
-  } catch (e) {
-    throw new CancelCorrectionException(exception: e);
-  }
+Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
+    LibraryElement targetLibrary, Set<Source> libraries) async {
+  var libraryPath = targetLibrary.source.fullName;
+  var resolveResult = await session.getResolvedAst(libraryPath);
+  var libUtils = new CorrectionUtils(resolveResult);
   String eol = libUtils.endOfLine;
   // Prepare information about existing imports.
   LibraryDirective libraryDirective;
@@ -52,8 +48,8 @@ void addLibraryImports(pathos.Context pathContext, SourceChange change,
 
   // Prepare all URIs to import.
   List<String> uriList = libraries
-      .map((library) =>
-          getLibrarySourceUri(pathContext, targetLibrary, library.uri))
+      .map((library) => getLibrarySourceUri(
+          session.resourceProvider.pathContext, targetLibrary, library.uri))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
 
@@ -470,40 +466,6 @@ List<AstNode> getParents(AstNode node) {
 }
 
 /**
- * Returns a parsed [AstNode] for the given [classElement].
- *
- * The resulting AST structure may or may not be resolved.
- */
-AstNode getParsedClassElementNode(ClassElement classElement) {
-  CompilationUnitElement unitElement = getCompilationUnitElement(classElement);
-  CompilationUnit unit = getParsedUnit(unitElement);
-  int offset = classElement.nameOffset;
-  AstNode classNameNode = new NodeLocator(offset).searchWithin(unit);
-  if (classElement.isEnum) {
-    return classNameNode.getAncestor((node) => node is EnumDeclaration);
-  } else {
-    return classNameNode.getAncestor(
-        (node) => node is ClassDeclaration || node is ClassTypeAlias);
-  }
-}
-
-/**
- * Returns a parsed [CompilationUnit] for the given [unitElement].
- *
- * The resulting AST structure may or may not be resolved.
- * If it is not resolved, then at least the given [unitElement] will be set.
- */
-CompilationUnit getParsedUnit(CompilationUnitElement unitElement) {
-  AnalysisContext context = unitElement.context;
-  Source source = unitElement.source;
-  CompilationUnit unit = context.parseCompilationUnit(source);
-  if (unit.declaredElement == null) {
-    unit.element = unitElement;
-  }
-  return unit;
-}
-
-/**
  * If given [node] is name of qualified property extraction, returns target from
  * which this property is extracted, otherwise `null`.
  */
@@ -641,6 +603,8 @@ class ClassMemberLocation {
 
 class CorrectionUtils {
   final CompilationUnit unit;
+  final LibraryElement _library;
+  final String _buffer;
 
   /**
    * The [ClassElement] the generated code is inserted to, so we can decide if
@@ -650,20 +614,12 @@ class CorrectionUtils {
 
   ExecutableElement targetExecutableElement;
 
-  LibraryElement _library;
-  String _buffer;
   String _endOfLine;
 
-  CorrectionUtils(this.unit, {String buffer}) {
-    var unitElement = unit.declaredElement;
-    _library = unitElement.library;
-
-    if (buffer != null) {
-      _buffer = buffer;
-    } else {
-      _buffer = unitElement.context.getContents(unitElement.source).data;
-    }
-  }
+  CorrectionUtils(ResolveResult result)
+      : unit = result.unit,
+        _library = result.libraryElement,
+        _buffer = result.content;
 
   /**
    * Returns the EOL to use for this [CompilationUnit].

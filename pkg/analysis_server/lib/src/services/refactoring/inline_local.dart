@@ -36,8 +36,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   InlineLocalRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset) {
-    utils =
-        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
+    utils = new CorrectionUtils(resolveResult);
   }
 
   @override

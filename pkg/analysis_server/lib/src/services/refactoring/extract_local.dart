@@ -56,7 +56,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   ExtractLocalRefactoringImpl(
       this.resolveResult, this.selectionOffset, this.selectionLength) {
     selectionRange = new SourceRange(selectionOffset, selectionLength);
-    utils = new CorrectionUtils(unit, buffer: resolveResult.content);
+    utils = new CorrectionUtils(resolveResult);
   }
 
   String get file => resolveResult.path;

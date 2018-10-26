@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 /**
  * An object used to provide context information for Dart assist contributors.
@@ -13,9 +11,9 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class DartAssistContext {
   /**
-   * The analysis driver used to access analysis results.
+   * The resolution result in which assist operates.
    */
-  AnalysisDriver get analysisDriver;
+  ResolveResult get resolveResult;
 
   /**
    * The length of the selection.
@@ -26,14 +24,4 @@ abstract class DartAssistContext {
    * The start of the selection.
    */
   int get selectionOffset;
-
-  /**
-   * The source to get assists in.
-   */
-  Source get source;
-
-  /**
-   * The [CompilationUnit] to compute assists in.
-   */
-  CompilationUnit get unit;
 }

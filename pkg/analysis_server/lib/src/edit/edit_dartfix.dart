@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -12,10 +11,10 @@ import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -139,7 +138,7 @@ class EditDartFix {
         }
         continue;
       }
-      AnalysisResult result = await server.getAnalysisResult(res.path);
+      ResolveResult result = await server.getAnalysisResult(res.path);
       CompilationUnit unit = result?.unit;
       if (unit != null) {
         if (!hasErrors) {
@@ -151,7 +150,7 @@ class EditDartFix {
             }
           }
         }
-        Source source = result.sourceFactory.forUri2(result.uri);
+        Source source = result.unit.declaredElement.source;
         for (Linter linter in linters) {
           if (linter != null) {
             linter.reporter.source = source;
@@ -190,7 +189,7 @@ class EditDartFix {
         .toResponse(request.id);
   }
 
-  Future<bool> fixError(AnalysisResult result, AnalysisError error) async {
+  Future<bool> fixError(ResolveResult result, AnalysisError error) async {
     if (error.errorCode ==
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR) {
       // TODO(danrubel): Rather than comparing the error codes individually,
@@ -204,10 +203,7 @@ class EditDartFix {
     }
 
     final location = '${locationDescription(result, error.offset)}';
-    final dartContext = new DartFixContextImpl(
-        new FixContextImpl(
-            server.resourceProvider, result.driver, error, result.errors),
-        result.unit);
+    final dartContext = new DartFixContextImpl(result, error);
     final processor = new FixProcessor(dartContext);
     Fix fix = await processor.computeFix();
     if (fix != null) {
@@ -239,7 +235,7 @@ class EditDartFix {
   }
 
   /// Return a human readable description of the specified offset and file.
-  String locationDescription(AnalysisResult result, int offset) {
+  String locationDescription(ResolveResult result, int offset) {
     // TODO(danrubel): Pass the location back to the client along with the
     // message indicating what was or was not automatically fixed
     // rather than interpreting and integrating the location into the message.
@@ -264,29 +260,6 @@ class EditDartFix {
   }
 }
 
-class EditDartFixAssistContext implements DartAssistContext {
-  @override
-  final AnalysisDriver analysisDriver;
-
-  @override
-  final int selectionLength;
-
-  @override
-  final int selectionOffset;
-
-  @override
-  final Source source;
-
-  @override
-  final CompilationUnit unit;
-
-  EditDartFixAssistContext(
-      EditDartFix dartFix, this.source, this.unit, AstNode node)
-      : analysisDriver = dartFix.server.getAnalysisDriver(source.fullName),
-        selectionOffset = node.offset,
-        selectionLength = 0;
-}
-
 abstract class LinterFix implements ErrorReporter {
   final EditDartFix dartFix;
 
@@ -296,7 +269,7 @@ abstract class LinterFix implements ErrorReporter {
   LinterFix(this.dartFix);
 
   /// Apply fixes for the current compilation unit.
-  Future<void> applyLocalFixes(AnalysisResult result);
+  Future<void> applyLocalFixes(ResolveResult result);
 
   /// Apply any fixes remaining after analysis is complete.
   Future<void> applyRemainingFixes();

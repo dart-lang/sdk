@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -64,25 +62,9 @@ class Fix {
  */
 abstract class FixContext {
   /**
-   * The analysis driver used to access analysis results.
-   */
-  AnalysisDriver get analysisDriver;
-
-  /**
-   * The error to fix, should be reported by the given [analysisDriver].
+   * The error to fix.
    */
   AnalysisError get error;
-
-  /**
-   * All of the errors in the file. This is used to compute additional fixes
-   * such "Fix all instances in file."
-   */
-  List<AnalysisError> get errors;
-
-  /**
-   * The [ResourceProvider] to access files and folders.
-   */
-  ResourceProvider get resourceProvider;
 }
 
 /**

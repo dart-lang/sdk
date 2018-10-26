@@ -5,15 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:plugin/manager.dart';
@@ -6825,12 +6819,12 @@ main() {
   }
 
   Future<List<Assist>> _computeAssists() async {
-    CompilationUnitElement testUnitElement =
-        resolutionMap.elementDeclaredByCompilationUnit(testUnit);
-    DartAssistContext assistContext;
-    assistContext = new _DartAssistContextForValues(
-        testUnitElement.source, offset, length, driver, testUnit);
-    AssistProcessor processor = new AssistProcessor(assistContext);
+    var context = new DartAssistContextImpl(
+      testAnalysisResult,
+      offset,
+      length,
+    );
+    var processor = new AssistProcessor(context);
     return await processor.compute();
   }
 
@@ -6852,24 +6846,4 @@ main() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
   }
-}
-
-class _DartAssistContextForValues implements DartAssistContext {
-  @override
-  final Source source;
-
-  @override
-  final int selectionOffset;
-
-  @override
-  final int selectionLength;
-
-  @override
-  final AnalysisDriver analysisDriver;
-
-  @override
-  final CompilationUnit unit;
-
-  _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisDriver, this.unit);
 }

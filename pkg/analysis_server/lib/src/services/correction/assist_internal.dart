@@ -16,12 +16,10 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -42,72 +40,35 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
-  /**
-   * The analysis driver being used to perform analysis.
-   */
-  AnalysisDriver driver;
+  final DartAssistContext context;
+  final int selectionOffset;
+  final int selectionLength;
+  final int selectionEnd;
 
-  /**
-   * The analysis session to be used to create the change builder.
-   */
-  AnalysisSession session;
-
-  /**
-   * The helper wrapper around the [session].
-   */
-  AnalysisSessionHelper sessionHelper;
-
-  Source source;
-  String file;
-
-  CompilationUnit unit;
-  CompilationUnitElement unitElement;
-
-  LibraryElement unitLibraryElement;
-
-  int selectionOffset;
-  int selectionLength;
-  int selectionEnd;
+  final AnalysisSession session;
+  final AnalysisSessionHelper sessionHelper;
+  final TypeProvider typeProvider;
+  final String file;
+  final CorrectionUtils utils;
 
   final List<Assist> assists = <Assist>[];
 
-  CorrectionUtils utils;
-
   AstNode node;
 
-  TypeProvider _typeProvider;
-
-  AssistProcessor(DartAssistContext dartContext) {
-    driver = dartContext.analysisDriver;
-    session = driver.currentSession;
-    sessionHelper = new AnalysisSessionHelper(session);
-    // source
-    source = dartContext.source;
-    file = dartContext.source.fullName;
-    // unit
-    unit = dartContext.unit;
-    unitElement = dartContext.unit.declaredElement;
-    // library
-    unitLibraryElement = resolutionMap
-        .elementDeclaredByCompilationUnit(dartContext.unit)
-        .library;
-    // selection
-    selectionOffset = dartContext.selectionOffset;
-    selectionLength = dartContext.selectionLength;
-    selectionEnd = selectionOffset + selectionLength;
-  }
+  AssistProcessor(this.context)
+      : selectionOffset = context.selectionOffset,
+        selectionLength = context.selectionLength,
+        selectionEnd = context.selectionOffset + context.selectionLength,
+        session = context.resolveResult.session,
+        sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
+        typeProvider = context.resolveResult.typeProvider,
+        file = context.resolveResult.path,
+        utils = new CorrectionUtils(context.resolveResult);
 
   /**
    * Returns the EOL to use for this [CompilationUnit].
    */
   String get eol => utils.endOfLine;
-
-  TypeProvider get typeProvider {
-    if (_typeProvider == null) {
-      _typeProvider = unitElement.context.typeProvider;
-    }
-    return _typeProvider;
-  }
 
   Future<List<Assist>> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -383,33 +344,6 @@ class AssistProcessor {
     if (validChange) {
       _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
     }
-  }
-
-  Future<void> _addProposal_convertToIntLiteral() async {
-    if (node is! DoubleLiteral) {
-      _coverageMarker();
-      return;
-    }
-    DoubleLiteral literal = node;
-    int intValue;
-    try {
-      intValue = literal.value?.truncate();
-    } catch (e) {
-      // Double cannot be converted to int
-    }
-    if (intValue == null || intValue != literal.value) {
-      _coverageMarker();
-      return;
-    }
-
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(new SourceRange(literal.offset, literal.length),
-          (DartEditBuilder builder) {
-        builder.write('${intValue}');
-      });
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_INT_LITERAL);
   }
 
   Future<void> _addProposal_assignToLocalVariable() async {
@@ -745,8 +679,8 @@ class AssistProcessor {
     if (directive == null || directive.libraryName == null) {
       return;
     }
-    String libraryPath = unitLibraryElement.source.fullName;
-    String partPath = unit.declaredElement.source.fullName;
+    String libraryPath = context.resolveResult.libraryElement.source.fullName;
+    String partPath = context.resolveResult.path;
     String relativePath = relative(libraryPath, from: dirname(partPath));
     String uri = new Uri.file(relativePath).toString();
     SourceRange replacementRange = range.node(directive.libraryName);
@@ -1086,6 +1020,33 @@ class AssistProcessor {
       }
       node = node.parent;
     }
+  }
+
+  Future<void> _addProposal_convertToIntLiteral() async {
+    if (node is! DoubleLiteral) {
+      _coverageMarker();
+      return;
+    }
+    DoubleLiteral literal = node;
+    int intValue;
+    try {
+      intValue = literal.value?.truncate();
+    } catch (e) {
+      // Double cannot be converted to int
+    }
+    if (intValue == null || intValue != literal.value) {
+      _coverageMarker();
+      return;
+    }
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(new SourceRange(literal.offset, literal.length),
+          (DartEditBuilder builder) {
+        builder.write('${intValue}');
+      });
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_INT_LITERAL);
   }
 
   Future<void> _addProposal_convertToIsNot_onIs() async {
@@ -2006,7 +1967,7 @@ class AssistProcessor {
     await null;
     var selectionRange = new SourceRange(selectionOffset, selectionLength);
     var analyzer = new SelectionAnalyzer(selectionRange);
-    unit.accept(analyzer);
+    context.resolveResult.unit.accept(analyzer);
 
     List<Expression> widgetExpressions = [];
     if (analyzer.hasSelectedNodes) {
@@ -2121,7 +2082,7 @@ class AssistProcessor {
         referencedNames.add(element.displayName);
       }
     });
-    unit.accept(visitor);
+    context.resolveResult.unit.accept(visitor);
     // ignore if unused
     if (referencedNames.isEmpty) {
       _coverageMarker();
@@ -2389,6 +2350,7 @@ class AssistProcessor {
       return;
     }
     int declOffset = element.nameOffset;
+    var unit = context.resolveResult.unit;
     AstNode declNode = new NodeLocator(declOffset).searchWithin(unit);
     if (declNode != null &&
         declNode.parent is VariableDeclaration &&
@@ -2919,6 +2881,7 @@ class AssistProcessor {
     // prepare selected statements
     List<Statement> selectedStatements;
     {
+      var unit = context.resolveResult.unit;
       StatementAnalyzer selectionAnalyzer = new StatementAnalyzer(
           unit, new SourceRange(selectionOffset, selectionLength));
       unit.accept(selectionAnalyzer);
@@ -3330,13 +3293,8 @@ class AssistProcessor {
   }
 
   bool _setupCompute() {
-    try {
-      utils = new CorrectionUtils(unit);
-    } catch (e) {
-      throw new CancelCorrectionException(exception: e);
-    }
-
-    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
+    var locator = new NodeLocator(selectionOffset, selectionEnd);
+    node = locator.searchWithin(context.resolveResult.unit);
     return node != null;
   }
 

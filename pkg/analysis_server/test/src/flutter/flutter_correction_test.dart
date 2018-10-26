@@ -125,11 +125,9 @@ class MyWidget extends StatelessWidget {
 
   void _createCorrections() {
     corrections = new FlutterCorrections(
-        file: testFile,
-        fileContent: testCode,
-        selectionOffset: offset,
-        selectionLength: length,
-        session: testAnalysisResult.session,
-        unit: testUnit);
+      resolveResult: testAnalysisResult,
+      selectionOffset: offset,
+      selectionLength: length,
+    );
   }
 }

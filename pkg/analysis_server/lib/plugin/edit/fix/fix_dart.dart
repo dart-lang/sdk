@@ -2,17 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
-
-/**
- * Complete with top-level declarations with the given [name].
- */
-typedef Future<List<TopLevelDeclarationInSource>> GetTopLevelDeclarations(
-    String name);
+import 'package:analyzer/dart/analysis/results.dart';
 
 /**
  * An object used to provide context information for [DartFixContributor]s.
@@ -21,12 +12,7 @@ typedef Future<List<TopLevelDeclarationInSource>> GetTopLevelDeclarations(
  */
 abstract class DartFixContext implements FixContext {
   /**
-   * The function to get top-level declarations from.
+   * The resolution result in which fix operates.
    */
-  GetTopLevelDeclarations get getTopLevelDeclarations;
-
-  /**
-   * The [CompilationUnit] to compute fixes in.
-   */
-  CompilationUnit get unit;
+  ResolveResult get resolveResult;
 }

@@ -213,8 +213,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   InlineMethodRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset) {
     _unitCache = new ResolvedUnitCache(resolveResult);
-    utils =
-        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
+    utils = new CorrectionUtils(resolveResult);
   }
 
   @override
@@ -366,8 +365,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
     var methodAstResult = await _unitCache.getResolvedAst(element);
     _methodUnit = methodAstResult.unit;
-    _methodUtils =
-        new CorrectionUtils(_methodUnit, buffer: methodAstResult.content);
+    _methodUtils = new CorrectionUtils(methodAstResult);
 
     // class member
     bool isClassMember = element.enclosingElement is ClassElement;
@@ -470,7 +468,7 @@ class _ReferenceProcessor {
 
     // prepare CorrectionUtils
     var result = await ref._unitCache.getResolvedAst(refElement);
-    _refUtils = new CorrectionUtils(result.unit, buffer: result.content);
+    _refUtils = new CorrectionUtils(result);
 
     // prepare node and environment
     _node = _refUtils.findNode(reference.sourceRange.offset);

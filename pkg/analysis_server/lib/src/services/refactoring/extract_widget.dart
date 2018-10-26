@@ -73,8 +73,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   ExtractWidgetRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset, this.length)
       : sessionHelper = new AnalysisSessionHelper(resolveResult.session) {
-    utils =
-        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
+    utils = new CorrectionUtils(resolveResult);
   }
 
   @override

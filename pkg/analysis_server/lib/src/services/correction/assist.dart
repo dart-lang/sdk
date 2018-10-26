@@ -2,7 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+
+/**
+ * The implementation of [DartAssistContext].
+ */
+class DartAssistContextImpl implements DartAssistContext {
+  @override
+  final ResolveResult resolveResult;
+
+  @override
+  final int selectionOffset;
+
+  @override
+  final int selectionLength;
+
+  DartAssistContextImpl(
+      this.resolveResult, this.selectionOffset, this.selectionLength);
+}
 
 /**
  * An enumeration of possible assist kinds.

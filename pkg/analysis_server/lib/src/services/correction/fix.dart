@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -83,6 +82,23 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));
+
+/**
+ * The implementation of [DartFixContext].
+ */
+class DartFixContextImpl implements DartFixContext {
+  @override
+  final ResolveResult resolveResult;
+
+  @override
+  final AnalysisError error;
+
+  DartFixContextImpl(this.resolveResult, this.error);
+
+  DartFixContextImpl.from(DartFixContext other)
+      : resolveResult = other.resolveResult,
+        error = other.error;
+}
 
 /**
  * An enumeration of possible quick fix kinds.
@@ -272,30 +288,4 @@ class DartFixKind {
       'USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'",
       appliedTogetherMessage:
           "Use != null instead of 'is! Null' everywhere in file");
-}
-
-/**
- * The implementation of [FixContext].
- */
-class FixContextImpl implements FixContext {
-  @override
-  final ResourceProvider resourceProvider;
-
-  @override
-  final AnalysisDriver analysisDriver;
-
-  @override
-  final AnalysisError error;
-
-  @override
-  final List<AnalysisError> errors;
-
-  FixContextImpl(
-      this.resourceProvider, this.analysisDriver, this.error, this.errors);
-
-  FixContextImpl.from(FixContext other)
-      : resourceProvider = other.resourceProvider,
-        analysisDriver = other.analysisDriver,
-        error = other.error,
-        errors = other.errors;
 }

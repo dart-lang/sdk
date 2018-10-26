@@ -26,7 +26,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -57,21 +57,6 @@ import 'package:path/path.dart';
 typedef bool ElementPredicate(Element argument);
 
 /**
- * The implementation of [DartFixContext].
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class DartFixContextImpl extends FixContextImpl implements DartFixContext {
-  @override
-  final CompilationUnit unit;
-
-  DartFixContextImpl(FixContext fixContext, this.unit) : super.from(fixContext);
-
-  GetTopLevelDeclarations get getTopLevelDeclarations =>
-      analysisDriver.getTopLevelNameDeclarations;
-}
-
-/**
  * A fix contributor that provides the default set of fixes for Dart files.
  */
 class DartFixContributor implements FixContributor {
@@ -93,8 +78,8 @@ class DartFixContributor implements FixContributor {
       DartFixContext context, List<Fix> fixes) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    final AnalysisError analysisError = context.error;
-    final List<AnalysisError> allAnalysisErrors = context.errors;
+    final analysisError = context.error;
+    final allAnalysisErrors = context.resolveResult.errors.toList();
 
     // Validate inputs:
     // - return if no fixes
@@ -118,14 +103,9 @@ class DartFixContributor implements FixContributor {
     // one.
     // For each fix, put the fix into the HashMap.
     for (int i = 0; i < allAnalysisErrors.length; i++) {
-      final FixContext fixContextI = new FixContextImpl(
-          context.resourceProvider,
-          context.analysisDriver,
-          allAnalysisErrors[i],
-          allAnalysisErrors);
-      final DartFixContextImpl dartFixContextI =
-          new DartFixContextImpl(fixContextI, context.unit);
-      final FixProcessor processorI = new FixProcessor(dartFixContextI);
+      final FixContext fixContextI =
+          new DartFixContextImpl(context.resolveResult, allAnalysisErrors[i]);
+      final FixProcessor processorI = new FixProcessor(fixContextI);
       final List<Fix> fixesListI = await processorI.compute();
       for (Fix f in fixesListI) {
         if (!map.containsKey(f.kind)) {
@@ -183,66 +163,40 @@ class DartFixContributor implements FixContributor {
 class FixProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
-  ResourceProvider resourceProvider;
-  GetTopLevelDeclarations getTopLevelDeclarations;
-  CompilationUnit unit;
-  AnalysisError error;
+  final DartFixContext context;
+  final ResourceProvider resourceProvider;
+  final AnalysisSession session;
+  final AnalysisSessionHelper sessionHelper;
+  final TypeProvider typeProvider;
+  final TypeSystem typeSystem;
 
-  /**
-   * The analysis driver being used to perform analysis.
-   */
-  AnalysisDriver driver;
+  final String file;
+  final LibraryElement unitLibraryElement;
+  final CompilationUnit unit;
+  final CorrectionUtils utils;
 
-  /**
-   * The analysis session to be used to create the change builder.
-   */
-  AnalysisSession session;
-
-  /**
-   * The helper wrapper around the [session].
-   */
-  AnalysisSessionHelper sessionHelper;
-
-  String file;
-  CompilationUnitElement unitElement;
-  Source unitSource;
-  LibraryElement unitLibraryElement;
-  File unitLibraryFile;
+  final AnalysisError error;
+  final int errorOffset;
+  final int errorLength;
 
   final List<Fix> fixes = <Fix>[];
 
-  CorrectionUtils utils;
-  int errorOffset;
-  int errorLength;
-  int errorEnd;
-  SourceRange errorRange;
   AstNode node;
   AstNode coveredNode;
 
-  TypeProvider _typeProvider;
-  TypeSystem _typeSystem;
-
-  FixProcessor(DartFixContext dartContext) {
-    resourceProvider = dartContext.resourceProvider;
-    getTopLevelDeclarations = dartContext.getTopLevelDeclarations;
-
-    driver = dartContext.analysisDriver;
-    session = driver.currentSession;
-    sessionHelper = new AnalysisSessionHelper(session);
-
-    // unit
-    unit = dartContext.unit;
-    unitElement = unit.declaredElement;
-    unitSource = unitElement.source;
-    // file
-    file = unitSource.fullName;
-    // library
-    unitLibraryElement = unitElement.library;
-    String unitLibraryPath = unitLibraryElement.source.fullName;
-    unitLibraryFile = resourceProvider.getFile(unitLibraryPath);
-    // error
-    error = dartContext.error;
-  }
+  FixProcessor(this.context)
+      : resourceProvider = context.resolveResult.session.resourceProvider,
+        session = context.resolveResult.session,
+        sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
+        typeProvider = context.resolveResult.typeProvider,
+        typeSystem = StrongTypeSystemImpl(context.resolveResult.typeProvider),
+        file = context.resolveResult.path,
+        unitLibraryElement = context.resolveResult.libraryElement,
+        unit = context.resolveResult.unit,
+        utils = CorrectionUtils(context.resolveResult),
+        error = context.error,
+        errorOffset = context.error.offset,
+        errorLength = context.error.length;
 
   DartType get coreTypeBool => _getCoreType('bool');
 
@@ -251,36 +205,13 @@ class FixProcessor {
    */
   String get eol => utils.endOfLine;
 
-  TypeProvider get typeProvider {
-    if (_typeProvider == null) {
-      _typeProvider = unitElement.context.typeProvider;
-    }
-    return _typeProvider;
-  }
-
-  TypeSystem get typeSystem {
-    if (_typeSystem == null) {
-      _typeSystem = new StrongTypeSystemImpl(typeProvider);
-    }
-    return _typeSystem;
-  }
-
   Future<List<Fix>> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    try {
-      utils = new CorrectionUtils(unit);
-    } catch (e) {
-      throw new CancelCorrectionException(exception: e);
-    }
 
-    errorOffset = error.offset;
-    errorLength = error.length;
-    errorEnd = errorOffset + errorLength;
-    errorRange = new SourceRange(errorOffset, errorLength);
     node = new NodeLocator2(errorOffset).searchWithin(unit);
-    coveredNode =
-        new NodeLocator2(errorOffset, errorEnd - 1).searchWithin(unit);
+    coveredNode = new NodeLocator2(errorOffset, errorOffset + errorLength - 1)
+        .searchWithin(unit);
     if (coveredNode == null) {
       // TODO(brianwilkerson) Figure out why the coveredNode is sometimes null.
       return fixes;
@@ -1259,7 +1190,7 @@ class FixProcessor {
     int offset = -1;
     String filePath;
     if (prefixElement == null) {
-      targetUnit = unitElement;
+      targetUnit = unit.declaredElement;
       CompilationUnitMember enclosingMember = node.getAncestor((node) =>
           node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
@@ -1412,12 +1343,12 @@ class FixProcessor {
     }
     ClassElement targetElement = constructorElement.enclosingElement;
     // prepare location for a new constructor
-    AstNode targetTypeNode = getParsedClassElementNode(targetElement);
-    if (targetTypeNode is! ClassDeclaration) {
+    var targetNode = await _getClassDeclaration(targetElement);
+    if (targetNode == null) {
       return;
     }
     ClassMemberLocation targetLocation =
-        utils.prepareNewConstructorLocation(targetTypeNode);
+        utils.prepareNewConstructorLocation(targetNode);
     Source targetSource = targetElement.source;
     String targetFile = targetSource.fullName;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -1468,12 +1399,12 @@ class FixProcessor {
     }
     // prepare location for a new constructor
     ClassElement targetElement = targetType.element as ClassElement;
-    AstNode targetTypeNode = getParsedClassElementNode(targetElement);
-    if (targetTypeNode is! ClassDeclaration) {
+    var targetNode = await _getClassDeclaration(targetElement);
+    if (targetNode == null) {
       return;
     }
     ClassMemberLocation targetLocation =
-        utils.prepareNewConstructorLocation(targetTypeNode);
+        utils.prepareNewConstructorLocation(targetNode);
     String targetFile = targetElement.source.fullName;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1683,14 +1614,16 @@ class FixProcessor {
     }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
-    AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
-    if (targetTypeNode is! ClassDeclaration) {
+    var targetDeclarationResult =
+        await sessionHelper.getElementDeclaration(targetClassElement);
+    if (targetDeclarationResult.declaration is! ClassDeclaration) {
       return;
     }
-    ClassDeclaration targetClassNode = targetTypeNode;
+    ClassDeclaration targetNode = targetDeclarationResult.declaration;
     // prepare location
     ClassMemberLocation targetLocation =
-        _getUtilsFor(targetClassNode).prepareNewFieldLocation(targetClassNode);
+        CorrectionUtils(targetDeclarationResult.resolveResult)
+            .prepareNewFieldLocation(targetNode);
     // build field source
     Source targetSource = targetClassElement.source;
     String targetFile = targetSource.fullName;
@@ -1846,14 +1779,16 @@ class FixProcessor {
     }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
-    AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
-    if (targetTypeNode is! ClassDeclaration) {
+    var targetDeclarationResult =
+        await sessionHelper.getElementDeclaration(targetClassElement);
+    if (targetDeclarationResult.declaration is! ClassDeclaration) {
       return;
     }
-    ClassDeclaration targetClassNode = targetTypeNode;
+    ClassDeclaration targetNode = targetDeclarationResult.declaration;
     // prepare location
     ClassMemberLocation targetLocation =
-        _getUtilsFor(targetClassNode).prepareNewGetterLocation(targetClassNode);
+        CorrectionUtils(targetDeclarationResult.resolveResult)
+            .prepareNewGetterLocation(targetNode);
     // build method source
     Source targetSource = targetClassElement.source;
     String targetFile = targetSource.fullName;
@@ -2077,7 +2012,7 @@ class FixProcessor {
     int offset = -1;
     String filePath;
     if (prefixElement == null) {
-      targetUnit = unitElement;
+      targetUnit = unit.declaredElement;
       CompilationUnitMember enclosingMember = node.getAncestor((node) =>
           node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
@@ -2273,7 +2208,8 @@ class FixProcessor {
         String newShowCode = 'show ${showNames.join(', ')}';
         int offset = showCombinator.offset;
         int length = showCombinator.end - offset;
-        String libraryFile = unitLibraryElement.source.fullName;
+        String libraryFile =
+            context.resolveResult.libraryElement.source.fullName;
         DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
         await changeBuilder.addFileEdit(libraryFile,
             (DartFileEditBuilder builder) {
@@ -2286,8 +2222,7 @@ class FixProcessor {
     }
     // Find new top-level declarations.
     {
-      List<TopLevelDeclarationInSource> declarations =
-          await getTopLevelDeclarations(name);
+      var declarations = await session.getTopLevelDeclarations(name);
       for (TopLevelDeclarationInSource declaration in declarations) {
         // Check the kind.
         if (declaration.declaration.kind != kind2) {
@@ -2593,6 +2528,7 @@ class FixProcessor {
     } else if (coveringNode is Block) {
       Block block = coveringNode;
       List<Statement> statementsToRemove = <Statement>[];
+      var errorRange = SourceRange(errorOffset, errorLength);
       for (Statement statement in block.statements) {
         if (range.node(statement).intersects(errorRange)) {
           statementsToRemove.add(statement);
@@ -3316,8 +3252,9 @@ class FixProcessor {
 
       ClassDeclaration targetClassNode;
       Expression target = invocation.realTarget;
+      CorrectionUtils utils = this.utils;
       if (target == null) {
-        targetElement = unitElement;
+        targetElement = unit.declaredElement;
         ClassMember enclosingMember =
             node.getAncestor((node) => node is ClassMember);
         if (enclosingMember == null) {
@@ -3340,11 +3277,10 @@ class FixProcessor {
         }
         targetElement = targetClassElement;
         // prepare target ClassDeclaration
-        AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
-        if (targetTypeNode is! ClassDeclaration) {
+        targetClassNode = await _getClassDeclaration(targetClassElement);
+        if (targetClassNode == null) {
           return;
         }
-        targetClassNode = targetTypeNode;
         // maybe static
         if (target is Identifier) {
           staticModifier =
@@ -3352,10 +3288,9 @@ class FixProcessor {
                   ElementKind.CLASS;
         }
         // use different utils
-        CompilationUnitElement targetUnitElement =
-            getCompilationUnitElement(targetClassElement);
-        CompilationUnit targetUnit = getParsedUnit(targetUnitElement);
-        utils = new CorrectionUtils(targetUnit);
+        var targetPath = targetClassElement.source.fullName;
+        var targetResolveResult = await session.getResolvedAst(targetPath);
+        utils = CorrectionUtils(targetResolveResult);
       }
       ClassMemberLocation targetLocation =
           utils.prepareNewMethodLocation(targetClassNode);
@@ -3577,7 +3512,7 @@ class FixProcessor {
   Future<DartChangeBuilder> _addProposal_createFunction(
       FunctionType functionType,
       String name,
-      Source targetSource,
+      String targetFile,
       int insertOffset,
       bool isStatic,
       String prefix,
@@ -3587,7 +3522,6 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // build method source
-    String targetFile = targetSource.fullName;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
@@ -3635,7 +3569,7 @@ class FixProcessor {
         builder.write(' {$eol$prefix}');
         builder.write(sourceSuffix);
       });
-      if (targetSource == unitSource) {
+      if (targetFile == file) {
         builder.addLinkedPosition(range.node(node), 'NAME');
       }
     });
@@ -3660,13 +3594,13 @@ class FixProcessor {
     DartChangeBuilder changeBuilder = await _addProposal_createFunction(
         functionType,
         name,
-        unitSource,
+        file,
         insertOffset,
         false,
         prefix,
         sourcePrefix,
         sourceSuffix,
-        unitElement);
+        unit.declaredElement);
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FUNCTION,
         args: [name]);
   }
@@ -3683,13 +3617,15 @@ class FixProcessor {
     // prepare environment
     Source targetSource = targetClassElement.source;
     // prepare insert offset
-    ClassDeclaration targetClassNode =
-        getParsedClassElementNode(targetClassElement);
-    int insertOffset = targetClassNode.end - 1;
+    var targetNode = await _getClassDeclaration(targetClassElement);
+    if (targetNode == null) {
+      return;
+    }
+    int insertOffset = targetNode.end - 1;
     // prepare prefix
     String prefix = '  ';
     String sourcePrefix;
-    if (targetClassNode.members.isEmpty) {
+    if (targetNode.members.isEmpty) {
       sourcePrefix = '';
     } else {
       sourcePrefix = eol;
@@ -3698,7 +3634,7 @@ class FixProcessor {
     DartChangeBuilder changeBuilder = await _addProposal_createFunction(
         functionType,
         name,
-        targetSource,
+        targetSource.fullName,
         insertOffset,
         _inStaticContext(),
         prefix,
@@ -3754,6 +3690,17 @@ class FixProcessor {
   }
 
   /**
+   * Returns the [ClassDeclaration] for the given [element].
+   */
+  Future<ClassDeclaration> _getClassDeclaration(ClassElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    if (result.declaration is ClassDeclaration) {
+      return result.declaration;
+    }
+    return null;
+  }
+
+  /**
    * Return the string to display as the name of the given constructor in a
    * proposal name.
    */
@@ -3784,26 +3731,6 @@ class FixProcessor {
       }
     }
     return null;
-  }
-
-  /**
-   * Return the correction utilities that should be used when creating an edit
-   * in the compilation unit containing the given [node].
-   */
-  CorrectionUtils _getUtilsFor(AstNode node) {
-    CompilationUnit targetUnit =
-        node.getAncestor((node) => node is CompilationUnit);
-    CompilationUnitElement targetUnitElement = targetUnit?.declaredElement;
-    CorrectionUtils realUtils = utils;
-    if (targetUnitElement != utils.unit.declaredElement) {
-      realUtils = new CorrectionUtils(targetUnit);
-      ClassDeclaration targetClass =
-          node.getAncestor((node) => node is ClassDeclaration);
-      if (targetClass != null) {
-        realUtils.targetClassElement = targetClass.declaredElement;
-      }
-    }
-    return realUtils;
   }
 
   /**
@@ -4017,7 +3944,10 @@ class FixProcessor {
   bool _isSourceVisibleToLibrary(Source source) {
     String path = source.fullName;
 
-    ContextRoot contextRoot = driver.contextRoot;
+    ContextRoot contextRoot =
+        (context.resolveResult.session as AnalysisSessionImpl)
+            .getDriver()
+            .contextRoot;
     if (contextRoot == null) {
       return true;
     }

@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -81,19 +82,10 @@ class StatementCompletion {
  * The context for computing a statement completion.
  */
 class StatementCompletionContext {
-  final String file;
-  final LineInfo lineInfo;
+  final ResolveResult resolveResult;
   final int selectionOffset;
-  final CompilationUnit unit;
-  final CompilationUnitElement unitElement;
-  final List<engine.AnalysisError> errors;
 
-  StatementCompletionContext(this.file, this.lineInfo, this.selectionOffset,
-      this.unit, this.unitElement, this.errors) {
-    if (unitElement.context == null) {
-      throw new Error(); // not reached; see getStatementCompletion()
-    }
-  }
+  StatementCompletionContext(this.resolveResult, this.selectionOffset);
 }
 
 /**
@@ -143,21 +135,22 @@ class StatementCompletionProcessor {
   Position exitPosition = null;
 
   StatementCompletionProcessor(this.statementContext)
-      : utils = new CorrectionUtils(statementContext.unit);
+      : utils = new CorrectionUtils(statementContext.resolveResult);
 
   String get eol => utils.endOfLine;
 
-  String get file => statementContext.file;
+  String get file => statementContext.resolveResult.path;
 
-  LineInfo get lineInfo => statementContext.lineInfo;
+  LineInfo get lineInfo => statementContext.resolveResult.lineInfo;
 
   int get selectionOffset => statementContext.selectionOffset;
 
-  Source get source => statementContext.unitElement.source;
+  Source get source => unitElement.source;
 
-  CompilationUnit get unit => statementContext.unit;
+  CompilationUnit get unit => statementContext.resolveResult.unit;
 
-  CompilationUnitElement get unitElement => statementContext.unitElement;
+  CompilationUnitElement get unitElement =>
+      statementContext.resolveResult.unit.declaredElement;
 
   Future<StatementCompletion> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -180,7 +173,7 @@ class StatementCompletionProcessor {
     if (_isEmptyStatementOrEmptyBlock(node)) {
       node = node.parent;
     }
-    for (engine.AnalysisError error in statementContext.errors) {
+    for (engine.AnalysisError error in statementContext.resolveResult.errors) {
       if (error.offset >= node.offset && error.offset <= node.end) {
         if (error.errorCode is! HintCode) {
           errors.add(error);

@@ -7,9 +7,9 @@ import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 
 class PreferMixinFix extends LinterFix {
   final classesToConvert = new Set<Element>();
@@ -17,7 +17,7 @@ class PreferMixinFix extends LinterFix {
   PreferMixinFix(EditDartFix dartFix) : super(dartFix);
 
   @override
-  Future<void> applyLocalFixes(AnalysisResult result) {
+  Future<void> applyLocalFixes(ResolveResult result) {
     // All fixes applied in [applyRemainingFixes]
     return null;
   }
@@ -30,15 +30,15 @@ class PreferMixinFix extends LinterFix {
   }
 
   Future<void> convertClassToMixin(Element elem) async {
-    AnalysisResult result =
+    ResolveResult result =
         await dartFix.server.getAnalysisResult(elem.source?.fullName);
 
     for (CompilationUnitMember declaration in result.unit.declarations) {
       if (declaration is ClassOrMixinDeclaration &&
           declaration.name.name == elem.name) {
         AssistProcessor processor = new AssistProcessor(
-            new EditDartFixAssistContext(
-                dartFix, elem.source, result.unit, declaration.name));
+          new DartAssistContextImpl(result, declaration.name.offset, 0),
+        );
         List<Assist> assists = await processor
             .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
         final location = dartFix.locationDescription(result, elem.nameOffset);
