@@ -1928,67 +1928,14 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   Zone* zone_;
 };
 
-typedef UnorderedHashMap<SmiTraits> IntHashMap;
-
-class InvalidateKernelInfoCaches : public ObjectVisitor {
- public:
-  explicit InvalidateKernelInfoCaches(Zone* zone)
-      : ObjectVisitor(),
-        handle_(Object::Handle(zone)),
-        data_(Array::Handle(zone)),
-        key_(Object::Handle(zone)),
-        value_(Smi::Handle(zone)) {}
-
-  virtual void VisitObject(RawObject* obj) {
-    if (obj->IsPseudoObject()) {
-      // Cannot even be wrapped in handles.
-      return;
-    }
-    handle_ = obj;
-    if (!handle_.IsKernelProgramInfo()) {
-      return;
-    }
-    const KernelProgramInfo& info = KernelProgramInfo::Cast(handle_);
-    // Clear the libraries cache.
-    {
-      data_ ^= info.libraries_cache();
-      ASSERT(!data_.IsNull());
-      IntHashMap table(&key_, &value_, &data_);
-      table.Clear();
-      info.set_libraries_cache(table.Release());
-    }
-    // Clear the classes cache.
-    {
-      data_ ^= info.classes_cache();
-      ASSERT(!data_.IsNull());
-      IntHashMap table(&key_, &value_, &data_);
-      table.Clear();
-      info.set_classes_cache(table.Release());
-    }
-  }
-
- private:
-  Object& handle_;
-  Array& data_;
-  Object& key_;
-  Smi& value_;
-};
-
-void IsolateReloadContext::RunInvalidationVisitors() {
+void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
   TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
-  TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
+  TIR_Print("---- MARKING ALL FUNCTIONS FOR RECOMPILATION\n");
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
-
   HeapIterationScope iteration(thread);
-  GrowableArray<ObjectVisitor*> arr(zone, 2);
-  ExtensibleObjectVisitor visitor(&arr);
-  MarkFunctionsForRecompilation function_visitor(isolate_, this, zone);
-  InvalidateKernelInfoCaches kernel_info_visitor(zone);
-
-  visitor.Add(&function_visitor);
-  visitor.Add(&kernel_info_visitor);
+  MarkFunctionsForRecompilation visitor(isolate_, this, zone);
   iteration.IterateObjects(&visitor);
 }
 
@@ -2000,7 +1947,7 @@ void IsolateReloadContext::InvalidateWorld() {
   }
   DeoptimizeFunctionsOnStack();
   ResetUnoptimizedICsOnStack();
-  RunInvalidationVisitors();
+  MarkAllFunctionsForRecompilation();
 }
 
 RawClass* IsolateReloadContext::MappedClass(const Class& replacement_or_new) {

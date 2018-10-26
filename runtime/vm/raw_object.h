@@ -1289,9 +1289,7 @@ class RawKernelProgramInfo : public RawObject {
   RawGrowableObjectArray* potential_natives_;
   RawGrowableObjectArray* potential_pragma_functions_;
   RawExternalTypedData* constants_table_;
-  RawArray* libraries_cache_;
-  RawArray* classes_cache_;
-  VISIT_TO(RawObject*, classes_cache_);
+  VISIT_TO(RawObject*, constants_table_);
 
   RawObject** to_snapshot(Snapshot::Kind kind) {
     return reinterpret_cast<RawObject**>(&ptr()->potential_natives_);

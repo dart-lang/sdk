@@ -123,15 +123,11 @@ RawArray* KernelLoader::MakeFunctionsArray() {
 
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex library) {
-  return loader_->LookupLibrary(library);
+  return loader_->LookupLibrary(library).raw();
 }
 
 RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
-#if defined(DEBUG)
-  LibraryLookupHandleScope library_lookup_handle_scope(library_lookup_handle_);
-#endif  // defined(DEBUG)
-  library_lookup_handle_ = loader_->LookupLibraryFromClass(klass);
-  return loader_->LookupClass(library_lookup_handle_, klass);
+  return loader_->LookupClass(klass).raw();
 }
 
 LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
@@ -192,7 +188,6 @@ KernelLoader::KernelLoader(Program* program)
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
-      name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)),
       expression_evaluation_function_(Function::Handle(Z)) {
   if (!program->is_single_program()) {
@@ -322,18 +317,9 @@ void KernelLoader::InitializeFields() {
       Z, reader.ExternalDataFromTo(program_->metadata_mappings_offset(),
                                    program_->string_table_offset()));
 
-  const Array& libraries_cache =
-      Array::Handle(Z, HashTables::New<UnorderedHashMap<SmiTraits>>(
-                           program_->library_count(), Heap::kOld));
-
-  const intptr_t kClassesPerLibraryGuess = 5;
-  const Array& classes_cache = Array::Handle(
-      Z, HashTables::New<UnorderedHashMap<SmiTraits>>(
-             kClassesPerLibraryGuess * program_->library_count(), Heap::kOld));
-
-  kernel_program_info_ = KernelProgramInfo::New(
-      offsets, data, names, metadata_payloads, metadata_mappings,
-      constants_table, scripts, libraries_cache, classes_cache);
+  kernel_program_info_ =
+      KernelProgramInfo::New(offsets, data, names, metadata_payloads,
+                             metadata_mappings, constants_table, scripts);
 
   H.InitFromKernelProgramInfo(kernel_program_info_);
 
@@ -369,7 +355,6 @@ KernelLoader::KernelLoader(const Script& script,
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
-      name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)),
       expression_evaluation_function_(Function::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
@@ -389,8 +374,7 @@ const Array& KernelLoader::ReadConstantTable() {
   // Though since constants cannot refer to types containing type parameter
   // references, the only purpose of the class is to serve as an owner for
   // signature functions (which get created for function types).
-  const dart::Library& owner_library =
-      Library::Handle(Z, LookupLibrary(library_canonical_name(0)));
+  const dart::Library& owner_library = LookupLibrary(library_canonical_name(0));
   const dart::Class& toplevel_class =
       Class::Handle(Z, owner_library.toplevel_class());
   ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
@@ -656,7 +640,9 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     }
 
     NameIndex main_library = H.EnclosingName(main);
-    return LookupLibrary(main_library);
+    Library& library = LookupLibrary(main_library);
+
+    return library.raw();
   }
 
   // Either class finalization failed or we caught a compile error.
@@ -671,8 +657,8 @@ RawObject* KernelLoader::LoadExpressionEvaluationFunction(
     const String& klass) {
   // Find the original context, i.e. library/class, in which the evaluation will
   // happen.
-  const Library& real_library =
-      Library::Handle(Z, Library::LookupLibrary(thread_, library_url));
+  const Library& real_library = Library::Handle(
+      Z, Library::LookupLibrary(Thread::Current(), library_url));
   ASSERT(!real_library.IsNull());
   const Class& real_class = Class::Handle(
       Z, klass.IsNull() ? real_library.toplevel_class()
@@ -767,13 +753,12 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
                                            bool* is_empty_program) {
   intptr_t length = program_->library_count();
   *is_empty_program = *is_empty_program && (length == 0);
-  Library& lib = Library::Handle(Z);
   for (intptr_t i = 0; i < length; i++) {
     intptr_t kernel_offset = library_offset(i);
     helper_.SetOffset(kernel_offset);
     LibraryHelper library_helper(&helper_);
     library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-    lib = LookupLibraryOrNull(library_helper.canonical_name_);
+    dart::Library& lib = LookupLibraryOrNull(library_helper.canonical_name_);
     if (!lib.IsNull() && !lib.is_dart_scheme()) {
       // This is a library that already exists so mark it as being modified.
       modified_libs->Add(lib.index());
@@ -848,7 +833,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   Library& library =
-      Library::Handle(Z, LookupLibrary(library_helper.canonical_name_));
+      Library::Handle(Z, LookupLibrary(library_helper.canonical_name_).raw());
 
   // The Kernel library is external implies that it is already loaded.
   ASSERT(!library_helper.IsExternal() || library.Loaded());
@@ -921,11 +906,10 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
 
   // Load all classes.
   intptr_t next_class_offset = library_index.ClassOffset(0);
-  Class& klass = Class::Handle(Z);
   for (intptr_t i = 0; i < class_count; ++i) {
     helper_.SetOffset(next_class_offset);
     next_class_offset = library_index.ClassOffset(i + 1);
-    LoadClass(library, toplevel_class, next_class_offset, &klass);
+    const Class& klass = LoadClass(library, toplevel_class, next_class_offset);
     if (register_class) {
       classes.Add(klass, Heap::kOld);
     }
@@ -1075,8 +1059,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
       hide_names = Array::null();
     }
 
-    Library& target_library = Library::Handle(
-        Z, LookupLibrary(dependency_helper.target_library_canonical_name_));
+    Library& target_library =
+        LookupLibrary(dependency_helper.target_library_canonical_name_);
     if (!FLAG_enable_mirrors &&
         target_library.url() == Symbols::DartMirrors().raw()) {
       H.ReportError("import of dart:mirrors with --enable-mirrors=false");
@@ -1227,38 +1211,35 @@ void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
   }
 }
 
-void KernelLoader::LoadClass(const Library& library,
-                             const Class& toplevel_class,
-                             intptr_t class_end,
-                             Class* klass) {
+Class& KernelLoader::LoadClass(const Library& library,
+                               const Class& toplevel_class,
+                               intptr_t class_end) {
   intptr_t class_offset = helper_.ReaderOffset();
   ClassIndex class_index(program_->kernel_data(), program_->kernel_data_size(),
                          class_offset, class_end - class_offset);
 
   ClassHelper class_helper(&helper_);
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
-  *klass = LookupClass(library, class_helper.canonical_name_);
-  klass->set_kernel_offset(class_offset - correction_offset_);
+  Class& klass = LookupClass(class_helper.canonical_name_);
+  klass.set_kernel_offset(class_offset - correction_offset_);
 
   // The class needs to have a script because all the functions in the class
   // will inherit it.  The predicate Function::IsOptimizable uses the absence of
   // a script to detect test functions that should not be optimized.
-  if (klass->script() == Script::null()) {
+  if (klass.script() == Script::null()) {
     class_helper.ReadUntilIncluding(ClassHelper::kSourceUriIndex);
     const Script& script =
         Script::Handle(Z, ScriptAt(class_helper.source_uri_index_));
-    klass->set_script(script);
+    klass.set_script(script);
     FixCoreLibraryScriptUri(library, script);
   }
-  if (klass->token_pos() == TokenPosition::kNoSource) {
+  if (klass.token_pos() == TokenPosition::kNoSource) {
     class_helper.ReadUntilIncluding(ClassHelper::kStartPosition);
-    klass->set_token_pos(class_helper.start_position_);
+    klass.set_token_pos(class_helper.start_position_);
   }
 
   class_helper.ReadUntilIncluding(ClassHelper::kFlags);
-  if (class_helper.is_enum_class()) {
-    klass->set_is_enum_class();
-  }
+  if (class_helper.is_enum_class()) klass.set_is_enum_class();
 
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
   intptr_t annotation_count = helper_.ReadListLength();
@@ -1270,15 +1251,15 @@ void KernelLoader::LoadClass(const Library& library,
                       &is_potential_native_unused, &has_pragma_annotation);
   }
   if (has_pragma_annotation) {
-    klass->set_has_pragma(true);
+    klass.set_has_pragma(true);
   }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
       helper_.ReadListLength();  // read type_parameters list length.
 
-  ActiveClassScope active_class_scope(&active_class_, klass);
-  if (!klass->is_cycle_free()) {
+  ActiveClassScope active_class_scope(&active_class_, &klass);
+  if (!klass.is_cycle_free()) {
     LoadPreliminaryClass(&class_helper, type_parameter_counts);
   } else {
     for (intptr_t i = 0; i < type_parameter_counts; ++i) {
@@ -1289,7 +1270,7 @@ void KernelLoader::LoadClass(const Library& library,
   }
 
   if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
-    library.AddClassMetadata(*klass, toplevel_class, TokenPosition::kNoSource,
+    library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
                              class_offset - correction_offset_);
   }
 
@@ -1300,11 +1281,13 @@ void KernelLoader::LoadClass(const Library& library,
       library.raw() != expression_evaluation_library_.raw();
 
   if (loading_native_wrappers_library_ || !register_class) {
-    FinishClassLoading(*klass, library, toplevel_class, class_offset,
+    FinishClassLoading(klass, library, toplevel_class, class_offset,
                        class_index, &class_helper);
   }
 
   helper_.SetOffset(class_end);
+
+  return klass;
 }
 
 void KernelLoader::FinishClassLoading(const Class& klass,
@@ -1957,101 +1940,70 @@ void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
   }
 }
 
-RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {
-  RawLibrary* result;
-  name_index_handle_ = Smi::New(library);
-  {
-    NoSafepointScope no_safepoint_scope(thread_);
-    result = kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
-    if (result != Library::null()) {
-      return result;
+Library& KernelLoader::LookupLibraryOrNull(NameIndex library) {
+  Library* handle = NULL;
+  if (!libraries_.Lookup(library, &handle)) {
+    const String& url = H.DartString(H.CanonicalNameString(library));
+    handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
+    if (!handle->IsNull()) {
+      libraries_.Insert(library, handle);
     }
   }
-  const String& url = H.DartString(H.CanonicalNameString(library));
-  {
-    NoSafepointScope no_safepoint_scope(thread_);
-    result = Library::LookupLibrary(thread_, url);
-    if (result == Library::null()) {
-      return result;
-    }
-  }
-  const Library& handle = Library::Handle(Z, result);
-  name_index_handle_ = Smi::New(library);
-  return kernel_program_info_.InsertLibrary(thread_, name_index_handle_,
-                                            handle);
+  return *handle;
 }
 
-RawLibrary* KernelLoader::LookupLibrary(NameIndex library) {
-  name_index_handle_ = Smi::New(library);
-  {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawLibrary* result =
-        kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
-    if (result != Library::null()) {
-      return result;
-    }
-  }
+Library& KernelLoader::LookupLibrary(NameIndex library) {
+  Library* handle = NULL;
+  if (!libraries_.Lookup(library, &handle)) {
+    handle = &Library::Handle(Z);
+    const String& url = H.DartSymbolPlain(H.CanonicalNameString(library));
 
-  Library& handle = Library::Handle(Z);
-  const String& url = H.DartSymbolPlain(H.CanonicalNameString(library));
-  // We do not register expression evaluation libraries with the VM:
-  // The expression evaluation functions should be GC-able as soon as
-  // they are not reachable anymore and we never look them up by name.
-  if (url.Equals(Symbols::EvalSourceUri())) {
-    if (expression_evaluation_library_.IsNull()) {
-      handle = Library::New(url);
-      expression_evaluation_library_ = handle.raw();
-    }
-    return expression_evaluation_library_.raw();
-  }
-  handle = Library::LookupLibrary(thread_, url);
-  if (handle.IsNull()) {
-    handle = Library::New(url);
-    handle.Register(thread_);
-  }
-  ASSERT(!handle.IsNull());
-  name_index_handle_ = Smi::New(library);
-  return kernel_program_info_.InsertLibrary(thread_, name_index_handle_,
-                                            handle);
-}
-
-RawLibrary* KernelLoader::LookupLibraryFromClass(NameIndex klass) {
-  return LookupLibrary(H.CanonicalNameParent(klass));
-}
-
-RawClass* KernelLoader::LookupClass(const Library& library, NameIndex klass) {
-  name_index_handle_ = Smi::New(klass);
-  {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawClass* raw_class =
-        kernel_program_info_.LookupClass(thread_, name_index_handle_);
-    if (raw_class != Class::null()) {
-      return raw_class;
-    }
-  }
-
-  ASSERT(!library.IsNull());
-  const String& name = H.DartClassName(klass);
-  Class& handle = Class::Handle(Z, library.LookupLocalClass(name));
-  bool register_class = true;
-  if (handle.IsNull()) {
-    // We do not register expression evaluation classes with the VM:
+    // We do not register expression evaluation libraries with the VM:
     // The expression evaluation functions should be GC-able as soon as
     // they are not reachable anymore and we never look them up by name.
-    register_class = library.raw() != expression_evaluation_library_.raw();
-
-    handle = Class::New(library, name, Script::Handle(Z),
-                        TokenPosition::kNoSource, register_class);
-    if (register_class) {
-      library.AddClass(handle);
+    if (url.Equals(Symbols::EvalSourceUri())) {
+      if (handle->IsNull()) {
+        *handle = Library::New(url);
+        expression_evaluation_library_ = handle->raw();
+      }
+    } else {
+      *handle = Library::LookupLibrary(thread_, url);
+      if (handle->IsNull()) {
+        *handle = Library::New(url);
+        handle->Register(thread_);
+      }
     }
+    ASSERT(!handle->IsNull());
+    libraries_.Insert(library, handle);
   }
-  ASSERT(!handle.IsNull());
-  if (register_class) {
-    name_index_handle_ = Smi::New(klass);
-    kernel_program_info_.InsertClass(thread_, name_index_handle_, handle);
+  return *handle;
+}
+
+Class& KernelLoader::LookupClass(NameIndex klass) {
+  Class* handle = NULL;
+  if (!classes_.Lookup(klass, &handle)) {
+    Library& library = LookupLibrary(H.CanonicalNameParent(klass));
+    const String& name = H.DartClassName(klass);
+    handle = &Class::Handle(Z, library.LookupLocalClass(name));
+    if (handle->IsNull()) {
+      // We do not register expression evaluation classes with the VM:
+      // The expression evaluation functions should be GC-able as soon as
+      // they are not reachable anymore and we never look them up by name.
+      const bool register_class =
+          library.raw() != expression_evaluation_library_.raw();
+
+      *handle = Class::New(library, name, Script::Handle(Z),
+                           TokenPosition::kNoSource, register_class);
+      if (register_class) {
+        library.AddClass(*handle);
+      }
+    }
+    // Insert the class in the cache before calling ReadPreliminaryClass so
+    // we do not risk allocating the class again by calling LookupClass
+    // recursively from ReadPreliminaryClass for the same class.
+    classes_.Insert(klass, handle);
   }
-  return handle.raw();
+  return *handle;
 }
 
 RawFunction::Kind KernelLoader::GetFunctionType(
