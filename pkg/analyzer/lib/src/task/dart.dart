@@ -2383,6 +2383,11 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
    * constant.
    */
   AnalysisContext get context;
+
+  /**
+   * Return whether this constant is evaluated.
+   */
+  bool get isConstantEvaluated;
 }
 
 /**

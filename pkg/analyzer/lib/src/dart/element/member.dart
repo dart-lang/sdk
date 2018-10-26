@@ -41,6 +41,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   bool get isConst => baseElement.isConst;
 
   @override
+  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
+
+  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
@@ -1017,6 +1020,9 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isConst => baseElement.isConst;
+
+  @override
+  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
 
   @override
   bool get isFinal => baseElement.isFinal;

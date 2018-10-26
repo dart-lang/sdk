@@ -11,6 +11,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -1980,6 +1981,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// is a part of a cycle.
   bool _isCycleFree = true;
 
+  @override
+  bool isConstantEvaluated = false;
+
   /// Initialize a newly created constructor element to have the given [name
   /// ] and[offset].
   ConstructorElementImpl(String name, int offset) : super(name, offset);
@@ -2314,6 +2318,9 @@ abstract class ConstVariableElement
     _evaluationResult = evaluationResult;
   }
 
+  @override
+  bool get isConstantEvaluated => _evaluationResult != null;
+
   /// If this element is resynthesized from the summary, return the unlinked
   /// initializer, otherwise return `null`.
   UnlinkedExpr get _unlinkedConst;
@@ -2324,7 +2331,12 @@ abstract class ConstVariableElement
   /// of this variable could not be computed because of errors.
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
-      context?.computeResult(this, CONSTANT_VALUE);
+      computeConstants(
+        context.typeProvider,
+        context.typeSystem,
+        context.declaredVariables,
+        [this],
+      );
     }
     return evaluationResult?.value;
   }
@@ -2506,6 +2518,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.name == _ALWAYS_THROWS_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
+  @override
+  bool get isConstantEvaluated => evaluationResult != null;
+
   /// Return `true` if this annotation marks the associated parameter as being
   /// covariant, meaning it is allowed to have a narrower type in an override.
   bool get isCovariant =>
@@ -2615,7 +2630,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
-      context?.computeResult(this, CONSTANT_VALUE);
+      computeConstants(
+        context.typeProvider,
+        context.typeSystem,
+        context.declaredVariables,
+        [this],
+      );
     }
     return constantValue;
   }
@@ -7562,6 +7582,9 @@ abstract class PropertyInducingElementImpl
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
 
+  @override
+  bool get isConstantEvaluated => true;
+
   @deprecated
   @override
   DartType get propagatedType => null;
@@ -8165,6 +8188,9 @@ abstract class VariableElementImpl extends ElementImpl
   void set isConst(bool isConst) {
     setModifier(Modifier.CONST, isConst);
   }
+
+  @override
+  bool get isConstantEvaluated => true;
 
   @override
   bool get isFinal {

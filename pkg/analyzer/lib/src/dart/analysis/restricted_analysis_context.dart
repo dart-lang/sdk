@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -21,6 +22,9 @@ class RestrictedAnalysisContext implements AnalysisContextImpl {
   final AnalysisOptionsImpl analysisOptions;
 
   @override
+  final DeclaredVariables declaredVariables;
+
+  @override
   final SourceFactory sourceFactory;
 
   final ContentCache _contentCache;
@@ -29,8 +33,8 @@ class RestrictedAnalysisContext implements AnalysisContextImpl {
 
   TypeSystem _typeSystem;
 
-  RestrictedAnalysisContext(
-      this._fsState, this.analysisOptions, this.sourceFactory)
+  RestrictedAnalysisContext(this._fsState, this.analysisOptions,
+      this.declaredVariables, this.sourceFactory)
       : _contentCache = _ContentCacheWrapper(_fsState);
 
   @override

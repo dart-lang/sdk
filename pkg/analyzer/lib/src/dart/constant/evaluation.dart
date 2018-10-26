@@ -216,12 +216,13 @@ class ConstantEvaluationEngine {
         constant.evaluationResult =
             new EvaluationResultImpl(dartObject, errorListener.errors);
       }
-    } else if (constant is ConstructorElement) {
+    } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
         // No evaluation needs to be done; constructor declarations are only in
         // the dependency graph to ensure that any constants referred to in
         // initializer lists and parameter defaults are evaluated before
         // invocations of the constructor.
+        constant.isConstantEvaluated = true;
       }
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
