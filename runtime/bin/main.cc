@@ -962,7 +962,8 @@ static void ConfigureCrashpadClient(crashpad::CrashpadClient* client) {
   // testing framework.
   wchar_t* handler = _wgetenv(L"DART_CRASHPAD_HANDLER");
   wchar_t* crashes_dir = _wgetenv(L"DART_CRASHPAD_CRASHES_DIR");
-  if (handler == nullptr || crashes_dir == nullptr) {
+  if (handler == nullptr || crashes_dir == nullptr || wcslen(handler) == 0 ||
+      wcslen(crashes_dir) == 0) {
     return;
   }
 
