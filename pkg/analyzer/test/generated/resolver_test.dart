@@ -1321,10 +1321,10 @@ class TypeProviderImplTest extends EngineTestCase {
     ];
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["dart.core"]));
+        context, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        context, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -1425,7 +1425,7 @@ class TypeResolverVisitorTest extends ParserTestCase
         resourceProvider: resourceProvider);
     Source librarySource = new FileSource(getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["lib"]));
+        context, null, AstTestFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit = new CompilationUnitElementImpl();
     _typeProvider = new TestTypeProvider();
     libraryScope = new LibraryScope(element);
@@ -1462,7 +1462,7 @@ A V = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null)
+      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
         ..definingCompilationUnit = unitElement;
       var libraryScope = new LibraryScope(libraryElement);
       var visitor = new TypeResolverVisitor(
@@ -2332,7 +2332,7 @@ A v = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null)
+      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
         ..definingCompilationUnit = unitElement;
       libraryScope = new LibraryScope(libraryElement);
       visitor = new TypeResolverVisitor(

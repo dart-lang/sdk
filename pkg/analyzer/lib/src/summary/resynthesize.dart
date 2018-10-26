@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -171,8 +172,9 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(AnalysisContext context, this.sourceFactory, bool _)
-      : super(context) {
+  SummaryResynthesizer(AnalysisContext context, AnalysisSession session,
+      this.sourceFactory, bool _)
+      : super(context, session) {
     _buildTypeProvider();
   }
 
@@ -324,7 +326,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       Source librarySource = _getSource(uri);
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
-            new LibraryElementImpl(context, '', -1, 0);
+            new LibraryElementImpl(context, session, '', -1, 0);
         libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
             new CompilationUnitElementImpl();
@@ -576,6 +578,9 @@ class _DeferredInitializerElement extends FunctionElementHandle {
 
   @override
   ElementLocation get location => actualElement.location;
+
+  @override
+  AnalysisSession get session => enclosingElement.session;
 }
 
 /// Specialization of [LibraryResynthesizer] for resynthesis from linked
@@ -695,6 +700,7 @@ class _LibraryResynthesizer extends LibraryResynthesizerMixin {
     bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
     library = new LibraryElementImpl.forSerialized(
         summaryResynthesizer.context,
+        summaryResynthesizer.session,
         unlinkedUnits[0].libraryName,
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
         unlinkedUnits[0].libraryNameLength,

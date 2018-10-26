@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Directive;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -149,6 +150,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
 
   @override
   int get nameOffset => wrappedUnit.nameOffset;
+
+  @override
+  AnalysisSession get session => wrappedUnit.session;
 
   @override
   Source get source => wrappedUnit.source;
@@ -342,6 +346,9 @@ class WrappedImportElement implements ImportElement {
 
   @override
   int get prefixOffset => wrappedImport.prefixOffset;
+
+  @override
+  AnalysisSession get session => wrappedImport.session;
 
   @override
   Source get source => wrappedImport.source;
@@ -562,6 +569,9 @@ class WrappedLibraryElement implements LibraryElement {
 
   @override
   Namespace get publicNamespace => wrappedLib.publicNamespace;
+
+  @override
+  AnalysisSession get session => wrappedLib.session;
 
   @override
   Source get source => wrappedLib.source;

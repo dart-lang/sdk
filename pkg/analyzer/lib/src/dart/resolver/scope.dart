@@ -537,8 +537,11 @@ class LibraryImportScope extends Scope {
         var conflictingElements = <Element>[]
           ..addAll(sdkElements)
           ..addAll(nonSdkElements);
-        return new MultiplyDefinedElementImpl(_definingLibrary.context,
-            conflictingElements.first.name, conflictingElements);
+        return new MultiplyDefinedElementImpl(
+            _definingLibrary.context,
+            _definingLibrary.session,
+            conflictingElements.first.name,
+            conflictingElements);
       }
       if (nonSdkElements.isNotEmpty) {
         result = nonSdkElements.first;

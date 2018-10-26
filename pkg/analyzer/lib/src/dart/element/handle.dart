@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -461,6 +462,9 @@ abstract class ElementHandle implements Element {
   int get nameOffset => actualElement.nameOffset;
 
   @override
+  AnalysisSession get session => _resynthesizer.session;
+
+  @override
   Source get source => actualElement.source;
 
   @deprecated
@@ -514,10 +518,17 @@ abstract class ElementResynthesizer {
   final AnalysisContext context;
 
   /**
+   * The session that owns the element to be resynthesized.
+   * 
+   * Note that this will be `null` if the task model is being used.
+   */
+  final AnalysisSession session;
+
+  /**
    * Initialize a newly created resynthesizer to resynthesize elements in the
    * given [context].
    */
-  ElementResynthesizer(this.context);
+  ElementResynthesizer(this.context, this.session);
 
   /**
    * Return the element referenced by the given [location].

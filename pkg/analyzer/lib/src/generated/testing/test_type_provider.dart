@@ -422,7 +422,7 @@ class TestTypeProvider extends TypeProviderBase {
       // Create a library element for "dart:core"
       // This enables the "isDartCoreNull" getter.
       var library = new LibraryElementImpl.forNode(
-          _context, AstTestFactory.libraryIdentifier2(["dart.core"]));
+          _context, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
       var unit = new CompilationUnitElementImpl();
       library.definingCompilationUnit = unit;
       unit.librarySource = unit.source = new StringSource('', null);
@@ -562,7 +562,7 @@ class TestTypeProvider extends TypeProviderBase {
     _context.setContents(asyncSource, "");
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        _context, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        _context, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
 

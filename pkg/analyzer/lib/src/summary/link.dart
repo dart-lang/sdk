@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
+
 /// This library is capable of producing linked summaries from unlinked
 /// ones (or prelinked ones).  It functions by building a miniature
 /// element model to represent the contents of the summaries, and then
@@ -800,6 +802,9 @@ class ClassElementForLink_Class extends ClassElementForLink
   String get name => _unlinkedClass.name;
 
   @override
+  AnalysisSession get session => enclosingUnit.session;
+
+  @override
   List<InterfaceType> get superclassConstraints {
     if (_superclassConstraints == null) {
       if (isMixin) {
@@ -1227,6 +1232,9 @@ abstract class CompilationUnitElementForLink
 
   @override
   ResynthesizerContext get resynthesizerContext => this;
+
+  @override
+  AnalysisSession get session => library.session;
 
   @override
   List<TopLevelVariableElementForLink> get topLevelVariables {
@@ -2339,6 +2347,9 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
+  AnalysisSession get session => compilationUnit.session;
+
+  @override
   FunctionTypeImpl get type => _type ??= new FunctionTypeImpl(this);
 
   @override
@@ -3147,6 +3158,9 @@ class FunctionTypeAliasElementForLink extends Object
       enclosingElement.resolveTypeRef(this, _unlinkedTypedef.returnType);
 
   @override
+  AnalysisSession get session => enclosingElement.session;
+
+  @override
   TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
@@ -3262,6 +3276,9 @@ class GenericFunctionTypeElementForLink extends Object
       _returnType ??= enclosingUnit.resolveTypeRef(this, _unlinkedReturnType);
 
   @override
+  AnalysisSession get session => enclosingElement.session;
+
+  @override
   FunctionType get type {
     return _type ??= new FunctionTypeImpl(this);
   }
@@ -3340,6 +3357,9 @@ class GenericTypeAliasElementForLink extends Object
   @override
   DartType get returnType => enclosingElement.resolveTypeRef(
       this, _unlinkedTypedef.returnType.syntheticReturnType);
+
+  @override
+  AnalysisSession get session => enclosingElement.session;
 
   @override
   TypeParameterizedElementMixin get typeParameterContext => this;

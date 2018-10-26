@@ -34,6 +34,7 @@
 /// representation of the statements in a method body, but if one of those
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -634,6 +635,9 @@ abstract class Element implements AnalysisTarget {
   /// the declaration of this element, or `-1` if this element is synthetic,
   /// does not have a name, or otherwise does not have an offset.
   int get nameOffset;
+
+  /// Return the analysis session in which this element is defined.
+  AnalysisSession get session;
 
   @override
   Source get source;

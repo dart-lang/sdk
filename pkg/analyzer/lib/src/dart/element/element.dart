@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -2996,6 +2997,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  AnalysisSession get session {
+    return _enclosingElement?.session;
+  }
+
+  @override
   Source get source {
     if (_enclosingElement == null) {
       return null;
@@ -5180,6 +5186,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The analysis context in which this library is defined.
   final AnalysisContext context;
 
+  @override
+  final AnalysisSession session;
+
   final LibraryResynthesizerContext resynthesizerContext;
 
   final UnlinkedUnit unlinkedDefiningUnit;
@@ -5234,22 +5243,29 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
-  LibraryElementImpl(this.context, String name, int offset, this.nameLength)
+  LibraryElementImpl(
+      this.context, this.session, String name, int offset, this.nameLength)
       : resynthesizerContext = null,
         unlinkedDefiningUnit = null,
         super(name, offset);
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name].
-  LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
+  LibraryElementImpl.forNode(this.context, this.session, LibraryIdentifier name)
       : nameLength = name != null ? name.length : 0,
         resynthesizerContext = null,
         unlinkedDefiningUnit = null,
         super.forNode(name);
 
   /// Initialize using the given serialized information.
-  LibraryElementImpl.forSerialized(this.context, String name, int offset,
-      this.nameLength, this.resynthesizerContext, this.unlinkedDefiningUnit)
+  LibraryElementImpl.forSerialized(
+      this.context,
+      this.session,
+      String name,
+      int offset,
+      this.nameLength,
+      this.resynthesizerContext,
+      this.unlinkedDefiningUnit)
       : super.forSerialized(null) {
     _name = name;
     _nameOffset = offset;
@@ -6331,6 +6347,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   final AnalysisContext context;
 
+  @override
+  final AnalysisSession session;
+
   /// The name of the conflicting elements.
   @override
   final String name;
@@ -6340,7 +6359,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   /// Initialize a newly created element in the given [context] to represent
   /// the given non-empty [conflictingElements].
-  MultiplyDefinedElementImpl(this.context, this.name, this.conflictingElements);
+  MultiplyDefinedElementImpl(
+      this.context, this.session, this.name, this.conflictingElements);
 
   @override
   String get displayName => name;

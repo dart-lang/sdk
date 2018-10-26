@@ -49,7 +49,7 @@ class AnalysisSessionImplTest {
     var unit = new CompilationUnitElementImpl()
       ..librarySource = source
       ..source = source;
-    var library = new LibraryElementImpl(null, null, null, null)
+    var library = new LibraryElementImpl(null, session, null, null, null)
       ..definingCompilationUnit = unit;
 
     driver.libraryMap[uri] = library;
@@ -138,7 +138,8 @@ class AnalysisSessionImplTest {
     {
       CompilationUnitElementImpl coreUnit = newUnit('dart.core');
       coreUnit.types = <ClassElement>[newClass('Iterable')];
-      LibraryElementImpl core = new LibraryElementImpl(null, null, null, null);
+      LibraryElementImpl core =
+          new LibraryElementImpl(null, session, null, null, null);
       core.definingCompilationUnit = coreUnit;
       driver.libraryMap['dart:core'] = core;
     }
@@ -149,7 +150,8 @@ class AnalysisSessionImplTest {
         newClass('FutureOr'),
         newClass('Stream')
       ];
-      LibraryElementImpl async = new LibraryElementImpl(null, null, null, null);
+      LibraryElementImpl async =
+          new LibraryElementImpl(null, session, null, null, null);
       async.definingCompilationUnit = asyncUnit;
       driver.libraryMap['dart:async'] = async;
     }

@@ -173,13 +173,15 @@ class AnalysisContextFactory {
       proxyTopLevelVariableElt
     ];
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstTestFactory.libraryIdentifier2(["dart", "core"]));
+        coreContext, null, AstTestFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
     //
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstTestFactory.libraryIdentifier2(["dart", "async"]));
+        coreContext,
+        null,
+        AstTestFactory.libraryIdentifier2(["dart", "async"]));
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     coreContext.setContents(asyncSource, "");
@@ -329,7 +331,7 @@ class AnalysisContextFactory {
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
     LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(coreContext,
-        AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]));
+        null, AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     //
     // dart:math
@@ -390,7 +392,7 @@ class AnalysisContextFactory {
     ];
     mathUnit.types = <ClassElement>[randomElement];
     LibraryElementImpl mathLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstTestFactory.libraryIdentifier2(["dart", "math"]));
+        coreContext, null, AstTestFactory.libraryIdentifier2(["dart", "math"]));
     mathLibrary.definingCompilationUnit = mathUnit;
     //
     // Set empty sources for the rest of the libraries.

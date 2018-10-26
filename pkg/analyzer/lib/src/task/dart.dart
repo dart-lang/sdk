@@ -1627,7 +1627,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     if (libraryElement == null) {
       libraryElement =
-          new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+          new LibraryElementImpl.forNode(owningContext, null, libraryNameNode);
       libraryElement.isSynthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;

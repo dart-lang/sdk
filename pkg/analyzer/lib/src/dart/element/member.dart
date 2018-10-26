@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -497,6 +498,9 @@ abstract class Member implements Element {
 
   @override
   int get nameOffset => _baseElement.nameOffset;
+
+  @override
+  AnalysisSession get session => _baseElement.session;
 
   @override
   Source get source => _baseElement.source;

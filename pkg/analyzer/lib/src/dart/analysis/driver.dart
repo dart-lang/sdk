@@ -1360,6 +1360,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     if (_libraryContext == null) {
       _libraryContext = new LibraryContext(
+        session: currentSession,
         logger: _logger,
         fsState: fsState,
         byteStore: _byteStore,

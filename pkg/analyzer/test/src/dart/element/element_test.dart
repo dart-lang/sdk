@@ -3695,8 +3695,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
 class LibraryElementImplTest extends EngineTestCase {
   void test_creation() {
     expect(
-        new LibraryElementImpl.forNode(
-            createAnalysisContext(), AstTestFactory.libraryIdentifier2(["l"])),
+        new LibraryElementImpl.forNode(createAnalysisContext(), null,
+            AstTestFactory.libraryIdentifier2(["l"])),
         isNotNull);
   }
 
@@ -3783,7 +3783,7 @@ class LibraryElementImplTest extends EngineTestCase {
   void test_setImports() {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["l1"]));
+        context, null, AstTestFactory.libraryIdentifier2(["l1"]));
     List<ImportElementImpl> expectedImports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null)
@@ -4036,7 +4036,7 @@ class TestElementResynthesizer extends ElementResynthesizer {
   Map<ElementLocation, Element> locationMap;
 
   TestElementResynthesizer(AnalysisContext context, this.locationMap)
-      : super(context);
+      : super(context, null);
 
   @override
   Element getElement(ElementLocation location) {

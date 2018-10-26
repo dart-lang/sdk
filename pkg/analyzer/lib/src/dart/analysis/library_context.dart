@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -45,6 +46,7 @@ class LibraryContext {
   InheritanceManager2 inheritanceManager;
 
   LibraryContext({
+    @required AnalysisSession session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
     @required FileSystemState fsState,
@@ -69,7 +71,8 @@ class LibraryContext {
       sourceFactory,
     );
 
-    var provider = new InputPackagesResultProvider(analysisContext, store);
+    var provider = new InputPackagesResultProvider(analysisContext, store,
+        session: session);
     resynthesizer = provider.resynthesizer;
 
     inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
