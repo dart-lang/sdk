@@ -2881,10 +2881,10 @@ class AssistProcessor {
     // prepare selected statements
     List<Statement> selectedStatements;
     {
-      var unit = context.resolveResult.unit;
       StatementAnalyzer selectionAnalyzer = new StatementAnalyzer(
-          unit, new SourceRange(selectionOffset, selectionLength));
-      unit.accept(selectionAnalyzer);
+          context.resolveResult,
+          new SourceRange(selectionOffset, selectionLength));
+      selectionAnalyzer.analyze();
       List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
       // convert nodes to statements
       selectedStatements = [];

@@ -474,23 +474,20 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
     }
 
-    _ExtractMethodAnalyzer selectionAnalyzer =
-        new _ExtractMethodAnalyzer(resolveResult.unit, selectionRange);
-    resolveResult.unit.accept(selectionAnalyzer);
+    var analyzer = new _ExtractMethodAnalyzer(resolveResult, selectionRange);
+    analyzer.analyze();
     // May be a fatal error.
     {
-      if (selectionAnalyzer.status.hasFatalError) {
-        return selectionAnalyzer.status;
+      if (analyzer.status.hasFatalError) {
+        return analyzer.status;
       }
     }
 
-    List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
+    List<AstNode> selectedNodes = analyzer.selectedNodes;
 
     // If no selected nodes, extract the smallest covering expression.
     if (selectedNodes.isEmpty) {
-      for (var node = selectionAnalyzer.coveringNode;
-          node != null;
-          node = node.parent) {
+      for (var node = analyzer.coveringNode; node != null; node = node.parent) {
         if (node is Statement) {
           break;
         }
@@ -823,9 +820,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * Checks if it is OK to extract the node with the given [SourceRange].
    */
   bool _isExtractable(SourceRange range) {
-    _ExtractMethodAnalyzer analyzer =
-        new _ExtractMethodAnalyzer(resolveResult.unit, range);
-    utils.unit.accept(analyzer);
+    var analyzer = new _ExtractMethodAnalyzer(resolveResult, range);
+    analyzer.analyze();
     return analyzer.status.isOK;
   }
 
@@ -926,8 +922,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
  * [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
  */
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
-  _ExtractMethodAnalyzer(CompilationUnit unit, SourceRange selection)
-      : super(unit, selection);
+  _ExtractMethodAnalyzer(ResolveResult resolveResult, SourceRange selection)
+      : super(resolveResult, selection);
 
   @override
   void handleNextSelectedNode(AstNode node) {
