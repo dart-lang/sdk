@@ -6,9 +6,11 @@
 
 const double okDouble = 7.3; // OK
 const double shouldBeInt1 = 8.0; // LINT
+const double shouldBeInt2 = -8.0; // LINT
+const double shouldBeInt3 = 88.00; // LINT
 
 // TODO(danrubel): Consider linting these as well
-const double shouldBeInt2 = 8.0 + 7.0; // OK
+const double shouldBeInt4 = 8.0 + 7.0; // OK
 
 const inferredAsDouble = 8.0; // OK
 Object inferredAsDouble2 = 8.0; // OK
@@ -55,6 +57,8 @@ void takesDouble(double value) {}
 
 void typedVar() {
   takesDouble(3.0); // LINT
+  takesDouble(-3.0); // LINT
+  takesDouble(33.00); // LINT
 
   double myDouble1 = 5.0; // LINT
 

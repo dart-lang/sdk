@@ -75,19 +75,31 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool canReplaceWithIntLiteral(DoubleLiteral literal) {
     // TODO(danrubel): Consider moving this into analyzer
     final AstNode parent = literal.parent;
+    if (parent is PrefixExpression) {
+      if (parent.operator?.lexeme == '-') {
+        return hasTypeDouble(parent);
+      } else {
+        return false;
+      }
+    }
+    return hasTypeDouble(literal);
+  }
+
+  bool hasTypeDouble(Expression expression) {
+    final AstNode parent = expression.parent;
     if (parent is ArgumentList) {
-      return literal.staticParameterElement?.type?.name == 'double';
+      return expression.staticParameterElement?.type?.name == 'double';
     } else if (parent is NamedExpression) {
       AstNode argList = parent.parent;
       if (argList is ArgumentList) {
         return parent.staticParameterElement?.type?.name == 'double';
       }
     } else if (parent is ExpressionFunctionBody) {
-      return hasDoubleReturnType(parent.parent);
+      return hasReturnTypeDouble(parent.parent);
     } else if (parent is ReturnStatement) {
       BlockFunctionBody body =
           parent.getAncestor((a) => a is BlockFunctionBody);
-      return hasDoubleReturnType(body.parent);
+      return hasReturnTypeDouble(body.parent);
     } else if (parent is VariableDeclaration) {
       AstNode varList = parent.parent;
       if (varList is VariableDeclarationList) {
@@ -97,7 +109,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     return false;
   }
 
-  bool hasDoubleReturnType(AstNode node) {
+  bool hasReturnTypeDouble(AstNode node) {
     if (node is FunctionExpression) {
       var functDeclaration = node.parent;
       if (functDeclaration is FunctionDeclaration) {
