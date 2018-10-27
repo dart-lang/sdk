@@ -373,6 +373,12 @@ class Server {
       }
       await new Future<Null>.delayed(const Duration(seconds: 1));
     }
+    if (_service.isExiting) {
+      serverPrint('Observatory HTTP server exiting before listening as '
+          'vm service has received exit request\n');
+      await shutdown(true);
+      return this;
+    }
     _server.listen(_requestHandler, cancelOnError: true);
     serverPrint('Observatory listening on $serverAddress');
     if (Platform.isFuchsia) {
