@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:args/args.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,13 +19,12 @@ main() {
 }
 
 @reflectiveTest
-class ArgumentsTest {
+class ArgumentsTest with ResourceProviderMixin {
   void test_createContextBuilderOptions_all() {
     String dartSdkSummaryPath = 'a';
     String defaultAnalysisOptionsFilePath = 'b';
     String defaultPackageFilePath = 'c';
     String defaultPackagesDirectoryPath = 'd';
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
@@ -39,7 +38,7 @@ class ArgumentsTest {
       '--packages=$defaultPackageFilePath',
       '--package-root=$defaultPackagesDirectoryPath',
     ];
-    ArgResults result = parse(provider, parser, args);
+    ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
     expect(options, isNotNull);
     expect(options.dartSdkSummaryPath, dartSdkSummaryPath);
@@ -60,11 +59,10 @@ class ArgumentsTest {
   }
 
   void test_createContextBuilderOptions_none() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
-    ArgResults result = parse(provider, parser, args);
+    ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
     expect(options, isNotNull);
     expect(options.dartSdkSummaryPath, isNull);
@@ -81,64 +79,63 @@ class ArgumentsTest {
   }
 
   void test_createDartSdkManager_noPath_noSummaries() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
-    ArgResults result = parse(provider, parser, args);
-    DartSdkManager manager = createDartSdkManager(provider, false, result);
+    ArgResults result = parse(resourceProvider, parser, args);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, false, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory,
-        FolderBasedDartSdk.defaultSdkDirectory(provider));
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     expect(manager.canUseSummaries, false);
   }
 
   void test_createDartSdkManager_noPath_summaries() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
-    ArgResults result = parse(provider, parser, args);
-    DartSdkManager manager = createDartSdkManager(provider, true, result);
+    ArgResults result = parse(resourceProvider, parser, args);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, true, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory,
-        FolderBasedDartSdk.defaultSdkDirectory(provider));
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     expect(manager.canUseSummaries, true);
   }
 
   void test_createDartSdkManager_path_noSummaries() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = ['--dart-sdk=x'];
-    ArgResults result = parse(provider, parser, args);
-    DartSdkManager manager = createDartSdkManager(provider, false, result);
+    ArgResults result = parse(resourceProvider, parser, args);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, false, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory, 'x');
     expect(manager.canUseSummaries, false);
   }
 
   void test_createDartSdkManager_path_summaries() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = ['--dart-sdk=y'];
-    ArgResults result = parse(provider, parser, args);
-    DartSdkManager manager = createDartSdkManager(provider, true, result);
+    ArgResults result = parse(resourceProvider, parser, args);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, true, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory, 'y');
     expect(manager.canUseSummaries, true);
   }
 
   void test_declarationCast_noImplicitCast() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
       '--declaration-casts',
       '--no-implicit-casts',
     ];
-    ArgResults result = parse(provider, parser, args);
+    ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
@@ -180,13 +177,12 @@ class ArgumentsTest {
   }
 
   void test_noAssignmentCast() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
       '--no-declaration-casts',
     ];
-    ArgResults result = parse(provider, parser, args);
+    ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
@@ -196,14 +192,13 @@ class ArgumentsTest {
   }
 
   void test_noAssignmentCast_implicitCast() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
       '--no-declaration-casts',
       '--implicit-casts',
     ];
-    ArgResults result = parse(provider, parser, args);
+    ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
@@ -213,13 +208,12 @@ class ArgumentsTest {
   }
 
   void test_noImplicitCast() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
       '--no-implicit-casts',
     ];
-    ArgResults result = parse(provider, parser, args);
+    ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
@@ -229,12 +223,11 @@ class ArgumentsTest {
   }
 
   void test_parse_noReplacement_noIgnored() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
     parser.addFlag('xx');
     parser.addOption('yy');
     List<String> args = ['--xx', '--yy=abc', 'foo', 'bar'];
-    ArgResults result = parse(provider, parser, args);
+    ArgResults result = parse(resourceProvider, parser, args);
     expect(result, isNotNull);
     expect(result['xx'], true);
     expect(result['yy'], 'abc');
@@ -242,17 +235,15 @@ class ArgumentsTest {
   }
 
   void test_preprocessArgs_noReplacement() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
     List<String> original = ['--xx' '--yy' 'baz'];
-    List<String> result = preprocessArgs(provider, original);
+    List<String> result = preprocessArgs(resourceProvider, original);
     expect(result, orderedEquals(original));
     expect(identical(original, result), isFalse);
   }
 
   void test_preprocessArgs_replacement_exists() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
-    String filePath = provider.convertPath('/args.txt');
-    provider.newFile(filePath, '''
+    String filePath = convertPath('/args.txt');
+    newFile(filePath, content: '''
 -a
 --xx
 
@@ -260,16 +251,15 @@ foo
 bar
 ''');
     List<String> result =
-        preprocessArgs(provider, ['--preserved', '@$filePath']);
+        preprocessArgs(resourceProvider, ['--preserved', '@$filePath']);
     expect(result, orderedEquals(['--preserved', '-a', '--xx', 'foo', 'bar']));
   }
 
   void test_preprocessArgs_replacement_nonexistent() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
-    String filePath = provider.convertPath('/args.txt');
+    String filePath = convertPath('/args.txt');
     List<String> args = ['ignored', '@$filePath'];
     try {
-      preprocessArgs(provider, args);
+      preprocessArgs(resourceProvider, args);
       fail('Expect exception');
     } on Exception catch (e) {
       expect(e.toString(), contains('Failed to read file'));
@@ -278,10 +268,9 @@ bar
   }
 
   void test_preprocessArgs_replacement_notLast() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
-    String filePath = provider.convertPath('/args.txt');
+    String filePath = convertPath('/args.txt');
     List<String> args = ['a', '@$filePath', 'b'];
-    List<String> result = preprocessArgs(provider, args);
+    List<String> result = preprocessArgs(resourceProvider, args);
     expect(result, orderedEquals(args));
   }
 }

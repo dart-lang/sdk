@@ -30,7 +30,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
 import '../abstract_single_unit.dart';
-import '../context/abstract_context.dart';
+import '../context/mock_sdk.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
 
@@ -100,7 +100,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
   }
 
-  DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
+  DartSdk createDartSdk() => new MockSdk(resourceProvider: resourceProvider);
 
   /**
    * Create the analysis options that should be used for this test.

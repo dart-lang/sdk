@@ -427,25 +427,13 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         methodBody: true);
   }
 
-  test_Block_keyword() async {
-    addTestSource('class C { static C get instance => null; } main() {C.in^}');
-    await assertOpType(
-        constructors: true,
-        prefixed: true,
-        returnValue: true,
-        typeNames: true,
-        voidReturn: true,
-        functionBody: true);
-  }
-
-  test_Block_static() async {
-    addTestSource('class A {static foo() {^}}');
+  test_Block_in_constructor() async {
+    addTestSource('class A {A() {^}}');
     await assertOpType(
         constructors: true,
         returnValue: true,
         typeNames: true,
-        staticMethodBody: true,
-        methodBody: true,
+        constructorBody: true,
         voidReturn: true);
   }
 
@@ -469,13 +457,25 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         voidReturn: true);
   }
 
-  test_Block_in_constructor() async {
-    addTestSource('class A {A() {^}}');
+  test_Block_keyword() async {
+    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    await assertOpType(
+        constructors: true,
+        prefixed: true,
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true,
+        functionBody: true);
+  }
+
+  test_Block_static() async {
+    addTestSource('class A {static foo() {^}}');
     await assertOpType(
         constructors: true,
         returnValue: true,
         typeNames: true,
-        constructorBody: true,
+        staticMethodBody: true,
+        methodBody: true,
         voidReturn: true);
   }
 
@@ -2221,7 +2221,7 @@ void f(int a, {int b}) {}
 
 /// Common test methods to Dart1/Dart2 versions of OpType tests.
 class OpTypeTestCommon extends AbstractContextTest {
-  String testpath;
+  String testPath;
   int completionOffset;
   OpType visitor;
 
@@ -2232,7 +2232,7 @@ class OpTypeTestCommon extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
-    super.addSource(testpath, content);
+    super.addSource(testPath, content);
   }
 
   Future<void> assertOpType(
@@ -2251,7 +2251,7 @@ class OpTypeTestCommon extends AbstractContextTest {
       bool voidReturn: false,
       CompletionSuggestionKind kind:
           CompletionSuggestionKind.INVOCATION}) async {
-    AnalysisResult analysisResult = await driver.getResult(testpath);
+    AnalysisResult analysisResult = await driver.getResult(testPath);
 
     CompletionTarget completionTarget =
         new CompletionTarget.forOffset(analysisResult.unit, completionOffset);
@@ -2283,6 +2283,6 @@ class OpTypeTestCommon extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testpath = provider.convertPath('/completionTest.dart');
+    testPath = convertPath('/completionTest.dart');
   }
 }

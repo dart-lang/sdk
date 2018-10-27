@@ -432,7 +432,7 @@ class MyWidget extends StatelessWidget {
 
   test_render_instrumentedCode_rewriteUri_file() async {
     testPath = resourceProvider.convertPath('/home/user/test/test.dart');
-    var libFile = newFile('/home/user/test/my_lib.dart', content: '');
+    var libFile = newFile('/home/user/test/my_lib.dart');
 
     await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -469,7 +469,7 @@ class MyWidget extends StatelessWidget {
     packageMap['test'] = [newFolder('/home/user/test/lib')];
 
     testPath = resourceProvider.convertPath('/home/user/test/lib/test.dart');
-    newFile('/home/user/test/lib/my_lib.dart', content: '');
+    newFile('/home/user/test/lib/my_lib.dart');
     configureDriver();
 
     await _computeOutline('''

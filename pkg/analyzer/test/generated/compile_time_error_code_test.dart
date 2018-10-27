@@ -5376,9 +5376,9 @@ const y = x + 1;''');
   }
 
   test_recursiveCompileTimeConstant_fromMapLiteral() async {
-    resourceProvider.newFile(
-      resourceProvider.convertPath('/constants.dart'),
-      r'''
+    newFile(
+      '/constants.dart',
+      content: r'''
 const int x = y;
 const int y = x;
 ''',
@@ -6287,7 +6287,7 @@ main() {
     assertErrors(test, [HintCode.UNUSED_IMPORT]);
 
     // Remove the overlay in the same way as AnalysisServer.
-    resourceProvider.deleteFile(target.fullName);
+    deleteFile(target.fullName);
     if (enableNewAnalysisDriver) {
       driver.removeFile(target.fullName);
     } else {
@@ -6305,7 +6305,7 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
 
-    String targetPath = resourceProvider.convertPath('/target.dart');
+    String targetPath = convertPath('/target.dart');
     if (enableNewAnalysisDriver) {
       // Add an overlay in the same way as AnalysisServer.
       fileContentOverlay[targetPath] = '';

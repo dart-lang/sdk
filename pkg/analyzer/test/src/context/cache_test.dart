@@ -4,7 +4,6 @@
 
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/model.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1162,13 +1162,12 @@ abstract class CachePartitionTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class PackageCachePartitionTest extends CachePartitionTest {
-  MemoryResourceProvider resourceProvider;
+class PackageCachePartitionTest extends CachePartitionTest
+    with ResourceProviderMixin {
   Folder rootFolder;
 
   CachePartition createPartition() {
-    resourceProvider = new MemoryResourceProvider();
-    rootFolder = resourceProvider.newFolder('/package/root');
+    rootFolder = newFolder('/package/root');
     return new PackageCachePartition(null, rootFolder);
   }
 

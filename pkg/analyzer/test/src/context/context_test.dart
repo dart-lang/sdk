@@ -2686,7 +2686,7 @@ int aa = 0;''';
   void test_validateCacheConsistency_deletedFile() {
     String pathA = '/a.dart';
     String pathB = '/b.dart';
-    var fileA = newFile(pathA, content: "");
+    var fileA = newFile(pathA);
     var fileB = newFile(pathB, content: "import 'a.dart';");
     Source sourceA = fileA.createSource();
     Source sourceB = fileB.createSource();

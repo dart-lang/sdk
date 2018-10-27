@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/summary_file_builder.dart';
+import 'package:meta/meta.dart';
 
 class MockSdk implements DartSdk {
   static const MockSdkLibrary LIB_CORE =
@@ -272,7 +273,7 @@ const Map<String, LibraryInfo> libraries = const {
 };
 ''';
 
-  final resource.MemoryResourceProvider provider;
+  final resource.MemoryResourceProvider resourceProvider;
 
   /**
    * The [AnalysisContext] which is used for all of the sources.
@@ -284,22 +285,19 @@ const Map<String, LibraryInfo> libraries = const {
    */
   PackageBundle _bundle;
 
-  MockSdk(
-      {bool generateSummaryFiles: false,
-      resource.ResourceProvider resourceProvider})
-      : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
+  MockSdk({bool generateSummaryFiles: false, @required this.resourceProvider}) {
     LIBRARIES.forEach((SdkLibrary library) {
-      provider.newFile(provider.convertPath(library.path),
+      resourceProvider.newFile(resourceProvider.convertPath(library.path),
           (library as MockSdkLibrary).content);
     });
-    provider.newFile(
-        provider.convertPath(
+    resourceProvider.newFile(
+        resourceProvider.convertPath(
             '/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
         librariesContent);
     if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
-      provider.newFileWithBytes(
-          provider.convertPath('/lib/_internal/strong.sum'), bytes);
+      resourceProvider.newFileWithBytes(
+          resourceProvider.convertPath('/lib/_internal/strong.sum'), bytes);
     }
   }
 
@@ -332,25 +330,26 @@ const Map<String, LibraryInfo> libraries = const {
 
   @override
   Source fromFileUri(Uri uri) {
-    String filePath = provider.pathContext.fromUri(uri);
+    String filePath = resourceProvider.pathContext.fromUri(uri);
     for (SdkLibrary library in sdkLibraries) {
-      String libraryPath = provider.convertPath(library.path);
+      String libraryPath = resourceProvider.convertPath(library.path);
       if (filePath == libraryPath) {
         try {
-          resource.File file = provider.getResource(filePath);
+          resource.File file = resourceProvider.getResource(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
           return null;
         }
       }
-      String libraryRootPath = provider.pathContext.dirname(libraryPath) +
-          provider.pathContext.separator;
+      String libraryRootPath =
+          resourceProvider.pathContext.dirname(libraryPath) +
+              resourceProvider.pathContext.separator;
       if (filePath.startsWith(libraryRootPath)) {
         String pathInLibrary = filePath.substring(libraryRootPath.length);
         String uriStr = '${library.shortName}/$pathInLibrary';
         try {
-          resource.File file = provider.getResource(filePath);
+          resource.File file = resourceProvider.getResource(filePath);
           Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -364,8 +363,8 @@ const Map<String, LibraryInfo> libraries = const {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      resource.File summaryFile =
-          provider.getFile(provider.convertPath('/lib/_internal/strong.sum'));
+      resource.File summaryFile = resourceProvider
+          .getFile(resourceProvider.convertPath('/lib/_internal/strong.sum'));
       List<int> bytes;
       if (summaryFile.exists) {
         bytes = summaryFile.readAsBytesSync();
@@ -399,7 +398,8 @@ const Map<String, LibraryInfo> libraries = const {
 
     String path = uriToPath[dartUri];
     if (path != null) {
-      resource.File file = provider.getResource(provider.convertPath(path));
+      resource.File file =
+          resourceProvider.getResource(resourceProvider.convertPath(path));
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }

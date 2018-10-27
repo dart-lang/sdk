@@ -257,7 +257,9 @@ class SerializedMockSdk {
     try {
       Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
       Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
-      PackageBundle bundle = new MockSdk().getLinkedBundle();
+      var resourceProvider = new MemoryResourceProvider();
+      PackageBundle bundle =
+          new MockSdk(resourceProvider: resourceProvider).getLinkedBundle();
       for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
         String uri = bundle.unlinkedUnitUris[i];
         uriToUnlinkedUnit[uri] = bundle.unlinkedUnits[i];

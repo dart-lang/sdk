@@ -117,6 +117,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/test.dart');
+    testFile = convertPath('/test.dart');
   }
 }

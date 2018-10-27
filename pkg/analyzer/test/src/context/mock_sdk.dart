@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/summary_file_builder.dart';
+import 'package:meta/meta.dart';
 
 const String librariesContent = r'''
 const Map<String, LibraryInfo> libraries = const {
@@ -470,7 +471,7 @@ class MockSdk implements DartSdk {
     "dart:math": "$sdkRoot/lib/math/math.dart"
   };
 
-  final resource.MemoryResourceProvider provider;
+  final resource.MemoryResourceProvider resourceProvider;
 
   final Map<String, String> uriMap = {};
 
@@ -487,33 +488,30 @@ class MockSdk implements DartSdk {
    */
   PackageBundle _bundle;
 
-  MockSdk(
-      {bool generateSummaryFiles: false,
-      resource.MemoryResourceProvider resourceProvider})
-      : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
+  MockSdk({bool generateSummaryFiles: false, @required this.resourceProvider}) {
     _URI_MAP.forEach((uri, path) {
-      uriMap[uri] = provider.convertPath(path);
+      uriMap[uri] = resourceProvider.convertPath(path);
     });
 
     for (_MockSdkLibrary library in _LIBRARIES) {
-      var convertedLibrary = library._toProvider(provider);
+      var convertedLibrary = library._toProvider(resourceProvider);
       sdkLibraries.add(convertedLibrary);
     }
 
     for (_MockSdkLibrary library in sdkLibraries) {
-      provider.newFile(library.path, library.content);
+      resourceProvider.newFile(library.path, library.content);
       library.parts.forEach((String path, String content) {
-        provider.newFile(path, content);
+        resourceProvider.newFile(path, content);
       });
     }
-    provider.newFile(
-        provider.convertPath(
+    resourceProvider.newFile(
+        resourceProvider.convertPath(
             '$sdkRoot/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
         librariesContent);
     if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
-      provider.newFileWithBytes(
-          provider.convertPath('/lib/_internal/strong.sum'), bytes);
+      resourceProvider.newFileWithBytes(
+          resourceProvider.convertPath('/lib/_internal/strong.sum'), bytes);
     }
   }
 
@@ -536,28 +534,29 @@ class MockSdk implements DartSdk {
 
   @override
   Source fromFileUri(Uri uri) {
-    String filePath = provider.pathContext.fromUri(uri);
-    if (!filePath.startsWith(provider.convertPath('$sdkRoot/lib/'))) {
+    String filePath = resourceProvider.pathContext.fromUri(uri);
+    if (!filePath.startsWith(resourceProvider.convertPath('$sdkRoot/lib/'))) {
       return null;
     }
     for (SdkLibrary library in sdkLibraries) {
       String libraryPath = library.path;
       if (filePath == libraryPath) {
         try {
-          resource.File file = provider.getResource(filePath);
+          resource.File file = resourceProvider.getResource(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
           return null;
         }
       }
-      String libraryRootPath = provider.pathContext.dirname(libraryPath) +
-          provider.pathContext.separator;
+      String libraryRootPath =
+          resourceProvider.pathContext.dirname(libraryPath) +
+              resourceProvider.pathContext.separator;
       if (filePath.startsWith(libraryRootPath)) {
         String pathInLibrary = filePath.substring(libraryRootPath.length);
         String uriStr = '${library.shortName}/$pathInLibrary';
         try {
-          resource.File file = provider.getResource(filePath);
+          resource.File file = resourceProvider.getResource(filePath);
           Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -571,8 +570,8 @@ class MockSdk implements DartSdk {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      resource.File summaryFile =
-          provider.getFile(provider.convertPath('/lib/_internal/strong.sum'));
+      resource.File summaryFile = resourceProvider
+          .getFile(resourceProvider.convertPath('/lib/_internal/strong.sum'));
       List<int> bytes;
       if (summaryFile.exists) {
         bytes = summaryFile.readAsBytesSync();
@@ -598,7 +597,7 @@ class MockSdk implements DartSdk {
   Source mapDartUri(String dartUri) {
     String path = uriMap[dartUri];
     if (path != null) {
-      resource.File file = provider.getResource(path);
+      resource.File file = resourceProvider.getResource(path);
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }

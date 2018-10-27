@@ -5,9 +5,10 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -16,8 +17,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../../context/mock_sdk.dart';
@@ -46,8 +46,7 @@ typedef bool Predicate<E>(E argument);
  */
 typedef void _ElementVisitorFunction(Element element);
 
-class BaseAnalysisDriverTest {
-  final MemoryResourceProvider provider = new MemoryResourceProvider();
+class BaseAnalysisDriverTest with ResourceProviderMixin {
   DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
@@ -71,7 +70,7 @@ class BaseAnalysisDriverTest {
 
   void addTestFile(String content, {bool priority: false}) {
     testCode = content;
-    provider.newFile(testFile, content);
+    newFile(testFile, content: content);
     driver.addFile(testFile);
     if (priority) {
       driver.priorityFiles = [testFile];
@@ -82,23 +81,23 @@ class BaseAnalysisDriverTest {
       {Map<String, List<Folder>> packageMap,
       SummaryDataStore externalSummaries}) {
     packageMap ??= <String, List<Folder>>{
-      'test': [provider.getFolder(testProject)],
-      'aaa': [provider.getFolder(_p('/aaa/lib'))],
-      'bbb': [provider.getFolder(_p('/bbb/lib'))],
+      'test': [getFolder(testProject)],
+      'aaa': [getFolder('/aaa/lib')],
+      'bbb': [getFolder('/bbb/lib')],
     };
     return new AnalysisDriver(
         scheduler,
         logger,
-        provider,
+        resourceProvider,
         byteStore,
         contentOverlay,
         null,
         new SourceFactory([
           new DartUriResolver(sdk),
           generatedUriResolver,
-          new PackageMapUriResolver(provider, packageMap),
-          new ResourceUriResolver(provider)
-        ], null, provider),
+          new PackageMapUriResolver(resourceProvider, packageMap),
+          new ResourceUriResolver(resourceProvider)
+        ], null, resourceProvider),
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         enableIndex: true,
@@ -138,9 +137,9 @@ class BaseAnalysisDriverTest {
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: provider);
-    testProject = _p('/test/lib');
-    testFile = _p('/test/lib/test.dart');
+    sdk = new MockSdk(resourceProvider: resourceProvider);
+    testProject = convertPath('/test/lib');
+    testFile = convertPath('/test/lib/test.dart');
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
     driver = createAnalysisDriver();
@@ -151,8 +150,6 @@ class BaseAnalysisDriverTest {
   }
 
   void tearDown() {}
-
-  String _p(String path) => provider.convertPath(path);
 }
 
 /**

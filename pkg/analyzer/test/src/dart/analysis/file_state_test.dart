@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -17,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
@@ -31,8 +31,7 @@ main() {
 }
 
 @reflectiveTest
-class FileSystemStateTest {
-  final MemoryResourceProvider provider = new MemoryResourceProvider();
+class FileSystemStateTest with ResourceProviderMixin {
   MockSdk sdk;
 
   final ByteStore byteStore = new MemoryByteStore();
@@ -48,22 +47,22 @@ class FileSystemStateTest {
 
   void setUp() {
     logger = new PerformanceLog(logBuffer);
-    sdk = new MockSdk(resourceProvider: provider);
+    sdk = new MockSdk(resourceProvider: resourceProvider);
     sourceFactory = new SourceFactory([
       new DartUriResolver(sdk),
       generatedUriResolver,
-      new PackageMapUriResolver(provider, <String, List<Folder>>{
-        'aaa': [provider.getFolder(_p('/aaa/lib'))],
-        'bbb': [provider.getFolder(_p('/bbb/lib'))],
+      new PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
+        'aaa': [getFolder('/aaa/lib')],
+        'bbb': [getFolder('/bbb/lib')],
       }),
-      new ResourceUriResolver(provider)
-    ], null, provider);
+      new ResourceUriResolver(resourceProvider)
+    ], null, resourceProvider);
     AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
     fileSystemState = new FileSystemState(
         logger,
         byteStore,
         contentOverlay,
-        provider,
+        resourceProvider,
         sourceFactory,
         analysisOptions,
         new Uint32List(0),
@@ -71,8 +70,8 @@ class FileSystemStateTest {
   }
 
   test_definedClassMemberNames() {
-    String path = _p('/aaa/lib/a.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
 class A {
   int a, b;
   A();
@@ -91,8 +90,8 @@ class B {
   }
 
   test_definedTopLevelNames() {
-    String path = _p('/aaa/lib/a.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
 class A {}
 class B = Object with A;
 typedef C();
@@ -107,18 +106,18 @@ var G, H;
   }
 
   test_exportedTopLevelDeclarations_cycle() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    String c = _p('/aaa/lib/c.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    String c = convertPath('/aaa/lib/c.dart');
+    newFile(a, content: r'''
 export 'b.dart';
 class A {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'c.dart';
 class B {}
 ''');
-    provider.newFile(c, r'''
+    newFile(c, content: r'''
 export 'a.dart';
 class C {}
 ''');
@@ -131,24 +130,24 @@ class C {}
   }
 
   test_exportedTopLevelDeclarations_cycle_anotherOutsideCycle() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    String c = _p('/aaa/lib/c.dart');
-    String d = _p('/aaa/lib/d.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    String c = convertPath('/aaa/lib/c.dart');
+    String d = convertPath('/aaa/lib/d.dart');
+    newFile(a, content: r'''
 export 'b.dart';
 class A {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'c.dart';
 class B {}
 ''');
-    provider.newFile(c, r'''
+    newFile(c, content: r'''
 export 'b.dart';
 export 'd.dart';
 class C {}
 ''');
-    provider.newFile(d, r'''
+    newFile(d, content: r'''
 class D {}
 ''');
     _assertExportedTopLevelDeclarations(a, ['A', 'B', 'C', 'D']);
@@ -160,28 +159,28 @@ class D {}
   }
 
   test_exportedTopLevelDeclarations_cycle_onSequence() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    String c = _p('/aaa/lib/c.dart');
-    String d = _p('/aaa/lib/d.dart');
-    String e = _p('/aaa/lib/e.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    String c = convertPath('/aaa/lib/c.dart');
+    String d = convertPath('/aaa/lib/d.dart');
+    String e = convertPath('/aaa/lib/e.dart');
+    newFile(a, content: r'''
 export 'b.dart';
 class A {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'c.dart';
 class B {}
 ''');
-    provider.newFile(c, r'''
+    newFile(c, content: r'''
 export 'd.dart';
 class C {}
 ''');
-    provider.newFile(d, r'''
+    newFile(d, content: r'''
 export 'e.dart';
 class D {}
 ''');
-    provider.newFile(e, r'''
+    newFile(e, content: r'''
 export 'c.dart';
 class E {}
 ''');
@@ -198,12 +197,12 @@ class E {}
   }
 
   test_exportedTopLevelDeclarations_export() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    newFile(a, content: r'''
 class A {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'a.dart';
 class B {}
 ''');
@@ -212,20 +211,20 @@ class B {}
   }
 
   test_exportedTopLevelDeclarations_export2_show() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    String c = _p('/aaa/lib/c.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    String c = convertPath('/aaa/lib/c.dart');
+    newFile(a, content: r'''
 class A1 {}
 class A2 {}
 class A3 {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'a.dart' show A1, A2;
 class B1 {}
 class B2 {}
 ''');
-    provider.newFile(c, r'''
+    newFile(c, content: r'''
 export 'b.dart' show A2, A3, B1;
 class C {}
 ''');
@@ -234,12 +233,12 @@ class C {}
   }
 
   test_exportedTopLevelDeclarations_export_flushOnChange() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    newFile(a, content: r'''
 class A {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'a.dart';
 class B {}
 ''');
@@ -248,20 +247,20 @@ class B {}
     _assertExportedTopLevelDeclarations(b, ['A', 'B']);
 
     // Update a.dart, so a.dart and b.dart exported declarations are flushed.
-    provider.newFile(a, 'class A {} class A2 {}');
+    newFile(a, content: 'class A {} class A2 {}');
     fileSystemState.getFileForPath(a).refresh();
     _assertExportedTopLevelDeclarations(b, ['A', 'A2', 'B']);
   }
 
   test_exportedTopLevelDeclarations_export_hide() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    newFile(a, content: r'''
 class A1 {}
 class A2 {}
 class A3 {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'a.dart' hide A2;
 class B {}
 ''');
@@ -269,12 +268,12 @@ class B {}
   }
 
   test_exportedTopLevelDeclarations_export_preferLocal() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    newFile(a, content: r'''
 class V {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'a.dart';
 int V;
 ''');
@@ -286,13 +285,13 @@ int V;
   }
 
   test_exportedTopLevelDeclarations_export_show() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    newFile(a, content: r'''
 class A1 {}
 class A2 {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'a.dart' show A2;
 class B {}
 ''');
@@ -300,21 +299,21 @@ class B {}
   }
 
   test_exportedTopLevelDeclarations_export_show2() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    String c = _p('/aaa/lib/c.dart');
-    String d = _p('/aaa/lib/d.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    String c = convertPath('/aaa/lib/c.dart');
+    String d = convertPath('/aaa/lib/d.dart');
+    newFile(a, content: r'''
 export 'b.dart' show Foo;
 export 'c.dart' show Bar;
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 export 'd.dart';
 ''');
-    provider.newFile(c, r'''
+    newFile(c, content: r'''
 export 'd.dart';
 ''');
-    provider.newFile(d, r'''
+    newFile(d, content: r'''
 class Foo {}
 class Bar {}
 ''');
@@ -322,12 +321,12 @@ class Bar {}
   }
 
   test_exportedTopLevelDeclarations_import() {
-    String a = _p('/aaa/lib/a.dart');
-    String b = _p('/aaa/lib/b.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String b = convertPath('/aaa/lib/b.dart');
+    newFile(a, content: r'''
 class A {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 import 'a.dart';
 class B {}
 ''');
@@ -335,14 +334,14 @@ class B {}
   }
 
   test_exportedTopLevelDeclarations_parts() {
-    String a = _p('/aaa/lib/a.dart');
-    String a2 = _p('/aaa/lib/a2.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/aaa/lib/a.dart');
+    String a2 = convertPath('/aaa/lib/a2.dart');
+    newFile(a, content: r'''
 library lib;
 part 'a2.dart';
 class A1 {}
 ''');
-    provider.newFile(a2, r'''
+    newFile(a2, content: r'''
 part of lib;
 class A2 {}
 ''');
@@ -350,7 +349,7 @@ class A2 {}
   }
 
   test_getFileForPath_doesNotExist() {
-    String path = _p('/aaa/lib/a.dart');
+    String path = convertPath('/aaa/lib/a.dart');
     FileState file = fileSystemState.getFileForPath(path);
     expect(file.path, path);
     expect(file.uri, Uri.parse('package:aaa/a.dart'));
@@ -368,8 +367,8 @@ class A2 {}
   }
 
   test_getFileForPath_emptyUri() {
-    String path = _p('/test.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/test.dart');
+    newFile(path, content: r'''
 import '';
 export '';
 part '';
@@ -382,8 +381,8 @@ part '';
   }
 
   test_getFileForPath_hasLibraryDirective_hasPartOfDirective() {
-    String a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    String a = convertPath('/test/lib/a.dart');
+    newFile(a, content: r'''
 library L;
 part of L;
 ''');
@@ -392,10 +391,10 @@ part of L;
   }
 
   test_getFileForPath_invalidUri() {
-    String a = _p('/aaa/lib/a.dart');
-    String a1 = _p('/aaa/lib/a1.dart');
-    String a2 = _p('/aaa/lib/a2.dart');
-    String a3 = _p('/aaa/lib/a3.dart');
+    String a = convertPath('/aaa/lib/a.dart');
+    String a1 = convertPath('/aaa/lib/a1.dart');
+    String a2 = convertPath('/aaa/lib/a2.dart');
+    String a3 = convertPath('/aaa/lib/a3.dart');
     String content_a1 = r'''
 import 'package:aaa/a1.dart';
 import ':[invalid uri]';
@@ -406,7 +405,7 @@ export ':[invalid uri]';
 part 'a3.dart';
 part ':[invalid uri]';
 ''';
-    provider.newFile(a, content_a1);
+    newFile(a, content: content_a1);
 
     FileState file = fileSystemState.getFileForPath(a);
 
@@ -430,12 +429,12 @@ part ':[invalid uri]';
   }
 
   test_getFileForPath_library() {
-    String a1 = _p('/aaa/lib/a1.dart');
-    String a2 = _p('/aaa/lib/a2.dart');
-    String a3 = _p('/aaa/lib/a3.dart');
-    String a4 = _p('/aaa/lib/a4.dart');
-    String b1 = _p('/bbb/lib/b1.dart');
-    String b2 = _p('/bbb/lib/b2.dart');
+    String a1 = convertPath('/aaa/lib/a1.dart');
+    String a2 = convertPath('/aaa/lib/a2.dart');
+    String a3 = convertPath('/aaa/lib/a3.dart');
+    String a4 = convertPath('/aaa/lib/a4.dart');
+    String b1 = convertPath('/bbb/lib/b1.dart');
+    String b2 = convertPath('/bbb/lib/b2.dart');
     String content_a1 = r'''
 import 'package:aaa/a2.dart';
 import 'package:bbb/b1.dart';
@@ -445,7 +444,7 @@ part 'a4.dart';
 
 class A1 {}
 ''';
-    provider.newFile(a1, content_a1);
+    newFile(a1, content: content_a1);
 
     FileState file = fileSystemState.getFileForPath(a1);
     expect(file.path, a1);
@@ -486,12 +485,12 @@ class A1 {}
   }
 
   test_getFileForPath_onlyDartFiles() {
-    String not_dart = _p('/test/lib/not_dart.txt');
-    String a = _p('/test/lib/a.dart');
-    String b = _p('/test/lib/b.dart');
-    String c = _p('/test/lib/c.dart');
-    String d = _p('/test/lib/d.dart');
-    provider.newFile(a, r'''
+    String not_dart = convertPath('/test/lib/not_dart.txt');
+    String a = convertPath('/test/lib/a.dart');
+    String b = convertPath('/test/lib/b.dart');
+    String c = convertPath('/test/lib/c.dart');
+    String d = convertPath('/test/lib/d.dart');
+    newFile(a, content: r'''
 library lib;
 import 'dart:math';
 import 'b.dart';
@@ -512,13 +511,13 @@ part 'not_dart.txt';
   }
 
   test_getFileForPath_part() {
-    String a1 = _p('/aaa/lib/a1.dart');
-    String a2 = _p('/aaa/lib/a2.dart');
-    provider.newFile(a1, r'''
+    String a1 = convertPath('/aaa/lib/a1.dart');
+    String a2 = convertPath('/aaa/lib/a2.dart');
+    newFile(a1, content: r'''
 library a1;
 part 'a2.dart';
 ''');
-    provider.newFile(a2, r'''
+    newFile(a2, content: r'''
 part of a1;
 class A2 {}
 ''');
@@ -553,7 +552,7 @@ class A2 {}
     // Now update the library, and refresh its file.
     // The 'a2.dart' is not referenced anymore.
     // So the part file does not have the library anymore.
-    provider.newFile(a1, r'''
+    newFile(a1, content: r'''
 library a1;
 part 'not-a2.dart';
 ''');
@@ -562,16 +561,16 @@ part 'not-a2.dart';
   }
 
   test_getFileForPath_samePath() {
-    String path = _p('/aaa/lib/a.dart');
+    String path = convertPath('/aaa/lib/a.dart');
     FileState file1 = fileSystemState.getFileForPath(path);
     FileState file2 = fileSystemState.getFileForPath(path);
     expect(file2, same(file1));
   }
 
   test_getFileForUri_packageVsFileUri() {
-    String path = _p('/aaa/lib/a.dart');
+    String path = convertPath('/aaa/lib/a.dart');
     var packageUri = Uri.parse('package:aaa/a.dart');
-    var fileUri = provider.pathContext.toUri(path);
+    var fileUri = toUri(path);
 
     // The files with `package:` and `file:` URIs are different.
     FileState filePackageUri = fileSystemState.getFileForUri(packageUri);
@@ -590,14 +589,14 @@ part 'not-a2.dart';
   }
 
   test_getFilesSubtypingName() {
-    String a = _p('/a.dart');
-    String b = _p('/b.dart');
+    String a = convertPath('/a.dart');
+    String b = convertPath('/b.dart');
 
-    provider.newFile(a, r'''
+    newFile(a, content: r'''
 class A {}
 class B extends A {}
 ''');
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 class A {}
 class D implements A {}
 ''');
@@ -611,7 +610,7 @@ class D implements A {}
     );
 
     // Change b.dart so that it does not subtype A.
-    provider.newFile(b, r'''
+    newFile(b, content: r'''
 class C {}
 class D implements C {}
 ''');
@@ -628,8 +627,8 @@ class D implements C {}
 
   test_hasUri() {
     Uri uri = Uri.parse('package:aaa/foo.dart');
-    String templatePath = _p('/aaa/lib/foo.dart');
-    String generatedPath = _p('/generated/aaa/lib/foo.dart');
+    String templatePath = convertPath('/aaa/lib/foo.dart');
+    String generatedPath = convertPath('/generated/aaa/lib/foo.dart');
 
     Source generatedSource = new _SourceMock(generatedPath, uri);
 
@@ -641,10 +640,10 @@ class D implements C {}
   }
 
   test_libraryCycle() {
-    String pa = _p('/aaa/lib/a.dart');
-    String pb = _p('/aaa/lib/b.dart');
-    String pc = _p('/aaa/lib/c.dart');
-    String pd = _p('/aaa/lib/d.dart');
+    String pa = convertPath('/aaa/lib/a.dart');
+    String pb = convertPath('/aaa/lib/b.dart');
+    String pc = convertPath('/aaa/lib/c.dart');
+    String pd = convertPath('/aaa/lib/d.dart');
 
     FileState fa = fileSystemState.getFileForPath(pa);
     FileState fb = fileSystemState.getFileForPath(pb);
@@ -659,17 +658,17 @@ class D implements C {}
     _assertFilesWithoutLibraryCycle([]);
 
     // No imports, so just a single file.
-    provider.newFile(pa, "");
+    newFile(pa);
     _assertLibraryCycle(fa, [fa], []);
 
     // Import b.dart into a.dart, two files now.
-    provider.newFile(pa, "import 'b.dart';");
+    newFile(pa, content: "import 'b.dart';");
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa]);
     _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
 
     // Update b.dart so that it imports c.dart now.
-    provider.newFile(pb, "import 'c.dart';");
+    newFile(pb, content: "import 'c.dart';");
     fb.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb]);
     _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
@@ -677,7 +676,7 @@ class D implements C {}
     _assertFilesWithoutLibraryCycle([]);
 
     // Update b.dart so that it exports d.dart instead.
-    provider.newFile(pb, "export 'd.dart';");
+    newFile(pb, content: "export 'd.dart';");
     fb.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb]);
     _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
@@ -685,18 +684,18 @@ class D implements C {}
     _assertFilesWithoutLibraryCycle([]);
 
     // Update a.dart so that it does not import b.dart anymore.
-    provider.newFile(pa, "");
+    newFile(pa);
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa]);
     _assertLibraryCycle(fa, [fa], []);
   }
 
   test_libraryCycle_cycle() {
-    String pa = _p('/aaa/lib/a.dart');
-    String pb = _p('/aaa/lib/b.dart');
+    String pa = convertPath('/aaa/lib/a.dart');
+    String pb = convertPath('/aaa/lib/b.dart');
 
-    provider.newFile(pa, "import 'b.dart';");
-    provider.newFile(pb, "import 'a.dart';");
+    newFile(pa, content: "import 'b.dart';");
+    newFile(pb, content: "import 'a.dart';");
 
     FileState fa = fileSystemState.getFileForPath(pa);
     FileState fb = fileSystemState.getFileForPath(pb);
@@ -711,7 +710,7 @@ class D implements C {}
     _assertLibraryCycle(fb, [fa, fb], []);
 
     // Update a.dart so that it does not import b.dart anymore.
-    provider.newFile(pa, "");
+    newFile(pa);
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb]);
     _assertLibraryCycle(fa, [fa], []);
@@ -719,8 +718,8 @@ class D implements C {}
   }
 
   test_referencedNames() {
-    String path = _p('/aaa/lib/a.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
 A foo(B p) {
   foo(null);
   C c = new C(p);
@@ -732,8 +731,8 @@ A foo(B p) {
   }
 
   test_refresh_differentApiSignature() {
-    String path = _p('/aaa/lib/a.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
 class A {}
 ''');
     FileState file = fileSystemState.getFileForPath(path);
@@ -741,7 +740,7 @@ class A {}
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
-    provider.newFile(path, r'''
+    newFile(path, content: r'''
 class B {}
 ''');
     bool apiSignatureChanged = file.refresh();
@@ -752,8 +751,8 @@ class B {}
   }
 
   test_refresh_sameApiSignature() {
-    String path = _p('/aaa/lib/a.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
 class C {
   foo() {
     print(111);
@@ -764,7 +763,7 @@ class C {
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
-    provider.newFile(path, r'''
+    newFile(path, content: r'''
 class C {
   foo() {
     print(222);
@@ -778,8 +777,8 @@ class C {
   }
 
   test_store_zeroLengthUnlinked() {
-    String path = _p('/test.dart');
-    provider.newFile(path, 'class A {}');
+    String path = convertPath('/test.dart');
+    newFile(path, content: 'class A {}');
 
     // Get the file, prepare unlinked.
     FileState file = fileSystemState.getFileForPath(path);
@@ -794,8 +793,8 @@ class C {
   }
 
   test_subtypedNames() {
-    String path = _p('/test.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/test.dart');
+    newFile(path, content: r'''
 class X extends A {}
 class Y extends A with B {}
 class Z implements C, D {}
@@ -805,8 +804,8 @@ class Z implements C, D {}
   }
 
   test_topLevelDeclarations() {
-    String path = _p('/aaa/lib/a.dart');
-    provider.newFile(path, r'''
+    String path = convertPath('/aaa/lib/a.dart');
+    newFile(path, content: r'''
 class C {}
 typedef F();
 enum E {E1, E2}
@@ -846,15 +845,15 @@ set _V3(_) {}
   }
 
   test_transitiveSignature() {
-    String pa = _p('/aaa/lib/a.dart');
-    String pb = _p('/aaa/lib/b.dart');
-    String pc = _p('/aaa/lib/c.dart');
-    String pd = _p('/aaa/lib/d.dart');
+    String pa = convertPath('/aaa/lib/a.dart');
+    String pb = convertPath('/aaa/lib/b.dart');
+    String pc = convertPath('/aaa/lib/c.dart');
+    String pd = convertPath('/aaa/lib/d.dart');
 
-    provider.newFile(pa, "class A {}");
-    provider.newFile(pb, "import 'a.dart';");
-    provider.newFile(pc, "import 'b.dart';");
-    provider.newFile(pd, "class D {}");
+    newFile(pa, content: "class A {}");
+    newFile(pb, content: "import 'a.dart';");
+    newFile(pc, content: "import 'b.dart';");
+    newFile(pd, content: "class D {}");
 
     FileState fa = fileSystemState.getFileForPath(pa);
     FileState fb = fileSystemState.getFileForPath(pb);
@@ -871,13 +870,13 @@ set _V3(_) {}
 
     // Make an update to a.dart that does not change its API signature.
     // All library cycles are still valid.
-    provider.newFile(pa, "class A {} // the same API signature");
+    newFile(pa, content: "class A {} // the same API signature");
     fa.refresh();
     _assertFilesWithoutLibraryCycle([]);
 
     // Change a.dart API signature.
     // This flushes signatures of b.dart and c.dart, but d.dart is still OK.
-    provider.newFile(pa, "class A2 {}");
+    newFile(pa, content: "class A2 {}");
     fa.refresh();
     _assertFilesWithoutLibraryCycle([fa, fb, fc]);
   }
@@ -925,12 +924,10 @@ set _V3(_) {}
       } else if (file is FileState) {
         return file.uri?.scheme != 'dart';
       } else {
-        return !(file as String).startsWith(_p('/sdk'));
+        return !(file as String).startsWith(convertPath('/sdk'));
       }
     }).toList();
   }
-
-  String _p(String path) => provider.convertPath(path);
 
   static String _md5(String content) {
     return hex.encode(md5.convert(utf8.encode(content)).bytes);

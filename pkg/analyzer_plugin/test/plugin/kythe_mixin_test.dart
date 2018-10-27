@@ -5,14 +5,13 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/kythe_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/kythe/entries.dart';
 import 'package:analyzer_plugin/utilities/kythe/entries.dart';
-import 'package:path/src/context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,9 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class KytheMixinTest {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class KytheMixinTest with ResourceProviderMixin {
   String packagePath1;
   String filePath1;
   ContextRoot contextRoot1;
@@ -34,11 +31,9 @@ class KytheMixinTest {
   _TestServerPlugin plugin;
 
   void setUp() {
-    Context pathContext = resourceProvider.pathContext;
-
-    packagePath1 = resourceProvider.convertPath('/package1');
-    filePath1 = pathContext.join(packagePath1, 'lib', 'test.dart');
-    resourceProvider.newFile(filePath1, '');
+    packagePath1 = convertPath('/package1');
+    filePath1 = join(packagePath1, 'lib', 'test.dart');
+    newFile(filePath1);
     contextRoot1 = new ContextRoot(packagePath1, <String>[]);
 
     channel = new MockChannel();

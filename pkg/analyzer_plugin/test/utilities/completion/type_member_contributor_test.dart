@@ -1089,7 +1089,7 @@ void main() {new A().f^}''');
     addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = provider.convertPath('/proj/completionTest.dart');
+    testFile = convertPath('/proj/completionTest.dart');
     addTestSource('class C {foo(){F^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);

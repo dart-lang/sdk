@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
@@ -26,8 +25,6 @@ class DriverBasedUriConverterTest extends Object with ResourceProviderMixin {
   DriverBasedUriConverter uriConverter;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-
     Folder barFolder = newFolder('/packages/bar/lib');
     Folder fooFolder = newFolder('/packages/foo/lib');
 

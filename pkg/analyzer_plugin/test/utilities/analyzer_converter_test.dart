@@ -63,10 +63,8 @@ class AnalyzerConverterTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    source = provider
-        .newFile(provider.convertPath('/foo/bar.dart'), '')
-        .createSource();
-    testFile = provider.convertPath('/test.dart');
+    source = newFile('/foo/bar.dart').createSource();
+    testFile = convertPath('/test.dart');
   }
 
   test_convertAnalysisError_lineInfo_noSeverity() {

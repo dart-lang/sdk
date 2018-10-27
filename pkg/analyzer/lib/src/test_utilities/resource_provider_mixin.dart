@@ -16,8 +16,6 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
 class ResourceProviderMixin {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
-  String convertPath(String path) => resourceProvider.convertPath(path);
-
   /// Convert the given [path] to be a valid import uri for this provider's path context.
   /// The URI will use forward slashes on all platforms and absolute paths on Windows
   /// will be formatted as /X:/path/file.dart
@@ -37,6 +35,8 @@ class ResourceProviderMixin {
     // even for relative paths on Windows.
     return path.replaceAll(r'\', '/');
   }
+
+  String convertPath(String path) => resourceProvider.convertPath(path);
 
   void deleteFile(String path) {
     String convertedPath = resourceProvider.convertPath(path);
@@ -97,5 +97,10 @@ class ResourceProviderMixin {
   File newPackagesFile(String directoryPath) {
     return newFile(resourceProvider.pathContext
         .join(directoryPath, ContextLocatorImpl.PACKAGES_FILE_NAME));
+  }
+
+  Uri toUri(String path) {
+    path = convertPath(path);
+    return resourceProvider.pathContext.toUri(path);
   }
 }

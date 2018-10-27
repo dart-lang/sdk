@@ -500,7 +500,7 @@ test_pack:lib/''');
     var testLibUri = resourceProvider.pathContext.toUri(testLib);
     resourceProvider.newFile(packagespecPath, 'unittest:$testLibUri');
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    File mainFile = newFile('$libPath/main.dart', content: '');
+    File mainFile = newFile('$libPath/main.dart');
     Source source = mainFile.createSource();
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -586,8 +586,8 @@ test_pack:lib/''');
     // create files
     newFile('$subProjectA/pubspec.yaml', content: 'pubspec');
     newFile('$subProjectB/pubspec.yaml', content: 'pubspec');
-    newFile('$subProjectA/.packages', content: '');
-    newFile('$subProjectB/.packages', content: '');
+    newFile('$subProjectA/.packages');
+    newFile('$subProjectB/.packages');
 
     newFile(rootFile, content: 'library root;');
     newFile(subProjectA_file, content: 'library a;');

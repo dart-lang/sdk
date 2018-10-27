@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -28,6 +27,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../src/context/mock_sdk.dart';
@@ -310,12 +310,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   }
 }
 
-class ResolverTestCase extends EngineTestCase {
-  /**
-   * The resource provider used by the test case.
-   */
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
@@ -384,8 +379,7 @@ class ResolverTestCase extends EngineTestCase {
    * set in the content provider. Return the source representing the added file.
    */
   Source addNamedSource(String filePath, String contents) {
-    filePath = resourceProvider.convertPath(filePath);
-    File file = resourceProvider.newFile(filePath, contents);
+    File file = newFile(filePath, content: contents);
     Source source = file.createSource();
     if (enableNewAnalysisDriver) {
       driver.addFile(filePath);
@@ -570,7 +564,7 @@ class ResolverTestCase extends EngineTestCase {
    * give it an empty content. Return the source that was created.
    */
   Source createNamedSource(String fileName) {
-    Source source = resourceProvider.getFile(fileName).createSource();
+    Source source = getFile(fileName).createSource();
     analysisContext2.setContents(source, '');
     return source;
   }
@@ -585,7 +579,7 @@ class ResolverTestCase extends EngineTestCase {
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName,
       [List<String> typeNames]) {
-    String fileName = resourceProvider.convertPath("/test/$libraryName.dart");
+    String fileName = convertPath("/test/$libraryName.dart");
     Source definingCompilationUnitSource = createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
@@ -679,7 +673,7 @@ class ResolverTestCase extends EngineTestCase {
           String path =
               resourceProvider.convertPath('/packages/$name/$name.dart');
           String content = args[1];
-          File file = resourceProvider.newFile(path, content);
+          File file = newFile(path, content: content);
           packageMap[name] = <Folder>[file.parent];
         });
         resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));

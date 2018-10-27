@@ -6,17 +6,16 @@ import 'dart:async';
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/fix_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:path/src/context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,9 +26,7 @@ void main() {
 }
 
 @reflectiveTest
-class FixesMixinTest {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class FixesMixinTest with ResourceProviderMixin {
   String packagePath1;
   String filePath1;
   ContextRoot contextRoot1;
@@ -38,11 +35,9 @@ class FixesMixinTest {
   _TestServerPlugin plugin;
 
   void setUp() {
-    Context pathContext = resourceProvider.pathContext;
-
-    packagePath1 = resourceProvider.convertPath('/package1');
-    filePath1 = pathContext.join(packagePath1, 'lib', 'test.dart');
-    resourceProvider.newFile(filePath1, '');
+    packagePath1 = convertPath('/package1');
+    filePath1 = join(packagePath1, 'lib', 'test.dart');
+    newFile(filePath1);
     contextRoot1 = new ContextRoot(packagePath1, <String>[]);
 
     channel = new MockChannel();

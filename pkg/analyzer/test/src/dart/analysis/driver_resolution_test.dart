@@ -376,7 +376,7 @@ const a = 1;
   }
 
   test_annotation_onDirective_part() async {
-    provider.newFile(_p('/test/lib/a.dart'), r'''
+    newFile('/test/lib/a.dart', content: r'''
 part of 'test.dart';
 ''');
     addTestFile(r'''
@@ -399,8 +399,7 @@ const a = 1;
   }
 
   test_annotation_onDirective_partOf() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 part 'test.dart';
 ''');
     addTestFile(r'''
@@ -409,7 +408,6 @@ part of 'a.dart';
 
 const a = 1;
 ''');
-    driver.addFile(a);
     await resolveTestFile();
 
     var directive = findNode.partOf('a.dart');
@@ -522,8 +520,7 @@ class C {
   }
 
   test_annotation_prefixed_classField() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   static const a = 1;
 }
@@ -563,8 +560,7 @@ main() {}
   }
 
   test_annotation_prefixed_constructor() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A(int a, {int b});
 }
@@ -605,8 +601,7 @@ main() {}
   }
 
   test_annotation_prefixed_constructor_named() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A.named(int a, {int b});
 }
@@ -649,8 +644,7 @@ main() {}
   }
 
   test_annotation_prefixed_topLevelVariable() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 const topAnnotation = 1;
 ''');
     addTestFile(r'''
@@ -1538,8 +1532,7 @@ class B<U> {
 
   @failingTest
   test_deferredImport_loadLibrary_invocation() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, '');
+    newFile('/test/lib/a.dart');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() {
@@ -1564,8 +1557,7 @@ main() {
 
   @failingTest
   test_deferredImport_loadLibrary_invocation_argument() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, '');
+    newFile('/test/lib/a.dart');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 var b = 1;
@@ -1599,8 +1591,7 @@ main() {
   }
 
   test_deferredImport_loadLibrary_tearOff() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, '');
+    newFile('/test/lib/a.dart');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() {
@@ -1623,8 +1614,7 @@ main() {
   }
 
   test_deferredImport_variable() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, 'var v = 0;');
+    newFile('/test/lib/a.dart', content: 'var v = 0;');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() async {
@@ -1664,8 +1654,7 @@ main() async {
   }
 
   test_directive_export() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -1713,8 +1702,7 @@ export 'a.dart' show MyClass, myVar, myGetter, mySetter, Unresolved;
   }
 
   test_directive_import_hide() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -1762,8 +1750,7 @@ import 'a.dart' hide MyClass, myVar, myGetter, mySetter, Unresolved;
   }
 
   test_directive_import_show() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -2325,8 +2312,7 @@ var b = new C.named(2);
   }
 
   test_instanceCreation_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class C<T> {
   C(T p);
   C.named(T p);
@@ -3719,8 +3705,7 @@ main() {
 
   @failingTest
   test_invalid_nonTypeAsType_topLevelFunction_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 int T() => 0;
 ''');
     addTestFile(r'''
@@ -3788,8 +3773,7 @@ main() {
 
   @failingTest
   test_invalid_nonTypeAsType_topLevelVariable_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 int T;
 ''');
     addTestFile(r'''
@@ -5898,7 +5882,7 @@ const b = C.named(); // ref
 
   @failingTest
   test_optionalConst_prefixed() async {
-    provider.newFile(_p('/test/lib/a.dart'), r'''
+    newFile('/test/lib/a.dart', content: r'''
 class C {
   const C();
   const C.named();
@@ -6425,8 +6409,7 @@ main(double computation(int p)) {
   }
 
   test_prefixedIdentifier_importPrefix_className() async {
-    var libPath = _p('/test/lib/lib.dart');
-    provider.newFile(libPath, '''
+    newFile('/test/lib/lib.dart', content: '''
 class MyClass {}
 typedef void MyFunctionTypeAlias();
 int myTopVariable;
@@ -8018,12 +8001,9 @@ main() {
   }
 
   test_typeAnnotation_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    var b = _p('/test/lib/b.dart');
-    var c = _p('/test/lib/c.dart');
-    provider.newFile(a, 'class A {}');
-    provider.newFile(b, "export 'a.dart';");
-    provider.newFile(c, "export 'a.dart';");
+    newFile('/test/lib/a.dart', content: 'class A {}');
+    newFile('/test/lib/b.dart', content: "export 'a.dart';");
+    newFile('/test/lib/c.dart', content: "export 'a.dart';");
     addTestFile(r'''
 import 'b.dart' as b;
 import 'c.dart' as c;
@@ -8867,8 +8847,5 @@ main() {
     fail('Not found $name');
   }
 
-  /**
-   * Return the [provider] specific path for the given Posix [path].
-   */
-  String _p(String path) => provider.convertPath(path);
+//  String _p(String path) => convertPath(path);
 }

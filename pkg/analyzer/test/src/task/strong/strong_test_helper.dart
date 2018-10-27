@@ -25,6 +25,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
@@ -237,8 +238,7 @@ void _reportFailure(
   fail('Checker errors do not match expected errors:\n\n$message');
 }
 
-class AbstractStrongTest {
-  MemoryResourceProvider _resourceProvider = new MemoryResourceProvider();
+class AbstractStrongTest with ResourceProviderMixin {
   bool _checkCalled = false;
 
   AnalysisContext _context = null;
@@ -266,7 +266,7 @@ class AbstractStrongTest {
   /// For a single file, you may also use [checkFile].
   void addFile(String content, {String name: '/main.dart'}) {
     name = name.replaceFirst('^package:', '/packages/');
-    _resourceProvider.newFile(_resourceProvider.convertPath(name), content);
+    newFile(name, content: content);
   }
 
   /// Run the checker on a program, staring from '/main.dart', and verifies that
@@ -282,8 +282,7 @@ class AbstractStrongTest {
       bool implicitDynamic: true}) async {
     _checkCalled = true;
 
-    File mainFile =
-        _resourceProvider.getFile(_resourceProvider.convertPath('/main.dart'));
+    File mainFile = getFile('/main.dart');
     expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
@@ -292,12 +291,12 @@ class AbstractStrongTest {
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
 
-    var mockSdk = new MockSdk(resourceProvider: _resourceProvider);
+    var mockSdk = new MockSdk(resourceProvider: resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
 
     SourceFactory sourceFactory;
     {
-      var uriResolver = new _TestUriResolver(_resourceProvider);
+      var uriResolver = new _TestUriResolver(resourceProvider);
       sourceFactory =
           new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
     }
@@ -311,7 +310,7 @@ class AbstractStrongTest {
       _driver = new AnalysisDriver(
           scheduler,
           log,
-          _resourceProvider,
+          resourceProvider,
           new MemoryByteStore(),
           fileContentOverlay,
           null,
