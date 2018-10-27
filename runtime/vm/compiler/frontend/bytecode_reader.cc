@@ -43,12 +43,8 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
 #if !defined(PRODUCT)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadMetadata");
-  // This increases bytecode reading time by ~7%, so only keep it around for
-  // debugging.
-#if defined(DEBUG)
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "Function", function.ToQualifiedCString());
-#endif  // defined(DEBUG)
 #endif  // !defined(PRODUCT)
 
   const intptr_t node_offset = function.kernel_offset();
