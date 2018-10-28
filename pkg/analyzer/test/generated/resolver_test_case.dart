@@ -379,6 +379,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    * set in the content provider. Return the source representing the added file.
    */
   Source addNamedSource(String filePath, String contents) {
+    filePath = convertPath(filePath);
     File file = newFile(filePath, content: contents);
     Source source = file.createSource();
     if (enableNewAnalysisDriver) {

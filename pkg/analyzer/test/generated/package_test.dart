@@ -31,9 +31,9 @@ const String pubspecName = 'pubspec.yaml';
 @reflectiveTest
 class DependencyFinderTest extends ResolverTestCase {
   void test_transitiveDependenciesFor_circularDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = convertPath('/pub-cache/a-1.0');
+    String packageB = convertPath('/pub-cache/b-1.0');
+    String packageC = convertPath('/pub-cache/c-1.0');
     newFile('$packageA/$pubspecName', content: '''
 dependencies:
   b: any
@@ -59,7 +59,7 @@ dependencies:
   }
 
   void test_transitiveDependenciesFor_missingPubspec() {
-    String packagePath = '/pub-cache/a-1.0';
+    String packagePath = convertPath('/pub-cache/a-1.0');
     Map<String, List<Folder>> packageMap = <String, List<Folder>>{
       'a': <Folder>[getFolder(packagePath)]
     };
@@ -70,7 +70,7 @@ dependencies:
   }
 
   void test_transitiveDependenciesFor_noDependencies() {
-    String packagePath = '/pub-cache/a-1.0';
+    String packagePath = convertPath('/pub-cache/a-1.0');
     newFile('$packagePath/$pubspecName');
     Map<String, List<Folder>> packageMap = <String, List<Folder>>{
       'a': <Folder>[getFolder(packagePath)]
@@ -83,10 +83,10 @@ dependencies:
   }
 
   void test_transitiveDependenciesFor_overlappingDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
-    String packageD = '/pub-cache/d-1.0';
+    String packageA = convertPath('/pub-cache/a-1.0');
+    String packageB = convertPath('/pub-cache/b-1.0');
+    String packageC = convertPath('/pub-cache/c-1.0');
+    String packageD = convertPath('/pub-cache/d-1.0');
     newFile('$packageA/$pubspecName', content: '''
 dependencies:
   b: any
@@ -115,9 +115,9 @@ dependencies:
   }
 
   void test_transitiveDependenciesFor_simpleDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = convertPath('/pub-cache/a-1.0');
+    String packageB = convertPath('/pub-cache/b-1.0');
+    String packageC = convertPath('/pub-cache/c-1.0');
     newFile('$packageA/$pubspecName', content: '''
 dependencies:
   b: any
@@ -188,10 +188,10 @@ class PackageDescriptionTest extends ResolverTestCase {
 @reflectiveTest
 class PackageManagerTest extends ResolverTestCase {
   void test_getContext() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB1 = '/pub-cache/b-1.0';
-    String packageB2 = '/pub-cache/b-2.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = convertPath('/pub-cache/a-1.0');
+    String packageB1 = convertPath('/pub-cache/b-1.0');
+    String packageB2 = convertPath('/pub-cache/b-2.0');
+    String packageC = convertPath('/pub-cache/c-1.0');
     newFile('$packageA/$pubspecName', content: '''
 dependencies:
   b: any
