@@ -25,7 +25,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   SourceChange change;
 
   /// The result of applying the [change] to the file content, or `null` if
-  //  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
+  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
   String resultCode;
 
   /// Return the kind of fixes being tested by this test class.
@@ -48,7 +48,6 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     }
 
     resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    // verify
     expect(resultCode, expected);
   }
 
@@ -69,8 +68,14 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     }
 
     resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    // verify
     expect(resultCode, expected);
+  }
+
+  Future<void> assertHasFixWithoutApplying(
+      {bool Function(AnalysisError) errorFilter}) async {
+    AnalysisError error = await _findErrorToFix(errorFilter);
+    Fix fix = await _assertHasFix(error);
+    change = fix.change;
   }
 
   void assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
@@ -79,6 +84,15 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     expect(group.positions, unorderedEquals(expectedPositions));
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
+    }
+  }
+
+  /// Compute fixes for all of the errors in the test file to effectively assert
+  /// that no exceptions will be thrown by doing so.
+  Future<void> assertNoExceptions() async {
+    List<AnalysisError> errors = await _computeErrors();
+    for (var error in errors) {
+      await _computeFixes(error);
     }
   }
 
