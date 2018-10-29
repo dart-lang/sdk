@@ -8,7 +8,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   static factory redir() → self::A
-    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+    let<BottomType> #redirecting_factory = self::A::• in invalid-expression;
 }
 static method main() → dynamic {
   new self::A::•();

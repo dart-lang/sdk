@@ -6,26 +6,21 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
-DeltaBlue: ExpectationFileMismatch
 accessors: RuntimeError
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-async_function: ExpectationFileMismatch
 bug21938: TypeCheckError
 bug30695: TypeCheckError
 bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 bug32629: InstrumentationMismatch # Test has an intentional error
-call: ExpectationFileMismatch
+call: TypeCheckError
 cascade: RuntimeError
-closure: ExpectationFileMismatch
 constructor_initializer_invalid: RuntimeError # Fails execution after recovery
-covariant_generic: ExpectationFileMismatch
+covariant_generic: RuntimeError
 duplicated_declarations: TypeCheckError
 duplicated_field_initializer: RuntimeError
 dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-escape: ExpectationFileMismatch
 expressions: RuntimeError
-external: ExpectationFileMismatch
 external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 fallthrough: ExpectationFileMismatch
 incomplete_field_formal_parameter: RuntimeError
@@ -51,7 +46,7 @@ inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/instantiate_tearoff_of_call: ExpectationFileMismatch # Issue #31746
+inference/instantiate_tearoff_of_call: TypeCheckError # Issue #31746
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
@@ -73,18 +68,15 @@ inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 invalid_type: TypeCheckError
 invocations: RuntimeError
 issue34899: TypeCheckError
-micro: ExpectationFileMismatch
+micro: RuntimeError
 mixin_application_override: TypeCheckError
-named_parameters: ExpectationFileMismatch
-null_aware: ExpectationFileMismatch
-optional: ExpectationFileMismatch
+optional: TypeCheckError
 override_check_accessor_after_inference: TypeCheckError # Issue #31620
 override_check_accessor_basic: TypeCheckError # Issue #31620
 override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
 override_check_after_inference: TypeCheckError # Issue #31620
 override_check_basic: TypeCheckError # Issue #31620
 override_check_with_covariant_modifier: TypeCheckError # Issue #31620
-prefer_baseclass: ExpectationFileMismatch
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -121,7 +113,7 @@ rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: RuntimeError
 rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
-rasta/super: ExpectationFileMismatch
+rasta/super: TypeCheckError
 rasta/super_initializer: RuntimeError
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
@@ -131,13 +123,6 @@ rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: VerificationError
 rasta/unresolved_recovery: TypeCheckError
-redirecting_factory: ExpectationFileMismatch
-redirecting_factory_chain_test: ExpectationFileMismatch # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_simple_test: ExpectationFileMismatch # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeargs_test: ExpectationFileMismatch # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparam_test: ExpectationFileMismatch # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparambounds_test: ExpectationFileMismatch # Missing support for RedirectingFactoryConstructor.
-regress/issue_29975: ExpectationFileMismatch # Issue 29975.
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
@@ -152,11 +137,7 @@ runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 statements: Crash
-stringliteral: ExpectationFileMismatch
-super_rasta_copy: ExpectationFileMismatch
 type_variable_as_super: RuntimeError
 type_variable_prefix: RuntimeError
-uninitialized_fields: ExpectationFileMismatch
-unused_methods: ExpectationFileMismatch
 void_methods: ExpectationFileMismatch
 warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
