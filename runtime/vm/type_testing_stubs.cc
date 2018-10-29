@@ -345,8 +345,7 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   ASSERT(!type_class.IsNull());
 
   // To use the already-defined __ Macro !
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(&object_pool_wrapper);
+  Assembler assembler(nullptr);
   BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
 
   const char* name = namer_.StubNameForType(type);
