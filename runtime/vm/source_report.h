@@ -94,17 +94,17 @@ class SourceReport {
   // Needed for DirectChainedHashMap.
   struct ScriptTableTrait {
     typedef ScriptTableEntry* Value;
-    typedef const String* Key;
+    typedef const ScriptTableEntry* Key;
     typedef ScriptTableEntry* Pair;
 
-    static Key KeyOf(Pair kv) { return kv->key; }
+    static Key KeyOf(Pair kv) { return kv; }
 
     static Value ValueOf(Pair kv) { return kv; }
 
-    static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+    static inline intptr_t Hashcode(Key key) { return key->key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
-      return kv->key->Equals(*key);
+      return kv->script->raw() == key->script->raw();
     }
   };
 
