@@ -5,7 +5,7 @@ description:
   A tool for migrating Dart source to newer versions of the Dart SDK,
   and fixing common issues.
 environment:
-  sdk: '>=2.0.0 <3.0.0'
+  sdk: '>=2.1.0 <3.0.0'
 dependencies:
   analysis_server_client: ^2.0.0
   args: any
