@@ -1069,7 +1069,7 @@ deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_redirecting_factory_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-disassemble_test: Pass, Slow
+disassemble_test: Pass, Slow, Crash # dartbug.com/34971
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 example_constructor_test: Fail, OK
