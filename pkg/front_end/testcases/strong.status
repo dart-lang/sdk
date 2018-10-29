@@ -26,6 +26,7 @@ covariant_generic: Fail
 cycles: Fail
 default_values: Fail
 duplicated_declarations: TypeCheckError
+duplicated_field_initializer: RuntimeError
 dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
 escape: Fail
 expressions: RuntimeError
@@ -107,10 +108,10 @@ rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
 rasta/bad_default_constructor: Fail
 rasta/bad_explicit_super_constructor: RuntimeError
-rasta/bad_implicit_super_constructor: Fail
+rasta/bad_implicit_super_constructor: RuntimeError
 rasta/bad_interpolation: Fail
 rasta/bad_redirection: Fail
-rasta/bad_setter_initializer: Fail
+rasta/bad_setter_initializer: RuntimeError
 rasta/bad_unicode: Fail
 rasta/breaking_bad: Fail
 rasta/cascades: Fail

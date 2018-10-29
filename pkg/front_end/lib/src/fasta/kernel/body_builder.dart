@@ -4319,7 +4319,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       {DartType formalType}) {
     Declaration builder =
         classBuilder.scope.local[name] ?? classBuilder.origin.scope.local[name];
-    if (builder is KernelFieldBuilder && builder.isInstanceMember) {
+    if (builder?.next != null) {
+      // Duplicated name, already reported.
+      return new LocalInitializer(
+          new VariableDeclaration.forValue(
+              buildProblem(
+                      fasta.templateDuplicatedDeclarationUse
+                          .withArguments(name),
+                      offset,
+                      name.length)
+                  .desugared
+                ..fileOffset = offset)
+            ..fileOffset = offset)
+        ..fileOffset = offset;
+    } else if (builder is KernelFieldBuilder && builder.isInstanceMember) {
       initializedFields ??= <String, int>{};
       if (initializedFields.containsKey(name)) {
         return buildDuplicatedInitializer(
