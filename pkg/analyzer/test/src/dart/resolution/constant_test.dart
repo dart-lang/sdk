@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,6 +21,29 @@ main() {
 class ConstantDriverTest extends DriverResolutionTest with ConstantMixin {}
 
 abstract class ConstantMixin implements ResolutionTest {
+  test_constantValue_defaultParameter_noDefaultValue() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  const A({int p});
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+const a = const A();
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var aLib = findElement.import('package:test/a.dart').importedLibrary;
+    var aConstructor = aLib.getType('A').constructors.single;
+    DefaultParameterElementImpl p = aConstructor.parameters.single;
+
+    // To evaluate `const A()` we have to evaluate `{int p}`.
+    // Even if its value is `null`.
+    expect(p.isConstantEvaluated, isTrue);
+    expect(p.constantValue.isNull, isTrue);
+  }
+
   test_constFactoryRedirection_super() async {
     addTestFile(r'''
 class I {
