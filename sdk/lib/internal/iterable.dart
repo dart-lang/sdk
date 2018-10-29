@@ -526,7 +526,7 @@ class TakeIterator<E> extends Iterator<E> {
   int _remaining;
 
   TakeIterator(this._iterator, this._remaining) {
-    assert(_remaining is int && _remaining >= 0);
+    assert(_remaining >= 0);
   }
 
   bool moveNext() {
@@ -633,7 +633,7 @@ class SkipIterator<E> extends Iterator<E> {
   int _skipCount;
 
   SkipIterator(this._iterator, this._skipCount) {
-    assert(_skipCount is int && _skipCount >= 0);
+    assert(_skipCount >= 0);
   }
 
   bool moveNext() {
