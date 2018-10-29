@@ -164,7 +164,11 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
       if (expected.trim() != actual.trim()) {
         if (!updateExpectations) {
           String diff = await runDiff(expectedFile.uri, actual);
-          return fail(null, "$uri doesn't match ${expectedFile.uri}\n$diff");
+          return new Result<Component>(
+              component,
+              context.expectationSet["ExpectationFileMismatch"],
+              "$uri doesn't match ${expectedFile.uri}\n$diff",
+              null);
         }
       } else {
         return pass(component);
@@ -176,9 +180,13 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
       });
       return pass(component);
     } else {
-      return fail(component, """
+      return new Result<Component>(
+          component,
+          context.expectationSet["ExpectationFileMissing"],
+          """
 Please create file ${expectedFile.path} with this content:
-$actual""");
+$actual""",
+          null);
     }
   }
 }
