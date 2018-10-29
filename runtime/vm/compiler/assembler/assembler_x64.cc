@@ -24,7 +24,12 @@ DECLARE_FLAG(bool, inline_alloc);
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
-    : AssemblerBase(object_pool_wrapper), constant_pool_allowed_(false) {
+    : buffer_(),
+      object_pool_wrapper_(object_pool_wrapper),
+      prologue_offset_(-1),
+      has_single_entry_point_(true),
+      comments_(),
+      constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for ARM.
   ASSERT(!use_far_branches);
 }
@@ -1364,12 +1369,19 @@ void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
   addq(dest, inc_imm);
 }
 
-void Assembler::Stop(const char* message) {
+void Assembler::Stop(const char* message, bool fixed_length_encoding) {
   if (FLAG_print_stop_message) {
     int64_t message_address = reinterpret_cast<int64_t>(message);
     pushq(TMP);  // Preserve TMP register.
     pushq(RDI);  // Preserve RDI register.
-    LoadImmediate(RDI, Immediate(message_address));
+    if (fixed_length_encoding) {
+      AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+      EmitRegisterREX(RDI, REX_W);
+      EmitUint8(0xB8 | (RDI & 7));
+      EmitInt64(message_address);
+    } else {
+      LoadImmediate(RDI, Immediate(message_address));
+    }
     call(&StubCode::PrintStopMessage_entry()->label());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.

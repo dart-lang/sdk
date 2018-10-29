@@ -275,7 +275,7 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public AssemblerBase {
+class Assembler : public ValueObject {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches = false);
@@ -818,6 +818,36 @@ class Assembler : public AssemblerBase {
     cmpq(value, address);
   }
 
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  static bool EmittingComments();
+
+  const Code::Comments& GetCodeComments() const;
+
+  // Address of code at offset.
+  uword CodeAddress(intptr_t offset) { return buffer_.Address(offset); }
+
+  intptr_t CodeSize() const { return buffer_.Size(); }
+  intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
+
+  // Count the fixups that produce a pointer offset, without processing
+  // the fixups.
+  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
+
+  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
+    return buffer_.pointer_offsets();
+  }
+
+  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
+
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_->MakeObjectPool();
+  }
+
+  void FinalizeInstructions(const MemoryRegion& region) {
+    buffer_.FinalizeInstructions(region);
+  }
+
   void RestoreCodePointer();
   void LoadPoolPointer(Register pp = PP);
 
@@ -899,7 +929,10 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() { int3(); }
-  void Stop(const char* message) override;
+  void Stop(const char* message, bool fixed_length_encoding = false);
+  void Unimplemented(const char* message);
+  void Untested(const char* message);
+  void Unreachable(const char* message);
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
@@ -928,6 +961,29 @@ class Assembler : public AssemblerBase {
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
  private:
+  AssemblerBuffer buffer_;
+
+  ObjectPoolWrapper* object_pool_wrapper_;
+
+  intptr_t prologue_offset_;
+  bool has_single_entry_point_;
+
+  class CodeComment : public ZoneAllocated {
+   public:
+    CodeComment(intptr_t pc_offset, const String& comment)
+        : pc_offset_(pc_offset), comment_(comment) {}
+
+    intptr_t pc_offset() const { return pc_offset_; }
+    const String& comment() const { return comment_; }
+
+   private:
+    intptr_t pc_offset_;
+    const String& comment_;
+
+    DISALLOW_COPY_AND_ASSIGN(CodeComment);
+  };
+
+  GrowableArray<CodeComment*> comments_;
   bool constant_pool_allowed_;
 
   intptr_t FindImmediate(int64_t imm);

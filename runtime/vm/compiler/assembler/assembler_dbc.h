@@ -25,23 +25,53 @@ class Address : public ValueObject {
   Address();
 };
 
-class Assembler : public AssemblerBase {
+class Assembler : public ValueObject {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches = false)
-      : AssemblerBase(object_pool_wrapper) {}
+      : buffer_(), object_pool_wrapper_(object_pool_wrapper), comments_() {}
+
   ~Assembler() {}
 
   void Bind(Label* label);
   void Jump(Label* label);
 
   // Misc. functionality
+  intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return 0; }
+  bool has_single_entry_point() const { return true; }
+
+  // Count the fixups that produce a pointer offset, without processing
+  // the fixups.
+  intptr_t CountPointerOffsets() const { return 0; }
+
+  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
+    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
+    return buffer_.pointer_offsets();
+  }
+
+  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
+
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_->MakeObjectPool();
+  }
+
+  void FinalizeInstructions(const MemoryRegion& region) {
+    buffer_.FinalizeInstructions(region);
+  }
 
   // Debugging and bringup support.
-  void Stop(const char* message) override;
+  void Stop(const char* message);
+  void Unimplemented(const char* message);
+  void Untested(const char* message);
+  void Unreachable(const char* message);
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
+
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  static bool EmittingComments();
+
+  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
 
@@ -95,6 +125,26 @@ class Assembler : public AssemblerBase {
   void Nop(intptr_t d) { Nop(0, d); }
 
  private:
+  AssemblerBuffer buffer_;  // Contains position independent code.
+  ObjectPoolWrapper* object_pool_wrapper_;
+
+  class CodeComment : public ZoneAllocated {
+   public:
+    CodeComment(intptr_t pc_offset, const String& comment)
+        : pc_offset_(pc_offset), comment_(comment) {}
+
+    intptr_t pc_offset() const { return pc_offset_; }
+    const String& comment() const { return comment_; }
+
+   private:
+    intptr_t pc_offset_;
+    const String& comment_;
+
+    DISALLOW_COPY_AND_ASSIGN(CodeComment);
+  };
+
+  GrowableArray<CodeComment*> comments_;
+
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };

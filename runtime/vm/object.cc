@@ -14733,7 +14733,8 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 
   ASSERT(assembler != NULL);
-  const auto& object_pool = ObjectPool::Handle(assembler->MakeObjectPool());
+  const ObjectPool& object_pool =
+      ObjectPool::Handle(assembler->object_pool_wrapper().MakeObjectPool());
 
   // Allocate the Code and Instructions objects.  Code is allocated first
   // because a GC during allocation of the code will leave the instruction

@@ -23,8 +23,12 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
-    : AssemblerBase(object_pool_wrapper),
+    : buffer_(),
+      object_pool_wrapper_(object_pool_wrapper),
+      prologue_offset_(-1),
+      has_single_entry_point_(true),
       use_far_branches_(use_far_branches),
+      comments_(),
       constant_pool_allowed_(false) {}
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {

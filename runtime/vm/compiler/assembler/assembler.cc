@@ -173,7 +173,7 @@ void AssemblerBuffer::EmitObject(const Object& object) {
 }
 
 // Shared macros are implemented here.
-void AssemblerBase::Unimplemented(const char* message) {
+void Assembler::Unimplemented(const char* message) {
   const char* format = "Unimplemented: %s";
   const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -181,7 +181,7 @@ void AssemblerBase::Unimplemented(const char* message) {
   Stop(buffer);
 }
 
-void AssemblerBase::Untested(const char* message) {
+void Assembler::Untested(const char* message) {
   const char* format = "Untested: %s";
   const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -189,7 +189,7 @@ void AssemblerBase::Untested(const char* message) {
   Stop(buffer);
 }
 
-void AssemblerBase::Unreachable(const char* message) {
+void Assembler::Unreachable(const char* message) {
   const char* format = "Unreachable: %s";
   const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -197,7 +197,7 @@ void AssemblerBase::Unreachable(const char* message) {
   Stop(buffer);
 }
 
-void AssemblerBase::Comment(const char* format, ...) {
+void Assembler::Comment(const char* format, ...) {
   if (EmittingComments()) {
     char buffer[1024];
 
@@ -212,11 +212,11 @@ void AssemblerBase::Comment(const char* format, ...) {
   }
 }
 
-bool AssemblerBase::EmittingComments() {
+bool Assembler::EmittingComments() {
   return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized;
 }
 
-const Code::Comments& AssemblerBase::GetCodeComments() const {
+const Code::Comments& Assembler::GetCodeComments() const {
   Code::Comments& comments = Code::Comments::New(comments_.length());
 
   for (intptr_t i = 0; i < comments_.length(); i++) {
