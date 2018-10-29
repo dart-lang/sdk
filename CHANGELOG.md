@@ -1,6 +1,8 @@
-# future
+# 0.1.71
 
 * new lint: `prefer_int_literals`
+* update `await_only_futures` to allow awaiting on `null`
+* update `use_setters_to_change_properties` to work with `=>` short-hand
 
 # 0.1.70
 
