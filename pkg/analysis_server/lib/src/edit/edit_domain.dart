@@ -29,7 +29,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -304,16 +303,11 @@ class EditDomainHandler extends AbstractRequestHandler {
 
     ResolveResult result = await server.getAnalysisResult(params.file);
     if (result != null) {
-      CompilationUnit unit = result.unit;
-      CompilationUnitElement unitElement =
-          resolutionMap.elementDeclaredByCompilationUnit(unit);
-      if (unitElement.context != null) {
-        var context = new StatementCompletionContext(result, params.offset);
-        StatementCompletionProcessor processor =
-            new StatementCompletionProcessor(context);
-        StatementCompletion completion = await processor.compute();
-        change = completion.change;
-      }
+      var context = new StatementCompletionContext(result, params.offset);
+      StatementCompletionProcessor processor =
+          new StatementCompletionProcessor(context);
+      StatementCompletion completion = await processor.compute();
+      change = completion.change;
     }
     if (change == null) {
       change = new SourceChange("", edits: []);

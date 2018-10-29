@@ -632,7 +632,11 @@ class MyWidget extends StatelessWidget {
     newFile(testPath, content: code);
     analysisResult = await driver.getResult(testPath);
     computer = new FlutterOutlineComputer(
-        testPath, testCode, analysisResult.lineInfo, analysisResult.unit);
+        testPath,
+        testCode,
+        analysisResult.lineInfo,
+        analysisResult.unit,
+        analysisResult.typeProvider);
     return computer.compute();
   }
 

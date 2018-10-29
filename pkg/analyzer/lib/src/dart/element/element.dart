@@ -3924,7 +3924,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   /// order in which they were specified.
   List<NamespaceCombinator> _combinators;
 
-  /// The URI that was selected based on the [context] declared variables.
+  /// The URI that was selected based on the declared variables.
   String _selectedUri;
 
   /// Initialize a newly created export element at the given [offset].
@@ -4905,7 +4905,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   ///` if there was no prefix specified.
   PrefixElement _prefix;
 
-  /// The URI that was selected based on the [context] declared variables.
+  /// The URI that was selected based on the declared variables.
   String _selectedUri;
 
   /// The cached value of [namespace].

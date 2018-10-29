@@ -39,8 +39,10 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
+    // TODO(brianwilkerson) Consider making the type system visible from the
+    // request.result.
     var inheritance = new InheritanceManager2(
-        request.result.libraryElement.context.typeSystem);
+        await request.result.libraryElement.session.typeSystem);
 
     // Generate a collection of inherited members
     ClassElement classElem = classDecl.declaredElement;
