@@ -122,25 +122,23 @@ class Driver {
   }
 
   Future applyFixes(EditDartfixResult result) async {
-    showDescriptions('Recommended changes', result.descriptionOfFixes);
-    showDescriptions(
-      'Recommended changes that cannot not be automatically applied',
-      result.otherRecommendations,
-    );
-    if (result.descriptionOfFixes.isEmpty) {
+    showDescriptions('Recommended changes', result.suggestions);
+    showDescriptions('Recommended changes that cannot be automatically applied',
+        result.otherSuggestions);
+    if (result.suggestions.isEmpty) {
       logger.stdout('');
-      logger.stdout(result.otherRecommendations.isNotEmpty
-          ? 'No recommended changes that cannot be automatically applied.'
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
           : 'No recommended changes.');
       return;
     }
     logger.stdout('');
     logger.stdout(ansi.emphasized('Files to be changed:'));
-    for (SourceFileEdit fileEdit in result.fixes) {
+    for (SourceFileEdit fileEdit in result.edits) {
       logger.stdout('  ${_relativePath(fileEdit.file)}');
     }
     if (shouldApplyChanges(result)) {
-      for (SourceFileEdit fileEdit in result.fixes) {
+      for (SourceFileEdit fileEdit in result.edits) {
         final file = new File(fileEdit.file);
         String code = await file.readAsString();
         for (SourceEdit edit in fileEdit.edits) {
@@ -152,13 +150,16 @@ class Driver {
     }
   }
 
-  void showDescriptions(String title, List<String> descriptions) {
-    if (descriptions.isNotEmpty) {
+  void showDescriptions(String title, List<DartFixSuggestion> suggestions) {
+    if (suggestions.isNotEmpty) {
       logger.stdout('');
       logger.stdout(ansi.emphasized('$title:'));
-      List<String> sorted = new List.from(descriptions)..sort();
-      for (String line in sorted) {
-        logger.stdout('  $line');
+      List<DartFixSuggestion> sorted = new List.from(suggestions)
+        ..sort(compareSuggestions);
+      for (DartFixSuggestion suggestion in sorted) {
+        Location loc = suggestion.location;
+        logger.stdout('  ${_toSentenceFragment(suggestion.description)}'
+            '${loc == null ? "" : " • ${loc.startLine}:${loc.startColumn}"}');
       }
     }
   }
@@ -325,6 +326,14 @@ class Driver {
       analysisComplete?.complete();
       analysisComplete = null;
     }
+  }
+
+  int compareSuggestions(DartFixSuggestion s1, DartFixSuggestion s2) {
+    int result = s1.description.compareTo(s2.description);
+    if (result != 0) {
+      return result;
+    }
+    return (s2.location?.offset ?? 0) - (s1.location?.offset ?? 0);
   }
 
   bool shouldFilterError(AnalysisError error) {

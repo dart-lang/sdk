@@ -1958,35 +1958,36 @@
       </field>
     </params>
     <result>
-      <field name="descriptionOfFixes">
+      <field name="suggestions">
         <list>
-          <ref>String</ref>
+          <ref>DartFixSuggestion</ref>
         </list>
         <p>
-          A list of human readable changes made by applying the fixes.
+          A list of recommended changes that can be automatically made
+          by applying the 'edits' included in this response.
         </p>
       </field>
-      <field name="otherRecommendations">
+      <field name="otherSuggestions">
         <list>
-          <ref>String</ref>
+          <ref>DartFixSuggestion</ref>
         </list>
         <p>
-          A list of human readable recommended changes that cannot be made automatically.
+          A list of recommended changes that could not be automatically made.
         </p>
       </field>
       <field name="hasErrors">
         <ref>bool</ref>
         <p>
           True if the analyzed source contains errors that might impact the correctness
-          of the recommended fixes that can be automatically applied.
+          of the recommended changes that can be automatically applied.
         </p>
       </field>
-      <field name="fixes">
+      <field name="edits">
         <list>
           <ref>SourceFileEdit</ref>
         </list>
         <p>
-          The suggested fixes.
+          A list of source edits to apply the recommended changes.
         </p>
       </field>
     </result>
@@ -3313,9 +3314,9 @@
   <type name="RuntimeCompletionExpression">
     <p>
       An expression for which we want to know its runtime type.
-      In expressions like `a.b.c.where((e) => e.^)` we want to know the
-      runtime type of `a.b.c` to enforce it statically at the time when we
-      compute completion suggestions, and get better type for `e`.
+      In expressions like 'a.b.c.where((e) => e.^)' we want to know the
+      runtime type of 'a.b.c' to enforce it statically at the time when we
+      compute completion suggestions, and get better type for 'e'.
     </p>
     <object>
       <field name="offset">
@@ -4231,6 +4232,25 @@
       An identifier used to associate search results with a search
       request.
     </p>
+  </type>
+  <type name="DartFixSuggestion" experimental="true">
+    <p>
+      A suggestion from an edit.dartfix request.
+    </p>
+    <object>
+      <field name="description">
+        <ref>String</ref>
+        <p>
+          A human readable description of the suggested change.
+        </p>
+      </field>
+      <field name="location" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the suggested change.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="SearchResult">
     <p>

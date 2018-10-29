@@ -5932,6 +5932,105 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 }
 
 /**
+ * DartFixSuggestion
+ *
+ * {
+ *   "description": String
+ *   "location": optional Location
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DartFixSuggestion implements HasToJson {
+  String _description;
+
+  Location _location;
+
+  /**
+   * A human readable description of the suggested change.
+   */
+  String get description => _description;
+
+  /**
+   * A human readable description of the suggested change.
+   */
+  void set description(String value) {
+    assert(value != null);
+    this._description = value;
+  }
+
+  /**
+   * The location of the suggested change.
+   */
+  Location get location => _location;
+
+  /**
+   * The location of the suggested change.
+   */
+  void set location(Location value) {
+    this._location = value;
+  }
+
+  DartFixSuggestion(String description, {Location location}) {
+    this.description = description;
+    this.location = location;
+  }
+
+  factory DartFixSuggestion.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String description;
+      if (json.containsKey("description")) {
+        description = jsonDecoder.decodeString(
+            jsonPath + ".description", json["description"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "description");
+      }
+      Location location;
+      if (json.containsKey("location")) {
+        location = new Location.fromJson(
+            jsonDecoder, jsonPath + ".location", json["location"]);
+      }
+      return new DartFixSuggestion(description, location: location);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "DartFixSuggestion", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["description"] = description;
+    if (location != null) {
+      result["location"] = location.toJson();
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is DartFixSuggestion) {
+      return description == other.description && location == other.location;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, description.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * diagnostic.getDiagnostics params
  *
  * Clients may not extend, implement or mix-in this class.
@@ -6268,60 +6367,60 @@ class EditDartfixParams implements RequestParams {
  * edit.dartfix result
  *
  * {
- *   "descriptionOfFixes": List<String>
- *   "otherRecommendations": List<String>
+ *   "suggestions": List<DartFixSuggestion>
+ *   "otherSuggestions": List<DartFixSuggestion>
  *   "hasErrors": bool
- *   "fixes": List<SourceFileEdit>
+ *   "edits": List<SourceFileEdit>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class EditDartfixResult implements ResponseResult {
-  List<String> _descriptionOfFixes;
+  List<DartFixSuggestion> _suggestions;
 
-  List<String> _otherRecommendations;
+  List<DartFixSuggestion> _otherSuggestions;
 
   bool _hasErrors;
 
-  List<SourceFileEdit> _fixes;
+  List<SourceFileEdit> _edits;
 
   /**
-   * A list of human readable changes made by applying the fixes.
+   * A list of recommended changes that can be automatically made by applying
+   * the 'edits' included in this response.
    */
-  List<String> get descriptionOfFixes => _descriptionOfFixes;
+  List<DartFixSuggestion> get suggestions => _suggestions;
 
   /**
-   * A list of human readable changes made by applying the fixes.
+   * A list of recommended changes that can be automatically made by applying
+   * the 'edits' included in this response.
    */
-  void set descriptionOfFixes(List<String> value) {
+  void set suggestions(List<DartFixSuggestion> value) {
     assert(value != null);
-    this._descriptionOfFixes = value;
+    this._suggestions = value;
   }
 
   /**
-   * A list of human readable recommended changes that cannot be made
-   * automatically.
+   * A list of recommended changes that could not be automatically made.
    */
-  List<String> get otherRecommendations => _otherRecommendations;
+  List<DartFixSuggestion> get otherSuggestions => _otherSuggestions;
 
   /**
-   * A list of human readable recommended changes that cannot be made
-   * automatically.
+   * A list of recommended changes that could not be automatically made.
    */
-  void set otherRecommendations(List<String> value) {
+  void set otherSuggestions(List<DartFixSuggestion> value) {
     assert(value != null);
-    this._otherRecommendations = value;
+    this._otherSuggestions = value;
   }
 
   /**
    * True if the analyzed source contains errors that might impact the
-   * correctness of the recommended fixes that can be automatically applied.
+   * correctness of the recommended changes that can be automatically applied.
    */
   bool get hasErrors => _hasErrors;
 
   /**
    * True if the analyzed source contains errors that might impact the
-   * correctness of the recommended fixes that can be automatically applied.
+   * correctness of the recommended changes that can be automatically applied.
    */
   void set hasErrors(bool value) {
     assert(value != null);
@@ -6329,27 +6428,27 @@ class EditDartfixResult implements ResponseResult {
   }
 
   /**
-   * The suggested fixes.
+   * A list of source edits to apply the recommended changes.
    */
-  List<SourceFileEdit> get fixes => _fixes;
+  List<SourceFileEdit> get edits => _edits;
 
   /**
-   * The suggested fixes.
+   * A list of source edits to apply the recommended changes.
    */
-  void set fixes(List<SourceFileEdit> value) {
+  void set edits(List<SourceFileEdit> value) {
     assert(value != null);
-    this._fixes = value;
+    this._edits = value;
   }
 
   EditDartfixResult(
-      List<String> descriptionOfFixes,
-      List<String> otherRecommendations,
+      List<DartFixSuggestion> suggestions,
+      List<DartFixSuggestion> otherSuggestions,
       bool hasErrors,
-      List<SourceFileEdit> fixes) {
-    this.descriptionOfFixes = descriptionOfFixes;
-    this.otherRecommendations = otherRecommendations;
+      List<SourceFileEdit> edits) {
+    this.suggestions = suggestions;
+    this.otherSuggestions = otherSuggestions;
     this.hasErrors = hasErrors;
-    this.fixes = fixes;
+    this.edits = edits;
   }
 
   factory EditDartfixResult.fromJson(
@@ -6358,23 +6457,25 @@ class EditDartfixResult implements ResponseResult {
       json = {};
     }
     if (json is Map) {
-      List<String> descriptionOfFixes;
-      if (json.containsKey("descriptionOfFixes")) {
-        descriptionOfFixes = jsonDecoder.decodeList(
-            jsonPath + ".descriptionOfFixes",
-            json["descriptionOfFixes"],
-            jsonDecoder.decodeString);
+      List<DartFixSuggestion> suggestions;
+      if (json.containsKey("suggestions")) {
+        suggestions = jsonDecoder.decodeList(
+            jsonPath + ".suggestions",
+            json["suggestions"],
+            (String jsonPath, Object json) =>
+                new DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "descriptionOfFixes");
+        throw jsonDecoder.mismatch(jsonPath, "suggestions");
       }
-      List<String> otherRecommendations;
-      if (json.containsKey("otherRecommendations")) {
-        otherRecommendations = jsonDecoder.decodeList(
-            jsonPath + ".otherRecommendations",
-            json["otherRecommendations"],
-            jsonDecoder.decodeString);
+      List<DartFixSuggestion> otherSuggestions;
+      if (json.containsKey("otherSuggestions")) {
+        otherSuggestions = jsonDecoder.decodeList(
+            jsonPath + ".otherSuggestions",
+            json["otherSuggestions"],
+            (String jsonPath, Object json) =>
+                new DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "otherRecommendations");
+        throw jsonDecoder.mismatch(jsonPath, "otherSuggestions");
       }
       bool hasErrors;
       if (json.containsKey("hasErrors")) {
@@ -6383,18 +6484,18 @@ class EditDartfixResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "hasErrors");
       }
-      List<SourceFileEdit> fixes;
-      if (json.containsKey("fixes")) {
-        fixes = jsonDecoder.decodeList(
-            jsonPath + ".fixes",
-            json["fixes"],
+      List<SourceFileEdit> edits;
+      if (json.containsKey("edits")) {
+        edits = jsonDecoder.decodeList(
+            jsonPath + ".edits",
+            json["edits"],
             (String jsonPath, Object json) =>
                 new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "fixes");
+        throw jsonDecoder.mismatch(jsonPath, "edits");
       }
       return new EditDartfixResult(
-          descriptionOfFixes, otherRecommendations, hasErrors, fixes);
+          suggestions, otherSuggestions, hasErrors, edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
     }
@@ -6410,11 +6511,14 @@ class EditDartfixResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["descriptionOfFixes"] = descriptionOfFixes;
-    result["otherRecommendations"] = otherRecommendations;
+    result["suggestions"] =
+        suggestions.map((DartFixSuggestion value) => value.toJson()).toList();
+    result["otherSuggestions"] = otherSuggestions
+        .map((DartFixSuggestion value) => value.toJson())
+        .toList();
     result["hasErrors"] = hasErrors;
-    result["fixes"] =
-        fixes.map((SourceFileEdit value) => value.toJson()).toList();
+    result["edits"] =
+        edits.map((SourceFileEdit value) => value.toJson()).toList();
     return result;
   }
 
@@ -6429,12 +6533,12 @@ class EditDartfixResult implements ResponseResult {
   @override
   bool operator ==(other) {
     if (other is EditDartfixResult) {
-      return listEqual(descriptionOfFixes, other.descriptionOfFixes,
-              (String a, String b) => a == b) &&
-          listEqual(otherRecommendations, other.otherRecommendations,
-              (String a, String b) => a == b) &&
+      return listEqual(suggestions, other.suggestions,
+              (DartFixSuggestion a, DartFixSuggestion b) => a == b) &&
+          listEqual(otherSuggestions, other.otherSuggestions,
+              (DartFixSuggestion a, DartFixSuggestion b) => a == b) &&
           hasErrors == other.hasErrors &&
-          listEqual(fixes, other.fixes,
+          listEqual(edits, other.edits,
               (SourceFileEdit a, SourceFileEdit b) => a == b);
     }
     return false;
@@ -6443,10 +6547,10 @@ class EditDartfixResult implements ResponseResult {
   @override
   int get hashCode {
     int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, descriptionOfFixes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, otherRecommendations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, suggestions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, otherSuggestions.hashCode);
     hash = JenkinsSmiHash.combine(hash, hasErrors.hashCode);
-    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

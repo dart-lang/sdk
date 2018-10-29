@@ -41,11 +41,11 @@ class PreferMixinFix extends LinterFix {
         );
         List<Assist> assists = await processor
             .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
-        final location = dartFix.locationDescription(result, elem.nameOffset);
+        final location =
+            dartFix.locationFor(result, elem.nameOffset, elem.nameLength);
         if (assists.isNotEmpty) {
           for (Assist assist in assists) {
-            dartFix.addFix(
-                'Convert ${elem.displayName} to a mixin in $location',
+            dartFix.addFix('Convert ${elem.displayName} to a mixin', location,
                 assist.change);
           }
         } else {
@@ -53,7 +53,8 @@ class PreferMixinFix extends LinterFix {
           // assist could not be performed and report that in the description.
           dartFix.addRecommendation(
               'Could not convert ${elem.displayName} to a mixin'
-              ' because the class contains a constructor in $location');
+              ' because the class contains a constructor',
+              location);
         }
       }
     }

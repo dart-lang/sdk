@@ -24,9 +24,9 @@ import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * An expression for which we want to know its runtime type. In expressions like `a.b.c.where((e)
- * =&gt; e.^)` we want to know the runtime type of `a.b.c` to enforce it statically at the time
- * when we compute completion suggestions, and get better type for `e`.
+ * An expression for which we want to know its runtime type. In expressions like 'a.b.c.where((e)
+ * =&gt; e.^)' we want to know the runtime type of 'a.b.c' to enforce it statically at the time
+ * when we compute completion suggestions, and get better type for 'e'.
  *
  * @coverage dart.server.generated.types
  */

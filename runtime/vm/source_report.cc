@@ -112,15 +112,18 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
 }
 
 intptr_t SourceReport::GetScriptIndex(const Script& script) {
+  ScriptTableEntry wrapper;
   const String& url = String::Handle(zone(), script.url());
-  ScriptTableEntry* pair = script_table_.LookupValue(&url);
+  wrapper.key = &url;
+  wrapper.script = &Script::Handle(zone(), script.raw());
+  ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
   if (pair != NULL) {
     return pair->index;
   }
   ScriptTableEntry* tmp = new ScriptTableEntry();
   tmp->key = &url;
   tmp->index = next_script_index_++;
-  tmp->script = &Script::Handle(zone(), script.raw());
+  tmp->script = wrapper.script;
   script_table_entries_.Add(tmp);
   script_table_.Insert(tmp);
   ASSERT(script_table_entries_.length() == next_script_index_);
@@ -139,7 +142,10 @@ void SourceReport::VerifyScriptTable() {
     ASSERT(i == index);
     const String& url2 = String::Handle(zone(), script->url());
     ASSERT(url2.Equals(*url));
-    ScriptTableEntry* pair = script_table_.LookupValue(&url2);
+    ScriptTableEntry wrapper;
+    wrapper.key = &url2;
+    wrapper.script = &Script::Handle(zone(), script->raw());
+    ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
     ASSERT(i == pair->index);
   }
 }

@@ -74,11 +74,23 @@ const String ENABLE_FULL_COMPILE = " full compile ";
 const String EXPECTATIONS = '''
 [
   {
-    "name": "VerificationError",
+    "name": "ExpectationFileMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "ExpectationFileMissing",
+    "group": "Fail"
+  },
+  {
+    "name": "InstrumentationMismatch",
     "group": "Fail"
   },
   {
     "name": "TypeCheckError",
+    "group": "Fail"
+  },
+  {
+    "name": "VerificationError",
     "group": "Fail"
   }
 ]
@@ -305,6 +317,10 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
         sourceTarget.loader.instrumentation = instrumentation;
       }
       Component p = await sourceTarget.buildOutlines();
+      context.componentToTarget.clear();
+      context.componentToTarget[p] = sourceTarget;
+      context.componentToDiagnostics.clear();
+      context.componentToDiagnostics[p] = errors;
       if (fullCompile) {
         p = await sourceTarget.buildComponent();
         instrumentation?.finish();
@@ -312,14 +328,14 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
-            return fail(null, instrumentation.problemsAsString);
+            return new Result<Component>(
+                p,
+                context.expectationSet["InstrumentationMismatch"],
+                instrumentation.problemsAsString,
+                null);
           }
         }
       }
-      context.componentToTarget.clear();
-      context.componentToTarget[p] = sourceTarget;
-      context.componentToDiagnostics.clear();
-      context.componentToDiagnostics[p] = errors;
       return pass(p);
     });
   }

@@ -24,18 +24,18 @@ class PreferIntLiteralsFix extends LinterFix {
       );
       List<Assist> assists =
           await processor.computeAssist(DartAssistKind.CONVERT_TO_INT_LITERAL);
-      final location = dartFix.locationDescription(result, literal.offset);
+      final location =
+          dartFix.locationFor(result, literal.offset, literal.length);
       if (assists.isNotEmpty) {
         for (Assist assist in assists) {
-          dartFix.addFix(
-              'Replace a double literal with an int literal in $location',
-              assist.change);
+          dartFix.addFix('Replace a double literal with an int literal',
+              location, assist.change);
         }
       } else {
         // TODO(danrubel): If assists is empty, then determine why
         // assist could not be performed and report that in the description.
-        dartFix.addRecommendation('Could not replace'
-            ' a double literal with an int literal in $location');
+        dartFix.addRecommendation(
+            'Could not replace a double literal with an int literal', location);
       }
     }
   }

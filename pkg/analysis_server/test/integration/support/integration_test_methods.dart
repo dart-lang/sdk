@@ -1517,23 +1517,24 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * descriptionOfFixes: List<String>
+   * suggestions: List<DartFixSuggestion>
    *
-   *   A list of human readable changes made by applying the fixes.
+   *   A list of recommended changes that can be automatically made by applying
+   *   the 'edits' included in this response.
    *
-   * otherRecommendations: List<String>
+   * otherSuggestions: List<DartFixSuggestion>
    *
-   *   A list of human readable recommended changes that cannot be made
-   *   automatically.
+   *   A list of recommended changes that could not be automatically made.
    *
    * hasErrors: bool
    *
    *   True if the analyzed source contains errors that might impact the
-   *   correctness of the recommended fixes that can be automatically applied.
+   *   correctness of the recommended changes that can be automatically
+   *   applied.
    *
-   * fixes: List<SourceFileEdit>
+   * edits: List<SourceFileEdit>
    *
-   *   The suggested fixes.
+   *   A list of source edits to apply the recommended changes.
    */
   Future<EditDartfixResult> sendEditDartfix(List<String> included) async {
     var params = new EditDartfixParams(included).toJson();
