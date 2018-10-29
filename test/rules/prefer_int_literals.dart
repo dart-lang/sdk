@@ -4,6 +4,8 @@
 
 // test w/ `pub run test -N prefer_int_literals`
 
+import 'dart:math';
+
 const double okDouble = 7.3; // OK
 const double shouldBeInt1 = 8.0; // LINT
 const double shouldBeInt2 = -8.0; // LINT
@@ -24,7 +26,7 @@ class A {
   double z = 7.576e2; // OK
   A(this.x);
   namedDouble(String s, {double d}) {}
-  namedDynamic(String s, {dynamic d}) {}
+  namedDynamic(String s, {d}) {}
 }
 
 class B extends A {
@@ -142,4 +144,19 @@ linter_issue_1227() {
   int i = 1 << 61 + 1;
   var value1 = 360.0 * i; // OK
   return value1;
+}
+
+linter_issue_1231() {
+  double myDouble = 3;
+  max(3.0, 4); // OK
+  max(myDouble, 5.0); // OK
+  var value1 = max(myDouble, 6.0); // OK
+  double value2 = max(myDouble, 7.0); // OK
+  return value1 + value2;
+}
+
+class LinterIssue1230 {
+  static const List<double> list1 = <double>[50.0]; // LINT
+  static const list2 = <double>[50.0]; // LINT
+  static const list3 = [50.0]; // OK
 }

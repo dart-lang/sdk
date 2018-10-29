@@ -89,6 +89,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     final AstNode parent = expression.parent;
     if (parent is ArgumentList) {
       return expression.staticParameterElement?.type?.name == 'double';
+    } else if (parent is ListLiteral) {
+      NodeList<TypeAnnotation> typeArguments = parent.typeArguments?.arguments;
+      return typeArguments?.length == 1 &&
+          typeArguments[0]?.type?.name == 'double';
     } else if (parent is NamedExpression) {
       AstNode argList = parent.parent;
       if (argList is ArgumentList) {
