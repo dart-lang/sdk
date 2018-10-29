@@ -171,11 +171,10 @@ class CompileType : public ZoneAllocated {
 
   bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == NULL); }
 
+  // Returns true if value of this type is a non-nullable int.
   bool IsInt() {
-    return !is_nullable() &&
-           ((ToCid() == kSmiCid) || (ToCid() == kMintCid) ||
-            ((type_ != NULL) &&
-             (type_->Equals(Type::Handle(Type::Int64Type())))));
+    // A nullable int that isn't nullable is an int.
+    return !is_nullable() && IsNullableInt();
   }
 
   // Returns true if value of this type is either int or null.
@@ -184,8 +183,7 @@ class CompileType : public ZoneAllocated {
       return true;
     }
     if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
-      return (type_ != NULL) && ((type_->IsIntType() || type_->IsInt64Type() ||
-                                  type_->IsSmiType()));
+      return (type_ != NULL) && ((type_->IsIntType() || type_->IsSmiType()));
     }
     return false;
   }

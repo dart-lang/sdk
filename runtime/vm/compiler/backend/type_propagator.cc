@@ -648,7 +648,7 @@ CompileType CompileType::Bool() {
 }
 
 CompileType CompileType::Int() {
-  return FromAbstractType(Type::ZoneHandle(Type::Int64Type()), kNonNullable);
+  return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNonNullable);
 }
 
 CompileType CompileType::Smi() {
