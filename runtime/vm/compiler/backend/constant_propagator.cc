@@ -885,10 +885,14 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
         return;
       }
     }
-    if (instr->type_arguments().IsUninstantiatedIdentity() ||
-        instr->type_arguments().CanShareInstantiatorTypeArguments(
+    if (instr->type_arguments().CanShareInstantiatorTypeArguments(
             instr->instantiator_class())) {
       SetValue(instr, instantiator_type_args);
+      return;
+    }
+    if (instr->type_arguments().CanShareFunctionTypeArguments(
+            instr->function())) {
+      SetValue(instr, function_type_args);
       return;
     }
     SetValue(instr, non_constant_);

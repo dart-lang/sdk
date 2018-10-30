@@ -446,12 +446,13 @@ class VMTestSuite extends TestSuite {
   VMTestSuite(TestConfiguration configuration)
       : dartDir = Repository.dir.toNativePath(),
         super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
+    var binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
+
     // For running the tests we use the given '$runnerName' binary
-    targetRunnerPath = '$buildDir/run_vm_tests';
+    targetRunnerPath = '$buildDir/run_vm_tests$binarySuffix';
 
     // For listing the tests we use the '$runnerName.host' binary if it exists
     // and use '$runnerName' if it doesn't.
-    var binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
     var hostBinary = '$targetRunnerPath.host$binarySuffix';
     if (new File(hostBinary).existsSync()) {
       hostRunnerPath = hostBinary;

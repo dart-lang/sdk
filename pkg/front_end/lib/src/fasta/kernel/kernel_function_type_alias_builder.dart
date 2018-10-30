@@ -49,7 +49,11 @@ class KernelFunctionTypeAliasBuilder
       int charOffset,
       [Typedef target])
       : target = target ??
-            (new Typedef(name, null, fileUri: parent.target.fileUri)
+            (new Typedef(name, null,
+                typeParameters:
+                    KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
+                        typeVariables),
+                fileUri: parent.target.fileUri)
               ..fileOffset = charOffset),
         super(metadata, name, typeVariables, type, parent, charOffset);
 
@@ -101,7 +105,6 @@ class KernelFunctionTypeAliasBuilder
         for (KernelTypeVariableBuilder tv in typeVariables) {
           // Follow bound in order to find all cycles
           tv.bound?.build(library);
-          target.typeParameters.add(tv.parameter..parent = target);
         }
       }
       return thisType = builtType;

@@ -35,8 +35,14 @@ String _computeMemberName(ir.Member member) {
     return null;
   }
   String name = member.name.name;
-  if (member is ir.Procedure && member.kind == ir.ProcedureKind.Setter) {
-    name += "=";
+  if (member is ir.Constructor) {
+    name = '.$name';
+  } else if (member is ir.Procedure) {
+    if (member.kind == ir.ProcedureKind.Factory) {
+      name = '.$name';
+    } else if (member.kind == ir.ProcedureKind.Setter) {
+      name += "=";
+    }
   }
   return name;
 }

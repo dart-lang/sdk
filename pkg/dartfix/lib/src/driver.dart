@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show File, Directory;
+import 'dart:io' show File, Platform;
 
 import 'package:analysis_server_client/protocol.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -71,12 +71,16 @@ class Driver {
     serverConnected = new Completer();
     if (options.verbose) {
       server.debugStdio();
+      logger.trace('Dart SDK version ${Platform.version}');
+      logger.trace('  ${Platform.resolvedExecutable}');
+      logger.trace('dartfix');
+      logger.trace('  ${Platform.script.toFilePath()}');
     }
-    logger.trace('Starting...');
-    await server.start(
-        sdkPath: options.sdkPath, useSnapshot: !runAnalysisServerFromSource);
+    final runFromSource = runAnalysisServerFromSource;
+    logger.trace(runFromSource ? 'Starting from source...' : 'Starting...');
+    await server.start(sdkPath: options.sdkPath, useSnapshot: !runFromSource);
     server.listenToOutput(dispatchNotification);
-    return serverConnected.future.timeout(connectTimeout, onTimeout: () {
+    await serverConnected.future.timeout(connectTimeout, onTimeout: () {
       logger.stderr('Failed to connect to server');
       context.exit(15);
     });
@@ -135,7 +139,7 @@ class Driver {
     logger.stdout('');
     logger.stdout(ansi.emphasized('Files to be changed:'));
     for (SourceFileEdit fileEdit in result.edits) {
-      logger.stdout('  ${_relativePath(fileEdit.file)}');
+      logger.stdout('  ${relativePath(fileEdit.file)}');
     }
     if (shouldApplyChanges(result)) {
       for (SourceFileEdit fileEdit in result.edits) {
@@ -146,7 +150,7 @@ class Driver {
         }
         await file.writeAsString(code);
       }
-      logger.stdout('Changes applied.');
+      logger.stdout(ansi.emphasized('Changes applied.'));
     }
   }
 
@@ -157,9 +161,14 @@ class Driver {
       List<DartFixSuggestion> sorted = new List.from(suggestions)
         ..sort(compareSuggestions);
       for (DartFixSuggestion suggestion in sorted) {
-        Location loc = suggestion.location;
-        logger.stdout('  ${_toSentenceFragment(suggestion.description)}'
-            '${loc == null ? "" : " • ${loc.startLine}:${loc.startColumn}"}');
+        final msg = new StringBuffer();
+        msg.write('  ${_toSentenceFragment(suggestion.description)}');
+        final loc = suggestion.location;
+        if (loc != null) {
+          msg.write(' • ${relativePath(loc.file)}');
+          msg.write(' • ${loc.startLine}:${loc.startColumn}');
+        }
+        logger.stdout(msg.toString());
       }
     }
   }
@@ -291,7 +300,7 @@ class Driver {
         if (!shouldFilterError(error)) {
           if (!foundAtLeastOneError) {
             foundAtLeastOneError = true;
-            logger.stdout('${_relativePath(params.file)}:');
+            logger.stdout('${relativePath(params.file)}:');
           }
           Location loc = error.location;
           logger.stdout('  ${_toSentenceFragment(error.message)}'
@@ -336,6 +345,15 @@ class Driver {
     return (s2.location?.offset ?? 0) - (s1.location?.offset ?? 0);
   }
 
+  String relativePath(String filePath) {
+    for (String target in targets) {
+      if (filePath.startsWith(target)) {
+        return filePath.substring(target.length + 1);
+      }
+    }
+    return filePath;
+  }
+
   bool shouldFilterError(AnalysisError error) {
     // Do not show TODOs or errors that will be automatically fixed.
 
@@ -353,16 +371,6 @@ class Driver {
       }
     }
     return false;
-  }
-}
-
-String _relativePath(String filePath) {
-  final String currentPath = Directory.current.absolute.path;
-
-  if (filePath.startsWith(currentPath)) {
-    return filePath.substring(currentPath.length + 1);
-  } else {
-    return filePath;
   }
 }
 

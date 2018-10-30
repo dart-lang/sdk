@@ -5,7 +5,7 @@
 library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart'
-    show Class, Constructor, Member, Supertype, TreeNode, setParents;
+    show Class, Constructor, Member, Supertype, TreeNode;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
@@ -51,7 +51,11 @@ ShadowClass initializeClass(
     int startCharOffset,
     int charOffset,
     int charEndOffset) {
-  cls ??= new ShadowClass(name: name);
+  cls ??= new ShadowClass(
+      name: name,
+      typeParameters:
+          KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
+              typeVariables));
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -61,13 +65,6 @@ ShadowClass initializeClass(
   }
   if (cls.fileEndOffset == TreeNode.noOffset) {
     cls.fileEndOffset = charEndOffset;
-  }
-
-  if (typeVariables != null) {
-    for (KernelTypeVariableBuilder t in typeVariables) {
-      cls.typeParameters.add(t.parameter);
-    }
-    setParents(cls.typeParameters, cls);
   }
 
   return cls;

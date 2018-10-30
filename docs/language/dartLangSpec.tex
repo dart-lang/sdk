@@ -67,6 +67,7 @@
 %   must imply bound satisfaction everywhere in the body.
 % - Specify that super-bounded generic type alias applications must trigger
 %   a well-boundedness check on all types occurring in the denoted type.
+% - Corrected corner case of rules for generation of noSuchMethod forwarders.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -1796,7 +1797,7 @@ because compilers control the treatment of private names.
 It is a compile-time error if a concrete class $C$ has
 a \code{noSuchMethod} forwarded method signature $S$
 for a method named $m$,
-and a superclass of $C$ has a concrete declaration of $m$
+and a superclass of $C$ has an accessible concrete declaration of $m$
 which is not a \code{noSuchMethod} forwarder.
 
 \commentary{

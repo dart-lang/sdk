@@ -4,7 +4,7 @@
 
 library fasta.dill_typedef_builder;
 
-import 'package:kernel/ast.dart' show DartType, FunctionType, Typedef;
+import 'package:kernel/ast.dart' show DartType, Typedef;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -36,17 +36,7 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
   }
 
   @override
-  DartType buildThisType(LibraryBuilder library) {
-    if (thisType != null) return thisType;
-
-    DartType targetType = target.type;
-    if (targetType is FunctionType) {
-      // TODO(34655):  The line below is a workaround.  Find the place where the
-      // reference is lost and fix it.
-      targetType.typedefReference = target.reference;
-    }
-    return thisType = targetType;
-  }
+  DartType buildThisType(LibraryBuilder library) => thisType ??= target.type;
 
   @override
   List<DartType> buildTypeArguments(

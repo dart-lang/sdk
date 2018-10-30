@@ -700,7 +700,7 @@ Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
   Value* instantiator_type_args = Pop();
   const Class& instantiator_class = Class::ZoneHandle(Z, function_.Owner());
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
-      TokenPosition::kNoSource, type_arguments, instantiator_class,
+      TokenPosition::kNoSource, type_arguments, instantiator_class, function_,
       instantiator_type_args, function_type_args, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);

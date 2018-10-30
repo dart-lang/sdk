@@ -1739,15 +1739,6 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_int_type(type);
 
     cls = Class::New<Instance>(kIllegalCid);
-    RegisterPrivateClass(cls, Symbols::Int64(), core_lib);
-    cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
-    cls.set_is_prefinalized();
-    pending_classes.Add(cls);
-    type = Type::NewNonParameterizedType(cls);
-    object_store->set_int64_type(type);
-
-    cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Double(), core_lib);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
@@ -5511,6 +5502,7 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
   const TypeArguments& super_type_args =
       TypeArguments::Handle(super_type.arguments());
   if (super_type_args.IsNull()) {
+    ASSERT(!IsUninstantiatedIdentity());
     return false;
   }
   AbstractType& super_type_arg = AbstractType::Handle();
@@ -5519,6 +5511,36 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     type_arg = TypeAt(i);
     super_type_arg = super_type_args.TypeAt(i);
     if (!type_arg.Equals(super_type_arg)) {
+      ASSERT(!IsUninstantiatedIdentity());
+      return false;
+    }
+  }
+  return true;
+}
+
+// Return true if this uninstantiated type argument vector, once instantiated
+// at runtime, is a prefix of the enclosing function type arguments.
+bool TypeArguments::CanShareFunctionTypeArguments(
+    const Function& function) const {
+  ASSERT(!IsInstantiated());
+  const intptr_t num_type_args = Length();
+  const intptr_t num_parent_type_params = function.NumParentTypeParameters();
+  const intptr_t num_function_type_params = function.NumTypeParameters();
+  const intptr_t num_function_type_args =
+      num_parent_type_params + num_function_type_params;
+  if (num_type_args > num_function_type_args) {
+    // This vector cannot be a prefix of a shorter vector.
+    return false;
+  }
+  AbstractType& type_arg = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_type_args; i++) {
+    type_arg = TypeAt(i);
+    if (!type_arg.IsTypeParameter()) {
+      return false;
+    }
+    const TypeParameter& type_param = TypeParameter::Cast(type_arg);
+    ASSERT(type_param.IsFinalized());
+    if ((type_param.index() != i) || !type_param.IsFunctionTypeParameter()) {
       return false;
     }
   }
@@ -5572,8 +5594,9 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     TrailPtr bound_trail,
     Heap::Space space) const {
   ASSERT(!IsInstantiated(kAny, num_free_fun_type_params));
-  if (!instantiator_type_arguments.IsNull() && IsUninstantiatedIdentity() &&
-      (instantiator_type_arguments.Length() == Length())) {
+  if ((instantiator_type_arguments.IsNull() ||
+       instantiator_type_arguments.Length() == Length()) &&
+      IsUninstantiatedIdentity()) {
     return instantiator_type_arguments.raw();
   }
   const intptr_t num_types = Length();
@@ -14742,8 +14765,7 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 
   ASSERT(assembler != NULL);
-  const ObjectPool& object_pool =
-      ObjectPool::Handle(assembler->object_pool_wrapper().MakeObjectPool());
+  const auto& object_pool = ObjectPool::Handle(assembler->MakeObjectPool());
 
   // Allocate the Code and Instructions objects.  Code is allocated first
   // because a GC during allocation of the code will leave the instruction
@@ -17048,11 +17070,6 @@ bool AbstractType::IsIntType() const {
          (type_class() == Type::Handle(Type::IntType()).type_class());
 }
 
-bool AbstractType::IsInt64Type() const {
-  return HasResolvedTypeClass() &&
-         (type_class() == Type::Handle(Type::Int64Type()).type_class());
-}
-
 bool AbstractType::IsDoubleType() const {
   return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Double()).type_class());
@@ -17382,10 +17399,6 @@ RawType* Type::BoolType() {
 
 RawType* Type::IntType() {
   return Isolate::Current()->object_store()->int_type();
-}
-
-RawType* Type::Int64Type() {
-  return Isolate::Current()->object_store()->int64_type();
 }
 
 RawType* Type::SmiType() {

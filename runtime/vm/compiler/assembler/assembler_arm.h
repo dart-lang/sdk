@@ -336,16 +336,12 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches = false)
-      : buffer_(),
-        object_pool_wrapper_(object_pool_wrapper),
-        prologue_offset_(-1),
-        has_single_entry_point_(true),
+      : AssemblerBase(object_pool_wrapper),
         use_far_branches_(use_far_branches),
-        comments_(),
         constant_pool_allowed_(false) {}
 
   ~Assembler() {}
@@ -364,25 +360,6 @@ class Assembler : public ValueObject {
   }
 
   // Misc. functionality
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.  On ARM there are no pointers in code.
-  intptr_t CountPointerOffsets() const { return 0; }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_->MakeObjectPool();
-  }
-
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
   }
@@ -393,23 +370,11 @@ class Assembler : public ValueObject {
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 #endif  // TESTING || DEBUG
 
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
-
   // Debugging and bringup support.
   void Breakpoint() { bkpt(0); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
 
@@ -1160,10 +1125,6 @@ class Assembler : public ValueObject {
   static int32_t DecodeBranchOffset(int32_t inst);
 
  private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper* object_pool_wrapper_;
-  int32_t prologue_offset_;
-  bool has_single_entry_point_;
   bool use_far_branches_;
 
   // If you are thinking of using one or both of these instructions directly,
@@ -1175,23 +1136,6 @@ class Assembler : public ValueObject {
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
 

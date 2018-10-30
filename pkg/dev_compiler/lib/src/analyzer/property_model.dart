@@ -58,22 +58,27 @@ class _LibraryVirtualFieldModel {
   final _extensiblePrivateClasses = HashSet<ClassElement>();
 
   _LibraryVirtualFieldModel.build(LibraryElement library) {
-    var allTypes = library.units.expand((u) => u.types).toList();
+    var allClasses = Set<ClassElement>();
+    for (var libraryPart in library.units) {
+      allClasses.addAll(libraryPart.types);
+      allClasses.addAll(libraryPart.mixins);
+    }
 
     // The set of public types is our initial extensible type set.
     // From there, visit all immediate private types in this library, and so on
     // from those private types, marking them as extensible.
-    var typesToVisit =
-        Queue<ClassElement>.from(allTypes.where((t) => t.isPublic));
-    while (typesToVisit.isNotEmpty) {
-      var extensibleType = typesToVisit.removeFirst();
+    var classesToVisit =
+        Queue<ClassElement>.from(allClasses.where((t) => t.isPublic));
+    while (classesToVisit.isNotEmpty) {
+      var extensibleClass = classesToVisit.removeFirst();
 
       // For each supertype of a public type in this library,
       // if we encounter a private class, we mark it as being extended, and
       // add it to our work set if this is the first time we've visited it.
-      for (var type in getImmediateSuperclasses(extensibleType)) {
-        if (!type.isPublic && type.library == library) {
-          if (_extensiblePrivateClasses.add(type)) typesToVisit.add(type);
+      for (var superclass in getImmediateSuperclasses(extensibleClass)) {
+        if (!superclass.isPublic && superclass.library == library) {
+          if (_extensiblePrivateClasses.add(superclass))
+            classesToVisit.add(superclass);
         }
       }
     }
@@ -88,43 +93,44 @@ class _LibraryVirtualFieldModel {
     }
 
     var allFields =
-        HashMap.fromIterables(allTypes, allTypes.map(getInstanceFieldMap));
+        HashMap.fromIterables(allClasses, allClasses.map(getInstanceFieldMap));
 
-    for (var type in allTypes) {
-      Set<ClassElement> supertypes = null;
+    for (var class_ in allClasses) {
+      Set<ClassElement> superclasses;
 
       // Visit accessors in the current class, and see if they override an
       // otherwise private field.
-      for (var accessor in type.accessors) {
+      for (var accessor in class_.accessors) {
         // For getter/setter pairs only process them once.
         if (accessor.correspondingGetter != null) continue;
         // Ignore abstract or static accessors.
         if (accessor.isAbstract || accessor.isStatic) continue;
         // Ignore public accessors in extensible classes.
         if (accessor.isPublic &&
-            (type.isPublic || _extensiblePrivateClasses.contains(type))) {
+            (class_.isPublic || _extensiblePrivateClasses.contains(class_))) {
           continue;
         }
 
-        if (supertypes == null) {
-          supertypes = Set();
-          void collectSupertypes(ClassElement cls) {
-            if (!supertypes.add(cls)) return;
+        if (superclasses == null) {
+          superclasses = Set();
+          void collectSuperclasses(ClassElement cls) {
+            if (!superclasses.add(cls)) return;
             var s = cls.supertype?.element;
-            if (s != null) collectSupertypes(s);
-            cls.mixins.forEach((m) => collectSupertypes(m.element));
+            if (s != null) collectSuperclasses(s);
+            cls.mixins.forEach((m) => collectSuperclasses(m.element));
           }
 
-          collectSupertypes(type);
-          supertypes.remove(type);
-          supertypes.removeWhere((c) => c.library != type.library);
+          collectSuperclasses(class_);
+          superclasses.remove(class_);
+          superclasses.removeWhere((c) => c.library != library);
         }
 
         // Look in all super classes to see if we're overriding a field in our
         // library, if so mark that field as overridden.
         var name = accessor.variable.name;
-        _overriddenPrivateFields.addAll(
-            supertypes.map((c) => allFields[c][name]).where((f) => f != null));
+        _overriddenPrivateFields.addAll(superclasses
+            .map((c) => allFields[c][name])
+            .where((f) => f != null));
       }
     }
   }

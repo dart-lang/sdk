@@ -84,7 +84,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   FunctionNode parentFunction;
   bool isClosure;
   Set<TypeParameter> classTypeParameters;
-  Set<TypeParameter> functionTypeParameters;
+  List<TypeParameter> functionTypeParameters;
+  Set<TypeParameter> functionTypeParametersSet;
   List<DartType> instantiatorTypeArguments;
   LocalVariables locals;
   ConstantEvaluator constantEvaluator;
@@ -434,8 +435,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (typeArgs.isEmpty || !hasFreeTypeParameters(typeArgs)) {
       asm.emitPushConstant(typeArgsCPIndex());
     } else {
-      if (_canReuseInstantiatorTypeArguments(typeArgs, instantiatingClass)) {
+      final flattenedTypeArgs = (instantiatingClass != null &&
+              (instantiatorTypeArguments != null ||
+                  functionTypeParameters != null))
+          ? _flattenInstantiatorTypeArguments(instantiatingClass, typeArgs)
+          : typeArgs;
+      if (_canReuseInstantiatorTypeArguments(flattenedTypeArgs)) {
         _genPushInstantiatorTypeArguments();
+      } else if (_canReuseFunctionTypeArguments(flattenedTypeArgs)) {
+        _genPushFunctionTypeArguments();
       } else {
         _genPushInstantiatorAndFunctionTypeArguments(typeArgs);
         // TODO(alexmarkov): Optimize type arguments instantiation
@@ -458,8 +466,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitPushNull();
     }
-    if (functionTypeParameters != null &&
-        types.any((t) => containsTypeVariable(t, functionTypeParameters))) {
+    if (functionTypeParametersSet != null &&
+        types.any((t) => containsTypeVariable(t, functionTypeParametersSet))) {
       _genPushFunctionTypeArguments();
     } else {
       asm.emitPushNull();
@@ -529,15 +537,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return flatTypeArgs;
   }
 
-  bool _canReuseInstantiatorTypeArguments(
-      List<DartType> typeArgs, Class instantiatingClass) {
+  bool _canReuseInstantiatorTypeArguments(List<DartType> typeArgs) {
     if (instantiatorTypeArguments == null) {
       return false;
-    }
-
-    if (instantiatingClass != null) {
-      typeArgs =
-          _flattenInstantiatorTypeArguments(instantiatingClass, typeArgs);
     }
 
     if (typeArgs.length > instantiatorTypeArguments.length) {
@@ -546,6 +548,26 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     for (int i = 0; i < typeArgs.length; ++i) {
       if (typeArgs[i] != instantiatorTypeArguments[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _canReuseFunctionTypeArguments(List<DartType> typeArgs) {
+    if (functionTypeParameters == null) {
+      return false;
+    }
+
+    if (typeArgs.length > functionTypeParameters.length) {
+      return false;
+    }
+
+    for (int i = 0; i < typeArgs.length; ++i) {
+      final typeArg = typeArgs[i];
+      if (!(typeArg is TypeParameterType &&
+          typeArg.parameter == functionTypeParameters[i])) {
         return false;
       }
     }
@@ -754,7 +776,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (enclosingFunction != null &&
         enclosingFunction.typeParameters.isNotEmpty) {
       functionTypeParameters =
-          new Set<TypeParameter>.from(enclosingFunction.typeParameters);
+          new List<TypeParameter>.from(enclosingFunction.typeParameters);
+      functionTypeParametersSet = functionTypeParameters.toSet();
     }
     locals = new LocalVariables(node);
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
@@ -823,6 +846,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     isClosure = null;
     classTypeParameters = null;
     functionTypeParameters = null;
+    functionTypeParametersSet = null;
     instantiatorTypeArguments = null;
     locals = null;
     constantEvaluator = null;
@@ -959,7 +983,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // instantiate default types.
     if (isClosure &&
         defaultTypes
-            .any((t) => containsTypeVariable(t, functionTypeParameters))) {
+            .any((t) => containsTypeVariable(t, functionTypeParametersSet))) {
       asm.emitPush(locals.closureVarIndexInFrame);
       asm.emitLoadFieldTOS(
           cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
@@ -1209,8 +1233,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingFunction = function;
 
     if (function.typeParameters.isNotEmpty) {
-      functionTypeParameters ??= new Set<TypeParameter>();
+      functionTypeParameters ??= new List<TypeParameter>();
       functionTypeParameters.addAll(function.typeParameters);
+      functionTypeParametersSet = functionTypeParameters.toSet();
     }
 
     List<Label> savedYieldPoints = yieldPoints;
@@ -1255,7 +1280,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     cp.add(new ConstantEndClosureFunctionScope());
 
     if (function.typeParameters.isNotEmpty) {
-      functionTypeParameters.removeAll(function.typeParameters);
+      functionTypeParameters.length -= function.typeParameters.length;
+      functionTypeParametersSet = functionTypeParameters.toSet();
     }
 
     enclosingFunction = parentFunction;
