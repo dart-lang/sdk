@@ -5997,6 +5997,7 @@ class TypeArguments : public Instance {
                                TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
+  bool CanShareFunctionTypeArguments(const Function& function) const;
 
   // Return true if all types of this vector are respectively, resolved,
   // finalized, or bounded.

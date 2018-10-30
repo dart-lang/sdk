@@ -5418,14 +5418,18 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
+                                const Function& function,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
                                 intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
-        instantiator_class_(instantiator_class) {
+        instantiator_class_(instantiator_class),
+        function_(function) {
     ASSERT(type_arguments.IsZoneHandle());
+    ASSERT(instantiator_class.IsZoneHandle());
+    ASSERT(function.IsZoneHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
   }
@@ -5436,6 +5440,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   Value* function_type_arguments() const { return inputs_[1]; }
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
+  const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool ComputeCanDeoptimize() const { return true; }
@@ -5450,6 +5455,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const TokenPosition token_pos_;
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
+  const Function& function_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };
