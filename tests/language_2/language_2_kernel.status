@@ -991,9 +991,8 @@ async_star_test/01: Crash
 async_star_test/05: Crash
 
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-enum_duplicate_test/01: Pass, Crash # Issue 34606
 enum_duplicate_test/02: Crash # Issue 34606
-enum_duplicate_test/none: Crash # Issue 34606
+enum_duplicate_test/none: Pass, Crash # Issue 34606
 enum_private_test/01: Crash # Issue 34606
 enum_test: Crash # Issue 34606
 
