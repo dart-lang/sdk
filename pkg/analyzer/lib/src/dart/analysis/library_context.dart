@@ -86,20 +86,12 @@ class LibraryContext {
   /**
    * Computes a [CompilationUnitElement] for the given library/unit pair.
    */
-  CompilationUnitElement computeUnitElement(
-      Source librarySource, Source unitSource) {
-    String libraryUri = librarySource.uri.toString();
-    String unitUri = unitSource.uri.toString();
-    return resynthesizer.getElement(
-        new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
+  CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
+    return resynthesizer.getElement(new ElementLocationImpl.con3(<String>[
+      library.uriStr,
+      unit.uriStr,
+    ]));
   }
-
-  /**
-   * Cleans up any persistent resources used by this [LibraryContext].
-   *
-   * Should be called once the [LibraryContext] is no longer needed.
-   */
-  void dispose() {}
 
   /**
    * Return `true` if the given [uri] is known to be a library.

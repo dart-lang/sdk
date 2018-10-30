@@ -1272,63 +1272,58 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $path', () {
       try {
-        LibraryContext libraryContext;
-        try {
-          _testView.numOfAnalyzedLibraries++;
+        _testView.numOfAnalyzedLibraries++;
 
-          if (!_fsState.getFileForUri(Uri.parse('dart:core')).exists) {
-            return _newMissingDartLibraryResult(file, 'dart:core');
-          }
-          if (!_fsState.getFileForUri(Uri.parse('dart:async')).exists) {
-            return _newMissingDartLibraryResult(file, 'dart:async');
-          }
-          libraryContext = _createLibraryContext(library);
-
-          LibraryAnalyzer analyzer = new LibraryAnalyzer(
-              analysisOptions,
-              declaredVariables,
-              sourceFactory,
-              libraryContext.isLibraryUri,
-              libraryContext.analysisContext,
-              libraryContext.resynthesizer,
-              libraryContext.inheritanceManager,
-              library);
-          Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
-
-          List<int> bytes;
-          CompilationUnit resolvedUnit;
-          for (FileState unitFile in results.keys) {
-            UnitAnalysisResult unitResult = results[unitFile];
-            List<int> unitBytes =
-                _serializeResolvedUnit(unitResult.unit, unitResult.errors);
-            String unitSignature = _getResolvedUnitSignature(library, unitFile);
-            String unitKey = _getResolvedUnitKey(unitSignature);
-            _byteStore.put(unitKey, unitBytes);
-            if (unitFile == file) {
-              bytes = unitBytes;
-              resolvedUnit = unitResult.unit;
-            }
-            if (disableChangesAndCacheAllResults) {
-              AnalysisResult result = _getAnalysisResultFromBytes(
-                  unitFile, unitSignature, unitBytes,
-                  content: unitFile.content, resolvedUnit: unitResult.unit);
-              _allCachedResults[unitFile.path] = result;
-            }
-          }
-
-          // Return the result, full or partial.
-          _logger.writeln('Computed new analysis result.');
-          AnalysisResult result = _getAnalysisResultFromBytes(
-              file, signature, bytes,
-              content: withUnit ? file.content : null,
-              resolvedUnit: withUnit ? resolvedUnit : null);
-          if (withUnit && _priorityFiles.contains(path)) {
-            _priorityResults[path] = result;
-          }
-          return result;
-        } finally {
-          libraryContext?.dispose();
+        if (!_fsState.getFileForUri(Uri.parse('dart:core')).exists) {
+          return _newMissingDartLibraryResult(file, 'dart:core');
         }
+        if (!_fsState.getFileForUri(Uri.parse('dart:async')).exists) {
+          return _newMissingDartLibraryResult(file, 'dart:async');
+        }
+        var libraryContext = _createLibraryContext(library);
+
+        LibraryAnalyzer analyzer = new LibraryAnalyzer(
+            analysisOptions,
+            declaredVariables,
+            sourceFactory,
+            libraryContext.isLibraryUri,
+            libraryContext.analysisContext,
+            libraryContext.resynthesizer,
+            libraryContext.inheritanceManager,
+            library);
+        Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
+
+        List<int> bytes;
+        CompilationUnit resolvedUnit;
+        for (FileState unitFile in results.keys) {
+          UnitAnalysisResult unitResult = results[unitFile];
+          List<int> unitBytes =
+              _serializeResolvedUnit(unitResult.unit, unitResult.errors);
+          String unitSignature = _getResolvedUnitSignature(library, unitFile);
+          String unitKey = _getResolvedUnitKey(unitSignature);
+          _byteStore.put(unitKey, unitBytes);
+          if (unitFile == file) {
+            bytes = unitBytes;
+            resolvedUnit = unitResult.unit;
+          }
+          if (disableChangesAndCacheAllResults) {
+            AnalysisResult result = _getAnalysisResultFromBytes(
+                unitFile, unitSignature, unitBytes,
+                content: unitFile.content, resolvedUnit: unitResult.unit);
+            _allCachedResults[unitFile.path] = result;
+          }
+        }
+
+        // Return the result, full or partial.
+        _logger.writeln('Computed new analysis result.');
+        AnalysisResult result = _getAnalysisResultFromBytes(
+            file, signature, bytes,
+            content: withUnit ? file.content : null,
+            resolvedUnit: withUnit ? resolvedUnit : null);
+        if (withUnit && _priorityFiles.contains(path)) {
+          _priorityResults[path] = result;
+        }
+        return result;
       } catch (exception, stackTrace) {
         String contextKey =
             _storeExceptionContext(path, library, exception, stackTrace);
@@ -1351,54 +1346,49 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState library = _fsState.getFileForPath(path);
 
     return _logger.run('Compute resolved library $path', () {
-      LibraryContext libraryContext;
-      try {
-        _testView.numOfAnalyzedLibraries++;
-        libraryContext = _createLibraryContext(library);
+      _testView.numOfAnalyzedLibraries++;
+      var libraryContext = _createLibraryContext(library);
 
-        LibraryAnalyzer analyzer = new LibraryAnalyzer(
-            analysisOptions,
-            declaredVariables,
-            sourceFactory,
-            libraryContext.isLibraryUri,
-            libraryContext.analysisContext,
-            libraryContext.resynthesizer,
-            libraryContext.inheritanceManager,
-            library);
-        Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
-        var resolvedUnits = <ResolveResult>[];
+      LibraryAnalyzer analyzer = new LibraryAnalyzer(
+          analysisOptions,
+          declaredVariables,
+          sourceFactory,
+          libraryContext.isLibraryUri,
+          libraryContext.analysisContext,
+          libraryContext.resynthesizer,
+          libraryContext.inheritanceManager,
+          library);
+      Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
+      var resolvedUnits = <ResolveResult>[];
 
-        for (var unitFile in unitResults.keys) {
-          var unitResult = unitResults[unitFile];
-          resolvedUnits.add(
-            new AnalysisResult(
-              this,
-              _sourceFactory,
-              unitFile.path,
-              unitFile.uri,
-              unitFile.exists,
-              unitFile.content,
-              unitFile.lineInfo,
-              unitFile.isPart,
-              null,
-              unitResult.unit,
-              unitResult.errors,
-              null,
-            ),
-          );
-        }
-
-        return new ResolvedLibraryResultImpl(
-          currentSession,
-          library.path,
-          library.uri,
-          resolvedUnits.first.libraryElement,
-          libraryContext.typeProvider,
-          resolvedUnits,
+      for (var unitFile in unitResults.keys) {
+        var unitResult = unitResults[unitFile];
+        resolvedUnits.add(
+          new AnalysisResult(
+            this,
+            _sourceFactory,
+            unitFile.path,
+            unitFile.uri,
+            unitFile.exists,
+            unitFile.content,
+            unitFile.lineInfo,
+            unitFile.isPart,
+            null,
+            unitResult.unit,
+            unitResult.errors,
+            null,
+          ),
         );
-      } finally {
-        libraryContext?.dispose();
       }
+
+      return new ResolvedLibraryResultImpl(
+        currentSession,
+        library.path,
+        library.uri,
+        resolvedUnits.first.libraryElement,
+        libraryContext.typeProvider,
+        resolvedUnits,
+      );
     });
   }
 
@@ -1416,16 +1406,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    LibraryContext libraryContext = _createLibraryContext(library);
-    try {
-      CompilationUnitElement element =
-          libraryContext.computeUnitElement(library.source, file.source);
-      String signature = library.transitiveSignature;
-      return new UnitElementResult(
-          currentSession, path, file.uri, signature, element);
-    } finally {
-      libraryContext.dispose();
-    }
+    var libraryContext = _createLibraryContext(library);
+    var element = libraryContext.computeUnitElement(library, file);
+    return new UnitElementResult(
+        currentSession, path, file.uri, library.transitiveSignature, element);
   }
 
   String _computeUnitElementSignature(String path,
@@ -2023,11 +2007,7 @@ class AnalysisDriverTestView {
   SummaryDataStore getSummaryStore(String libraryPath) {
     FileState library = driver.fsState.getFileForPath(libraryPath);
     LibraryContext libraryContext = driver._createLibraryContext(library);
-    try {
-      return libraryContext.store;
-    } finally {
-      libraryContext.dispose();
-    }
+    return libraryContext.store;
   }
 }
 
