@@ -82,10 +82,16 @@ class KernelTypeVariableBuilder
   void finish(LibraryBuilder library, KernelClassBuilder object,
       TypeBuilder dynamicType) {
     if (isPatch) return;
-    parameter.bound ??=
-        bound?.build(library) ?? object.buildType(library, null);
-    parameter.defaultType ??=
-        defaultType?.build(library) ?? dynamicType.build(library);
+    DartType objectType = object.buildType(library, null);
+    parameter.bound ??= bound?.build(library) ?? objectType;
+    // If defaultType is not set, initialize it to dynamic, unless the bound is
+    // explicitly specified as Object, in which case defaultType should also be
+    // Object. This makes sure instantiation of generic function types with an
+    // explicit Object bound results in Object as the instantiated type.
+    parameter.defaultType ??= defaultType?.build(library) ??
+        (bound != null && parameter.bound == objectType
+            ? objectType
+            : dynamicType.build(library));
   }
 
   void applyPatch(covariant KernelTypeVariableBuilder patch) {
