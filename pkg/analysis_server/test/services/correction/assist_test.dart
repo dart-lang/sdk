@@ -1282,7 +1282,7 @@ class A {
 library foo;
 part 'src/bar.dart';
 ''');
-    testFile = resourceProvider.convertPath('/pkg/lib/src/bar.dart');
+    testFile = convertPath('/pkg/lib/src/bar.dart');
     await resolveTestUnit('''
 part of foo;
 ''');
@@ -1296,7 +1296,7 @@ part of '../foo.dart';
 library foo;
 part 'bar.dart';
 ''');
-    testFile = resourceProvider.convertPath('/pkg/bar.dart');
+    testFile = convertPath('/pkg/bar.dart');
     await resolveTestUnit('''
 part of foo;
 ''');

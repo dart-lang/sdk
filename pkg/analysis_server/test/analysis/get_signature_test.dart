@@ -125,7 +125,7 @@ main() {
 
   test_error_file_not_analyzed() async {
     var result = await prepareRawSignatureAt(0,
-        file: resourceProvider.convertPath('/not/in/project.dart'));
+        file: convertPath('/not/in/project.dart'));
     expect(result.error, isNotNull);
     expect(result.error.code,
         equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));

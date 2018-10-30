@@ -130,7 +130,7 @@ bbb:${asFileUri('/bbb/lib')}
         handler: analysisHandler);
 
     // Configure the test file.
-    testFile = resourceProvider.convertPath('/aaa/main.dart');
+    testFile = convertPath('/aaa/main.dart');
     testCode = 'main() { new Foo(); }';
     _addOverlay(testFile, testCode);
 

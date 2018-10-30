@@ -24,7 +24,7 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
 
   setUp() {
     super.setUp();
-    sourcePath = resourceProvider.convertPath('/p/lib/source.dart');
+    sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
   test_adjacentLinesExcluded() async {

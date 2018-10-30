@@ -26,7 +26,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testPath = resourceProvider.convertPath('/test.dart');
+    testPath = convertPath('/home/test/lib/test.dart');
   }
 
   Future<Outline> _computeOutline(String code) async {

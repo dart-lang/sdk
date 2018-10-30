@@ -194,9 +194,9 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
 
   void setUp() {
     serverChannel = new MockServerChannel();
-    projectPath = resourceProvider.convertPath('/project');
-    testFolder = resourceProvider.convertPath('/project/bin');
-    testFile = resourceProvider.convertPath('/project/bin/test.dart');
+    projectPath = convertPath('/project');
+    testFolder = convertPath('/project/bin');
+    testFile = convertPath('/project/bin/test.dart');
     pluginManager = new TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;

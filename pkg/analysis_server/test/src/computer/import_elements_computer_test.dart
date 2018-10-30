@@ -58,7 +58,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   void setUp() {
     super.setUp();
-    path = resourceProvider.convertPath('/test.dart');
+    path = convertPath('/home/test/lib/test.dart');
   }
 
   test_createEdits_addImport_noDirectives() async {

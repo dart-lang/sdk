@@ -543,7 +543,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = resourceProvider.convertPath('/completionTest.dart');
+    testFile = convertPath('/completionTest.dart');
     contributor = createContributor();
   }
 }

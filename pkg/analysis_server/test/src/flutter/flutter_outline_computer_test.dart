@@ -28,7 +28,7 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testPath = resourceProvider.convertPath('/home/test/lib/test.dart');
+    testPath = convertPath('/home/test/lib/test.dart');
     addFlutterPackage();
   }
 
