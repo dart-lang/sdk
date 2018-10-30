@@ -23,7 +23,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -1820,18 +1819,15 @@ class FixProcessor {
       if (source != null) {
         String file = source.fullName;
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
-          String libName = _computeLibraryName(file);
-          try {
-            DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-            await changeBuilder.addFileEdit(source.fullName,
-                (DartFileEditBuilder builder) {
-              builder.addSimpleInsertion(0, 'library $libName;$eol$eol');
-            });
-            _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FILE,
-                args: [source.shortName]);
-          } on AnalysisException {
-            // Ignore the exception and just don't create a fix.
-          }
+          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+          await changeBuilder.addFileEdit(source.fullName, (builder) {
+            builder.addSimpleInsertion(0, '// TODO Implement this library.');
+          });
+          _addFixFromBuilder(
+            changeBuilder,
+            DartFixKind.CREATE_FILE,
+            args: [source.shortName],
+          );
         }
       }
     }
@@ -3642,53 +3638,6 @@ class FixProcessor {
         sourceSuffix,
         targetClassElement);
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD, args: [name]);
-  }
-
-  /**
-   * Computes the name of the library at the given [path].
-   * See https://www.dartlang.org/articles/style-guide/#names for conventions.
-   * 
-   * TODO(scheglov) Remove it. Libraries don't need names anymore.
-   */
-  String _computeLibraryName(String path) {
-    Context pathContext = resourceProvider.pathContext;
-    String packageFolder = _computePackageFolder(path);
-    if (packageFolder == null) {
-      return pathContext.basenameWithoutExtension(path);
-    }
-    String packageName = pathContext.basename(packageFolder);
-    String relPath = pathContext.relative(path, from: packageFolder);
-    List<String> relPathParts = pathContext.split(relPath);
-    if (relPathParts.isNotEmpty) {
-      if (relPathParts[0].toLowerCase() == 'lib') {
-        relPathParts.removeAt(0);
-      }
-      if (relPathParts.isNotEmpty) {
-        String nameWithoutExt = pathContext.withoutExtension(relPathParts.last);
-        relPathParts[relPathParts.length - 1] = nameWithoutExt;
-      }
-    }
-    return packageName + '.' + relPathParts.join('.');
-  }
-
-  /**
-   * Returns the path of the folder which contains the given [path].
-   */
-  String _computePackageFolder(String path) {
-    Context pathContext = resourceProvider.pathContext;
-    String pubspecFolder = dirname(path);
-    while (true) {
-      if (resourceProvider
-          .getResource(pathContext.join(pubspecFolder, 'pubspec.yaml'))
-          .exists) {
-        return pubspecFolder;
-      }
-      String pubspecFolderNew = pathContext.dirname(pubspecFolder);
-      if (pubspecFolderNew == pubspecFolder) {
-        return null;
-      }
-      pubspecFolder = pubspecFolderNew;
-    }
   }
 
   /**

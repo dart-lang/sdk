@@ -33,7 +33,10 @@ import 'my_file.dart';
     expect(fileEdit.file, convertPath('/home/test/lib/my_file.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
-    expect(fileEdit.edits[0].replacement, contains('library my_file;'));
+    expect(
+      fileEdit.edits[0].replacement,
+      contains('// TODO Implement this library.'),
+    );
   }
 
   test_forImport_BAD_notDart() async {
@@ -55,7 +58,10 @@ import 'a/bb/my_lib.dart';
     expect(fileEdit.file, convertPath('/home/test/lib/a/bb/my_lib.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
-    expect(fileEdit.edits[0].replacement, contains('library my_lib;'));
+    expect(
+      fileEdit.edits[0].replacement,
+      contains('// TODO Implement this library.'),
+    );
   }
 
   test_forImport_inPackage_test() async {
@@ -71,7 +77,10 @@ import 'a/bb/my_lib.dart';
     expect(fileEdit.file, convertPath('/home/test/test/a/bb/my_lib.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
-    expect(fileEdit.edits[0].replacement, contains('library my_lib;'));
+    expect(
+      fileEdit.edits[0].replacement,
+      contains('// TODO Implement this library.'),
+    );
   }
 
   test_forPart() async {
