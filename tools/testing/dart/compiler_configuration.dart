@@ -1166,7 +1166,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
         Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
     var outputFileName = output.toFilePath();
 
-    var compilerArguments = <String>[];
+    var compilerArguments = <String>['--verify'];
     if (_isLegacy) {
       compilerArguments.add("--legacy-mode");
     }

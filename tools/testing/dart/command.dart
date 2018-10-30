@@ -351,6 +351,7 @@ class FastaCompilationCommand extends CompilationCommand {
   @override
   List<String> get batchArguments {
     return <String>[
+      '--enable-asserts',
       _compilerLocation.resolve("batch.dart").toFilePath(),
     ];
   }

@@ -171,8 +171,12 @@ assertion_initializer_const_error2_test/cc07: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc08: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError
+async_await_syntax_test/e5: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
+async_await_syntax_test/e6: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
 const_cast1_test/02: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
+constructor5_test: CompileTimeError # Verification error
+constructor6_test: CompileTimeError # Verification error
 implicit_creation/implicit_const_not_default_values_test/e1: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e10: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e11: MissingCompileTimeError
@@ -193,6 +197,7 @@ implicit_creation/implicit_const_not_default_values_test/e4: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
+mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError

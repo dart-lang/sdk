@@ -77,6 +77,13 @@ LibTest/typed_data/Float32x4List/every_A01_t01: RuntimeError
 LibTest/typed_data/Int32List/any_A01_t01: RuntimeError
 LibTest/typed_data/Int32x4List/clear_A01_t01: RuntimeError
 
+[ $compiler == fasta ]
+Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+Language/Statements/For/syntax_t20 tatements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+Language/Statements/Labels/scope_t01: CompileTimeError # Verification error
+Language/Statements/Labels/scope_t07: CompileTimeError # Verification error
+
 [ $fasta ]
 Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # Issue 34190
 Language/Classes/Abstract_Instance_Members/override_default_value_t02: MissingCompileTimeError # Issue 34190
