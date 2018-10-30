@@ -221,18 +221,13 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches = false)
-      : buffer_(),
-        prologue_offset_(-1),
+      : AssemblerBase(object_pool_wrapper),
         jit_cookie_(0),
-        comments_(),
         code_(Code::ZoneHandle()) {
-    // On ia32 we don't use object pools.
-    USE(object_pool_wrapper);
-
     // This mode is only needed and implemented for ARM.
     ASSERT(!use_far_branches);
   }
@@ -715,29 +710,7 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
-  // Address of code at offset.
-  uword CodeAddress(intptr_t offset) { return buffer_.Address(offset); }
-
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
   bool has_single_entry_point() const { return true; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.
-  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
-  }
-
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
@@ -831,17 +804,9 @@ class Assembler : public ValueObject {
 
   // Debugging and bringup support.
   void Breakpoint() { int3(); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
   static const char* FpuRegisterName(FpuRegister reg);
@@ -873,21 +838,6 @@ class Assembler : public ValueObject {
   void PushCodeObject();
 
  private:
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
   void Alu(int bytes, uint8_t opcode, Register dst, Register src);
   void Alu(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void Alu(int bytes, uint8_t opcode, Register dst, const Address& src);
@@ -931,11 +881,7 @@ class Assembler : public ValueObject {
 
   int32_t jit_cookie();
 
-  AssemblerBuffer buffer_;
-  ObjectPoolWrapper object_pool_wrapper_;
-  intptr_t prologue_offset_;
   int32_t jit_cookie_;
-  GrowableArray<CodeComment*> comments_;
   Code& code_;
 
   DISALLOW_ALLOCATION();
