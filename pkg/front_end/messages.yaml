@@ -64,7 +64,7 @@
 #    do not use them for composing error messages, see [diagnostics.md](
 #    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
 #
-# `#type`, #type2`: Kernel types.
+# `#type`, #type2`, `#type3`: Kernel types.
 #
 # `#uri`, `#uri2`, `#uri3`: URIs.
 #
@@ -1647,7 +1647,7 @@ InternalProblemNoInferredTypeStored:
   severity: INTERNAL_PROBLEM
 
 InternalProblemStoringMultipleInferredTypes:
-  template: "There's already an inferred type (#type) for '#name'."
+  template: "There's already an inferred type, '#type', for '#name'."
   severity: INTERNAL_PROBLEM
 
 LocalDefinitionHidesExport:
@@ -1973,13 +1973,13 @@ OverrideMoreRequiredArguments:
   analyzerCode: INVALID_OVERRIDE_REQUIRED
 
 OverrideTypeMismatchParameter:
-  template: "The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2)."
-  tip: "Change to a supertype of #type2 (or, for a covariant parameter, a subtype)."
+  template: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type in the overridden method, '#type2'."
+  tip: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 OverrideTypeMismatchReturnType:
-  template: "The return type of the method '#name' is #type, which does not match the return type of the overridden method (#type2)."
-  tip: "Change to a subtype of #type2."
+  template: "The return type of the method '#name' is '#type', which does not match the return type of the overridden method, '#type2'."
+  tip: "Change to a subtype of '#type2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 PartOfSelf:
@@ -2916,8 +2916,8 @@ ForInLoopTypeNotIterable:
   analyzerCode: FOR_IN_OF_INVALID_TYPE
 
 InitializingFormalTypeMismatch:
-  template: "The type of parameter '#name' (#type) is not a subtype of the corresponding field's type (#type2)."
-  tip: "Try changing the type of parameter '#name' to a subtype of #type2."
+  template: "The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'."
+  tip: "Try changing the type of parameter '#name' to a subtype of '#type2'."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_PARAMETER_DECLARATION
   script: >
@@ -3153,7 +3153,7 @@ FactoryRedirecteeHasTooFewPositionalParameters:
       }
 
 RedirectingFactoryInvalidPositionalParameterType:
-  template: "The type of parameter '#name' (#type) is not a subtype of the redirection target's corresponding parameter type (#type2)."
+  template: "The type of parameter '#name', '#type' is not a subtype of the redirection target's corresponding parameter type, '#type2'."
   tip: "Try changing either the type of the parameter or the redirection target."
   analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
   script:
@@ -3175,7 +3175,7 @@ RedirectingFactoryMissingNamedParameter:
       }
 
 RedirectingFactoryInvalidNamedParameterType:
-  template: "The type of the named parameter '#name' (#type) is not a subtype of the redirection target's corresponding named parameter type (#type2)."
+  template: "The type of the named parameter '#name', '#type' is not a subtype of the redirection target's corresponding named parameter type, '#type2'."
   tip: "Try changing either the type of the parameter or the redirection target."
   analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
   script:
@@ -3274,8 +3274,8 @@ MixinApplicationIncompatibleSupertype:
     class C = Object with M;
 
 GenericFunctionTypeUsedAsActualTypeArgument:
-  template: Unexpected generic function type found in a type argument.
-  tip: Try using a non-generic function type.
+  template: "Unexpected generic function type found in a type argument."
+  tip: "Try using a non-generic function type."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
   script:
     - >-
@@ -3290,8 +3290,8 @@ GenericFunctionTypeUsedAsActualTypeArgument:
       }
 
 GenericFunctionTypeInferredAsActualTypeArgument:
-  template: Unexpected generic function type '#type' inferred as a type argument.
-  tip: Try providing a non-generic function type explicitly.
+  template: "Unexpected generic function type '#type' inferred as a type argument."
+  tip: "Try providing a non-generic function type explicitly."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
   script:
     foo<X>(X x) => null;
