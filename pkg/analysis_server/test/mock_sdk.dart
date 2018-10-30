@@ -120,7 +120,7 @@ class Deprecated extends Object {
 const Object deprecated = const Deprecated("next release");
 
 class Exception {
-  factory Exception([var message]);
+  factory Exception([var message]) => null;
 }
 
 class Iterator<E> {
