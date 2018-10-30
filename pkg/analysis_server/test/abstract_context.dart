@@ -99,23 +99,12 @@ class _IsTestGroup {
     return source;
   }
 
-  void configurePreviewDart2() {
-    driver.configure(
-        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
-          ..previewDart2 = true);
-  }
-
-  void processRequiredPlugins() {
-    AnalysisEngine.instance.processRequiredPlugins();
-  }
-
   Future<CompilationUnit> resolveLibraryUnit(Source source) async {
     var resolveResult = await session.getResolvedAst(source.fullName);
     return resolveResult.unit;
   }
 
   void setUp() {
-    processRequiredPlugins();
     setupResourceProvider();
 
     new MockSdk(resourceProvider: resourceProvider);

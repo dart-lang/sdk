@@ -86,7 +86,6 @@ class C {
   }
 
   test_withClass_instanceCreation_implicitNew() async {
-    configurePreviewDart2();
     await resolveTestUnit('''
 class C {
   foo() {
@@ -106,7 +105,6 @@ class C {
   }
 
   test_withClass_instanceCreation_implicitNew_namedConstructor() async {
-    configurePreviewDart2();
     await resolveTestUnit('''
 class C {
   foo() {

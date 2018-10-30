@@ -2428,7 +2428,6 @@ class B extends A {
   }
 
   test_implicitCreation() async {
-    configurePreviewDart2();
     addSource('/a.dart', '''
 class A {
   A.a1();
@@ -2604,7 +2603,6 @@ main() {
   }
 
   test_InstanceCreationExpression_filter() async {
-    configurePreviewDart2();
     addSource('/a.dart', '''
 class A {}
 class B extends A {}

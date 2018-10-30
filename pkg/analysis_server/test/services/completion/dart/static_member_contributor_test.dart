@@ -98,7 +98,6 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
   }
 
   test_implicitCreation() async {
-    configurePreviewDart2();
     addSource('/a.dart', '''
 class A {
   A.foo();

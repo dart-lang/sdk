@@ -10,12 +10,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -356,7 +354,6 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
   AnalysisTestHelper() {
     projectPath = convertPath('/project');
     testFile = convertPath('/project/bin/test.dart');
-    processRequiredPlugins();
     serverChannel = new MockServerChannel();
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
@@ -516,11 +513,6 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
   void handleSuccessfulRequest(Request request) {
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
-  }
-
-  void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
   }
 
   /**

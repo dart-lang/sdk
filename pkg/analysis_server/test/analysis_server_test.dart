@@ -11,11 +11,9 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -82,13 +80,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
     }
   }
 
-  void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-  }
-
   void setUp() {
-    processRequiredPlugins();
     channel = new MockServerChannel();
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
@@ -114,8 +106,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
     var pkgFolder = convertPath('/pkg');
     newFolder(pkgFolder);
     newFolder(join(pkgFolder, 'lib'));
-    newFile(join(pkgFolder, 'lib', 'test.dart'),
-        content: 'class C {}');
+    newFile(join(pkgFolder, 'lib', 'test.dart'), content: 'class C {}');
     server.setAnalysisRoots('0', [pkgFolder], [], {});
     // Pump the event queue to make sure the server has finished any
     // analysis.
