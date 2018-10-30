@@ -1,5 +1,8 @@
 ## 2.1.0-dev.XX.0
 
+#### `dart:io`
+Added new HTTP status codes.
+
 #### `dart:html`
 Fixed Service Workers and any Promise/Future API with a Dictionary parameter.
 
