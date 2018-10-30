@@ -104,6 +104,37 @@ abstract class ParseResult implements AnalysisResultWithErrors {
 }
 
 /**
+ * The result of building resolved AST(s) for the whole library. The errors returned
+ * include both syntactic and semantic errors.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ResolvedLibraryResult implements AnalysisResult {
+  /**
+   * The element representing this library.
+   */
+  LibraryElement get element;
+
+  /**
+   * The type provider used when resolving the library.
+   */
+  TypeProvider get typeProvider;
+
+  /**
+   *
+   * The resolved units of the library.
+   */
+  List<ResolveResult> get units;
+
+  /**
+   * Return the declaration of the [element], or `null` is the [element]
+   * is synthetic.  Throw [ArgumentError] if the [element] is not defined in
+   * this library.
+   */
+  AstNode getElementDeclaration(Element element);
+}
+
+/**
  * The result of building a resolved AST for a single file. The errors returned
  * include both syntactic and semantic errors.
  *

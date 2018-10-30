@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -76,6 +77,11 @@ class LibraryContext {
 
     inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
   }
+
+  /**
+   * The type provider used in this context.
+   */
+  TypeProvider get typeProvider => analysisContext.typeProvider;
 
   /**
    * Computes a [CompilationUnitElement] for the given library/unit pair.
