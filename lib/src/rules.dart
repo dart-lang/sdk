@@ -32,6 +32,7 @@ import 'package:linter/src/rules/avoid_returning_null.dart';
 import 'package:linter/src/rules/avoid_returning_null_for_void.dart';
 import 'package:linter/src/rules/avoid_returning_this.dart';
 import 'package:linter/src/rules/avoid_setters_without_getters.dart';
+import 'package:linter/src/rules/avoid_shadowing_type_parameters.dart';
 import 'package:linter/src/rules/avoid_single_cascade_in_expression_statements.dart';
 import 'package:linter/src/rules/avoid_slow_async_io.dart';
 import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
@@ -166,6 +167,7 @@ void registerLintRules() {
     ..register(new AvoidReturnTypesOnSetters())
     ..register(new AvoidReturningThis())
     ..register(new AvoidSettersWithoutGetters())
+    ..register(new AvoidShadowingTypeParameters())
     ..register(new AvoidSingleCascadeInExpressionStatements())
     ..register(new AvoidSlowAsyncIo())
     ..register(new AvoidTypesAsParameterNames())
