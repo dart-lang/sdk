@@ -6,10 +6,11 @@ import 'dart:async';
 import 'dart:io' show File, Platform;
 
 import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/server.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
+import 'package:dartfix/src/verbose_server.dart';
 import 'package:dartfix/src/options.dart';
-import 'package:dartfix/src/server.dart';
 import 'package:path/path.dart' as path;
 
 class Driver {
@@ -25,11 +26,24 @@ class Driver {
 
   Ansi get ansi => logger.ansi;
 
-  bool get runAnalysisServerFromSource {
-    // Automatically run analysis server from source
-    // if this command line tool is being run from source
-    // within the source tree.
-    return Server.findRoot() != null;
+  /// Return the analysis_server executable by proceeding upward
+  /// until finding the Dart SDK repository root then returning
+  /// the analysis_server executable within the repository.
+  /// Return `null` if it cannot be found.
+  String findServerPath() {
+    String pathname = Platform.script.toFilePath();
+    while (true) {
+      String parent = path.dirname(pathname);
+      if (parent.length >= pathname.length) {
+        return null;
+      }
+      String serverPath =
+          path.join(parent, 'pkg', 'analysis_server', 'bin', 'server.dart');
+      if (new File(serverPath).existsSync()) {
+        return serverPath;
+      }
+      pathname = parent;
+    }
   }
 
   Future start(List<String> args) async {
@@ -66,20 +80,22 @@ class Driver {
   }
 
   Future startServer(Options options) async {
-    server = new Server(logger);
+    server = logger.isVerbose ? new VerboseServer(logger) : new Server();
     const connectTimeout = const Duration(seconds: 15);
     serverConnected = new Completer();
     if (options.verbose) {
-      server.debugStdio();
       logger.trace('Dart SDK version ${Platform.version}');
       logger.trace('  ${Platform.resolvedExecutable}');
       logger.trace('dartfix');
       logger.trace('  ${Platform.script.toFilePath()}');
     }
-    final runFromSource = runAnalysisServerFromSource;
-    logger.trace(runFromSource ? 'Starting from source...' : 'Starting...');
-    await server.start(sdkPath: options.sdkPath, useSnapshot: !runFromSource);
-    server.listenToOutput(dispatchNotification);
+    // Automatically run analysis server from source
+    // if this command line tool is being run from source within the SDK repo.
+    String serverPath = findServerPath();
+    logger
+        .trace(serverPath != null ? 'Starting from source...' : 'Starting...');
+    await server.start(sdkPath: options.sdkPath, serverPath: serverPath);
+    server.listenToOutput(notificationProcessor: handleEvent);
     await serverConnected.future.timeout(connectTimeout, onTimeout: () {
       logger.stderr('Failed to connect to server');
       context.exit(15);
@@ -192,7 +208,7 @@ class Driver {
 
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
-  void dispatchNotification(String event, params) {
+  void handleEvent(String event, params) {
     ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
       case SERVER_NOTIFICATION_CONNECTED:

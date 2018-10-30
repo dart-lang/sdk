@@ -6,23 +6,24 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server_client/analysis_server_client.dart';
+import 'package:analysis_server_client/server.dart';
 import 'package:test/test.dart';
 
 void main() {
   MockProcess process;
-  AnalysisServerClient serverWrapper;
+  Server server;
 
   setUp(() async {
     process = new MockProcess();
-    serverWrapper = new AnalysisServerClient(process);
+    server = new Server(process);
   });
 
   test('test_listenToOutput_good', () async {
     process.stdout = _goodMessage();
+    process.stderr = _noMessage();
 
-    final future = serverWrapper.send('blahMethod', null);
-    serverWrapper.listenToOutput();
+    final future = server.send('blahMethod', null);
+    server.listenToOutput();
 
     final response = await future;
     expect(response, const TypeMatcher<Map>());
@@ -32,19 +33,22 @@ void main() {
 
   test('test_listenToOutput_error', () async {
     process.stdout = _badMessage();
-    final future = serverWrapper.send('blahMethod', null);
+    process.stderr = _noMessage();
+
+    final future = server.send('blahMethod', null);
     future.catchError((e) {
       expect(e, const TypeMatcher<ServerErrorMessage>());
-      final e2 = e as ServerErrorMessage;
-      expect(e2.code, 'someErrorCode');
-      expect(e2.message, 'something went wrong');
-      expect(e2.stackTrace, 'some long stack trace');
+      final error = e as ServerErrorMessage;
+      expect(error.errorCode, 'someErrorCode');
+      expect(error.errorMessage, 'something went wrong');
+      expect(error.stackTrace, 'some long stack trace');
     });
-    serverWrapper.listenToOutput();
+    server.listenToOutput();
   });
 
   test('test_listenToOutput_event', () async {
     process.stdout = _eventMessage();
+    process.stderr = _noMessage();
 
     void eventHandler(String event, Map<String, Object> params) {
       expect(event, 'fooEvent');
@@ -53,8 +57,8 @@ void main() {
       expect(params['baz'] as String, 'bang');
     }
 
-    serverWrapper.send('blahMethod', null);
-    serverWrapper.listenToOutput(notificationProcessor: eventHandler);
+    server.send('blahMethod', null);
+    server.listenToOutput(notificationProcessor: eventHandler);
   });
 }
 
@@ -86,6 +90,10 @@ Stream<List<int>> _goodMessage() async* {
     'result': {'foo': 'bar'}
   };
   yield utf8.encoder.convert(json.encode(sampleJson));
+}
+
+Stream<List<int>> _noMessage() async* {
+  yield utf8.encoder.convert('');
 }
 
 class MockProcess implements Process {
