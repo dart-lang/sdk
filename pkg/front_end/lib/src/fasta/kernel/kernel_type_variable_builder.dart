@@ -105,4 +105,15 @@ class KernelTypeVariableBuilder
     return new KernelTypeVariableBuilder(
         name, parent, charOffset, bound.clone(newTypes));
   }
+
+  static List<TypeParameter> kernelTypeParametersFromBuilders(
+      List<TypeVariableBuilder> builders) {
+    if (builders == null) return null;
+    List<TypeParameter> result =
+        new List<TypeParameter>.filled(builders.length, null, growable: true);
+    for (int i = 0; i < builders.length; i++) {
+      result[i] = builders[i].target;
+    }
+    return result;
+  }
 }
