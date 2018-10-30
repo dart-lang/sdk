@@ -58,14 +58,14 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       PrefixElement prefix = element.prefix;
       SourceEdit edit = null;
       if (newName.isEmpty) {
-        ImportDirective node = await _findNode();
+        ImportDirective node = _findNode();
         int uriEnd = node.uri.end;
         int prefixEnd = element.prefixOffset + prefix.nameLength;
         edit = newSourceEdit_range(
             range.startOffsetEndOffset(uriEnd, prefixEnd), "");
       } else {
         if (prefix == null) {
-          ImportDirective node = await _findNode();
+          ImportDirective node = _findNode();
           int uriEnd = node.uri.end;
           edit =
               newSourceEdit_range(new SourceRange(uriEnd, 0), " as $newName");
@@ -87,7 +87,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         reference.addEdit(change, '');
       } else {
         SimpleIdentifier interpolationIdentifier =
-            await _getInterpolationIdentifier(reference);
+            _getInterpolationIdentifier(reference);
         if (interpolationIdentifier != null) {
           doSourceChange_addElementEdit(
               change,
@@ -106,12 +106,10 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   /**
    * Return the [ImportDirective] node that corresponds to the [element].
    */
-  Future<ImportDirective> _findNode() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  ImportDirective _findNode() {
     LibraryElement library = element.library;
     String path = library.source.fullName;
-    CompilationUnit unit = (await session.getParsedUnit(path)).unit;
+    CompilationUnit unit = session.getParsedUnit(path).unit;
     int index = library.imports.indexOf(element);
     return unit.directives.where((d) => d is ImportDirective).toList()[index];
   }
@@ -121,10 +119,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
    * an [InterpolationExpression] without surrounding curly brackets, return it.
    * Otherwise return `null`.
    */
-  Future<SimpleIdentifier> _getInterpolationIdentifier(
-      SourceReference reference) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
     Source source = reference.element.source;
     CompilationUnit unit = session.getParsedUnit(source.fullName).unit;
     NodeLocator nodeLocator = new NodeLocator(reference.range.offset);
