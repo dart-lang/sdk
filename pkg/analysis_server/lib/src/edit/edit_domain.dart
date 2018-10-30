@@ -182,7 +182,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute fixes associated with server-generated errors.
     //
-    ResolveResult result = await server.getAnalysisResult(file);
+    ResolvedUnitResult result = await server.getAnalysisResult(file);
     if (result != null) {
       var context = new DartAssistContextImpl(result, offset, length);
       try {
@@ -274,7 +274,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
     SourceChange change;
 
-    ResolveResult result = await server.getAnalysisResult(params.file);
+    ResolvedUnitResult result = await server.getAnalysisResult(params.file);
     if (result != null) {
       PostfixCompletionContext context = new PostfixCompletionContext(
         result,
@@ -301,7 +301,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     var params = new EditGetStatementCompletionParams.fromRequest(request);
     SourceChange change;
 
-    ResolveResult result = await server.getAnalysisResult(params.file);
+    ResolvedUnitResult result = await server.getAnalysisResult(params.file);
     if (result != null) {
       var context = new StatementCompletionContext(result, params.offset);
       StatementCompletionProcessor processor =
@@ -377,7 +377,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Prepare the resolved unit.
     //
-    ResolveResult result = await server.getAnalysisResult(params.file);
+    ResolvedUnitResult result = await server.getAnalysisResult(params.file);
     if (result == null) {
       server.sendResponse(new Response.importElementsInvalidFile(request));
     }
@@ -412,7 +412,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
     bool value = false;
 
-    ResolveResult result = await server.getAnalysisResult(params.file);
+    ResolvedUnitResult result = await server.getAnalysisResult(params.file);
     if (result != null) {
       var context = new PostfixCompletionContext(
         result,
@@ -454,7 +454,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // Prepare the file information.
-    ResolveResult result = await server.getAnalysisResult(file);
+    ResolvedUnitResult result = await server.getAnalysisResult(file);
     if (result == null) {
       server.sendResponse(new Response.fileNotAnalyzed(request, file));
       return;
@@ -490,7 +490,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
     // Prepare the file information.
     var driver = server.getAnalysisDriver(file);
-    ParseResult result = await driver?.parseFile(file);
+    ParsedUnitResult result = await driver?.parseFile(file);
     if (result == null) {
       server.sendResponse(new Response.fileNotAnalyzed(request, file));
       return;

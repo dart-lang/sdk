@@ -84,7 +84,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final int offset;
 
   @override
-  final ResolveResult result;
+  final ResolvedUnitResult result;
 
   /**
    * A flag indicating whether completion has been aborted.

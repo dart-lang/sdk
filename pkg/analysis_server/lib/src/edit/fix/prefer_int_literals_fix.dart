@@ -16,7 +16,7 @@ class PreferIntLiteralsFix extends LinterFix {
   PreferIntLiteralsFix(EditDartFix dartFix) : super(dartFix);
 
   @override
-  Future<void> applyLocalFixes(ResolveResult result) async {
+  Future<void> applyLocalFixes(ResolvedUnitResult result) async {
     while (literalsToConvert.isNotEmpty) {
       DoubleLiteral literal = literalsToConvert.removeLast();
       AssistProcessor processor = new AssistProcessor(

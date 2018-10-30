@@ -67,7 +67,7 @@ abstract class DartAssistsMixin implements AssistsMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = parameters.file;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

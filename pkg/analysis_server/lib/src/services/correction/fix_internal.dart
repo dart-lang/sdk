@@ -3289,7 +3289,7 @@ class FixProcessor {
         }
         // use different utils
         var targetPath = targetClassElement.source.fullName;
-        var targetResolveResult = await session.getResolvedAst(targetPath);
+        var targetResolveResult = await session.getResolvedUnit(targetPath);
         utils = CorrectionUtils(targetResolveResult);
       }
       ClassMemberLocation targetLocation =

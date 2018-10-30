@@ -31,7 +31,7 @@ const String _TOKEN_SEPARATOR = "\uFFFF";
  */
 class ExtractLocalRefactoringImpl extends RefactoringImpl
     implements ExtractLocalRefactoring {
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
   SourceRange selectionRange;

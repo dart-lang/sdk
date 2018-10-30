@@ -70,20 +70,41 @@ abstract class AnalysisSession {
   /**
    * Return a future that will complete with information about the results of
    * parsing the file with the given absolute, normalized [path].
+   *
+   * Deprecated: Use [getParsedUnit] instead.
    */
+  @deprecated
   Future<ParseResult> getParsedAst(String path);
 
   /**
    * Return information about the results of parsing the file with the given
    * absolute, normalized [path].
+   *
+   * Deprecated: Use [getParsedUnit] instead.
    */
+  @deprecated
   ParseResult getParsedAstSync(String path);
+
+  /**
+   * Return information about the results of parsing the file with the given
+   * absolute, normalized [path].
+   */
+  ParsedUnitResult getParsedUnit(String path);
+
+  /**
+   * Return a future that will complete with information about the results of
+   * resolving the file with the given absolute, normalized [path].
+   *
+   * Deprecated: Use [getResolvedUnit] instead.
+   */
+  @deprecated
+  Future<ResolveResult> getResolvedAst(String path);
 
   /**
    * Return a future that will complete with information about the results of
    * resolving the file with the given absolute, normalized [path].
    */
-  Future<ResolveResult> getResolvedAst(String path);
+  Future<ResolvedUnitResult> getResolvedUnit(String path);
 
   /**
    * Return a future that will complete with the source kind of the file with

@@ -393,7 +393,7 @@ class A {
   Future<List<ImportedElements>> _computeElements(
       String sourceContent, int offset, int length) async {
     newFile(sourcePath, content: sourceContent);
-    ResolveResult result = await session.getResolvedAst(sourcePath);
+    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
     ImportedElementsComputer computer =
         new ImportedElementsComputer(result.unit, offset, length);
     return computer.compute();

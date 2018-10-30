@@ -804,7 +804,7 @@ int c;
 
   Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
-    ParseResult result = await session.getParsedAst(testSource.fullName);
+    ParsedUnitResult result = session.getParsedUnit(testSource.fullName);
     testUnit = result.unit;
   }
 }

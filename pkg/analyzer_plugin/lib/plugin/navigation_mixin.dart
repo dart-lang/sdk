@@ -30,7 +30,7 @@ mixin DartNavigationMixin implements NavigationMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = parameters.file;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     int offset = parameters.offset;
     int length = parameters.length;
     if (offset < 0 && length < 0) {

@@ -30,7 +30,7 @@ mixin DartEntryMixin implements EntryMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = parameters.file;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartEntryRequestImpl(resourceProvider, result);
   }
 }

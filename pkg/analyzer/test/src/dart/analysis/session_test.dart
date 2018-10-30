@@ -57,17 +57,17 @@ class AnalysisSessionImplTest {
   }
 
   test_getParsedAst() async {
-    ParseResult result =
-        new ParseResult(null, null, null, null, null, null, null, null);
+    ParsedUnitResult result =
+        new ParsedUnitResult(null, null, null, null, null, null, null, null);
     driver.parseResult = result;
-    expect(await session.getParsedAst('path'), result);
+    expect(session.getParsedUnit('path'), result);
   }
 
-  test_getResolvedAst() async {
+  test_getResolvedUnit() async {
     AnalysisResult result = new AnalysisResult(driver, null, null, null, null,
         null, null, null, null, null, null, null);
     driver.result = result;
-    expect(await session.getResolvedAst('path'), result);
+    expect(await session.getResolvedUnit('path'), result);
   }
 
   test_getSourceKind() async {
@@ -164,7 +164,7 @@ class MockAnalysisDriver implements AnalysisDriver {
 
   ErrorsResult errorsResult;
   Map<String, LibraryElement> libraryMap = <String, LibraryElement>{};
-  ParseResult parseResult;
+  ParsedUnitResult parseResult;
   ResourceProvider resourceProvider;
   AnalysisResult result;
   SourceFactory sourceFactory;
@@ -218,12 +218,12 @@ class MockAnalysisDriver implements AnalysisDriver {
   }
 
   @override
-  Future<ParseResult> parseFile(String path) async {
+  Future<ParsedUnitResult> parseFile(String path) async {
     return parseResult;
   }
 
   @override
-  ParseResult parseFileSync(String path) {
+  ParsedUnitResult parseFileSync(String path) {
     return parseResult;
   }
 }

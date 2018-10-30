@@ -255,7 +255,7 @@ class PostfixCompletion {
  * The context for computing a postfix completion.
  */
 class PostfixCompletionContext {
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int selectionOffset;
   final String key;
 

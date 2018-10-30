@@ -68,7 +68,7 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractLocalRefactoring] instance.
    */
-  factory ExtractLocalRefactoring(ResolveResult resolveResult,
+  factory ExtractLocalRefactoring(ResolvedUnitResult resolveResult,
       int selectionOffset, int selectionLength) = ExtractLocalRefactoringImpl;
 
   /**
@@ -142,8 +142,11 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractMethodRefactoring] instance.
    */
-  factory ExtractMethodRefactoring(SearchEngine searchEngine,
-      ResolveResult resolveResult, int selectionOffset, int selectionLength) {
+  factory ExtractMethodRefactoring(
+      SearchEngine searchEngine,
+      ResolvedUnitResult resolveResult,
+      int selectionOffset,
+      int selectionLength) {
     return new ExtractMethodRefactoringImpl(
         searchEngine, resolveResult, selectionOffset, selectionLength);
   }
@@ -239,7 +242,7 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
    * Returns a new [ExtractWidgetRefactoring] instance.
    */
   factory ExtractWidgetRefactoring(SearchEngine searchEngine,
-      ResolveResult resolveResult, int offset, int length) {
+      ResolvedUnitResult resolveResult, int offset, int length) {
     return new ExtractWidgetRefactoringImpl(
         searchEngine, resolveResult, offset, length);
   }
@@ -275,7 +278,7 @@ abstract class InlineLocalRefactoring implements Refactoring {
    * Returns a new [InlineLocalRefactoring] instance.
    */
   factory InlineLocalRefactoring(
-      SearchEngine searchEngine, ResolveResult resolveResult, int offset) {
+      SearchEngine searchEngine, ResolvedUnitResult resolveResult, int offset) {
     return new InlineLocalRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
@@ -298,7 +301,7 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * Returns a new [InlineMethodRefactoring] instance.
    */
   factory InlineMethodRefactoring(
-      SearchEngine searchEngine, ResolveResult resolveResult, int offset) {
+      SearchEngine searchEngine, ResolvedUnitResult resolveResult, int offset) {
     return new InlineMethodRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
@@ -503,19 +506,19 @@ abstract class RenameRefactoring implements Refactoring {
  */
 class ResolvedUnitCache {
   final AnalysisSession _session;
-  final Map<String, ResolveResult> _map = {};
+  final Map<String, ResolvedUnitResult> _map = {};
 
-  ResolvedUnitCache(ResolveResult result) : _session = result.session {
+  ResolvedUnitCache(ResolvedUnitResult result) : _session = result.session {
     _map[result.path] = result;
   }
 
   ResolvedUnitCache.empty(AnalysisSession session) : _session = session;
 
-  Future<ResolveResult> getResolvedAst(Element element) async {
+  Future<ResolvedUnitResult> getResolvedAst(Element element) async {
     var path = element.source.fullName;
     var result = _map[path];
     if (result == null) {
-      result = await _session.getResolvedAst(path);
+      result = await _session.getResolvedUnit(path);
       _map[path] = result;
     }
     return result;

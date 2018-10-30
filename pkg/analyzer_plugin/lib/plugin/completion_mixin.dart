@@ -68,7 +68,7 @@ abstract class DartCompletionMixin implements CompletionMixin {
       CompletionGetSuggestionsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(parameters.file);
+    ResolvedUnitResult result = await getResolvedUnitResult(parameters.file);
     return new DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);
   }

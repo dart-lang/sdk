@@ -13,7 +13,7 @@ abstract class DartAssistContext {
   /**
    * The resolution result in which assist operates.
    */
-  ResolveResult get resolveResult;
+  ResolvedUnitResult get resolveResult;
 
   /**
    * The length of the selection.

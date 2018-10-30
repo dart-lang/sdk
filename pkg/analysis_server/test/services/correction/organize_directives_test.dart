@@ -335,7 +335,8 @@ import 'package:product2.client/entity.dart';
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    ResolveResult result = await session.getResolvedAst(testSource.fullName);
+    ResolvedUnitResult result =
+        await session.getResolvedUnit(testSource.fullName);
     testUnit = result.unit;
     testErrors = result.errors;
   }

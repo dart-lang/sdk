@@ -23,7 +23,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   String testCode;
   String testFile;
   Source testSource;
-  ResolveResult testAnalysisResult;
+  ResolvedUnitResult testAnalysisResult;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
@@ -112,7 +112,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
-    testAnalysisResult = await session.getResolvedAst(testFile);
+    testAnalysisResult = await session.getResolvedUnit(testFile);
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
       expect(testAnalysisResult.errors.where((AnalysisError error) {

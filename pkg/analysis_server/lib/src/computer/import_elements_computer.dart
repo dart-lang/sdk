@@ -38,7 +38,7 @@ class ImportElementsComputer {
    * The resolution result associated with the defining compilation unit of the
    * library to which imports might be added.
    */
-  final ResolveResult libraryResult;
+  final ResolvedUnitResult libraryResult;
 
   /**
    * Initialize a newly created builder.

@@ -461,7 +461,7 @@ main() {
     driver.addFile(b);
 
     var session = driver.currentSession;
-    testAnalysisResult = await session.getResolvedAst(a);
+    testAnalysisResult = await session.getResolvedUnit(a);
     testFile = testAnalysisResult.path;
     testCode = testAnalysisResult.content;
     testUnit = testAnalysisResult.unit;

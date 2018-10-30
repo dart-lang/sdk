@@ -2310,7 +2310,7 @@ import 'b.dart';
     var p = convertPath('/test/bin/a.txt');
     newFile(p, content: 'class A {}');
 
-    ParseResult parseResult = await driver.parseFile(p);
+    ParsedUnitResult parseResult = await driver.parseFile(p);
     expect(parseResult, isNotNull);
     expect(driver.knownFiles, contains(p));
   }
@@ -2327,7 +2327,7 @@ import 'b.dart';
     // Update the file.
     newFile(p, content: 'class A2 {}');
 
-    ParseResult parseResult = await driver.parseFile(p);
+    ParsedUnitResult parseResult = await driver.parseFile(p);
     var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
     expect(clazz.name.name, 'A2');
   }
@@ -2343,7 +2343,7 @@ import 'b.dart';
     var p = convertPath('/test/bin/a.txt');
     newFile(p, content: 'class A {}');
 
-    ParseResult parseResult = driver.parseFileSync(p);
+    ParsedUnitResult parseResult = driver.parseFileSync(p);
     expect(parseResult, isNotNull);
     expect(driver.knownFiles, contains(p));
   }
@@ -2360,7 +2360,7 @@ import 'b.dart';
     // Update the file.
     newFile(p, content: 'class A2 {}');
 
-    ParseResult parseResult = driver.parseFileSync(p);
+    ParsedUnitResult parseResult = driver.parseFileSync(p);
     var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
     expect(clazz.name.name, 'A2');
   }

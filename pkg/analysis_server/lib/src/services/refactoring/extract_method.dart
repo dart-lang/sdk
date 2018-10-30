@@ -73,7 +73,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       'execution flows exit. Semantics may not be preserved.';
 
   final SearchEngine searchEngine;
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
   SourceRange selectionRange;
@@ -922,7 +922,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
  * [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
  */
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
-  _ExtractMethodAnalyzer(ResolveResult resolveResult, SourceRange selection)
+  _ExtractMethodAnalyzer(
+      ResolvedUnitResult resolveResult, SourceRange selection)
       : super(resolveResult, selection);
 
   @override

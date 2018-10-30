@@ -22,7 +22,7 @@ main() {
 class FlutterOutlineComputerTest extends AbstractContextTest {
   String testPath;
   String testCode;
-  ResolveResult resolveResult;
+  ResolvedUnitResult resolveResult;
   FlutterOutlineComputer computer;
 
   @override
@@ -625,7 +625,7 @@ class MyWidget extends StatelessWidget {
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
-    resolveResult = await session.getResolvedAst(testPath);
+    resolveResult = await session.getResolvedUnit(testPath);
     computer = new FlutterOutlineComputer(testPath, testCode,
         resolveResult.lineInfo, resolveResult.unit, resolveResult.typeProvider);
     return computer.compute();

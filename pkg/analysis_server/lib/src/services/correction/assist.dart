@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
  */
 class DartAssistContextImpl implements DartAssistContext {
   @override
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
 
   @override
   final int selectionOffset;

@@ -187,7 +187,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int offset;
   ResolvedUnitCache _unitCache;
   CorrectionUtils utils;

@@ -870,7 +870,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * produced through the [results] stream (just because it is not a fully
    * resolved unit).
    */
-  Future<ParseResult> parseFile(String path) async {
+  Future<ParsedUnitResult> parseFile(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     return parseFileSync(path);
@@ -887,13 +887,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * produced through the [results] stream (just because it is not a fully
    * resolved unit).
    */
-  ParseResult parseFileSync(String path) {
+  ParsedUnitResult parseFileSync(String path) {
     _throwIfNotAbsolutePath(path);
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return new ParseResult(currentSession, file.path, file.uri, file.content,
-        file.lineInfo, file.isPart, unit, listener.errors);
+    return new ParsedUnitResult(currentSession, file.path, file.uri,
+        file.content, file.lineInfo, file.isPart, unit, listener.errors);
   }
 
   @override
@@ -1923,7 +1923,7 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult extends FileResult implements results.ResolveResult {
+class AnalysisResult extends FileResult implements results.ResolvedUnitResult {
   static final _UNCHANGED = new AnalysisResult(
       null, null, null, null, null, null, null, null, null, null, null, null);
 
@@ -2099,7 +2099,7 @@ class FileResult extends BaseAnalysisResult implements results.FileResult {
  * parsed [unit] correspond to each other. But none of the results is
  * guaranteed to be consistent with the state of the files.
  */
-class ParseResult extends FileResult implements results.ParseResult {
+class ParsedUnitResult extends FileResult implements results.ParsedUnitResult {
   @override
   final String content;
 
@@ -2109,7 +2109,7 @@ class ParseResult extends FileResult implements results.ParseResult {
   @override
   final List<AnalysisError> errors;
 
-  ParseResult(AnalysisSession session, String path, Uri uri, this.content,
+  ParsedUnitResult(AnalysisSession session, String path, Uri uri, this.content,
       LineInfo lineInfo, bool isPart, this.unit, this.errors)
       : super(session, path, uri, lineInfo, isPart);
 

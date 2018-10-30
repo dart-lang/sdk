@@ -28,7 +28,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ExtractWidgetRefactoringImpl extends RefactoringImpl
     implements ExtractWidgetRefactoring {
   final SearchEngine searchEngine;
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final AnalysisSessionHelper sessionHelper;
   final int offset;
   final int length;

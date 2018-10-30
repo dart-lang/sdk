@@ -106,21 +106,26 @@ class AnalysisSessionImpl implements AnalysisSession {
     return libraryElement;
   }
 
+  @deprecated
   @override
-  Future<ParseResult> getParsedAst(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    return getParsedAstSync(path);
-  }
+  Future<ParseResult> getParsedAst(String path) async => getParsedUnit(path);
+
+  @deprecated
+  @override
+  ParseResult getParsedAstSync(String path) => getParsedUnit(path);
 
   @override
-  ParseResult getParsedAstSync(String path) {
+  ParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync(path);
   }
 
+  @deprecated
   @override
-  Future<ResolveResult> getResolvedAst(String path) {
+  Future<ResolveResult> getResolvedAst(String path) => getResolvedUnit(path);
+
+  @override
+  Future<ResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult(path);
   }

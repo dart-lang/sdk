@@ -23,7 +23,7 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
   final int offset;
 
   @override
-  final ResolveResult result;
+  final ResolvedUnitResult result;
 
   /**
    * Initialize a newly create request with the given data.

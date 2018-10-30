@@ -59,7 +59,7 @@ abstract class ErrorsResult implements AnalysisResultWithErrors {}
 
 /**
  * The result of computing some cheap information for a single file, when full
- * parsed file is not required, so [ParseResult] is not necessary.
+ * parsed file is not required, so [ParsedUnitResult] is not necessary.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -81,6 +81,16 @@ abstract class FileResult implements AnalysisResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
+// ignore: deprecated_member_use
+abstract class ParsedUnitResult implements ParseResult {}
+
+/**
+ * The result of parsing of a single file. The errors returned include only
+ * those discovered during scanning and parsing.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+@deprecated
 abstract class ParseResult implements AnalysisResultWithErrors {
   /**
    * The content of the file that was scanned and parsed.
@@ -99,6 +109,16 @@ abstract class ParseResult implements AnalysisResultWithErrors {
  *
  * Clients may not extend, implement or mix-in this class.
  */
+// ignore: deprecated_member_use
+abstract class ResolvedUnitResult implements ResolveResult {}
+
+/**
+ * The result of building a resolved AST for a single file. The errors returned
+ * include both syntactic and semantic errors.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+@deprecated
 abstract class ResolveResult implements AnalysisResultWithErrors {
   /**
    * The content of the file that was scanned, parsed and resolved.

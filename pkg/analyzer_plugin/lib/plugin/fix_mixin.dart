@@ -31,12 +31,12 @@ mixin DartFixesMixin implements FixesMixin {
     await null;
     String path = parameters.file;
     int offset = parameters.offset;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartFixesRequestImpl(
         resourceProvider, offset, _getErrors(offset, result), result);
   }
 
-  List<AnalysisError> _getErrors(int offset, ResolveResult result) {
+  List<AnalysisError> _getErrors(int offset, ResolvedUnitResult result) {
     LineInfo lineInfo = result.lineInfo;
     int offsetLine = lineInfo.getLocation(offset).lineNumber;
     return result.errors.where((AnalysisError error) {

@@ -451,7 +451,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future computeSuggestions() async {
-    ResolveResult result = await driver.getResult(testFile);
+    ResolvedUnitResult result = await driver.getResult(testFile);
     testSource = result.unit.declaredElement.source;
     request = new DartCompletionRequestImpl(
         resourceProvider, completionOffset, result);

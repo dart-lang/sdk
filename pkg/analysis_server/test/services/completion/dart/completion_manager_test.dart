@@ -47,7 +47,7 @@ part '${convertAbsolutePathToUri(testFile)}';
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        await session.getResolvedAst(testFile),
+        await session.getResolvedUnit(testFile),
         completionOffset,
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =

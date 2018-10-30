@@ -31,7 +31,7 @@ import 'package:path/path.dart' as pathos;
 Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     LibraryElement targetLibrary, Set<Source> libraries) async {
   var libraryPath = targetLibrary.source.fullName;
-  var resolveResult = await session.getResolvedAst(libraryPath);
+  var resolveResult = await session.getResolvedUnit(libraryPath);
   var libUtils = new CorrectionUtils(resolveResult);
   String eol = libUtils.endOfLine;
   // Prepare information about existing imports.
@@ -616,7 +616,7 @@ class CorrectionUtils {
 
   String _endOfLine;
 
-  CorrectionUtils(ResolveResult result)
+  CorrectionUtils(ResolvedUnitResult result)
       : unit = result.unit,
         _library = result.libraryElement,
         _buffer = result.content;

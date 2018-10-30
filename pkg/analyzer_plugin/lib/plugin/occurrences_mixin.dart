@@ -27,7 +27,7 @@ mixin DartOccurrencesMixin implements OccurrencesMixin {
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }

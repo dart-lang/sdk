@@ -100,7 +100,7 @@ class _IsTestGroup {
   }
 
   Future<CompilationUnit> resolveLibraryUnit(Source source) async {
-    var resolveResult = await session.getResolvedAst(source.fullName);
+    var resolveResult = await session.getResolvedUnit(source.fullName);
     return resolveResult.unit;
   }
 

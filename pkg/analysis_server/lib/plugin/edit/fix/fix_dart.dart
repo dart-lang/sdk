@@ -14,5 +14,5 @@ abstract class DartFixContext implements FixContext {
   /**
    * The resolution result in which fix operates.
    */
-  ResolveResult get resolveResult;
+  ResolvedUnitResult get resolveResult;
 }

@@ -18,7 +18,7 @@ void main() {
 
 @reflectiveTest
 class NavigationGeneratorTest with ResourceProviderMixin {
-  ResolveResult resolveResult = new MockAnalysisResult(path: 'a.dart');
+  ResolvedUnitResult resolveResult = new MockAnalysisResult(path: 'a.dart');
 
   test_none() {
     NavigationGenerator generator = new NavigationGenerator([]);

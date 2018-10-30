@@ -26,7 +26,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class InlineLocalRefactoringImpl extends RefactoringImpl
     implements InlineLocalRefactoring {
   final SearchEngine searchEngine;
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int offset;
   CorrectionUtils utils;
 

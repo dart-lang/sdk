@@ -82,7 +82,7 @@ class StatementCompletion {
  * The context for computing a statement completion.
  */
 class StatementCompletionContext {
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int selectionOffset;
 
   StatementCompletionContext(this.resolveResult, this.selectionOffset);

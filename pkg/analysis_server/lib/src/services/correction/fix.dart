@@ -88,7 +88,7 @@ bool hasFix(ErrorCode errorCode) =>
  */
 class DartFixContextImpl implements DartFixContext {
   @override
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
 
   @override
   final AnalysisError error;

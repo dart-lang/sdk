@@ -23,7 +23,7 @@ abstract class DartNavigationRequest implements NavigationRequest {
    * The analysis result for the file in which the navigation regions are being
    * requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**

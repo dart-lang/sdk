@@ -17,7 +17,7 @@ class PreferMixinFix extends LinterFix {
   PreferMixinFix(EditDartFix dartFix) : super(dartFix);
 
   @override
-  Future<void> applyLocalFixes(ResolveResult result) {
+  Future<void> applyLocalFixes(ResolvedUnitResult result) {
     // All fixes applied in [applyRemainingFixes]
     return null;
   }
@@ -30,7 +30,7 @@ class PreferMixinFix extends LinterFix {
   }
 
   Future<void> convertClassToMixin(Element elem) async {
-    ResolveResult result =
+    ResolvedUnitResult result =
         await dartFix.server.getAnalysisResult(elem.source?.fullName);
 
     for (CompilationUnitMember declaration in result.unit.declarations) {

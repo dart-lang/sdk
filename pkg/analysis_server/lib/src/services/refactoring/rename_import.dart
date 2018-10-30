@@ -111,7 +111,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     await null;
     LibraryElement library = element.library;
     String path = library.source.fullName;
-    CompilationUnit unit = (await session.getParsedAstSync(path)).unit;
+    CompilationUnit unit = (await session.getParsedUnit(path)).unit;
     int index = library.imports.indexOf(element);
     return unit.directives.where((d) => d is ImportDirective).toList()[index];
   }
@@ -126,7 +126,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Source source = reference.element.source;
-    CompilationUnit unit = (await session.getParsedAst(source.fullName)).unit;
+    CompilationUnit unit = session.getParsedUnit(source.fullName).unit;
     NodeLocator nodeLocator = new NodeLocator(reference.range.offset);
     AstNode node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {

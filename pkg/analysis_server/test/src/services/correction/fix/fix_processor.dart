@@ -175,7 +175,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   Future<List<AnalysisError>> _computeErrors() async {
     if (_errors == null) {
-      var result = await session.getResolvedAst(testFile);
+      var result = await session.getResolvedUnit(testFile);
       return _errors ??= result.errors;
     }
     return _errors;

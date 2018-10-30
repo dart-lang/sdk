@@ -44,7 +44,7 @@ class AnalysisSessionHelper {
     }
 
     var path = element.source.fullName;
-    var resolveResult = await session.getResolvedAst(path);
+    var resolveResult = await session.getResolvedUnit(path);
     var unit = resolveResult.unit;
     var locator = NodeLocator(element.nameOffset);
     var declaration = locator.searchWithin(unit)?.parent;
@@ -72,7 +72,7 @@ class AnalysisSessionHelper {
 /// The result of searching an [Element] declaration in the resolved AST for
 /// the file where it is defined.
 class ElementDeclarationResult {
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final AstNode declaration;
 
   ElementDeclarationResult(this.resolveResult, this.declaration);

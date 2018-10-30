@@ -37,7 +37,7 @@ List<Token> _getTokens(String text) {
  * Analyzer to check if a selection covers a valid set of statements of AST.
  */
 class StatementAnalyzer extends SelectionAnalyzer {
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
 
   final RefactoringStatus _status = new RefactoringStatus();
 

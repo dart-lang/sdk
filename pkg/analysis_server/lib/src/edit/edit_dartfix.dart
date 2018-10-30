@@ -139,7 +139,7 @@ class EditDartFix {
         }
         continue;
       }
-      ResolveResult result = await server.getAnalysisResult(res.path);
+      ResolvedUnitResult result = await server.getAnalysisResult(res.path);
       CompilationUnit unit = result?.unit;
       if (unit != null) {
         if (!hasErrors) {
@@ -190,7 +190,7 @@ class EditDartFix {
         .toResponse(request.id);
   }
 
-  Future<bool> fixError(ResolveResult result, AnalysisError error) async {
+  Future<bool> fixError(ResolvedUnitResult result, AnalysisError error) async {
     if (error.errorCode ==
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR) {
       // TODO(danrubel): Rather than comparing the error codes individually,
@@ -235,7 +235,7 @@ class EditDartFix {
     return false;
   }
 
-  Location locationFor(ResolveResult result, int offset, int length) {
+  Location locationFor(ResolvedUnitResult result, int offset, int length) {
     final locInfo = result.unit.lineInfo.getLocation(offset);
     final location = new Location(
         result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
@@ -252,7 +252,7 @@ abstract class LinterFix implements ErrorReporter {
   LinterFix(this.dartFix);
 
   /// Apply fixes for the current compilation unit.
-  Future<void> applyLocalFixes(ResolveResult result);
+  Future<void> applyLocalFixes(ResolvedUnitResult result);
 
   /// Apply any fixes remaining after analysis is complete.
   Future<void> applyRemainingFixes();

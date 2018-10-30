@@ -27,7 +27,7 @@ mixin DartOutlineMixin implements OutlineMixin {
   Future<OutlineRequest> getOutlineRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartOutlineRequestImpl(resourceProvider, result);
   }
 }
