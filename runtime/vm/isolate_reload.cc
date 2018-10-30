@@ -1258,12 +1258,7 @@ void IsolateReloadContext::RollbackClasses() {
     }
   }
 
-  ClassAndSize* local_saved_class_table = saved_class_table_;
-  saved_class_table_ = NULL;
-  // Can't free this table immediately as another thread (e.g., the sweeper) may
-  // be suspended between loading the table pointer and loading the table
-  // element. Table will be freed at the next major GC or isolate shutdown.
-  class_table->AddOldTable(local_saved_class_table);
+  DiscardSavedClassTable();
 }
 
 void IsolateReloadContext::RollbackLibraries() {
@@ -1416,15 +1411,6 @@ void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
   TIR_Print("---- COMMITTING RELOAD\n");
 
-  // Note that the object heap contains before and after instances
-  // used for morphing. It is therefore important that morphing takes
-  // place prior to any heap walking.
-  // So please keep this code at the top of Commit().
-  if (!MorphInstances()) {
-    free(saved_class_table_);
-    saved_class_table_ = NULL;
-  }
-
 #ifdef DEBUG
   VerifyMaps();
 #endif
@@ -1525,6 +1511,8 @@ void IsolateReloadContext::Commit() {
   }
 
   {
+    MorphInstancesAndApplyNewClassTable();
+
     const GrowableObjectArray& become_enum_mappings =
         GrowableObjectArray::Handle(become_enum_mappings_);
     UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
@@ -1647,10 +1635,17 @@ class ObjectLocator : public ObjectVisitor {
   intptr_t count_;
 };
 
-bool IsolateReloadContext::MorphInstances() {
+static bool HasNoTasks(Heap* heap) {
+  MonitorLocker ml(heap->old_space()->tasks_lock());
+  return heap->old_space()->tasks() == 0;
+}
+
+void IsolateReloadContext::MorphInstancesAndApplyNewClassTable() {
   TIMELINE_SCOPE(MorphInstances);
   if (!HasInstanceMorphers()) {
-    return false;
+    // Fast path: no class had a shape change.
+    DiscardSavedClassTable();
+    return;
   }
 
   if (FLAG_trace_reload) {
@@ -1661,52 +1656,66 @@ bool IsolateReloadContext::MorphInstances() {
     }
   }
 
-  // Find all objects that need to be morphed.
+  // Find all objects that need to be morphed (reallocated to a new size).
   ObjectLocator locator(this);
   {
     HeapIterationScope iteration(Thread::Current());
     iteration.IterateObjects(&locator);
   }
 
-  // Return if no objects are located.
   intptr_t count = locator.count();
   if (count == 0) {
-    return false;
+    // Fast path: classes with shape change have no instances.
+    DiscardSavedClassTable();
+    return;
   }
 
   TIR_Print("Found %" Pd " object%s subject to morphing.\n", count,
             (count > 1) ? "s" : "");
 
-  Array& before = Array::Handle();
-  Array& after = Array::Handle();
-  {  // Prevent GC to take place due object format confusion.
-    // Hint: More than one class share the same cid.
-    NoHeapGrowthControlScope scope;
-    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-      instance_morphers_.At(i)->CreateMorphedCopies();
-    }
-    // Create the inputs for Become.
-    intptr_t index = 0;
-    before = Array::New(count);
-    after = Array::New(count);
-    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-      InstanceMorpher* morpher = instance_morphers_.At(i);
-      for (intptr_t j = 0; j < morpher->before()->length(); j++) {
-        before.SetAt(index, *morpher->before()->At(j));
-        after.SetAt(index, *morpher->after()->At(j));
-        index++;
-      }
-    }
-    ASSERT(index == count);
+  // While we are reallocating instances to their new size, the heap will
+  // contain a mix of instances with the old and new sizes that have the same
+  // cid. This makes the heap unwalkable until the "become" operation below
+  // replaces all the instances of the old size with forwarding corpses. Force
+  // heap growth to prevent size confusion during this period.
+  NoHeapGrowthControlScope scope;
+  // The HeapIterationScope above ensures no other GC tasks can be active.
+  ASSERT(HasNoTasks(I->heap()));
+
+  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+    instance_morphers_.At(i)->CreateMorphedCopies();
   }
 
-  // This is important: The saved class table (describing before objects)
-  // must be zapped to prevent the forwarding in GetClassSizeForHeapWalkAt.
-  // Instance will from now be described by the isolate's class table.
+  // Create the inputs for Become.
+  intptr_t index = 0;
+  const Array& before = Array::Handle(Array::New(count));
+  const Array& after = Array::Handle(Array::New(count));
+  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+    InstanceMorpher* morpher = instance_morphers_.At(i);
+    for (intptr_t j = 0; j < morpher->before()->length(); j++) {
+      before.SetAt(index, *morpher->before()->At(j));
+      after.SetAt(index, *morpher->after()->At(j));
+      index++;
+    }
+  }
+  ASSERT(index == count);
+
+  // Apply the new class table before "become". Become will replace all the
+  // instances of the old size with forwarding corpses, then perform a heap walk
+  // to fix references to the forwarding corpses. During this heap walk, it will
+  // encounter instances of the new size, so it requires the new class table.
+  ASSERT(HasNoTasks(I->heap()));
+#if defined(DEBUG)
+  for (intptr_t i = 0; i < saved_num_cids_; i++) {
+    saved_class_table_[i] = ClassAndSize(nullptr, -1);
+  }
+#endif
   free(saved_class_table_);
-  saved_class_table_ = NULL;
+  saved_class_table_ = nullptr;
+
   Become::ElementsForwardIdentity(before, after);
-  return true;
+  // The heap now contains only instances with the new size. Ordinary GC is safe
+  // again.
 }
 
 void IsolateReloadContext::RunNewFieldInitializers() {
@@ -1787,6 +1796,16 @@ intptr_t IsolateReloadContext::GetClassSizeForHeapWalkAt(intptr_t cid) {
   } else {
     return isolate_->class_table()->SizeAt(cid);
   }
+}
+
+void IsolateReloadContext::DiscardSavedClassTable() {
+  ClassAndSize* local_saved_class_table = saved_class_table_;
+  saved_class_table_ = nullptr;
+  // Can't free this table immediately as another thread (e.g., concurrent
+  // marker or sweeper) may be between loading the table pointer and loading the
+  // table element. The table will be freed at the next major GC or isolate
+  // shutdown.
+  I->class_table()->AddOldTable(local_saved_class_table);
 }
 
 RawLibrary* IsolateReloadContext::saved_root_library() const {
