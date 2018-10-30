@@ -839,7 +839,7 @@ class InterfaceResolver {
     // getter and a setter.  We will report both conflicts.
     Map<Name, List<Member>> staticMembers = {};
     for (var procedure in class_.procedures) {
-      if (procedure.isStatic) {
+      if (procedure.isStatic && !procedure.isFactory) {
         staticMembers.putIfAbsent(procedure.name, () => []).add(procedure);
       }
     }
