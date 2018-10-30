@@ -145,4 +145,16 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
     registerNode(node);
     super.visitLabeledStatement(node);
   }
+
+  @override
+  void visitSwitchCase(ir.SwitchCase node) {
+    registerNode(node);
+    super.visitSwitchCase(node);
+  }
+
+  @override
+  void visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    registerNode(node);
+    super.visitContinueSwitchStatement(node);
+  }
 }

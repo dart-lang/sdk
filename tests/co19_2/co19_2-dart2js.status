@@ -48,6 +48,8 @@ Language/Statements/For/For_Loop/execution_t11: RuntimeError
 Language/Statements/For/For_in/execution_t02: RuntimeError
 Language/Statements/If/condition_evaluation_t02: RuntimeError
 Language/Statements/If/condition_evaluation_t03: RuntimeError
+Language/Statements/Labels/scope_t01: Crash # Issue 34943
+Language/Statements/Labels/scope_t07: Crash # Issue 34943
 Language/Statements/While/execution_t02: RuntimeError
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t02: RuntimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError

@@ -260,7 +260,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
               initialTargetElement, _functionNodeOf(definition.node));
           break;
       }
-      assert(graph.isValid());
+      assert(graph.isValid(), "Invalid graph for $initialTargetElement.");
 
       if (backend.tracer.isEnabled) {
         MemberEntity member = initialTargetElement;

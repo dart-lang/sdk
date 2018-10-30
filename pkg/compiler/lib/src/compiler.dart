@@ -35,6 +35,7 @@ import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
+import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
 import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'types/types.dart'
@@ -391,6 +392,20 @@ abstract class Compiler {
       if (closedWorld != null) {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);
+        if (options.testMode) {
+          SerializationStrategy strategy =
+              const BytesInMemorySerializationStrategy();
+          List<int> irData =
+              strategy.serializeComponent(globalInferenceResults);
+          List worldData = strategy.serializeData(globalInferenceResults);
+          globalInferenceResults = strategy.deserializeData(
+              options,
+              reporter,
+              environment,
+              abstractValueStrategy,
+              strategy.deserializeComponent(irData),
+              worldData);
+        }
         if (stopAfterTypeInference) return;
         generateJavaScriptCode(globalInferenceResults);
       }

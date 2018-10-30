@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/serialization/strategies.dart';
 import 'package:expect/expect.dart';
 import 'serialization_test_helper.dart';
 
@@ -28,11 +29,9 @@ Future checkTests(Directory dataDir,
   bool shouldContinue = args.remove('-c');
   bool continued = false;
   bool hasFailures = false;
-  SerializationStrategy strategy = SerializationStrategy.bytesInMemory;
-  bool useDataKinds = false;
+  SerializationStrategy strategy = const BytesInMemorySerializationStrategy();
   if (args.remove('-d')) {
-    strategy = SerializationStrategy.objectsInMemory;
-    useDataKinds = true;
+    strategy = const ObjectsInMemorySerializationStrategy();
   }
 
   var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
@@ -82,8 +81,7 @@ Future checkTests(Directory dataDir,
         entryPoint: entryPoint,
         memorySourceFiles: memorySourceFiles,
         options: testOptions,
-        strategy: strategy,
-        useDataKinds: useDataKinds);
+        strategy: strategy);
   }
   Expect.isFalse(hasFailures, 'Errors found.');
   Expect.isTrue(testCount > 0, "No files were tested.");

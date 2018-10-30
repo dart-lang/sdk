@@ -6,6 +6,7 @@ import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/serialization/strategies.dart';
 import 'serialization_test_helper.dart';
 
 main(List<String> args) {
@@ -23,11 +24,13 @@ main(List<String> args) {
 
   asyncTest(() async {
     ArgResults argResults = argParser.parse(args);
-    SerializationStrategy strategy = SerializationStrategy.bytesInMemory;
-    if (argResults['object'] || argResults['debug']) {
-      strategy = SerializationStrategy.objectsInMemory;
-    }
     bool useDataKinds = argResults['kinds'] || argResults['debug'];
+    SerializationStrategy strategy =
+        new BytesInMemorySerializationStrategy(useDataKinds: useDataKinds);
+    if (argResults['object'] || argResults['debug']) {
+      strategy =
+          new ObjectsInMemorySerializationStrategy(useDataKinds: useDataKinds);
+    }
 
     Uri entryPoint;
     if (argResults.rest.isEmpty) {
