@@ -861,8 +861,17 @@ class BaseCoreDumpArchiver(object):
       else:
         missing.append(crash)
     if self._output_directory is not None:
+      print (
+          "INFO: Copying collected dumps and binaries into output directory\n"
+          "INFO: They will be uploaded to isolate server. Look for \"isolated"
+          " out\" under the failed step on the build page.\n"
+          "INFO: For more information see runtime/docs/infra/coredumps.md")
       self._copy(files)
     else:
+      print (
+          "INFO: Uploading collected dumps and binaries into Cloud Storage\n"
+          "INFO: Use `gsutil.py cp from-url to-path` to download them.\n"
+          "INFO: For more information see runtime/docs/infra/coredumps.md")
       self._upload(files)
 
     if missing:
@@ -887,12 +896,15 @@ class BaseCoreDumpArchiver(object):
 
   def _tar(self, file):
     # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
-    # binaries are copied next to cores and named 'binary.<binary_name>'.
+    # binaries are copied next to cores and named
+    # 'binary.<mode>_<arch>_<binary_name>'.
+    # This should match the code in testing/dart/test_progress.dart
     name = os.path.basename(file)
     (prefix, suffix) = name.split('.', 1)
     is_binary = prefix == 'binary'
     if is_binary:
-      name = suffix
+      (mode, arch, binary_name) = suffix.split('_', 2)
+      name = binary_name
 
     tarname = '%s.tar.gz' % name
 
@@ -990,6 +1002,70 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
     super(WindowsCoreDumpArchiver, self).__init__(
         WindowsCoreDumpEnabler.DUMPS_FOLDER, output_directory)
     self._dumps_by_pid = None
+
+  # Find CDB.exe in the win_toolchain that we are using.
+  def _find_cdb(self):
+    win_toolchain_json_path = os.path.join(
+        DART_DIR, 'build', 'win_toolchain.json')
+    if not os.path.exists(win_toolchain_json_path):
+      return None
+
+    with open(win_toolchain_json_path, "r") as f:
+      win_toolchain_info = json.loads(f.read())
+
+    win_sdk_path = win_toolchain_info['win_sdk']
+
+    # We assume that we are running on 64-bit Windows.
+    # Note: x64 CDB can work with both X64 and IA32 dumps.
+    cdb_path = os.path.join(win_sdk_path, 'Debuggers', 'x64', 'cdb.exe')
+    if not os.path.exists(cdb_path):
+      return None
+
+    return cdb_path
+
+  CDBG_PROMPT_RE = re.compile(r'^\d+:\d+>')
+
+  def _dump_all_stacks(self):
+    # On Windows due to crashpad integration crashes do not produce any
+    # stacktraces. Dump stack traces from dumps Crashpad collected using
+    # CDB (if available).
+    cdb_path = self._find_cdb()
+    if cdb_path is None:
+      return
+
+    dumps = self._find_all_coredumps()
+    if not dumps:
+      return
+
+    print "### Collected %d crash dumps" % len(dumps)
+    for dump in dumps:
+      print
+      print "### Dumping stacks from %s using CDB" % dump
+      cdb_output = subprocess.check_output(
+          '"%s" -z "%s" -kqm -c "!uniqstack -b -v -p;qd"' % (cdb_path, dump),
+          stderr=subprocess.STDOUT)
+      # Extract output of uniqstack from the whole output of CDB.
+      output = False
+      for line in cdb_output.split('\n'):
+        if re.match(WindowsCoreDumpArchiver.CDBG_PROMPT_RE, line):
+          output = True
+        elif line.startswith("quit:"):
+          break
+        elif output:
+          print line
+    print
+    print "#############################################"
+    print
+
+
+  def __exit__(self, *args):
+    try:
+      self._dump_all_stacks()
+    except Exception as error:
+      print "ERROR: Unable to dump stacks from dumps: %s" % error
+
+    super(WindowsCoreDumpArchiver, self).__exit__(*args)
+
 
   def _cleanup(self):
     found = super(WindowsCoreDumpArchiver, self)._cleanup()
