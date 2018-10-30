@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -460,15 +459,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  Future<void> computeLibrariesContaining([int times = 200]) {
-    return driver.getResult(testFile).then((result) => null);
-  }
-
   Future computeSuggestions({int times = 200}) async {
-    AnalysisResult analysisResult =
-        await driver.getResult(convertPath(testFile));
+    var resolveResult = await session.getResolvedAst(testFile);
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        analysisResult, completionOffset, new CompletionPerformance());
+        resolveResult, completionOffset, new CompletionPerformance());
 
     // Build the request
     var request = await DartCompletionRequestImpl.from(baseRequest);

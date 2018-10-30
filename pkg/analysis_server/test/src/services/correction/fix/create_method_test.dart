@@ -524,56 +524,60 @@ main() {
 
   test_parameterType_differentPrefixInTargetUnit() async {
     String code2 = r'''
-library test2;
 import 'test3.dart' as bbb;
 export 'test3.dart';
+
 class D {
 }
 ''';
-    addSource('/project/test2.dart', code2);
-    addSource('/project/test3.dart', r'''
+
+    addSource('/home/test/lib/test2.dart', code2);
+    addSource('/home/test/lib/test3.dart', r'''
 library test3;
 class E {}
 ''');
+
     await resolveTestUnit('''
-library test;
 import 'test2.dart' as aaa;
+
 main(aaa.D d, aaa.E e) {
   d.foo(e);
 }
 ''');
+
     await assertHasFix('''
-library test2;
 import 'test3.dart' as bbb;
 export 'test3.dart';
+
 class D {
   void foo(bbb.E e) {}
 }
-''', target: '/project/test2.dart');
+''', target: '/home/test/lib/test2.dart');
   }
 
   test_parameterType_inTargetUnit() async {
-    String code2 = r'''
-library test2;
+    addSource('/home/test/lib/test2.dart', r'''
 class D {
 }
+
 class E {}
-''';
-    addSource('/project/test2.dart', code2);
+''');
+
     await resolveTestUnit('''
-library test;
 import 'test2.dart' as test2;
+
 main(test2.D d, test2.E e) {
   d.foo(e);
 }
 ''');
+
     await assertHasFix('''
-library test2;
 class D {
   void foo(E e) {}
 }
+
 class E {}
-''', target: '/project/test2.dart');
+''', target: '/home/test/lib/test2.dart');
   }
 
   test_targetIsEnum() async {

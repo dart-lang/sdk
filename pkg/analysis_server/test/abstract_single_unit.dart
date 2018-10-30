@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -23,7 +23,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   String testCode;
   String testFile;
   Source testSource;
-  AnalysisResult testAnalysisResult;
+  ResolveResult testAnalysisResult;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
@@ -112,7 +112,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
-    testAnalysisResult = await driver.getResult(convertPath(testFile));
+    testAnalysisResult = await session.getResolvedAst(testFile);
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
       expect(testAnalysisResult.errors.where((AnalysisError error) {
@@ -132,7 +132,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = resourceProvider.convertPath('/project/test.dart');
+    testFile = resourceProvider.convertPath('/home/test/lib/test.dart');
   }
 }
 

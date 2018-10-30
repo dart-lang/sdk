@@ -1415,18 +1415,15 @@ class Z { }''');
   }
 
   test_Block_unimported() async {
-    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
-    addSource(
-        '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = '/proj/completionTest.dart';
-    addTestSource('class C {foo(){F^}}');
-    await computeSuggestions();
+    addPackageSource('aaa', 'a.dart', 'class A {}');
+    addTestSource('main() { ^ }');
 
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
-    assertNotSuggested('Foo');
-    // TODO(danrubel) implement
-    assertNotSuggested('Foo2');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    // Not imported, so not suggested
+    assertNotSuggested('A');
     assertNotSuggested('Future');
   }
 
@@ -3820,7 +3817,6 @@ part "testA.dart";
 class A { A({String boo: 'hoo'}) { } }
 main() {new ^}
 var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);

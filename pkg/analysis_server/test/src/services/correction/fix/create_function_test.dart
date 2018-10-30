@@ -261,24 +261,25 @@ int test(double a, String b) {
   }
 
   test_functionType_importType() async {
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 class A {}
 ''');
-    addSource('/project/libB.dart', r'''
-library libB;
-import 'libA.dart';
+    addSource('/home/test/lib/b.dart', r'''
+import 'package:test/a.dart';
+
 useFunction(int g(A a)) {}
 ''');
     await resolveTestUnit('''
-import 'libB.dart';
+import 'package:test/b.dart';
+
 main() {
   useFunction(test);
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
-import 'libB.dart';
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
 main() {
   useFunction(test);
 }
@@ -349,7 +350,7 @@ void process(Map items) {
   }
 
   test_importType() async {
-    addSource('/project/lib.dart', r'''
+    addSource('/home/test/lib/lib.dart', r'''
 library lib;
 import 'dart:async';
 Future getFuture() => null;

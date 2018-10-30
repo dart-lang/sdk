@@ -1043,7 +1043,7 @@ class AssistProcessor {
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(new SourceRange(literal.offset, literal.length),
           (DartEditBuilder builder) {
-        builder.write('${intValue}');
+        builder.write('$intValue');
       });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_INT_LITERAL);

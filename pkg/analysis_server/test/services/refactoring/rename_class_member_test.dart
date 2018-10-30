@@ -157,7 +157,7 @@ class A {
   test() {}
 }
 ''');
-    await indexUnit('/project/lib.dart', '''
+    await indexUnit('/home/test/lib/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -356,7 +356,7 @@ class A {
   newName() {} // marker
 }
 ''';
-    await indexUnit('/project/lib.dart', libCode);
+    await indexUnit('/home/test/lib/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';
 class B extends A {
@@ -715,17 +715,18 @@ main(var a) {
   }
 
   test_createChange_MethodElement_potential_inPubCache() async {
-    String pkgLib = '/.pub-cache/lib.dart';
-    await indexUnit(pkgLib, r'''
+    var externalPath = addPackageSource('aaa', 'lib.dart', r'''
 processObj(p) {
   p.test();
 }
-''');
+''').fullName;
     await indexTestUnit('''
-import '${convertAbsolutePathToUri(pkgLib)}';
+import 'package:aaa/lib.dart';
+
 class A {
   test() {}
 }
+
 main(var a) {
   a.test();
 }
@@ -737,15 +738,17 @@ main(var a) {
     refactoring.newName = 'newName';
     // validate change
     await assertSuccessfulRefactoring('''
-import '${convertAbsolutePathToUri('/.pub-cache/lib.dart')}';
+import 'package:aaa/lib.dart';
+
 class A {
   newName() {}
 }
+
 main(var a) {
   a.newName();
 }
 ''');
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(pkgLib);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(externalPath);
     expect(fileEdit, isNull);
   }
 

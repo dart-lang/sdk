@@ -171,7 +171,8 @@ class BaseFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<List<AnalysisError>> _computeErrors() async {
-    return (await driver.getResult(convertPath(testFile))).errors;
+    var result = await session.getResolvedAst(testFile);
+    return result.errors;
   }
 
   /**

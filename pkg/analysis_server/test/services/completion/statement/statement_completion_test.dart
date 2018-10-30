@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -63,7 +63,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
 
   _computeCompletion(int offset) async {
     driver.changeFile(testFile);
-    AnalysisResult result = await driver.getResult(testFile);
+    ResolveResult result = await session.getResolvedAst(testFile);
     var context = new StatementCompletionContext(result, offset);
     StatementCompletionProcessor processor =
         new StatementCompletionProcessor(context);

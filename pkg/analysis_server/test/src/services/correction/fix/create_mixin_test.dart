@@ -33,11 +33,9 @@ main() {
 
   test_inLibraryOfPrefix() async {
     String libCode = r'''
-library my.lib;
-
 class A {}
 ''';
-    addSource('/project/lib.dart', libCode);
+    addSource('/home/test/lib/lib.dart', libCode);
     await resolveTestUnit('''
 import 'lib.dart' as lib;
 
@@ -48,13 +46,11 @@ main() {
 }
 ''');
     await assertHasFix('''
-library my.lib;
-
 class A {}
 
 mixin Test {
 }
-''', target: '/project/lib.dart');
+''', target: '/home/test/lib/lib.dart');
     expect(change.linkedEditGroups, hasLength(1));
   }
 

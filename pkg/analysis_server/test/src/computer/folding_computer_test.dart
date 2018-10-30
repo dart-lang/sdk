@@ -449,7 +449,7 @@ main() {}
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    ResolveResult result = await driver.getResult(sourcePath);
+    ResolveResult result = await session.getResolvedAst(sourcePath);
     DartUnitFoldingComputer computer =
         new DartUnitFoldingComputer(result.lineInfo, result.unit);
     return computer.compute();

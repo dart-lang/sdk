@@ -3647,6 +3647,8 @@ class FixProcessor {
   /**
    * Computes the name of the library at the given [path].
    * See https://www.dartlang.org/articles/style-guide/#names for conventions.
+   * 
+   * TODO(scheglov) Remove it. Libraries don't need names anymore.
    */
   String _computeLibraryName(String path) {
     Context pathContext = resourceProvider.pathContext;

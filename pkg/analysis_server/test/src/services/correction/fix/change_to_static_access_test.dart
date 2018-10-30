@@ -39,26 +39,27 @@ main(A a) {
   }
 
   test_method_importType() async {
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 class A {
   static foo() {}
 }
 ''');
-    addSource('/project/libB.dart', r'''
-library libB;
-import 'libA.dart';
+    addSource('/home/test/lib/b.dart', r'''
+import 'package:test/a.dart';
+
 class B extends A {}
 ''');
     await resolveTestUnit('''
-import 'libB.dart';
+import 'package:test/b.dart';
+
 main(B b) {
   b.foo();
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
-import 'libB.dart';
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
 main(B b) {
   A.foo();
 }
@@ -100,26 +101,27 @@ main(A a) {
   }
 
   test_property_importType() async {
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 class A {
   static get foo => null;
 }
 ''');
-    addSource('/project/libB.dart', r'''
-library libB;
-import 'libA.dart';
+    addSource('/home/test/lib/b.dart', r'''
+import 'package:test/a.dart';
+
 class B extends A {}
 ''');
     await resolveTestUnit('''
-import 'libB.dart';
+import 'package:test/b.dart';
+
 main(B b) {
   b.foo;
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
-import 'libB.dart';
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
 main(B b) {
   A.foo;
 }

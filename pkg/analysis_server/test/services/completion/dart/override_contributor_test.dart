@@ -116,7 +116,6 @@ class C extends B {
 }
 ''');
     // assume information for context.getLibrariesContaining has been cached
-    await computeLibrariesContaining();
     await computeSuggestions();
     _assertOverride('''
 @override

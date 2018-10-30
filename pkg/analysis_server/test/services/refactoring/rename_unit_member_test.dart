@@ -69,7 +69,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit(convertPath('/project/lib.dart'), '''
+    await indexUnit('/home/test/lib/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -109,7 +109,7 @@ class A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit(convertPath('/project/lib.dart'), '''
+    await indexUnit('/home/test/lib/lib.dart', '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -230,11 +230,11 @@ main() {
   }
 
   test_checkInitialConditions_outsideOfProject() async {
-    addSource('/other/lib.dart', r'''
+    addPackageSource('aaa', 'lib.dart', r'''
 class A {}
 ''');
     await indexTestUnit('''
-import "${convertAbsolutePathToUri('/other/lib.dart')}";
+import "package:aaa/lib.dart";
 main() {
   A a;
 }
@@ -587,7 +587,7 @@ main() {
   }
 
   test_createChange_FunctionElement_imported() async {
-    await indexUnit('/project/foo.dart', r'''
+    await indexUnit('/home/test/lib/foo.dart', r'''
 test() {}
 foo() {}
 ''');
@@ -614,7 +614,7 @@ main() {
   foo();
 }
 ''');
-    assertFileChangeResult('/project/foo.dart', '''
+    assertFileChangeResult('/home/test/lib/foo.dart', '''
 newName() {}
 foo() {}
 ''');

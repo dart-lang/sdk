@@ -79,8 +79,7 @@ build() {
 
   test_cons_single() async {
     addMetaPackageSource();
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -88,7 +87,7 @@ class A {
 }
 ''');
     await resolveTestUnit('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A();
@@ -96,7 +95,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A(a: null);
@@ -107,8 +106,7 @@ main() {
 
   test_cons_single_closure() async {
     addMetaPackageSource();
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 typedef void VoidCallback();
@@ -118,7 +116,7 @@ class A {
 }
 ''');
     await resolveTestUnit('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A();
@@ -126,7 +124,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A(onPressed: () {});
@@ -137,8 +135,7 @@ main() {
 
   test_cons_single_closure_2() async {
     addMetaPackageSource();
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 typedef void Callback(e);
@@ -148,7 +145,7 @@ class A {
 }
 ''');
     await resolveTestUnit('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A();
@@ -156,7 +153,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A(callback: (e) {});
@@ -167,8 +164,7 @@ main() {
 
   test_cons_single_closure_3() async {
     addMetaPackageSource();
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 typedef void Callback(a,b,c);
@@ -178,7 +174,7 @@ class A {
 }
 ''');
     await resolveTestUnit('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A();
@@ -186,7 +182,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A(callback: (a, b, c) {});
@@ -197,8 +193,7 @@ main() {
 
   test_cons_single_closure_4() async {
     addMetaPackageSource();
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 typedef int Callback(int a, String b,c);
@@ -208,7 +203,7 @@ class A {
 }
 ''');
     await resolveTestUnit('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A();
@@ -216,7 +211,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A(callback: (int a, String b, c) {});
@@ -227,8 +222,7 @@ main() {
 
   test_cons_single_list() async {
     addMetaPackageSource();
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -236,7 +230,7 @@ class A {
 }
 ''');
     await resolveTestUnit('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A();
@@ -244,7 +238,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'libA.dart';
+import 'package:test/a.dart';
 
 main() {
   A a = new A(names: <String>[]);

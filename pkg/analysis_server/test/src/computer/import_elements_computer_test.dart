@@ -6,9 +6,9 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -52,7 +52,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   Future<void> createBuilder(String content) async {
     originalContent = content;
     newFile(path, content: content);
-    AnalysisResult result = await driver.getResult(path);
+    ResolveResult result = await session.getResolvedAst(path);
     computer = new ImportElementsComputer(resourceProvider, result);
   }
 

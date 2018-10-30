@@ -400,7 +400,7 @@ void myMethod() {
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    ResolveResult result = await driver.getResult(sourcePath);
+    ResolveResult result = await session.getResolvedAst(sourcePath);
     DartUnitClosingLabelsComputer computer =
         new DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();

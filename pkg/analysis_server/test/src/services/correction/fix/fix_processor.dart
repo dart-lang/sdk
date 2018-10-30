@@ -174,7 +174,11 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<List<AnalysisError>> _computeErrors() async {
-    return _errors ??= (await driver.getResult(convertPath(testFile))).errors;
+    if (_errors == null) {
+      var result = await session.getResolvedAst(testFile);
+      return _errors ??= result.errors;
+    }
+    return _errors;
   }
 
   /// Computes fixes for the given [error] in [testUnit].

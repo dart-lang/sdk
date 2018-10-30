@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:test/test.dart';
@@ -96,8 +96,8 @@ main() {
   }
 
   test_remove_unresolvedDirectives() async {
-    addSource('/project/existing_part1.dart', 'part of lib;');
-    addSource('/project/existing_part2.dart', 'part of lib;');
+    addSource('/home/test/lib/existing_part1.dart', 'part of lib;');
+    addSource('/home/test/lib/existing_part2.dart', 'part of lib;');
     await _computeUnitAndErrors(r'''
 library lib;
 
@@ -335,7 +335,7 @@ import 'package:product2.client/entity.dart';
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    AnalysisResult result = await driver.getResult(testSource.fullName);
+    ResolveResult result = await session.getResolvedAst(testSource.fullName);
     testUnit = result.unit;
     testErrors = result.errors;
   }

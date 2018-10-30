@@ -4,24 +4,18 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/parser.dart' as analyzer;
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
 import 'mock_sdk.dart';
 import 'src/utilities/flutter_util.dart';
@@ -49,21 +43,17 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest extends Object with ResourceProviderMixin {
-  DartSdk sdk;
-  Map<String, List<Folder>> packageMap;
-  UriResolver resourceResolver;
-
-  StringBuffer _logBuffer = new StringBuffer();
   FileContentOverlay fileContentOverlay = new FileContentOverlay();
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
 
+  AnalysisSession get session => driver.currentSession;
+
   void addFlutterPackage() {
     addMetaPackageSource();
     Folder libFolder = configureFlutterPackage(resourceProvider);
-    packageMap['flutter'] = [libFolder];
-    configureDriver();
+    _addTestPackageDependency('flutter', libFolder.parent.path);
   }
 
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
@@ -89,11 +79,14 @@ class _IsTestGroup {
 }
 ''');
 
-  Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [newFolder('/pubcache/$packageName/lib')];
-    File file =
-        newFile('/pubcache/$packageName/lib/$filePath', content: content);
-    configureDriver();
+  /// Add a new file with the given [libRelativePath] to the package with the
+  /// given [packageName].  Then ensure that the test package depends on the
+  /// [packageName].
+  Source addPackageSource(
+      String packageName, String libRelativePath, String content) {
+    var packagePath = '/.pub-cache/$packageName';
+    _addTestPackageDependency(packageName, packagePath);
+    var file = newFile('$packagePath/lib/$libRelativePath', content: content);
     return file.createSource();
   }
 
@@ -104,14 +97,6 @@ class _IsTestGroup {
     driver.changeFile(file.path);
     fileContentOverlay[file.path] = content;
     return source;
-  }
-
-  /**
-   * Re-configure the driver. This is necessary, for example, after defining a
-   * new package that test code will reference.
-   */
-  void configureDriver() {
-    driver.configure();
   }
 
   void configurePreviewDart2() {
@@ -125,34 +110,22 @@ class _IsTestGroup {
   }
 
   Future<CompilationUnit> resolveLibraryUnit(Source source) async {
-    return (await driver.getResult(source.fullName))?.unit;
+    var resolveResult = await session.getResolvedAst(source.fullName);
+    return resolveResult.unit;
   }
 
   void setUp() {
     processRequiredPlugins();
     setupResourceProvider();
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    resourceResolver = new ResourceUriResolver(resourceProvider);
-    packageMap = new Map<String, List<Folder>>();
-    PackageMapUriResolver packageResolver =
-        new PackageMapUriResolver(resourceProvider, packageMap);
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), packageResolver, resourceResolver]);
-    PerformanceLog log = new PerformanceLog(_logBuffer);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    _driver = new AnalysisDriver(
-        scheduler,
-        log,
-        resourceProvider,
-        new MemoryByteStore(),
-        fileContentOverlay,
-        new ContextRoot(resourceProvider.convertPath('/project'), [],
-            pathContext: resourceProvider.pathContext),
-        sourceFactory,
-        new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta,
-        enableIndex: true);
-    scheduler.start();
-    AnalysisEngine.instance.logger = PrintLogger.instance;
+
+    new MockSdk(resourceProvider: resourceProvider);
+
+    newFolder('/home/test');
+    newFile('/home/test/.packages', content: r'''
+test:file:///home/test/lib
+''');
+
+    _createDriver();
   }
 
   void setupResourceProvider() {}
@@ -161,28 +134,36 @@ class _IsTestGroup {
     AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
   }
-}
 
-/**
- * Instances of the class [PrintLogger] print all of the errors.
- */
-class PrintLogger implements Logger {
-  static final Logger instance = new PrintLogger();
+  void _addTestPackageDependency(String name, String rootPath) {
+    var packagesFile = getFile('/home/test/.packages');
+    var packagesContent = packagesFile.readAsStringSync();
 
-  @override
-  void logError(String message, [CaughtException exception]) {
-    print(message);
-    if (exception != null) {
-      print(exception);
+    // Ignore if there is already the same package dependency.
+    if (packagesContent.contains('$name:file://')) {
+      return;
     }
+
+    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
+
+    packagesFile.writeAsStringSync(packagesContent);
+
+    _createDriver();
   }
 
-  @override
-  void logInformation(String message, [CaughtException exception]) {
-    print(message);
-    if (exception != null) {
-      print(exception);
-    }
+  void _createDriver() {
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [convertPath('/home')],
+      enableIndex: true,
+      fileContentOverlay: fileContentOverlay,
+      resourceProvider: resourceProvider,
+      sdkPath: convertPath('/'), // TODO(scheglov) Move to '/sdk'
+    );
+
+    var testPath = convertPath('/home/test');
+    DriverBasedAnalysisContext context = collection.contextFor(testPath);
+
+    _driver = context.driver;
   }
 }
 

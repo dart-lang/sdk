@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -33,9 +32,9 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
-    AnalysisResult analysisResult = await driver.getResult(testPath);
+    var resolveResult = await session.getResolvedAst(testPath);
     return new DartUnitOutlineComputer(
-            testPath, analysisResult.lineInfo, analysisResult.unit,
+            testPath, resolveResult.lineInfo, resolveResult.unit,
             withBasicFlutter: true)
         .compute();
   }

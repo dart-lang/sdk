@@ -135,7 +135,7 @@ main(A a) {
   }
 
   test_qualified_instance_differentLibrary() async {
-    addSource('/project/other.dart', '''
+    addSource('/home/test/lib/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
  * declaration past the end of the content of the test file. Used to catch an
@@ -145,13 +145,16 @@ main(A a) {
 class A {
 }
 ''');
+
     await resolveTestUnit('''
-import 'other.dart';
+import 'package:test/other.dart';
+
 main(A a) {
   int v = a.test;
   print(v);
 }
 ''');
+
     await assertHasFix('''
 /**
  * A comment to push the offset of the braces for the following class
@@ -162,7 +165,7 @@ main(A a) {
 class A {
   int get test => null;
 }
-''', target: '/project/other.dart');
+''', target: '/home/test/lib/other.dart');
   }
 
   test_qualified_instance_dynamicType() async {

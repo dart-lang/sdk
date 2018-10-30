@@ -256,7 +256,7 @@ blankLine() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path, convertPath('/pubcache/foo/lib/foo.dart'));
+    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
     expect(elements.prefix, '');
     expect(elements.elements, unorderedEquals(['A', 'B']));
   }
@@ -279,7 +279,7 @@ blankLine() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path, convertPath('/pubcache/foo/lib/foo.dart'));
+    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
     expect(elements.prefix, '');
     expect(elements.elements, unorderedEquals(['Foo']));
   }
@@ -302,7 +302,7 @@ blankLine() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path, convertPath('/pubcache/foo/lib/foo.dart'));
+    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
     expect(elements.prefix, 'f');
     expect(elements.elements, unorderedEquals(['Foo']));
   }
@@ -325,7 +325,7 @@ blankLine() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path, convertPath('/pubcache/foo/lib/foo.dart'));
+    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
     expect(elements.prefix, '');
     expect(elements.elements, unorderedEquals(['Foo']));
   }
@@ -362,12 +362,13 @@ blankLine() {
     }
 
     expect(notPrefixedElements, isNotNull);
-    expect(notPrefixedElements.path, convertPath('/pubcache/foo/lib/foo.dart'));
+    expect(
+        notPrefixedElements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
     expect(notPrefixedElements.prefix, '');
     expect(notPrefixedElements.elements, unorderedEquals(['Foo']));
 
     expect(prefixedElements, isNotNull);
-    expect(prefixedElements.path, convertPath('/pubcache/foo/lib/foo.dart'));
+    expect(prefixedElements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
     expect(prefixedElements.prefix, 'f');
     expect(prefixedElements.elements, unorderedEquals(['Foo']));
   }
@@ -392,7 +393,7 @@ class A {
   Future<List<ImportedElements>> _computeElements(
       String sourceContent, int offset, int length) async {
     newFile(sourcePath, content: sourceContent);
-    ResolveResult result = await driver.getResult(sourcePath);
+    ResolveResult result = await session.getResolvedAst(sourcePath);
     ImportedElementsComputer computer =
         new ImportedElementsComputer(result.unit, offset, length);
     return computer.compute();

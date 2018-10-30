@@ -20,8 +20,7 @@ class ImportLibraryShowTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
 
   test_package() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/bin/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 class A {}
 class B {}
 ''');

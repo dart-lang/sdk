@@ -72,7 +72,7 @@ main(A a) {
   }
 
   test_getter_qualified_instance_differentLibrary() async {
-    addSource('/project/other.dart', '''
+    addSource('/home/test/lib/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
  * declaration past the end of the content of the test file. Used to catch an
@@ -82,13 +82,16 @@ main(A a) {
 class A {
 }
 ''');
+
     await resolveTestUnit('''
-import 'other.dart';
+import 'package:test/other.dart';
+
 main(A a) {
   int v = a.test;
   print(v);
 }
 ''');
+
     await assertHasFix('''
 /**
  * A comment to push the offset of the braces for the following class
@@ -99,7 +102,7 @@ main(A a) {
 class A {
   int test;
 }
-''', target: '/project/other.dart');
+''', target: '/home/test/lib/other.dart');
   }
 
   test_getter_qualified_instance_dynamicType() async {
@@ -255,29 +258,35 @@ main(A a) {
   }
 
   test_importType() async {
-    addSource('/project/libA.dart', r'''
-library libA;
+    addSource('/home/test/lib/a.dart', r'''
 class A {}
 ''');
-    addSource('/project/libB.dart', r'''
-library libB;
-import 'libA.dart';
+
+    addSource('/home/test/lib/b.dart', r'''
+import 'package:test/a.dart';
+
 A getA() => null;
 ''');
+
     await resolveTestUnit('''
-import 'libB.dart';
+import 'package:test/b.dart';
+
 class C {
 }
+
 main(C c) {
   c.test = getA();
 }
 ''');
+
     await assertHasFix('''
-import 'libA.dart';
-import 'libB.dart';
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
 class C {
   A test;
 }
+
 main(C c) {
   c.test = getA();
 }

@@ -1085,17 +1085,15 @@ void main() {new A().f^}''');
   }
 
   test_Block_unimported() async {
-    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
-    addSource(
-        '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = resourceProvider.convertPath('/proj/completionTest.dart');
-    addTestSource('class C {foo(){F^}}');
+    addPackageSource('aaa', 'a.dart', 'class A {}');
+    addTestSource('main() { ^ }');
+
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
-    assertNotSuggested('Foo');
-    // TODO(danrubel) implement
-    assertNotSuggested('Foo2');
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    // Not imported, so not suggested
+    assertNotSuggested('A');
     assertNotSuggested('Future');
   }
 

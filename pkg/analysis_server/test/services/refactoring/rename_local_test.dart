@@ -442,8 +442,8 @@ main() {
   }
 
   test_createChange_parameter_named_inOtherFile() async {
-    var a = convertPath('/project/a.dart');
-    var b = convertPath('/project/b.dart');
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
 
     newFile(a, content: r'''
 class A {
@@ -485,7 +485,7 @@ main() {
   }
 
   test_createChange_parameter_named_updateHierarchy() async {
-    await indexUnit('/project/test2.dart', '''
+    await indexUnit('/home/test/lib/test2.dart', '''
 library test2;
 class A {
   void foo({int test: 1}) {
@@ -529,7 +529,7 @@ class C extends A {
   }
 }
 ''');
-    assertFileChangeResult('/project/test2.dart', '''
+    assertFileChangeResult('/home/test/lib/test2.dart', '''
 library test2;
 class A {
   void foo({int newName: 1}) {

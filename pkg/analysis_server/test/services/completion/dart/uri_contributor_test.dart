@@ -144,7 +144,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_file() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -161,7 +161,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_file2() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -180,7 +180,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   test_import_file2_off() async {
     try {
       UriContributor.suggestFilePaths = false;
-      testFile = '/proj/completion.dart';
+      testFile = convertPath('/proj/completion.dart');
       addSource('/proj/other.dart', 'library other;');
       addSource('/proj/foo/bar.dart', 'library bar;');
       addSource('/blat.dart', 'library blat;');
@@ -200,7 +200,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_file_child() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -217,7 +217,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_file_outside_lib() async {
-    testFile = '/proj/lib/completion.dart';
+    testFile = convertPath('/proj/lib/completion.dart');
     addSource('/proj/lib/other.dart', 'library other;');
     addSource('/proj/lib/foo/bar.dart', 'library bar;');
     addSource('/proj/blat.dart', 'library blat;');
@@ -237,7 +237,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_file_parent() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -256,7 +256,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_file_parent2() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -273,7 +273,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_no_dot_folders() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     newFolder('/proj/.fooFolder');
     addTestSource('import "package:^";');
@@ -282,7 +282,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_only_dart_files() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     newFile('/proj/analysis_options.yaml', content: '# analysis options');
     addTestSource('import "package:^";');
@@ -460,7 +460,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_part_file() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -477,7 +477,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_part_file2() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -494,7 +494,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_part_file_child() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -511,7 +511,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_part_file_parent() async {
-    testFile = '/proj/completion.dart';
+    testFile = convertPath('/proj/completion.dart');
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
@@ -541,7 +541,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_import_file() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -558,7 +558,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_import_file2() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -575,7 +575,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_import_file_child() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -592,7 +592,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_import_file_parent() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -609,7 +609,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_import_file_parent2() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -626,7 +626,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_part_file() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -643,7 +643,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_part_file2() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -660,7 +660,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_part_file_child() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
@@ -677,7 +677,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   test_part_file_parent() async {
-    testFile = '\\proj\\completion.dart';
+    testFile = convertPath('\\proj\\completion.dart');
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');

@@ -2837,9 +2837,9 @@ void res() {
   }
 
   void _addLibraryReturningAsync() {
-    addSource('/project/asyncLib.dart', r'''
-library asyncLib;
+    addSource('/home/test/lib/asyncLib.dart', r'''
 import 'dart:async';
+
 Future<int> newFuture() => null;
 ''');
   }

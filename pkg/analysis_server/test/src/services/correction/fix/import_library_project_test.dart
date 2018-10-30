@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,8 +23,7 @@ class ImportLibraryProject1Test extends FixProcessorTest
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
 
   test_alreadyImported_package() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/bin/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 class A {}
 class B {}
 ''');
@@ -42,21 +38,8 @@ main() {
     await assertNoFix();
   }
 
-  test_notInLib_BUILD() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/other/test/lib.dart', 'class Test {}');
-    await resolveTestUnit('''
-main() {
-  Test t;
-  print(t);
-}
-''');
-    await assertNoFix();
-  }
-
-  test_notInLib_pubspec() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/other/test/lib.dart', 'class Test {}');
+  test_notInLib() async {
+    addSource('/home/other/test/lib.dart', 'class Test {}');
     await resolveTestUnit('''
 main() {
   Test t;
@@ -103,8 +86,7 @@ main() {
   }
 
   test_withClass_annotation() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 library lib;
 class Test {
   const Test(int p);
@@ -116,7 +98,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 @Test(0)
 main() {
@@ -125,26 +107,25 @@ main() {
   }
 
   test_withClass_hasOtherLibraryWithPrefix() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/bin/a.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 library a;
 class One {}
 ''');
-    addSource('/project/bin/b.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library b;
 class One {}
 class Two {}
 ''');
     await resolveTestUnit('''
-import 'b.dart' show Two;
+import 'package:test/b.dart' show Two;
 main () {
   new Two();
   new One();
 }
 ''');
     await assertHasFix('''
-import 'a.dart';
-import 'b.dart' show Two;
+import 'package:test/a.dart';
+import 'package:test/b.dart' show Two;
 main () {
   new Two();
   new One();
@@ -153,8 +134,8 @@ main () {
   }
 
   test_withClass_inParentFolder() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/lib.dart', '''
+    testFile = convertPath('/home/test/bin/aaa/test.dart');
+    addSource('/home/test/bin/lib.dart', '''
 library lib;
 class Test {}
 ''');
@@ -175,8 +156,8 @@ main() {
   }
 
   test_withClass_inRelativeFolder() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/lib/sub/folder/lib.dart', '''
+    testFile = convertPath('/home/test/bin/test.dart');
+    addSource('/home/test/tool/sub/folder/lib.dart', '''
 library lib;
 class Test {}
 ''');
@@ -187,7 +168,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import '../lib/sub/folder/lib.dart';
+import '../tool/sub/folder/lib.dart';
 
 main() {
   Test t = null;
@@ -197,8 +178,8 @@ main() {
   }
 
   test_withClass_inSameFolder() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/bin/lib.dart', '''
+    testFile = convertPath('/home/test/bin/test.dart');
+    addSource('/home/test/bin/lib.dart', '''
 library lib;
 class Test {}
 ''');
@@ -219,8 +200,7 @@ main() {
   }
 
   test_withClass_instanceCreation_const() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 class Test {
   const Test();
 }
@@ -231,7 +211,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   return const Test();
@@ -240,8 +220,7 @@ main() {
   }
 
   test_withClass_instanceCreation_const_namedConstructor() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 class Test {
   const Test.named();
 }
@@ -252,7 +231,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   const Test.named();
@@ -261,8 +240,7 @@ main() {
   }
 
   test_withClass_instanceCreation_implicit() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 class Test {
   const Test();
 }
@@ -273,7 +251,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   return Test();
@@ -282,8 +260,7 @@ main() {
   }
 
   test_withClass_instanceCreation_new() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 class Test {
   const Test();
 }
@@ -294,7 +271,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   return new Test();
@@ -303,8 +280,7 @@ main() {
   }
 
   test_withClass_instanceCreation_new_namedConstructor() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 class Test {
   Test.named();
 }
@@ -315,7 +291,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   new Test.named();
@@ -324,8 +300,7 @@ main() {
   }
 
   test_withFunction() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 library lib;
 myFunction() {}
 ''');
@@ -335,7 +310,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   myFunction();
@@ -344,8 +319,7 @@ main() {
   }
 
   test_withFunction_unresolvedMethod() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 library lib;
 myFunction() {}
 ''');
@@ -357,7 +331,7 @@ class A {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 class A {
   main() {
@@ -368,8 +342,7 @@ class A {
   }
 
   test_withFunctionTypeAlias() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/bin/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 library lib;
 typedef MyFunction();
 ''');
@@ -380,7 +353,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   MyFunction t = null;
@@ -390,8 +363,7 @@ main() {
   }
 
   test_withTopLevelVariable() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
+    addSource('/home/test/lib/lib.dart', '''
 library lib;
 int MY_VAR = 42;
 ''');
@@ -401,7 +373,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'lib.dart';
+import 'package:test/lib.dart';
 
 main() {
   print(MY_VAR);
@@ -482,10 +454,7 @@ main() {
   }
 
   test_inLibSrc_thisContextRoot() async {
-    testFile = '/project/lib/test.dart';
-    packageMap['project'] = [newFolder('/project/lib')];
-    addSource('/project/lib/src/lib.dart', 'class Test {}');
-    configureDriver();
+    addSource('/home/test/lib/src/lib.dart', 'class Test {}');
     await resolveTestUnit('''
 main() {
   Test t;
@@ -493,7 +462,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'package:project/src/lib.dart';
+import 'package:test/src/lib.dart';
 
 main() {
   Test t;
@@ -510,22 +479,7 @@ mixin ImportLibraryTestMixin on FixProcessorTest {
   /// values are the contents of the files at those paths.
   void _configureMyPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      newFile('/packages/my_pkg/lib/$path', content: code);
+      addPackageSource('my_pkg', path, code);
     });
-    // configure SourceFactory
-    Folder myPkgFolder = getFolder('/packages/my_pkg/lib');
-    PackageMapUriResolver pkgResolver =
-        new PackageMapUriResolver(resourceProvider, {
-      'my_pkg': [myPkgFolder]
-    });
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    driver.configure(sourceFactory: sourceFactory);
-    // force 'my_pkg' resolution
-    addSource(
-        '/tmp/other.dart',
-        pathToCode.keys
-            .map((path) => "import 'package:my_pkg/$path';")
-            .join('\n'));
   }
 }
