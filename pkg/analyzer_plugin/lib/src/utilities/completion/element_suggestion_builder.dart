@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 /**
  * Common mixin for sharing behavior.
  */
-abstract class ElementSuggestionBuilder {
+mixin ElementSuggestionBuilder {
   // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
   /**
    * A collection of completion suggestions.

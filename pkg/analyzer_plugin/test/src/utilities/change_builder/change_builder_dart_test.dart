@@ -33,7 +33,7 @@ main() {
   });
 }
 
-abstract class BuilderTestMixin {
+mixin BuilderTestMixin {
   SourceEdit getEdit(DartChangeBuilder builder) {
     SourceChange sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);

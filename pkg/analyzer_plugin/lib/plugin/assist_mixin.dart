@@ -17,10 +17,10 @@ import 'package:analyzer_plugin/utilities/generator.dart';
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for handling assist requests.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class AssistsMixin implements ServerPlugin {
+mixin AssistsMixin implements ServerPlugin {
   /**
    * Return a list containing the assist contributors that should be used to
    * create assists for the file with the given [path].

@@ -13,7 +13,7 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
  * for manipulating the file system. The utility methods all take a posix style
  * path and convert it as appropriate for the actual platform.
  */
-class ResourceProviderMixin {
+mixin ResourceProviderMixin {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
   /// Convert the given [path] to be a valid import uri for this provider's path context.
