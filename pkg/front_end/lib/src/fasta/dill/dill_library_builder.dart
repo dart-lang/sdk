@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DynamicType,
         Field,
+        FunctionType,
         Library,
         ListLiteral,
         Member,
@@ -131,8 +132,17 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void addTypedef(Typedef typedef) {
-    var typedefBuilder = new DillFunctionTypeAliasBuilder(typedef, this);
-    addBuilder(typedef.name, typedefBuilder, typedef.fileOffset);
+    DartType alias = typedef.type;
+    if (alias is FunctionType) {
+      if (alias.typedefType == null) {
+        unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
+      }
+      addBuilder(typedef.name, new DillFunctionTypeAliasBuilder(typedef, this),
+          typedef.fileOffset);
+    } else {
+      unhandled("${alias.runtimeType}", "addTypedef", typedef.fileOffset,
+          typedef.fileUri);
+    }
   }
 
   @override

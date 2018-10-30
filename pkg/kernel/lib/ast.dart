@@ -606,6 +606,10 @@ class Typedef extends NamedNode implements FileUriNode {
 
   Library get enclosingLibrary => parent;
 
+  TypedefType get thisType {
+    return new TypedefType(this, _getAsTypeArguments(typeParameters));
+  }
+
   accept(TreeVisitor v) {
     return v.visitTypedef(this);
   }
@@ -4681,14 +4685,19 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
+      TypedefType typedefType,
       Reference typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length,
-        this.typedefType = typedefReference == null
-            ? null
-            : new TypedefType.byReference(typedefReference,
-                new List.filled(typeParameters.length, const DynamicType()));
+        this.typedefType = typedefType != null
+            ? typedefType
+            : (typedefReference == null
+                ? null
+                : new TypedefType.byReference(
+                    typedefReference,
+                    new List.filled(
+                        typeParameters.length, const DynamicType())));
 
   @nocoq
   Reference get typedefReference => typedefType?.typedefReference;
