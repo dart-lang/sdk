@@ -252,7 +252,8 @@ class FreshTypeParameters {
       namedParameters: type.namedParameters.map(substituteNamed).toList(),
       typeParameters: freshTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
-      typedefReference: type.typedefReference);
+      typedefType:
+          type.typedefType == null ? null : substitute(type.typedefType));
 
   DartType substitute(DartType type) => substitution.substituteType(type);
 
@@ -582,12 +583,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
     var returnType = inner.visit(node.returnType);
+    DartType typedefType =
+        node.typedefType == null ? null : inner.visit(node.typedefType);
     if (this.useCounter == before) return node;
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: node.requiredParameterCount,
-        typedefReference: node.typedefReference);
+        typedefType: typedefType);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {

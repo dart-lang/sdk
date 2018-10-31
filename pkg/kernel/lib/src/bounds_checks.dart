@@ -53,7 +53,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
         namedParameters: functionType.namedParameters,
         typeParameters: functionType.typeParameters,
         requiredParameterCount: functionType.requiredParameterCount,
-        typedefReference: null);
+        typedefType: functionType.typedefType);
     typedefRhsResult = findTypeArgumentIssues(cloned, typeEnvironment,
         allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
     type = new TypedefType(functionType.typedef, typedefInstantiations[type]);
@@ -272,7 +272,7 @@ DartType convertSuperBoundedToRegularBounded(
         namedParameters: replacedNamedParameters,
         typeParameters: type.typeParameters,
         requiredParameterCount: type.requiredParameterCount,
-        typedefReference: type.typedefReference);
+        typedefType: type.typedefType);
   }
   return type;
 }
