@@ -1064,6 +1064,11 @@ class AnalysisServerOptions {
   CrashReportSender crashReportSender;
 
   /**
+   * Whether to use the Language Server Protocol.
+   */
+  bool useLanguageServerProtocol = false;
+
+  /**
    * Whether to enable parsing via the Fasta parser.
    */
   bool useFastaParser = true;

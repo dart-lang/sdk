@@ -7,10 +7,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
     show UriContributor;
@@ -261,6 +264,11 @@ class Driver implements ServerStarter {
   static const String USE_FASTA_PARSER = "use-fasta-parser";
 
   /**
+   * The name of the flag to use the Language Server Protocol (LSP).
+   */
+  static const String USE_LSP = "lsp";
+
+  /**
    * A directory to analyze in order to train an analysis server snapshot.
    */
   static const String TRAIN_USING = "train-using";
@@ -301,8 +309,6 @@ class Driver implements ServerStarter {
    */
   DetachableFileSystemManager detachableFileSystemManager;
 
-  SocketServer socketServer;
-
   HttpAnalysisServer httpServer;
 
   Driver();
@@ -324,6 +330,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
+    analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
     analysisServerOptions.enableUXExperiment1 = results[UX_EXPERIMENT_1];
     analysisServerOptions.enableUXExperiment2 = results[UX_EXPERIMENT_2];
 
@@ -366,6 +373,18 @@ class Driver implements ServerStarter {
       return null;
     }
 
+    if (analysisServerOptions.useLanguageServerProtocol) {
+      startLspServer(results, analysisServerOptions);
+    } else {
+      startAnalysisServer(results, analysisServerOptions, parser, analytics);
+    }
+  }
+
+  void startAnalysisServer(
+      ArgResults results,
+      AnalysisServerOptions analysisServerOptions,
+      CommandLineParser parser,
+      telemetry.Analytics analytics) {
     String trainDirectory = results[TRAIN_USING];
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
@@ -397,16 +416,8 @@ class Driver implements ServerStarter {
     manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     linter.registerLintRules();
 
-    String defaultSdkPath;
-    if (results[SDK_OPTION] != null) {
-      defaultSdkPath = results[SDK_OPTION];
-    } else {
-      // No path to the SDK was provided.
-      // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      defaultSdkPath = FolderBasedDartSdk.defaultSdkDirectory(
-              PhysicalResourceProvider.INSTANCE)
-          .path;
-    }
+    final defaultSdkPath = _getSdkPath(results);
+
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
@@ -444,7 +455,7 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    socketServer = new SocketServer(
+    final socketServer = new SocketServer(
         analysisServerOptions,
         new DartSdkManager(defaultSdkPath, true),
         instrumentationService,
@@ -496,7 +507,7 @@ class Driver implements ServerStarter {
         exit(exitCode);
       }();
     } else {
-      _captureExceptions(instrumentationService, () {
+      _captureExceptions(socketServer, instrumentationService, () {
         StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);
         stdioServer.serveStdio().then((_) async {
           // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -516,13 +527,31 @@ class Driver implements ServerStarter {
     }
   }
 
+  void startLspServer(
+      ArgResults args, AnalysisServerOptions analysisServerOptions) {
+    final defaultSdkPath = _getSdkPath(args);
+    final dartSdkManager = new DartSdkManager(defaultSdkPath, true);
+    final socketServer =
+        new LspSocketServer(analysisServerOptions, dartSdkManager);
+
+    _captureLspExceptions(socketServer, () {
+      LspStdioAnalysisServer stdioServer =
+          new LspStdioAnalysisServer(socketServer);
+      stdioServer.serveStdio().then((_) async {
+        socketServer.analysisServer.shutdown();
+        exit(0);
+      });
+    });
+  }
+
   /**
    * Execute the given [callback] within a zone that will capture any unhandled
    * exceptions and both report them to the client and send them to the given
    * instrumentation [service]. If a [print] function is provided, then also
    * capture any data printed by the callback and redirect it to the function.
    */
-  dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
+  dynamic _captureExceptions(SocketServer socketServer,
+      InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
@@ -542,6 +571,33 @@ class Driver implements ServerStarter {
           };
     ZoneSpecification zoneSpecification = new ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
+    return runZoned(callback, zoneSpecification: zoneSpecification);
+  }
+
+  /**
+   * Execute the given [callback] within a zone that will capture any unhandled
+   * exceptions and both report them to the client and send them to the given
+   * instrumentation [service]. If a [print] function is provided, then also
+   * capture any data printed by the callback and redirect it to the function.
+   */
+  dynamic _captureLspExceptions(
+      // TODO(dantup): This is a copy/paste of the above with some minor changes.
+      // We should either factor these out, or if we end up with an LspDriver, put
+      // this there.
+      LspSocketServer socketServer,
+      dynamic callback()) {
+    void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
+        dynamic exception, StackTrace stackTrace) {
+      // TODO(dantup): LSP doesn't currently an instrumentation service set up.
+      //service.logPriorityException(exception, stackTrace);
+      LspAnalysisServer analysisServer = socketServer.analysisServer;
+      analysisServer.sendServerErrorNotification(
+          'Captured exception', exception, stackTrace);
+      throw exception;
+    }
+
+    ZoneSpecification zoneSpecification =
+        new ZoneSpecification(handleUncaughtError: errorFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
@@ -607,6 +663,8 @@ class Driver implements ServerStarter {
     parser.addFlag(USE_FASTA_PARSER,
         defaultsTo: true,
         help: "Whether to enable parsing via the Fasta parser");
+    parser.addFlag(USE_LSP,
+        defaultsTo: false, help: "Whether to use the Language Server Protocol");
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");
@@ -631,6 +689,18 @@ class Driver implements ServerStarter {
         resourceProvider, resourceProvider.getFolder(defaultSdkPath));
     sdk.useSummary = useSummaries;
     return sdk;
+  }
+
+  String _getSdkPath(ArgResults args) {
+    if (args[SDK_OPTION] != null) {
+      return args[SDK_OPTION];
+    } else {
+      // No path to the SDK was provided.
+      // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
+      return FolderBasedDartSdk.defaultSdkDirectory(
+        PhysicalResourceProvider.INSTANCE,
+      ).path;
+    }
   }
 
   /**

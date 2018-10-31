@@ -96,7 +96,7 @@ main() {
   group('fromJson', () {
     test('parses JSON for types with unions (left side)', () {
       final input = '{"id":1,"method":"test","jsonrpc":"test"}';
-      final message = new RequestMessage.fromJson(jsonDecode(input));
+      final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id, equals(new Either2<num, String>.t1(1)));
       expect(message.id.valueEquals(1), isTrue);
       expect(message.jsonrpc, "test");
@@ -105,7 +105,7 @@ main() {
 
     test('parses JSON for types with unions (right side)', () {
       final input = '{"id":"one","method":"test","jsonrpc":"test"}';
-      final message = new RequestMessage.fromJson(jsonDecode(input));
+      final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id, equals(new Either2<num, String>.t2("one")));
       expect(message.id.valueEquals("one"), isTrue);
       expect(message.jsonrpc, "test");
@@ -124,7 +124,7 @@ main() {
         new TextDocumentClientCapabilities(true, false, true, false),
         null);
     final String json = jsonEncode(obj);
-    final restoredObj = new ClientCapabilities.fromJson(jsonDecode(json));
+    final restoredObj = ClientCapabilities.fromJson(jsonDecode(json));
 
     expect(restoredObj.workspace.applyEdit, equals(obj.workspace.applyEdit));
     expect(restoredObj.workspace.documentChanges,

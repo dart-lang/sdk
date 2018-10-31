@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
@@ -43,6 +45,89 @@ Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
 Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
 
 /**
+ * A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
+ */
+class MockLspServerChannel implements LspServerCommunicationChannel {
+  StreamController<lsp.RequestMessage> lspRequestController =
+      new StreamController<lsp.RequestMessage>();
+  StreamController<lsp.ResponseMessage> lspResponseController =
+      new StreamController<lsp.ResponseMessage>.broadcast();
+  StreamController<lsp.NotificationMessage> lspNotificationController =
+      new StreamController<lsp.NotificationMessage>(sync: true);
+
+  List<lsp.ResponseMessage> lspResponsesReceived = [];
+  List<lsp.NotificationMessage> lspNotificationsReceived = [];
+
+  bool _closed = false;
+
+  String name;
+
+  MockLspServerChannel();
+
+  @override
+  void close() {
+    _closed = true;
+  }
+
+  @override
+  void listen(void Function(lsp.RequestMessage request) onRequest,
+      {Function onError, void Function() onDone}) {
+    lspRequestController.stream
+        .listen(onRequest, onError: onError, onDone: onDone);
+  }
+
+  @override
+  void sendNotification(lsp.NotificationMessage notification) {
+    // Don't deliver notifications after the connection is closed.
+    if (_closed) {
+      return;
+    }
+    lspNotificationsReceived.add(notification);
+    lspNotificationController.add(notification);
+  }
+
+  /**
+   * Send the given [request] to the server and return a future that will
+   * complete when a response associated with the [request] has been received.
+   * The value of the future will be the received response.
+   */
+  Future<lsp.ResponseMessage> sendRequest(lsp.RequestMessage request) {
+    // No further requests should be sent after the connection is closed.
+    if (_closed) {
+      throw new Exception('sendLspRequest after connection closed');
+    }
+    // Wrap send request in future to simulate WebSocket.
+    new Future(() => lspRequestController.add(request));
+    return waitForLspResponse(request);
+  }
+
+  @override
+  void sendResponse(lsp.ResponseMessage response) {
+    // Don't deliver responses after the connection is closed.
+    if (_closed) {
+      return;
+    }
+    lspResponsesReceived.add(response);
+    // Wrap send response in future to simulate WebSocket.
+    new Future(() => lspResponseController.add(response));
+  }
+
+  /**
+   * Return a future that will complete when a response associated with the
+   * given [request] has been received. The value of the future will be the
+   * received response. The returned future will throw an exception if a server
+   * error is reported before the response has been received.
+   * 
+   * Unlike [sendLspRequest], this method assumes that the [request] has already
+   * been sent to the server.
+   */
+  Future<lsp.ResponseMessage> waitForLspResponse(lsp.RequestMessage request) {
+    return lspResponseController.stream
+        .firstWhere((response) => response.id == request.id);
+  }
+}
+
+/**
  * A mock [ServerCommunicationChannel] for testing [AnalysisServer].
  */
 class MockServerChannel implements ServerCommunicationChannel {
@@ -55,6 +140,7 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
+
   bool _closed = false;
 
   String name;

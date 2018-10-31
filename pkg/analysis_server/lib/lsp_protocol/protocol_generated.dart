@@ -16,10 +16,10 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       throw 'edit is required but was not provided';
     }
   }
-  factory ApplyWorkspaceEditParams.fromJson(Map<String, dynamic> json) {
+  static ApplyWorkspaceEditParams fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final edit =
-        json['edit'] != null ? new WorkspaceEdit.fromJson(json['edit']) : null;
+        json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
     return new ApplyWorkspaceEditParams(label, edit);
   }
 
@@ -52,7 +52,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       throw 'applied is required but was not provided';
     }
   }
-  factory ApplyWorkspaceEditResponse.fromJson(Map<String, dynamic> json) {
+  static ApplyWorkspaceEditResponse fromJson(Map<String, dynamic> json) {
     final applied = json['applied'];
     return new ApplyWorkspaceEditResponse(applied);
   }
@@ -80,7 +80,7 @@ class CancelParams implements ToJsonable {
       throw 'id is required but was not provided';
     }
   }
-  factory CancelParams.fromJson(Map<String, dynamic> json) {
+  static CancelParams fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
         ? new Either2<num, String>.t1(json['id'])
         : (json['id'] is String
@@ -107,12 +107,12 @@ class CancelParams implements ToJsonable {
 
 class ClientCapabilities implements ToJsonable {
   ClientCapabilities(this.workspace, this.textDocument, this.experimental);
-  factory ClientCapabilities.fromJson(Map<String, dynamic> json) {
+  static ClientCapabilities fromJson(Map<String, dynamic> json) {
     final workspace = json['workspace'] != null
-        ? new WorkspaceClientCapabilities.fromJson(json['workspace'])
+        ? WorkspaceClientCapabilities.fromJson(json['workspace'])
         : null;
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentClientCapabilities.fromJson(json['textDocument'])
+        ? TextDocumentClientCapabilities.fromJson(json['textDocument'])
         : null;
     final experimental = json['experimental'];
     return new ClientCapabilities(workspace, textDocument, experimental);
@@ -157,17 +157,17 @@ class CodeAction implements ToJsonable {
       throw 'title is required but was not provided';
     }
   }
-  factory CodeAction.fromJson(Map<String, dynamic> json) {
+  static CodeAction fromJson(Map<String, dynamic> json) {
     final title = json['title'];
     final kind = json['kind'];
     final diagnostics = json['diagnostics']
-        ?.map((item) => item != null ? new Diagnostic.fromJson(item) : null)
+        ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
     final edit =
-        json['edit'] != null ? new WorkspaceEdit.fromJson(json['edit']) : null;
+        json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
     final command =
-        json['command'] != null ? new Command.fromJson(json['command']) : null;
+        json['command'] != null ? Command.fromJson(json['command']) : null;
     return new CodeAction(title, kind, diagnostics, edit, command);
   }
 
@@ -222,9 +222,9 @@ class CodeActionContext implements ToJsonable {
       throw 'diagnostics is required but was not provided';
     }
   }
-  factory CodeActionContext.fromJson(Map<String, dynamic> json) {
+  static CodeActionContext fromJson(Map<String, dynamic> json) {
     final diagnostics = json['diagnostics']
-        ?.map((item) => item != null ? new Diagnostic.fromJson(item) : null)
+        ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
     final only = json['only']?.map((item) => item)?.cast<String>()?.toList();
@@ -312,7 +312,7 @@ abstract class CodeActionKind {
 /// Code Action options.
 class CodeActionOptions implements ToJsonable {
   CodeActionOptions(this.codeActionKinds);
-  factory CodeActionOptions.fromJson(Map<String, dynamic> json) {
+  static CodeActionOptions fromJson(Map<String, dynamic> json) {
     final codeActionKinds =
         json['codeActionKinds']?.map((item) => item)?.cast<String>()?.toList();
     return new CodeActionOptions(codeActionKinds);
@@ -350,14 +350,13 @@ class CodeActionParams implements ToJsonable {
       throw 'context is required but was not provided';
     }
   }
-  factory CodeActionParams.fromJson(Map<String, dynamic> json) {
+  static CodeActionParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final context = json['context'] != null
-        ? new CodeActionContext.fromJson(json['context'])
+        ? CodeActionContext.fromJson(json['context'])
         : null;
     return new CodeActionParams(textDocument, range, context);
   }
@@ -395,9 +394,9 @@ class CodeActionParams implements ToJsonable {
 class CodeActionRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeActionOptions, ToJsonable {
   CodeActionRegistrationOptions(this.documentSelector, this.codeActionKinds);
-  factory CodeActionRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static CodeActionRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     final codeActionKinds =
@@ -446,11 +445,10 @@ class CodeLens implements ToJsonable {
       throw 'range is required but was not provided';
     }
   }
-  factory CodeLens.fromJson(Map<String, dynamic> json) {
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+  static CodeLens fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final command =
-        json['command'] != null ? new Command.fromJson(json['command']) : null;
+        json['command'] != null ? Command.fromJson(json['command']) : null;
     final data = json['data'];
     return new CodeLens(range, command, data);
   }
@@ -488,7 +486,7 @@ class CodeLens implements ToJsonable {
 /// Code Lens options.
 class CodeLensOptions implements ToJsonable {
   CodeLensOptions(this.resolveProvider);
-  factory CodeLensOptions.fromJson(Map<String, dynamic> json) {
+  static CodeLensOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
     return new CodeLensOptions(resolveProvider);
   }
@@ -515,9 +513,9 @@ class CodeLensParams implements ToJsonable {
       throw 'textDocument is required but was not provided';
     }
   }
-  factory CodeLensParams.fromJson(Map<String, dynamic> json) {
+  static CodeLensParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     return new CodeLensParams(textDocument);
   }
@@ -542,10 +540,10 @@ class CodeLensParams implements ToJsonable {
 class CodeLensRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   CodeLensRegistrationOptions(this.resolveProvider, this.documentSelector);
-  factory CodeLensRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static CodeLensRegistrationOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new CodeLensRegistrationOptions(resolveProvider, documentSelector);
@@ -593,7 +591,7 @@ class Color implements ToJsonable {
       throw 'alpha is required but was not provided';
     }
   }
-  factory Color.fromJson(Map<String, dynamic> json) {
+  static Color fromJson(Map<String, dynamic> json) {
     final red = json['red'];
     final green = json['green'];
     final blue = json['blue'];
@@ -637,11 +635,9 @@ class ColorInformation implements ToJsonable {
       throw 'color is required but was not provided';
     }
   }
-  factory ColorInformation.fromJson(Map<String, dynamic> json) {
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
-    final color =
-        json['color'] != null ? new Color.fromJson(json['color']) : null;
+  static ColorInformation fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final color = json['color'] != null ? Color.fromJson(json['color']) : null;
     return new ColorInformation(range, color);
   }
 
@@ -673,13 +669,12 @@ class ColorPresentation implements ToJsonable {
       throw 'label is required but was not provided';
     }
   }
-  factory ColorPresentation.fromJson(Map<String, dynamic> json) {
+  static ColorPresentation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final textEdit = json['textEdit'] != null
-        ? new TextEdit.fromJson(json['textEdit'])
-        : null;
+    final textEdit =
+        json['textEdit'] != null ? TextEdit.fromJson(json['textEdit']) : null;
     final additionalTextEdits = json['additionalTextEdits']
-        ?.map((item) => item != null ? new TextEdit.fromJson(item) : null)
+        ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
     return new ColorPresentation(label, textEdit, additionalTextEdits);
@@ -731,14 +726,12 @@ class ColorPresentationParams implements ToJsonable {
       throw 'range is required but was not provided';
     }
   }
-  factory ColorPresentationParams.fromJson(Map<String, dynamic> json) {
+  static ColorPresentationParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final color =
-        json['color'] != null ? new Color.fromJson(json['color']) : null;
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final color = json['color'] != null ? Color.fromJson(json['color']) : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     return new ColorPresentationParams(textDocument, color, range);
   }
 
@@ -792,7 +785,7 @@ class Command implements ToJsonable {
       throw 'command is required but was not provided';
     }
   }
-  factory Command.fromJson(Map<String, dynamic> json) {
+  static Command fromJson(Map<String, dynamic> json) {
     final title = json['title'];
     final command = json['command'];
     final arguments =
@@ -837,9 +830,9 @@ class CompletionContext implements ToJsonable {
       throw 'triggerKind is required but was not provided';
     }
   }
-  factory CompletionContext.fromJson(Map<String, dynamic> json) {
+  static CompletionContext fromJson(Map<String, dynamic> json) {
     final triggerKind = json['triggerKind'] != null
-        ? new CompletionTriggerKind.fromJson(json['triggerKind'])
+        ? CompletionTriggerKind.fromJson(json['triggerKind'])
         : null;
     final triggerCharacter = json['triggerCharacter'];
     return new CompletionContext(triggerKind, triggerCharacter);
@@ -890,18 +883,17 @@ class CompletionItem implements ToJsonable {
       throw 'label is required but was not provided';
     }
   }
-  factory CompletionItem.fromJson(Map<String, dynamic> json) {
+  static CompletionItem fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final kind = json['kind'] != null
-        ? new CompletionItemKind.fromJson(json['kind'])
-        : null;
+    final kind =
+        json['kind'] != null ? CompletionItemKind.fromJson(json['kind']) : null;
     final detail = json['detail'];
     final documentation = json['documentation'] is String
         ? new Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'])
             ? new Either2<String, MarkupContent>.t2(
                 json['documentation'] != null
-                    ? new MarkupContent.fromJson(json['documentation'])
+                    ? MarkupContent.fromJson(json['documentation'])
                     : null)
             : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
     final deprecated = json['deprecated'];
@@ -910,19 +902,18 @@ class CompletionItem implements ToJsonable {
     final filterText = json['filterText'];
     final insertText = json['insertText'];
     final insertTextFormat = json['insertTextFormat'] != null
-        ? new InsertTextFormat.fromJson(json['insertTextFormat'])
+        ? InsertTextFormat.fromJson(json['insertTextFormat'])
         : null;
-    final textEdit = json['textEdit'] != null
-        ? new TextEdit.fromJson(json['textEdit'])
-        : null;
+    final textEdit =
+        json['textEdit'] != null ? TextEdit.fromJson(json['textEdit']) : null;
     final additionalTextEdits = json['additionalTextEdits']
-        ?.map((item) => item != null ? new TextEdit.fromJson(item) : null)
+        ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
     final commitCharacters =
         json['commitCharacters']?.map((item) => item)?.cast<String>()?.toList();
     final command =
-        json['command'] != null ? new Command.fromJson(json['command']) : null;
+        json['command'] != null ? Command.fromJson(json['command']) : null;
     final data = json['data'];
     return new CompletionItem(
         label,
@@ -1167,10 +1158,10 @@ class CompletionList implements ToJsonable {
       throw 'items is required but was not provided';
     }
   }
-  factory CompletionList.fromJson(Map<String, dynamic> json) {
+  static CompletionList fromJson(Map<String, dynamic> json) {
     final isIncomplete = json['isIncomplete'];
     final items = json['items']
-        ?.map((item) => item != null ? new CompletionItem.fromJson(item) : null)
+        ?.map((item) => item != null ? CompletionItem.fromJson(item) : null)
         ?.cast<CompletionItem>()
         ?.toList();
     return new CompletionList(isIncomplete, items);
@@ -1205,7 +1196,7 @@ class CompletionList implements ToJsonable {
 /// Completion options.
 class CompletionOptions implements ToJsonable {
   CompletionOptions(this.resolveProvider, this.triggerCharacters);
-  factory CompletionOptions.fromJson(Map<String, dynamic> json) {
+  static CompletionOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
     final triggerCharacters = json['triggerCharacters']
         ?.map((item) => item)
@@ -1246,16 +1237,15 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       throw 'position is required but was not provided';
     }
   }
-  factory CompletionParams.fromJson(Map<String, dynamic> json) {
+  static CompletionParams fromJson(Map<String, dynamic> json) {
     final context = json['context'] != null
-        ? new CompletionContext.fromJson(json['context'])
+        ? CompletionContext.fromJson(json['context'])
         : null;
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final position = json['position'] != null
-        ? new Position.fromJson(json['position'])
-        : null;
+    final position =
+        json['position'] != null ? Position.fromJson(json['position']) : null;
     return new CompletionParams(context, textDocument, position);
   }
 
@@ -1295,14 +1285,14 @@ class CompletionRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   CompletionRegistrationOptions(
       this.triggerCharacters, this.resolveProvider, this.documentSelector);
-  factory CompletionRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static CompletionRegistrationOptions fromJson(Map<String, dynamic> json) {
     final triggerCharacters = json['triggerCharacters']
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
     final resolveProvider = json['resolveProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new CompletionRegistrationOptions(
@@ -1394,7 +1384,7 @@ class CompletionTriggerKind {
 
 class ConfigurationItem implements ToJsonable {
   ConfigurationItem(this.scopeUri, this.section);
-  factory ConfigurationItem.fromJson(Map<String, dynamic> json) {
+  static ConfigurationItem fromJson(Map<String, dynamic> json) {
     final scopeUri = json['scopeUri'];
     final section = json['section'];
     return new ConfigurationItem(scopeUri, section);
@@ -1428,10 +1418,9 @@ class ConfigurationParams implements ToJsonable {
       throw 'items is required but was not provided';
     }
   }
-  factory ConfigurationParams.fromJson(Map<String, dynamic> json) {
+  static ConfigurationParams fromJson(Map<String, dynamic> json) {
     final items = json['items']
-        ?.map((item) =>
-            item != null ? new ConfigurationItem.fromJson(item) : null)
+        ?.map((item) => item != null ? ConfigurationItem.fromJson(item) : null)
         ?.cast<ConfigurationItem>()
         ?.toList();
     return new ConfigurationParams(items);
@@ -1462,10 +1451,10 @@ class CreateFile implements FileOperation, ToJsonable {
       throw 'uri is required but was not provided';
     }
   }
-  factory CreateFile.fromJson(Map<String, dynamic> json) {
+  static CreateFile fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final options = json['options'] != null
-        ? new CreateFileOptions.fromJson(json['options'])
+        ? CreateFileOptions.fromJson(json['options'])
         : null;
     return new CreateFile(uri, options);
   }
@@ -1495,7 +1484,7 @@ class CreateFile implements FileOperation, ToJsonable {
 /// Options to create a file.
 class CreateFileOptions implements ToJsonable {
   CreateFileOptions(this.overwrite, this.ignoreIfExists);
-  factory CreateFileOptions.fromJson(Map<String, dynamic> json) {
+  static CreateFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
     return new CreateFileOptions(overwrite, ignoreIfExists);
@@ -1530,10 +1519,10 @@ class DeleteFile implements FileOperation, ToJsonable {
       throw 'uri is required but was not provided';
     }
   }
-  factory DeleteFile.fromJson(Map<String, dynamic> json) {
+  static DeleteFile fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final options = json['options'] != null
-        ? new DeleteFileOptions.fromJson(json['options'])
+        ? DeleteFileOptions.fromJson(json['options'])
         : null;
     return new DeleteFile(uri, options);
   }
@@ -1563,7 +1552,7 @@ class DeleteFile implements FileOperation, ToJsonable {
 /// Delete file options
 class DeleteFileOptions implements ToJsonable {
   DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
-  factory DeleteFileOptions.fromJson(Map<String, dynamic> json) {
+  static DeleteFileOptions fromJson(Map<String, dynamic> json) {
     final recursive = json['recursive'];
     final ignoreIfNotExists = json['ignoreIfNotExists'];
     return new DeleteFileOptions(recursive, ignoreIfNotExists);
@@ -1601,11 +1590,10 @@ class Diagnostic implements ToJsonable {
       throw 'message is required but was not provided';
     }
   }
-  factory Diagnostic.fromJson(Map<String, dynamic> json) {
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+  static Diagnostic fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final severity = json['severity'] != null
-        ? new DiagnosticSeverity.fromJson(json['severity'])
+        ? DiagnosticSeverity.fromJson(json['severity'])
         : null;
     final code = json['code'] is num
         ? new Either2<num, String>.t1(json['code'])
@@ -1615,9 +1603,8 @@ class Diagnostic implements ToJsonable {
     final source = json['source'];
     final message = json['message'];
     final relatedInformation = json['relatedInformation']
-        ?.map((item) => item != null
-            ? new DiagnosticRelatedInformation.fromJson(item)
-            : null)
+        ?.map((item) =>
+            item != null ? DiagnosticRelatedInformation.fromJson(item) : null)
         ?.cast<DiagnosticRelatedInformation>()
         ?.toList();
     return new Diagnostic(
@@ -1687,10 +1674,9 @@ class DiagnosticRelatedInformation implements ToJsonable {
       throw 'message is required but was not provided';
     }
   }
-  factory DiagnosticRelatedInformation.fromJson(Map<String, dynamic> json) {
-    final location = json['location'] != null
-        ? new Location.fromJson(json['location'])
-        : null;
+  static DiagnosticRelatedInformation fromJson(Map<String, dynamic> json) {
+    final location =
+        json['location'] != null ? Location.fromJson(json['location']) : null;
     final message = json['message'];
     return new DiagnosticRelatedInformation(location, message);
   }
@@ -1765,7 +1751,7 @@ class DidChangeConfigurationParams implements ToJsonable {
       throw 'settings is required but was not provided';
     }
   }
-  factory DidChangeConfigurationParams.fromJson(Map<String, dynamic> json) {
+  static DidChangeConfigurationParams fromJson(Map<String, dynamic> json) {
     final settings = json['settings'];
     return new DidChangeConfigurationParams(settings);
   }
@@ -1794,14 +1780,13 @@ class DidChangeTextDocumentParams implements ToJsonable {
       throw 'contentChanges is required but was not provided';
     }
   }
-  factory DidChangeTextDocumentParams.fromJson(Map<String, dynamic> json) {
+  static DidChangeTextDocumentParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new VersionedTextDocumentIdentifier.fromJson(json['textDocument'])
+        ? VersionedTextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final contentChanges = json['contentChanges']
-        ?.map((item) => item != null
-            ? new TextDocumentContentChangeEvent.fromJson(item)
-            : null)
+        ?.map((item) =>
+            item != null ? TextDocumentContentChangeEvent.fromJson(item) : null)
         ?.cast<TextDocumentContentChangeEvent>()
         ?.toList();
     return new DidChangeTextDocumentParams(textDocument, contentChanges);
@@ -1844,9 +1829,9 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       throw 'changes is required but was not provided';
     }
   }
-  factory DidChangeWatchedFilesParams.fromJson(Map<String, dynamic> json) {
+  static DidChangeWatchedFilesParams fromJson(Map<String, dynamic> json) {
     final changes = json['changes']
-        ?.map((item) => item != null ? new FileEvent.fromJson(item) : null)
+        ?.map((item) => item != null ? FileEvent.fromJson(item) : null)
         ?.cast<FileEvent>()
         ?.toList();
     return new DidChangeWatchedFilesParams(changes);
@@ -1879,11 +1864,10 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       throw 'watchers is required but was not provided';
     }
   }
-  factory DidChangeWatchedFilesRegistrationOptions.fromJson(
+  static DidChangeWatchedFilesRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final watchers = json['watchers']
-        ?.map((item) =>
-            item != null ? new FileSystemWatcher.fromJson(item) : null)
+        ?.map((item) => item != null ? FileSystemWatcher.fromJson(item) : null)
         ?.cast<FileSystemWatcher>()
         ?.toList();
     return new DidChangeWatchedFilesRegistrationOptions(watchers);
@@ -1915,9 +1899,9 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       throw 'event is required but was not provided';
     }
   }
-  factory DidChangeWorkspaceFoldersParams.fromJson(Map<String, dynamic> json) {
+  static DidChangeWorkspaceFoldersParams fromJson(Map<String, dynamic> json) {
     final event = json['event'] != null
-        ? new WorkspaceFoldersChangeEvent.fromJson(json['event'])
+        ? WorkspaceFoldersChangeEvent.fromJson(json['event'])
         : null;
     return new DidChangeWorkspaceFoldersParams(event);
   }
@@ -1944,9 +1928,9 @@ class DidCloseTextDocumentParams implements ToJsonable {
       throw 'textDocument is required but was not provided';
     }
   }
-  factory DidCloseTextDocumentParams.fromJson(Map<String, dynamic> json) {
+  static DidCloseTextDocumentParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     return new DidCloseTextDocumentParams(textDocument);
   }
@@ -1974,9 +1958,9 @@ class DidOpenTextDocumentParams implements ToJsonable {
       throw 'textDocument is required but was not provided';
     }
   }
-  factory DidOpenTextDocumentParams.fromJson(Map<String, dynamic> json) {
+  static DidOpenTextDocumentParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentItem.fromJson(json['textDocument'])
+        ? TextDocumentItem.fromJson(json['textDocument'])
         : null;
     return new DidOpenTextDocumentParams(textDocument);
   }
@@ -2004,9 +1988,9 @@ class DidSaveTextDocumentParams implements ToJsonable {
       throw 'textDocument is required but was not provided';
     }
   }
-  factory DidSaveTextDocumentParams.fromJson(Map<String, dynamic> json) {
+  static DidSaveTextDocumentParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final text = json['text'];
     return new DidSaveTextDocumentParams(textDocument, text);
@@ -2038,7 +2022,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
 class DocumentFilter implements ToJsonable {
   DocumentFilter(this.language, this.scheme, this.pattern);
-  factory DocumentFilter.fromJson(Map<String, dynamic> json) {
+  static DocumentFilter fromJson(Map<String, dynamic> json) {
     final language = json['language'];
     final scheme = json['scheme'];
     final pattern = json['pattern'];
@@ -2082,12 +2066,12 @@ class DocumentFormattingParams implements ToJsonable {
       throw 'options is required but was not provided';
     }
   }
-  factory DocumentFormattingParams.fromJson(Map<String, dynamic> json) {
+  static DocumentFormattingParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final options = json['options'] != null
-        ? new FormattingOptions.fromJson(json['options'])
+        ? FormattingOptions.fromJson(json['options'])
         : null;
     return new DocumentFormattingParams(textDocument, options);
   }
@@ -2125,11 +2109,10 @@ class DocumentHighlight implements ToJsonable {
       throw 'range is required but was not provided';
     }
   }
-  factory DocumentHighlight.fromJson(Map<String, dynamic> json) {
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+  static DocumentHighlight fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final kind = json['kind'] != null
-        ? new DocumentHighlightKind.fromJson(json['kind'])
+        ? DocumentHighlightKind.fromJson(json['kind'])
         : null;
     return new DocumentHighlight(range, kind);
   }
@@ -2202,9 +2185,8 @@ class DocumentLink implements ToJsonable {
       throw 'range is required but was not provided';
     }
   }
-  factory DocumentLink.fromJson(Map<String, dynamic> json) {
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+  static DocumentLink fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final target = json['target'];
     final data = json['data'];
     return new DocumentLink(range, target, data);
@@ -2243,7 +2225,7 @@ class DocumentLink implements ToJsonable {
 /// Document link options.
 class DocumentLinkOptions implements ToJsonable {
   DocumentLinkOptions(this.resolveProvider);
-  factory DocumentLinkOptions.fromJson(Map<String, dynamic> json) {
+  static DocumentLinkOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
     return new DocumentLinkOptions(resolveProvider);
   }
@@ -2270,9 +2252,9 @@ class DocumentLinkParams implements ToJsonable {
       throw 'textDocument is required but was not provided';
     }
   }
-  factory DocumentLinkParams.fromJson(Map<String, dynamic> json) {
+  static DocumentLinkParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     return new DocumentLinkParams(textDocument);
   }
@@ -2297,10 +2279,10 @@ class DocumentLinkParams implements ToJsonable {
 class DocumentLinkRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   DocumentLinkRegistrationOptions(this.resolveProvider, this.documentSelector);
-  factory DocumentLinkRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static DocumentLinkRegistrationOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new DocumentLinkRegistrationOptions(
@@ -2342,7 +2324,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       throw 'firstTriggerCharacter is required but was not provided';
     }
   }
-  factory DocumentOnTypeFormattingOptions.fromJson(Map<String, dynamic> json) {
+  static DocumentOnTypeFormattingOptions fromJson(Map<String, dynamic> json) {
     final firstTriggerCharacter = json['firstTriggerCharacter'];
     final moreTriggerCharacter = json['moreTriggerCharacter']
         ?.map((item) => item)
@@ -2391,16 +2373,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       throw 'options is required but was not provided';
     }
   }
-  factory DocumentOnTypeFormattingParams.fromJson(Map<String, dynamic> json) {
+  static DocumentOnTypeFormattingParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final position = json['position'] != null
-        ? new Position.fromJson(json['position'])
-        : null;
+    final position =
+        json['position'] != null ? Position.fromJson(json['position']) : null;
     final ch = json['ch'];
     final options = json['options'] != null
-        ? new FormattingOptions.fromJson(json['options'])
+        ? FormattingOptions.fromJson(json['options'])
         : null;
     return new DocumentOnTypeFormattingParams(
         textDocument, position, ch, options);
@@ -2451,7 +2432,7 @@ class DocumentOnTypeFormattingRegistrationOptions
       throw 'firstTriggerCharacter is required but was not provided';
     }
   }
-  factory DocumentOnTypeFormattingRegistrationOptions.fromJson(
+  static DocumentOnTypeFormattingRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final firstTriggerCharacter = json['firstTriggerCharacter'];
     final moreTriggerCharacter = json['moreTriggerCharacter']
@@ -2459,7 +2440,7 @@ class DocumentOnTypeFormattingRegistrationOptions
         ?.cast<String>()
         ?.toList();
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new DocumentOnTypeFormattingRegistrationOptions(
@@ -2512,14 +2493,13 @@ class DocumentRangeFormattingParams implements ToJsonable {
       throw 'options is required but was not provided';
     }
   }
-  factory DocumentRangeFormattingParams.fromJson(Map<String, dynamic> json) {
+  static DocumentRangeFormattingParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final options = json['options'] != null
-        ? new FormattingOptions.fromJson(json['options'])
+        ? FormattingOptions.fromJson(json['options'])
         : null;
     return new DocumentRangeFormattingParams(textDocument, range, options);
   }
@@ -2575,19 +2555,18 @@ class DocumentSymbol implements ToJsonable {
       throw 'selectionRange is required but was not provided';
     }
   }
-  factory DocumentSymbol.fromJson(Map<String, dynamic> json) {
+  static DocumentSymbol fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final detail = json['detail'];
     final kind =
-        json['kind'] != null ? new SymbolKind.fromJson(json['kind']) : null;
+        json['kind'] != null ? SymbolKind.fromJson(json['kind']) : null;
     final deprecated = json['deprecated'];
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final selectionRange = json['selectionRange'] != null
-        ? new Range.fromJson(json['selectionRange'])
+        ? Range.fromJson(json['selectionRange'])
         : null;
     final children = json['children']
-        ?.map((item) => item != null ? new DocumentSymbol.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentSymbol.fromJson(item) : null)
         ?.cast<DocumentSymbol>()
         ?.toList();
     return new DocumentSymbol(
@@ -2658,9 +2637,9 @@ class DocumentSymbolParams implements ToJsonable {
       throw 'textDocument is required but was not provided';
     }
   }
-  factory DocumentSymbolParams.fromJson(Map<String, dynamic> json) {
+  static DocumentSymbolParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     return new DocumentSymbolParams(textDocument);
   }
@@ -2702,7 +2681,7 @@ class ExecuteCommandOptions implements ToJsonable {
       throw 'commands is required but was not provided';
     }
   }
-  factory ExecuteCommandOptions.fromJson(Map<String, dynamic> json) {
+  static ExecuteCommandOptions fromJson(Map<String, dynamic> json) {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
     return new ExecuteCommandOptions(commands);
@@ -2733,7 +2712,7 @@ class ExecuteCommandParams implements ToJsonable {
       throw 'command is required but was not provided';
     }
   }
-  factory ExecuteCommandParams.fromJson(Map<String, dynamic> json) {
+  static ExecuteCommandParams fromJson(Map<String, dynamic> json) {
     final command = json['command'];
     final arguments =
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
@@ -2770,8 +2749,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
       throw 'commands is required but was not provided';
     }
   }
-  factory ExecuteCommandRegistrationOptions.fromJson(
-      Map<String, dynamic> json) {
+  static ExecuteCommandRegistrationOptions fromJson(Map<String, dynamic> json) {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
     return new ExecuteCommandRegistrationOptions(commands);
@@ -2892,7 +2870,7 @@ class FileEvent implements ToJsonable {
       throw 'type is required but was not provided';
     }
   }
-  factory FileEvent.fromJson(Map<String, dynamic> json) {
+  static FileEvent fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final type = json['type'];
     return new FileEvent(uri, type);
@@ -2926,10 +2904,9 @@ class FileSystemWatcher implements ToJsonable {
       throw 'globPattern is required but was not provided';
     }
   }
-  factory FileSystemWatcher.fromJson(Map<String, dynamic> json) {
+  static FileSystemWatcher fromJson(Map<String, dynamic> json) {
     final globPattern = json['globPattern'];
-    final kind =
-        json['kind'] != null ? new WatchKind.fromJson(json['kind']) : null;
+    final kind = json['kind'] != null ? WatchKind.fromJson(json['kind']) : null;
     return new FileSystemWatcher(globPattern, kind);
   }
 
@@ -2969,14 +2946,13 @@ class FoldingRange implements ToJsonable {
       throw 'endLine is required but was not provided';
     }
   }
-  factory FoldingRange.fromJson(Map<String, dynamic> json) {
+  static FoldingRange fromJson(Map<String, dynamic> json) {
     final startLine = json['startLine'];
     final startCharacter = json['startCharacter'];
     final endLine = json['endLine'];
     final endCharacter = json['endCharacter'];
-    final kind = json['kind'] != null
-        ? new FoldingRangeKind.fromJson(json['kind'])
-        : null;
+    final kind =
+        json['kind'] != null ? FoldingRangeKind.fromJson(json['kind']) : null;
     return new FoldingRange(
         startLine, startCharacter, endLine, endCharacter, kind);
   }
@@ -3072,9 +3048,9 @@ class FoldingRangeParams implements ToJsonable {
       throw 'textDocument is required but was not provided';
     }
   }
-  factory FoldingRangeParams.fromJson(Map<String, dynamic> json) {
+  static FoldingRangeParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     return new FoldingRangeParams(textDocument);
   }
@@ -3118,7 +3094,7 @@ class FormattingOptions implements ToJsonable {
       throw 'insertSpaces is required but was not provided';
     }
   }
-  factory FormattingOptions.fromJson(Map<String, dynamic> json) {
+  static FormattingOptions fromJson(Map<String, dynamic> json) {
     final tabSize = json['tabSize'];
     final insertSpaces = json['insertSpaces'];
     return new FormattingOptions(tabSize, insertSpaces);
@@ -3155,29 +3131,28 @@ class Hover implements ToJsonable {
       throw 'contents is required but was not provided';
     }
   }
-  factory Hover.fromJson(Map<String, dynamic> json) {
+  static Hover fromJson(Map<String, dynamic> json) {
     final contents = MarkedString.canParse(json['contents'])
         ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t1(
             json['contents'] != null
-                ? new MarkedString.fromJson(json['contents'])
+                ? MarkedString.fromJson(json['contents'])
                 : null)
         : ((json['contents'] is List &&
                 (json['contents'].length == 0 ||
                     json['contents']
                         .every((item) => MarkedString.canParse(item))))
             ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t2(json['contents']
-                ?.map((item) =>
-                    item != null ? new MarkedString.fromJson(item) : null)
+                ?.map(
+                    (item) => item != null ? MarkedString.fromJson(item) : null)
                 ?.cast<MarkedString>()
                 ?.toList())
             : (MarkupContent.canParse(json['contents'])
                 ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t3(
                     json['contents'] != null
-                        ? new MarkupContent.fromJson(json['contents'])
+                        ? MarkupContent.fromJson(json['contents'])
                         : null)
                 : (throw '''${json['contents']} was not one of (MarkedString, MarkedString[], MarkupContent)''')));
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     return new Hover(contents, range);
   }
 
@@ -3218,17 +3193,16 @@ class InitializeParams implements ToJsonable {
       throw 'capabilities is required but was not provided';
     }
   }
-  factory InitializeParams.fromJson(Map<String, dynamic> json) {
+  static InitializeParams fromJson(Map<String, dynamic> json) {
     final processId = json['processId'];
     final rootPath = json['rootPath'];
     final rootUri = json['rootUri'];
     final initializationOptions = json['initializationOptions'];
     final capabilities = json['capabilities'] != null
-        ? new ClientCapabilities.fromJson(json['capabilities'])
+        ? ClientCapabilities.fromJson(json['capabilities'])
         : null;
     final workspaceFolders = json['workspaceFolders']
-        ?.map(
-            (item) => item != null ? new WorkspaceFolder.fromJson(item) : null)
+        ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
     return new InitializeParams(processId, rootPath, rootUri,
@@ -3301,9 +3275,9 @@ class InitializeResult implements ToJsonable {
       throw 'capabilities is required but was not provided';
     }
   }
-  factory InitializeResult.fromJson(Map<String, dynamic> json) {
+  static InitializeResult fromJson(Map<String, dynamic> json) {
     final capabilities = json['capabilities'] != null
-        ? new ServerCapabilities.fromJson(json['capabilities'])
+        ? ServerCapabilities.fromJson(json['capabilities'])
         : null;
     return new InitializeResult(capabilities);
   }
@@ -3386,10 +3360,9 @@ class Location implements ToJsonable {
       throw 'range is required but was not provided';
     }
   }
-  factory Location.fromJson(Map<String, dynamic> json) {
+  static Location fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     return new Location(uri, range);
   }
 
@@ -3421,9 +3394,9 @@ class LogMessageParams implements ToJsonable {
       throw 'message is required but was not provided';
     }
   }
-  factory LogMessageParams.fromJson(Map<String, dynamic> json) {
+  static LogMessageParams fromJson(Map<String, dynamic> json) {
     final type =
-        json['type'] != null ? new MessageType.fromJson(json['type']) : null;
+        json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
     return new LogMessageParams(type, message);
   }
@@ -3460,7 +3433,7 @@ class MarkedString implements ToJsonable {
       throw 'value is required but was not provided';
     }
   }
-  factory MarkedString.fromJson(Map<String, dynamic> json) {
+  static MarkedString fromJson(Map<String, dynamic> json) {
     final language = json['language'];
     final value = json['value'];
     return new MarkedString(language, value);
@@ -3520,9 +3493,9 @@ class MarkupContent implements ToJsonable {
       throw 'value is required but was not provided';
     }
   }
-  factory MarkupContent.fromJson(Map<String, dynamic> json) {
+  static MarkupContent fromJson(Map<String, dynamic> json) {
     final kind =
-        json['kind'] != null ? new MarkupKind.fromJson(json['kind']) : null;
+        json['kind'] != null ? MarkupKind.fromJson(json['kind']) : null;
     final value = json['value'];
     return new MarkupContent(kind, value);
   }
@@ -3593,7 +3566,7 @@ class Message implements ToJsonable {
       throw 'jsonrpc is required but was not provided';
     }
   }
-  factory Message.fromJson(Map<String, dynamic> json) {
+  static Message fromJson(Map<String, dynamic> json) {
     final jsonrpc = json['jsonrpc'];
     return new Message(jsonrpc);
   }
@@ -3620,7 +3593,7 @@ class MessageActionItem implements ToJsonable {
       throw 'title is required but was not provided';
     }
   }
-  factory MessageActionItem.fromJson(Map<String, dynamic> json) {
+  static MessageActionItem fromJson(Map<String, dynamic> json) {
     final title = json['title'];
     return new MessageActionItem(title);
   }
@@ -3681,7 +3654,7 @@ class MessageType {
   bool operator ==(o) => o is MessageType && o._value == _value;
 }
 
-class NotificationMessage implements Message, ToJsonable {
+class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   NotificationMessage(this.method, this.params, this.jsonrpc) {
     if (method == null) {
       throw 'method is required but was not provided';
@@ -3690,7 +3663,7 @@ class NotificationMessage implements Message, ToJsonable {
       throw 'jsonrpc is required but was not provided';
     }
   }
-  factory NotificationMessage.fromJson(Map<String, dynamic> json) {
+  static NotificationMessage fromJson(Map<String, dynamic> json) {
     final method = json['method'];
     final params = (json['params'] is List &&
             (json['params'].length == 0 ||
@@ -3738,14 +3711,14 @@ class ParameterInformation implements ToJsonable {
       throw 'label is required but was not provided';
     }
   }
-  factory ParameterInformation.fromJson(Map<String, dynamic> json) {
+  static ParameterInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final documentation = json['documentation'] is String
         ? new Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'])
             ? new Either2<String, MarkupContent>.t2(
                 json['documentation'] != null
-                    ? new MarkupContent.fromJson(json['documentation'])
+                    ? MarkupContent.fromJson(json['documentation'])
                     : null)
             : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
     return new ParameterInformation(label, documentation);
@@ -3783,7 +3756,7 @@ class Position implements ToJsonable {
       throw 'character is required but was not provided';
     }
   }
-  factory Position.fromJson(Map<String, dynamic> json) {
+  static Position fromJson(Map<String, dynamic> json) {
     final line = json['line'];
     final character = json['character'];
     return new Position(line, character);
@@ -3827,10 +3800,10 @@ class PublishDiagnosticsParams implements ToJsonable {
       throw 'diagnostics is required but was not provided';
     }
   }
-  factory PublishDiagnosticsParams.fromJson(Map<String, dynamic> json) {
+  static PublishDiagnosticsParams fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final diagnostics = json['diagnostics']
-        ?.map((item) => item != null ? new Diagnostic.fromJson(item) : null)
+        ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
     return new PublishDiagnosticsParams(uri, diagnostics);
@@ -3870,10 +3843,10 @@ class Range implements ToJsonable {
       throw 'end is required but was not provided';
     }
   }
-  factory Range.fromJson(Map<String, dynamic> json) {
+  static Range fromJson(Map<String, dynamic> json) {
     final start =
-        json['start'] != null ? new Position.fromJson(json['start']) : null;
-    final end = json['end'] != null ? new Position.fromJson(json['end']) : null;
+        json['start'] != null ? Position.fromJson(json['start']) : null;
+    final end = json['end'] != null ? Position.fromJson(json['end']) : null;
     return new Range(start, end);
   }
 
@@ -3905,7 +3878,7 @@ class ReferenceContext implements ToJsonable {
       throw 'includeDeclaration is required but was not provided';
     }
   }
-  factory ReferenceContext.fromJson(Map<String, dynamic> json) {
+  static ReferenceContext fromJson(Map<String, dynamic> json) {
     final includeDeclaration = json['includeDeclaration'];
     return new ReferenceContext(includeDeclaration);
   }
@@ -3939,16 +3912,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       throw 'position is required but was not provided';
     }
   }
-  factory ReferenceParams.fromJson(Map<String, dynamic> json) {
+  static ReferenceParams fromJson(Map<String, dynamic> json) {
     final context = json['context'] != null
-        ? new ReferenceContext.fromJson(json['context'])
+        ? ReferenceContext.fromJson(json['context'])
         : null;
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final position = json['position'] != null
-        ? new Position.fromJson(json['position'])
-        : null;
+    final position =
+        json['position'] != null ? Position.fromJson(json['position']) : null;
     return new ReferenceParams(context, textDocument, position);
   }
 
@@ -3992,7 +3964,7 @@ class Registration implements ToJsonable {
       throw 'method is required but was not provided';
     }
   }
-  factory Registration.fromJson(Map<String, dynamic> json) {
+  static Registration fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final method = json['method'];
     final registerOptions = json['registerOptions'];
@@ -4034,9 +4006,9 @@ class RegistrationParams implements ToJsonable {
       throw 'registrations is required but was not provided';
     }
   }
-  factory RegistrationParams.fromJson(Map<String, dynamic> json) {
+  static RegistrationParams fromJson(Map<String, dynamic> json) {
     final registrations = json['registrations']
-        ?.map((item) => item != null ? new Registration.fromJson(item) : null)
+        ?.map((item) => item != null ? Registration.fromJson(item) : null)
         ?.cast<Registration>()
         ?.toList();
     return new RegistrationParams(registrations);
@@ -4071,11 +4043,11 @@ class RenameFile implements FileOperation, ToJsonable {
       throw 'newUri is required but was not provided';
     }
   }
-  factory RenameFile.fromJson(Map<String, dynamic> json) {
+  static RenameFile fromJson(Map<String, dynamic> json) {
     final oldUri = json['oldUri'];
     final newUri = json['newUri'];
     final options = json['options'] != null
-        ? new RenameFileOptions.fromJson(json['options'])
+        ? RenameFileOptions.fromJson(json['options'])
         : null;
     return new RenameFile(oldUri, newUri, options);
   }
@@ -4111,7 +4083,7 @@ class RenameFile implements FileOperation, ToJsonable {
 /// Rename file options
 class RenameFileOptions implements ToJsonable {
   RenameFileOptions(this.overwrite, this.ignoreIfExists);
-  factory RenameFileOptions.fromJson(Map<String, dynamic> json) {
+  static RenameFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
     return new RenameFileOptions(overwrite, ignoreIfExists);
@@ -4143,7 +4115,7 @@ class RenameFileOptions implements ToJsonable {
 /// Rename options
 class RenameOptions implements ToJsonable {
   RenameOptions(this.prepareProvider);
-  factory RenameOptions.fromJson(Map<String, dynamic> json) {
+  static RenameOptions fromJson(Map<String, dynamic> json) {
     final prepareProvider = json['prepareProvider'];
     return new RenameOptions(prepareProvider);
   }
@@ -4177,13 +4149,12 @@ class RenameParams implements ToJsonable {
       throw 'newName is required but was not provided';
     }
   }
-  factory RenameParams.fromJson(Map<String, dynamic> json) {
+  static RenameParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final position = json['position'] != null
-        ? new Position.fromJson(json['position'])
-        : null;
+    final position =
+        json['position'] != null ? Position.fromJson(json['position']) : null;
     final newName = json['newName'];
     return new RenameParams(textDocument, position, newName);
   }
@@ -4224,10 +4195,10 @@ class RenameParams implements ToJsonable {
 class RenameRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   RenameRegistrationOptions(this.prepareProvider, this.documentSelector);
-  factory RenameRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static RenameRegistrationOptions fromJson(Map<String, dynamic> json) {
     final prepareProvider = json['prepareProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new RenameRegistrationOptions(prepareProvider, documentSelector);
@@ -4261,7 +4232,7 @@ class RenameRegistrationOptions
   }
 }
 
-class RequestMessage implements Message, ToJsonable {
+class RequestMessage implements Message, IncomingMessage, ToJsonable {
   RequestMessage(this.id, this.method, this.params, this.jsonrpc) {
     if (id == null) {
       throw 'id is required but was not provided';
@@ -4273,7 +4244,7 @@ class RequestMessage implements Message, ToJsonable {
       throw 'jsonrpc is required but was not provided';
     }
   }
-  factory RequestMessage.fromJson(Map<String, dynamic> json) {
+  static RequestMessage fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
         ? new Either2<num, String>.t1(json['id'])
         : (json['id'] is String
@@ -4368,7 +4339,7 @@ class ResponseError<D> implements ToJsonable {
       throw 'message is required but was not provided';
     }
   }
-  factory ResponseError.fromJson(Map<String, dynamic> json) {
+  static ResponseError<D> fromJson<D>(Map<String, dynamic> json) {
     final code = json['code'];
     final message = json['message'];
     final data = json['data'];
@@ -4412,7 +4383,7 @@ class ResponseMessage implements Message, ToJsonable {
       throw 'jsonrpc is required but was not provided';
     }
   }
-  factory ResponseMessage.fromJson(Map<String, dynamic> json) {
+  static ResponseMessage fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
         ? new Either2<num, String>.t1(json['id'])
         : (json['id'] is String
@@ -4461,7 +4432,7 @@ class ResponseMessage implements Message, ToJsonable {
 /// Save options.
 class SaveOptions implements ToJsonable {
   SaveOptions(this.includeText);
-  factory SaveOptions.fromJson(Map<String, dynamic> json) {
+  static SaveOptions fromJson(Map<String, dynamic> json) {
     final includeText = json['includeText'];
     return new SaveOptions(includeText);
   }
@@ -4504,12 +4475,12 @@ class ServerCapabilities implements ToJsonable {
       this.executeCommandProvider,
       this.supported,
       this.changeNotifications);
-  factory ServerCapabilities.fromJson(Map<String, dynamic> json) {
+  static ServerCapabilities fromJson(Map<String, dynamic> json) {
     final textDocumentSync = TextDocumentSyncOptions.canParse(
             json['textDocumentSync'])
         ? new Either2<TextDocumentSyncOptions, num>.t1(
             json['textDocumentSync'] != null
-                ? new TextDocumentSyncOptions.fromJson(json['textDocumentSync'])
+                ? TextDocumentSyncOptions.fromJson(json['textDocumentSync'])
                 : null)
         : (json['textDocumentSync'] is num
             ? new Either2<TextDocumentSyncOptions, num>.t2(
@@ -4517,10 +4488,10 @@ class ServerCapabilities implements ToJsonable {
             : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, number)'''));
     final hoverProvider = json['hoverProvider'];
     final completionProvider = json['completionProvider'] != null
-        ? new CompletionOptions.fromJson(json['completionProvider'])
+        ? CompletionOptions.fromJson(json['completionProvider'])
         : null;
     final signatureHelpProvider = json['signatureHelpProvider'] != null
-        ? new SignatureHelpOptions.fromJson(json['signatureHelpProvider'])
+        ? SignatureHelpOptions.fromJson(json['signatureHelpProvider'])
         : null;
     final definitionProvider = json['definitionProvider'];
     final referencesProvider = json['referencesProvider'];
@@ -4532,32 +4503,32 @@ class ServerCapabilities implements ToJsonable {
         : (CodeActionOptions.canParse(json['codeActionProvider'])
             ? new Either2<bool, CodeActionOptions>.t2(
                 json['codeActionProvider'] != null
-                    ? new CodeActionOptions.fromJson(json['codeActionProvider'])
+                    ? CodeActionOptions.fromJson(json['codeActionProvider'])
                     : null)
             : (throw '''${json['codeActionProvider']} was not one of (boolean, CodeActionOptions)'''));
     final codeLensProvider = json['codeLensProvider'] != null
-        ? new CodeLensOptions.fromJson(json['codeLensProvider'])
+        ? CodeLensOptions.fromJson(json['codeLensProvider'])
         : null;
     final documentFormattingProvider = json['documentFormattingProvider'];
     final documentRangeFormattingProvider =
         json['documentRangeFormattingProvider'];
     final documentOnTypeFormattingProvider =
         json['documentOnTypeFormattingProvider'] != null
-            ? new DocumentOnTypeFormattingOptions.fromJson(
+            ? DocumentOnTypeFormattingOptions.fromJson(
                 json['documentOnTypeFormattingProvider'])
             : null;
     final renameProvider = json['renameProvider'] is bool
         ? new Either2<bool, RenameOptions>.t1(json['renameProvider'])
         : (RenameOptions.canParse(json['renameProvider'])
             ? new Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
-                ? new RenameOptions.fromJson(json['renameProvider'])
+                ? RenameOptions.fromJson(json['renameProvider'])
                 : null)
             : (throw '''${json['renameProvider']} was not one of (boolean, RenameOptions)'''));
     final documentLinkProvider = json['documentLinkProvider'] != null
-        ? new DocumentLinkOptions.fromJson(json['documentLinkProvider'])
+        ? DocumentLinkOptions.fromJson(json['documentLinkProvider'])
         : null;
     final executeCommandProvider = json['executeCommandProvider'] != null
-        ? new ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
+        ? ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
         : null;
     final supported = json['supported'];
     final changeNotifications = json['changeNotifications'] is String
@@ -4740,9 +4711,9 @@ class ShowMessageParams implements ToJsonable {
       throw 'message is required but was not provided';
     }
   }
-  factory ShowMessageParams.fromJson(Map<String, dynamic> json) {
+  static ShowMessageParams fromJson(Map<String, dynamic> json) {
     final type =
-        json['type'] != null ? new MessageType.fromJson(json['type']) : null;
+        json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
     return new ShowMessageParams(type, message);
   }
@@ -4779,13 +4750,12 @@ class ShowMessageRequestParams implements ToJsonable {
       throw 'message is required but was not provided';
     }
   }
-  factory ShowMessageRequestParams.fromJson(Map<String, dynamic> json) {
+  static ShowMessageRequestParams fromJson(Map<String, dynamic> json) {
     final type =
-        json['type'] != null ? new MessageType.fromJson(json['type']) : null;
+        json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
     final actions = json['actions']
-        ?.map((item) =>
-            item != null ? new MessageActionItem.fromJson(item) : null)
+        ?.map((item) => item != null ? MessageActionItem.fromJson(item) : null)
         ?.cast<MessageActionItem>()
         ?.toList();
     return new ShowMessageRequestParams(type, message, actions);
@@ -4829,10 +4799,10 @@ class SignatureHelp implements ToJsonable {
       throw 'signatures is required but was not provided';
     }
   }
-  factory SignatureHelp.fromJson(Map<String, dynamic> json) {
+  static SignatureHelp fromJson(Map<String, dynamic> json) {
     final signatures = json['signatures']
-        ?.map((item) =>
-            item != null ? new SignatureInformation.fromJson(item) : null)
+        ?.map(
+            (item) => item != null ? SignatureInformation.fromJson(item) : null)
         ?.cast<SignatureInformation>()
         ?.toList();
     final activeSignature = json['activeSignature'];
@@ -4889,7 +4859,7 @@ class SignatureHelp implements ToJsonable {
 /// Signature help options.
 class SignatureHelpOptions implements ToJsonable {
   SignatureHelpOptions(this.triggerCharacters);
-  factory SignatureHelpOptions.fromJson(Map<String, dynamic> json) {
+  static SignatureHelpOptions fromJson(Map<String, dynamic> json) {
     final triggerCharacters = json['triggerCharacters']
         ?.map((item) => item)
         ?.cast<String>()
@@ -4918,13 +4888,13 @@ class SignatureHelpRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   SignatureHelpRegistrationOptions(
       this.triggerCharacters, this.documentSelector);
-  factory SignatureHelpRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static SignatureHelpRegistrationOptions fromJson(Map<String, dynamic> json) {
     final triggerCharacters = json['triggerCharacters']
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new SignatureHelpRegistrationOptions(
@@ -4968,19 +4938,19 @@ class SignatureInformation implements ToJsonable {
       throw 'label is required but was not provided';
     }
   }
-  factory SignatureInformation.fromJson(Map<String, dynamic> json) {
+  static SignatureInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final documentation = json['documentation'] is String
         ? new Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'])
             ? new Either2<String, MarkupContent>.t2(
                 json['documentation'] != null
-                    ? new MarkupContent.fromJson(json['documentation'])
+                    ? MarkupContent.fromJson(json['documentation'])
                     : null)
             : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
     final parameters = json['parameters']
-        ?.map((item) =>
-            item != null ? new ParameterInformation.fromJson(item) : null)
+        ?.map(
+            (item) => item != null ? ParameterInformation.fromJson(item) : null)
         ?.cast<ParameterInformation>()
         ?.toList();
     return new SignatureInformation(label, documentation, parameters);
@@ -5020,7 +4990,7 @@ class SignatureInformation implements ToJsonable {
 /// initialize request.
 class StaticRegistrationOptions implements ToJsonable {
   StaticRegistrationOptions(this.id);
-  factory StaticRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static StaticRegistrationOptions fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     return new StaticRegistrationOptions(id);
   }
@@ -5058,13 +5028,12 @@ class SymbolInformation implements ToJsonable {
       throw 'location is required but was not provided';
     }
   }
-  factory SymbolInformation.fromJson(Map<String, dynamic> json) {
+  static SymbolInformation fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final kind = json['kind'];
     final deprecated = json['deprecated'];
-    final location = json['location'] != null
-        ? new Location.fromJson(json['location'])
-        : null;
+    final location =
+        json['location'] != null ? Location.fromJson(json['location']) : null;
     final containerName = json['containerName'];
     return new SymbolInformation(
         name, kind, deprecated, location, containerName);
@@ -5213,11 +5182,11 @@ class TextDocumentChangeRegistrationOptions
       throw 'syncKind is required but was not provided';
     }
   }
-  factory TextDocumentChangeRegistrationOptions.fromJson(
+  static TextDocumentChangeRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final syncKind = json['syncKind'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new TextDocumentChangeRegistrationOptions(
@@ -5258,7 +5227,7 @@ class TextDocumentChangeRegistrationOptions
 class TextDocumentClientCapabilities implements ToJsonable {
   TextDocumentClientCapabilities(this.dynamicRegistration, this.willSave,
       this.willSaveWaitUntil, this.didSave);
-  factory TextDocumentClientCapabilities.fromJson(Map<String, dynamic> json) {
+  static TextDocumentClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final willSave = json['willSave'];
     final willSaveWaitUntil = json['willSaveWaitUntil'];
@@ -5315,9 +5284,8 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       throw 'text is required but was not provided';
     }
   }
-  factory TextDocumentContentChangeEvent.fromJson(Map<String, dynamic> json) {
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+  static TextDocumentContentChangeEvent fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final rangeLength = json['rangeLength'];
     final text = json['text'];
     return new TextDocumentContentChangeEvent(range, rangeLength, text);
@@ -5360,12 +5328,12 @@ class TextDocumentEdit implements FileOperation, ToJsonable {
       throw 'edits is required but was not provided';
     }
   }
-  factory TextDocumentEdit.fromJson(Map<String, dynamic> json) {
+  static TextDocumentEdit fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new VersionedTextDocumentIdentifier.fromJson(json['textDocument'])
+        ? VersionedTextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final edits = json['edits']
-        ?.map((item) => item != null ? new TextEdit.fromJson(item) : null)
+        ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
     return new TextDocumentEdit(textDocument, edits);
@@ -5402,7 +5370,7 @@ class TextDocumentIdentifier implements ToJsonable {
       throw 'uri is required but was not provided';
     }
   }
-  factory TextDocumentIdentifier.fromJson(Map<String, dynamic> json) {
+  static TextDocumentIdentifier fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     return new TextDocumentIdentifier(uri);
   }
@@ -5438,7 +5406,7 @@ class TextDocumentItem implements ToJsonable {
       throw 'text is required but was not provided';
     }
   }
-  factory TextDocumentItem.fromJson(Map<String, dynamic> json) {
+  static TextDocumentItem fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final languageId = json['languageId'];
     final version = json['version'];
@@ -5492,13 +5460,12 @@ class TextDocumentPositionParams implements ToJsonable {
       throw 'position is required but was not provided';
     }
   }
-  factory TextDocumentPositionParams.fromJson(Map<String, dynamic> json) {
+  static TextDocumentPositionParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    final position = json['position'] != null
-        ? new Position.fromJson(json['position'])
-        : null;
+    final position =
+        json['position'] != null ? Position.fromJson(json['position']) : null;
     return new TextDocumentPositionParams(textDocument, position);
   }
 
@@ -5528,9 +5495,9 @@ class TextDocumentPositionParams implements ToJsonable {
 
 class TextDocumentRegistrationOptions implements ToJsonable {
   TextDocumentRegistrationOptions(this.documentSelector);
-  factory TextDocumentRegistrationOptions.fromJson(Map<String, dynamic> json) {
+  static TextDocumentRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new TextDocumentRegistrationOptions(documentSelector);
@@ -5598,11 +5565,11 @@ class TextDocumentSaveReason {
 class TextDocumentSaveRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   TextDocumentSaveRegistrationOptions(this.includeText, this.documentSelector);
-  factory TextDocumentSaveRegistrationOptions.fromJson(
+  static TextDocumentSaveRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final includeText = json['includeText'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
+        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new TextDocumentSaveRegistrationOptions(
@@ -5682,15 +5649,15 @@ class TextDocumentSyncKind {
 class TextDocumentSyncOptions implements ToJsonable {
   TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
       this.willSaveWaitUntil, this.save);
-  factory TextDocumentSyncOptions.fromJson(Map<String, dynamic> json) {
+  static TextDocumentSyncOptions fromJson(Map<String, dynamic> json) {
     final openClose = json['openClose'];
     final change = json['change'] != null
-        ? new TextDocumentSyncKind.fromJson(json['change'])
+        ? TextDocumentSyncKind.fromJson(json['change'])
         : null;
     final willSave = json['willSave'];
     final willSaveWaitUntil = json['willSaveWaitUntil'];
     final save =
-        json['save'] != null ? new SaveOptions.fromJson(json['save']) : null;
+        json['save'] != null ? SaveOptions.fromJson(json['save']) : null;
     return new TextDocumentSyncOptions(
         openClose, change, willSave, willSaveWaitUntil, save);
   }
@@ -5751,9 +5718,8 @@ class TextEdit implements ToJsonable {
       throw 'newText is required but was not provided';
     }
   }
-  factory TextEdit.fromJson(Map<String, dynamic> json) {
-    final range =
-        json['range'] != null ? new Range.fromJson(json['range']) : null;
+  static TextEdit fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final newText = json['newText'];
     return new TextEdit(range, newText);
   }
@@ -5794,7 +5760,7 @@ class Unregistration implements ToJsonable {
       throw 'method is required but was not provided';
     }
   }
-  factory Unregistration.fromJson(Map<String, dynamic> json) {
+  static Unregistration fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final method = json['method'];
     return new Unregistration(id, method);
@@ -5830,9 +5796,9 @@ class UnregistrationParams implements ToJsonable {
       throw 'unregisterations is required but was not provided';
     }
   }
-  factory UnregistrationParams.fromJson(Map<String, dynamic> json) {
+  static UnregistrationParams fromJson(Map<String, dynamic> json) {
     final unregisterations = json['unregisterations']
-        ?.map((item) => item != null ? new Unregistration.fromJson(item) : null)
+        ?.map((item) => item != null ? Unregistration.fromJson(item) : null)
         ?.cast<Unregistration>()
         ?.toList();
     return new UnregistrationParams(unregisterations);
@@ -5864,7 +5830,7 @@ class VersionedTextDocumentIdentifier
       throw 'uri is required but was not provided';
     }
   }
-  factory VersionedTextDocumentIdentifier.fromJson(Map<String, dynamic> json) {
+  static VersionedTextDocumentIdentifier fromJson(Map<String, dynamic> json) {
     final version = json['version'];
     final uri = json['uri'];
     return new VersionedTextDocumentIdentifier(version, uri);
@@ -5951,9 +5917,9 @@ class WillSaveTextDocumentParams implements ToJsonable {
       throw 'reason is required but was not provided';
     }
   }
-  factory WillSaveTextDocumentParams.fromJson(Map<String, dynamic> json) {
+  static WillSaveTextDocumentParams fromJson(Map<String, dynamic> json) {
     final textDocument = json['textDocument'] != null
-        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final reason = json['reason'];
     return new WillSaveTextDocumentParams(textDocument, reason);
@@ -5986,16 +5952,16 @@ class WillSaveTextDocumentParams implements ToJsonable {
 class WorkspaceClientCapabilities implements ToJsonable {
   WorkspaceClientCapabilities(this.applyEdit, this.documentChanges,
       this.resourceOperations, this.failureHandling);
-  factory WorkspaceClientCapabilities.fromJson(Map<String, dynamic> json) {
+  static WorkspaceClientCapabilities fromJson(Map<String, dynamic> json) {
     final applyEdit = json['applyEdit'];
     final documentChanges = json['documentChanges'];
     final resourceOperations = json['resourceOperations']
         ?.map((item) =>
-            item != null ? new ResourceOperationKind.fromJson(item) : null)
+            item != null ? ResourceOperationKind.fromJson(item) : null)
         ?.cast<ResourceOperationKind>()
         ?.toList();
     final failureHandling = json['failureHandling'] != null
-        ? new FailureHandlingKind.fromJson(json['failureHandling'])
+        ? FailureHandlingKind.fromJson(json['failureHandling'])
         : null;
     return new WorkspaceClientCapabilities(
         applyEdit, documentChanges, resourceOperations, failureHandling);
@@ -6043,7 +6009,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 
 class WorkspaceEdit implements ToJsonable {
   WorkspaceEdit(this.changes, this.documentChanges);
-  factory WorkspaceEdit.fromJson(Map<String, dynamic> json) {
+  static WorkspaceEdit fromJson(Map<String, dynamic> json) {
     final changes = json['changes'];
     final documentChanges = json['documentChanges']
         ?.map((item) => item)
@@ -6102,7 +6068,7 @@ class WorkspaceFolder implements ToJsonable {
       throw 'name is required but was not provided';
     }
   }
-  factory WorkspaceFolder.fromJson(Map<String, dynamic> json) {
+  static WorkspaceFolder fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final name = json['name'];
     return new WorkspaceFolder(uri, name);
@@ -6142,15 +6108,13 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       throw 'removed is required but was not provided';
     }
   }
-  factory WorkspaceFoldersChangeEvent.fromJson(Map<String, dynamic> json) {
+  static WorkspaceFoldersChangeEvent fromJson(Map<String, dynamic> json) {
     final added = json['added']
-        ?.map(
-            (item) => item != null ? new WorkspaceFolder.fromJson(item) : null)
+        ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
     final removed = json['removed']
-        ?.map(
-            (item) => item != null ? new WorkspaceFolder.fromJson(item) : null)
+        ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
     return new WorkspaceFoldersChangeEvent(added, removed);
@@ -6192,7 +6156,7 @@ class WorkspaceSymbolParams implements ToJsonable {
       throw 'query is required but was not provided';
     }
   }
-  factory WorkspaceSymbolParams.fromJson(Map<String, dynamic> json) {
+  static WorkspaceSymbolParams fromJson(Map<String, dynamic> json) {
     final query = json['query'];
     return new WorkspaceSymbolParams(query);
   }

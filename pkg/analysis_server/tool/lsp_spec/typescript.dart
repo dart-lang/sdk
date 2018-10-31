@@ -77,6 +77,8 @@ List<String> _getSpecialBaseClasses(String name) {
   ];
   if (fileOperationTypes.contains(name)) {
     return ['FileOperation'];
+  } else if (name == 'RequestMessage' || name == 'NotificationMessage') {
+    return ['IncomingMessage'];
   } else {
     return [];
   }

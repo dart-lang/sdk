@@ -172,6 +172,9 @@ String _stripTypeArgs(String typeName) => typeName.contains('<')
     ? typeName.substring(0, typeName.indexOf('<'))
     : typeName;
 
+String _getTypeArgs(String typeName) =>
+    typeName.contains('<') ? typeName.substring(typeName.indexOf('<')) : '';
+
 Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
   lines = lines.map((l) => l.trimRight()).toList();
   for (var line in lines) {
@@ -328,7 +331,7 @@ void _writeFromJsonCode(
     buffer.write("$valueCode");
   } else if (_isSpecType(type)) {
     // Our own types have fromJson() constructors we can call.
-    buffer.write("$valueCode != null ? new $type.fromJson($valueCode) : null");
+    buffer.write("$valueCode != null ? $type.fromJson($valueCode) : null");
   } else if (_isList(type)) {
     // Lists need to be mapped so we can recursively call (they may need fromJson).
     buffer.write("$valueCode?.map((item) => ");
@@ -389,7 +392,7 @@ void _writeFromJsonConstructor(
   }
   buffer
     ..writeIndentedln(
-        'factory ${_stripTypeArgs(interface.name)}.fromJson(Map<String, dynamic> json) {')
+        'static ${interface.name} fromJson${_getTypeArgs(interface.name)}(Map<String, dynamic> json) {')
     ..indent();
   for (final field in allFields) {
     buffer.writeIndented('final ${field.name} = ');

@@ -150,3 +150,16 @@ class FileOperation {}
 abstract class ToJsonable {
   Object toJson();
 }
+
+/// A base class containing the fields common to RequestMessage and
+/// NotificationMessage to simplify handling.
+abstract class IncomingMessage {
+  String get method;
+  Either2<List<dynamic>, dynamic> get params;
+}
+
+abstract class ServerErrorCodes {
+  // JSON-RPC reserves -32000 to -32099 for implementation-defined server-errors.
+  static const ServerAlreadyStarted = -32000;
+  static const UnhandledError = -32001;
+}
