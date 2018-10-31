@@ -4733,7 +4733,7 @@ class PropertyAccessorElementForLink_Variable extends Object
 /// Base class representing an element which can be the target of a reference.
 /// When used as a mixin, implements the default behavior shared by most
 /// elements.
-abstract class ReferenceableElementForLink implements Element {
+mixin ReferenceableElementForLink implements Element {
   /// If this element is a class reference, return it. Otherwise return `null`.
   ClassElementForLink get asClass => null;
 

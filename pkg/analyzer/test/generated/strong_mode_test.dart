@@ -2909,7 +2909,7 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
 }
 
 /// Test cases for [StrongModeStaticTypeAnalyzer2Test]
-abstract class StrongModeStaticTypeAnalyzer2TestCases
+mixin StrongModeStaticTypeAnalyzer2TestCases
     implements StaticTypeAnalyzer2TestShared {
   void expectStaticInvokeType(String search, String type) {
     var invocation = findIdentifier(search).parent as MethodInvocation;

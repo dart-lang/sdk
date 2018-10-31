@@ -29,7 +29,7 @@ final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
-abstract class ResolutionTest implements ResourceProviderMixin {
+mixin ResolutionTest implements ResourceProviderMixin {
   TestAnalysisResult result;
   FindNode findNode;
   FindElement findElement;

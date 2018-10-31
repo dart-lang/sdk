@@ -20,7 +20,7 @@ main() {
 class GenericTypeAliasDriverResolutionTest extends DriverResolutionTest
     with GenericTypeAliasResolutionMixin {}
 
-abstract class GenericTypeAliasResolutionMixin implements ResolutionTest {
+mixin GenericTypeAliasResolutionMixin implements ResolutionTest {
   test_typeParameters() async {
     addTestFile(r'''
 class A {}

@@ -21,7 +21,7 @@ main() {
 class ClassDriverResolutionTest extends DriverResolutionTest
     with ClassResolutionMixin {}
 
-abstract class ClassResolutionMixin implements ResolutionTest {
+mixin ClassResolutionMixin implements ResolutionTest {
   test_abstractSuperMemberReference_getter() async {
     addTestFile(r'''
 abstract class A {

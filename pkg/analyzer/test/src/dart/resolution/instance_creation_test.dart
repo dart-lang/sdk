@@ -20,7 +20,7 @@ main() {
 class InstanceCreationDriverResolutionTest extends DriverResolutionTest
     with InstanceCreationResolutionMixin {}
 
-abstract class InstanceCreationResolutionMixin implements ResolutionTest {
+mixin InstanceCreationResolutionMixin implements ResolutionTest {
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
     addTestFile(r'''
 class Foo<X> {

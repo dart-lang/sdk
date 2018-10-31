@@ -1106,7 +1106,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 /// This class is meant to be a mixin to concrete visitor methods to walk the
 /// [Element] or [AstNode]s produced by the Dart Analyzer to output Kythe
 /// [KytheEntry] protos.
-abstract class OutputUtils {
+mixin OutputUtils {
   /// A set of [String]s which have already had a name [KytheVName] created.
   final Set<String> nameNodes = new Set<String>();
 

@@ -20,7 +20,7 @@ void main() {
   });
 }
 
-abstract class InferredTypeMixin {
+mixin InferredTypeMixin {
   /// Extra top-level errors if needed due to being analyze multiple times.
   bool get hasExtraTaskModelPass => true;
 

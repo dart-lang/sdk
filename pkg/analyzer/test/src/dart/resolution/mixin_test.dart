@@ -23,7 +23,7 @@ main() {
 class MixinDriverResolutionTest extends DriverResolutionTest
     with MixinResolutionMixin {}
 
-abstract class MixinResolutionMixin implements ResolutionTest {
+mixin MixinResolutionMixin implements ResolutionTest {
   test_accessor_getter() async {
     addTestFile(r'''
 mixin M {

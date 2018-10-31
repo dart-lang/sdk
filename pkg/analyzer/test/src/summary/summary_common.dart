@@ -79,7 +79,7 @@ typedef void _EntityRefValidator(EntityRef entityRef);
 /// These test cases may be mixed into any class derived from
 /// [SummaryBlackBoxTestStrategy], allowing summary generation to be unit-tested
 /// in a variety of ways.
-abstract class SummaryTestCases implements SummaryBlackBoxTestStrategy {
+mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
   /**
    * Get access to the linked defining compilation unit.
    */

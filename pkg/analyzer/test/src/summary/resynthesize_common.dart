@@ -117,7 +117,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 /// Mixin containing test cases exercising summary resynthesis.  Intended to be
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ResynthesizeTestHelpers].
-abstract class ResynthesizeTestCases implements ResynthesizeTestHelpers {
+mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -8746,7 +8746,7 @@ int j;
 
 /// Mixin containing helper methods for testing summary resynthesis.  Intended
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
-abstract class ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
+mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
   /**
    * Names of variables which have initializers that are not valid constants,
    * so they are not resynthesized.

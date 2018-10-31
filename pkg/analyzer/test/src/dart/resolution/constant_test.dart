@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class ConstantDriverTest extends DriverResolutionTest with ConstantMixin {}
 
-abstract class ConstantMixin implements ResolutionTest {
+mixin ConstantMixin implements ResolutionTest {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {

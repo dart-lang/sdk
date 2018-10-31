@@ -27,7 +27,7 @@ class ExprBuilderTest extends ResynthesizeTestStrategyTwoPhase
 /// Mixin containing test cases exercising the [ExprBuilder].  Intended to be
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ExprBuilderTestHelpers].
-abstract class ExprBuilderTestCases implements ExprBuilderTestHelpers {
+mixin ExprBuilderTestCases implements ExprBuilderTestHelpers {
   void test_add() {
     checkSimpleExpression('0 + 1');
   }
@@ -478,9 +478,9 @@ class B {
   }
 }
 
-/// Mixin containing helper methods for testing the [ExprBuilder].  Intended to
+/// Mixin containing helper methods for testing the [ExprBuilder]. Intended to
 /// be applied to a class implementing [ResynthesizeTestStrategy].
-abstract class ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
+mixin ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
   Expression buildConstructorInitializer(String sourceText,
       {String className: 'C',
       String initializerName: 'x',

@@ -518,7 +518,7 @@ abstract class UnitResynthesizer {
 
 /// [UnitResynthesizerMixin] contains methods useful for implementing the
 /// [UnitResynthesizer] interface.
-abstract class UnitResynthesizerMixin implements UnitResynthesizer {
+mixin UnitResynthesizerMixin implements UnitResynthesizer {
   @override
   DartType createConstructorDefiningType(ElementImpl context,
       ReferenceInfo info, List<EntityRef> typeArgumentRefs) {

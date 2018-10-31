@@ -2288,8 +2288,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
 /// This interface is only used for constant variables that have initializers.
 ///
 /// This class is not intended to be part of the public API for analyzer.
-abstract class ConstVariableElement
-    implements ElementImpl, ConstantEvaluationTarget {
+mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
   ///
@@ -7237,7 +7236,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// [ParameterElement].
-abstract class ParameterElementMixin implements ParameterElement {
+mixin ParameterElementMixin implements ParameterElement {
   @override
   bool get isNamed => parameterKind == ParameterKind.NAMED;
 
@@ -7760,7 +7759,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
 /// Mixin providing the implementation of
 /// [TypeParameterizedElement.isSimplyBounded] for elements that define a type.
-abstract class SimplyBoundableMixin implements TypeParameterizedElement {
+mixin SimplyBoundableMixin implements TypeParameterizedElement {
   CompilationUnitElementImpl get enclosingUnit;
 
   @override
@@ -7946,7 +7945,7 @@ class TypeParameterElementImpl extends ElementImpl
 }
 
 /// Mixin representing an element which can have type parameters.
-abstract class TypeParameterizedElementMixin
+mixin TypeParameterizedElementMixin
     implements
         TypeParameterizedElement,
         ElementImpl,

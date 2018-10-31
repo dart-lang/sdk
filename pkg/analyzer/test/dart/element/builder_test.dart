@@ -1207,7 +1207,7 @@ main() {
  * It is used to test the [ApiElementBuilder] itself, and its usage by
  * [ElementBuilder].
  */
-abstract class _ApiElementBuilderTestMixin {
+mixin _ApiElementBuilderTestMixin {
   CompilationUnit get compilationUnit;
 
   void set isMixinSupportEnabled(bool value);
