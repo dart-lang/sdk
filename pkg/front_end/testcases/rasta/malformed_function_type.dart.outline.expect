@@ -8,6 +8,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Handle = (core::String) → dynamic;
+typedef Handle = (core::String) → invalid-type;
 static method main() → dynamic
   ;

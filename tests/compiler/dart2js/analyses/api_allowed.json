@@ -219,10 +219,6 @@
     "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of '>='.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/core/date_time.dart": {
-    "Dynamic access of 'dart.core::_value'.": 1,
-    "Dynamic access of 'isUtc'.": 1
-  },
   "org-dartlang-sdk:///sdk/lib/core/duration.dart": {
     "Dynamic access of 'dart.core::_duration'.": 1
   },

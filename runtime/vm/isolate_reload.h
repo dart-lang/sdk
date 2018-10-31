@@ -173,6 +173,7 @@ class IsolateReloadContext {
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
   intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
+  void DiscardSavedClassTable();
 
   void RegisterClass(const Class& new_cls);
 
@@ -244,9 +245,7 @@ class IsolateReloadContext {
 
   void CheckpointLibraries();
 
-  // Transforms the heap based on instance_morphers_. Return whether there was
-  // any morphing.
-  bool MorphInstances();
+  void MorphInstancesAndApplyNewClassTable();
 
   void RunNewFieldInitializers();
 

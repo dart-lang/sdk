@@ -79,4 +79,17 @@ class OutputCollector implements CompilerOutput {
         outputMap.putIfAbsent(type, () => {});
     return sinkMap.putIfAbsent(name, () => new BufferedOutputSink());
   }
+
+  Map<OutputType, Map<String, String>> clear() {
+    Map<OutputType, Map<String, String>> outputMapResult = {};
+    outputMap.forEach(
+        (OutputType outputType, Map<String, BufferedOutputSink> sinkMap) {
+      Map<String, String> sinkMapResult = outputMapResult[outputType] = {};
+      sinkMap.forEach((String name, BufferedOutputSink sink) {
+        sinkMapResult[name] = sink.toString();
+      });
+    });
+    outputMap.clear();
+    return outputMapResult;
+  }
 }

@@ -6,13 +6,21 @@
 library lib;
 
 import 'package:js/js.dart';
+import 'package:meta/dart2js.dart';
 
 @JS()
 @anonymous
 class GenericClass<T> {
   external factory GenericClass();
+
+  external set setter(value);
 }
 
 main() {
-  new GenericClass();
+  method();
+}
+
+@tryInline
+method() {
+  new GenericClass().setter = 42;
 }

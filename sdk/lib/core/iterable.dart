@@ -605,9 +605,8 @@ abstract class Iterable<E> {
    *
    * Checks elements to see if `test(element)` returns true.
    * If exactly one element satisfies [test], that element is returned.
-   * Otherwise, if there are no matching elements, or if there is more than
-   * one matching element, the result of invoking the [orElse]
-   * function is returned.
+   * If more than one matching element is found, throws [StateError].
+   * If no matching element is found, returns the result of [orElse].
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
   E singleWhere(bool test(E element), {E orElse()}) {
