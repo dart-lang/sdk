@@ -7,7 +7,7 @@
 
 namespace dart {
 
-TEST_CASE(InstructionTests) {
+ISOLATE_UNIT_TEST_CASE(InstructionTests) {
   TargetEntryInstr* target_instr =
       new TargetEntryInstr(1, kInvalidTryIndex, DeoptId::kNone);
   EXPECT(target_instr->IsBlockEntry());
@@ -19,7 +19,7 @@ TEST_CASE(InstructionTests) {
   EXPECT(context->GetBlock() == target_instr);
 }
 
-TEST_CASE(OptimizationTests) {
+ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
   JoinEntryInstr* join =
       new JoinEntryInstr(1, kInvalidTryIndex, DeoptId::kNone);
 

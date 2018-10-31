@@ -34,7 +34,9 @@ static struct NativeEntries {
 Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
                                              int argument_count,
                                              bool* auto_setup_scope) {
-  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
+  const Object& obj = Object::Handle(thread->zone(), Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
   }

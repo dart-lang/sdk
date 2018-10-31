@@ -650,8 +650,7 @@ static void ThrowLanguageError(const char* message) {
 DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
 
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler == NULL) {
+  if (!isolate->HasTagHandler()) {
     ThrowLanguageError("no library handler registered");
   }
 
@@ -663,16 +662,12 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
     canonical_uri = uri.raw();
   } else {
     isolate->BlockClassFinalization();
-    Object& result = Object::Handle(zone);
-    {
-      TransitionVMToNative transition(thread);
-      Api::Scope api_scope(thread);
-      Dart_Handle retval = handler(
-          Dart_kCanonicalizeUrl,
-          Api::NewHandle(thread, isolate->object_store()->root_library()),
-          Api::NewHandle(thread, uri.raw()));
-      result = Api::UnwrapHandle(retval);
-    }
+    const Object& result = Object::Handle(
+        zone,
+        isolate->CallTagHandler(
+            Dart_kCanonicalizeUrl,
+            Library::Handle(zone, isolate->object_store()->root_library()),
+            uri));
     isolate->UnblockClassFinalization();
     if (result.IsError()) {
       if (result.IsLanguageError()) {
@@ -695,16 +690,11 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
 
   // Request the embedder to load the library.
   isolate->BlockClassFinalization();
-  Object& result = Object::Handle(zone);
-  {
-    TransitionVMToNative transition(thread);
-    Api::Scope api_scope(thread);
-    Dart_Handle retval =
-        handler(Dart_kImportTag,
-                Api::NewHandle(thread, isolate->object_store()->root_library()),
-                Api::NewHandle(thread, canonical_uri.raw()));
-    result = Api::UnwrapHandle(retval);
-  }
+  Object& result = Object::Handle(
+      zone, isolate->CallTagHandler(
+                Dart_kImportTag,
+                Library::Handle(zone, isolate->object_store()->root_library()),
+                canonical_uri));
   isolate->UnblockClassFinalization();
   if (result.IsError()) {
     if (result.IsLanguageError()) {

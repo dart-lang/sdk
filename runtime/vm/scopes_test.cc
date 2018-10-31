@@ -8,7 +8,7 @@
 
 namespace dart {
 
-TEST_CASE(LocalScope) {
+ISOLATE_UNIT_TEST_CASE(LocalScope) {
   // Allocate a couple of local variables first.
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New(thread, "a"));

@@ -13,6 +13,7 @@ namespace dart {
 #define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
 
 void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
+  TransitionNativeToVM transition(Thread::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
@@ -64,6 +65,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   ASSERT(obj.IsString());
   const char* function_name = obj.ToCString();

@@ -167,16 +167,19 @@ void Service::CancelStream(const char* stream_id) {
 
 RawObject* Service::RequestAssets() {
   Thread* T = Thread::Current();
-  TransitionVMToNative transition(T);
-  Api::Scope api_scope(T);
-  if (get_service_assets_callback_ == NULL) {
-    return Object::null();
+  Object& object = Object::Handle();
+  {
+    Api::Scope api_scope(T);
+    TransitionVMToNative transition(T);
+    if (get_service_assets_callback_ == NULL) {
+      return Object::null();
+    }
+    Dart_Handle handle = get_service_assets_callback_();
+    if (Dart_IsError(handle)) {
+      Dart_PropagateError(handle);
+    }
+    object = Api::UnwrapHandle(handle);
   }
-  Dart_Handle handle = get_service_assets_callback_();
-  if (Dart_IsError(handle)) {
-    Dart_PropagateError(handle);
-  }
-  const Object& object = Object::Handle(Api::UnwrapHandle(handle));
   if (object.IsNull()) {
     return Object::null();
   }
@@ -197,7 +200,7 @@ RawObject* Service::RequestAssets() {
     Exceptions::PropagateError(error);
     return Object::null();
   }
-  return Api::UnwrapHandle(handle);
+  return object.raw();
 }
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
@@ -2704,7 +2707,6 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
 
   bool is_static = BoolParameter::Parse(js->LookupParam("isStatic"), false);
 
-  Dart_KernelCompilationResult compilation_result;
   const GrowableObjectArray& params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
   if (!ParseCSVList(js->LookupParam("definitions"), params)) {
@@ -2719,14 +2721,12 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  {
-    TransitionVMToNative transition(thread);
-    compilation_result = KernelIsolate::CompileExpressionToKernel(
-        js->LookupParam("expression"),
-        Array::Handle(Array::MakeFixedLength(params)),
-        Array::Handle(Array::MakeFixedLength(type_params)),
-        js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
-  }
+  Dart_KernelCompilationResult compilation_result =
+      KernelIsolate::CompileExpressionToKernel(
+          js->LookupParam("expression"),
+          Array::Handle(Array::MakeFixedLength(params)),
+          Array::Handle(Array::MakeFixedLength(type_params)),
+          js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     js->PrintError(kExpressionCompilationError, compilation_result.error);
@@ -3070,8 +3070,7 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   }
 
   Isolate* isolate = thread->isolate();
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler == NULL) {
+  if (!isolate->HasTagHandler()) {
     js->PrintError(kFeatureDisabled,
                    "A library tag handler must be installed.");
     return true;

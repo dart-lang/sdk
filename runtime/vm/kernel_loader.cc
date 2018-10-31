@@ -572,20 +572,12 @@ void KernelLoader::LoadNativeExtensionLibraries(
 
       if (uri_path.IsNull()) continue;
 
-      Dart_LibraryTagHandler handler = I->library_tag_handler();
-      if (handler == NULL) {
+      if (!I->HasTagHandler()) {
         H.ReportError("no library handler registered.");
       }
 
       I->BlockClassFinalization();
-      {
-        TransitionVMToNative transition(thread_);
-        Api::Scope api_scope(thread_);
-        Dart_Handle retval = handler(Dart_kImportExtensionTag,
-                                     Api::NewHandle(thread_, library.raw()),
-                                     Api::NewHandle(thread_, uri_path.raw()));
-        result = Api::UnwrapHandle(retval);
-      }
+      result = I->CallTagHandler(Dart_kImportExtensionTag, library, uri_path);
       I->UnblockClassFinalization();
 
       if (result.IsError()) {

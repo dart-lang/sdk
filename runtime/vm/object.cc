@@ -11956,15 +11956,9 @@ bool LibraryPrefix::LoadLibrary() const {
             isolate->object_store()->pending_deferred_loads());
     pending_deferred_loads.Add(deferred_lib);
     const String& lib_url = String::Handle(zone, deferred_lib.url());
-    Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-    Object& obj = Object::Handle(zone);
-    {
-      TransitionVMToNative transition(thread);
-      Api::Scope api_scope(thread);
-      obj = Api::UnwrapHandle(handler(Dart_kImportTag,
-                                      Api::NewHandle(thread, importer()),
-                                      Api::NewHandle(thread, lib_url.raw())));
-    }
+    const Object& obj = Object::Handle(
+        zone, isolate->CallTagHandler(
+                  Dart_kImportTag, Library::Handle(zone, importer()), lib_url));
     if (obj.IsError()) {
       Exceptions::PropagateError(Error::Cast(obj));
     }

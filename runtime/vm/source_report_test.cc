@@ -11,15 +11,15 @@ namespace dart {
 #ifndef PRODUCT
 
 static RawObject* ExecuteScript(const char* script) {
-  TransitionVMToNative transition(Thread::Current());
-  Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  return Api::UnwrapHandle(h_lib);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    lib = TestCase::LoadTestScript(script, NULL);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(lib);
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {

@@ -38,6 +38,7 @@ ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
 #define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
 
 void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
+  TransitionNativeToVM transition(Thread::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
@@ -49,6 +50,7 @@ void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
+  TransitionNativeToVM transition(Thread::Current());
   int count = 0;
   StackFrameIterator frames(ValidationPolicy::kValidateFrames,
                             Thread::Current(),
@@ -56,25 +58,20 @@ void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the frame.
   }
-  {
-    TransitionNativeToVM transition(Thread::Current());
-    VerifyPointersVisitor::VerifyPointers();
-  }
+  VerifyPointersVisitor::VerifyPointers();
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
 
 void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
+  TransitionNativeToVM transition(Thread::Current());
   int count = 0;
   DartFrameIterator frames(Thread::Current(),
                            StackFrameIterator::kNoCrossThreadIteration);
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the dart frame.
   }
-  {
-    TransitionNativeToVM transition(Thread::Current());
-    VerifyPointersVisitor::VerifyPointers();
-  }
+  VerifyPointersVisitor::VerifyPointers();
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
@@ -143,6 +140,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = false;
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   ASSERT(obj.IsString());
   const char* function_name = obj.ToCString();

@@ -356,6 +356,9 @@ class Thread : public BaseThread {
   ApiLocalScope* api_top_scope() const { return api_top_scope_; }
   void set_api_top_scope(ApiLocalScope* value) { api_top_scope_ = value; }
 
+  void EnterApiScope();
+  void ExitApiScope();
+
   // The isolate that this thread is operating on, or NULL if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
@@ -473,28 +476,6 @@ class Thread : public BaseThread {
 
   bool bump_allocate() const { return bump_allocate_; }
   void set_bump_allocate(bool b) { bump_allocate_ = b; }
-
-  int32_t no_handle_scope_depth() const {
-#if defined(DEBUG)
-    return no_handle_scope_depth_;
-#else
-    return 0;
-#endif
-  }
-
-  void IncrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ < INT_MAX);
-    no_handle_scope_depth_ += 1;
-#endif
-  }
-
-  void DecrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ > 0);
-    no_handle_scope_depth_ -= 1;
-#endif
-  }
 
   HandleScope* top_handle_scope() const {
 #if defined(DEBUG)
@@ -731,6 +712,11 @@ class Thread : public BaseThread {
     execution_state_ = static_cast<uint32_t>(state);
   }
 
+  bool MayAllocateHandles() {
+    return (execution_state() == kThreadInVM) ||
+           (execution_state() == kThreadInGenerated);
+  }
+
   bool TryEnterSafepoint() {
     uint32_t new_state = SetAtSafepoint(true, 0);
     if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, 0,
@@ -877,7 +863,6 @@ class Thread : public BaseThread {
   int32_t no_callback_scope_depth_;
 #if defined(DEBUG)
   HandleScope* top_handle_scope_;
-  int32_t no_handle_scope_depth_;
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;
