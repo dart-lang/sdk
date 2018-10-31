@@ -98,9 +98,8 @@ class KernelFunctionTypeAliasBuilder
       return thisType;
     }
     thisType = const InvalidType();
-    FunctionType builtType = type?.build(library);
+    FunctionType builtType = type?.build(library, target.thisType);
     if (builtType != null) {
-      builtType.typedefReference = target.reference;
       if (typeVariables != null) {
         for (KernelTypeVariableBuilder tv in typeVariables) {
           // Follow bound in order to find all cycles
