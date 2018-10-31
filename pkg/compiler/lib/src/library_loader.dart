@@ -6,9 +6,11 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart';
 
@@ -35,6 +37,12 @@ class LibraryLoaderTask extends CompilerTask {
 
   /// Shared state between compilations.
   fe.InitializedCompilerState initializedCompilerState;
+
+  // TODO(johnniwinther): Remove this when #34942 is fixed.
+  /// Force in-memory serialization/deserialization of the loaded component.
+  ///
+  /// This is used for testing.
+  bool forceSerialization = false;
 
   LibraryLoaderTask(
       this._options, this._compilerInput, this._reporter, Measurer measurer)
@@ -71,6 +79,12 @@ class LibraryLoaderTask extends CompilerTask {
             resolvedUri);
       }
       if (component == null) return null;
+      if (forceSerialization) {
+        // TODO(johnniwinther): Remove this when #34942 is fixed.
+        List<int> data = serializeComponent(component);
+        component = new ir.Component();
+        new BinaryBuilder(data).readComponent(component);
+      }
       return _createLoadedLibraries(component);
     });
   }

@@ -901,7 +901,8 @@ class JSetter extends JFunction {
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return new JSetter(library, enclosingClass, new Name(name, library),
+    return new JSetter(
+        library, enclosingClass, new Name(name, library, isSetter: true),
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
