@@ -34,6 +34,8 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         TypeVariableBuilder;
 
+final InvalidType cyclicTypeAliasMarker = new InvalidType();
+
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
   final Typedef target;
@@ -90,14 +92,17 @@ class KernelFunctionTypeAliasBuilder
 
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
-      if (const InvalidType() == thisType) {
+      if (identical(thisType, cyclicTypeAliasMarker)) {
         library.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
-        return const DynamicType();
+        return const InvalidType();
       }
       return thisType;
     }
-    thisType = const InvalidType();
+    // It is a compile-time error for an alias (typedef) to refer to itself. We
+    // detect cycles by detecting recursive calls to this method using an
+    // instance of InvalidType that isn't identical to `const InvalidType()`.
+    thisType = cyclicTypeAliasMarker;
     FunctionType builtType = type?.build(library, target.thisType);
     if (builtType != null) {
       if (typeVariables != null) {
@@ -108,7 +113,7 @@ class KernelFunctionTypeAliasBuilder
       }
       return thisType = builtType;
     } else {
-      return thisType = const DynamicType();
+      return thisType = const InvalidType();
     }
   }
 
@@ -176,7 +181,7 @@ class KernelFunctionTypeAliasBuilder
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     var thisType = buildThisType(library);
-    if (thisType is DynamicType) return thisType;
+    if (thisType is InvalidType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;
     // Otherwise, substitute.
