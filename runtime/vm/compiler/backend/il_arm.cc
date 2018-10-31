@@ -1523,15 +1523,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
 
   switch (class_id()) {
     case kArrayCid:
-#if defined(CONCURRENT_MARKING)
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::RegisterLocation(kWriteBarrierValueReg)
                           : Location::RegisterOrConstant(value()));
-#else
-      locs->set_in(2, ShouldEmitStoreBarrier()
-                          ? Location::WritableRegister()
-                          : Location::RegisterOrConstant(value()));
-#endif
       break;
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
@@ -2216,15 +2210,9 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
     summary->set_temp(2, opt ? Location::RequiresFpuRegister()
                              : Location::FpuRegisterLocation(Q1));
   } else {
-#if defined(CONCURRENT_MARKING)
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::RegisterLocation(kWriteBarrierValueReg)
                            : Location::RegisterOrConstant(value()));
-#else
-    summary->set_in(1, ShouldEmitStoreBarrier()
-                           ? Location::WritableRegister()
-                           : Location::RegisterOrConstant(value()));
-#endif
   }
   return summary;
 }
@@ -2431,12 +2419,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-#if defined(CONCURRENT_MARKING)
   locs->set_in(0, Location::RegisterLocation(kWriteBarrierValueReg));
-#else
-  locs->set_in(0, value()->NeedsWriteBarrier() ? Location::WritableRegister()
-                                               : Location::RequiresRegister());
-#endif
   locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
