@@ -4676,7 +4676,7 @@ class FunctionType extends DartType {
   final List<NamedType> namedParameters; // Must be sorted.
 
   /// The [Typedef] this function type is created for.
-  TypedefType typedefType;
+  final TypedefType typedefType;
 
   final DartType returnType;
   int _hashCode;
@@ -4685,29 +4685,13 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
-      TypedefType typedefType,
-      Reference typedefReference})
+      this.typedefType})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
-            requiredParameterCount ?? positionalParameters.length,
-        this.typedefType = typedefType != null
-            ? typedefType
-            : (typedefReference == null
-                ? null
-                : new TypedefType.byReference(
-                    typedefReference,
-                    new List.filled(
-                        typeParameters.length, const DynamicType())));
+            requiredParameterCount ?? positionalParameters.length;
 
   @nocoq
   Reference get typedefReference => typedefType?.typedefReference;
-
-  void set typedefReference(Reference ref) {
-    typedefType = ref == null
-        ? null
-        : new TypedefType.byReference(
-            ref, new List.filled(typeParameters.length, const DynamicType()));
-  }
 
   Typedef get typedef => typedefReference?.asTypedef;
 
@@ -4763,7 +4747,7 @@ class FunctionType extends DartType {
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
-        typedefReference: typedefReference);
+        typedefType: typedefType);
   }
 
   /// Looks up the type of the named parameter with the given name.
