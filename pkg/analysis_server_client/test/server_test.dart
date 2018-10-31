@@ -26,9 +26,7 @@ void main() {
     server.listenToOutput();
 
     final response = await future;
-    expect(response, const TypeMatcher<Map>());
-    final responseAsMap = response as Map;
-    expect(responseAsMap['foo'], 'bar');
+    expect(response['foo'], 'bar');
   });
 
   test('test_listenToOutput_error', () async {
@@ -50,15 +48,18 @@ void main() {
     process.stdout = _eventMessage();
     process.stderr = _noMessage();
 
+    final completer = new Completer();
     void eventHandler(String event, Map<String, Object> params) {
       expect(event, 'fooEvent');
       expect(params.length, 2);
       expect(params['foo'] as String, 'bar');
       expect(params['baz'] as String, 'bang');
+      completer.complete();
     }
 
     server.send('blahMethod', null);
     server.listenToOutput(notificationProcessor: eventHandler);
+    await completer.future;
   });
 }
 
