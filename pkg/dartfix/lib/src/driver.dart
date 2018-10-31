@@ -14,6 +14,8 @@ import 'package:dartfix/src/options.dart';
 import 'package:path/path.dart' as path;
 
 class Driver {
+  String dartfixVersion;
+
   Context context;
   Logger logger;
   Server server;
@@ -23,6 +25,29 @@ class Driver {
   bool force;
   bool overwrite;
   List<String> targets;
+
+  /// Read pubspec.yaml and return the version in that file.
+  static String get pubspecVersion {
+    String dir = path.dirname(Platform.script.toFilePath());
+    File pubspec = new File(path.join(dir, '..', 'pubspec.yaml'));
+
+    List<String> lines = pubspec.readAsLinesSync();
+    if (lines[0] != 'name: dartfix') {
+      throw 'Expected dartfix pubspec in: ${pubspec.path}';
+    }
+    String version;
+    if (lines[1].startsWith('version:')) {
+      version = lines[1].substring(8).trim();
+    }
+    if (version == null || version.isEmpty) {
+      throw 'Failed to find dartfix pubspec version in ${pubspec.path}';
+    }
+    return version;
+  }
+
+  Driver() {
+    this.dartfixVersion = pubspecVersion;
+  }
 
   Ansi get ansi => logger.ansi;
 
@@ -94,7 +119,12 @@ class Driver {
     String serverPath = findServerPath();
     logger
         .trace(serverPath != null ? 'Starting from source...' : 'Starting...');
-    await server.start(sdkPath: options.sdkPath, serverPath: serverPath);
+    await server.start(
+      clientId: 'dartfix',
+      clientVersion: dartfixVersion,
+      sdkPath: options.sdkPath,
+      serverPath: serverPath,
+    );
     server.listenToOutput(notificationProcessor: handleEvent);
     await serverConnected.future.timeout(connectTimeout, onTimeout: () {
       logger.stderr('Failed to connect to server');

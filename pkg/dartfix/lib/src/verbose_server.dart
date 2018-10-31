@@ -12,6 +12,6 @@ class VerboseServer extends Server {
 
   @override
   void logMessage(String prefix, String details) {
-    logger.trace('$currentElapseTime: $prefix $details');
+    logger.trace('$prefix $details');
   }
 }
