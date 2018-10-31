@@ -3095,3 +3095,4 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 * `dart:isolate`: `Isolate.spawnUri` added the optional `packageRoot` argument,
   which controls how it resolves `package:` URIs.
+* loading html page feom the assest file not included yet.
