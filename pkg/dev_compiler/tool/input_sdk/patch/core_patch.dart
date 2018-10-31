@@ -342,6 +342,26 @@ class DateTime {
 
   @patch
   int get weekday => Primitives.getWeekday(this);
+
+  @patch
+  bool operator ==(Object other) =>
+      other is DateTime &&
+      _value == other.millisecondsSinceEpoch &&
+      isUtc == other.isUtc;
+
+  @patch
+  bool isBefore(DateTime other) => _value < other.millisecondsSinceEpoch;
+
+  @patch
+  bool isAfter(DateTime other) => _value > other.millisecondsSinceEpoch;
+
+  @patch
+  bool isAtSameMomentAs(DateTime other) =>
+      _value == other.millisecondsSinceEpoch;
+
+  @patch
+  int compareTo(DateTime other) =>
+      _value.compareTo(other.millisecondsSinceEpoch);
 }
 
 // Patch for Stopwatch implementation.
