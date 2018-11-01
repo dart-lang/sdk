@@ -4656,12 +4656,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 }
 
 void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
-  intptr_t offset = heap_->GetObjectId(instr);
-  if (offset == 0) {
-    offset = image_writer_->GetTextOffsetFor(instr, code);
-    ASSERT(offset != 0);
-    heap_->SetObjectId(instr, offset);
-  }
+  const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
+  ASSERT(offset != 0);
   Write<int32_t>(offset);
 }
 
@@ -4714,6 +4710,12 @@ void Serializer::Push(RawObject* object) {
 
   intptr_t id = heap_->GetObjectId(object);
   if (id == 0) {
+    // When discovering the transitive closure of objects reachable from the
+    // roots we do not trace references, e.g. inside [RawCode], to
+    // [RawInstructions], since [RawInstructions] doesn't contain any references
+    // and the serialization code uses an [ImageWriter] for those.
+    ASSERT(object->GetClassId() != kInstructionsCid);
+
     heap_->SetObjectId(object, 1);
     ASSERT(heap_->GetObjectId(object) != 0);
     stack_.Add(object);

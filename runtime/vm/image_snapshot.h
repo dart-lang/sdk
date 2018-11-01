@@ -96,7 +96,8 @@ typedef DirectChainedHashMap<ObjectOffsetTrait> ObjectOffsetMap;
 
 class ImageWriter : public ValueObject {
  public:
-  ImageWriter(const void* shared_objects,
+  ImageWriter(Heap* heap,
+              const void* shared_objects,
               const void* shared_instructions,
               const void* reused_instructions);
   virtual ~ImageWriter() {}
@@ -152,6 +153,7 @@ class ImageWriter : public ValueObject {
     };
   };
 
+  Heap* heap_;  // Used for mapping RawInstructiosn to object ids.
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;
@@ -166,7 +168,8 @@ class ImageWriter : public ValueObject {
 
 class AssemblyImageWriter : public ImageWriter {
  public:
-  AssemblyImageWriter(Dart_StreamingWriteCallback callback,
+  AssemblyImageWriter(Thread* thread,
+                      Dart_StreamingWriteCallback callback,
                       void* callback_data,
                       const void* shared_objects,
                       const void* shared_instructions);
@@ -195,12 +198,13 @@ class AssemblyImageWriter : public ImageWriter {
 
 class BlobImageWriter : public ImageWriter {
  public:
-  BlobImageWriter(uint8_t** instructions_blob_buffer,
+  BlobImageWriter(Thread* thread,
+                  uint8_t** instructions_blob_buffer,
                   ReAlloc alloc,
                   intptr_t initial_size,
                   const void* shared_objects,
                   const void* shared_instructions,
-                  const void* reused_instructions = NULL);
+                  const void* reused_instructions);
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
 
