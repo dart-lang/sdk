@@ -59,6 +59,8 @@ class TranslationHelper {
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
+  void SetKernelProgramInfo(const KernelProgramInfo& info);
+
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
 
@@ -192,6 +194,8 @@ class TranslationHelper {
   ExternalTypedData& metadata_payloads_;
   ExternalTypedData& metadata_mappings_;
   Array& constants_;
+  KernelProgramInfo& info_;
+  Smi& name_index_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };

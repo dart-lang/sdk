@@ -351,6 +351,13 @@ class Isolate : public BaseIsolate {
   }
   Mutex* megamorphic_lookup_mutex() const { return megamorphic_lookup_mutex_; }
 
+  Mutex* kernel_data_lib_cache_mutex() const {
+    return kernel_data_lib_cache_mutex_;
+  }
+  Mutex* kernel_data_class_cache_mutex() const {
+    return kernel_data_class_cache_mutex_;
+  }
+
 #if !defined(PRODUCT)
   Debugger* debugger() const {
     ASSERT(debugger_ != NULL);
@@ -968,6 +975,8 @@ class Isolate : public BaseIsolate {
   Mutex* type_canonicalization_mutex_;      // Protects type canonicalization.
   Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
   Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
+  Mutex* kernel_data_lib_cache_mutex_;
+  Mutex* kernel_data_class_cache_mutex_;
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   intptr_t defer_finalization_count_;
