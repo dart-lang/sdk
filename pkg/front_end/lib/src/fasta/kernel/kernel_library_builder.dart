@@ -175,12 +175,6 @@ class KernelLibraryBuilder
   // TODO(dmitryas):  Find a way to mark inferred types.
   final Set<DartType> inferredTypes = new Set<DartType>.identity();
 
-  // List of typedef instantiations built for this library.  They are needed to
-  // perform type argument checks.
-  // TODO(dmitryas):  Find a way to keep type arguments of typedefs around.
-  final Map<FunctionType, List<DartType>> typedefInstantiations =
-      new Map<FunctionType, List<DartType>>.identity();
-
   /// Exports that can't be serialized.
   ///
   /// The key is the name of the exported member.
@@ -1383,7 +1377,7 @@ class KernelLibraryBuilder
     if (!loader.target.strongMode) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         field.type, typeEnvironment,
-        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
+        allowSuperBounded: true);
     if (issues != null) {
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
@@ -1425,8 +1419,7 @@ class KernelLibraryBuilder
       for (TypeParameter parameter in typeParameters) {
         List<TypeArgumentIssue> issues = findTypeArgumentIssues(
             parameter.bound, typeEnvironment,
-            allowSuperBounded: false,
-            typedefInstantiations: typedefInstantiations);
+            allowSuperBounded: false);
         if (issues != null) {
           int offset = parameter.fileOffset;
           for (TypeArgumentIssue issue in issues) {
@@ -1464,8 +1457,7 @@ class KernelLibraryBuilder
       for (VariableDeclaration formal in positionalParameters) {
         List<TypeArgumentIssue> issues = findTypeArgumentIssues(
             formal.type, typeEnvironment,
-            allowSuperBounded: true,
-            typedefInstantiations: typedefInstantiations);
+            allowSuperBounded: true);
         if (issues != null) {
           int offset = formal.fileOffset;
           for (TypeArgumentIssue issue in issues) {
@@ -1503,8 +1495,7 @@ class KernelLibraryBuilder
       for (VariableDeclaration named in namedParameters) {
         List<TypeArgumentIssue> issues = findTypeArgumentIssues(
             named.type, typeEnvironment,
-            allowSuperBounded: true,
-            typedefInstantiations: typedefInstantiations);
+            allowSuperBounded: true);
         if (issues != null) {
           int offset = named.fileOffset;
           for (TypeArgumentIssue issue in issues) {
@@ -1541,8 +1532,7 @@ class KernelLibraryBuilder
     if (returnType != null) {
       List<TypeArgumentIssue> issues = findTypeArgumentIssues(
           returnType, typeEnvironment,
-          allowSuperBounded: true,
-          typedefInstantiations: typedefInstantiations);
+          allowSuperBounded: true);
       if (issues != null) {
         int offset = fileOffset;
         for (TypeArgumentIssue issue in issues) {
@@ -1600,8 +1590,7 @@ class KernelLibraryBuilder
     if (!loader.target.strongMode) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         type, typeEnvironment,
-        allowSuperBounded: allowSuperBounded,
-        typedefInstantiations: typedefInstantiations);
+        allowSuperBounded: allowSuperBounded);
     if (issues != null) {
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
@@ -1638,7 +1627,7 @@ class KernelLibraryBuilder
     if (node.type == null) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         node.type, typeEnvironment,
-        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
+        allowSuperBounded: true);
     if (issues != null) {
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
@@ -1678,7 +1667,7 @@ class KernelLibraryBuilder
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         constructedType, typeEnvironment,
-        allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
+        allowSuperBounded: false);
     if (issues != null) {
       String constructedTypeName = "${klass.name}::${constructor.name.name}";
       for (TypeArgumentIssue issue in issues) {
@@ -1723,7 +1712,7 @@ class KernelLibraryBuilder
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         constructedType, typeEnvironment,
-        allowSuperBounded: false, typedefInstantiations: typedefInstantiations);
+        allowSuperBounded: false);
     if (issues != null) {
       String constructedTypeName = "${klass.name}::${factory.name.name}";
       for (TypeArgumentIssue issue in issues) {
@@ -1768,8 +1757,7 @@ class KernelLibraryBuilder
     // The following error is to be reported elsewhere.
     if (parameters.length != arguments.length) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        parameters, arguments, typeEnvironment,
-        typedefInstantiations: typedefInstantiations);
+        parameters, arguments, typeEnvironment);
     if (issues != null) {
       String targetName;
       if (klass == null) {
@@ -1853,8 +1841,7 @@ class KernelLibraryBuilder
           substitute(methodParameters[i].bound, substitutionMap);
     }
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        instantiatedMethodParameters, arguments.types, typeEnvironment,
-        typedefInstantiations: typedefInstantiations);
+        instantiatedMethodParameters, arguments.types, typeEnvironment);
     if (issues != null) {
       String targetName = "${klass.name}";
       if (klassArguments.length > 0) {
@@ -1908,7 +1895,6 @@ class KernelLibraryBuilder
       }
     });
 
-    typedefInstantiations.clear();
     inferredTypes.clear();
   }
 }

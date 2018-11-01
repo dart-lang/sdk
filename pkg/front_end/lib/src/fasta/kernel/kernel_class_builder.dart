@@ -294,8 +294,7 @@ abstract class KernelClassBuilder
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         new InterfaceType(supertype.classNode, supertype.typeArguments),
         typeEnvironment,
-        allowSuperBounded: false,
-        typedefInstantiations: library.typedefInstantiations);
+        allowSuperBounded: false);
     if (issues != null) {
       for (TypeArgumentIssue issue in issues) {
         Message message;
@@ -339,8 +338,7 @@ abstract class KernelClassBuilder
     for (TypeParameter parameter in cls.typeParameters) {
       List<TypeArgumentIssue> issues = findTypeArgumentIssues(
           parameter.bound, typeEnvironment,
-          allowSuperBounded: false,
-          typedefInstantiations: library.typedefInstantiations);
+          allowSuperBounded: false);
       if (issues != null) {
         for (TypeArgumentIssue issue in issues) {
           DartType argument = issue.argument;

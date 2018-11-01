@@ -35,14 +35,12 @@ class TypeArgumentIssue {
 // typedefs are preserved in the Kernel output.
 List<TypeArgumentIssue> findTypeArgumentIssues(
     DartType type, TypeEnvironment typeEnvironment,
-    {bool allowSuperBounded = false,
-    Map<FunctionType, List<DartType>> typedefInstantiations}) {
+    {bool allowSuperBounded = false}) {
   List<TypeParameter> variables;
   List<DartType> arguments;
   List<TypeArgumentIssue> typedefRhsResult;
 
-  if (typedefInstantiations != null &&
-      typedefInstantiations.containsKey(type)) {
+  if (type is FunctionType && type.typedefType != null) {
     // [type] is a function type that is an application of a parametrized
     // typedef.  We need to check both the l.h.s. and the r.h.s. of the
     // definition in that case.  For details, see [link]
@@ -53,10 +51,10 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
         namedParameters: functionType.namedParameters,
         typeParameters: functionType.typeParameters,
         requiredParameterCount: functionType.requiredParameterCount,
-        typedefType: functionType.typedefType);
+        typedefType: null);
     typedefRhsResult = findTypeArgumentIssues(cloned, typeEnvironment,
-        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
-    type = new TypedefType(functionType.typedef, typedefInstantiations[type]);
+        allowSuperBounded: true);
+    type = functionType.typedefType;
   }
 
   if (type is InterfaceType) {
@@ -69,25 +67,21 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
     for (TypeParameter parameter in type.typeParameters) {
       result.addAll(findTypeArgumentIssues(parameter.bound, typeEnvironment,
-              allowSuperBounded: true,
-              typedefInstantiations: typedefInstantiations) ??
+              allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (DartType formal in type.positionalParameters) {
       result.addAll(findTypeArgumentIssues(formal, typeEnvironment,
-              allowSuperBounded: true,
-              typedefInstantiations: typedefInstantiations) ??
+              allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (NamedType named in type.namedParameters) {
       result.addAll(findTypeArgumentIssues(named.type, typeEnvironment,
-              allowSuperBounded: true,
-              typedefInstantiations: typedefInstantiations) ??
+              allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     result.addAll(findTypeArgumentIssues(type.returnType, typeEnvironment,
-            allowSuperBounded: true,
-            typedefInstantiations: typedefInstantiations) ??
+            allowSuperBounded: true) ??
         const <TypeArgumentIssue>[]);
     return result.isEmpty ? null : result;
   } else {
@@ -115,7 +109,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         argument, typeEnvironment,
-        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
+        allowSuperBounded: true);
     if (issues != null) {
       argumentsResult ??= <TypeArgumentIssue>[];
       argumentsResult.addAll(issues);
@@ -198,7 +192,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         argument, typeEnvironment,
-        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
+        allowSuperBounded: true);
     if (issues != null) {
       result ??= <TypeArgumentIssue>[];
       result.addAll(issues);
