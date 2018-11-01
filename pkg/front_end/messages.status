@@ -279,7 +279,6 @@ PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
 PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has format error
 PartOfLibraryNameMismatch/example: Fail
-PartOfTwice/script2: Fail # TODO(ahe): Investigate why this fails.
 PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail
 PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation

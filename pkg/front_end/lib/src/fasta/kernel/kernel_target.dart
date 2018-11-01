@@ -809,7 +809,7 @@ class KernelTarget extends TargetImplementation {
           KernelLibraryBuilder part =
               library.loader.read(patch, -1, fileUri: patch, accessor: first);
           first.parts.add(part);
-          part.addPartOf(null, null, "${first.uri}", -1);
+          part.partOfUri = first.uri;
         }
       }
     }

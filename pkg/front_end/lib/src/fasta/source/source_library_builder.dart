@@ -350,6 +350,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     partOfName = name;
     if (uri != null) {
       partOfUri = resolve(this.uri, uri, uriOffset);
+      Uri newFileUri = resolve(fileUri, uri, uriOffset);
+      LibraryBuilder library = loader.read(partOfUri, uriOffset,
+          fileUri: newFileUri, accessor: this);
+      if (loader.first == this) {
+        // This is a part, and it was the first input. Let the loader know
+        // about that.
+        loader.first = library;
+      }
     }
   }
 
