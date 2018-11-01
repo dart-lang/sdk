@@ -11,18 +11,18 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart' as old
     show ContextBuilder, ContextBuilderOptions;
 import 'package:analyzer/src/context/context_root.dart' as old;
+import 'package:analyzer/src/dart/analysis/byte_store.dart'
+    show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
+import 'package:analyzer/src/dart/analysis/performance_logger.dart'
+    show PerformanceLog;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
-import 'package:analyzer/src/dart/analysis/performance_logger.dart'
-    show PerformanceLog;
-import 'package:analyzer/src/dart/analysis/byte_store.dart'
-    show ByteStore, MemoryByteStore;
 import 'package:meta/meta.dart';
 
 /**
@@ -57,9 +57,11 @@ class ContextBuilderImpl implements ContextBuilder {
       DeclaredVariables declaredVariables,
       bool enableIndex: false,
       @deprecated FileContentOverlay fileContentOverlay,
+      List<String> librarySummaryPaths,
       @deprecated PerformanceLog performanceLog,
       @deprecated AnalysisDriverScheduler scheduler,
-      String sdkPath}) {
+      String sdkPath,
+      String sdkSummaryPath}) {
     byteStore ??= new MemoryByteStore();
     fileContentOverlay ??= new FileContentOverlay();
     performanceLog ??= new PerformanceLog(new StringBuffer());
@@ -80,6 +82,12 @@ class ContextBuilderImpl implements ContextBuilder {
     old.ContextBuilderOptions options = new old.ContextBuilderOptions();
     if (declaredVariables != null) {
       options.declaredVariables = _toMap(declaredVariables);
+    }
+    if (sdkSummaryPath != null) {
+      options.dartSdkSummaryPath = sdkSummaryPath;
+    }
+    if (librarySummaryPaths != null) {
+      options.librarySummaryPaths = librarySummaryPaths;
     }
     options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 

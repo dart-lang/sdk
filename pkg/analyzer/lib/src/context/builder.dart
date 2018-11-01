@@ -15,9 +15,11 @@ import 'package:analyzer/src/command_line/arguments.dart'
         flutterAnalysisOptionsPath;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
@@ -30,12 +32,11 @@ import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:args/args.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -137,17 +138,17 @@ class ContextBuilder {
   bool enableIndex = false;
 
   /**
-   * Whether to enable the Dart 2.0 preview.
-   */
-  bool get previewDart2 => true;
-
-  /**
    * Initialize a newly created builder to be ready to build a context rooted in
    * the directory with the given [rootDirectoryPath].
    */
   ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
       {ContextBuilderOptions options})
       : builderOptions = options ?? new ContextBuilderOptions();
+
+  /**
+   * Whether to enable the Dart 2.0 preview.
+   */
+  bool get previewDart2 => true;
 
   /**
    * Return an analysis context that is configured correctly to analyze code in
@@ -178,7 +179,11 @@ class ContextBuilder {
     AnalysisOptions options =
         getAnalysisOptions(path, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
-    final sf = createSourceFactory(path, options);
+    SummaryDataStore summaryData;
+    if (builderOptions.librarySummaryPaths != null) {
+      summaryData = SummaryDataStore(builderOptions.librarySummaryPaths);
+    }
+    final sf = createSourceFactory(path, options, summaryData: summaryData);
 
     AnalysisDriver driver = new AnalysisDriver(
         analysisDriverScheduler,
@@ -189,7 +194,8 @@ class ContextBuilder {
         contextRoot,
         sf,
         options,
-        enableIndex: enableIndex);
+        enableIndex: enableIndex,
+        externalSummaries: summaryData);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,
@@ -262,10 +268,14 @@ class ContextBuilder {
     return findPackagesFromFile(rootDirectoryPath);
   }
 
-  SourceFactory createSourceFactory(String rootPath, AnalysisOptions options) {
+  SourceFactory createSourceFactory(String rootPath, AnalysisOptions options,
+      {SummaryDataStore summaryData}) {
     Workspace workspace = createWorkspace(rootPath);
     DartSdk sdk = findSdk(workspace.packageMap, options);
-    return workspace.createSourceFactory(sdk);
+    if (summaryData != null && sdk is SummaryBasedDartSdk) {
+      summaryData.addBundle(null, sdk.bundle);
+    }
+    return workspace.createSourceFactory(sdk, summaryData);
   }
 
   Workspace createWorkspace(String rootPath) {
@@ -421,7 +431,7 @@ class ContextBuilder {
     // TODO(danrubel) restructure so that we don't create a workspace
     // both here and in createSourceFactory
     Workspace workspace = createWorkspace(path);
-    SourceFactory sourceFactory = workspace.createSourceFactory(null);
+    SourceFactory sourceFactory = workspace.createSourceFactory(null, null);
     AnalysisOptionsProvider optionsProvider =
         new AnalysisOptionsProvider(sourceFactory);
 
@@ -681,6 +691,12 @@ class ContextBuilderOptions {
   String defaultPackagesDirectoryPath;
 
   /**
+   * A list of the paths of summary files that are to be used, or `null` if no
+   * summary information is available.
+   */
+  List<String> librarySummaryPaths;
+
+  /**
    * Initialize a newly created set of options
    */
   ContextBuilderOptions();
@@ -819,7 +835,11 @@ class _BasicWorkspace extends Workspace {
       new PackageMapUriResolver(provider, packageMap);
 
   @override
-  SourceFactory createSourceFactory(DartSdk sdk) {
+  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
+    if (summaryData != null) {
+      throw new UnsupportedError(
+          'Summary files are not supported in a basic workspace.');
+    }
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
       resolvers.add(new DartUriResolver(sdk));

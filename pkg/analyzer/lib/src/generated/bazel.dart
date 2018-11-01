@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:path/path.dart';
 
@@ -185,13 +186,16 @@ class BazelWorkspace extends Workspace {
   UriResolver get packageUriResolver => new BazelPackageUriResolver(this);
 
   @override
-  SourceFactory createSourceFactory(DartSdk sdk) {
+  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
       resolvers.add(new DartUriResolver(sdk));
     }
     resolvers.add(packageUriResolver);
     resolvers.add(new BazelFileUriResolver(this));
+    if (summaryData != null) {
+      resolvers.add(InSummaryUriResolver(provider, summaryData));
+    }
     return new SourceFactory(resolvers, null, provider);
   }
 

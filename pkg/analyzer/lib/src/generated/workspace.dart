@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
 /**
  * Abstract superclass of classes that provide information about the workspace
@@ -28,8 +29,8 @@ abstract class Workspace {
   UriResolver get packageUriResolver;
 
   /**
-   * Create the [SourceFactory] for resolving Uris to [Source]s.
-   * The [sdk] may be `null`.
+   * Create the source factory that should be used to resolve Uris to [Source]s.
+   * The [sdk] may be `null`. The [summaryData] can also be `null`.
    */
-  SourceFactory createSourceFactory(DartSdk sdk);
+  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData);
 }

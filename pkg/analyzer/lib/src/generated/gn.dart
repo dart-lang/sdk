@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -70,7 +71,11 @@ class GnWorkspace extends Workspace {
       new PackageMapUriResolver(provider, packageMap);
 
   @override
-  SourceFactory createSourceFactory(DartSdk sdk) {
+  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
+    if (summaryData != null) {
+      throw new UnsupportedError(
+          'Summary files are not supported in a GN workspace.');
+    }
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
       resolvers.add(new DartUriResolver(sdk));
