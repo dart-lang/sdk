@@ -87,7 +87,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_function_with_optional_positional() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -102,7 +102,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -117,7 +117,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_method_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -1415,7 +1415,7 @@ class Z { }''');
   }
 
   test_Block_unimported() async {
-    addPackageSource('aaa', 'a.dart', 'class A {}');
+    addPackageFile('aaa', 'a.dart', 'class A {}');
     addTestSource('main() { ^ }');
 
     await computeSuggestions();

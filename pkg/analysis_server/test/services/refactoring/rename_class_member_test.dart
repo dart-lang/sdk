@@ -715,11 +715,11 @@ main(var a) {
   }
 
   test_createChange_MethodElement_potential_inPubCache() async {
-    var externalPath = addPackageSource('aaa', 'lib.dart', r'''
+    var externalPath = addPackageFile('aaa', 'lib.dart', r'''
 processObj(p) {
   p.test();
 }
-''').fullName;
+''').path;
     await indexTestUnit('''
 import 'package:aaa/lib.dart';
 

@@ -21,7 +21,7 @@ class AddMissingRequiredArgumentTest extends FixProcessorTest {
 
   test_cons_flutter_children() async {
     addFlutterPackage();
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -50,7 +50,7 @@ build() {
 
   test_cons_flutter_hasTrailingComma() async {
     addFlutterPackage();
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -78,7 +78,7 @@ build() {
   }
 
   test_cons_single() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -105,7 +105,7 @@ main() {
   }
 
   test_cons_single_closure() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -134,7 +134,7 @@ main() {
   }
 
   test_cons_single_closure_2() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -163,7 +163,7 @@ main() {
   }
 
   test_cons_single_closure_3() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -192,7 +192,7 @@ main() {
   }
 
   test_cons_single_closure_4() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -221,7 +221,7 @@ main() {
   }
 
   test_cons_single_list() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -248,7 +248,7 @@ main() {
   }
 
   test_multiple() async {
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -268,7 +268,7 @@ main() {
   }
 
   test_multiple_1of2() async {
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -288,7 +288,7 @@ main() {
   }
 
   test_multiple_2of2() async {
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -308,7 +308,7 @@ main() {
   }
 
   test_single() async {
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -328,7 +328,7 @@ main() {
   }
 
   test_single_normal() async {
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -348,7 +348,7 @@ main() {
   }
 
   test_single_with_details() async {
-    addMetaPackageSource();
+    addMetaPackage();
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 

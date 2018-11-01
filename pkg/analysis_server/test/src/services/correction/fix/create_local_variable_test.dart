@@ -141,13 +141,13 @@ main() {
   }
 
   test_withImport() async {
-    addPackageSource('pkg', 'a/a.dart', '''
+    addPackageFile('pkg', 'a/a.dart', '''
 class A {}
 ''');
-    addPackageSource('pkg', 'b/b.dart', '''
+    addPackageFile('pkg', 'b/b.dart', '''
 class B {}
 ''');
-    addPackageSource('pkg', 'c/c.dart', '''
+    addPackageFile('pkg', 'c/c.dart', '''
 import 'package:pkg/a/a.dart';
 import 'package:pkg/b/b.dart';
 

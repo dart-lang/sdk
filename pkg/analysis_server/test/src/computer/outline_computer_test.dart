@@ -557,7 +557,7 @@ main(p()) {
   }
 
   test_isTest_isTestGroup() async {
-    addMetaPackageSource();
+    addMetaPackage();
     Outline outline = await _computeOutline('''
 import 'package:meta/meta.dart';
 

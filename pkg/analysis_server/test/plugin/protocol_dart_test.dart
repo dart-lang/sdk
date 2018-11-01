@@ -169,7 +169,7 @@ class A {
   }
 
   test_fromElement_CONSTRUCTOR_required_parameters_1() async {
-    addMetaPackageSource();
+    addMetaPackage();
     engine.Source source = addSource('/test.dart', '''
 import 'package:meta/meta.dart';    
 class A {
@@ -186,7 +186,7 @@ class A {
 
   /// Verify parameter re-ordering for required params
   test_fromElement_CONSTRUCTOR_required_parameters_2() async {
-    addMetaPackageSource();
+    addMetaPackage();
     engine.Source source = addSource('/test.dart', '''
 import 'package:meta/meta.dart';    
 class A {
@@ -204,7 +204,7 @@ class A {
 
   /// Verify parameter re-ordering for required params
   test_fromElement_CONSTRUCTOR_required_parameters_3() async {
-    addMetaPackageSource();
+    addMetaPackage();
     engine.Source source = addSource('/test.dart', '''
 import 'package:meta/meta.dart';    
 class A {

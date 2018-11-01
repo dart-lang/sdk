@@ -437,11 +437,11 @@ class ImportLibraryProject3Test extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3;
 
   test_inLibSrc_differentContextRoot() async {
-    addPackageSource('bbb', 'b1.dart', r'''
+    addPackageFile('bbb', 'b1.dart', r'''
 import 'src/b2.dart';
 class A {}
 ''');
-    addPackageSource('bbb', 'src/b2.dart', 'class Test {}');
+    addPackageFile('bbb', 'src/b2.dart', 'class Test {}');
     await resolveTestUnit('''
 import 'package:bbb/b1.dart';
 main() {
@@ -479,7 +479,7 @@ mixin ImportLibraryTestMixin on FixProcessorTest {
   /// values are the contents of the files at those paths.
   void _configureMyPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      addPackageSource('my_pkg', path, code);
+      addPackageFile('my_pkg', path, code);
     });
   }
 }

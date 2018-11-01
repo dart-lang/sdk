@@ -57,7 +57,7 @@ class LocalConstructorContributorTest extends DartCompletionContributorTest {
 
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_cons_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -1142,7 +1142,7 @@ class Z { }''');
   }
 
   test_Block_unimported() async {
-    addPackageSource('aaa', 'a.dart', 'class A {}');
+    addPackageFile('aaa', 'a.dart', 'class A {}');
     addTestSource('main() { ^ }');
 
     await computeSuggestions();

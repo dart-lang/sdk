@@ -193,7 +193,7 @@ class A {}
   }
 
   test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
-    addPackageSource('aaa', 'aaa.dart', '');
+    addPackageFile('aaa', 'aaa.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
@@ -209,7 +209,7 @@ import 'package:bbb/bbb.dart';
   }
 
   test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
-    addPackageSource('bbb', 'bbb.dart', '');
+    addPackageFile('bbb', 'bbb.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
@@ -225,8 +225,8 @@ import 'package:bbb/bbb.dart';
   }
 
   test_addLibraryImports_package_hasImports_between() async {
-    addPackageSource('aaa', 'aaa.dart', '');
-    addPackageSource('ddd', 'ddd.dart', '');
+    addPackageFile('aaa', 'aaa.dart', '');
+    addPackageFile('ddd', 'ddd.dart', '');
     await resolveTestUnit('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';

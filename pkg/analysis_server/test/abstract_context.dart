@@ -51,12 +51,13 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
   AnalysisSession get session => driver.currentSession;
 
   void addFlutterPackage() {
-    addMetaPackageSource();
+    addMetaPackage();
     Folder libFolder = configureFlutterPackage(resourceProvider);
     _addTestPackageDependency('flutter', libFolder.parent.path);
   }
 
-  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
+  void addMetaPackage() {
+    addPackageFile('meta', 'meta.dart', r'''
 library meta;
 
 const _IsTest isTest = const _IsTest();
@@ -78,16 +79,15 @@ class _IsTestGroup {
   const _IsTestGroup();
 }
 ''');
+  }
 
-  /// Add a new file with the given [libRelativePath] to the package with the
+  /// Add a new file with the given [pathInLib] to the package with the
   /// given [packageName].  Then ensure that the test package depends on the
   /// [packageName].
-  Source addPackageSource(
-      String packageName, String libRelativePath, String content) {
+  File addPackageFile(String packageName, String pathInLib, String content) {
     var packagePath = '/.pub-cache/$packageName';
     _addTestPackageDependency(packageName, packagePath);
-    var file = newFile('$packagePath/lib/$libRelativePath', content: content);
-    return file.createSource();
+    return newFile('$packagePath/lib/$pathInLib', content: content);
   }
 
   Source addSource(String path, String content, [Uri uri]) {

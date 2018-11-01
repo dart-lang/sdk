@@ -230,7 +230,7 @@ main() {
   }
 
   test_checkInitialConditions_outsideOfProject() async {
-    addPackageSource('aaa', 'lib.dart', r'''
+    addPackageFile('aaa', 'lib.dart', r'''
 class A {}
 ''');
     await indexTestUnit('''

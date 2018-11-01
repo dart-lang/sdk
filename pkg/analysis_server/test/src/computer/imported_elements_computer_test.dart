@@ -236,7 +236,7 @@ plusThree(int x) {
   }
 
   test_package_multipleInSame() async {
-    addPackageSource('foo', 'foo.dart', '''
+    addPackageFile('foo', 'foo.dart', '''
 class A {
   static String a = '';
 }
@@ -262,7 +262,7 @@ blankLine() {
   }
 
   test_package_noPrefix() async {
-    addPackageSource('foo', 'foo.dart', '''
+    addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
 }
@@ -285,7 +285,7 @@ blankLine() {
   }
 
   test_package_prefix_selected() async {
-    addPackageSource('foo', 'foo.dart', '''
+    addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
 }
@@ -308,7 +308,7 @@ blankLine() {
   }
 
   test_package_prefix_unselected() async {
-    addPackageSource('foo', 'foo.dart', '''
+    addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
 }
@@ -331,7 +331,7 @@ blankLine() {
   }
 
   test_package_prefixedAndNot() async {
-    addPackageSource('foo', 'foo.dart', '''
+    addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
   static String second = '';

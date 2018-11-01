@@ -67,9 +67,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_export_package2() async {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addPackageFile('foo', 'foo.dart', 'library foo;');
+    addPackageFile('foo', 'baz/too.dart', 'library too;');
+    addPackageFile('bar', 'bar.dart', 'library bar;');
     addTestSource('export "package:foo/baz/^" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
@@ -79,9 +79,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   test_export_package2_off() async {
     try {
       UriContributor.suggestFilePaths = false;
-      addPackageSource('foo', 'foo.dart', 'library foo;');
-      addPackageSource('foo', 'baz/too.dart', 'library too;');
-      addPackageSource('bar', 'bar.dart', 'library bar;');
+      addPackageFile('foo', 'foo.dart', 'library foo;');
+      addPackageFile('foo', 'baz/too.dart', 'library too;');
+      addPackageFile('bar', 'bar.dart', 'library bar;');
       addTestSource('export "package:foo/baz/^" import');
       await computeSuggestions();
       assertNotSuggested('package:foo/baz/too.dart');
@@ -291,9 +291,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_package() async {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addPackageFile('foo', 'foo.dart', 'library foo;');
+    addPackageFile('foo', 'baz/too.dart', 'library too;');
+    addPackageFile('bar', 'bar.dart', 'library bar;');
     addTestSource('import "p^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -310,9 +310,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_package2() async {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addPackageFile('foo', 'foo.dart', 'library foo;');
+    addPackageFile('foo', 'baz/too.dart', 'library too;');
+    addPackageFile('bar', 'bar.dart', 'library bar;');
     addTestSource('import "package:foo/baz/^" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
@@ -322,9 +322,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   test_import_package2_off() async {
     try {
       UriContributor.suggestFilePaths = false;
-      addPackageSource('foo', 'foo.dart', 'library foo;');
-      addPackageSource('foo', 'baz/too.dart', 'library too;');
-      addPackageSource('bar', 'bar.dart', 'library bar;');
+      addPackageFile('foo', 'foo.dart', 'library foo;');
+      addPackageFile('foo', 'baz/too.dart', 'library too;');
+      addPackageFile('bar', 'bar.dart', 'library bar;');
       addTestSource('import "package:foo/baz/^" import');
       await computeSuggestions();
       assertNotSuggested('package:foo/baz/too.dart');
@@ -334,9 +334,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_package2_raw() async {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addPackageFile('foo', 'foo.dart', 'library foo;');
+    addPackageFile('foo', 'baz/too.dart', 'library too;');
+    addPackageFile('bar', 'bar.dart', 'library bar;');
     addTestSource('import r"package:foo/baz/^" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
@@ -344,9 +344,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_package2_with_trailing() async {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addPackageFile('foo', 'foo.dart', 'library foo;');
+    addPackageFile('foo', 'baz/too.dart', 'library too;');
+    addPackageFile('bar', 'bar.dart', 'library bar;');
     addTestSource('import "package:foo/baz/^.dart" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
@@ -356,8 +356,8 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_package_missing_lib() async {
-    var pkgSrc = addPackageSource('bar', 'bar.dart', 'library bar;');
-    deleteFolder(dirname(pkgSrc.fullName));
+    var pkgFile = addPackageFile('bar', 'bar.dart', 'library bar;');
+    deleteFolder(pkgFile.parent.path);
     addTestSource('import "p^" class');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -368,9 +368,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   test_import_package_raw() async {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addPackageFile('foo', 'foo.dart', 'library foo;');
+    addPackageFile('foo', 'baz/too.dart', 'library too;');
+    addPackageFile('bar', 'bar.dart', 'library bar;');
     addTestSource('import r"p^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);

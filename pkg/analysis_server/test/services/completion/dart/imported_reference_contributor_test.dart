@@ -28,7 +28,7 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
 
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
 
     resolveSource('/testB.dart', '''
 lib B;
@@ -1199,7 +1199,7 @@ class B extends A {
   }
 
   test_Block_unimported() async {
-    addPackageSource('aaa', 'a.dart', 'class A {}');
+    addPackageFile('aaa', 'a.dart', 'class A {}');
     addTestSource('main() { ^ }');
 
     await computeSuggestions();

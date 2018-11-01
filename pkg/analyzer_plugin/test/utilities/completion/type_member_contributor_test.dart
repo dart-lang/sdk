@@ -82,7 +82,7 @@ void main() {new A().a^}''');
   }
 
   test_ArgDefaults_method_with_optional_positional() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -97,7 +97,7 @@ void main() {new A().f^}''');
   }
 
   test_ArgDefaults_method_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -1086,7 +1086,7 @@ void main() {new A().f^}''');
   }
 
   test_Block_unimported() async {
-    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
+    addPackageFile('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
     testFile = convertPath('/proj/completionTest.dart');

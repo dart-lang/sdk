@@ -63,7 +63,8 @@ class AbstractContextTest with ResourceProviderMixin {
    */
   AnalysisSession get session => driver.currentSession;
 
-  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
+  void addMetaPackage() {
+    addPackageFile('meta', 'meta.dart', r'''
 library meta;
 
 const Required required = const Required();
@@ -73,11 +74,12 @@ class Required {
   const Required([this.reason]);
 }
 ''');
+  }
 
-  Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [newFolder('/pubcache/$packageName')];
-    File file = newFile('/pubcache/$packageName/$filePath', content: content);
-    return file.createSource();
+  File addPackageFile(String packageName, String pathInLib, String content) {
+    var packageLibPath = '/.pub-cache/$packageName/lib';
+    packageMap[packageName] = [newFolder(packageLibPath)];
+    return newFile('$packageLibPath/$pathInLib', content: content);
   }
 
   Source addSource(String path, String content, [Uri uri]) {
