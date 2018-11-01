@@ -76,6 +76,7 @@ DEFINE_FLAG(bool,
             false,
             "Remove script timestamps to allow for deterministic testing.");
 
+DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -5971,6 +5972,25 @@ bool Function::HasCode() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::IsBytecodeAllowed(Zone* zone) const {
+  if (FLAG_intrinsify) {
+    // Bigint intrinsics should not be interpreted, because their Dart version
+    // is only to be used when intrinsics are disabled. Mixing an interpreted
+    // Dart version with a compiled intrinsified version results in a mismatch
+    // in the number of digits processed by each call.
+    switch (recognized_kind()) {
+      case MethodRecognizer::kBigint_lsh:
+      case MethodRecognizer::kBigint_rsh:
+      case MethodRecognizer::kBigint_absAdd:
+      case MethodRecognizer::kBigint_absSub:
+      case MethodRecognizer::kBigint_mulAdd:
+      case MethodRecognizer::kBigint_sqrAdd:
+      case MethodRecognizer::kBigint_estimateQuotientDigit:
+      case MethodRecognizer::kMontgomery_mulMod:
+        return false;
+      default:
+        break;
+    }
+  }
   switch (kind()) {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:
@@ -19404,23 +19424,12 @@ const char* Integer::ToCString() const {
   return "NULL Integer";
 }
 
-// String representation of kMaxInt64 + 1.
-static const char* kMaxInt64Plus1 = "9223372036854775808";
-
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
   int64_t value = 0;
   const char* cstr = str.ToCString();
   if (!OS::StringToInt64(cstr, &value)) {
-    // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
-    // are only supported through the Kernel FE.
-    if (strcmp(cstr, kMaxInt64Plus1) == 0) {
-      // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
-      // of unary minus to produce MIN_INT64 value. The value is automatically
-      // wrapped to MIN_INT64.
-      return Integer::New(kMinInt64, space);
-    }
     // Out of range.
     return Integer::null();
   }
@@ -19433,14 +19442,6 @@ RawInteger* Integer::NewCanonical(const String& str) {
   int64_t value = 0;
   const char* cstr = str.ToCString();
   if (!OS::StringToInt64(cstr, &value)) {
-    // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
-    // are only supported through the Kernel FE.
-    if (strcmp(cstr, kMaxInt64Plus1) == 0) {
-      // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
-      // of unary minus to produce MIN_INT64 value. The value is automatically
-      // wrapped to MIN_INT64.
-      return Mint::NewCanonical(kMinInt64);
-    }
     // Out of range.
     return Integer::null();
   }

@@ -5,10 +5,7 @@
 import 'dart:async';
 import 'dart:io' show File, Directory;
 
-import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analysis_server_client/protocol.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:dartfix/src/options.dart';

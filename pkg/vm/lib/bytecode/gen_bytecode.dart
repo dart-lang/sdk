@@ -141,35 +141,41 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (node.isAbstract) {
       return;
     }
-    if (node is Field) {
-      if (node.isStatic && !_hasTrivialInitializer(node)) {
+    try {
+      if (node is Field) {
+        if (node.isStatic && !_hasTrivialInitializer(node)) {
+          start(node);
+          if (node.isConst) {
+            _genPushConstExpr(node.initializer);
+          } else {
+            node.initializer.accept(this);
+          }
+          _genReturnTOS();
+          end(node);
+        }
+      } else if ((node is Procedure && !node.isRedirectingFactoryConstructor) ||
+          (node is Constructor)) {
         start(node);
-        if (node.isConst) {
-          _genPushConstExpr(node.initializer);
+        if (node is Constructor) {
+          _genConstructorInitializers(node);
+        }
+        if (node.isExternal) {
+          final String nativeName = getExternalName(node);
+          if (nativeName == null) {
+            return;
+          }
+          _genNativeCall(nativeName);
         } else {
-          node.initializer.accept(this);
+          node.function?.body?.accept(this);
+          // BytecodeAssembler eliminates this bytecode if it is unreachable.
+          asm.emitPushNull();
         }
         _genReturnTOS();
         end(node);
       }
-    } else if ((node is Procedure && !node.isRedirectingFactoryConstructor) ||
-        (node is Constructor)) {
-      start(node);
-      if (node is Constructor) {
-        _genConstructorInitializers(node);
-      }
-      if (node.isExternal) {
-        final String nativeName = getExternalName(node);
-        if (nativeName == null) {
-          return;
-        }
-        _genNativeCall(nativeName);
-      } else {
-        node.function?.body?.accept(this);
-        // BytecodeAssembler eliminates this bytecode if it is unreachable.
-        asm.emitPushNull();
-      }
-      _genReturnTOS();
+    } on BytecodeLimitExceededException {
+      // Do not generate bytecode and fall back to using kernel AST.
+      hasErrors = true;
       end(node);
     }
   }
@@ -1594,7 +1600,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // Remove type arguments as they are only passed to instance allocation,
     // and not passed to a constructor.
     final args =
-        new Arguments(node.arguments.positional, named: node.arguments.named);
+        new Arguments(node.arguments.positional, named: node.arguments.named)
+          ..parent = node;
     _genArguments(null, args);
     _genStaticCallWithArgs(node.target, args, hasReceiver: true);
     asm.emitDrop1();

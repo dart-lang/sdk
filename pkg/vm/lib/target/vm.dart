@@ -94,21 +94,18 @@ class VmTarget extends Target {
     logger?.call("Transformed async functions");
   }
 
-  @override
-  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
-      String name, Arguments arguments, int offset, bool isSuper) {
-    // See [_InvocationMirror]
-    // (../../../../runtime/lib/invocation_mirror_patch.dart).
-    // The _InvocationMirror._withoutType constructor takes the following arguments:
-    // * Method name (a string).
-    // * List of type arguments.
-    // * List of positional arguments.
-    // * List of named arguments.
-    // * Whether it's a super invocation or not.
+  Expression _instantiateInvocationMirrorWithType(
+      CoreTypes coreTypes,
+      Expression receiver,
+      String name,
+      Arguments arguments,
+      int offset,
+      int type) {
     return new ConstructorInvocation(
-        coreTypes.invocationMirrorWithoutTypeConstructor,
+        coreTypes.invocationMirrorWithTypeConstructor,
         new Arguments(<Expression>[
-          new StringLiteral(name)..fileOffset = offset,
+          new SymbolLiteral(name)..fileOffset = offset,
+          new IntLiteral(type)..fileOffset = offset,
           _fixedLengthList(
               coreTypes,
               coreTypes.typeClass.rawType,
@@ -132,10 +129,32 @@ class VmTarget extends Target {
                 coreTypes.symbolClass.rawType,
                 new DynamicType()
               ]))
-            ..fileOffset = arguments.fileOffset,
-          new BoolLiteral(isSuper)..fileOffset = arguments.fileOffset
-        ]))
-      ..fileOffset = offset;
+            ..fileOffset = offset
+        ]));
+  }
+
+  @override
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper) {
+    bool isGetter = false, isSetter = false, isMethod = false;
+    if (name.startsWith("set:")) {
+      isSetter = true;
+      name = name.substring(4) + "=";
+    } else if (name.startsWith("get:")) {
+      isGetter = true;
+      name = name.substring(4);
+    } else {
+      isMethod = true;
+    }
+
+    int type = _invocationType(
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isMethod: isMethod,
+        isSuper: isSuper);
+
+    return _instantiateInvocationMirrorWithType(
+        coreTypes, receiver, name, arguments, offset, type);
   }
 
   @override
@@ -166,37 +185,8 @@ class VmTarget extends Target {
         coreTypes.noSuchMethodErrorDefaultConstructor,
         new Arguments(<Expression>[
           receiver,
-          new ConstructorInvocation(
-              coreTypes.invocationMirrorWithTypeConstructor,
-              new Arguments(<Expression>[
-                new SymbolLiteral(name)..fileOffset = offset,
-                new IntLiteral(type)..fileOffset = offset,
-                _fixedLengthList(
-                    coreTypes,
-                    coreTypes.typeClass.rawType,
-                    arguments.types.map((t) => new TypeLiteral(t)).toList(),
-                    arguments.fileOffset),
-                _fixedLengthList(coreTypes, const DynamicType(),
-                    arguments.positional, arguments.fileOffset),
-                new StaticInvocation(
-                    coreTypes.mapUnmodifiable,
-                    new Arguments([
-                      new MapLiteral(new List<MapEntry>.from(
-                          arguments.named.map((NamedExpression arg) {
-                        return new MapEntry(
-                            new SymbolLiteral(arg.name)
-                              ..fileOffset = arg.fileOffset,
-                            arg.value)
-                          ..fileOffset = arg.fileOffset;
-                      })), keyType: coreTypes.symbolClass.rawType)
-                        ..isConst = (arguments.named.length == 0)
-                        ..fileOffset = arguments.fileOffset
-                    ], types: [
-                      coreTypes.symbolClass.rawType,
-                      new DynamicType()
-                    ]))
-                  ..fileOffset = offset
-              ]))
+          _instantiateInvocationMirrorWithType(
+              coreTypes, receiver, name, arguments, offset, type)
         ]));
   }
 

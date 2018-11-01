@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/util/sdk.dart';
+import 'dart:io';
+
 import 'package:dartfix/src/context.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -14,7 +15,7 @@ class Options {
   Logger logger;
 
   List<String> targets;
-  String sdkPath;
+  final String sdkPath;
   final bool force;
   final bool overwrite;
   final bool verbose;
@@ -79,15 +80,16 @@ class Options {
       context.exit(1);
     }
 
-    // Infer the Dart SDK location
-    options.sdkPath = getSdkPath(args);
+    // Validate the Dart SDK location
     String sdkPath = options.sdkPath;
     if (sdkPath == null) {
       logger.stderr('No Dart SDK found.');
       _showUsage(parser, logger);
+      context.exit(15);
     }
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
+      _showUsage(parser, logger);
       context.exit(15);
     }
 
@@ -128,13 +130,20 @@ class Options {
         force = results[forceOption] as bool,
         overwrite = results[overwriteOption] as bool,
         verbose = results[_verboseOption] as bool,
-        useColor = results.wasParsed('color') ? results['color'] as bool : null;
+        useColor = results.wasParsed('color') ? results['color'] as bool : null,
+        sdkPath = _getSdkPath();
 
   String makeAbsoluteAndNormalize(String target) {
     if (!path.isAbsolute(target)) {
       target = path.join(context.workingDir, target);
     }
     return path.normalize(target);
+  }
+
+  static String _getSdkPath() {
+    return Platform.environment['DART_SDK'] != null
+        ? Platform.environment['DART_SDK']
+        : path.dirname(path.dirname(Platform.resolvedExecutable));
   }
 
   static _showUsage(ArgParser parser, Logger logger) {

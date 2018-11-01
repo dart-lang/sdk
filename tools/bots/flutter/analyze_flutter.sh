@@ -15,7 +15,7 @@ cleanup() {
 trap cleanup EXIT HUP INT QUIT TERM PIPE
 cd "$tmpdir"
 
-git clone https://chromium.googlesource.com/external/github.com/flutter/flutter
+git clone --depth 1 -vv https://chromium.googlesource.com/external/github.com/flutter/flutter
 cd flutter
 bin/flutter config --no-analytics
 bin/flutter update-packages

@@ -24,6 +24,7 @@ DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
 DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
+DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
 # use instead of --platform-sdk
 DART_MAKE_PLATFORM_SDK = "DART_MAKE_PLATFORM_SDK"
 
@@ -160,7 +161,6 @@ def UseSysroot(args, gn_args):
   # Otherwise use the sysroot.
   return True
 
-
 def ToGnArgs(args, mode, arch, target_os):
   gn_args = {}
 
@@ -173,6 +173,13 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['host_cpu'] = HostCpuForArch(arch)
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
+
+  # Configure Crashpad library if it is used.
+  gn_args['dart_use_crashpad'] = (args.use_crashpad or
+      DART_USE_CRASHPAD in os.environ)
+  if gn_args['dart_use_crashpad']:
+    # Tell Crashpad's BUILD files which checkout layout to use.
+    gn_args['crashpad_dependencies'] = 'dart'
 
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
@@ -187,8 +194,6 @@ def ToGnArgs(args, mode, arch, target_os):
     gn_args['dart_use_fallback_root_certificates'] = True
 
   gn_args['dart_platform_bytecode'] = args.bytecode
-
-  gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
 
   # Use tcmalloc only when targeting Linux and when not using ASAN.
   gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux')
@@ -321,6 +326,9 @@ def ProcessOptions(args):
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
         return False
+  if HOST_OS != 'win' and args.use_crashpad:
+    print "Crashpad is only supported on Windows"
+    return False
   return True
 
 
@@ -460,6 +468,10 @@ def parse_args(args):
       help='Number of simultaneous GN invocations',
       dest='workers',
       default=multiprocessing.cpu_count())
+  other_group.add_argument('--use-crashpad',
+      default=False,
+      dest='use_crashpad',
+      action='store_true')
 
   options = parser.parse_args(args)
   if not ProcessOptions(options):

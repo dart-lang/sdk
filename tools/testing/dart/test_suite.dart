@@ -128,6 +128,10 @@ abstract class TestSuite {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
     };
+    if (configuration.copyCoreDumps && Platform.isWindows) {
+      _environmentOverrides['DART_CRASHPAD_HANDLER'] =
+          new Path(buildDir + '/crashpad_handler.exe').toNativePath();
+    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;

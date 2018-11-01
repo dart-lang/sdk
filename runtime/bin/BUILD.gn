@@ -234,7 +234,7 @@ template("build_gen_snapshot_dart_io") {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
-    deps += [ "$dart_zlib_path" ]
+    deps += [ "//third_party/zlib" ]
 
     custom_sources_filter = [
       "*_test.cc",
@@ -330,7 +330,7 @@ template("dart_io") {
 
     defines = []
     deps = [
-      "$dart_zlib_path",
+      "//third_party/zlib",
     ]
     if (is_mac || is_ios) {
       libs = [
@@ -663,7 +663,7 @@ template("dart_executable") {
              ":standalone_dart_io",
              ":libdart_builtin",
              "//third_party/boringssl",
-             "$dart_zlib_path",
+             "//third_party/zlib",
            ] + extra_deps
 
     defines = extra_defines
@@ -673,6 +673,24 @@ template("dart_executable") {
 
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
+    }
+
+    include_dirs = [
+      "..",
+      "//third_party",
+    ]
+
+    if (dart_use_crashpad) {
+      assert(is_win, "dart_use_crashpad is only supported on Windows")
+      deps += [
+        "//third_party/crashpad/crashpad/client",
+        "//third_party/mini_chromium/mini_chromium/base",
+
+        # This binary is used to handle crashes of the dart binary.
+        "//third_party/crashpad/crashpad/handler:crashpad_handler",
+      ]
+      include_dirs += [ "//third_party/crashpad" ]
+      defines += [ "DART_USE_CRASHPAD" ]
     }
 
     sources = [
@@ -689,11 +707,6 @@ template("dart_executable") {
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
               ] + extra_sources
-
-    include_dirs = [
-      "..",
-      "//third_party",
-    ]
 
     if (is_win) {
       ldflags = [ "/EXPORT:Dart_True" ]
@@ -875,8 +888,8 @@ executable("run_vm_tests") {
     ":generate_snapshot_test_dat_file",
     ":libdart_builtin",
     ":standalone_dart_io",
-    "$dart_zlib_path",
     "..:libdart_jit",
+    "//third_party/zlib",
   ]
   include_dirs = [
     "..",

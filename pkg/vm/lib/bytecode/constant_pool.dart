@@ -9,6 +9,8 @@ import 'dart:typed_data';
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
+import 'dbc.dart' show constantPoolIndexLimit, BytecodeLimitExceededException;
+
 /*
 
 In kernel binary, constant pool is encoded in the following way
@@ -1166,6 +1168,9 @@ class ConstantPool {
   int add(ConstantPoolEntry entry) {
     return _canonicalizationCache.putIfAbsent(entry, () {
       int index = entries.length;
+      if (index >= constantPoolIndexLimit) {
+        throw new ConstantPoolIndexOverflowException();
+      }
       _addEntry(entry);
       return index;
     });
@@ -1252,3 +1257,6 @@ class ConstantPool {
 
 int _combineHashes(int hash1, int hash2) =>
     (((hash1 * 31) & 0x3fffffff) + hash2) & 0x3fffffff;
+
+class ConstantPoolIndexOverflowException
+    extends BytecodeLimitExceededException {}

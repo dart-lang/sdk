@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1691,6 +1692,24 @@ mixin M {}
     var annotation = findNode.annotation('@a');
     assertElement(annotation, a);
     expect(annotation.elementAnnotation, same(metadata[0]));
+  }
+
+  test_methodCallTypeInference_mixinType() async {
+    addTestFile('''
+main() {
+  C<int> c = f();
+}
+
+class C<T> {}
+
+mixin M<T> on C<T> {}
+
+M<T> f<T>() => null;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    var fInvocation = findNode.methodInvocation('f()');
+    expect(fInvocation.staticInvokeType.toString(), '() → M<int>');
   }
 
   test_onClause() async {

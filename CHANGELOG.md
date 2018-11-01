@@ -1,3 +1,5 @@
+## 2.1.0-dev.9.0
+
 ## 2.1.0-dev.8.0
 
 #### `dart:html`
@@ -150,6 +152,7 @@ a InstanceTypeError if the instance isn't of the class expected
 ### Core library changes
 
 *   Add `HashMap.fromEntries` and `LinkedHashmap.fromEntries` constructors.
+*   Add `ArgumentError.checkNotNull` utility method.
 
 ### Tool Changes
 
