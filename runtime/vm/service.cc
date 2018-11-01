@@ -1330,6 +1330,42 @@ static bool GetIsolate(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_scripts_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetScripts(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  ASSERT(isolate != NULL);
+
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  intptr_t num_libs = libs.Length();
+
+  Library& lib = Library::Handle(zone);
+  Array& scripts = Array::Handle(zone);
+  Script& script = Script::Handle(zone);
+
+  JSONObject jsobj(js);
+  {
+    jsobj.AddProperty("type", "ScriptList");
+    JSONArray script_array(&jsobj, "scripts");
+    for (intptr_t i = 0; i < num_libs; i++) {
+      lib ^= libs.At(i);
+      ASSERT(!lib.IsNull());
+      scripts ^= lib.LoadedScripts();
+      for (intptr_t j = 0; j < scripts.Length(); j++) {
+        script ^= scripts.At(j);
+        ASSERT(!script.IsNull());
+        script_array.AddValue(script);
+      }
+    }
+  }
+  return true;
+}
+
 static const MethodParameter* get_unused_changes_in_last_reload_params[] = {
     ISOLATE_PARAMETER, NULL,
 };
@@ -4728,6 +4764,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_isolate_metric_params },
   { "_getIsolateMetricList", GetIsolateMetricList,
     get_isolate_metric_list_params },
+  { "getScripts", GetScripts,
+    get_scripts_params },
   { "getObject", GetObject,
     get_object_params },
   { "_getObjectStore", GetObjectStore,
