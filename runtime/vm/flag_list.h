@@ -106,7 +106,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Artificially create type feedback for arithmetic etc. operations")        \
   P(huge_method_cutoff_in_tokens, int, 20000,                                  \
     "Huge method cutoff in tokens: Disables optimizations for huge methods.")  \
-  P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
+  P(idle_timeout_micros, int, 0 * kMicrosecondsPerMillisecond,                 \
     "Consider thread pool isolates for idle tasks after this long.")           \
   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
     "Allow idle tasks to run for this long.")                                  \
