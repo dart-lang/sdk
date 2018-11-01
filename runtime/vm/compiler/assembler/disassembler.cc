@@ -340,11 +340,11 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     auto& function = Function::Handle(zone);
     auto& code = Code::Handle(zone);
     if (!table.IsNull()) {
-      for (intptr_t i = 0; i < table.Length();
-           i += Code::kSCallTableEntryLength) {
-        kind_and_offset ^= table.At(i + Code::kSCallTableKindAndOffset);
-        function ^= table.At(i + Code::kSCallTableFunctionTarget);
-        code ^= table.At(i + Code::kSCallTableCodeTarget);
+      StaticCallsTable static_calls(table);
+      for (auto& call : static_calls) {
+        kind_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
+        function = call.Get<Code::kSCallTableFunctionTarget>();
+        code = call.Get<Code::kSCallTableCodeTarget>();
 
         auto kind = Code::KindField::decode(kind_and_offset.Value());
         auto offset = Code::OffsetField::decode(kind_and_offset.Value());

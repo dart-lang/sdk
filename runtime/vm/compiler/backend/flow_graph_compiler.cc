@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
-
 #include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
 
 #include "platform/utils.h"
 #include "vm/bit_vector.h"
@@ -1081,23 +1080,21 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   const auto& targets =
       Array::Handle(zone(), Array::New(array_length, Heap::kOld));
 
+  StaticCallsTable entries(targets);
   auto& kind_and_offset = Smi::Handle(zone());
   for (intptr_t i = 0; i < calls.length(); i++) {
     auto entry = calls[i];
     kind_and_offset = Smi::New(Code::KindField::encode(entry->call_kind) |
                                Code::OffsetField::encode(entry->offset));
-    const intptr_t target_ix = Code::kSCallTableEntryLength * i;
-    targets.SetAt(target_ix + Code::kSCallTableKindAndOffset, kind_and_offset);
-
+    auto view = entries[i];
+    view.Set<Code::kSCallTableKindAndOffset>(kind_and_offset);
     const Object* target = nullptr;
     if (entry->function != nullptr) {
-      target = calls[i]->function;
-      targets.SetAt(target_ix + Code::kSCallTableFunctionTarget, *target);
+      view.Set<Code::kSCallTableFunctionTarget>(*calls[i]->function);
     }
     if (entry->code != NULL) {
       ASSERT(target == nullptr);
-      target = calls[i]->code;
-      targets.SetAt(target_ix + Code::kSCallTableCodeTarget, *target);
+      view.Set<Code::kSCallTableCodeTarget>(*calls[i]->code);
     }
   }
   code.set_static_calls_target_table(targets);

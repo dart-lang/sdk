@@ -14490,12 +14490,11 @@ void Code::set_static_calls_target_table(const Array& value) const {
   // FlowGraphCompiler::AddStaticCallTarget adds pc-offsets to the table while
   // emitting assembly. This guarantees that every succeeding pc-offset is
   // larger than the previously added one.
-  const intptr_t count = value.Length() / kSCallTableEntryLength;
+  StaticCallsTable entries(value);
+  const intptr_t count = entries.Length();
   for (intptr_t i = 0; i < count - 1; ++i) {
-    auto left = Smi::Value(Smi::RawCast(
-        value.At(i * kSCallTableEntryLength + kSCallTableKindAndOffset)));
-    auto right = Smi::Value(Smi::RawCast(
-        value.At((i + 1) * kSCallTableEntryLength + kSCallTableKindAndOffset)));
+    auto left = Smi::Value(entries[i].Get<kSCallTableKindAndOffset>());
+    auto right = Smi::Value(entries[i + 1].Get<kSCallTableKindAndOffset>());
     ASSERT(OffsetField::decode(left) < OffsetField::decode(right));
   }
 #endif  // DEBUG
@@ -14549,20 +14548,20 @@ intptr_t Code::BinarySearchInSCallTable(uword pc) const {
 #else
   NoSafepointScope no_safepoint;
   const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
+  StaticCallsTable entries(table);
   const intptr_t pc_offset = pc - PayloadStart();
   intptr_t imin = 0;
   intptr_t imax = (table.Length() / kSCallTableEntryLength) - 1;
   while (imax >= imin) {
     const intptr_t imid = imin + (imax - imin) / 2;
-    const intptr_t real_index = imid * kSCallTableEntryLength;
-    const auto offset = OffsetField::decode(Smi::Value(
-        Smi::RawCast(table.At(real_index + kSCallTableKindAndOffset))));
+    const auto offset = OffsetField::decode(
+        Smi::Value(entries[imid].Get<kSCallTableKindAndOffset>()));
     if (offset < pc_offset) {
       imin = imid + 1;
     } else if (offset > pc_offset) {
       imax = imid - 1;
     } else {
-      return real_index;
+      return imid;
     }
   }
 #endif
@@ -14579,9 +14578,8 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
     return Function::null();
   }
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
-  Function& function = Function::Handle();
-  function ^= array.At(i + kSCallTableFunctionTarget);
-  return function.raw();
+  StaticCallsTable entries(array);
+  return entries[i].Get<kSCallTableFunctionTarget>();
 #endif
 }
 
@@ -14595,9 +14593,8 @@ RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
     return Code::null();
   }
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
-  Code& code = Code::Handle();
-  code ^= array.At(i + kSCallTableCodeTarget);
-  return code.raw();
+  StaticCallsTable entries(array);
+  return entries[i].Get<kSCallTableCodeTarget>();
 #endif
 }
 
@@ -14608,9 +14605,10 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
+  StaticCallsTable entries(array);
   ASSERT(code.IsNull() ||
-         (code.function() == array.At(i + kSCallTableFunctionTarget)));
-  array.SetAt(i + kSCallTableCodeTarget, code);
+         (code.function() == entries[i].Get<kSCallTableFunctionTarget>()));
+  return entries[i].Set<kSCallTableCodeTarget>(code);
 #endif
 }
 
@@ -14621,15 +14619,16 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
+  StaticCallsTable entries(array);
 #if defined(DEBUG)
-  if (array.At(i + kSCallTableFunctionTarget) == Function::null()) {
+  if (entries[i].Get<kSCallTableFunctionTarget>() == Function::null()) {
     ASSERT(!code.IsNull() && Object::Handle(code.owner()).IsClass());
   } else {
     ASSERT(code.IsNull() ||
-           (code.function() == array.At(i + kSCallTableFunctionTarget)));
+           (code.function() == entries[i].Get<kSCallTableFunctionTarget>()));
   }
 #endif
-  array.SetAt(i + kSCallTableCodeTarget, code);
+  return entries[i].Set<kSCallTableCodeTarget>(code);
 #endif
 }
 
@@ -15559,18 +15558,18 @@ void SubtypeTestCache::AddCheck(
   intptr_t new_len = data.Length() + kTestEntryLength;
   data = Array::Grow(data, new_len);
   set_cache(data);
-  intptr_t data_pos = old_num * kTestEntryLength;
-  data.SetAt(data_pos + kInstanceClassIdOrFunction,
-             instance_class_id_or_function);
-  data.SetAt(data_pos + kInstanceTypeArguments, instance_type_arguments);
-  data.SetAt(data_pos + kInstantiatorTypeArguments,
-             instantiator_type_arguments);
-  data.SetAt(data_pos + kFunctionTypeArguments, function_type_arguments);
-  data.SetAt(data_pos + kInstanceParentFunctionTypeArguments,
-             instance_parent_function_type_arguments);
-  data.SetAt(data_pos + kInstanceDelayedFunctionTypeArguments,
-             instance_delayed_type_arguments);
-  data.SetAt(data_pos + kTestResult, test_result);
+
+  SubtypeTestCacheTable entries(data);
+  auto entry = entries[old_num];
+  entry.Set<kInstanceClassIdOrFunction>(instance_class_id_or_function);
+  entry.Set<kInstanceTypeArguments>(instance_type_arguments);
+  entry.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
+  entry.Set<kFunctionTypeArguments>(function_type_arguments);
+  entry.Set<kInstanceParentFunctionTypeArguments>(
+      instance_parent_function_type_arguments);
+  entry.Set<kInstanceDelayedFunctionTypeArguments>(
+      instance_delayed_type_arguments);
+  entry.Set<kTestResult>(test_result);
 }
 
 void SubtypeTestCache::GetCheck(
@@ -15583,18 +15582,17 @@ void SubtypeTestCache::GetCheck(
     TypeArguments* instance_delayed_type_arguments,
     Bool* test_result) const {
   Array& data = Array::Handle(cache());
-  intptr_t data_pos = ix * kTestEntryLength;
-  *instance_class_id_or_function =
-      data.At(data_pos + kInstanceClassIdOrFunction);
-  *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
-  *instantiator_type_arguments ^=
-      data.At(data_pos + kInstantiatorTypeArguments);
-  *function_type_arguments ^= data.At(data_pos + kFunctionTypeArguments);
+  SubtypeTestCacheTable entries(data);
+  auto entry = entries[ix];
+  *instance_class_id_or_function = entry.Get<kInstanceClassIdOrFunction>();
+  *instance_type_arguments ^= entry.Get<kInstanceTypeArguments>();
+  *instantiator_type_arguments ^= entry.Get<kInstantiatorTypeArguments>();
+  *function_type_arguments ^= entry.Get<kFunctionTypeArguments>();
   *instance_parent_function_type_arguments ^=
-      data.At(data_pos + kInstanceParentFunctionTypeArguments);
+      entry.Get<kInstanceParentFunctionTypeArguments>();
   *instance_delayed_type_arguments ^=
-      data.At(data_pos + kInstanceDelayedFunctionTypeArguments);
-  *test_result ^= data.At(data_pos + kTestResult);
+      entry.Get<kInstanceDelayedFunctionTypeArguments>();
+  *test_result ^= entry.Get<kTestResult>();
 }
 
 const char* SubtypeTestCache::ToCString() const {

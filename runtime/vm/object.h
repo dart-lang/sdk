@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_OBJECT_H_
 #define RUNTIME_VM_OBJECT_H_
 
+#include <tuple>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -64,6 +66,7 @@ class Symbols;
 
 #define BASE_OBJECT_IMPLEMENTATION(object, super)                              \
  public: /* NOLINT */                                                          \
+  using RawObjectType = Raw##object;                                           \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
   bool Is##object() const { return true; }                                     \
   static object& Handle(Zone* zone, Raw##object* raw_ptr) {                    \
@@ -243,6 +246,9 @@ class Symbols;
 
 class Object {
  public:
+  using RawObjectType = RawObject;
+  static RawObject* RawCast(RawObject* obj) { return obj; }
+
   virtual ~Object() {}
 
   RawObject* raw() const { return raw_; }
@@ -4935,7 +4941,7 @@ class Code : public Object {
     kCallViaCode = 3,
   };
 
-  enum {
+  enum SCallTableEntry {
     kSCallTableKindAndOffset = 0,
     kSCallTableCodeTarget = 1,
     kSCallTableFunctionTarget = 2,
@@ -9438,6 +9444,137 @@ inline void TypeArguments::SetHash(intptr_t value) const {
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
+
+// A view on an [Array] as a list of tuples, optionally starting at an offset.
+//
+// Example: We store a list of (kind, function, code) tuples into the
+// [Code::static_calls_target_table] array of type [Array].
+//
+// This helper class can then be used via
+//
+//     using CallTableView = ArrayOfTuplesVied<
+//         Code::Kind, std::tuple<Smi, Function, Code>>;
+//
+//     auto& array = Array::Handle(code.static_calls_targets_table());
+//     CallTableView static_calls(array);
+//
+//     // Using convenient for loop.
+//     auto& function = Function::Handle();
+//     for (auto& call : static_calls) {
+//       function = call.Get<Code::kSCallTableFunctionTarget>();
+//       call.Set<Code::kSCallTableFunctionTarget>(function);
+//     }
+//
+//     // Using manual loop.
+//     auto& function = Function::Handle();
+//     for (intptr_t i = 0; i < static_calls.Length(); ++i) {
+//       auto call = static_calls[i];
+//       function = call.Get<Code::kSCallTableFunctionTarget>();
+//       call.Set<Code::kSCallTableFunctionTarget>(function);
+//     }
+//
+//
+// Template parameters:
+//
+//   * [EnumType] must be a normal enum which enumerates the entries of the
+//     tuple
+//
+//   * [kStartOffset] is the offset at which the first tuple in the array
+//     starts (can be 0).
+//
+//   * [TupleT] must be a std::tuple<...> where "..." are the heap object handle
+//     classes (e.g. 'Code', 'Smi', 'Object')
+template <typename EnumType, typename TupleT, int kStartOffset = 0>
+class ArrayOfTuplesView {
+ public:
+  static constexpr intptr_t EntrySize = std::tuple_size<TupleT>::value;
+
+  class Iterator;
+
+  class TupleView {
+   public:
+    TupleView(const Array& array, intptr_t index)
+        : array_(array), index_(index) {}
+
+    template <EnumType kElement>
+    decltype(auto) Get() const {
+      using object_type = typename std::tuple_element<kElement, TupleT>::type;
+      return object_type::RawCast(array_.At(index_ + kElement));
+    }
+
+    template <EnumType kElement>
+    void Set(const typename std::tuple_element<kElement, TupleT>::type& value)
+        const {
+      array_.SetAt(index_ + kElement, value);
+    }
+
+    intptr_t index() const { return (index_ - kStartOffset) / EntrySize; }
+
+   private:
+    const Array& array_;
+    intptr_t index_;
+
+    friend class Iterator;
+  };
+
+  class Iterator {
+   public:
+    Iterator(const Array& array, intptr_t index) : entry_(array, index) {}
+
+    bool operator==(const Iterator& other) {
+      return entry_.index_ == other.entry_.index_;
+    }
+    bool operator!=(const Iterator& other) {
+      return entry_.index_ != other.entry_.index_;
+    }
+
+    const TupleView& operator*() const { return entry_; }
+
+    Iterator& operator++() {
+      entry_.index_ += EntrySize;
+      return *this;
+    }
+
+   private:
+    TupleView entry_;
+  };
+
+  explicit ArrayOfTuplesView(const Array& array) : array_(array), index_(-1) {
+    ASSERT(array.Length() >= kStartOffset);
+    ASSERT((array.Length() - kStartOffset) % EntrySize == kStartOffset);
+  }
+
+  intptr_t Length() const {
+    return (array_.Length() - kStartOffset) / EntrySize;
+  }
+
+  TupleView At(intptr_t i) const {
+    return TupleView(array_, kStartOffset + i * EntrySize);
+  }
+
+  TupleView operator[](intptr_t i) const { return At(i); }
+
+  Iterator begin() const { return Iterator(array_, kStartOffset); }
+
+  Iterator end() const {
+    return Iterator(array_, kStartOffset + Length() * EntrySize);
+  }
+
+ private:
+  const Array& array_;
+  intptr_t index_;
+};
+
+using StaticCallsTable =
+    ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Code, Function>>;
+using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
+                                                std::tuple<Object,
+                                                           Object,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments>>;
 
 }  // namespace dart
 

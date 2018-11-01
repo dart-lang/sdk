@@ -477,17 +477,18 @@ void Precompiler::AddCalleesOf(const Function& function) {
 
   const Code& code = Code::Handle(Z, function.CurrentCode());
 
-  const Array& table = Array::Handle(Z, code.static_calls_target_table());
   Object& entry = Object::Handle(Z);
   Class& cls = Class::Handle(Z);
   Function& target = Function::Handle(Z);
 
-  for (intptr_t i = 0; i < table.Length(); i += Code::kSCallTableEntryLength) {
-    entry = table.At(i + Code::kSCallTableFunctionTarget);
+  const Array& table = Array::Handle(Z, code.static_calls_target_table());
+  StaticCallsTable static_calls(table);
+  for (auto& view : static_calls) {
+    entry = view.Get<Code::kSCallTableFunctionTarget>();
     if (entry.IsFunction()) {
       AddFunction(Function::Cast(entry));
     }
-    entry = table.At(i + Code::kSCallTableCodeTarget);
+    entry = view.Get<Code::kSCallTableCodeTarget>();
     if (entry.IsCode() && Code::Cast(entry).IsAllocationStubCode()) {
       cls ^= Code::Cast(entry).owner();
       AddInstantiatedClass(cls);
@@ -1970,16 +1971,15 @@ void Precompiler::BindStaticCalls() {
       }
       code_ = function.CurrentCode();
       table_ = code_.static_calls_target_table();
-
-      for (intptr_t i = 0; i < table_.Length();
-           i += Code::kSCallTableEntryLength) {
-        kind_and_offset_ ^= table_.At(i + Code::kSCallTableKindAndOffset);
+      StaticCallsTable static_calls(table_);
+      for (auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
         auto kind = Code::KindField::decode(kind_and_offset_.Value());
         ASSERT(kind == Code::kCallViaCode);
         auto pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
-        target_ = table_.At(i + Code::kSCallTableFunctionTarget);
+        target_ = view.Get<Code::kSCallTableFunctionTarget>();
         if (target_.IsNull()) {
-          target_ = table_.At(i + Code::kSCallTableCodeTarget);
+          target_ = view.Get<Code::kSCallTableCodeTarget>();
           ASSERT(!Code::Cast(target_).IsFunctionCode());
           // Allocation stub or AllocateContext or AllocateArray or ...
         } else {
