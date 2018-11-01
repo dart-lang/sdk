@@ -9497,7 +9497,8 @@ class ArrayOfTuplesView {
         : array_(array), index_(index) {}
 
     template <EnumType kElement>
-    decltype(auto) Get() const {
+    typename std::tuple_element<kElement, TupleT>::type::RawObjectType* Get()
+        const {
       using object_type = typename std::tuple_element<kElement, TupleT>::type;
       return object_type::RawCast(array_.At(index_ + kElement));
     }
