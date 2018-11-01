@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -48,15 +50,12 @@ Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
  * A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
  */
 class MockLspServerChannel implements LspServerCommunicationChannel {
-  StreamController<lsp.RequestMessage> lspRequestController =
-      new StreamController<lsp.RequestMessage>();
-  StreamController<lsp.ResponseMessage> lspResponseController =
-      new StreamController<lsp.ResponseMessage>.broadcast();
-  StreamController<lsp.NotificationMessage> lspNotificationController =
-      new StreamController<lsp.NotificationMessage>(sync: true);
-
-  List<lsp.ResponseMessage> lspResponsesReceived = [];
-  List<lsp.NotificationMessage> lspNotificationsReceived = [];
+  // TODO(dantup): Support server-to-client requests. We'll probably need to
+  // change IncomingMessage to just Message for both directions?
+  final StreamController<lsp.IncomingMessage> clientToServer =
+      new StreamController<lsp.IncomingMessage>();
+  final StreamController<lsp.Message> serverToClient =
+      new StreamController<lsp.Message>.broadcast();
 
   bool _closed = false;
 
@@ -70,10 +69,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void Function(lsp.RequestMessage request) onRequest,
+  void listen(void Function(lsp.IncomingMessage message) onMessage,
       {Function onError, void Function() onDone}) {
-    lspRequestController.stream
-        .listen(onRequest, onError: onError, onDone: onDone);
+    clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
   }
 
   @override
@@ -82,8 +80,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed) {
       return;
     }
-    lspNotificationsReceived.add(notification);
-    lspNotificationController.add(notification);
+    serverToClient.add(notification);
   }
 
   /**
@@ -91,14 +88,15 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
    * complete when a response associated with the [request] has been received.
    * The value of the future will be the received response.
    */
-  Future<lsp.ResponseMessage> sendRequest(lsp.RequestMessage request) {
+  Future<lsp.ResponseMessage> sendRequestToServer(lsp.RequestMessage request) {
     // No further requests should be sent after the connection is closed.
     if (_closed) {
       throw new Exception('sendLspRequest after connection closed');
     }
+    request = _convertJson(request, lsp.RequestMessage.fromJson);
     // Wrap send request in future to simulate WebSocket.
-    new Future(() => lspRequestController.add(request));
-    return waitForLspResponse(request);
+    new Future(() => clientToServer.add(request));
+    return waitForResponse(request);
   }
 
   @override
@@ -107,9 +105,8 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed) {
       return;
     }
-    lspResponsesReceived.add(response);
     // Wrap send response in future to simulate WebSocket.
-    new Future(() => lspResponseController.add(response));
+    new Future(() => serverToClient.add(response));
   }
 
   /**
@@ -121,9 +118,32 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
    * Unlike [sendLspRequest], this method assumes that the [request] has already
    * been sent to the server.
    */
-  Future<lsp.ResponseMessage> waitForLspResponse(lsp.RequestMessage request) {
-    return lspResponseController.stream
-        .firstWhere((response) => response.id == request.id);
+  Future<lsp.ResponseMessage> waitForResponse(
+      lsp.RequestMessage request) async {
+    // TODO(dantup): Make this throw if an error notifications comes in (as
+    // described above).
+    final response = await serverToClient.stream.firstWhere((response) =>
+        response is lsp.ResponseMessage && response.id == request.id);
+    return response;
+  }
+
+  /**
+   * Return a future that will complete when the next [NotificationMessage] has
+   * been received.
+   */
+  Future<lsp.NotificationMessage> waitForNotificationFromServer() async {
+    final notification = await serverToClient.stream
+        .firstWhere((m) => m is lsp.NotificationMessage);
+    return notification;
+  }
+
+  /// Round trips the object to JSON and back to ensure it behaves the same as
+  /// when running over the real STDIO server. Without this, the object passed
+  /// to the handlers will have concrete types as constructed in tests rather
+  /// than the maps as they would be (the server expects to do the conversion).
+  T _convertJson<T>(
+      lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
+    return constructor(jsonDecode(jsonEncode(message.toJson())));
   }
 }
 

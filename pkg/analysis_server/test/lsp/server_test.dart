@@ -2,54 +2,115 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../mock_sdk.dart';
 import '../mocks.dart';
 
 main() {
-  // TODO(dantup): Change this to use ReflectiveTests with an LSP base class.
-  // TODO(dantup): Create a real integration test that includes sending/verifying
-  // the Content-Length headers, since using the mock server channel doesn't
-  // test any of that.
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LspAnalysisServerTest);
+  });
+}
+
+@reflectiveTest
+class LspAnalysisServerTest extends Object with ResourceProviderMixin {
+  MockLspServerChannel channel;
   LspAnalysisServer server;
-  MockLspServerChannel serverChannel;
 
-  setUp(() {
-    serverChannel = new MockLspServerChannel();
-    var resourceProvider = new MemoryResourceProvider();
-    server = new LspAnalysisServer(
-      serverChannel,
-      resourceProvider,
+  int _id = 0;
+
+  void setUp() {
+    channel = new MockLspServerChannel();
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
+    server = new LspAnalysisServer(channel, resourceProvider);
+  }
+
+  Future tearDown() async {
+    channel.close();
+    await server.shutdown();
+  }
+
+  test_initialize() async {
+    final result = await _initialize();
+    // TODO(dantup): This test will need updating, but this is what the server
+    // is currently hard-coded to claim it supports.
+    expect(result.capabilities.hoverProvider, isTrue);
+  }
+
+  test_requests_before_initialize_are_rejected_and_logged() async {
+    final request = _makeRequest('randomRequest', null);
+    final nextNotification = channel.waitForNotificationFromServer();
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.result, isNull);
+    expect(response.error, isNotNull);
+    expect(response.error.code, ErrorCodes.ServerNotInitialized);
+    final notification = await nextNotification;
+    expect(notification.method, equals('window/logMessage'));
+    LogMessageParams logParams = notification.params.map(
+      (_) => throw 'Expected dynamic, got List<dynamic>',
+      (params) => params,
     );
-  });
+    expect(logParams.type, equals(MessageType.Error));
+  }
 
-  tearDown(() {
-    server.shutdown();
-  });
+  @failingTest
+  test_shutdown() async {
+    await _initialize();
+    final request = _makeRequest('shutdown', null);
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.error, isNull);
+    expect(response.result, isNull);
+  }
 
-  group('LSP Analysis Server', () {
-    test('handles initialize', () async {
-      final capabilities = new ClientCapabilities(null, null, null);
-      final params =
-          new InitializeParams(null, null, null, null, capabilities, null);
-      final request = new RequestMessage(new Either2<num, String>.t1(1),
-          "initialize", new Either2<List<dynamic>, dynamic>.t2(params), "2.0");
+  test_unknownRequest() async {
+    await _initialize();
+    final request = _makeRequest('randomRequest', null);
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.error, isNotNull);
+    expect(response.result, isNull);
+  }
 
-      // TODO(dantup): Constructing unions is ugly...
-      final response = await serverChannel.sendRequest(RequestMessage.fromJson(
-        jsonDecode(jsonEncode(request)),
-      ));
+  /// A helper that initializes the server with common values, since the server
+  /// will reject any other requests until it is initialized.
+  Future<InitializeResult> _initialize() async {
+    final request = _makeRequest(
+        'initialize',
+        new InitializeParams(null, null, null, null,
+            new ClientCapabilities(null, null, null), null));
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.error, isNull);
+    expect(response.result, isNotNull);
 
-      expect(response, const TypeMatcher<ResponseMessage>());
-      expect(response.error?.message, isNull);
-      final result = response.result as InitializeResult;
-      expect(result.capabilities.hoverProvider, true);
-    });
-  });
+    final notification = _makeNotification('initialized', null);
+    channel.sendNotification(notification);
+
+    return response.result;
+  }
+
+  NotificationMessage _makeNotification(String method, ToJsonable params) {
+    return new NotificationMessage(
+        method, Either2<List<dynamic>, dynamic>.t2(params), '2.0');
+  }
+
+  RequestMessage _makeRequest(String method, ToJsonable params) {
+    final id = Either2<num, String>.t1(_id++);
+    return new RequestMessage(
+        id, method, Either2<List<dynamic>, dynamic>.t2(params), '2.0');
+  }
 }

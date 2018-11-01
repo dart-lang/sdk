@@ -27,12 +27,14 @@ class InitializationHandler extends MessageHandler {
     if (message.method == "initialize") {
       final params = convertParams(message, InitializeParams.fromJson);
       return handleInitialize(params);
-    } else {
-      return null;
     }
+
+    throw 'Unexpected message';
   }
 
   InitializeResult handleInitialize(InitializeParams params) {
+    server.setClientCapabilities(params.capabilities);
+
     // TODO(dantup): This needs a real implementation. For this request we
     // should store the client capabilities on this.server and return what
     // we support.

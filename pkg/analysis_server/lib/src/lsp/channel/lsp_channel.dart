@@ -25,7 +25,7 @@ abstract class LspServerCommunicationChannel {
    * client, invoke the [onDone] function.
    * Only one listener is allowed per channel.
    */
-  void listen(void onMessage(IncomingMessage request),
+  void listen(void onMessage(IncomingMessage message),
       {Function onError, void onDone()});
 
   /**

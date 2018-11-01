@@ -16,6 +16,15 @@ import 'package:analyzer/file_system/file_system.dart';
  * listens on a [CommunicationChannel] for analysis requests and process them.
  */
 class LspAnalysisServer {
+  /// Whether the server has been initialized by an initialize request/response.
+  /// Before initialization, clients may only send initialize or exit requests.
+  /// Servers may only send window/showMessage, window/logMessage,
+  /// telemetry/event and window/showMessageRequest messages.
+  bool get _serverIsInitialized => _clientCapabilities != null;
+
+  /// The capabilities of the LSP client. Will be null prior to initialization.
+  ClientCapabilities _clientCapabilities;
+
   /**
    * The channel from which requests are received and to which responses should
    * be sent.
@@ -80,17 +89,21 @@ class LspAnalysisServer {
     //     _performance.logRequest(request);
     runZoned(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
-        final handler = handlers[message.method];
-        if (handler == null) {
-          sendErrorResponse(
-              message,
-              new ResponseError(ErrorCodes.MethodNotFound,
-                  'Unknown method ${message.method}', null));
+        // No requests are allowed before the initialize request/response.
+        if (!_serverIsInitialized && message.method != 'initialize') {
+          _sendNotInitializedError(message);
           return;
         }
+
+        final handler = handlers[message.method];
+        if (handler == null) {
+          _sendUnknownMethodError(message);
+          return;
+        }
+
         try {
           final result = handler.handleMessage(message);
-          if (message is RequestMessage && result != null) {
+          if (message is RequestMessage) {
             channel.sendResponse(
                 new ResponseMessage(message.id, result, null, "2.0"));
           }
@@ -113,12 +126,36 @@ class LspAnalysisServer {
     });
   }
 
+  void _sendNotInitializedError(IncomingMessage message) {
+    sendErrorResponse(
+        message,
+        new ResponseError(
+            ErrorCodes.ServerNotInitialized,
+            'Unable to handle ${message.method} before server is initialized',
+            null));
+  }
+
+  void _sendUnknownMethodError(IncomingMessage message) {
+    sendErrorResponse(
+        message,
+        new ResponseError(ErrorCodes.MethodNotFound,
+            'Unknown method ${message.method}', null));
+  }
+
   void sendErrorResponse(IncomingMessage message, ResponseError error) {
     if (message is RequestMessage) {
       channel.sendResponse(new ResponseMessage(message.id, null, error, "2.0"));
+      // TODO(dantup): Figure out if it's necessary to send log events to make
+      // errors visible at the client end, or if the normal error responses are
+      // usually visible somewhere.
+      channel.sendNotification(new NotificationMessage(
+          'window/logMessage',
+          Either2<List<dynamic>, dynamic>.t2(
+              new LogMessageParams(MessageType.Error, error.message)),
+          "2.0"));
     } else {
       channel.sendNotification(new NotificationMessage(
-          'showMessage',
+          'window/showMessage',
           Either2<List<dynamic>, dynamic>.t2(
               new ShowMessageParams(MessageType.Error, error.message)),
           "2.0"));
@@ -149,6 +186,10 @@ class LspAnalysisServer {
     print(exception);
     print(stackTrace);
   }
+
+  void setClientCapabilities(ClientCapabilities capabilities) {
+    _clientCapabilities = capabilities;
+  }
 }
 
 /**
@@ -163,10 +204,9 @@ abstract class MessageHandler {
   List<String> get handlesMessages;
 
   /**
-   * Attempt to handle the given [message]. If the message is not recognized by
-   * this handler, return `null` so that other handlers will be given a chance
-   * to handle it. Otherwise, return the response that should be passed back to
-   * the client.
+   * Handle the given [message]. If the [message] is a [RequestMessage], then the
+   * return value will be sent back wrapped in a [ResponseMessage].
+   * [NotificationMessage]s are not expected to return results.
    */
   Object handleMessage(IncomingMessage message);
 
