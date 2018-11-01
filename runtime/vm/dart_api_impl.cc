@@ -6309,39 +6309,6 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
 #endif
 }
 
-#if (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
-
-// Any flag that affects how we compile code might cause a problem when the
-// snapshot writer generates code with one value of the flag and the snapshot
-// reader expects code to behave according to another value of the flag.
-// Normally, we add these flags to Dart::FeaturesString and refuse to run the
-// snapshot it they don't match, but since --interpret-irregexp affects only
-// 2 functions we choose to remove the code instead. See issue #34422.
-static void DropRegExpMatchCode(Zone* zone) {
-  const String& execute_match_name =
-      String::Handle(zone, String::New("_ExecuteMatch"));
-  const String& execute_match_sticky_name =
-      String::Handle(zone, String::New("_ExecuteMatchSticky"));
-
-  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-  const Class& reg_exp_class =
-      Class::Handle(zone, core_lib.LookupClassAllowPrivate(Symbols::_RegExp()));
-  ASSERT(!reg_exp_class.IsNull());
-
-  Function& func = Function::Handle(
-      zone, reg_exp_class.LookupFunctionAllowPrivate(execute_match_name));
-  ASSERT(!func.IsNull());
-  func.ClearCode();
-  func.ClearICDataArray();
-
-  func ^= reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
-  ASSERT(!func.IsNull());
-  func.ClearCode();
-  func.ClearICDataArray();
-}
-
-#endif  // (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
-
 DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
     uint8_t** vm_snapshot_data_buffer,
     intptr_t* vm_snapshot_data_size,
@@ -6377,7 +6344,6 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
     return state;
   }
   BackgroundCompiler::Stop(I);
-  DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup();
   Symbols::Compact(I);
@@ -6437,7 +6403,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
     return state;
   }
   BackgroundCompiler::Stop(I);
-  DropRegExpMatchCode(Z);
 
   if (reused_instructions) {
     DropCodeWithoutReusableInstructions(reused_instructions);
