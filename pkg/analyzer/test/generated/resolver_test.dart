@@ -1319,12 +1319,11 @@ class TypeProviderImplTest extends EngineTestCase {
       futureOrType.element,
       streamType.element
     ];
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        context, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        context, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
