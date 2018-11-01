@@ -67,7 +67,7 @@ setters inherit the docs from the getters.
 // of the actual API surface area of a package - including that defined by
 // exports - and linting against that.
 
-class PublicMemberApiDocs extends LintRule {
+class PublicMemberApiDocs extends LintRule implements NodeLintRule {
   PublicMemberApiDocs()
       : super(
             name: 'public_member_api_docs',
@@ -76,10 +76,21 @@ class PublicMemberApiDocs extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+    registry.addClassTypeAlias(this, visitor);
+    registry.addCompilationUnit(this, visitor);
+    registry.addConstructorDeclaration(this, visitor);
+    registry.addEnumConstantDeclaration(this, visitor);
+    registry.addEnumDeclaration(this, visitor);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addFunctionTypeAlias(this, visitor);
+    registry.addTopLevelVariableDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends GeneralizingAstVisitor {
+class _Visitor extends SimpleAstVisitor {
   InheritanceManager manager;
   bool isInLibFolder;
 

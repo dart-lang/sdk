@@ -42,20 +42,20 @@ myList.forEach(foo().f); // But this one invokes foo() just once.
 
 ''';
 
-class PreferForeach extends LintRule {
-  _Visitor _visitor;
+class PreferForeach extends LintRule implements NodeLintRule {
   PreferForeach()
       : super(
             name: 'prefer_foreach',
             description: _desc,
             details: _details,
             group: Group.style,
-            maturity: Maturity.experimental) {
-    _visitor = new _Visitor(this);
-  }
+            maturity: Maturity.experimental);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addForEachStatement(this, visitor);
+  }
 }
 
 class _PreferForEachVisitor extends SimpleAstVisitor {
