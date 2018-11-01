@@ -700,6 +700,19 @@ void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
                                           null_check_name_idx);
 }
 
+void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function) {
+  ASSERT(function.IsZoneHandle());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeCall, assembler()->CodeSize(), &function, NULL));
+}
+
+void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
+  ASSERT(stub_code.IsZoneHandle());
+  ASSERT(!stub_code.IsNull());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeCall, assembler()->CodeSize(), NULL, &stub_code));
+}
+
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
   ASSERT(func.IsZoneHandle());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
@@ -1954,9 +1967,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(smi_case)->target;
-    GenerateStaticDartCall(
-        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
-        RawPcDescriptors::kOther, locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+                           locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
@@ -2005,9 +2017,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(i)->target;
-    GenerateStaticDartCall(
-        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
-        RawPcDescriptors::kOther, locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+                           locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);

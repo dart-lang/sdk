@@ -4930,6 +4930,8 @@ class Code : public Object {
                            StackMap* map) const;
 
   enum CallKind {
+    kPcRelativeCall = 1,
+    kPcRelativeTailCall = 2,
     kCallViaCode = 3,
   };
 

@@ -1097,6 +1097,19 @@ class Assembler : public AssemblerBase {
                         Register temp1,
                         Register temp2);
 
+  // This emits an PC-relative call of the form "blr <offset>".  The offset
+  // is not yet known and needs therefore relocation to the right place before
+  // the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 

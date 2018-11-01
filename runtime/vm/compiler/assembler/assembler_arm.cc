@@ -3359,6 +3359,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  // Emit "blr <offset>".
+  EmitType5(AL, 0x686868, /*link=*/true);
+}
+
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.

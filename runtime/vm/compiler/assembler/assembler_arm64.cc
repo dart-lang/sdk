@@ -1499,6 +1499,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  // Emit "bl <offset>".
+  EmitUnconditionalBranchOp(BL, 0x686868);
+}
+
 Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,

@@ -897,6 +897,19 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp);
 
+  // This emits an PC-relative call of the form "callq *[rip+<offset>]".  The
+  // offset is not yet known and needs therefore relocation to the right place
+  // before the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   // Debugging and bringup support.
   void Breakpoint() { int3(); }
   void Stop(const char* message) override;

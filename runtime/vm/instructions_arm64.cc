@@ -419,6 +419,20 @@ bool ReturnPattern::IsValid() const {
   return bx_lr->InstructionBits() == instruction;
 }
 
+bool PcRelativeCallPattern::IsValid() const {
+  // bl <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_link = 0x25;
+  return (word >> 26) == branch_link;
+}
+
+bool PcRelativeJumpPattern::IsValid() const {
+  // b <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_nolink = 0x5;
+  return (word >> 26) == branch_nolink;
+}
+
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
   //   ldr R3, [PP+idx]
