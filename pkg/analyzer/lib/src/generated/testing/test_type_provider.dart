@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -168,7 +169,13 @@ class TestTypeProvider extends TypeProviderBase {
    */
   AnalysisContext _context;
 
-  TestTypeProvider([this._context]);
+  /**
+   * The analysis driver, if any. Used to create an appropriate 'dart:async'
+   * library to back `Future<T>`.
+   */
+  AnalysisDriver _driver;
+
+  TestTypeProvider([this._context, this._driver]);
 
   @override
   InterfaceType get boolType {
@@ -558,8 +565,13 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   void _initDartAsync() {
-    Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-    _context.setContents(asyncSource, "");
+    Source asyncSource;
+    if (_driver == null) {
+      asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      _context.setContents(asyncSource, "");
+    } else {
+      asyncSource = _driver.sourceFactory.forUri(DartSdk.DART_ASYNC);
+    }
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
         _context, null, AstTestFactory.libraryIdentifier2(["dart.async"]));

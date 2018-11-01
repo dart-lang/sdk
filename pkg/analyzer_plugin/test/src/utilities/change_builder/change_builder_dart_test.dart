@@ -9,9 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -2336,9 +2334,7 @@ class B {}
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
   TypeProvider get typeProvider {
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    context.sourceFactory = new SourceFactoryImpl([new DartUriResolver(sdk)]);
-    return new TestTypeProvider(context);
+    return new TestTypeProvider(null, driver);
   }
 
   test_convertFunctionFromSyncToAsync_closure() async {
