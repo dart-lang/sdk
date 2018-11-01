@@ -452,6 +452,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
   @override
   visitTypedefType(TypedefType node) {
     shaker.addUsedTypedef(node.typedefNode);
+    node.visitChildren(this);
   }
 
   @override

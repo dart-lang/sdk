@@ -158,8 +158,6 @@ private_method_tearoff_test: RuntimeError
 [ $compiler == dartkp ]
 covariant_subtyping_test: RuntimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-instantiate_to_bounds_super_bounded_test/44: DartkCrash # Issue 34995
-instantiate_to_bounds_super_bounded_test/45: DartkCrash # Issue 34995
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
