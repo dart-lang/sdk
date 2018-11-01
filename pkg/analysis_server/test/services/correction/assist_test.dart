@@ -1220,6 +1220,28 @@ class A {}
         'AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE);
   }
 
+  test_convertDocumentationIntoLine_OK_hasEmptyLine() async {
+    await resolveTestUnit('''
+class A {
+  /**
+   * AAAAAAA [int] AAAAAAA
+   *
+   * BBBBBBBB BBBB BBBB
+   */
+  mmm() {}
+}
+''');
+    await assertHasAssistAt(
+        'AAA [', DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE, '''
+class A {
+  /// AAAAAAA [int] AAAAAAA
+  ///
+  /// BBBBBBBB BBBB BBBB
+  mmm() {}
+}
+''');
+  }
+
   test_convertDocumentationIntoLine_OK_onReference() async {
     await resolveTestUnit('''
 /**

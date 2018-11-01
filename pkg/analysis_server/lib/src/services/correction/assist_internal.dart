@@ -527,13 +527,17 @@ class AssistProcessor {
         if (line.startsWith(prefix + ' */')) {
           break;
         }
-        String expectedPrefix = prefix + ' * ';
+        String expectedPrefix = prefix + ' *';
         if (!line.startsWith(expectedPrefix)) {
           _coverageMarker();
           return;
         }
         line = line.substring(expectedPrefix.length).trim();
-        newLines.add('$linePrefix/// $line');
+        if (line.isEmpty) {
+          newLines.add('$linePrefix///');
+        } else {
+          newLines.add('$linePrefix/// $line');
+        }
         linePrefix = eol + prefix;
       }
     }
