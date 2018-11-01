@@ -689,7 +689,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                         MethodRecognizer::k##enum_name##SetIndexed));          \
   }
 
-DEFINE_ARRAY_GETTER_INTRINSIC(ObjectArray)  // Setter in intrinsifier_<arch>.cc.
+DEFINE_ARRAY_GETTER_INTRINSIC(ObjectArray)
 DEFINE_ARRAY_GETTER_INTRINSIC(ImmutableArray)
 
 #define DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                       \
@@ -979,13 +979,33 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
-void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler,
-                                         Label* normal_ir_body) {
+bool Intrinsifier::Build_ObjectArraySetIndexed(FlowGraph* flow_graph) {
   if (Isolate::Current()->argument_type_checks()) {
-    return;
+    return false;
   }
 
-  ObjectArraySetIndexedUnchecked(assembler, normal_ir_body);
+  return Build_ObjectArraySetIndexedUnchecked(flow_graph);
+}
+
+bool Intrinsifier::Build_ObjectArraySetIndexedUnchecked(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* value = builder.AddParameter(1);
+  Definition* index = builder.AddParameter(2);
+  Definition* array = builder.AddParameter(3);
+
+  PrepareIndexedOp(&builder, array, index, Array::length_offset());
+
+  builder.AddInstruction(new StoreIndexedInstr(
+      new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
+      Instance::ElementSizeFor(kArrayCid),  // index scale
+      kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+  // Return null.
+  Definition* null_def = builder.AddNullDefinition();
+  builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
 }
 
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
