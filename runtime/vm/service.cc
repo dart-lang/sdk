@@ -2729,7 +2729,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
           js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    js->PrintError(kExpressionCompilationError, compilation_result.error);
+    js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
     free(compilation_result.error);
     return true;
   }
@@ -3627,7 +3627,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
 
   const char* error = NULL;
   if (!isolate->debugger()->SetResumeAction(step, frame_index, &error)) {
-    js->PrintError(kCannotResume, error);
+    js->PrintError(kCannotResume, "%s", error);
     return true;
   }
   isolate->SetResumeRequest();

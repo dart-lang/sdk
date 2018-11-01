@@ -33,7 +33,7 @@ class DisassemblyFormatter {
                                   uword pc) = 0;
 
   // Print a formatted message.
-  virtual void Print(const char* format, ...) = 0;
+  virtual void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) = 0;
 };
 
 // Basic disassembly formatter that outputs the disassembled instruction

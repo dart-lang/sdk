@@ -17,6 +17,8 @@
 namespace dart {
 
 static const char* test_output_ = NULL;
+
+PRINTF_ATTRIBUTE(1, 2)
 static void TestPrinter(const char* format, ...) {
   // Measure.
   va_list args;
