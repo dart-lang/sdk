@@ -27,6 +27,7 @@ export 'src/material/scaffold.dart';
 ''');
 
   newFile('$flutterPkgLibPath/widgets.dart', r'''
+export 'src/widgets/async.dart';
 export 'src/widgets/basic.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
@@ -159,6 +160,25 @@ class ValueKey<T> extends LocalKey {
   }
 
   void createSrcWidgets() {
+    newFile('$flutterPkgLibPath/src/widgets/async.dart', r'''
+import 'framework.dart';
+
+class AsyncSnapshot<T> {}
+
+typedef AsyncWidgetBuilder<T> = Widget Function(BuildContext context, AsyncSnapshot<T> snapshot);
+
+class StreamBuilder<T> {
+  const StreamBuilder({
+    Key key,
+    this.initialData,
+    Stream<T> stream,
+    @required this.builder
+  });
+  final T initialData;
+  final AsyncWidgetBuilder<T> builder;
+}
+''');
+
     newFile('$flutterPkgLibPath/src/widgets/basic.dart', r'''
 import 'package:flutter/rendering.dart';
 

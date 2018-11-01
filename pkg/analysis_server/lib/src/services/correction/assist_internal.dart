@@ -110,6 +110,7 @@ class AssistProcessor {
     await _addProposal_flutterRemoveWidget_multipleChildren();
     await _addProposal_flutterSwapWithChild();
     await _addProposal_flutterSwapWithParent();
+    await _addProposal_flutterWrapStreamBuilder();
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
@@ -1865,6 +1866,61 @@ class AssistProcessor {
 
     await _swapParentAndChild(
         parent, child, DartAssistKind.FLUTTER_SWAP_WITH_PARENT);
+  }
+
+  Future<void> _addProposal_flutterWrapStreamBuilder() async {
+    Expression widgetExpr = flutter.identifyWidgetExpression(node);
+    if (widgetExpr == null) {
+      return;
+    }
+    if (flutter.isExactWidgetTypeStreamBuilder(widgetExpr.staticType)) {
+      return;
+    }
+    String widgetSrc = utils.getNodeText(widgetExpr);
+
+    var streamBuilderElement = await sessionHelper.getClass(
+      flutter.WIDGETS_LIBRARY_URI,
+      'StreamBuilder',
+    );
+    if (streamBuilderElement == null) {
+      return;
+    }
+
+    var changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (builder) {
+      builder.addReplacement(range.node(widgetExpr), (builder) {
+        builder.writeType(streamBuilderElement.type);
+        builder.writeln('<Object>(');
+
+        String indentOld = utils.getLinePrefix(widgetExpr.offset);
+        String indentNew1 = indentOld + utils.getIndent(1);
+        String indentNew2 = indentOld + utils.getIndent(2);
+
+        builder.write(indentNew1);
+        builder.writeln('stream: null,');
+
+        builder.write(indentNew1);
+        builder.writeln('builder: (context, snapshot) {');
+
+        widgetSrc = widgetSrc.replaceAll(
+          new RegExp("^$indentOld", multiLine: true),
+          indentNew2,
+        );
+        builder.write(indentNew2);
+        builder.write('return $widgetSrc');
+        builder.writeln(';');
+
+        builder.write(indentNew1);
+        builder.writeln('}');
+
+        builder.write(indentOld);
+        builder.write(')');
+      });
+    });
+    _addAssistFromBuilder(
+      changeBuilder,
+      DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER,
+    );
   }
 
   Future<void> _addProposal_flutterWrapWidget() async {

@@ -115,6 +115,8 @@ class DartAssistKind {
       const AssistKind('dart.assist.flutter.wrap.padding', 30, "Add padding");
   static const FLUTTER_WRAP_ROW =
       const AssistKind('dart.assist.flutter.wrap.row', 30, "Wrap with Row");
+  static const FLUTTER_WRAP_STREAM_BUILDER = const AssistKind(
+      'dart.assist.flutter.wrap.streamBuilder', 30, "Wrap with StreamBuilder");
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(

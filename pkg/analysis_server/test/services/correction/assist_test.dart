@@ -4639,6 +4639,46 @@ class FakeFlutter {
 ''');
   }
 
+  test_flutterWrapStreamBuilder_BAD_onStreamBuilder() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  /*caret*/StreamBuilder(
+    stream: null,
+    builder: (context, snapshot) => null,
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER);
+  }
+
+  test_flutterWrapStreamBuilder_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  /*caret*/new Text('a');
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER, '''
+import 'package:flutter/widgets.dart';
+
+main() {
+  /*caret*/StreamBuilder<Object>(
+    stream: null,
+    builder: (context, snapshot) {
+      return new Text('a');
+    }
+  );
+}
+''');
+  }
+
   test_flutterWrapWidget_BAD_minimal() async {
     addFlutterPackage();
     await resolveTestUnit('''
