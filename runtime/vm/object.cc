@@ -13371,7 +13371,8 @@ void ICData::set_deopt_id(intptr_t value) const {
 
 void ICData::set_ic_data_array(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->ic_data_, value.raw());
+  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->ic_data_,
+                                                 value.raw());
 }
 
 #if defined(TAG_IC_DATA)

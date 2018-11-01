@@ -558,9 +558,9 @@ class Object {
   // methods below or their counterparts in RawObject, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type>
+  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
   void StorePointer(type const* addr, type value) const {
-    raw()->StorePointer(addr, value);
+    raw()->StorePointer<type, order>(addr, value);
   }
 
   // Store a range of pointers [from, from + count) into [to, to + count).
@@ -2109,7 +2109,9 @@ class ICData : public Object {
  private:
   static RawICData* New();
 
-  RawArray* ic_data() const { return raw_ptr()->ic_data_; }
+  RawArray* ic_data() const {
+    return AtomicOperations::LoadAcquire(&raw_ptr()->ic_data_);
+  }
 
   void set_owner(const Function& value) const;
   void set_target_name(const String& value) const;
@@ -2170,6 +2172,7 @@ class ICData : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
+  friend class ICDataTestTask;
   friend class Interpreter;
   friend class SnapshotWriter;
   friend class Serializer;
