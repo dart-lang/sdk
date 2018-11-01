@@ -161,7 +161,7 @@ TEST_CASE(JSON_JSONStream_ObjectPrintf) {
   EXPECT_STREQ("{\"key\":\"2 hello\"}", js.ToCString());
 }
 
-TEST_CASE(JSON_JSONStream_DartObject) {
+ISOLATE_UNIT_TEST_CASE(JSON_JSONStream_DartObject) {
   JSONStream js;
   {
     JSONArray jsarr(&js);
@@ -216,7 +216,9 @@ TEST_CASE(JSON_JSONStream_DartString) {
   EXPECT_VALID(lib);
 
   Dart_Handle result;
+  TransitionNativeToVM transition1(thread);
   String& obj = String::Handle();
+  TransitionVMToNative transition2(thread);
 
   {
     result = Dart_GetField(lib, NewString("ascii"));

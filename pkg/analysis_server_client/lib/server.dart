@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -157,6 +157,8 @@ class Server {
    * otherwise the analysis server snapshot in the SDK will be launched.
    */
   Future start({
+    String clientId,
+    String clientVersion,
     int diagnosticPort,
     String instrumentationLogFile,
     bool profileServer: false,
@@ -210,6 +212,16 @@ class Server {
     //
     // Add server arguments.
     //
+    // TODO(danrubel): Consider moving all cmdline argument consts
+    // out of analysis_server and into analysis_server_client
+    if (clientId != null) {
+      arguments.add('--client-id');
+      arguments.add(clientId);
+    }
+    if (clientVersion != null) {
+      arguments.add('--client-version');
+      arguments.add(clientVersion);
+    }
     if (suppressAnalytics) {
       arguments.add('--suppress-analytics');
     }

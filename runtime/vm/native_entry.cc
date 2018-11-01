@@ -44,12 +44,14 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   Dart_NativeFunction native_function = NULL;
   {
     Thread* T = Thread::Current();
-    TransitionVMToNative transition(T);
-    Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
-    Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-    native_function = resolver(Api::NewHandle(T, function_name.raw()),
-                               number_of_arguments, auto_setup_scope);
-    Dart_ExitScope();  // Exit the Dart API scope.
+    Api::Scope api_scope(T);
+    Dart_Handle api_function_name = Api::NewHandle(T, function_name.raw());
+    {
+      TransitionVMToNative transition(T);
+      Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+      native_function =
+          resolver(api_function_name, number_of_arguments, auto_setup_scope);
+    }
   }
   return reinterpret_cast<NativeFunction>(native_function);
 }
@@ -180,34 +182,16 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     Isolate* isolate = thread->isolate();
     ApiState* state = isolate->api_state();
     ASSERT(state != NULL);
-    ApiLocalScope* current_top_scope = thread->api_top_scope();
-    ApiLocalScope* scope = thread->api_reusable_scope();
     TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
-    TransitionGeneratedToNative transition(thread);
-    if (scope == NULL) {
-      scope =
-          new ApiLocalScope(current_top_scope, thread->top_exit_frame_info());
-      ASSERT(scope != NULL);
-    } else {
-      scope->Reinit(thread, current_top_scope, thread->top_exit_frame_info());
-      thread->set_api_reusable_scope(NULL);
+    thread->EnterApiScope();
+    {
+      TransitionGeneratedToNative transition(thread);
+      func(args);
+      if (ReturnValueIsError(arguments)) {
+        PropagateErrors(arguments);
+      }
     }
-    thread->set_api_top_scope(scope);  // New scope is now the top scope.
-
-    func(args);
-    if (ReturnValueIsError(arguments)) {
-      PropagateErrors(arguments);
-    }
-
-    ASSERT(current_top_scope == scope->previous());
-    thread->set_api_top_scope(current_top_scope);  // Reset top scope to prev.
-    if (thread->api_reusable_scope() == NULL) {
-      scope->Reset(thread);  // Reset the old scope which we just exited.
-      thread->set_api_reusable_scope(scope);
-    } else {
-      ASSERT(thread->api_reusable_scope() != scope);
-      delete scope;
-    }
+    thread->ExitApiScope();
     DEOPTIMIZE_ALOT;
   }
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);

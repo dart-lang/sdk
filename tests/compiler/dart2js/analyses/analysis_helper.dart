@@ -5,6 +5,7 @@
 import 'dart:convert' as json;
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -21,18 +22,45 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+import '../helpers/args_helper.dart';
 import '../helpers/memory_compiler.dart';
 
-run(Uri entryPoint, String allowedListPath, List<String> analyzedPaths,
+main(List<String> args) {
+  ArgParser argParser = createArgParser();
+  ArgResults argResults = argParser.parse(args);
+
+  Uri entryPoint = getEntryPoint(argResults);
+  if (entryPoint == null) {
+    throw new ArgumentError("Missing entry point.");
+  }
+  Uri libraryRoot = getLibraryRoot(argResults);
+  Uri packageConfig = getPackages(argResults);
+  List<String> options = getOptions(argResults);
+  run(entryPoint, null,
+      analyzedUrisFilter: (Uri uri) => uri.scheme != 'dart',
+      libraryRoot: libraryRoot,
+      packageConfig: packageConfig,
+      options: options);
+}
+
+run(Uri entryPoint, String allowedListPath,
     {Map<String, String> memorySourceFiles = const {},
+    Uri libraryRoot,
+    Uri packageConfig,
     bool verbose = false,
-    bool generate = false}) {
+    bool generate = false,
+    List<String> options = const <String>[],
+    bool analyzedUrisFilter(Uri uri)}) {
   asyncTest(() async {
-    Compiler compiler = await compilerFor(memorySourceFiles: memorySourceFiles);
+    Compiler compiler = await compilerFor(
+        memorySourceFiles: memorySourceFiles,
+        libraryRoot: libraryRoot,
+        packageConfig: packageConfig,
+        options: options);
     LoadedLibraries loadedLibraries =
         await compiler.libraryLoader.loadLibraries(entryPoint);
     new DynamicVisitor(compiler.reporter, loadedLibraries.component,
-            allowedListPath, analyzedPaths)
+            allowedListPath, analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
   });
 }
@@ -41,18 +69,18 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
   final DiagnosticReporter reporter;
   final ir.Component component;
   final String _allowedListPath;
-  final List<String> analyzedPaths;
+  final bool Function(Uri uri) analyzedUrisFilter;
 
   Map _expectedJson = {};
   Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
-  DynamicVisitor(
-      this.reporter, this.component, this._allowedListPath, this.analyzedPaths)
+  DynamicVisitor(this.reporter, this.component, this._allowedListPath,
+      this.analyzedUrisFilter)
       : super(new ir.TypeEnvironment(
             new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
 
   void run({bool verbose = false, bool generate = false}) {
-    if (!generate) {
+    if (!generate && _allowedListPath != null) {
       File file = new File(_allowedListPath);
       if (file.existsSync()) {
         try {
@@ -63,7 +91,7 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
       }
     }
     component.accept(this);
-    if (generate) {
+    if (generate && _allowedListPath != null) {
       Map<String, Map<String, int>> actualJson = {};
       _actualMessages.forEach(
           (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
@@ -217,10 +245,12 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
 
   @override
   Null visitLibrary(ir.Library node) {
-    for (String path in analyzedPaths) {
-      if ('${node.importUri}'.startsWith(path)) {
-        return super.visitLibrary(node);
+    if (analyzedUrisFilter != null) {
+      if (analyzedUrisFilter(node.importUri)) {
+        super.visitLibrary(node);
       }
+    } else {
+      super.visitLibrary(node);
     }
   }
 

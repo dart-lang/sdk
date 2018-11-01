@@ -176,7 +176,11 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_NE(RawObject::ToAddr(raw_obj1), RawObject::ToAddr(raw_object_moved1));
   EXPECT_NE(RawObject::ToAddr(raw_obj2), RawObject::ToAddr(raw_object_moved2));
   // Test that we still point at the same list.
-  Dart_Handle moved_handle = Api::NewHandle(thread, raw_object_moved1);
+  Dart_Handle moved_handle;
+  {
+    TransitionNativeToVM transition(thread);
+    moved_handle = Api::NewHandle(thread, raw_object_moved1);
+  }
   EXPECT_VALID(moved_handle);
   EXPECT(!Dart_IsNull(moved_handle));
   EXPECT(Dart_IsList(moved_handle));
@@ -197,7 +201,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   intptr_t raw_obj_id1 = -1;
   intptr_t raw_obj_id2 = -1;
   {
-    Dart_EnterScope();
+    Api::Scope api_scope(thread);
     Dart_Handle result;
     // Create a string in the old heap.
     result = Api::NewHandle(thread, String::New("old", Heap::kOld));
@@ -225,7 +229,6 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
     // Exit scope. Freeing result handle.
-    Dart_ExitScope();
   }
   // Force a GC. No reference exist to the old string anymore. It should be
   // collected and the object id ring will now return the null object for

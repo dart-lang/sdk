@@ -255,14 +255,9 @@ static const char* CanonicalizeUri(Thread* thread,
   const char* result = NULL;
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler != NULL) {
-    TransitionVMToNative transition(thread);
-    Dart_EnterScope();
-    Dart_Handle handle =
-        handler(Dart_kCanonicalizeUrl, Api::NewHandle(thread, library.raw()),
-                Api::NewHandle(thread, uri.raw()));
-    const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+  if (isolate->HasTagHandler()) {
+    const Object& obj = Object::Handle(
+        isolate->CallTagHandler(Dart_kCanonicalizeUrl, library, uri));
     if (obj.IsString()) {
       result = String2UTF8(String::Cast(obj));
     } else if (obj.IsError()) {
@@ -276,7 +271,6 @@ static const char* CanonicalizeUri(Thread* thread,
           "library tag handler returned wrong type",
           uri.ToCString());
     }
-    Dart_ExitScope();
   } else {
     *error = zone->PrintToString(
         "Unable to canonicalize uri '%s': no library tag handler found.",

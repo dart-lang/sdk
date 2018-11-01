@@ -1353,22 +1353,9 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 COMPILE_ASSERT(kWriteBarrierObjectReg == RDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == RAX);
 void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
-#if defined(CONCURRENT_MARKING)
   Label add_to_mark_stack;
   __ testq(RAX, Immediate(1 << kNewObjectBitPosition));
   __ j(ZERO, &add_to_mark_stack);
-#else
-  Label add_to_buffer;
-  // Check whether this object has already been remembered. Skip adding to the
-  // store buffer if the object is in the store buffer already.
-  // RDX: Address being stored
-  __ movl(TMP, FieldAddress(RDX, Object::tags_offset()));
-  __ testl(TMP, Immediate(1 << RawObject::kOldAndNotRememberedBit));
-  __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
-  __ ret();
-
-  __ Bind(&add_to_buffer);
-#endif
 
   // Update the tags that this object has been remembered.
   // Note that we use 32 bit operations here to match the size of the
@@ -1416,7 +1403,6 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ popq(CODE_REG);
   __ ret();
 
-#if defined(CONCURRENT_MARKING)
   __ Bind(&add_to_mark_stack);
   __ pushq(RAX);  // Spill.
   __ pushq(RCX);  // Spill.
@@ -1461,7 +1447,6 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ popq(RCX);  // Unspill.
   __ popq(RAX);  // Unspill.
   __ ret();
-#endif
 }
 
 // Called for inline allocation of objects.

@@ -66,12 +66,15 @@ TEST_CASE(LargeSweep) {
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
-  TransitionNativeToVM transition(thread);
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-  heap->CollectGarbage(Heap::kOld);
+  {
+    TransitionNativeToVM transition(thread);
+    thread->heap()->CollectGarbage(Heap::kOld);
+  }
   Dart_ExitScope();
-  heap->CollectGarbage(Heap::kOld);
+  {
+    TransitionNativeToVM transition(thread);
+    thread->heap()->CollectGarbage(Heap::kOld);
+  }
 }
 
 #ifndef PRODUCT
@@ -118,78 +121,84 @@ TEST_CASE(ClassHeapStats) {
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
-  TransitionNativeToVM transition(thread);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  const Class& cls = Class::Handle(GetClass(lib, "A"));
-  ASSERT(!cls.IsNull());
-  intptr_t cid = cls.id();
-  ClassHeapStats* class_stats =
-      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
-  // Verify preconditions:
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
-  EXPECT_EQ(0, class_stats->pre_gc.new_count);
-  EXPECT_EQ(0, class_stats->post_gc.new_count);
-  // Class allocated twice since GC from new space.
-  EXPECT_EQ(2, class_stats->recent.new_count);
-  // Perform GC.
-  heap->CollectGarbage(Heap::kNew);
-  // Verify postconditions:
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
-  // Total allocations before GC.
-  EXPECT_EQ(2, class_stats->pre_gc.new_count);
-  // Only one survived.
-  EXPECT_EQ(1, class_stats->post_gc.new_count);
-  EXPECT_EQ(0, class_stats->recent.new_count);
-  // Perform GC. The following is heavily dependent on the behaviour
-  // of the GC: Retained instance of A will be promoted.
-  heap->CollectGarbage(Heap::kNew);
-  // Verify postconditions:
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  // One promoted instance.
-  EXPECT_EQ(1, class_stats->promoted_count);
-  // Promotion counted as an allocation from old space.
-  EXPECT_EQ(1, class_stats->recent.old_count);
-  // There was one instance allocated before GC.
-  EXPECT_EQ(1, class_stats->pre_gc.new_count);
-  // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->post_gc.new_count);
-  // No new allocations.
-  EXPECT_EQ(0, class_stats->recent.new_count);
-  // Perform a GC on new space.
-  heap->CollectGarbage(Heap::kNew);
-  // There were no instances allocated before GC.
-  EXPECT_EQ(0, class_stats->pre_gc.new_count);
-  // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->post_gc.new_count);
-  // No new allocations.
-  EXPECT_EQ(0, class_stats->recent.new_count);
-  // Nothing was promoted.
-  EXPECT_EQ(0, class_stats->promoted_count);
-  heap->CollectGarbage(Heap::kOld);
-  // Verify postconditions:
-  EXPECT_EQ(1, class_stats->pre_gc.old_count);
-  EXPECT_EQ(1, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
+  ClassHeapStats* class_stats;
+  {
+    TransitionNativeToVM transition(thread);
+    Library& lib = Library::Handle();
+    lib ^= Api::UnwrapHandle(h_lib);
+    EXPECT(!lib.IsNull());
+    const Class& cls = Class::Handle(GetClass(lib, "A"));
+    ASSERT(!cls.IsNull());
+    intptr_t cid = cls.id();
+    class_stats =
+        ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
+    // Verify preconditions:
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+    EXPECT_EQ(0, class_stats->pre_gc.new_count);
+    EXPECT_EQ(0, class_stats->post_gc.new_count);
+    // Class allocated twice since GC from new space.
+    EXPECT_EQ(2, class_stats->recent.new_count);
+    // Perform GC.
+    heap->CollectGarbage(Heap::kNew);
+    // Verify postconditions:
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+    // Total allocations before GC.
+    EXPECT_EQ(2, class_stats->pre_gc.new_count);
+    // Only one survived.
+    EXPECT_EQ(1, class_stats->post_gc.new_count);
+    EXPECT_EQ(0, class_stats->recent.new_count);
+    // Perform GC. The following is heavily dependent on the behaviour
+    // of the GC: Retained instance of A will be promoted.
+    heap->CollectGarbage(Heap::kNew);
+    // Verify postconditions:
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    // One promoted instance.
+    EXPECT_EQ(1, class_stats->promoted_count);
+    // Promotion counted as an allocation from old space.
+    EXPECT_EQ(1, class_stats->recent.old_count);
+    // There was one instance allocated before GC.
+    EXPECT_EQ(1, class_stats->pre_gc.new_count);
+    // There are no instances allocated in new space after GC.
+    EXPECT_EQ(0, class_stats->post_gc.new_count);
+    // No new allocations.
+    EXPECT_EQ(0, class_stats->recent.new_count);
+    // Perform a GC on new space.
+    heap->CollectGarbage(Heap::kNew);
+    // There were no instances allocated before GC.
+    EXPECT_EQ(0, class_stats->pre_gc.new_count);
+    // There are no instances allocated in new space after GC.
+    EXPECT_EQ(0, class_stats->post_gc.new_count);
+    // No new allocations.
+    EXPECT_EQ(0, class_stats->recent.new_count);
+    // Nothing was promoted.
+    EXPECT_EQ(0, class_stats->promoted_count);
+    heap->CollectGarbage(Heap::kOld);
+    // Verify postconditions:
+    EXPECT_EQ(1, class_stats->pre_gc.old_count);
+    EXPECT_EQ(1, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+  }
   // Exit scope, freeing instance.
   Dart_ExitScope();
-  // Perform GC.
-  heap->CollectGarbage(Heap::kOld);
-  // Verify postconditions:
-  EXPECT_EQ(1, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
-  // Perform GC.
-  heap->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(0, class_stats->pre_gc.old_count);
-  EXPECT_EQ(0, class_stats->post_gc.old_count);
-  EXPECT_EQ(0, class_stats->recent.old_count);
+  {
+    TransitionNativeToVM transition(thread);
+    // Perform GC.
+    heap->CollectGarbage(Heap::kOld);
+    // Verify postconditions:
+    EXPECT_EQ(1, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+    // Perform GC.
+    heap->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(0, class_stats->pre_gc.old_count);
+    EXPECT_EQ(0, class_stats->post_gc.old_count);
+    EXPECT_EQ(0, class_stats->recent.old_count);
+  }
   FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 }
 
@@ -214,9 +223,6 @@ TEST_CASE(ArrayHeapStats) {
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
   intptr_t before = class_stats->recent.new_size;
   Dart_Handle result2 = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result2);

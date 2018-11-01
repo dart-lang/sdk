@@ -224,24 +224,7 @@
   },
   "org-dartlang-sdk:///sdk/lib/core/errors.dart": {
     "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '~'.": 1,
-    "Dynamic invocation of '^'.": 1,
-    "Dynamic invocation of '&'.": 1,
-    "Dynamic invocation of '|'.": 1,
-    "Dynamic invocation of '>>'.": 1,
-    "Dynamic invocation of '<<'.": 1,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of 'unary-'.": 1,
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic invocation of '*'.": 1,
-    "Dynamic invocation of '/'.": 1,
-    "Dynamic invocation of '~/'.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '<='.": 1,
-    "Dynamic invocation of '%'.": 1,
-    "Dynamic invocation of 'length'.": 1
+    "Dynamic invocation of '<'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/core/exceptions.dart": {
     "Dynamic access of 'length'.": 3,

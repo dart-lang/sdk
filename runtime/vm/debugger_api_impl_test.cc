@@ -219,16 +219,20 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
 
 DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
                                            intptr_t line_number) {
-  DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
-  CHECK_DEBUGGER(I);
-  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+  Breakpoint* bpt;
+  {
+    DARTSCOPE(Thread::Current());
+    Isolate* I = T->isolate();
+    CHECK_DEBUGGER(I);
+    UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
-  Debugger* debugger = I->debugger();
-  Breakpoint* bpt = debugger->SetBreakpointAtLine(script_url, line_number);
-  if (bpt == NULL) {
-    return Api::NewError("%s: could not set breakpoint at line %" Pd " in '%s'",
-                         CURRENT_FUNC, line_number, script_url.ToCString());
+    Debugger* debugger = I->debugger();
+    bpt = debugger->SetBreakpointAtLine(script_url, line_number);
+    if (bpt == NULL) {
+      return Api::NewError("%s: could not set breakpoint at line %" Pd
+                           " in '%s'",
+                           CURRENT_FUNC, line_number, script_url.ToCString());
+    }
   }
   return Dart_NewInteger(bpt->id());
 }
@@ -250,17 +254,14 @@ DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
   if (!KernelIsolate::IsRunning()) {
     UNREACHABLE();
   } else {
-    Dart_KernelCompilationResult compilation_result;
-    {
-      TransitionVMToNative transition(T);
-      compilation_result = KernelIsolate::CompileExpressionToKernel(
-          expr.ToCString(),
-          /* definitions= */ Array::empty_array(),
-          /* type_defintions= */ Array::empty_array(),
-          String::Handle(lib.url()).ToCString(),
-          /* klass= */ nullptr,
-          /* is_static= */ false);
-    }
+    Dart_KernelCompilationResult compilation_result =
+        KernelIsolate::CompileExpressionToKernel(
+            expr.ToCString(),
+            /* definitions= */ Array::empty_array(),
+            /* type_defintions= */ Array::empty_array(),
+            String::Handle(lib.url()).ToCString(),
+            /* klass= */ nullptr,
+            /* is_static= */ false);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       return Api::NewError("Failed to compile expression.");
     }

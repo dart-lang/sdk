@@ -1261,8 +1261,6 @@ void Assembler::StoreIntoObject(Register object,
                                 CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(value != TMP);
 
@@ -1308,14 +1306,6 @@ void Assembler::StoreIntoObject(Register object,
     popq(kWriteBarrierValueReg);
   }
   Bind(&done);
-#else
-  movq(dest, value);
-  Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-  // A store buffer update is required.
-  call(Address(THR, Thread::write_barrier_wrappers_offset(object)));
-  Bind(&done);
-#endif
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,

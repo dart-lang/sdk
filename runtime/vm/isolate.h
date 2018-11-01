@@ -280,9 +280,10 @@ class Isolate : public BaseIsolate {
     environment_callback_ = value;
   }
 
-  Dart_LibraryTagHandler library_tag_handler() const {
-    return library_tag_handler_;
-  }
+  bool HasTagHandler() const { return library_tag_handler_ != nullptr; }
+  RawObject* CallTagHandler(Dart_LibraryTag tag,
+                            const Object& arg1,
+                            const Object& arg2);
   void set_library_tag_handler(Dart_LibraryTagHandler value) {
     library_tag_handler_ = value;
   }

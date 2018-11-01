@@ -160,7 +160,6 @@ class RunKernelTask : public ThreadPool::Task {
         OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Error: %s\n",
                      error.ToErrorCString());
       }
-      TransitionVMToNative transition(T);
       Dart::RunShutdownCallback();
     }
 
@@ -376,6 +375,7 @@ class KernelCompilationRequest : public ValueObject {
       char const* library_uri,
       char const* klass,
       bool is_static) {
+    TransitionNativeToVM transition(Thread::Current());
     Dart_CObject tag;
     tag.type = Dart_CObject_kInt32;
     tag.value.as_int32 = KernelIsolate::kCompileExpressionTag;
@@ -460,13 +460,18 @@ class KernelCompilationRequest : public ValueObject {
                                    &suppress_warnings};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
-    // Send the message.
-    Dart_PostCObject(kernel_port, &message);
 
-    // Wait for reply to arrive.
-    MonitorLocker ml(monitor_);
-    while (result_.status == Dart_KernelCompilationStatus_Unknown) {
-      ml.Wait();
+    {
+      TransitionVMToNative transition(Thread::Current());
+
+      // Send the message.
+      Dart_PostCObject(kernel_port, &message);
+
+      // Wait for reply to arrive.
+      MonitorLocker ml(monitor_);
+      while (result_.status == Dart_KernelCompilationStatus_Unknown) {
+        ml.Wait();
+      }
     }
 
     for (intptr_t i = 0; i < num_definitions; ++i) {
@@ -819,6 +824,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
     return result;
   }
 
+  TransitionVMToNative transition(Thread::Current());
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kernel_port, expression, definitions,
                                         type_definitions, library_url, klass,

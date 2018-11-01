@@ -128,9 +128,9 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(Component component, dynamic context) async {
     StringBuffer messages = context.componentToDiagnostics[component];
+    Uri uri = component.uriToSource.keys.first;
     Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
-    Uri uri = library.importUri;
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
