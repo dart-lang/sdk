@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/analysis/base.dart';

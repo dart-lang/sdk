@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -37,7 +39,8 @@ class AnalysisSessionImplTest {
   }
 
   test_getErrors() async {
-    ErrorsResult result = new ErrorsResult(null, null, null, null, null, null);
+    ErrorsResultImpl result =
+        new ErrorsResultImpl(null, null, null, null, null, null);
     driver.errorsResult = result;
     expect(await session.getErrors('path'), result);
   }
@@ -57,15 +60,15 @@ class AnalysisSessionImplTest {
   }
 
   test_getParsedAst() async {
-    ParsedUnitResult result =
-        new ParsedUnitResult(null, null, null, null, null, null, null, null);
+    ParsedUnitResultImpl result = new ParsedUnitResultImpl(
+        null, null, null, null, null, null, null, null);
     driver.parseResult = result;
     expect(session.getParsedUnit('path'), result);
   }
 
   test_getResolvedUnit() async {
-    AnalysisResult result = new AnalysisResult(driver, null, null, null, null,
-        null, null, null, null, null, null, null);
+    ResolvedUnitResult result = new ResolvedUnitResultImpl(
+        session, null, null, null, null, null, null, null, null);
     driver.result = result;
     expect(await session.getResolvedUnit('path'), result);
   }
@@ -83,8 +86,8 @@ class AnalysisSessionImplTest {
   }
 
   test_getUnitElement() async {
-    UnitElementResult result =
-        new UnitElementResult(null, null, null, null, null);
+    UnitElementResultImpl result =
+        new UnitElementResultImpl(null, null, null, null, null);
     driver.unitElementResult = result;
     expect(await session.getUnitElement('path'), result);
   }
@@ -162,15 +165,15 @@ class MockAnalysisDriver implements AnalysisDriver {
   @override
   AnalysisSession currentSession;
 
-  ErrorsResult errorsResult;
+  ErrorsResultImpl errorsResult;
   Map<String, LibraryElement> libraryMap = <String, LibraryElement>{};
-  ParsedUnitResult parseResult;
+  ParsedUnitResultImpl parseResult;
   ResourceProvider resourceProvider;
-  AnalysisResult result;
+  ResolvedUnitResult result;
   SourceFactory sourceFactory;
   SourceKind sourceKind;
   List<TopLevelDeclarationInSource> topLevelDeclarations;
-  UnitElementResult unitElementResult;
+  UnitElementResultImpl unitElementResult;
   String unitElementSignature;
 
   AnalysisOptions get analysisOptions => new AnalysisOptionsImpl();
@@ -186,7 +189,7 @@ class MockAnalysisDriver implements AnalysisDriver {
   }
 
   @override
-  Future<AnalysisResult> getResult(String path,
+  Future<ResolvedUnitResult> getResult(String path,
       {bool sendCachedToStream: false}) async {
     return result;
   }

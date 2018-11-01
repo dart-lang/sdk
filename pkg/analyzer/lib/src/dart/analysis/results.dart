@@ -6,11 +6,12 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// TODO(scheglov) Rename to AnalysisResultImpl
-abstract class BaseAnalysisResult implements AnalysisResult {
+abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
@@ -20,10 +21,52 @@ abstract class BaseAnalysisResult implements AnalysisResult {
   @override
   final Uri uri;
 
-  BaseAnalysisResult(this.session, this.path, this.uri);
+  AnalysisResultImpl(this.session, this.path, this.uri);
 }
 
-class ResolvedLibraryResultImpl extends BaseAnalysisResult
+class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
+  @override
+  final List<AnalysisError> errors;
+
+  ErrorsResultImpl(AnalysisSession session, String path, Uri uri,
+      LineInfo lineInfo, bool isPart, this.errors)
+      : super(session, path, uri, lineInfo, isPart);
+}
+
+class FileResultImpl extends AnalysisResultImpl implements FileResult {
+  @override
+  final LineInfo lineInfo;
+
+  @override
+  final bool isPart;
+
+  FileResultImpl(
+      AnalysisSession session, String path, Uri uri, this.lineInfo, this.isPart)
+      : super(session, path, uri);
+
+  @override
+  ResultState get state => ResultState.VALID;
+}
+
+class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
+  @override
+  final String content;
+
+  @override
+  final CompilationUnit unit;
+
+  @override
+  final List<AnalysisError> errors;
+
+  ParsedUnitResultImpl(AnalysisSession session, String path, Uri uri,
+      this.content, LineInfo lineInfo, bool isPart, this.unit, this.errors)
+      : super(session, path, uri, lineInfo, isPart);
+
+  @override
+  ResultState get state => ResultState.VALID;
+}
+
+class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override
   final LibraryElement element;
@@ -35,7 +78,7 @@ class ResolvedLibraryResultImpl extends BaseAnalysisResult
   final TypeProvider typeProvider;
 
   @override
-  final List<ResolveResult> units;
+  final List<ResolvedUnitResult> units;
 
   ResolvedLibraryResultImpl(AnalysisSession session, String path, Uri uri,
       this.element, this.typeProvider, this.units)
@@ -57,4 +100,56 @@ class ResolvedLibraryResultImpl extends BaseAnalysisResult
     var locator = NodeLocator(element.nameOffset);
     return locator.searchWithin(unitResult.unit)?.parent;
   }
+}
+
+class ResolvedUnitResultImpl extends FileResultImpl
+    implements ResolvedUnitResult {
+  /// Return `true` if the file exists.
+  final bool exists;
+
+  @override
+  final String content;
+
+  @override
+  final CompilationUnit unit;
+
+  @override
+  final List<AnalysisError> errors;
+
+  ResolvedUnitResultImpl(
+      AnalysisSession session,
+      String path,
+      Uri uri,
+      this.exists,
+      this.content,
+      LineInfo lineInfo,
+      bool isPart,
+      this.unit,
+      this.errors)
+      : super(session, path, uri, lineInfo, isPart);
+
+  @override
+  LibraryElement get libraryElement => unit.declaredElement.library;
+
+  @override
+  ResultState get state => exists ? ResultState.VALID : ResultState.NOT_A_FILE;
+
+  @override
+  TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
+}
+
+class UnitElementResultImpl extends AnalysisResultImpl
+    implements UnitElementResult {
+  @override
+  final String signature;
+
+  @override
+  final CompilationUnitElement element;
+
+  UnitElementResultImpl(AnalysisSession session, String path, Uri uri,
+      this.signature, this.element)
+      : super(session, path, uri);
+
+  @override
+  ResultState get state => ResultState.VALID;
 }

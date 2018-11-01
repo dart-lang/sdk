@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -59,7 +60,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
-  final List<AnalysisResult> allResults = <AnalysisResult>[];
+  final List<ResolvedUnitResult> allResults = <ResolvedUnitResult>[];
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   String testProject;

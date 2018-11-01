@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -654,10 +655,10 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _ImportElementReferencesVisitor visitor =
           new _ImportElementReferencesVisitor(element, unitElement);
-      unitAnalysisResult.unit.accept(visitor);
+      unitResult.unit.accept(visitor);
       results.addAll(visitor.results);
     }
     return results;
@@ -675,8 +676,8 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
-      CompilationUnit unit = unitAnalysisResult.unit;
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
+      CompilationUnit unit = unitResult.unit;
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
           results.add(new SearchResult._(
@@ -702,8 +703,8 @@ class Search {
     }
 
     // Prepare the unit.
-    AnalysisResult analysisResult = await _driver.getResult(path);
-    CompilationUnit unit = analysisResult.unit;
+    ResolvedUnitResult unitResult = await _driver.getResult(path);
+    CompilationUnit unit = unitResult.unit;
     if (unit == null) {
       return const <SearchResult>[];
     }
@@ -759,10 +760,10 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _LocalReferencesVisitor visitor =
           new _LocalReferencesVisitor(element, unitElement);
-      unitAnalysisResult.unit.accept(visitor);
+      unitResult.unit.accept(visitor);
       results.addAll(visitor.results);
     }
     return results;

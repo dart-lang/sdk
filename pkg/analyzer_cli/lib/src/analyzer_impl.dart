@@ -7,6 +7,7 @@ library analyzer_cli.src.analyzer_impl;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';

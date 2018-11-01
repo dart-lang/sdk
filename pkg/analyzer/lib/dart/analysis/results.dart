@@ -84,9 +84,11 @@ abstract class ResolvedLibraryResult implements AnalysisResult {
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
 
-  ///
-  /// The resolved units of the library.
-  List<ResolveResult> get units;
+  /**
+   *
+   * The resolved units of the library.
+   */
+  List<ResolvedUnitResult> get units;
 
   /// Return the declaration of the [element], or `null` is the [element]
   /// is synthetic.  Throw [ArgumentError] if the [element] is not defined in

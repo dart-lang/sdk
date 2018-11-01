@@ -6,12 +6,15 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
@@ -25,8 +28,6 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/sdk.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;

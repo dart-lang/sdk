@@ -7,13 +7,10 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/results.dart' as results;
-import 'package:analyzer/dart/analysis/results.dart'
-    show ResolveResult, ResolvedLibraryResult;
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -664,7 +661,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    return new ErrorsResult(currentSession, path, analysisResult.uri,
+    return new ErrorsResultImpl(currentSession, path, analysisResult.uri,
         analysisResult.lineInfo, analysisResult.isPart, analysisResult.errors);
   }
 
@@ -700,7 +697,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   FileResult getFileSync(String path) {
     _throwIfNotAbsolutePath(path);
     FileState file = _fileTracker.verifyApiSignature(path);
-    return new FileResult(
+    return new FileResultImpl(
         _currentSession, path, file.uri, file.lineInfo, file.isPart);
   }
 
@@ -796,7 +793,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * of the files previously reported using [changeFile]), prior to the next
    * time the analysis state transitions to "idle".
    */
-  Future<AnalysisResult> getResult(String path,
+  Future<ResolvedUnitResult> getResult(String path,
       {bool sendCachedToStream: false}) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
@@ -903,7 +900,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Return a [Future] that completes with a [ParseResult] for the file
+   * Return a [Future] that completes with a [ParsedUnitResult] for the file
    * with the given [path].
    *
    * The [path] must be absolute and normalized.
@@ -921,7 +918,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Return a [ParseResult] for the file with the given [path].
+   * Return a [ParsedUnitResult] for the file with the given [path].
    *
    * The [path] must be absolute and normalized.
    *
@@ -936,7 +933,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return new ParsedUnitResult(currentSession, file.path, file.uri,
+    return new ParsedUnitResultImpl(currentSession, file.path, file.uri,
         file.content, file.lineInfo, file.isPart, unit, listener.errors);
   }
 
@@ -1359,7 +1356,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.inheritanceManager,
           library);
       Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
-      var resolvedUnits = <ResolveResult>[];
+      var resolvedUnits = <ResolvedUnitResult>[];
 
       for (var unitFile in unitResults.keys) {
         var unitResult = unitResults[unitFile];
@@ -1408,7 +1405,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var libraryContext = _createLibraryContext(library);
     var element = libraryContext.computeUnitElement(library, file);
-    return new UnitElementResult(
+    return new UnitElementResultImpl(
         currentSession, path, file.uri, library.transitiveSignature, element);
   }
 
@@ -2022,10 +2019,9 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult extends FileResult implements results.ResolvedUnitResult {
+class AnalysisResult extends ResolvedUnitResultImpl {
   static final _UNCHANGED = new AnalysisResult(
       null, null, null, null, null, null, null, null, null, null, null, null);
-
   /**
    * The [AnalysisDriver] that produced this result.
    */
@@ -2037,25 +2033,11 @@ class AnalysisResult extends FileResult implements results.ResolvedUnitResult {
   final SourceFactory sourceFactory;
 
   /**
-   * Return `true` if the file exists.
-   */
-  final bool exists;
-
-  @override
-  final String content;
-
-  /**
    * The signature of the result based on the content of the file, and the
    * transitive closure of files imported and exported by the library of
    * the requested file.
    */
   final String _signature;
-
-  @override
-  final CompilationUnit unit;
-
-  @override
-  final List<AnalysisError> errors;
 
   /**
    * The index of the unit.
@@ -2067,22 +2049,19 @@ class AnalysisResult extends FileResult implements results.ResolvedUnitResult {
       this.sourceFactory,
       String path,
       Uri uri,
-      this.exists,
-      this.content,
+      bool exists,
+      String content,
       LineInfo lineInfo,
       bool isPart,
       this._signature,
-      this.unit,
-      this.errors,
+      CompilationUnit unit,
+      List<AnalysisError> errors,
       this._index)
-      : super(driver?.currentSession, path, uri, lineInfo, isPart);
+      : super(driver?.currentSession, path, uri, exists, content, lineInfo,
+            isPart, unit, errors);
 
   @override
   LibraryElement get libraryElement => unit.declaredElement.library;
-
-  @override
-  results.ResultState get state =>
-      exists ? results.ResultState.VALID : results.ResultState.NOT_A_FILE;
 
   @override
   TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
@@ -2114,25 +2093,6 @@ abstract class DriverWatcher {
 }
 
 /**
- * The errors in a single file.
- *
- * These results are self-consistent, i.e. [errors] and [lineInfo] correspond
- * to each other. But none of the results is guaranteed to be consistent with
- * the state of the files.
- */
-class ErrorsResult extends FileResult implements results.ErrorsResult {
-  @override
-  final List<AnalysisError> errors;
-
-  ErrorsResult(AnalysisSession session, String path, Uri uri, LineInfo lineInfo,
-      bool isPart, this.errors)
-      : super(session, path, uri, lineInfo, isPart);
-
-  @override
-  results.ResultState get state => results.ResultState.VALID;
-}
-
-/**
  * Exception that happened during analysis.
  */
 class ExceptionResult {
@@ -2157,83 +2117,6 @@ class ExceptionResult {
   final String contextKey;
 
   ExceptionResult(this.path, this.exception, this.contextKey);
-}
-
-/**
- * The result of computing some cheap information for a single file, when full
- * parsed file is not required, so [ParseResult] is not necessary.
- */
-class FileResult extends BaseAnalysisResult implements results.FileResult {
-  @override
-  final LineInfo lineInfo;
-
-  @override
-  final bool isPart;
-
-  FileResult(
-      AnalysisSession session, String path, Uri uri, this.lineInfo, this.isPart)
-      : super(session, path, uri);
-
-  @override
-  results.ResultState get state => results.ResultState.VALID;
-}
-
-/**
- * The result of parsing of a single file.
- *
- * These results are self-consistent, i.e. [content], [lineInfo], the
- * parsed [unit] correspond to each other. But none of the results is
- * guaranteed to be consistent with the state of the files.
- */
-class ParsedUnitResult extends FileResult implements results.ParsedUnitResult {
-  @override
-  final String content;
-
-  @override
-  final CompilationUnit unit;
-
-  @override
-  final List<AnalysisError> errors;
-
-  ParsedUnitResult(AnalysisSession session, String path, Uri uri, this.content,
-      LineInfo lineInfo, bool isPart, this.unit, this.errors)
-      : super(session, path, uri, lineInfo, isPart);
-
-  @override
-  results.ResultState get state => results.ResultState.VALID;
-}
-
-/**
- * The result with the [CompilationUnitElement] of a single file.
- *
- * These results are self-consistent, i.e. all elements and types accessible
- * through [element], including defined in other files, correspond to each
- * other. But none of the results is guaranteed to be consistent with the state
- * of the files.
- *
- * Every result is independent, and is not guaranteed to be consistent with
- * any previously returned result, even inside of the same library.
- */
-class UnitElementResult extends BaseAnalysisResult
-    implements results.UnitElementResult {
-  /**
-   * The signature of the [element] is based the APIs of the files of the
-   * library (including the file itself) of the requested file and the
-   * transitive closure of files imported and exported by the library.
-   */
-  final String signature;
-
-  /**
-   * The element of the file.
-   */
-  final CompilationUnitElement element;
-
-  UnitElementResult(AnalysisSession session, String path, Uri uri,
-      this.signature, this.element)
-      : super(session, path, uri);
-
-  @override
-  results.ResultState get state => results.ResultState.VALID;
 }
 
 /**
