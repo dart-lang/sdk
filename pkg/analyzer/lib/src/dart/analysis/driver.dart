@@ -736,9 +736,33 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Return a [ParsedLibraryResult] for the library with the given [path].
+   *
+   * The [path] must be absolute and normalized.
+   */
+  ParsedLibraryResult getParsedLibrary(String path) {
+    FileState file = _fileTracker.verifyApiSignature(path);
+
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $path');
+    }
+
+    var units = <ParsedUnitResult>[];
+    for (var unitFile in file.libraryFiles) {
+      var unitResult = parseFileSync(unitFile.path);
+      units.add(unitResult);
+    }
+
+    return ParsedLibraryResultImpl(currentSession, path, file.uri, units);
+  }
+
+  /**
    * Return a [Future] that completes with a [ResolvedLibraryResult] for the
    * Dart library file with the given [path].  If the file is not a Dart file
    * or cannot be analyzed, the [Future] completes with `null`.
+   *
+   * Throw [ArgumentError] if the given [path] is not the defining compilation
+   * unit for a library (that is, is a part of a library).
    *
    * The [path] must be absolute and normalized.
    *
@@ -755,6 +779,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
       return new Future.value();
+    }
+
+    FileState file = _fileTracker.verifyApiSignature(path);
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $path');
     }
 
     // Schedule analysis.

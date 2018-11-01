@@ -65,6 +65,19 @@ abstract class AnalysisSession {
   @deprecated
   ParseResult getParsedAstSync(String path);
 
+  /// Return information about the results of parsing units of the library file
+  /// with the given absolute, normalized [path].
+  ///
+  /// Throw [ArgumentError] if the given [path] is not the defining compilation
+  /// unit for a library (that is, is a part of a library).
+  ParsedLibraryResult getParsedLibrary(String path);
+
+  /// Return information about the results of parsing units of the library file
+  /// with the given library [element].
+  ///
+  /// Throw [ArgumentError] if the [element] was not produced by this session.
+  ParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
+
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
   ParsedUnitResult getParsedUnit(String path);
@@ -75,6 +88,21 @@ abstract class AnalysisSession {
   /// Deprecated: Use [getResolvedUnit] instead.
   @deprecated
   Future<ResolveResult> getResolvedAst(String path);
+
+  /// Return a future that will complete with information about the results of
+  /// resolving all of the files in the library with the given absolute,
+  /// normalized [path].
+  ///
+  /// Throw [ArgumentError] if the given [path] is not the defining compilation
+  /// unit for a library (that is, is a part of a library).
+  Future<ResolvedLibraryResult> getResolvedLibrary(String path);
+
+  /// Return a future that will complete with information about the results of
+  /// resolving all of the files in the library with the library [element].
+  ///
+  /// Throw [ArgumentError] if the [element] was not produced by this session.
+  Future<ResolvedLibraryResult> getResolvedLibraryByElement(
+      LibraryElement element);
 
   /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].

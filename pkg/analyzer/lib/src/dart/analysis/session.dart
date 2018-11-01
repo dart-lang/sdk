@@ -115,6 +115,20 @@ class AnalysisSessionImpl implements AnalysisSession {
   ParseResult getParsedAstSync(String path) => getParsedUnit(path);
 
   @override
+  ParsedLibraryResult getParsedLibrary(String path) {
+    _checkConsistency();
+    return _driver.getParsedLibrary(path);
+  }
+
+  @override
+  ParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
+    _checkConsistency();
+    _checkElementOfThisSession(element);
+    var path = element.source.fullName;
+    return getParsedLibrary(path);
+  }
+
+  @override
   ParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync(path);
@@ -123,6 +137,21 @@ class AnalysisSessionImpl implements AnalysisSession {
   @deprecated
   @override
   Future<ResolveResult> getResolvedAst(String path) => getResolvedUnit(path);
+
+  @override
+  Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
+    _checkConsistency();
+    return _driver.getResolvedLibrary(path);
+  }
+
+  @override
+  Future<ResolvedLibraryResult> getResolvedLibraryByElement(
+      LibraryElement element) {
+    _checkConsistency();
+    _checkElementOfThisSession(element);
+    var path = element.source.fullName;
+    return getResolvedLibrary(path);
+  }
 
   @override
   Future<ResolvedUnitResult> getResolvedUnit(String path) {
@@ -162,6 +191,14 @@ class AnalysisSessionImpl implements AnalysisSession {
   void _checkConsistency() {
     if (_driver.currentSession != this) {
       throw new InconsistentAnalysisException();
+    }
+  }
+
+  void _checkElementOfThisSession(Element element) {
+    if (element.session != this) {
+      throw new ArgumentError(
+          '(${element.runtimeType}) $element was not produced by '
+          'this session.');
     }
   }
 }

@@ -35,6 +35,20 @@ abstract class AnalysisResultWithErrors implements FileResult {
   List<AnalysisError> get errors;
 }
 
+/// The declaration of an [Element].
+abstract class ElementDeclarationResult {
+  /// The original code of the [node].
+  String get code;
+
+  /// The [Element] that this object describes.
+  Element get element;
+
+  /// The node that declares the [element]. Depending on whether it is returned
+  /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
+  /// or just parsed.
+  AstNode get node;
+}
+
 /// The result of computing all of the errors contained in a single file, both
 /// syntactic and semantic.
 ///
@@ -51,6 +65,19 @@ abstract class FileResult implements AnalysisResult {
 
   /// Information about lines in the content.
   LineInfo get lineInfo;
+}
+
+/// The result of building parsed AST(s) for the whole library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ParsedLibraryResult implements AnalysisResult {
+  /// The parsed units of the library.
+  List<ParsedUnitResult> get units;
+
+  /// Return the declaration of the [element], or `null` if the [element]
+  /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
+  /// this library.
+  ElementDeclarationResult getElementDeclaration(Element element);
 }
 
 /// The result of parsing of a single file. The errors returned include only
@@ -73,8 +100,7 @@ abstract class ParseResult implements AnalysisResultWithErrors {
   CompilationUnit get unit;
 }
 
-/// The result of building resolved AST(s) for the whole library. The errors
-/// returned include both syntactic and semantic errors.
+/// The result of building resolved AST(s) for the whole library.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ResolvedLibraryResult implements AnalysisResult {
@@ -84,16 +110,13 @@ abstract class ResolvedLibraryResult implements AnalysisResult {
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
 
-  /**
-   *
-   * The resolved units of the library.
-   */
+  /// The resolved units of the library.
   List<ResolvedUnitResult> get units;
 
-  /// Return the declaration of the [element], or `null` is the [element]
-  /// is synthetic.  Throw [ArgumentError] if the [element] is not defined in
+  /// Return the declaration of the [element], or `null` if the [element]
+  /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
-  AstNode getElementDeclaration(Element element);
+  ElementDeclarationResult getElementDeclaration(Element element);
 }
 
 /// The result of building a resolved AST for a single file. The errors returned

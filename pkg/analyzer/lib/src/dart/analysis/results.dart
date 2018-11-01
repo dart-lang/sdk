@@ -24,6 +24,19 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   AnalysisResultImpl(this.session, this.path, this.uri);
 }
 
+class ElementDeclarationResultImpl implements ElementDeclarationResult {
+  @override
+  final Element element;
+
+  @override
+  final String code;
+
+  @override
+  final AstNode node;
+
+  ElementDeclarationResultImpl(this.element, this.code, this.node);
+}
+
 class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
   @override
   final List<AnalysisError> errors;
@@ -46,6 +59,77 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
   @override
   ResultState get state => ResultState.VALID;
+}
+
+class ParsedLibraryResultImpl extends AnalysisResultImpl
+    implements ParsedLibraryResult {
+  @override
+  final ResultState state = ResultState.VALID;
+
+  @override
+  final List<ParsedUnitResult> units;
+
+  ParsedLibraryResultImpl(
+      AnalysisSession session, String path, Uri uri, this.units)
+      : super(session, path, uri);
+
+  @Deprecated('This factory exists temporary until AnalysisSession migration.')
+  factory ParsedLibraryResultImpl.tmp(LibraryElement library) {
+    var units = <ParsedUnitResult>[];
+
+    var session = library.session;
+    if (session != null) {
+      for (var unitElement in library.units) {
+        var path = unitElement.source.fullName;
+        var parsedUnitResult = session.getParsedUnit(path);
+        units.add(parsedUnitResult);
+      }
+    } else {
+      var analysisContext = library.context;
+      for (var unitElement in library.units) {
+        var unitSource = unitElement.source;
+
+        if (!analysisContext.exists(unitSource)) {
+          continue;
+        }
+
+        var content = analysisContext.getContents(unitSource).data;
+        var lineInfo = analysisContext.getLineInfo(unitSource);
+        var unit = analysisContext.parseCompilationUnit(unitSource);
+        units.add(ParsedUnitResultImpl(
+            null,
+            unitSource.fullName,
+            unitSource.uri,
+            content,
+            lineInfo,
+            unitSource != library.source,
+            unit, const []));
+      }
+    }
+    return ParsedLibraryResultImpl(
+        null, library.source.fullName, library.source.uri, units);
+  }
+
+  @override
+  ElementDeclarationResult getElementDeclaration(Element element) {
+    var elementPath = element.source.fullName;
+    var unitResult = units.firstWhere(
+      (r) => r.path == elementPath,
+      orElse: () {
+        throw ArgumentError('Element (${element.runtimeType}) $element is not '
+            'defined in this library.');
+      },
+    );
+
+    if (element.isSynthetic || element.nameOffset == -1) {
+      return null;
+    }
+
+    var locator = NodeLocator2(element.nameOffset);
+    var node = locator.searchWithin(unitResult.unit)?.parent;
+    var code = unitResult.content.substring(node.offset, node.end);
+    return ElementDeclarationResultImpl(element, code, node);
+  }
 }
 
 class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
@@ -85,20 +169,56 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       : super(session, path, uri);
 
   @override
-  AstNode getElementDeclaration(Element element) {
-    if (element.library != this.element) {
-      throw ArgumentError('Element (${element.runtimeType}) $element is not '
-          'defined in this library.');
-    }
+  ElementDeclarationResult getElementDeclaration(Element element) {
+    var elementPath = element.source.fullName;
+    var unitResult = units.firstWhere(
+      (r) => r.path == elementPath,
+      orElse: () {
+        throw ArgumentError('Element (${element.runtimeType}) $element is not '
+            'defined in this library.');
+      },
+    );
 
     if (element.isSynthetic || element.nameOffset == -1) {
       return null;
     }
 
-    var elementPath = element.source.fullName;
-    var unitResult = units.firstWhere((r) => r.path == elementPath);
-    var locator = NodeLocator(element.nameOffset);
-    return locator.searchWithin(unitResult.unit)?.parent;
+    var locator = NodeLocator2(element.nameOffset);
+    var node = locator.searchWithin(unitResult.unit)?.parent;
+    var code = unitResult.content.substring(node.offset, node.end);
+    return ElementDeclarationResultImpl(element, code, node);
+  }
+
+  @Deprecated('This method exists temporary until AnalysisSession migration.')
+  static Future<ResolvedLibraryResult> tmp(LibraryElement library) async {
+    var units = <ResolvedUnitResult>[];
+
+    var session = library.session;
+    if (session != null) {
+      for (var unitElement in library.units) {
+        var path = unitElement.source.fullName;
+        var resolvedUnitResult = await session.getResolvedUnit(path);
+        units.add(resolvedUnitResult);
+      }
+    } else {
+      var analysisContext = library.context;
+      for (var unitElement in library.units) {
+        var unitSource = unitElement.source;
+
+        if (!analysisContext.exists(unitSource)) {
+          continue;
+        }
+
+        var path = unitSource.fullName;
+        var content = analysisContext.getContents(unitSource).data;
+        var lineInfo = analysisContext.getLineInfo(unitSource);
+        var unit = analysisContext.resolveCompilationUnit(unitSource, library);
+        units.add(ResolvedUnitResultImpl(null, path, unitSource.uri, true,
+            content, lineInfo, unitSource != library.source, unit, const []));
+      }
+    }
+    return ResolvedLibraryResultImpl(null, library.source.fullName,
+        library.source.uri, library, library.context.typeProvider, units);
   }
 }
 
