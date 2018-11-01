@@ -32,7 +32,6 @@ import 'non_error_resolver_test.dart' as non_error_resolver_test;
 import 'non_hint_code_driver_test.dart' as non_hint_code_driver_test;
 import 'non_hint_code_test.dart' as non_hint_code_test;
 import 'package_build_test.dart' as package_build_test;
-import 'package_test.dart' as package_test;
 import 'parser_fasta_test.dart' as parser_fasta_test;
 import 'parser_test.dart' as parser_test;
 import 'resolver_driver_test.dart' as resolver_driver_test;
@@ -83,7 +82,6 @@ main() {
     non_hint_code_driver_test.main();
     non_hint_code_test.main();
     package_build_test.main();
-    package_test.main();
     parser_fasta_test.main();
     parser_test.main();
     resolver_driver_test.main();
