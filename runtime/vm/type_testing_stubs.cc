@@ -359,7 +359,9 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
     code.Disassemble(&formatter);
     THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 #endif  // !PRODUCT
 

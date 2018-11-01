@@ -243,7 +243,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   const ObjectPool& object_pool =
       ObjectPool::Handle(zone, code.GetObjectPool());
-  object_pool.DebugPrint();
+  if (!object_pool.IsNull()) {
+    object_pool.DebugPrint();
+  }
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();

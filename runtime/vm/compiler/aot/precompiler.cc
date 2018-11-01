@@ -499,57 +499,11 @@ void Precompiler::AddCalleesOf(const Function& function) {
 #endif
 
   const ObjectPool& pool = ObjectPool::Handle(Z, code.GetObjectPool());
-  ICData& call_site = ICData::Handle(Z);
-  MegamorphicCache& cache = MegamorphicCache::Handle(Z);
   String& selector = String::Handle(Z);
-  Field& field = Field::Handle(Z);
-  Instance& instance = Instance::Handle(Z);
-  Code& target_code = Code::Handle(Z);
   for (intptr_t i = 0; i < pool.Length(); i++) {
     if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
       entry = pool.ObjectAt(i);
-      if (entry.IsICData()) {
-        // A dynamic call.
-        call_site ^= entry.raw();
-        ASSERT(!call_site.is_static_call());
-        selector = call_site.target_name();
-        AddSelector(selector);
-        if (selector.raw() == Symbols::Call().raw()) {
-          // Potential closure call.
-          const Array& arguments_descriptor =
-              Array::Handle(Z, call_site.arguments_descriptor());
-          AddClosureCall(arguments_descriptor);
-        }
-      } else if (entry.IsMegamorphicCache()) {
-        // A dynamic call.
-        cache ^= entry.raw();
-        selector = cache.target_name();
-        AddSelector(selector);
-        if (selector.raw() == Symbols::Call().raw()) {
-          // Potential closure call.
-          const Array& arguments_descriptor =
-              Array::Handle(Z, cache.arguments_descriptor());
-          AddClosureCall(arguments_descriptor);
-        }
-      } else if (entry.IsField()) {
-        // Potential need for field initializer.
-        field ^= entry.raw();
-        AddField(field);
-      } else if (entry.IsInstance()) {
-        // Const object, literal or args descriptor.
-        instance ^= entry.raw();
-        AddConstObject(instance);
-      } else if (entry.IsFunction()) {
-        // Local closure function.
-        target ^= entry.raw();
-        AddFunction(target);
-      } else if (entry.IsCode()) {
-        target_code ^= entry.raw();
-        if (target_code.IsAllocationStubCode()) {
-          cls ^= target_code.owner();
-          AddInstantiatedClass(cls);
-        }
-      }
+      AddCalleesOfHelper(entry, &selector, &cls);
     }
   }
 
@@ -558,6 +512,53 @@ void Precompiler::AddCalleesOf(const Function& function) {
   for (intptr_t i = 0; i < inlined_functions.Length(); i++) {
     target ^= inlined_functions.At(i);
     AddTypesOf(target);
+  }
+}
+
+void Precompiler::AddCalleesOfHelper(const Object& entry,
+                                     String* temp_selector,
+                                     Class* temp_cls) {
+  if (entry.IsICData()) {
+    const auto& call_site = ICData::Cast(entry);
+    // A dynamic call.
+    ASSERT(!call_site.is_static_call());
+    *temp_selector = call_site.target_name();
+    AddSelector(*temp_selector);
+    if (temp_selector->raw() == Symbols::Call().raw()) {
+      // Potential closure call.
+      const Array& arguments_descriptor =
+          Array::Handle(Z, call_site.arguments_descriptor());
+      AddClosureCall(arguments_descriptor);
+    }
+  } else if (entry.IsMegamorphicCache()) {
+    // A dynamic call.
+    const auto& cache = MegamorphicCache::Cast(entry);
+    *temp_selector = cache.target_name();
+    AddSelector(*temp_selector);
+    if (temp_selector->raw() == Symbols::Call().raw()) {
+      // Potential closure call.
+      const Array& arguments_descriptor =
+          Array::Handle(Z, cache.arguments_descriptor());
+      AddClosureCall(arguments_descriptor);
+    }
+  } else if (entry.IsField()) {
+    // Potential need for field initializer.
+    const auto& field = Field::Cast(entry);
+    AddField(field);
+  } else if (entry.IsInstance()) {
+    // Const object, literal or args descriptor.
+    const auto& instance = Instance::Cast(entry);
+    AddConstObject(instance);
+  } else if (entry.IsFunction()) {
+    // Local closure function.
+    const auto& target = Function::Cast(entry);
+    AddFunction(target);
+  } else if (entry.IsCode()) {
+    const auto& target_code = Code::Cast(entry);
+    if (target_code.IsAllocationStubCode()) {
+      *temp_cls ^= target_code.owner();
+      AddInstantiatedClass(*temp_cls);
+    }
   }
 }
 
@@ -2030,13 +2031,10 @@ void Precompiler::SwitchICCalls() {
   // array. Iterate all the object pools and rewrite the ic data from
   // (cid, target function, count) to (cid, target code, entry point), and
   // replace the ICCallThroughFunction stub with ICCallThroughCode.
-
-  class SwitchICCallsVisitor : public FunctionVisitor {
+  class ICCallSwitcher {
    public:
-    explicit SwitchICCallsVisitor(Zone* zone)
+    explicit ICCallSwitcher(Zone* zone)
         : zone_(zone),
-          code_(Code::Handle(zone)),
-          pool_(ObjectPool::Handle(zone)),
           entry_(Object::Handle(zone)),
           ic_(ICData::Handle(zone)),
           target_name_(String::Handle(zone)),
@@ -2045,16 +2043,10 @@ void Precompiler::SwitchICCalls() {
           target_code_(Code::Handle(zone)),
           canonical_unlinked_calls_() {}
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-
-      code_ = function.CurrentCode();
-      pool_ = code_.object_pool();
-      for (intptr_t i = 0; i < pool_.Length(); i++) {
-        if (pool_.TypeAt(i) != ObjectPool::kTaggedObject) continue;
-        entry_ = pool_.ObjectAt(i);
+    void SwitchPool(const ObjectPool& pool) {
+      for (intptr_t i = 0; i < pool.Length(); i++) {
+        if (pool.TypeAt(i) != ObjectPool::kTaggedObject) continue;
+        entry_ = pool.ObjectAt(i);
         if (entry_.IsICData()) {
           // The only IC calls generated by precompilation are for switchable
           // calls.
@@ -2067,11 +2059,11 @@ void Precompiler::SwitchICCalls() {
           args_descriptor_ = ic_.arguments_descriptor();
           unlinked_.set_args_descriptor(args_descriptor_);
           unlinked_ = DedupUnlinkedCall(unlinked_);
-          pool_.SetObjectAt(i, unlinked_);
+          pool.SetObjectAt(i, unlinked_);
         } else if (entry_.raw() ==
                    StubCode::ICCallThroughFunction_entry()->code()) {
           target_code_ = StubCode::UnlinkedCall_entry()->code();
-          pool_.SetObjectAt(i, target_code_);
+          pool.SetObjectAt(i, target_code_);
         }
       }
     }
@@ -2090,8 +2082,6 @@ void Precompiler::SwitchICCalls() {
 
    private:
     Zone* zone_;
-    Code& code_;
-    ObjectPool& pool_;
     Object& entry_;
     ICData& ic_;
     String& target_name_;
@@ -2101,8 +2091,30 @@ void Precompiler::SwitchICCalls() {
     UnlinkedCallSet canonical_unlinked_calls_;
   };
 
-  ASSERT(!I->compilation_allowed());
-  SwitchICCallsVisitor visitor(Z);
+  class SwitchICCallsVisitor : public FunctionVisitor {
+   public:
+    SwitchICCallsVisitor(ICCallSwitcher* ic_call_switcher, Zone* zone)
+        : ic_call_switcher_(*ic_call_switcher),
+          code_(Code::Handle(zone)),
+          pool_(ObjectPool::Handle(zone)) {}
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      pool_ = code_.object_pool();
+      ic_call_switcher_.SwitchPool(pool_);
+    }
+
+   private:
+    ICCallSwitcher& ic_call_switcher_;
+    Code& code_;
+    ObjectPool& pool_;
+  };
+
+  ICCallSwitcher switcher(Z);
+  SwitchICCallsVisitor visitor(&switcher, Z);
 
   // We need both iterations to ensure we visit all the functions that might end
   // up in the snapshot. The ProgramVisitor will miss closures from duplicated

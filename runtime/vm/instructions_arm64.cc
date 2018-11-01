@@ -318,9 +318,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-        *obj = pool.ObjectAt(index);
-        return true;
+      if (!pool.IsNull()) {
+        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+          *obj = pool.ObjectAt(index);
+          return true;
+        }
       }
     } else if (instr->RnField() == THR) {
       return Thread::ObjectAtOffset(offset, obj);

@@ -37,17 +37,21 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       if ((bytes[2] & 0xc7) == (0x80 | (PP & 7))) {  // [r15+disp32]
         intptr_t index = IndexFromPPLoadDisp32(pc + 3);
         const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-          *obj = pool.ObjectAt(index);
-          return true;
+        if (!pool.IsNull()) {
+          if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+            *obj = pool.ObjectAt(index);
+            return true;
+          }
         }
       }
       if ((bytes[2] & 0xc7) == (0x40 | (PP & 7))) {  // [r15+disp8]
         intptr_t index = IndexFromPPLoadDisp8(pc + 3);
         const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-          *obj = pool.ObjectAt(index);
-          return true;
+        if (!pool.IsNull()) {
+          if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+            *obj = pool.ObjectAt(index);
+            return true;
+          }
         }
       }
     }
