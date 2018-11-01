@@ -1316,7 +1316,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-#if defined(TARGET_ARCH_IA32) || !defined(CONCURRENT_MARKING)
+#if defined(TARGET_ARCH_IA32)
   intptr_t headroom = 0;
 #else
   intptr_t headroom = heap_->new_space()->CapacityInWords();
