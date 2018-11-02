@@ -1330,6 +1330,42 @@ static bool GetIsolate(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_scripts_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetScripts(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  ASSERT(isolate != NULL);
+
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  intptr_t num_libs = libs.Length();
+
+  Library& lib = Library::Handle(zone);
+  Array& scripts = Array::Handle(zone);
+  Script& script = Script::Handle(zone);
+
+  JSONObject jsobj(js);
+  {
+    jsobj.AddProperty("type", "ScriptList");
+    JSONArray script_array(&jsobj, "scripts");
+    for (intptr_t i = 0; i < num_libs; i++) {
+      lib ^= libs.At(i);
+      ASSERT(!lib.IsNull());
+      scripts ^= lib.LoadedScripts();
+      for (intptr_t j = 0; j < scripts.Length(); j++) {
+        script ^= scripts.At(j);
+        ASSERT(!script.IsNull());
+        script_array.AddValue(script);
+      }
+    }
+  }
+  return true;
+}
+
 static const MethodParameter* get_unused_changes_in_last_reload_params[] = {
     ISOLATE_PARAMETER, NULL,
 };
@@ -2729,7 +2765,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
           js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    js->PrintError(kExpressionCompilationError, compilation_result.error);
+    js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
     free(compilation_result.error);
     return true;
   }
@@ -3627,7 +3663,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
 
   const char* error = NULL;
   if (!isolate->debugger()->SetResumeAction(step, frame_index, &error)) {
-    js->PrintError(kCannotResume, error);
+    js->PrintError(kCannotResume, "%s", error);
     return true;
   }
   isolate->SetResumeRequest();
@@ -4744,6 +4780,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
+  { "getScripts", GetScripts,
+    get_scripts_params },
   { "getSourceReport", GetSourceReport,
     get_source_report_params },
   { "getStack", GetStack,

@@ -68,12 +68,6 @@
     "Dynamic invocation of 'call'.": 4,
     "Dynamic invocation of 'then'.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/async/future.dart": {
-    "Dynamic invocation of 'call'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/async/stream.dart": {
-    "Dynamic invocation of 'dart.async::_addError'.": 1
-  },
   "org-dartlang-sdk:///sdk/lib/async/async_error.dart": {
     "Dynamic invocation of 'call'.": 1
   },
@@ -89,10 +83,6 @@
     "Dynamic access of 'dart.collection::_elements'.": 1,
     "Dynamic access of 'dart.collection::_element'.": 1,
     "Dynamic access of 'dart.collection::_first'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/collection/iterable.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '+'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart": {
     "Dynamic access of 'style'.": 1,
@@ -219,44 +209,14 @@
     "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of '>='.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/core/duration.dart": {
-    "Dynamic access of 'dart.core::_duration'.": 1
-  },
   "org-dartlang-sdk:///sdk/lib/core/errors.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '<'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/exceptions.dart": {
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of 'codeUnitAt'.": 2,
-    "Dynamic invocation of 'substring'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/uri.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'startsWith'.": 1,
-    "Dynamic invocation of 'add'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/math/point.dart": {
-    "Dynamic access of 'x'.": 1,
-    "Dynamic access of 'y'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/math/rectangle.dart": {
-    "Dynamic access of 'left'.": 1,
-    "Dynamic access of 'top'.": 1,
-    "Dynamic access of 'right'.": 1,
-    "Dynamic access of 'bottom'.": 1
+    "Dynamic access of 'length'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/convert_patch.dart": {
     "Dynamic invocation of 'clear'.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/convert/encoding.dart": {
-    "Dynamic invocation of 'write'.": 1
-  },
   "org-dartlang-sdk:///sdk/lib/convert/json.dart": {
     "Dynamic invocation of 'toJson'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/isolate/isolate.dart": {
-    "Dynamic invocation of '[]'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/_http/crypto.dart": {
     "Dynamic invocation of '+'.": 2,

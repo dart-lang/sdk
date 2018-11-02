@@ -404,7 +404,7 @@ class DateTime implements Comparable<DateTime> {
    * See [isAtSameMomentAs] for a comparison that compares moments in time
    * independently of their zones.
    */
-  external bool operator ==(other);
+  external bool operator ==(dynamic other);
 
   /**
    * Returns true if [this] occurs before [other].

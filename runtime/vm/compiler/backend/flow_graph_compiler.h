@@ -469,7 +469,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateStaticDartCall(
       intptr_t deopt_id,
       TokenPosition token_pos,
-      const StubEntry& stub_entry,
       RawPcDescriptors::Kind kind,
       LocationSummary* locs,
       const Function& target,
@@ -772,6 +771,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
+  void AddPcRelativeCallTarget(const Function& function);
+  void AddPcRelativeCallStubTarget(const Code& stub_code);
   void AddStaticCallTarget(const Function& function);
 
   void GenerateDeferredCode();

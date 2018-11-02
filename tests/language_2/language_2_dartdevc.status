@@ -106,6 +106,7 @@ issue34498_test: MissingCompileTimeError # Issue 34500
 issue34635_test: MissingCompileTimeError
 issue34636_test: MissingCompileTimeError
 label_test: RuntimeError
+labeled_variable_declaration_test: RuntimeError
 large_class_declaration_test: Slow, Pass
 left_shift_test: RuntimeError # Ints and doubles are unified.
 mixin_declaration/mixin_declaration_factory_test/02: Crash
@@ -283,7 +284,6 @@ issue31596_super_test/05: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_subtype_test: RuntimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError

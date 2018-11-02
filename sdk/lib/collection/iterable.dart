@@ -238,7 +238,7 @@ abstract class IterableBase<E> extends Iterable<E> {
       }
       return "$leftDelimiter...$rightDelimiter";
     }
-    List parts = [];
+    List<String> parts = <String>[];
     _toStringVisiting.add(iterable);
     try {
       _iterablePartsToStrings(iterable, parts);
@@ -296,7 +296,7 @@ bool _isToStringVisiting(Object o) {
 /**
  * Convert elements of [iterable] to strings and store them in [parts].
  */
-void _iterablePartsToStrings(Iterable iterable, List parts) {
+void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
   /*
    * This is the complicated part of [iterableToShortString].
    * It is extracted as a separate function to avoid having too much code
@@ -337,8 +337,8 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
 
   // Find last two elements. One or more of them may already be in the
   // parts array. Include their length in `length`.
-  var penultimate = null;
-  var ultimate = null;
+  Object penultimate = null;
+  Object ultimate = null;
   if (!it.moveNext()) {
     if (count <= headCount + tailCount) return;
     ultimateString = parts.removeLast();

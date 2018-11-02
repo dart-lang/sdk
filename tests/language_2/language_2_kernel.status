@@ -158,8 +158,6 @@ private_method_tearoff_test: RuntimeError
 [ $compiler == dartkp ]
 covariant_subtyping_test: RuntimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-instantiate_to_bounds_super_bounded_test/44: DartkCrash # Issue 34995
-instantiate_to_bounds_super_bounded_test/45: DartkCrash # Issue 34995
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
@@ -351,6 +349,10 @@ vm/bool_check_stack_traces_test/none: RuntimeError # No support for line numbers
 vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
 vm/causal_async_exception_stack_test: RuntimeError # No support for line numbers in stacktraces
 vm/regress_28325_test: RuntimeError # No support for line numbers in stacktraces
+
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+vm/symbols_test/01: MissingCompileTimeError
+vm/symbols_test/03: MissingCompileTimeError
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 external_test/13: Crash
@@ -1993,3 +1995,7 @@ async_star_test/none: Skip # Timeout
 
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
+
+[ $compiler == dartkb || $compiler == dartkp ]
+mock_writable_final_private_field_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.
+vm/reflect_core_vm_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.

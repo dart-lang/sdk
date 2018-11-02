@@ -318,9 +318,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-        *obj = pool.ObjectAt(index);
-        return true;
+      if (!pool.IsNull()) {
+        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+          *obj = pool.ObjectAt(index);
+          return true;
+        }
       }
     } else if (instr->RnField() == THR) {
       return Thread::ObjectAtOffset(offset, obj);
@@ -415,6 +417,20 @@ bool ReturnPattern::IsValid() const {
   const Register crn = ConcreteRegister(LR);
   const int32_t instruction = RET | (static_cast<int32_t>(crn) << kRnShift);
   return bx_lr->InstructionBits() == instruction;
+}
+
+bool PcRelativeCallPattern::IsValid() const {
+  // bl <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_link = 0x25;
+  return (word >> 26) == branch_link;
+}
+
+bool PcRelativeJumpPattern::IsValid() const {
+  // b <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_nolink = 0x5;
+  return (word >> 26) == branch_nolink;
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {

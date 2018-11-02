@@ -116,6 +116,10 @@ ConstEvalInvalidStaticInvocation:
   template: "The invocation of '#name' is not allowed within a const context."
   analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 
+ConstEvalInvalidSymbolName:
+  template: "The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 ConstEvalFailedAssertion:
   template: "This assertion failed."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
@@ -1648,6 +1652,10 @@ InternalProblemNoInferredTypeStored:
 
 InternalProblemStoringMultipleInferredTypes:
   template: "There's already an inferred type, '#type', for '#name'."
+  severity: INTERNAL_PROBLEM
+
+InternalProblemLabelUsageInVariablesDeclaration:
+  template: "Unexpected usage of label inside declaration of variables."
   severity: INTERNAL_PROBLEM
 
 LocalDefinitionHidesExport:

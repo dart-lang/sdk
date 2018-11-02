@@ -31,7 +31,8 @@ import '../parser.dart'
         offsetForToken,
         optional;
 
-import '../problems.dart' show unexpected, unhandled, unsupported;
+import '../problems.dart'
+    show internalProblem, unexpected, unhandled, unsupported;
 
 import '../quote.dart'
     show
@@ -3702,20 +3703,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    Statement statement = popStatement();
+    Statement statement = pop();
     LabelTarget target = pop();
     exitLocalScope();
-    if (target.breakTarget.hasUsers) {
+    if (target.breakTarget.hasUsers || target.continueTarget.hasUsers) {
+      if (forest.isVariablesDeclaration(statement)) {
+        internalProblem(
+            fasta.messageInternalProblemLabelUsageInVariablesDeclaration,
+            statement.fileOffset,
+            uri);
+      }
       if (statement is! LabeledStatement) {
-        statement = forest.syntheticLabeledStatement(statement);
+        statement = new LabeledStatementJudgment(statement);
       }
       target.breakTarget.resolveBreaks(forest, statement);
-    }
-    statement = forest.labeledStatement(target, statement);
-    if (target.continueTarget.hasUsers) {
-      if (statement is! LabeledStatement) {
-        statement = forest.syntheticLabeledStatement(statement);
-      }
       target.continueTarget.resolveContinues(forest, statement);
     }
     push(statement);

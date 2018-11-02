@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_OBJECT_H_
 #define RUNTIME_VM_OBJECT_H_
 
+#include <tuple>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -64,6 +66,7 @@ class Symbols;
 
 #define BASE_OBJECT_IMPLEMENTATION(object, super)                              \
  public: /* NOLINT */                                                          \
+  using RawObjectType = Raw##object;                                           \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
   bool Is##object() const { return true; }                                     \
   static object& Handle(Zone* zone, Raw##object* raw_ptr) {                    \
@@ -243,6 +246,9 @@ class Symbols;
 
 class Object {
  public:
+  using RawObjectType = RawObject;
+  static RawObject* RawCast(RawObject* obj) { return obj; }
+
   virtual ~Object() {}
 
   RawObject* raw() const { return raw_; }
@@ -552,9 +558,9 @@ class Object {
   // methods below or their counterparts in RawObject, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type>
+  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
   void StorePointer(type const* addr, type value) const {
-    raw()->StorePointer(addr, value);
+    raw()->StorePointer<type, order>(addr, value);
   }
 
   // Store a range of pointers [from, from + count) into [to, to + count).
@@ -2103,7 +2109,9 @@ class ICData : public Object {
  private:
   static RawICData* New();
 
-  RawArray* ic_data() const { return raw_ptr()->ic_data_; }
+  RawArray* ic_data() const {
+    return AtomicOperations::LoadAcquire(&raw_ptr()->ic_data_);
+  }
 
   void set_owner(const Function& value) const;
   void set_target_name(const String& value) const;
@@ -2164,6 +2172,7 @@ class ICData : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
+  friend class ICDataTestTask;
   friend class Interpreter;
   friend class SnapshotWriter;
   friend class Serializer;
@@ -4104,7 +4113,9 @@ class KernelProgramInfo : public Object {
                                    const ExternalTypedData& metadata_payload,
                                    const ExternalTypedData& metadata_mappings,
                                    const ExternalTypedData& constants_table,
-                                   const Array& scripts);
+                                   const Array& scripts,
+                                   const Array& libraries_cache,
+                                   const Array& classes_cache);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
@@ -4152,6 +4163,20 @@ class KernelProgramInfo : public Object {
       const GrowableObjectArray& candidates) const;
 
   RawScript* ScriptAt(intptr_t index) const;
+
+  RawArray* libraries_cache() const { return raw_ptr()->libraries_cache_; }
+  void set_libraries_cache(const Array& cache) const;
+  RawLibrary* LookupLibrary(Thread* thread, const Smi& name_index) const;
+  RawLibrary* InsertLibrary(Thread* thread,
+                            const Smi& name_index,
+                            const Library& lib) const;
+
+  RawArray* classes_cache() const { return raw_ptr()->classes_cache_; }
+  void set_classes_cache(const Array& cache) const;
+  RawClass* LookupClass(Thread* thread, const Smi& name_index) const;
+  RawClass* InsertClass(Thread* thread,
+                        const Smi& name_index,
+                        const Class& klass) const;
 
  private:
   static RawKernelProgramInfo* New();
@@ -4930,10 +4955,12 @@ class Code : public Object {
                            StackMap* map) const;
 
   enum CallKind {
+    kPcRelativeCall = 1,
+    kPcRelativeTailCall = 2,
     kCallViaCode = 3,
   };
 
-  enum {
+  enum SCallTableEntry {
     kSCallTableKindAndOffset = 0,
     kSCallTableCodeTarget = 1,
     kSCallTableFunctionTarget = 2,
@@ -7061,6 +7088,18 @@ class Smi : public Integer {
   friend class Object;
   friend class ReusableSmiHandleScope;
   friend class Thread;
+};
+
+class SmiTraits : AllStatic {
+ public:
+  static const char* Name() { return "SmiTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return Smi::Cast(a).Value() == Smi::Cast(b).Value();
+  }
+
+  static uword Hash(const Object& obj) { return Smi::Cast(obj).Value(); }
 };
 
 class Mint : public Integer {
@@ -9436,6 +9475,138 @@ inline void TypeArguments::SetHash(intptr_t value) const {
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
+
+// A view on an [Array] as a list of tuples, optionally starting at an offset.
+//
+// Example: We store a list of (kind, function, code) tuples into the
+// [Code::static_calls_target_table] array of type [Array].
+//
+// This helper class can then be used via
+//
+//     using CallTableView = ArrayOfTuplesVied<
+//         Code::Kind, std::tuple<Smi, Function, Code>>;
+//
+//     auto& array = Array::Handle(code.static_calls_targets_table());
+//     CallTableView static_calls(array);
+//
+//     // Using convenient for loop.
+//     auto& function = Function::Handle();
+//     for (auto& call : static_calls) {
+//       function = call.Get<Code::kSCallTableFunctionTarget>();
+//       call.Set<Code::kSCallTableFunctionTarget>(function);
+//     }
+//
+//     // Using manual loop.
+//     auto& function = Function::Handle();
+//     for (intptr_t i = 0; i < static_calls.Length(); ++i) {
+//       auto call = static_calls[i];
+//       function = call.Get<Code::kSCallTableFunctionTarget>();
+//       call.Set<Code::kSCallTableFunctionTarget>(function);
+//     }
+//
+//
+// Template parameters:
+//
+//   * [EnumType] must be a normal enum which enumerates the entries of the
+//     tuple
+//
+//   * [kStartOffset] is the offset at which the first tuple in the array
+//     starts (can be 0).
+//
+//   * [TupleT] must be a std::tuple<...> where "..." are the heap object handle
+//     classes (e.g. 'Code', 'Smi', 'Object')
+template <typename EnumType, typename TupleT, int kStartOffset = 0>
+class ArrayOfTuplesView {
+ public:
+  static constexpr intptr_t EntrySize = std::tuple_size<TupleT>::value;
+
+  class Iterator;
+
+  class TupleView {
+   public:
+    TupleView(const Array& array, intptr_t index)
+        : array_(array), index_(index) {}
+
+    template <EnumType kElement>
+    typename std::tuple_element<kElement, TupleT>::type::RawObjectType* Get()
+        const {
+      using object_type = typename std::tuple_element<kElement, TupleT>::type;
+      return object_type::RawCast(array_.At(index_ + kElement));
+    }
+
+    template <EnumType kElement>
+    void Set(const typename std::tuple_element<kElement, TupleT>::type& value)
+        const {
+      array_.SetAt(index_ + kElement, value);
+    }
+
+    intptr_t index() const { return (index_ - kStartOffset) / EntrySize; }
+
+   private:
+    const Array& array_;
+    intptr_t index_;
+
+    friend class Iterator;
+  };
+
+  class Iterator {
+   public:
+    Iterator(const Array& array, intptr_t index) : entry_(array, index) {}
+
+    bool operator==(const Iterator& other) {
+      return entry_.index_ == other.entry_.index_;
+    }
+    bool operator!=(const Iterator& other) {
+      return entry_.index_ != other.entry_.index_;
+    }
+
+    const TupleView& operator*() const { return entry_; }
+
+    Iterator& operator++() {
+      entry_.index_ += EntrySize;
+      return *this;
+    }
+
+   private:
+    TupleView entry_;
+  };
+
+  explicit ArrayOfTuplesView(const Array& array) : array_(array), index_(-1) {
+    ASSERT(array.Length() >= kStartOffset);
+    ASSERT((array.Length() - kStartOffset) % EntrySize == kStartOffset);
+  }
+
+  intptr_t Length() const {
+    return (array_.Length() - kStartOffset) / EntrySize;
+  }
+
+  TupleView At(intptr_t i) const {
+    return TupleView(array_, kStartOffset + i * EntrySize);
+  }
+
+  TupleView operator[](intptr_t i) const { return At(i); }
+
+  Iterator begin() const { return Iterator(array_, kStartOffset); }
+
+  Iterator end() const {
+    return Iterator(array_, kStartOffset + Length() * EntrySize);
+  }
+
+ private:
+  const Array& array_;
+  intptr_t index_;
+};
+
+using StaticCallsTable =
+    ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Code, Function>>;
+using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
+                                                std::tuple<Object,
+                                                           Object,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments>>;
 
 }  // namespace dart
 

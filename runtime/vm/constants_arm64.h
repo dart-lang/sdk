@@ -134,7 +134,7 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 
 // List of registers used in load/store multiple.
 typedef uint32_t RegList;
-const RegList kAllCpuRegistersList = 0xFFFF;
+const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
@@ -156,10 +156,12 @@ const intptr_t kReservedCpuRegisters =
     (1 << LR) | (1 << BARRIER_MASK) | (1 << R31) |  // C++ SP
     (1 << R18);                                     // iOS platform register.
 // TODO(rmacnak): Only reserve on Mac & iOS.
+constexpr intptr_t kNumberOfReservedCpuRegisters = 10;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-constexpr int kNumberOfDartAvailableCpuRegs = kNumberOfCpuRegisters - 9;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;

@@ -6196,7 +6196,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
-  AssemblyImageWriter image_writer(callback, callback_data, NULL, NULL);
+  AssemblyImageWriter image_writer(T, callback, callback_data, NULL, NULL);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
@@ -6229,7 +6229,7 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteVMAOTSnapshot"));
-  AssemblyImageWriter image_writer(callback, callback_data, NULL, NULL);
+  AssemblyImageWriter image_writer(T, callback, callback_data, NULL, NULL);
   uint8_t* vm_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer, NULL,
                             ApiReallocate, &image_writer, NULL);
@@ -6285,12 +6285,15 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
-  BlobImageWriter vm_image_writer(vm_snapshot_instructions_buffer,
+  BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
                                   ApiReallocate, 2 * MB /* initial_size */,
-                                  NULL, NULL);
+                                  /*shared_objects=*/nullptr,
+                                  /*shared_instructions=*/nullptr,
+                                  /*reused_objects=*/nullptr);
   BlobImageWriter isolate_image_writer(
-      isolate_snapshot_instructions_buffer, ApiReallocate,
-      2 * MB /* initial_size */, shared_data_image, shared_instructions_image);
+      T, isolate_snapshot_instructions_buffer, ApiReallocate,
+      2 * MB /* initial_size */, shared_data_image, shared_instructions_image,
+      /* reuse_instructions= */ nullptr);
   FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6305,6 +6308,52 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   return Api::Success();
 #endif
 }
+
+#if (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
+
+// Any flag that affects how we compile code might cause a problem when the
+// snapshot writer generates code with one value of the flag and the snapshot
+// reader expects code to behave according to another value of the flag.
+// Normally, we add these flags to Dart::FeaturesString and refuse to run the
+// snapshot it they don't match, but since --interpret-irregexp affects only
+// 2 functions we choose to remove the code instead. See issue #34422.
+static void DropRegExpMatchCode(Zone* zone) {
+  const String& execute_match_name =
+      String::Handle(zone, String::New("_ExecuteMatch"));
+  const String& execute_match_sticky_name =
+      String::Handle(zone, String::New("_ExecuteMatchSticky"));
+
+  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  const Class& reg_exp_class =
+      Class::Handle(zone, core_lib.LookupClassAllowPrivate(Symbols::_RegExp()));
+  ASSERT(!reg_exp_class.IsNull());
+
+  Function& func = Function::Handle(
+      zone, reg_exp_class.LookupFunctionAllowPrivate(execute_match_name));
+  ASSERT(!func.IsNull());
+  Code& code = Code::Handle(zone);
+  if (func.HasCode()) {
+    code ^= func.CurrentCode();
+    ASSERT(!code.IsNull());
+    code.DisableDartCode();
+  }
+  func.ClearCode();
+  func.ClearICDataArray();
+  ASSERT(!func.HasCode());
+
+  func ^= reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
+  ASSERT(!func.IsNull());
+  if (func.HasCode()) {
+    code ^= func.CurrentCode();
+    ASSERT(!code.IsNull());
+    code.DisableDartCode();
+  }
+  func.ClearCode();
+  func.ClearICDataArray();
+  ASSERT(!func.HasCode());
+}
+
+#endif  // (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
 
 DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
     uint8_t** vm_snapshot_data_buffer,
@@ -6341,18 +6390,23 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
     return state;
   }
   BackgroundCompiler::Stop(I);
+  DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup();
   Symbols::Compact(I);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteCoreJITSnapshot"));
-  BlobImageWriter vm_image_writer(vm_snapshot_instructions_buffer,
+  BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
                                   ApiReallocate, 2 * MB /* initial_size */,
-                                  NULL, NULL);
-  BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
+                                  /*shared_objects=*/nullptr,
+                                  /*shared_instructions=*/nullptr,
+                                  /*reused_objects=*/nullptr);
+  BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
                                        ApiReallocate, 2 * MB /* initial_size */,
-                                       NULL, NULL);
+                                       /*shared_objects=*/nullptr,
+                                       /*shared_instructions=*/nullptr,
+                                       /*reused_objects=*/nullptr);
   FullSnapshotWriter writer(Snapshot::kFullJIT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6396,6 +6450,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
     return state;
   }
   BackgroundCompiler::Stop(I);
+  DropRegExpMatchCode(Z);
 
   if (reused_instructions) {
     DropCodeWithoutReusableInstructions(reused_instructions);
@@ -6405,9 +6460,11 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppJITSnapshot"));
-  BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
+  BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
                                        ApiReallocate, 2 * MB /* initial_size */,
-                                       NULL, NULL, reused_instructions);
+                                       /*shared_objects=*/nullptr,
+                                       /*shared_instructions=*/nullptr,
+                                       reused_instructions);
   FullSnapshotWriter writer(Snapshot::kFullJIT, NULL,
                             isolate_snapshot_data_buffer, ApiReallocate, NULL,
                             &isolate_image_writer);

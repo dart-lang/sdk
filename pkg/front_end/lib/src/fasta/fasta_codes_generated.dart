@@ -1276,6 +1276,37 @@ Message _withArgumentsConstEvalInvalidStringInterpolationOperand(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        Constant
+            _constant)> templateConstEvalInvalidSymbolName = const Template<
+        Message Function(Constant _constant)>(
+    messageTemplate:
+        r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
+    withArguments: _withArgumentsConstEvalInvalidSymbolName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)>
+    codeConstEvalInvalidSymbolName =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalInvalidSymbolName", templateConstEvalInvalidSymbolName,
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidSymbolName(Constant _constant) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
+  String constant = '$buffer';
+
+  return new Message(codeConstEvalInvalidSymbolName,
+      message:
+          """The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '${constant}'.""",
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         Constant _constant,
         DartType _type,
         DartType
@@ -4781,6 +4812,17 @@ const MessageCode messageInternalProblemExtendingUnmodifiableScope =
     const MessageCode("InternalProblemExtendingUnmodifiableScope",
         severity: Severity.internalProblem,
         message: r"""Can't extend an unmodifiable scope.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemLabelUsageInVariablesDeclaration =
+    messageInternalProblemLabelUsageInVariablesDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
+    const MessageCode("InternalProblemLabelUsageInVariablesDeclaration",
+        severity: Severity.internalProblem,
+        message:
+            r"""Unexpected usage of label inside declaration of variables.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemMissingContext =

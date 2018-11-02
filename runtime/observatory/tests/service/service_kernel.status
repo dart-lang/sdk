@@ -136,6 +136,7 @@ get_object_rpc_test: Pass, RuntimeError # Please triage / issue #27806
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 eval_regression_flutter20255_test: SkipSlow # Timeout
+get_vm_timeline_rpc_test: Pass, Timeout # Issue 35022
 rewind_optimized_out_test: SkipSlow # Timeout
 
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
@@ -153,9 +154,6 @@ eval_test: Pass, Slow
 code_test: RuntimeError
 get_object_rpc_test: RuntimeError
 get_stack_rpc_test: RuntimeError
-
-[ $arch == x64 && $compiler == dartk && $system == windows ]
-regexp_function_test: Pass, Crash # Issue http://dartbug.com/34422
 
 [ $compiler == app_jitk && $mode == debug ]
 code_test: RuntimeError

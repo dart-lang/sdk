@@ -1509,6 +1509,18 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       }
     }
   }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    Array& array_ = Array::Handle(zone);
+    KernelProgramInfo& info_ = KernelProgramInfo::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      info_ ^= refs.At(id);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_libraries_cache(array_);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_classes_cache(array_);
+    }
+  }
 };
 
 class CodeSerializationCluster : public SerializationCluster {
@@ -4656,12 +4668,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 }
 
 void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
-  intptr_t offset = heap_->GetObjectId(instr);
-  if (offset == 0) {
-    offset = image_writer_->GetTextOffsetFor(instr, code);
-    ASSERT(offset != 0);
-    heap_->SetObjectId(instr, offset);
-  }
+  const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
+  ASSERT(offset != 0);
   Write<int32_t>(offset);
 }
 
@@ -4714,6 +4722,12 @@ void Serializer::Push(RawObject* object) {
 
   intptr_t id = heap_->GetObjectId(object);
   if (id == 0) {
+    // When discovering the transitive closure of objects reachable from the
+    // roots we do not trace references, e.g. inside [RawCode], to
+    // [RawInstructions], since [RawInstructions] doesn't contain any references
+    // and the serialization code uses an [ImageWriter] for those.
+    ASSERT(object->GetClassId() != kInstructionsCid);
+
     heap_->SetObjectId(object, 1);
     ASSERT(heap_->GetObjectId(object) != 0);
     stack_.Add(object);

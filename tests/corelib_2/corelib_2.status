@@ -115,9 +115,6 @@ string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $fasta ]
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
@@ -281,6 +278,11 @@ string_static_test: MissingCompileTimeError
 
 [ $compiler != dartk && $runtime == vm && $checked ]
 apply_test/01: RuntimeError
+
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 iterable_fold_test/02: RuntimeError

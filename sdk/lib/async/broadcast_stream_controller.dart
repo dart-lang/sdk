@@ -57,11 +57,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
 }
 
 abstract class _BroadcastStreamController<T>
-    implements
-        StreamController<T>,
-        _StreamControllerLifecycle<T>,
-        _EventSink<T>,
-        _EventDispatch<T> {
+    implements _StreamControllerBase<T> {
   static const int _STATE_INITIAL = 0;
   static const int _STATE_EVENT_ID = 1;
   static const int _STATE_FIRING = 2;

@@ -49,6 +49,12 @@ class AtomicOperations : public AllStatic {
   }
 
   template <typename T>
+  static T LoadAcquire(T* ptr);
+
+  template <typename T>
+  static void StoreRelease(T* ptr, T value);
+
+  template <typename T>
   static T* CompareAndSwapPointer(T** slot, T* old_value, T* new_value) {
     return reinterpret_cast<T*>(AtomicOperations::CompareAndSwapWord(
         reinterpret_cast<uword*>(slot), reinterpret_cast<uword>(old_value),

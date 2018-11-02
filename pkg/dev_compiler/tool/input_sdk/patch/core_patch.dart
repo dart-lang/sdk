@@ -344,10 +344,12 @@ class DateTime {
   int get weekday => Primitives.getWeekday(this);
 
   @patch
-  bool operator ==(Object other) =>
-      other is DateTime &&
-      _value == other.millisecondsSinceEpoch &&
-      isUtc == other.isUtc;
+  bool operator ==(dynamic other) {
+    Object promotableOther = other;
+    return promotableOther is DateTime &&
+        _value == promotableOther.millisecondsSinceEpoch &&
+        isUtc == promotableOther.isUtc;
+  }
 
   @patch
   bool isBefore(DateTime other) => _value < other.millisecondsSinceEpoch;

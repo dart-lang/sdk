@@ -4702,6 +4702,7 @@ class FunctionType extends DartType {
     visitList(typeParameters, v);
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
+    typedefType?.accept(v);
     returnType.accept(v);
   }
 

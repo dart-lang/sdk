@@ -198,7 +198,7 @@ void Disassembler::Disassemble(uword start,
       }
       if (!first) {
         f.Print("]\n");
-        formatter->Print(str);
+        formatter->Print("%s", str);
       }
     }
     int instruction_length;
@@ -243,7 +243,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   const ObjectPool& object_pool =
       ObjectPool::Handle(zone, code.GetObjectPool());
-  object_pool.DebugPrint();
+  if (!object_pool.IsNull()) {
+    object_pool.DebugPrint();
+  }
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
@@ -338,17 +340,23 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     auto& function = Function::Handle(zone);
     auto& code = Code::Handle(zone);
     if (!table.IsNull()) {
-      for (intptr_t i = 0; i < table.Length();
-           i += Code::kSCallTableEntryLength) {
-        kind_and_offset ^= table.At(i + Code::kSCallTableKindAndOffset);
-        function ^= table.At(i + Code::kSCallTableFunctionTarget);
-        code ^= table.At(i + Code::kSCallTableCodeTarget);
+      StaticCallsTable static_calls(table);
+      for (auto& call : static_calls) {
+        kind_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
+        function = call.Get<Code::kSCallTableFunctionTarget>();
+        code = call.Get<Code::kSCallTableCodeTarget>();
 
         auto kind = Code::KindField::decode(kind_and_offset.Value());
         auto offset = Code::OffsetField::decode(kind_and_offset.Value());
 
         const char* skind = nullptr;
         switch (kind) {
+          case Code::kPcRelativeCall:
+            skind = "pc-relative-call";
+            break;
+          case Code::kPcRelativeTailCall:
+            skind = "pc-relative-tail-call";
+            break;
           case Code::kCallViaCode:
             skind = "call-via-code";
             break;

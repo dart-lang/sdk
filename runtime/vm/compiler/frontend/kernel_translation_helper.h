@@ -59,6 +59,8 @@ class TranslationHelper {
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
+  void SetKernelProgramInfo(const KernelProgramInfo& info);
+
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
 
@@ -154,17 +156,18 @@ class TranslationHelper {
 
   Type& GetCanonicalType(const Class& klass);
 
-  void ReportError(const char* format, ...);
+  void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
-  void ReportError(const Error& prev_error, const char* format, ...);
+                   ...) PRINTF_ATTRIBUTE(4, 5);
+  void ReportError(const Error& prev_error, const char* format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
   void ReportError(const Error& prev_error,
                    const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
+                   ...) PRINTF_ATTRIBUTE(5, 6);
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -191,6 +194,8 @@ class TranslationHelper {
   ExternalTypedData& metadata_payloads_;
   ExternalTypedData& metadata_mappings_;
   Array& constants_;
+  KernelProgramInfo& info_;
+  Smi& name_index_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };

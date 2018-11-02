@@ -1781,6 +1781,12 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<uint8_t>(0xe8);
+  buffer_.Emit<int32_t>(0x68686868);
+}
+
 void Assembler::Align(int alignment, intptr_t offset) {
   ASSERT(Utils::IsPowerOfTwo(alignment));
   intptr_t pos = offset + buffer_.GetPosition();

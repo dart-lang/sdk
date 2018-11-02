@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
-
 #include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
 
 #include "platform/utils.h"
 #include "vm/bit_vector.h"
@@ -700,6 +699,19 @@ void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
                                           null_check_name_idx);
 }
 
+void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function) {
+  ASSERT(function.IsZoneHandle());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeCall, assembler()->CodeSize(), &function, NULL));
+}
+
+void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
+  ASSERT(stub_code.IsZoneHandle());
+  ASSERT(!stub_code.IsNull());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeCall, assembler()->CodeSize(), NULL, &stub_code));
+}
+
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
   ASSERT(func.IsZoneHandle());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
@@ -1068,23 +1080,21 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   const auto& targets =
       Array::Handle(zone(), Array::New(array_length, Heap::kOld));
 
+  StaticCallsTable entries(targets);
   auto& kind_and_offset = Smi::Handle(zone());
   for (intptr_t i = 0; i < calls.length(); i++) {
     auto entry = calls[i];
     kind_and_offset = Smi::New(Code::KindField::encode(entry->call_kind) |
                                Code::OffsetField::encode(entry->offset));
-    const intptr_t target_ix = Code::kSCallTableEntryLength * i;
-    targets.SetAt(target_ix + Code::kSCallTableKindAndOffset, kind_and_offset);
-
+    auto view = entries[i];
+    view.Set<Code::kSCallTableKindAndOffset>(kind_and_offset);
     const Object* target = nullptr;
     if (entry->function != nullptr) {
-      target = calls[i]->function;
-      targets.SetAt(target_ix + Code::kSCallTableFunctionTarget, *target);
+      view.Set<Code::kSCallTableFunctionTarget>(*calls[i]->function);
     }
     if (entry->code != NULL) {
       ASSERT(target == nullptr);
-      target = calls[i]->code;
-      targets.SetAt(target_ix + Code::kSCallTableCodeTarget, *target);
+      view.Set<Code::kSCallTableCodeTarget>(*calls[i]->code);
     }
   }
   code.set_static_calls_target_table(targets);
@@ -1954,9 +1964,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(smi_case)->target;
-    GenerateStaticDartCall(
-        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
-        RawPcDescriptors::kOther, locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+                           locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
@@ -2005,9 +2014,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(i)->target;
-    GenerateStaticDartCall(
-        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
-        RawPcDescriptors::kOther, locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+                           locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);

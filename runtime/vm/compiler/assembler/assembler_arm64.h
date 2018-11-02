@@ -1561,6 +1561,19 @@ class Assembler : public AssemblerBase {
                         Register temp1,
                         Register temp2);
 
+  // This emits an PC-relative call of the form "bl <offset>".  The offset
+  // is not yet known and needs therefore relocation to the right place before
+  // the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
@@ -1591,6 +1604,17 @@ class Assembler : public AssemblerBase {
                       Register addr,
                       Register tmp,
                       OperandSize sz);
+
+  static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
+    const int32_t imm32 = static_cast<int32_t>(imm);
+    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
+    return (instr & ~kImm26Mask) | off;
+  }
+
+  static int64_t DecodeImm26BranchOffset(int32_t instr) {
+    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
+    return static_cast<int64_t>(off);
+  }
 
  private:
   bool use_far_branches_;
@@ -1794,17 +1818,6 @@ class Assembler : public AssemblerBase {
   int32_t EncodeImm14BranchCondition(Condition cond, int32_t instr) {
     ASSERT(IsTestAndBranch(instr));
     return (instr & ~B24) | (cond == EQ ? B24 : 0);  // tbz : tbnz
-  }
-
-  int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
-    const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
-    return (instr & ~kImm26Mask) | off;
-  }
-
-  int64_t DecodeImm26BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
-    return static_cast<int64_t>(off);
   }
 
   void EmitCompareAndBranchOp(CompareAndBranchOp op,
