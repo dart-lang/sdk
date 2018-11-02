@@ -3512,6 +3512,9 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/semantics/forms/the-input-element/range_t02: RuntimeError
 WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError
 
+[ $compiler == dart2js && $runtime != chrome && $runtime != safari && !$fast_startup ]
+LayoutTests/fast/text/find-backwards_t01: RuntimeError
+
 [ $compiler == dart2js && $runtime != chrome && $system != macos ]
 LayoutTests/fast/canvas/canvas-alphaImageData-behavior_t01: RuntimeError
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError
@@ -5795,6 +5798,7 @@ LayoutTests/fast/table/min-width-css-block-table_t01: RuntimeError
 LayoutTests/fast/table/table-colgroup-present-after-table-row_t01: Pass, RuntimeError
 LayoutTests/fast/table/table-size-integer-overflow_t01: RuntimeError
 LayoutTests/fast/table/td-bordercolor-attribute_t01: RuntimeError
+LayoutTests/fast/text/find-backwards_t01: Pass, RuntimeError
 LayoutTests/fast/text/find-kana_t01: RuntimeError
 LayoutTests/fast/text/find-russian_t01: RuntimeError
 LayoutTests/fast/text/find-soft-hyphen_t01: RuntimeError
