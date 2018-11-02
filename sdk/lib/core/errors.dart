@@ -265,7 +265,7 @@ class RangeError extends ArgumentError {
    * The [length] is the length of [indexable] at the time of the error.
    * If `length` is omitted, it defaults to `indexable.length`.
    */
-  factory RangeError.index(int index, indexable,
+  factory RangeError.index(int index, dynamic indexable,
       [String name, String message, int length]) = IndexError;
 
   /**
@@ -292,9 +292,9 @@ class RangeError extends ArgumentError {
    * If [length] is provided, it is used as the length of the indexable object,
    * otherwise the length is found as `indexable.length`.
    */
-  static void checkValidIndex(int index, var indexable,
+  static void checkValidIndex(int index, dynamic indexable,
       [String name, int length, String message]) {
-    if (length == null) length = indexable.length;
+    length ??= indexable.length;
     // Comparing with `0` as receiver produces better dart2js type inference.
     if (0 > index || index >= length) {
       if (name == null) name = "index";
@@ -390,10 +390,10 @@ class IndexError extends ArgumentError implements RangeError {
    *
    * The message is used as part of the string representation of the error.
    */
-  IndexError(int invalidValue, indexable,
+  IndexError(int invalidValue, dynamic indexable,
       [String name, String message, int length])
       : this.indexable = indexable,
-        this.length = (length != null) ? length : indexable.length,
+        this.length = length ?? indexable.length,
         super.value(invalidValue, name,
             (message != null) ? message : "Index out of range");
 
@@ -404,6 +404,7 @@ class IndexError extends ArgumentError implements RangeError {
   String get _errorName => "RangeError";
   String get _errorExplanation {
     assert(_hasValue);
+    int invalidValue = this.invalidValue;
     if (invalidValue < 0) {
       return ": index must not be negative";
     }

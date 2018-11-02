@@ -13,9 +13,10 @@ abstract class Encoding extends Codec<String, List<int>> {
 
   Future<String> decodeStream(Stream<List<int>> byteStream) {
     return byteStream
-        .transform(decoder)
-        .fold(StringBuffer(), (buffer, string) => buffer..write(string))
-        .then((buffer) => buffer.toString());
+        .transform<String>(decoder)
+        .fold(StringBuffer(),
+            (StringBuffer buffer, String string) => buffer..write(string))
+        .then((StringBuffer buffer) => buffer.toString());
   }
 
   /// Name of the encoding.

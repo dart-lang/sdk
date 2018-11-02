@@ -381,17 +381,20 @@ abstract class _StreamControllerLifecycle<T> {
   Future _recordCancel(StreamSubscription<T> subscription) => null;
 }
 
+// Base type for implementations of stream controllers.
+abstract class _StreamControllerBase<T>
+    implements
+        StreamController<T>,
+        _StreamControllerLifecycle<T>,
+        _EventSink<T>,
+        _EventDispatch<T> {}
+
 /**
  * Default implementation of [StreamController].
  *
  * Controls a stream that only supports a single controller.
  */
-abstract class _StreamController<T>
-    implements
-        StreamController<T>,
-        _StreamControllerLifecycle<T>,
-        _EventSink<T>,
-        _EventDispatch<T> {
+abstract class _StreamController<T> implements _StreamControllerBase<T> {
   // The states are bit-flags. More than one can be set at a time.
   //
   // The "subscription state" goes through the states:
