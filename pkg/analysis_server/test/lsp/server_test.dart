@@ -6,15 +6,12 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../mock_sdk.dart';
 import '../mocks.dart';
 
 main() {

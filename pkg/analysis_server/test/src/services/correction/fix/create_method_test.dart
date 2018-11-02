@@ -290,7 +290,7 @@ class A {
         change.linkedEditGroups[index++],
         ['String s'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable<String>']));
+            ['String', 'Object', 'Comparable<String>', 'Pattern']));
     assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
@@ -332,7 +332,7 @@ class A {
         change.linkedEditGroups[index++],
         ['String ccc'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable<String>']));
+            ['String', 'Object', 'Comparable<String>', 'Pattern']));
   }
 
   test_createUnqualified_returnType() async {

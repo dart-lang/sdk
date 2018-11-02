@@ -25,11 +25,10 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
-
-import '../../context/mock_sdk.dart';
 
 SourceSpanWithContext _createSpanHelper(
     LineInfo lineInfo, int start, Source source, String content,

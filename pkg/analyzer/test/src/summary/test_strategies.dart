@@ -23,10 +23,10 @@ import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
 
-import '../context/mock_sdk.dart';
 import 'resynthesize_common.dart';
 
 /// Convert the given Posix style file [path] to the corresponding absolute URI.

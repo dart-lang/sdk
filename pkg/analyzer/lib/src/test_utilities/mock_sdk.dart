@@ -1,9 +1,9 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart' as resource;
-import 'package:analyzer/file_system/memory_file_system.dart' as resource;
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
@@ -43,11 +43,10 @@ class Future<T> {
   factory Future.microtask(FutureOr<T> computation()) => null;
   factory Future.value([FutureOr<T> result]) => null;
 
-  static Future<List<T>> wait<T>(
-      Iterable<Future<T>> futures) => null;
   Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
-
   Future<T> whenComplete(action());
+  
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
 }
 
 class FutureOr<T> {}
@@ -60,13 +59,6 @@ abstract class Completer<T> {
   void completeError(Object error, [StackTrace stackTrace]);
   bool get isCompleted;
 }
-
-class _StreamIterator<T> implements StreamIterator<T> {}
-class _AsyncStarStreamController {}
-Function _asyncThenWrapperHelper(continuation) {}
-Function _asyncErrorWrapperHelper(continuation) {}
-Future _awaitHelper(
-    object, Function thenCallback, Function errorCallback, var awaiter) {}
 ''', const <String, String>{
   '$sdkRoot/lib/async/stream.dart': r'''
 part of dart.async;
@@ -109,6 +101,7 @@ const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
+abstract class LinkedHashMap<K, V> implements Map<K, V> {}
 ''');
 
 const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
@@ -125,104 +118,32 @@ const _MockSdkLibrary _LIB_CORE =
     const _MockSdkLibrary('dart:core', '$sdkRoot/lib/core/core.dart', '''
 library dart.core;
 
-import 'dart:async';
-import 'dart:_internal';
+import 'dart:async'; // ignore: unused_import
 
-class Object {
-  const Object();
-  bool operator ==(other) => identical(this, other);
-  String toString() => 'a string';
-  int get hashCode => 0;
-  Type get runtimeType => null;
-  dynamic noSuchMethod(Invocation invocation) => null;
+const deprecated = const Deprecated("next release");
+
+const override = const _Override();
+
+const proxy = const _Proxy();
+
+external bool identical(Object a, Object b);
+
+void print(Object object) {}
+
+class bool extends Object {
+  external const factory bool.fromEnvironment(String name,
+      {bool defaultValue: false});
 }
-
-class Function {}
-class StackTrace {}
-
-class Symbol {
-  const factory Symbol(String name) = _SymbolImpl;
-}
-
-class _SymbolImpl {
-  const _SymbolImpl(String name);
-}
-
-class Type {}
 
 abstract class Comparable<T> {
   int compareTo(T other);
 }
 
-abstract class Pattern {}
-abstract class String implements Comparable<String>, Pattern {
-  external factory String.fromCharCodes(Iterable<int> charCodes,
-                                        [int start = 0, int end]);
-  String operator +(String other) => null;
-  bool operator ==(Object other);
-  bool get isEmpty => false;
-  bool get isNotEmpty => false;
-  int get length => 0;
-  int codeUnitAt(int index);
-  String substring(int len) => null;
-  String toLowerCase();
-  String toUpperCase();
-  List<int> get codeUnits;
-}
-abstract class RegExp implements Pattern {
-  external factory RegExp(String source);
-}
+class DateTime extends Object {}
 
-class bool extends Object {
-  external const factory bool.fromEnvironment(String name,
-                                              {bool defaultValue: false});
-}
-
-abstract class Invocation {}
-
-abstract class num implements Comparable<num> {
-  bool operator ==(Object other);
-  bool operator <(num other);
-  bool operator <=(num other);
-  bool operator >(num other);
-  bool operator >=(num other);
-  num operator +(num other);
-  num operator -(num other);
-  num operator *(num other);
-  double operator /(num other);
-  int operator ^(int other);
-  int operator |(int other);
-  int operator <<(int other);
-  int operator >>(int other);
-  int operator ~/(num other);
-  num operator %(num other);
-  int operator ~();
-  num operator -();
-  int toInt();
-  double toDouble();
-  num abs();
-  int round();
-}
-abstract class int extends num {
-  external const factory int.fromEnvironment(String name, {int defaultValue});
-
-  bool get isNegative;
-  bool get isEven => false;
-
-  int operator &(int other);
-  int operator |(int other);
-  int operator ^(int other);
-  int operator ~();
-  int operator <<(int shiftAmount);
-  int operator >>(int shiftAmount);
-
-  int operator -();
-
-  external static int parse(String source,
-                            { int radix,
-                              int onError(String source) });
-
-  String toString();
+class Deprecated extends Object {
+  final String expires;
+  const Deprecated(this.expires);
 }
 
 abstract class double extends num {
@@ -232,89 +153,25 @@ abstract class double extends num {
   static const double MIN_POSITIVE = 5e-324;
   static const double MAX_FINITE = 1.7976931348623157e+308;
 
-  double remainder(num other);
+  double get sign;
+  double operator %(num other);
+  double operator *(num other);
   double operator +(num other);
   double operator -(num other);
-  double operator *(num other);
-  double operator %(num other);
-  double operator /(num other);
-  int operator ~/(num other);
   double operator -();
+  double operator /(num other);
   double abs();
-  double get sign;
-  int round();
-  int floor();
   int ceil();
-  int truncate();
-  double roundToDouble();
-  double floorToDouble();
   double ceilToDouble();
+  int floor();
+  double floorToDouble();
+  double remainder(num other);
+  int round();
+  double roundToDouble();
+  int truncate();
   double truncateToDouble();
-  external static double parse(String source,
-                               [double onError(String source)]);
-}
-
-class DateTime extends Object {}
-
-class Null extends Object {
-  factory Null._uninstantiable() => null;
-}
-
-class Deprecated extends Object {
-  final String expires;
-  const Deprecated(this.expires);
-}
-const Object deprecated = const Deprecated("next release");
-
-class Iterator<E> {
-  bool moveNext();
-  E get current;
-}
-
-abstract class Iterable<E> {
-  Iterator<E> get iterator;
-  bool get isEmpty;
-  E get first;
-  int get length;
-
-  Iterable<R> map<R>(R f(E e));
-
-  R fold<R>(R initialValue,
-      R combine(R previousValue, E element)) => null;
-
-  Iterable<T> expand<T>(Iterable<T> f(E element));
-
-  Iterable<E> where(bool test(E element));
-
-  void forEach(void f(E element));
-
-  List<E> toList();
-}
-
-class List<E> implements Iterable<E> {
-  List([int length]);
-  factory List.from(Iterable elements, {bool growable: true}) => null;
-  void add(E value) {}
-  void addAll(Iterable<E> iterable) {}
-  E operator [](int index) => null;
-  void operator []=(int index, E value) {}
-  Iterator<E> get iterator => null;
-  void clear() {}
-
-  bool get isEmpty => false;
-  E get first => null;
-  E get last => null;
-
-}
-
-class Map<K, V> extends Object {
-  Iterable<K> get keys => null;
-  int get length;
-  Iterable<V> get values;
-  V operator [](K key) => null;
-  void operator []=(K key, V value) {}
-  Map<RK, RV> cast<RK, RV>();
-  bool containsKey(Object key);
+  int operator ~/(num other);
+  external static double parse(String source, [double onError(String source)]);
 }
 
 class Duration implements Comparable<Duration> {}
@@ -323,36 +180,166 @@ class Exception {
   factory Exception([var message]) => null;
 }
 
-external bool identical(Object a, Object b);
+class Function {}
 
-void print(Object object) {}
+abstract class int extends num {
+  external const factory int.fromEnvironment(String name, {int defaultValue});
 
-class _Proxy { const _Proxy(); }
-const Object proxy = const _Proxy();
+  bool get isEven => false;
+  bool get isNegative;
 
-class _Override { const _Override(); }
-const Object override = const _Override();
+  int operator &(int other);
+  int operator -();
+  int operator <<(int shiftAmount);
+  int operator >>(int shiftAmount);
+  int operator ^(int other);
+  String toString();
 
-class _CompileTimeError {
-  final String _errorMsg;
-  _CompileTimeError(this._errorMsg);
+  int operator |(int other);
+
+  int operator ~();
+
+  external static int parse(String source,
+      {int radix, int onError(String source)});
 }
 
-class AbstractClassInstantiationError {
-  AbstractClassInstantiationError(String className);
+abstract class Invocation {}
+
+abstract class Iterable<E> {
+  E get first;
+  bool get isEmpty;
+  Iterator<E> get iterator;
+  int get length;
+
+  Iterable<T> expand<T>(Iterable<T> f(E element));
+
+  R fold<R>(R initialValue, R combine(R previousValue, E element)) => null;
+
+  void forEach(void f(E element));
+
+  Iterable<R> map<R>(R f(E e));
+
+  List<E> toList();
+
+  Iterable<E> where(bool test(E element));
 }
 
-class FallThroughError {
-  FallThroughError();
-  FallThroughError._create(String url, int line);
+abstract class Iterator<E> {
+  E get current;
+  bool moveNext();
 }
 
-abstract class _SyncIterable implements Iterable {}
-class _InvocationMirror {
-  _InvocationMirror._withoutType(
-      String _functionName, List<Type> _typeArguments,
-      List _positionalArguments, Map<Symbol, dynamic>_namedArguments,
-      bool _isSuperInvocation);
+class List<E> implements Iterable<E> {
+  List([int length]);
+  factory List.from(Iterable elements, {bool growable: true}) => null;
+
+  E get last => null;
+  E operator [](int index) => null;
+  void operator []=(int index, E value) {}
+
+  void add(E value) {}
+  void addAll(Iterable<E> iterable) {}
+  void clear() {}
+
+  noSuchMethod(Invocation invocation) => null;
+}
+
+class Map<K, V> {
+  Iterable<K> get keys => null;
+  int get length => 0;
+  Iterable<V> get values => null;
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
+  Map<RK, RV> cast<RK, RV>() => null;
+  bool containsKey(Object key) => false;
+}
+
+class Null extends Object {
+  factory Null._uninstantiable() => null;
+}
+
+abstract class num implements Comparable<num> {
+  num operator %(num other);
+  num operator *(num other);
+  num operator +(num other);
+  num operator -(num other);
+  num operator -();
+  double operator /(num other);
+  bool operator <(num other);
+  int operator <<(int other);
+  bool operator <=(num other);
+  bool operator ==(Object other);
+  bool operator >(num other);
+  bool operator >=(num other);
+  int operator >>(int other);
+  int operator ^(int other);
+  num abs();
+  int round();
+  double toDouble();
+  int toInt();
+  int operator |(int other);
+  int operator ~();
+  int operator ~/(num other);
+}
+
+class Object {
+  const Object();
+  int get hashCode => 0;
+  Type get runtimeType => null;
+  bool operator ==(other) => identical(this, other);
+  dynamic noSuchMethod(Invocation invocation) => null;
+  String toString() => 'a string';
+}
+
+abstract class Pattern {}
+
+abstract class RegExp implements Pattern {
+  external factory RegExp(String source);
+}
+
+abstract class Set<E> implements Iterable<E> {
+  Set<R> cast<R>();
+}
+
+class StackTrace {}
+
+abstract class String implements Comparable<String>, Pattern {
+  external factory String.fromCharCodes(Iterable<int> charCodes,
+      [int start = 0, int end]);
+  List<int> get codeUnits;
+  bool get isEmpty => false;
+  bool get isNotEmpty => false;
+  int get length => 0;
+  String operator +(String other) => null;
+  bool operator ==(Object other);
+  int codeUnitAt(int index);
+  String substring(int len) => null;
+  String toLowerCase();
+  String toUpperCase();
+}
+
+class Symbol {
+  const factory Symbol(String name) = _SymbolImpl;
+}
+
+class Type {}
+
+class Uri {
+  static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
+    return null;
+  }
+}
+
+class _Override {
+  const _Override();
+}
+
+class _Proxy {
+  const _Proxy();
+}
+
+class _SymbolImpl {
+  const _SymbolImpl(String name);
 }
 ''');
 
@@ -471,7 +458,7 @@ class MockSdk implements DartSdk {
     "dart:math": "$sdkRoot/lib/math/math.dart"
   };
 
-  final resource.MemoryResourceProvider resourceProvider;
+  final MemoryResourceProvider resourceProvider;
 
   final Map<String, String> uriMap = {};
 
@@ -542,7 +529,7 @@ class MockSdk implements DartSdk {
       String libraryPath = library.path;
       if (filePath == libraryPath) {
         try {
-          resource.File file = resourceProvider.getResource(filePath);
+          File file = resourceProvider.getResource(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -556,7 +543,7 @@ class MockSdk implements DartSdk {
         String pathInLibrary = filePath.substring(libraryRootPath.length);
         String uriStr = '${library.shortName}/$pathInLibrary';
         try {
-          resource.File file = resourceProvider.getResource(filePath);
+          File file = resourceProvider.getResource(filePath);
           Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -570,7 +557,7 @@ class MockSdk implements DartSdk {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      resource.File summaryFile = resourceProvider
+      File summaryFile = resourceProvider
           .getFile(resourceProvider.convertPath('/lib/_internal/strong.sum'));
       List<int> bytes;
       if (summaryFile.exists) {
@@ -597,7 +584,7 @@ class MockSdk implements DartSdk {
   Source mapDartUri(String dartUri) {
     String path = uriMap[dartUri];
     if (path != null) {
-      resource.File file = resourceProvider.getResource(path);
+      File file = resourceProvider.getResource(path);
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }
@@ -647,7 +634,7 @@ class _MockSdkLibrary implements SdkLibrary {
   @override
   bool get isVmLibrary => throw new UnimplementedError();
 
-  _MockSdkLibrary _toProvider(resource.MemoryResourceProvider provider) {
+  _MockSdkLibrary _toProvider(MemoryResourceProvider provider) {
     return new _MockSdkLibrary(
       shortName,
       provider.convertPath(path),

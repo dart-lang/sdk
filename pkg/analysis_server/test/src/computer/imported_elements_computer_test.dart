@@ -43,7 +43,7 @@ printer() {
     ImportedElements elements2 = elementsList[1];
     ImportedElements asyncElements;
     ImportedElements coreElements;
-    if (elements1.path == convertPath('/lib/core/core.dart')) {
+    if (elements1.path == convertPath('/sdk/lib/core/core.dart')) {
       coreElements = elements1;
       asyncElements = elements2;
     } else {
@@ -51,12 +51,12 @@ printer() {
       asyncElements = elements1;
     }
     expect(coreElements, isNotNull);
-    expect(coreElements.path, convertPath('/lib/core/core.dart'));
+    expect(coreElements.path, convertPath('/sdk/lib/core/core.dart'));
     expect(coreElements.prefix, '');
     expect(coreElements.elements, unorderedEquals(['String']));
 
     expect(asyncElements, isNotNull);
-    expect(asyncElements.path, convertPath('/lib/async/async.dart'));
+    expect(asyncElements.path, convertPath('/sdk/lib/async/async.dart'));
     expect(asyncElements.prefix, '');
     expect(asyncElements.elements, unorderedEquals(['Future']));
   }
@@ -77,7 +77,7 @@ printer() {
     ImportedElements elements2 = elementsList[1];
     ImportedElements asyncElements;
     ImportedElements coreElements;
-    if (elements1.path == convertPath('/lib/core/core.dart')) {
+    if (elements1.path == convertPath('/sdk/lib/core/core.dart')) {
       coreElements = elements1;
       asyncElements = elements2;
     } else {
@@ -85,12 +85,12 @@ printer() {
       asyncElements = elements1;
     }
     expect(coreElements, isNotNull);
-    expect(coreElements.path, convertPath('/lib/core/core.dart'));
+    expect(coreElements.path, convertPath('/sdk/lib/core/core.dart'));
     expect(coreElements.prefix, '');
     expect(coreElements.elements, unorderedEquals(['String']));
 
     expect(asyncElements, isNotNull);
-    expect(asyncElements.path, convertPath('/lib/async/async.dart'));
+    expect(asyncElements.path, convertPath('/sdk/lib/async/async.dart'));
     expect(asyncElements.prefix, 'a');
     expect(asyncElements.elements, unorderedEquals(['Future']));
   }
@@ -108,7 +108,7 @@ blankLine() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path, convertPath('/lib/core/core.dart'));
+    expect(elements.path, convertPath('/sdk/lib/core/core.dart'));
     expect(elements.prefix, '');
     expect(elements.elements, unorderedEquals(['String']));
   }
@@ -127,7 +127,7 @@ blankLine() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path, convertPath('/lib/core/core.dart'));
+    expect(elements.path, convertPath('/sdk/lib/core/core.dart'));
     expect(elements.prefix, 'core');
     expect(elements.elements, unorderedEquals(['String']));
   }
@@ -146,7 +146,7 @@ bool randomBool() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path, convertPath('/lib/math/math.dart'));
+    expect(elements.path, convertPath('/sdk/lib/math/math.dart'));
     expect(elements.prefix, '');
     expect(elements.elements, unorderedEquals(['Random']));
   }
@@ -170,13 +170,13 @@ $selection
 
     ImportedElements mathElements = elementsList[0];
     expect(mathElements, isNotNull);
-    expect(mathElements.path, convertPath('/lib/math/math.dart'));
+    expect(mathElements.path, convertPath('/sdk/lib/math/math.dart'));
     expect(mathElements.prefix, '');
     expect(mathElements.elements, unorderedEquals(['Random']));
 
     ImportedElements coreElements = elementsList[1];
     expect(coreElements, isNotNull);
-    expect(coreElements.path, convertPath('/lib/core/core.dart'));
+    expect(coreElements.path, convertPath('/sdk/lib/core/core.dart'));
     expect(coreElements.prefix, '');
     expect(coreElements.elements, unorderedEquals(['String', 'print']));
   }

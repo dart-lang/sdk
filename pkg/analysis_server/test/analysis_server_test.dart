@@ -12,12 +12,12 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
@@ -88,7 +88,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
         channel,
         resourceProvider,
         new AnalysisServerOptions(),
-        new DartSdkManager(convertPath('/'), false),
+        new DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
   }
 

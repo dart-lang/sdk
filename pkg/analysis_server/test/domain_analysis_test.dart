@@ -11,6 +11,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -18,7 +19,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
@@ -361,7 +361,7 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         new AnalysisServerOptions(),
-        new DartSdkManager(convertPath('/'), false),
+        new DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -653,7 +653,7 @@ class A {}
   }
 
   test_afterAnalysis_sdkFile() async {
-    String file = convertPath('/lib/core/core.dart');
+    String file = convertPath('/sdk/lib/core/core.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially

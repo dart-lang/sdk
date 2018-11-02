@@ -3245,9 +3245,7 @@ class B {
     assertNotSuggested('_g');
     assertSuggestClass('bool');
     if (suggestConstructorsWithoutNew) {
-      // TODO(brianwilkerson) Should not suggest constructors for classes that
-      // cannot be instantiated.
-      assertSuggestConstructor('bool');
+      assertSuggestConstructor('List');
     }
   }
 

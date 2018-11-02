@@ -68,7 +68,7 @@ main() {
 ''');
     await computeChanges(<ImportedElements>[
       new ImportedElements(
-          convertPath('/lib/math/math.dart'), '', <String>['Random'])
+          convertPath('/sdk/lib/math/math.dart'), '', <String>['Random'])
     ]);
     assertChanges('''
 import 'dart:math';

@@ -25,12 +25,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
 import '../abstract_single_unit.dart';
-import '../context/mock_sdk.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
 

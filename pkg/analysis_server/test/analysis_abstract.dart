@@ -18,6 +18,7 @@ import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -26,7 +27,6 @@ import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:watcher/watcher.dart';
 
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 int findIdentifierLength(String search) {
@@ -120,7 +120,7 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         options,
-        new DartSdkManager(resourceProvider.convertPath('/'), true),
+        new DartSdkManager(resourceProvider.convertPath('/sdk'), true),
         InstrumentationService.NULL_SERVICE);
   }
 

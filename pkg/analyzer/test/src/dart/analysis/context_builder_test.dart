@@ -10,11 +10,10 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../context/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {

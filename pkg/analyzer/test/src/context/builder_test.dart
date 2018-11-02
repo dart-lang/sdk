@@ -16,6 +16,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
@@ -26,7 +27,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../embedder_tests.dart';
 import '../../generated/test_support.dart';
-import 'mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {

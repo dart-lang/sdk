@@ -14,12 +14,11 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
-
-import 'mock_sdk.dart';
 
 /**
  * Finds an [Element] with the given [name].

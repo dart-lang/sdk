@@ -15,9 +15,9 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
-import 'mock_sdk.dart';
 import 'src/utilities/flutter_util.dart';
 
 /**
@@ -146,7 +146,7 @@ test:file:///home/test/lib
       enableIndex: true,
       fileContentOverlay: fileContentOverlay,
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/'), // TODO(scheglov) Move to '/sdk'
+      sdkPath: convertPath('/sdk'),
     );
 
     var testPath = convertPath('/home/test');

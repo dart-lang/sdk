@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/rules.dart';
@@ -34,7 +35,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
 
-import 'mock_sdk.dart';
 import 'src/plugin/plugin_manager_test.dart';
 
 main() {
@@ -1741,7 +1741,7 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
     new MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
-    DartSdkManager sdkManager = new DartSdkManager(convertPath('/'), true);
+    DartSdkManager sdkManager = new DartSdkManager(convertPath('/sdk'), true);
     manager = new ContextManagerImpl(
         resourceProvider,
         new FileContentOverlay(),
