@@ -76,6 +76,12 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
     reportIt(context, message, node);
   }
 
+  invalidSymbolName(List<TreeNode> context, TreeNode node, Constant constant) {
+    final message =
+        codes.templateConstEvalInvalidSymbolName.withArguments(constant);
+    reportIt(context, message, node);
+  }
+
   zeroDivisor(
       List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
     final message = codes.templateConstEvalZeroDivisor

@@ -1991,3 +1991,7 @@ async_star_test/none: Skip # Timeout
 
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
+
+[ $compiler == dartk || $compiler == fasta ]
+vm/symbols_test/01: MissingCompileTimeError
+vm/symbols_test/03: MissingCompileTimeError

@@ -116,6 +116,10 @@ ConstEvalInvalidStaticInvocation:
   template: "The invocation of '#name' is not allowed within a const context."
   analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 
+ConstEvalInvalidSymbolName:
+  template: "The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 ConstEvalFailedAssertion:
   template: "This assertion failed."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION

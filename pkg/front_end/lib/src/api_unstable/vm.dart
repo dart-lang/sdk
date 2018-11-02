@@ -45,6 +45,7 @@ export '../fasta/fasta_codes.dart'
         templateConstEvalInvalidMethodInvocation,
         templateConstEvalInvalidStaticInvocation,
         templateConstEvalInvalidStringInterpolationOperand,
+        templateConstEvalInvalidSymbolName,
         templateConstEvalInvalidType,
         templateConstEvalNegativeShift,
         templateConstEvalNonConstantLiteral,

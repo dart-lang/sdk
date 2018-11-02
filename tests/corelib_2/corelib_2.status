@@ -115,9 +115,6 @@ string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $fasta ]
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
@@ -293,6 +290,11 @@ symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
+
+[ $compiler != dartkp && $fasta ]
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
 
 [ $compiler != fasta && !$strong ]
 core_runtime_types_test: SkipByDesign

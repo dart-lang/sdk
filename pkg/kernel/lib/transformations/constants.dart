@@ -566,9 +566,154 @@ class ConstantEvaluator extends RecursiveVisitor {
         // initialize the fields of the new instance.
         handleConstructorInvocation(
             constructor, typeArguments, positionals, named);
-        return canonicalize(instanceBuilder.buildInstance());
+        final InstanceConstant result = instanceBuilder.buildInstance();
+
+        // Special case the dart:core's Symbol class here and convert it to a
+        // [SymbolConstant].  For invalid values we report a compile-time error.
+        if (result.klass == coreTypes.internalSymbolClass) {
+          // The dart:_internal's Symbol class has only the name field.
+          assert(coreTypes.internalSymbolClass.fields
+                  .where((f) => !f.isStatic)
+                  .length ==
+              1);
+          final nameValue = result.fieldValues.values.single;
+
+          if (nameValue is StringConstant &&
+              isValidSymbolName(nameValue.value)) {
+            return canonicalize(new SymbolConstant(nameValue.value, null));
+          }
+          errorReporter.invalidSymbolName(
+              contextChain, node.arguments.positional.first, nameValue);
+          throw const _AbortCurrentEvaluation();
+        }
+
+        return canonicalize(result);
       });
     });
+  }
+
+  bool isValidSymbolName(String name) {
+    // See https://api.dartlang.org/stable/2.0.0/dart-core/Symbol/Symbol.html:
+    //
+    //  A qualified name is a valid name preceded by a public identifier name and
+    //  a '.', e.g., foo.bar.baz= is a qualified version of baz=.
+    //
+    //  That means that the content of the name String must be either
+    //     - a valid public Dart identifier (that is, an identifier not
+    //       starting with "_"),
+    //     - such an identifier followed by "=" (a setter name),
+    //     - the name of a declarable operator,
+    //     - any of the above preceded by any number of qualifiers, where a
+    //       qualifier is a non-private identifier followed by '.',
+    //     - or the empty string (the default name of a library with no library
+    //       name declaration).
+
+    const operatorNames = const <String>[
+      '+',
+      '-',
+      '*',
+      '/',
+      '%',
+      '~/',
+      '&',
+      '|',
+      '^',
+      '~',
+      '<<',
+      '>>',
+      '<',
+      '<=',
+      '>',
+      '>=',
+      '==',
+      '[]',
+      '[]=',
+      'unary-'
+    ];
+
+    if (name == null) return false;
+    if (name == '') return true;
+
+    final parts = name.split('.');
+
+    // Each qualifier must be a public identifier.
+    for (int i = 0; i < parts.length - 1; ++i) {
+      if (!isValidPublicIdentifier(parts[i])) return false;
+    }
+
+    String last = parts.last;
+    if (operatorNames.contains(last)) {
+      return true;
+    }
+    if (last.endsWith('=')) {
+      last = last.substring(0, last.length - 1);
+    }
+    if (!isValidPublicIdentifier(last)) return false;
+
+    return true;
+  }
+
+  /// From the Dart Language specification:
+  ///
+  ///   IDENTIFIER:
+  ///     IDENTIFIER_START IDENTIFIER_PART*
+  ///
+  ///   IDENTIFIER_START:
+  ///       IDENTIFIER_START_NO_DOLLAR | ‘$’
+  ///
+  ///   IDENTIFIER_PART:
+  ///       IDENTIFIER_START | DIGIT
+  ///
+  ///   IDENTIFIER_NO_DOLLAR:
+  ///     IDENTIFIER_START_NO_DOLLAR IDENTIFIER_PART_NO_DOLLAR*
+  ///
+  ///   IDENTIFIER_START_NO_DOLLAR:
+  ///       LETTER | '_'
+  ///
+  ///   IDENTIFIER_PART_NO_DOLLAR:
+  ///       IDENTIFIER_START_NO_DOLLAR | DIGIT
+  ///
+  static final publicIdentifierRegExp =
+      new RegExp(r'^[a-zA-Z$][a-zA-Z0-9_$]*$');
+
+  static const nonUsableKeywords = const <String>[
+    'assert',
+    'break',
+    'case',
+    'catch',
+    'class',
+    'const',
+    'continue',
+    'default',
+    'do',
+    'else',
+    'enum',
+    'extends',
+    'false',
+    'final',
+    'finally',
+    'for',
+    'if',
+    'in',
+    'is',
+    'new',
+    'null',
+    'rethrow',
+    'return',
+    'super',
+    'switch',
+    'this',
+    'throw',
+    'true',
+    'try',
+    'var',
+    'while',
+    'with',
+  ];
+
+  bool isValidPublicIdentifier(String name) {
+    return publicIdentifierRegExp.hasMatch(name) &&
+        !nonUsableKeywords.contains(name);
   }
 
   handleConstructorInvocation(
@@ -1338,6 +1483,7 @@ abstract class ErrorReporter {
       List<TreeNode> context, TreeNode node, Procedure target);
   invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant);
+  invalidSymbolName(List<TreeNode> context, TreeNode node, Constant constant);
   zeroDivisor(
       List<TreeNode> context, TreeNode node, IntConstant receiver, String op);
   negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
@@ -1413,6 +1559,14 @@ abstract class ErrorReporterBase implements ErrorReporter {
         context,
         'Only null/bool/int/double/String values are allowed as string '
         'interpolation expressions during constant evaluation (was: "$constant").',
+        node);
+  }
+
+  invalidSymbolName(List<TreeNode> context, TreeNode node, Constant constant) {
+    report(
+        context,
+        'The symbol name must be a valid public Dart member name, public '
+        'constructor name, or library name, optionally qualified.',
         node);
   }
 
