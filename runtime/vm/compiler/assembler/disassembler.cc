@@ -16,7 +16,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
@@ -97,7 +97,6 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
-#if !defined(PRODUCT)
 void DisassembleToMemory::ConsumeInstruction(const Code& code,
                                              char* hex_buffer,
                                              intptr_t hex_size,
@@ -154,8 +153,6 @@ void DisassembleToMemory::Print(const char* format, ...) {
   *buffer_ = '\0';
 }
 
-#endif
-
 void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
@@ -198,7 +195,7 @@ void Disassembler::Disassemble(uword start,
       }
       if (!first) {
         f.Print("]\n");
-        formatter->Print(str);
+        formatter->Print("%s", str);
       }
     }
     int instruction_length;
@@ -243,7 +240,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   const ObjectPool& object_pool =
       ObjectPool::Handle(zone, code.GetObjectPool());
-  object_pool.DebugPrint();
+  if (!object_pool.IsNull()) {
+    object_pool.DebugPrint();
+  }
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
@@ -332,32 +331,53 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   {
     THR_Print("Static call target functions {\n");
-    const Array& table = Array::Handle(zone, code.static_calls_target_table());
-    Smi& offset = Smi::Handle(zone);
-    Function& function = Function::Handle(zone);
-    Code& code = Code::Handle(zone);
-    for (intptr_t i = 0; i < table.Length();
-         i += Code::kSCallTableEntryLength) {
-      offset ^= table.At(i + Code::kSCallTableOffsetEntry);
-      function ^= table.At(i + Code::kSCallTableFunctionEntry);
-      code ^= table.At(i + Code::kSCallTableCodeEntry);
-      if (function.IsNull()) {
-        Class& cls = Class::Handle(zone);
-        cls ^= code.owner();
-        if (cls.IsNull()) {
-          THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
-                    code.QualifiedName(), code.raw());
-        } else {
-          THR_Print("  0x%" Px ": allocation stub for %s, %p\n",
-                    start + offset.Value(), cls.ToCString(), code.raw());
+    const auto& table = Array::Handle(zone, code.static_calls_target_table());
+    auto& cls = Class::Handle(zone);
+    auto& kind_and_offset = Smi::Handle(zone);
+    auto& function = Function::Handle(zone);
+    auto& code = Code::Handle(zone);
+    if (!table.IsNull()) {
+      StaticCallsTable static_calls(table);
+      for (auto& call : static_calls) {
+        kind_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
+        function = call.Get<Code::kSCallTableFunctionTarget>();
+        code = call.Get<Code::kSCallTableCodeTarget>();
+
+        auto kind = Code::KindField::decode(kind_and_offset.Value());
+        auto offset = Code::OffsetField::decode(kind_and_offset.Value());
+
+        const char* skind = nullptr;
+        switch (kind) {
+          case Code::kPcRelativeCall:
+            skind = "pc-relative-call";
+            break;
+          case Code::kPcRelativeTailCall:
+            skind = "pc-relative-tail-call";
+            break;
+          case Code::kCallViaCode:
+            skind = "call-via-code";
+            break;
+          default:
+            UNREACHABLE();
         }
-      } else {
-        THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
-                  function.ToFullyQualifiedCString(), code.raw());
+        if (!code.IsNull()) {
+          cls ^= code.owner();
+          if (cls.IsNull()) {
+            THR_Print("  0x%" Px ": %s, %p (%s)\n", start + offset,
+                      code.QualifiedName(), code.raw(), skind);
+          } else {
+            THR_Print("  0x%" Px ": allocation stub for %s, %p (%s)\n",
+                      start + offset, cls.ToCString(), code.raw(), skind);
+          }
+        } else {
+          THR_Print("  0x%" Px ": %s, %p (%s)\n", start + offset,
+                    function.ToFullyQualifiedCString(), code.raw(), skind);
+        }
       }
     }
-    THR_Print("}\n");
   }
+  THR_Print("}\n");
+
   if (optimized && FLAG_trace_inlining_intervals) {
     code.DumpInlineIntervals();
   }
@@ -373,6 +393,6 @@ void Disassembler::DisassembleCode(const Function& function,
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart

@@ -264,14 +264,14 @@ abstract class ClosedWorldBase implements JClosedWorld {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> implementedClasses;
 
-  final Iterable<MemberEntity> liveInstanceMembers;
+  final Set<MemberEntity> liveInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
-  final Iterable<MemberEntity> assignedInstanceMembers;
+  final Set<MemberEntity> assignedInstanceMembers;
 
-  final Iterable<ClassEntity> liveNativeClasses;
+  final Set<ClassEntity> liveNativeClasses;
 
-  final Iterable<MemberEntity> processedMembers;
+  final Set<MemberEntity> processedMembers;
 
   final ClassHierarchy classHierarchy;
 

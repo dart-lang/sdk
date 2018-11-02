@@ -16,6 +16,8 @@ class Mock {
 }
 
 class Foo {
+  // Prevent obfuscation of '_x'.
+  @pragma("vm:entry-point")
   int _x;
 }
 

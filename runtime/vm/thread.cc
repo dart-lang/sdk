@@ -72,6 +72,9 @@ Thread::Thread(Isolate* isolate)
       vm_tag_(0),
       async_stack_trace_(StackTrace::null()),
       unboxed_int64_runtime_arg_(0),
+      active_exception_(Object::null()),
+      active_stacktrace_(Object::null()),
+      resume_pc_(0),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       os_thread_(NULL),
@@ -86,7 +89,6 @@ Thread::Thread(Isolate* isolate)
       no_callback_scope_depth_(0),
 #if defined(DEBUG)
       top_handle_scope_(NULL),
-      no_handle_scope_depth_(0),
       no_safepoint_scope_depth_(0),
 #endif
       reusable_handles_(),
@@ -99,9 +101,6 @@ Thread::Thread(Isolate* isolate)
       hierarchy_info_(NULL),
       type_usage_info_(NULL),
       pending_functions_(GrowableObjectArray::null()),
-      active_exception_(Object::null()),
-      active_stacktrace_(Object::null()),
-      resume_pc_(0),
       sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
@@ -883,6 +882,33 @@ int Thread::ZoneSizeInBytes() const {
     scope = scope->previous();
   }
   return total;
+}
+
+void Thread::EnterApiScope() {
+  ASSERT(MayAllocateHandles());
+  ApiLocalScope* new_scope = api_reusable_scope();
+  if (new_scope == NULL) {
+    new_scope = new ApiLocalScope(api_top_scope(), top_exit_frame_info());
+    ASSERT(new_scope != NULL);
+  } else {
+    new_scope->Reinit(this, api_top_scope(), top_exit_frame_info());
+    set_api_reusable_scope(NULL);
+  }
+  set_api_top_scope(new_scope);  // New scope is now the top scope.
+}
+
+void Thread::ExitApiScope() {
+  ASSERT(MayAllocateHandles());
+  ApiLocalScope* scope = api_top_scope();
+  ApiLocalScope* reusable_scope = api_reusable_scope();
+  set_api_top_scope(scope->previous());  // Reset top scope to previous.
+  if (reusable_scope == NULL) {
+    scope->Reset(this);  // Reset the old scope which we just exited.
+    set_api_reusable_scope(scope);
+  } else {
+    ASSERT(reusable_scope != scope);
+    delete scope;
+  }
 }
 
 void Thread::UnwindScopes(uword stack_marker) {

@@ -25,7 +25,7 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                1
   CheckStack
-  CheckFunctionTypeArgs 1, 0
+  CheckFunctionTypeArgs 1, r0
   PushNull
   ReturnTOS
 }

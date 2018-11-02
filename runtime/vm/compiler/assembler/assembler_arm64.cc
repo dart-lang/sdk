@@ -23,12 +23,8 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
-    : buffer_(),
-      object_pool_wrapper_(object_pool_wrapper),
-      prologue_offset_(-1),
-      has_single_entry_point_(true),
+    : AssemblerBase(object_pool_wrapper),
       use_far_branches_(use_far_branches),
-      comments_(),
       constant_pool_allowed_(false) {}
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
@@ -979,8 +975,6 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != value);
   ASSERT(object != LR);
   ASSERT(value != LR);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(object != TMP2);
   ASSERT(value != TMP);
@@ -1032,20 +1026,6 @@ void Assembler::StoreIntoObject(Register object,
   }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
-#else
-  ASSERT(object != value);
-  ASSERT(object != LR);
-  ASSERT(value != LR);
-
-  str(value, dest);
-  Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-  if (!lr_reserved) Push(LR);
-  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)));
-  blr(LR);
-  if (!lr_reserved) Pop(LR);
-  Bind(&done);
-#endif
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
@@ -1517,6 +1497,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     b(failure);
   }
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  // Emit "bl <offset>".
+  EmitUnconditionalBranchOp(BL, 0x686868);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

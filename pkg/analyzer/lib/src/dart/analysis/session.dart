@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
@@ -48,6 +49,9 @@ class AnalysisSessionImpl implements AnalysisSession {
    * Initialize a newly created analysis session.
    */
   AnalysisSessionImpl(this._driver);
+
+  @override
+  DeclaredVariables get declaredVariables => _driver.declaredVariables;
 
   @override
   ResourceProvider get resourceProvider => _driver.resourceProvider;

@@ -312,10 +312,14 @@ abstract class Future<T> {
   factory Future.delayed(Duration duration, [FutureOr<T> computation()]) {
     _Future<T> result = new _Future<T>();
     new Timer(duration, () {
-      try {
-        result._complete(computation?.call());
-      } catch (e, s) {
-        _completeWithErrorCallback(result, e, s);
+      if (computation == null) {
+        result._complete(null);
+      } else {
+        try {
+          result._complete(computation());
+        } catch (e, s) {
+          _completeWithErrorCallback(result, e, s);
+        }
       }
     });
     return result;
@@ -521,7 +525,7 @@ abstract class Future<T> {
    */
   static Future doWhile(FutureOr<bool> action()) {
     _Future doneSignal = new _Future();
-    var nextIteration;
+    void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
     // This avoids, e.g., deeply nested stack traces from the stack trace

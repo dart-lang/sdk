@@ -298,9 +298,21 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
   }
 
+#if defined(DEBUG)
   ASSERT(size != 0);
-  ASSERT(size == Size());
+  const intptr_t expected_size = Size();
+
+  // In general we expect that visitors return exactly the same size that Size
+  // would compute. However in case of Arrays we might have a discrepancy when
+  // concurrently visiting an array that is being shrunk with
+  // Array::MakeFixedLength: the visitor might have visited the full array while
+  // here we are observing a smaller Size().
+  ASSERT(size == expected_size ||
+         (class_id == kArrayCid && size > expected_size));
+  return size;  // Prefer larger size.
+#else
   return size;
+#endif
 }
 
 bool RawObject::FindObject(FindObjectVisitor* visitor) {

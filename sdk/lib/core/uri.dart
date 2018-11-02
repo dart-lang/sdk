@@ -2114,7 +2114,7 @@ class _Uri implements Uri {
     if (path != null && pathSegments != null) {
       throw new ArgumentError('Both path and pathSegments specified');
     }
-    var result;
+    String result;
     if (path != null) {
       result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable,
           escapeDelimiters: true);
@@ -2739,10 +2739,11 @@ class _Uri implements Uri {
     return _hashCodeCache ??= toString().hashCode;
   }
 
-  static List _createList() => [];
+  static List<String> _createList() => <String>[];
 
-  static Map _splitQueryStringAll(String query, {Encoding encoding: utf8}) {
-    Map result = {};
+  static Map<String, List<String>> _splitQueryStringAll(String query,
+      {Encoding encoding: utf8}) {
+    var result = <String, List<String>>{};
     int i = 0;
     int start = 0;
     int equalsIndex = -1;
@@ -3316,7 +3317,7 @@ class UriData {
       buffer.write(";charset=");
       buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, utf8, false));
     }
-    parameters?.forEach((var key, var value) {
+    parameters?.forEach((key, value) {
       if (key.isEmpty) {
         throw new ArgumentError.value("", "Parameter names must not be empty");
       }

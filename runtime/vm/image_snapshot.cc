@@ -78,10 +78,15 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
                      reinterpret_cast<const void*>(body_b), body_size);
 }
 
-ImageWriter::ImageWriter(const void* shared_objects,
+ImageWriter::ImageWriter(Heap* heap,
+                         const void* shared_objects,
                          const void* shared_instructions,
                          const void* reused_instructions)
-    : next_data_offset_(0), next_text_offset_(0), objects_(), instructions_() {
+    : heap_(heap),
+      next_data_offset_(0),
+      next_text_offset_(0),
+      objects_(),
+      instructions_() {
   ResetOffsets();
   SetupShared(&shared_objects_, shared_objects);
   SetupShared(&shared_instructions_, shared_instructions);
@@ -109,6 +114,11 @@ void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
 
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
+  intptr_t offset = heap_->GetObjectId(instructions);
+  if (offset != 0) {
+    return offset;
+  }
+
   if (!reuse_instructions_.IsEmpty()) {
     ObjectOffsetPair* pair = reuse_instructions_.Lookup(instructions);
     if (pair == NULL) {
@@ -127,7 +137,8 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   }
 
   intptr_t heap_size = instructions->Size();
-  intptr_t offset = next_text_offset_;
+  offset = next_text_offset_;
+  heap_->SetObjectId(instructions, offset);
   next_text_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions, code, offset));
   return offset;
@@ -299,11 +310,12 @@ void ImageWriter::WriteROData(WriteStream* stream) {
   }
 }
 
-AssemblyImageWriter::AssemblyImageWriter(Dart_StreamingWriteCallback callback,
+AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
+                                         Dart_StreamingWriteCallback callback,
                                          void* callback_data,
                                          const void* shared_objects,
                                          const void* shared_instructions)
-    : ImageWriter(shared_objects, shared_instructions, NULL),
+    : ImageWriter(thread->heap(), shared_objects, shared_instructions, NULL),
       assembly_stream_(512 * KB, callback, callback_data),
       dwarf_(NULL) {
 #if defined(DART_PRECOMPILER)
@@ -556,13 +568,17 @@ void AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
   }
 }
 
-BlobImageWriter::BlobImageWriter(uint8_t** instructions_blob_buffer,
+BlobImageWriter::BlobImageWriter(Thread* thread,
+                                 uint8_t** instructions_blob_buffer,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
                                  const void* shared_objects,
                                  const void* shared_instructions,
                                  const void* reused_instructions)
-    : ImageWriter(shared_objects, shared_instructions, reused_instructions),
+    : ImageWriter(thread->heap(),
+                  shared_objects,
+                  shared_instructions,
+                  reused_instructions),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size) {
 }
 

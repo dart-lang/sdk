@@ -439,10 +439,10 @@ void Dwarf::WriteInliningNode(InliningNode* node,
   Print("Ltemp%" Pd " = .Lfunc%" Pd " - .Ldebug_info\n", temp, function_index);
   Print(".4byte Ltemp%" Pd "\n", temp);
   // DW_AT_low_pc
-  Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", root_code_index,
+  Print(FORM_ADDR " .Lcode%" Pd " + %d\n", root_code_index,
         node->start_pc_offset);
   // DW_AT_high_pc
-  Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", root_code_index,
+  Print(FORM_ADDR " .Lcode%" Pd " + %d\n", root_code_index,
         node->end_pc_offset);
   // DW_AT_call_file
   uleb128(file);
@@ -596,7 +596,7 @@ void Dwarf::WriteLines() {
             u1(0);                  // This is an extended opcode
             u1(1 + sizeof(void*));  // that is 5 or 9 bytes long
             u1(DW_LNE_set_address);
-            Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", i, current_pc_offset);
+            Print(FORM_ADDR " .Lcode%" Pd " + %d\n", i, current_pc_offset);
           } else {
             u1(DW_LNS_advance_pc);
             Print(".uleb128 .Lcode%" Pd " - .Lcode%" Pd " + %" Pd "\n", i,

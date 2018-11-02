@@ -42,6 +42,7 @@ export 'package:kernel/ast.dart'
         LibraryDependency,
         LibraryPart,
         ListLiteral,
+        LocalInitializer,
         Location,
         MapEntry,
         MapLiteral,

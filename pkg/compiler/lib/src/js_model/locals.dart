@@ -456,9 +456,14 @@ class JJumpTarget extends JumpTarget {
   List<LabelDefinition> _labels;
   final bool isSwitch;
   final bool isSwitchCase;
+  bool isBreakTarget;
+  bool isContinueTarget;
 
   JJumpTarget(this.memberContext, this.nestingLevel,
-      {this.isSwitch: false, this.isSwitchCase: false});
+      {this.isSwitch: false,
+      this.isSwitchCase: false,
+      this.isBreakTarget: false,
+      this.isContinueTarget: false});
 
   /// Deserializes a [JJumpTarget] object from [source].
   factory JJumpTarget.readFromDataSource(DataSource source) {
@@ -467,8 +472,13 @@ class JJumpTarget extends JumpTarget {
     int nestingLevel = source.readInt();
     bool isSwitch = source.readBool();
     bool isSwitchCase = source.readBool();
+    bool isBreakTarget = source.readBool();
+    bool isContinueTarget = source.readBool();
     JJumpTarget target = new JJumpTarget(memberContext, nestingLevel,
-        isSwitch: isSwitch, isSwitchCase: isSwitchCase);
+        isSwitch: isSwitch,
+        isSwitchCase: isSwitchCase,
+        isBreakTarget: isBreakTarget,
+        isContinueTarget: isContinueTarget);
     int labelCount = source.readInt();
     for (int i = 0; i < labelCount; i++) {
       String labelName = source.readString();
@@ -488,6 +498,8 @@ class JJumpTarget extends JumpTarget {
     sink.writeInt(nestingLevel);
     sink.writeBool(isSwitch);
     sink.writeBool(isSwitchCase);
+    sink.writeBool(isBreakTarget);
+    sink.writeBool(isContinueTarget);
     if (_labels != null) {
       sink.writeInt(_labels.length);
       for (LabelDefinition definition in _labels) {
@@ -500,9 +512,6 @@ class JJumpTarget extends JumpTarget {
     }
     sink.end(tag);
   }
-
-  bool isBreakTarget = false;
-  bool isContinueTarget = false;
 
   @override
   LabelDefinition addLabel(String labelName,

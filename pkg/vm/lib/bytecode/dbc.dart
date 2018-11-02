@@ -163,7 +163,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kFrame: const Format(
       Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kCheckFunctionTypeArgs: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
@@ -253,7 +253,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kThrow: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kMoveSpecial: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.spe, Operand.none]),
+      Encoding.kAX, const [Operand.spe, Operand.xeg, Operand.none]),
   Opcode.kSetFrame: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kBooleanNegateTOS: const Format(
@@ -303,3 +303,17 @@ enum SpecialIndex {
 }
 
 bool isJump(Opcode opcode) => BytecodeFormats[opcode].encoding == Encoding.kT;
+
+// Bytecode instructions reference constant pool indices using
+// unsigned 16-bit operands.
+const int constantPoolIndexLimit = 1 << 16;
+
+// Local variables are referenced using 16-bit signed operands.
+const int localVariableIndexLimit = 1 << 15;
+
+// Captured variables are referenced using 16-bit unsigned operands.
+const int capturedVariableIndexLimit = 1 << 16;
+
+// Base class for exceptions thrown when certain limit of bytecode
+// format is exceeded.
+abstract class BytecodeLimitExceededException {}

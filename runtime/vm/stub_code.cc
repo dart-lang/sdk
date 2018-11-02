@@ -91,7 +91,9 @@ RawCode* StubCode::Generate(const char* name,
     code.Disassemble(&formatter);
     THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 #endif  // !PRODUCT
   return code.raw();
@@ -212,7 +214,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       stub.Disassemble(&formatter);
       THR_Print("}\n");
       const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
-      object_pool.DebugPrint();
+      if (!object_pool.IsNull()) {
+        object_pool.DebugPrint();
+      }
     }
 #endif  // !PRODUCT
   }
@@ -241,7 +245,9 @@ RawCode* StubCode::GetBuildMethodExtractorStub() {
     stub.Disassemble(&formatter);
     THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
-    object_pool.DebugPrint();
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 #endif  // !PRODUCT
   return stub.raw();

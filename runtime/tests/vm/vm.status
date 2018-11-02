@@ -25,6 +25,9 @@ dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
+[ $mode == debug ]
+dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
+
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 
@@ -355,3 +358,7 @@ dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-tri
 
 [ ($runtime == vm || $runtime == dart_precompiled) && !$preview_dart_2 ]
 *:SkipByDesign # Deprecating all Dart1 modes of execution
+
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
+dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output

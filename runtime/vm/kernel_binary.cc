@@ -124,12 +124,14 @@ Program* Program::ReadFromFile(const char* script_uri,
     return NULL;
   }
   kernel::Program* kernel_program = NULL;
+
+  const String& uri = String::Handle(String::New(script_uri));
+  const Object& ret = Object::Handle(thread->isolate()->CallTagHandler(
+      Dart_kKernelTag, Object::null_object(), uri));
+  Api::Scope api_scope(thread);
+  Dart_Handle retval = Api::NewHandle(thread, ret.raw());
   {
-    const String& uri = String::Handle(String::New(script_uri));
     TransitionVMToNative transition(thread);
-    Api::Scope api_scope(thread);
-    Dart_Handle retval = (thread->isolate()->library_tag_handler())(
-        Dart_kKernelTag, Api::Null(), Api::NewHandle(thread, uri.raw()));
     if (!Dart_IsError(retval)) {
       Dart_TypedData_Type data_type;
       uint8_t* data;

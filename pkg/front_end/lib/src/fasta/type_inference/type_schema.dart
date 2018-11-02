@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart'
     show
         DartType,
         DartTypeVisitor,
+        DartTypeVisitor1,
         FunctionType,
         InterfaceType,
         TypedefType,
@@ -82,6 +83,9 @@ class UnknownType extends DartType {
       return v.defaultDartType(this);
     }
   }
+
+  @override
+  accept1(DartTypeVisitor1 v, arg) => v.defaultDartType(this, arg);
 
   @override
   visitChildren(Visitor v) {}

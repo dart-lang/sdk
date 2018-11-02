@@ -169,11 +169,8 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, Bool, 0x3a59e7f4)           \
   V(_Double, _mulFromInteger, Double_mulFromInteger, Double, 0x2017fcf6)       \
   V(_Double, .fromInteger, DoubleFromInteger, Double, 0x6d234f4b)              \
-  V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, Dynamic, 0x50d64c75)   \
-  V(_List, []=, ObjectArraySetIndexed, Dynamic, 0x16b3d2b0)                    \
   V(_GrowableList, .withData, GrowableArray_Allocate, GrowableObjectArray,     \
     0x28b2138e)                                                                \
-  V(_GrowableList, add, GrowableArray_add, Dynamic, 0x40b490b8)                \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, Dynamic, 0x380184b1)          \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, Dynamic,          \
     0x79b8f955)                                                                \
@@ -325,6 +322,8 @@ namespace dart {
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, Smi, 0x25952390)                     \
   V(_List, [], ObjectArrayGetIndexed, Dynamic, 0x653da02e)                     \
+  V(_List, []=, ObjectArraySetIndexed, Dynamic, 0x16b3d2b0)                    \
+  V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, Dynamic, 0x50d64c75)   \
   V(_ImmutableList, get:length, ImmutableArrayLength, Smi, 0x25952390)         \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, Dynamic, 0x653da02e)         \
   V(_GrowableList, get:length, GrowableArrayLength, Smi, 0x18dd86b4)           \

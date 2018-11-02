@@ -402,4 +402,19 @@ void main() {
   }
 
   Expect.equals(CeOwithM().toString(), CwithM().toString());
+
+  {
+    // Regression test for private fields.
+    var c = PrivateFieldClass();
+    Expect.equals(42, c._foo);
+  }
+}
+
+
+mixin PrivateFieldMixin {
+  int _foo = 40;
+}
+
+class PrivateFieldClass with PrivateFieldMixin {
+  int get _foo => super._foo + 2;
 }

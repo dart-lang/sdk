@@ -1228,9 +1228,12 @@ static RawFunction* InlineCacheMissHandler(
     if (ic_data.IsTrackingExactness()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       const auto& receiver = *args[0];
-      const auto state = StaticTypeExactnessState::Compute(
-          Type::Cast(AbstractType::Handle(ic_data.StaticReceiverType())),
-          receiver);
+      const auto state = receiver.IsNull()
+                             ? StaticTypeExactnessState::NotExact()
+                             : StaticTypeExactnessState::Compute(
+                                   Type::Cast(AbstractType::Handle(
+                                       ic_data.StaticReceiverType())),
+                                   receiver);
       ic_data.AddReceiverCheck(
           receiver.GetClassId(), target_function,
           /*count=*/1, /*exactness=*/state.CollapseSuperTypeExactness());

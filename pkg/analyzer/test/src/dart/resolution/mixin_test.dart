@@ -1693,6 +1693,24 @@ mixin M {}
     expect(annotation.elementAnnotation, same(metadata[0]));
   }
 
+  test_methodCallTypeInference_mixinType() async {
+    addTestFile('''
+main() {
+  C<int> c = f();
+}
+
+class C<T> {}
+
+mixin M<T> on C<T> {}
+
+M<T> f<T>() => null;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    var fInvocation = findNode.methodInvocation('f()');
+    expect(fInvocation.staticInvokeType.toString(), '() → M<int>');
+  }
+
   test_onClause() async {
     addTestFile(r'''
 class A {}

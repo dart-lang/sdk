@@ -180,10 +180,8 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
   } else {
     // The [type_arguments] vector contains a type reference to a type
     // parameter we need to resolve it.
-    const bool use_instantiator =
-        type_arguments.IsUninstantiatedIdentity() ||
-        type_arguments.CanShareInstantiatorTypeArguments(*active_class_.klass);
-    if (use_instantiator) {
+    if (type_arguments.CanShareInstantiatorTypeArguments(
+            *active_class_.klass)) {
       // If the instantiator type arguments are just passed on, we don't need to
       // resolve the type parameters.
       //
@@ -194,6 +192,9 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
       // We just use the type argument vector from the [Foo] object and pass it
       // directly to the `new List<T>()` factory constructor.
       instructions += LoadInstantiatorTypeArguments();
+    } else if (type_arguments.CanShareFunctionTypeArguments(
+                   parsed_function_->function())) {
+      instructions += LoadFunctionTypeArguments();
     } else {
       // Otherwise we need to resolve [TypeParameterType]s in the type
       // expression based on the current instantiator type argument vector.
@@ -569,13 +570,17 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
                                       const InferredTypeMetadata* result_type,
-                                      intptr_t type_args_count) {
+                                      intptr_t type_args_count,
+                                      bool use_unchecked_entry) {
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z)
       StaticCallInstr(position, target, type_args_count, argument_names,
                       arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
   SetResultTypeForStaticCall(call, target, argument_count, result_type);
+  if (use_unchecked_entry) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
   Push(call);
   return Fragment(call);
 }

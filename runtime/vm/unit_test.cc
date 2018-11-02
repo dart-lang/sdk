@@ -663,16 +663,13 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
 
   Object& val = Object::Handle();
   if (!KernelIsolate::IsRunning()) {
-    val = lib.Evaluate(expr, param_names, param_values);
+    UNREACHABLE();
   } else {
-    Dart_KernelCompilationResult compilation_result;
-    {
-      TransitionVMToNative transition(thread);
-      compilation_result = KernelIsolate::CompileExpressionToKernel(
-          expr.ToCString(), param_names, Array::empty_array(),
-          String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
-          /* is_static= */ false);
-    }
+    Dart_KernelCompilationResult compilation_result =
+        KernelIsolate::CompileExpressionToKernel(
+            expr.ToCString(), param_names, Array::empty_array(),
+            String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
+            /* is_static= */ false);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       return Dart_NewApiError(compilation_result.error);
     }

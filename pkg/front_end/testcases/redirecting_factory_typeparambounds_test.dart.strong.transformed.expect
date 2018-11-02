@@ -1,0 +1,25 @@
+library redirecting_factory_constructors.typeparambounds_test;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  synthetic constructor •() → self::X
+    : super core::Object::•()
+    ;
+}
+class Y extends self::X {
+  synthetic constructor •() → self::Y
+    : super self::X::•()
+    ;
+}
+class A<T extends core::Object = dynamic, S extends self::A::T = dynamic> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::redir];
+  constructor •(self::A::T t, self::A::S s) → self::A<self::A::T, self::A::S>
+    : super core::Object::•()
+    ;
+  static factory redir<T extends core::Object = dynamic, S extends self::A::redir::T = dynamic>(self::A::redir::T t, self::A::redir::S s) → self::A<self::A::redir::T, self::A::redir::S>
+    let<BottomType> #redirecting_factory = self::A::• in let self::A::redir::T #typeArg0 = null in let self::A::redir::S #typeArg1 = null in invalid-expression;
+}
+static method main() → dynamic {
+  new self::A::•<self::X, self::Y>(new self::X::•(), new self::Y::•());
+}

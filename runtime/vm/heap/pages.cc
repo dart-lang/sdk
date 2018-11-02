@@ -929,8 +929,6 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.
-#elif !defined(CONCURRENT_MARKING)
-    return;  // Barrier generation disabled.
 #else
     if (FLAG_marker_tasks == 0) return;   // Concurrent marking disabled.
     if (FLAG_write_protect_code) return;  // Not implemented.
@@ -1318,7 +1316,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-#if defined(TARGET_ARCH_IA32) || !defined(CONCURRENT_MARKING)
+#if defined(TARGET_ARCH_IA32)
   intptr_t headroom = 0;
 #else
   intptr_t headroom = heap_->new_space()->CapacityInWords();

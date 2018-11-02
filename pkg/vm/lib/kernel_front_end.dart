@@ -37,6 +37,8 @@ import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
+import 'transformations/obfuscation_prohibitions_annotator.dart'
+    as obfuscationProhibitions;
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source]. Intended for whole program (non-modular) compilation.
@@ -140,6 +142,10 @@ Future _runGlobalTransformations(
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
   }
+
+  // We don't know yet whether gen_snapshot will want to do obfuscation, but if
+  // it does it will need the obfuscation prohibitions.
+  obfuscationProhibitions.transformComponent(component, coreTypes);
 }
 
 /// Runs given [action] with [CompilerContext]. This is needed to

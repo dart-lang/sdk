@@ -171,11 +171,10 @@ class CompileType : public ZoneAllocated {
 
   bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == NULL); }
 
+  // Returns true if value of this type is a non-nullable int.
   bool IsInt() {
-    return !is_nullable() &&
-           ((ToCid() == kSmiCid) || (ToCid() == kMintCid) ||
-            ((type_ != NULL) &&
-             (type_->Equals(Type::Handle(Type::Int64Type())))));
+    // A nullable int that isn't nullable is an int.
+    return !is_nullable() && IsNullableInt();
   }
 
   // Returns true if value of this type is either int or null.
@@ -184,8 +183,7 @@ class CompileType : public ZoneAllocated {
       return true;
     }
     if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
-      return (type_ != NULL) && ((type_->IsIntType() || type_->IsInt64Type() ||
-                                  type_->IsSmiType()));
+      return (type_ != NULL) && ((type_->IsIntType() || type_->IsSmiType()));
     }
     return false;
   }
@@ -660,18 +658,18 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_COMPARISON_METHODS
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_TO_SUPPORT virtual void PrintTo(BufferFormatter* f) const;
 #else
 #define PRINT_TO_SUPPORT
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 #else
 #define PRINT_OPERANDS_TO_SUPPORT
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 // Together with CidRange, this represents a mapping from a range of class-ids
 // to a method for a given selector (method name).  Also can contain an
@@ -894,7 +892,7 @@ class Instruction : public ZoneAllocated {
 
   // Printing support.
   const char* ToCString() const;
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 #endif
@@ -1360,6 +1358,7 @@ class BlockEntryInstr : public Instruction {
   LoopInfo* loop_info() const { return loop_info_; }
   void set_loop_info(LoopInfo* loop_info) { loop_info_ = loop_info; }
   bool IsLoopHeader() const;
+  intptr_t NestingDepth() const;
 
   virtual BlockEntryInstr* GetBlock() { return this; }
 
@@ -5419,14 +5418,18 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
+                                const Function& function,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
                                 intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
-        instantiator_class_(instantiator_class) {
+        instantiator_class_(instantiator_class),
+        function_(function) {
     ASSERT(type_arguments.IsZoneHandle());
+    ASSERT(instantiator_class.IsZoneHandle());
+    ASSERT(function.IsZoneHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
   }
@@ -5437,6 +5440,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   Value* function_type_arguments() const { return inputs_[1]; }
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
+  const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool ComputeCanDeoptimize() const { return true; }
@@ -5451,6 +5455,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const TokenPosition token_pos_;
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
+  const Function& function_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };

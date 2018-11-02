@@ -626,7 +626,19 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   } else if (kind() == kNativeCode) {
     if (name() == NULL) {
       // Lazily set generated name.
-      GenerateAndSetSymbolName("[Native]");
+      const intptr_t kBuffSize = 512;
+      char buff[kBuffSize];
+      uword dso_base;
+      char* dso_name;
+      if (NativeSymbolResolver::LookupSharedObject(start(), &dso_base,
+                                                   &dso_name)) {
+        uword dso_offset = start() - dso_base;
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %s+0x%" Px, dso_name,
+                       dso_offset);
+      } else {
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %" Px, start());
+      }
+      SetName(buff);
     }
     function = table->AddNative(start(), name());
   } else if (kind() == kTagCode) {

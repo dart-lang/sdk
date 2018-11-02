@@ -979,7 +979,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 
 void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                TokenPosition token_pos,
-                                               const StubEntry& stub_entry,
                                                RawPcDescriptors::Kind kind,
                                                LocationSummary* locs,
                                                const Function& target,
@@ -988,6 +987,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   // call sites are never patched for breakpoints: the function is deoptimized
   // and the unoptimized code with IC calls for static calls is patched instead.
   ASSERT(is_optimizing());
+  const auto& stub_entry = *StubCode::CallStaticFunction_entry();
   __ CallWithEquivalence(stub_entry, target, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
@@ -1140,7 +1140,6 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id, token_pos,
-                         *StubCode::CallStaticFunction_entry(),
                          RawPcDescriptors::kOther, locs, function, entry_kind);
   __ Drop(count_with_type_args, RCX);
 }

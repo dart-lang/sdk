@@ -134,9 +134,9 @@ class Api : AllStatic {
   class Scope : public StackResource {
    public:
     explicit Scope(Thread* thread) : StackResource(thread) {
-      Dart_EnterScope();
+      thread->EnterApiScope();
     }
-    ~Scope() { Dart_ExitScope(); }
+    ~Scope() { thread()->ExitApiScope(); }
 
    private:
     DISALLOW_COPY_AND_ASSIGN(Scope);

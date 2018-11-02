@@ -12,6 +12,7 @@ import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -23,7 +24,7 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceChange, SourceEdit, SourceFileEdit;
+    show Location, SourceChange, SourceEdit, SourceFileEdit;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:source_span/src/span.dart';
@@ -34,14 +35,14 @@ class EditDartFix {
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
 
-  List<String> descriptionOfFixes;
-  List<String> otherRecommendations;
+  List<DartFixSuggestion> suggestions;
+  List<DartFixSuggestion> otherSuggestions;
   SourceChange sourceChange;
 
   EditDartFix(this.server, this.request);
 
-  void addFix(String description, SourceChange change) {
-    descriptionOfFixes.add(description);
+  void addFix(String description, Location location, SourceChange change) {
+    suggestions.add(new DartFixSuggestion(description, location: location));
     for (SourceFileEdit fileEdit in change.edits) {
       for (SourceEdit sourceEdit in fileEdit.edits) {
         sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
@@ -49,8 +50,9 @@ class EditDartFix {
     }
   }
 
-  void addRecommendation(String recommendation) {
-    otherRecommendations.add(recommendation);
+  void addRecommendation(String description, [Location location]) {
+    otherSuggestions
+        .add(new DartFixSuggestion(description, location: location));
   }
 
   Future<Response> compute() async {
@@ -96,25 +98,7 @@ class EditDartFix {
       preferMixinFix,
       preferIntLiteralsFix,
     ];
-    final visitors = <AstVisitor>[];
-    final registry = new NodeLintRegistry(false);
-    for (Linter linter in linters) {
-      if (linter != null) {
-        final visitor = linter.getVisitor();
-        if (visitor != null) {
-          visitors.add(visitor);
-        }
-        if (linter is NodeLintRule) {
-          (linter as NodeLintRule).registerNodeProcessors(registry);
-        }
-      }
-    }
-    final AstVisitor astVisitor = visitors.isNotEmpty
-        ? new ExceptionHandlingDelegatingAstVisitor(
-            visitors, ExceptionHandlingDelegatingAstVisitor.logException)
-        : null;
-    final AstVisitor linterVisitor = new LinterVisitor(
-        registry, ExceptionHandlingDelegatingAstVisitor.logException);
+    final lintVisitorsBySession = <AnalysisSession, _LintVisitors>{};
 
     // TODO(danrubel): Determine if a lint is configured to run as part of
     // standard analysis and use those results if available instead of
@@ -125,8 +109,8 @@ class EditDartFix {
     for (String rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
     }
-    descriptionOfFixes = <String>[];
-    otherRecommendations = <String>[];
+    suggestions = <DartFixSuggestion>[];
+    otherSuggestions = <DartFixSuggestion>[];
     sourceChange = new SourceChange('dartfix');
     bool hasErrors = false;
     while (resources.isNotEmpty) {
@@ -158,10 +142,12 @@ class EditDartFix {
             linter.reporter.source = source;
           }
         }
-        if (astVisitor != null) {
-          unit.accept(astVisitor);
+        var lintVisitors = lintVisitorsBySession[result.session] ??=
+            await _setupLintVisitors(result, linters);
+        if (lintVisitors.astVisitor != null) {
+          unit.accept(lintVisitors.astVisitor);
         }
-        unit.accept(linterVisitor);
+        unit.accept(lintVisitors.linterVisitor);
         for (LinterFix fix in fixes) {
           await fix.applyLocalFixes(result);
         }
@@ -186,8 +172,8 @@ class EditDartFix {
       await fix.applyRemainingFixes();
     }
 
-    return new EditDartfixResult(descriptionOfFixes, otherRecommendations,
-            hasErrors, sourceChange.edits)
+    return new EditDartfixResult(
+            suggestions, otherSuggestions, hasErrors, sourceChange.edits)
         .toResponse(request.id);
   }
 
@@ -204,7 +190,6 @@ class EditDartFix {
       return false;
     }
 
-    final location = '${locationDescription(result, error.offset)}';
     final dartContext = new DartFixContextImpl(
         new FixContextImpl(
             server.resourceProvider, result.driver, error, result.errors),
@@ -212,12 +197,13 @@ class EditDartFix {
         result.unit);
     final processor = new FixProcessor(dartContext);
     Fix fix = await processor.computeFix();
+    final location = locationFor(result, error.offset, error.length);
     if (fix != null) {
-      addFix('${fix.change.message} in $location', fix.change);
+      addFix(fix.change.message, location, fix.change);
     } else {
       // TODO(danrubel): Determine why the fix could not be applied
       // and report that in the description.
-      addRecommendation('Could not fix "${error.message}" in $location');
+      addRecommendation('Could not fix "${error.message}"', location);
     }
     return true;
   }
@@ -240,29 +226,53 @@ class EditDartFix {
     return false;
   }
 
-  /// Return a human readable description of the specified offset and file.
-  String locationDescription(AnalysisResult result, int offset) {
-    // TODO(danrubel): Pass the location back to the client along with the
-    // message indicating what was or was not automatically fixed
-    // rather than interpreting and integrating the location into the message.
-    final description = new StringBuffer();
-    // Determine the relative path
-    for (Folder folder in fixFolders) {
-      if (folder.contains(result.path)) {
-        description.write(server.resourceProvider.pathContext
-            .relative(result.path, from: folder.path));
-        break;
+  Location locationFor(AnalysisResult result, int offset, int length) {
+    final locInfo = result.unit.lineInfo.getLocation(offset);
+    final location = new Location(
+        result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
+    return location;
+  }
+
+  Future<_LintVisitors> _setupLintVisitors(
+      AnalysisResult result, List<Linter> linters) async {
+    final visitors = <AstVisitor>[];
+    final registry = new NodeLintRegistry(false);
+    // TODO(paulberry): use an API that provides this information more readily
+    var unitElement = result.unit.declaredElement;
+    var session = result.session;
+    var currentUnit = LinterContextUnit(result.content, result.unit);
+    var allUnits = <LinterContextUnit>[];
+    for (var cu in unitElement.library.units) {
+      if (identical(cu, unitElement)) {
+        allUnits.add(currentUnit);
+      } else {
+        var result = await session.getResolvedAst(cu.source.fullName);
+        allUnits.add(LinterContextUnit(result.content, result.unit));
       }
     }
-    if (description.isEmpty) {
-      description.write(result.path);
+    var context = LinterContextImpl(allUnits, currentUnit,
+        session.declaredVariables, result.typeProvider, result.typeSystem);
+    for (Linter linter in linters) {
+      if (linter != null) {
+        final visitor = linter.getVisitor();
+        if (visitor != null) {
+          visitors.add(visitor);
+        }
+        if (linter is NodeLintRuleWithContext) {
+          (linter as NodeLintRuleWithContext)
+              .registerNodeProcessors(registry, context);
+        } else if (linter is NodeLintRule) {
+          (linter as NodeLintRule).registerNodeProcessors(registry);
+        }
+      }
     }
-    // Determine the line and column number
-    if (offset >= 0) {
-      final loc = result.unit.lineInfo.getLocation(offset);
-      description.write(':${loc.lineNumber}');
-    }
-    return description.toString();
+    final AstVisitor astVisitor = visitors.isNotEmpty
+        ? new ExceptionHandlingDelegatingAstVisitor(
+            visitors, ExceptionHandlingDelegatingAstVisitor.logException)
+        : null;
+    final AstVisitor linterVisitor = new LinterVisitor(
+        registry, ExceptionHandlingDelegatingAstVisitor.logException);
+    return _LintVisitors(astVisitor, linterVisitor);
   }
 }
 
@@ -349,4 +359,12 @@ abstract class LinterFix implements ErrorReporter {
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
     // ignored
   }
+}
+
+class _LintVisitors {
+  final AstVisitor astVisitor;
+
+  final AstVisitor linterVisitor;
+
+  _LintVisitors(this.astVisitor, this.linterVisitor);
 }

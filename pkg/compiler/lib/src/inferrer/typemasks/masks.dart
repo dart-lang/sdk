@@ -722,12 +722,14 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   TypeMask readAbstractValueFromDataSource(DataSource source) {
-    return new TypeMask.readFromDataSource(source, _closedWorld);
+    return source.readCached<TypeMask>(
+        () => new TypeMask.readFromDataSource(source, _closedWorld));
   }
 
   @override
   void writeAbstractValueToDataSink(DataSink sink, covariant TypeMask value) {
-    value.writeToDataSink(sink);
+    sink.writeCached<TypeMask>(
+        value, (TypeMask value) => value.writeToDataSink(sink));
   }
 }
 

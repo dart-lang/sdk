@@ -11,13 +11,9 @@
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 
-#if defined(DART_USE_CRASHPAD)
-#include "crashpad/client/crashpad_client.h"
-#include "crashpad/client/crashpad_info.h"
-#endif
-
 #include "bin/builtin.h"
 #include "bin/console.h"
+#include "bin/crashpad.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/directory.h"
@@ -25,6 +21,7 @@
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
+#include "bin/gzip.h"
 #include "bin/isolate_data.h"
 #include "bin/loader.h"
 #include "bin/log.h"
@@ -39,7 +36,6 @@
 #include "platform/growable_array.h"
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
-#include "bin/gzip.h"
 
 #include "vm/flags.h"
 
@@ -952,45 +948,6 @@ Dart_Handle GetVMServiceAssetsArchiveCallback() {
 static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 #endif  // !defined(NO_OBSERVATORY)
 
-#if defined(DART_USE_CRASHPAD)
-#if !defined(HOST_OS_WINDOWS)
-#error "Currently we only support Crashpad on Windows"
-#endif
-
-static void ConfigureCrashpadClient(crashpad::CrashpadClient* client) {
-  // DART_CRASHPAD_HANDLER and DART_CRASHPAD_CRASHES_DIR are set by the
-  // testing framework.
-  wchar_t* handler = _wgetenv(L"DART_CRASHPAD_HANDLER");
-  wchar_t* crashes_dir = _wgetenv(L"DART_CRASHPAD_CRASHES_DIR");
-  if (handler == nullptr || crashes_dir == nullptr) {
-    return;
-  }
-
-  // Crashpad uses STL so we use it here too even though in general we
-  // avoid it.
-  const base::FilePath handler_path{std::wstring(handler)};
-  const base::FilePath crashes_dir_path{std::wstring(crashes_dir)};
-  const std::string url("");
-  std::map<std::string, std::string> annotations;
-  char* test_name = getenv("DART_TEST_NAME");
-  if (test_name != nullptr) {
-    annotations["dart_test_name"] = test_name;
-  }
-
-  std::vector<std::string> arguments;
-  if (!client->StartHandler(handler_path, crashes_dir_path, crashes_dir_path,
-                            url, annotations, arguments,
-                            /*restartable=*/true,
-                            /*asynchronous_start=*/false)) {
-    Log::PrintErr("Failed to start the crash handler!\n");
-    Platform::Exit(kErrorExitCode);
-  }
-  crashpad::CrashpadInfo::GetCrashpadInfo()
-      ->set_gather_indirectly_referenced_memory(crashpad::TriState::kEnabled,
-                                                /*limit=*/500 * MB);
-}
-#endif  // DART_USE_CRASHPAD
-
 void main(int argc, char** argv) {
   char* script_name;
   const int EXTRA_VM_ARGUMENTS = 10;
@@ -1054,10 +1011,7 @@ void main(int argc, char** argv) {
   }
   DartUtils::SetEnvironment(Options::environment());
 
-#if defined(DART_USE_CRASHPAD)
-  crashpad::CrashpadClient crashpad_client;
-  ConfigureCrashpadClient(&crashpad_client);
-#endif
+  InitializeCrashpadClient();
 
   Loader::InitOnce();
 

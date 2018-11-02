@@ -24,12 +24,7 @@ DECLARE_FLAG(bool, inline_alloc);
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
-    : buffer_(),
-      object_pool_wrapper_(object_pool_wrapper),
-      prologue_offset_(-1),
-      has_single_entry_point_(true),
-      comments_(),
-      constant_pool_allowed_(false) {
+    : AssemblerBase(object_pool_wrapper), constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for ARM.
   ASSERT(!use_far_branches);
 }
@@ -1266,8 +1261,6 @@ void Assembler::StoreIntoObject(Register object,
                                 CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(value != TMP);
 
@@ -1313,14 +1306,6 @@ void Assembler::StoreIntoObject(Register object,
     popq(kWriteBarrierValueReg);
   }
   Bind(&done);
-#else
-  movq(dest, value);
-  Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-  // A store buffer update is required.
-  call(Address(THR, Thread::write_barrier_wrappers_offset(object)));
-  Bind(&done);
-#endif
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
@@ -1369,19 +1354,12 @@ void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
   addq(dest, inc_imm);
 }
 
-void Assembler::Stop(const char* message, bool fixed_length_encoding) {
+void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     int64_t message_address = reinterpret_cast<int64_t>(message);
     pushq(TMP);  // Preserve TMP register.
     pushq(RDI);  // Preserve RDI register.
-    if (fixed_length_encoding) {
-      AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-      EmitRegisterREX(RDI, REX_W);
-      EmitUint8(0xB8 | (RDI & 7));
-      EmitInt64(message_address);
-    } else {
-      LoadImmediate(RDI, Immediate(message_address));
-    }
+    LoadImmediate(RDI, Immediate(message_address));
     call(&StubCode::PrintStopMessage_entry()->label());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
@@ -1801,6 +1779,12 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     jmp(failure);
   }
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<uint8_t>(0xe8);
+  buffer_.Emit<int32_t>(0x68686868);
 }
 
 void Assembler::Align(int alignment, intptr_t offset) {

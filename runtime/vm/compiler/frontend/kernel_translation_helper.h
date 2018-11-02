@@ -156,17 +156,18 @@ class TranslationHelper {
 
   Type& GetCanonicalType(const Class& klass);
 
-  void ReportError(const char* format, ...);
+  void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
-  void ReportError(const Error& prev_error, const char* format, ...);
+                   ...) PRINTF_ATTRIBUTE(4, 5);
+  void ReportError(const Error& prev_error, const char* format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
   void ReportError(const Error& prev_error,
                    const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
+                   ...) PRINTF_ATTRIBUTE(5, 6);
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -902,6 +903,20 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(ProcedureAttributesMetadataHelper);
 };
 
+class ObfuscationProhibitionsMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.obfuscation-prohibitions.metadata"; }
+
+  explicit ObfuscationProhibitionsMetadataHelper(KernelReaderHelper* helper);
+
+  void ReadProhibitions() { ReadMetadata(0); }
+
+ private:
+  void ReadMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(ObfuscationProhibitionsMetadataHelper);
+};
+
 struct CallSiteAttributesMetadata {
   const AbstractType* receiver_type = nullptr;
 };
@@ -1064,6 +1079,7 @@ class KernelReaderHelper {
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;
+  friend class ObfuscationProhibitionsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:

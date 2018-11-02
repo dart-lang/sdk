@@ -1422,12 +1422,12 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
     Reader reader(H.metadata_mappings());
     reader.set_offset(mappings_offset);
 
-    intptr_t prev_node_offset = 0;
+    intptr_t prev_node_offset = -1;
     for (intptr_t i = 0; i < mappings_num; ++i) {
       intptr_t node_offset = reader.ReadUInt32();
       intptr_t md_offset = reader.ReadUInt32();
 
-      ASSERT((node_offset > 0) && (md_offset >= 0));
+      ASSERT((node_offset >= 0) && (md_offset >= 0));
       ASSERT(node_offset > prev_node_offset);
       prev_node_offset = node_offset;
     }
@@ -1715,6 +1715,28 @@ ProcedureAttributesMetadataHelper::GetProcedureAttributes(
   return metadata;
 }
 
+ObfuscationProhibitionsMetadataHelper::ObfuscationProhibitionsMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+void ObfuscationProhibitionsMetadataHelper::ReadMetadata(intptr_t node_offset) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return;
+  }
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+  Obfuscator O(Thread::Current(), String::Handle());
+
+  intptr_t len = helper_->ReadUInt32();
+  for (int i = 0; i < len; ++i) {
+    StringIndex name = helper_->ReadStringReference();
+    O.PreventRenaming(translation_helper_.DartSymbolPlain(name));
+  }
+  return;
+}
+
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(
     KernelReaderHelper* helper,
     TypeTranslator* type_translator)
@@ -1915,6 +1937,10 @@ void KernelReaderHelper::SkipDartType() {
     case kSimpleFunctionType:
       SkipFunctionType(true);
       return;
+    case kTypedefType:
+      ReadUInt();             // read index for canonical name.
+      SkipListOfDartTypes();  // read list of types.
+      return;
     case kTypeParameterType:
       ReadUInt();              // read index for parameter.
       SkipOptionalDartType();  // read bound bound.
@@ -1962,7 +1988,7 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
   }
 
   if (!simple) {
-    SkipCanonicalNameReference();  // read typedef reference.
+    SkipOptionalDartType();  // read typedef type.
   }
 
   SkipDartType();  // read return type.
@@ -2846,7 +2872,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   }
 
   if (!simple) {
-    helper_->SkipCanonicalNameReference();  // read typedef reference.
+    helper_->SkipOptionalDartType();  // read typedef type.
   }
 
   BuildTypeInternal();  // read return type.

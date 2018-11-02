@@ -1208,23 +1208,9 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 COMPILE_ASSERT(kWriteBarrierObjectReg == R1);
 COMPILE_ASSERT(kWriteBarrierValueReg == R0);
 void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
-#if defined(CONCURRENT_MARKING)
   Label add_to_mark_stack;
   __ tst(R0, Operand(1 << kNewObjectBitPosition));
   __ b(&add_to_mark_stack, ZERO);
-#else
-  Label add_to_buffer;
-  // Check whether this object has already been remembered. Skip adding to the
-  // store buffer if the object is in the store buffer already.
-  // Spilled: R2, R3, R4
-  // R1: Address being stored
-  __ ldr(TMP, FieldAddress(R1, Object::tags_offset()));
-  __ tst(TMP, Operand(1 << RawObject::kOldAndNotRememberedBit));
-  __ b(&add_to_buffer, NE);
-  __ Ret();
-
-  __ Bind(&add_to_buffer);
-#endif
 
   // Save values being destroyed.
   __ PushList((1 << R2) | (1 << R3) | (1 << R4));
@@ -1284,7 +1270,6 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ Pop(CODE_REG);
   __ Ret();
 
-#if defined(CONCURRENT_MARKING)
   __ Bind(&add_to_mark_stack);
   __ PushList((1 << R2) | (1 << R3) | (1 << R4));  // Spill.
 
@@ -1336,7 +1321,6 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ Bind(&lost_race);
   __ PopList((1 << R2) | (1 << R3) | (1 << R4));  // Unspill.
   __ Ret();
-#endif
 }
 
 // Called for inline allocation of objects.

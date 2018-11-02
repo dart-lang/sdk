@@ -92,7 +92,7 @@ TEST_CASE(GrowableArraySort) {
   EXPECT_EQ(4, g.Last());
 }
 
-TEST_CASE(GrowableHandlePtr) {
+ISOLATE_UNIT_TEST_CASE(GrowableHandlePtr) {
   Zone* zone = Thread::Current()->zone();
   GrowableHandlePtrArray<const String> test1(zone, 1);
   EXPECT_EQ(0, test1.length());

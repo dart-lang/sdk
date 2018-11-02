@@ -1,0 +1,17 @@
+library redirecting_factory_constructors.chain_test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::first, self::A::second];
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static factory first() → self::A
+    let<BottomType> #redirecting_factory = self::A::• in invalid-expression;
+  static factory second() → self::A
+    let () → self::A #redirecting_factory = self::A::first in invalid-expression;
+}
+static method main() → dynamic {
+  new self::A::•();
+}

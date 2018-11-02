@@ -20,8 +20,8 @@ class BinarySourceImpl extends AbstractDataSource {
   int _readByte() => _bytes[_byteOffset++];
 
   @override
-  String _readString() {
-    int length = _readInt();
+  String _readStringInternal() {
+    int length = _readIntInternal();
     List<int> bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
@@ -29,7 +29,7 @@ class BinarySourceImpl extends AbstractDataSource {
   }
 
   @override
-  int _readInt() {
+  int _readIntInternal() {
     var byte = _readByte();
     if (byte & 0x80 == 0) {
       // 0xxxxxxx
@@ -47,14 +47,14 @@ class BinarySourceImpl extends AbstractDataSource {
   }
 
   @override
-  Uri _readUri() {
+  Uri _readUriInternal() {
     String text = _readString();
     return Uri.parse(text);
   }
 
   @override
-  E _readEnum<E>(List<E> values) {
-    int index = _readInt();
+  E _readEnumInternal<E>(List<E> values) {
+    int index = _readIntInternal();
     assert(
         0 <= index && index < values.length,
         "Invalid data kind index. "

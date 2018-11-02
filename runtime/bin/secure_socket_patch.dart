@@ -18,6 +18,7 @@ class _SecureFilter {
 }
 
 @patch
+@pragma("vm:entry-point")
 class X509Certificate {
   @patch
   @pragma("vm:entry-point")

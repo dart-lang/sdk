@@ -1591,8 +1591,6 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != value);
   ASSERT(object != LR);
   ASSERT(value != LR);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(value != TMP);
 
@@ -1645,31 +1643,6 @@ void Assembler::StoreIntoObject(Register object,
   }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
-#else
-  str(value, dest);
-  // A store buffer update is required.
-  if (lr_reserved) {
-    StoreIntoObjectFilter(object, value, nullptr, can_be_smi, kNoJump);
-    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
-    blx(LR, NE);
-  } else {
-    Label done;
-    StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-    RegList regs = 0;
-    regs |= (1 << LR);
-    if (value != kWriteBarrierObjectReg) {
-      regs |= (1 << kWriteBarrierObjectReg);
-    }
-    PushList(regs);
-    if (object != kWriteBarrierObjectReg) {
-      mov(kWriteBarrierObjectReg, Operand(object));
-    }
-    ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
-    blx(LR);
-    PopList(regs);
-    Bind(&done);
-  }
-#endif
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
@@ -3384,6 +3357,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     b(failure);
   }
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  // Emit "blr <offset>".
+  EmitType5(AL, 0x686868, /*link=*/true);
 }
 
 void Assembler::Stop(const char* message) {

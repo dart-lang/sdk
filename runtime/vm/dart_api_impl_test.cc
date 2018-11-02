@@ -671,7 +671,11 @@ TEST_CASE(DartAPI_PropagateError) {
 }
 
 TEST_CASE(DartAPI_Error) {
-  Dart_Handle error = Api::NewError("An %s", "error");
+  Dart_Handle error;
+  {
+    TransitionNativeToVM transition(thread);
+    error = Api::NewError("An %s", "error");
+  }
   EXPECT(Dart_IsError(error));
   EXPECT_STREQ("An error", Dart_GetError(error));
 }
@@ -728,7 +732,6 @@ TEST_CASE(DartAPI_IdentityEquals) {
   // Non-instance objects.
   {
     CHECK_API_SCOPE(thread);
-    HANDLESCOPE(thread);
     Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
     Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
@@ -780,15 +783,21 @@ TEST_CASE(DartAPI_InstanceGetType) {
   Dart_Handle type = Dart_InstanceGetType(Dart_Null());
   EXPECT_VALID(type);
   EXPECT(Dart_IsType(type));
-  const Type& null_type_obj = Api::UnwrapTypeHandle(zone, type);
-  EXPECT(null_type_obj.raw() == Type::NullType());
+  {
+    TransitionNativeToVM transition(thread);
+    const Type& null_type_obj = Api::UnwrapTypeHandle(zone, type);
+    EXPECT(null_type_obj.raw() == Type::NullType());
+  }
 
   Dart_Handle instance = Dart_True();
   type = Dart_InstanceGetType(instance);
   EXPECT_VALID(type);
   EXPECT(Dart_IsType(type));
-  const Type& bool_type_obj = Api::UnwrapTypeHandle(zone, type);
-  EXPECT(bool_type_obj.raw() == Type::BoolType());
+  {
+    TransitionNativeToVM transition(thread);
+    const Type& bool_type_obj = Api::UnwrapTypeHandle(zone, type);
+    EXPECT(bool_type_obj.raw() == Type::BoolType());
+  }
 
   // Errors propagate.
   Dart_Handle error = Dart_NewApiError("MyError");
@@ -1470,6 +1479,7 @@ TEST_CASE(DartAPI_ExternalStringPretenure) {
     EXPECT_VALID(small16);
     {
       CHECK_API_SCOPE(thread);
+      TransitionNativeToVM transition(thread);
       HANDLESCOPE(thread);
       String& handle = String::Handle();
       handle ^= Api::UnwrapHandle(big8);
@@ -1500,6 +1510,7 @@ TEST_CASE(DartAPI_ExternalTypedDataPretenure) {
     EXPECT_VALID(small);
     {
       CHECK_API_SCOPE(thread);
+      TransitionNativeToVM transition(thread);
       HANDLESCOPE(thread);
       ExternalTypedData& handle = ExternalTypedData::Handle();
       handle ^= Api::UnwrapHandle(big);
@@ -2703,12 +2714,10 @@ VM_UNIT_TEST_CASE(DartAPI_EnterExitScope) {
   Dart_EnterScope();
   {
     EXPECT(thread->api_top_scope() != NULL);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
     String& str1 = String::Handle();
-    {
-      TransitionNativeToVM transition(thread);
-      str1 = String::New("Test String");
-    }
+    str1 = String::New("Test String");
     Dart_Handle ref = Api::NewHandle(thread, str1.raw());
     String& str2 = String::Handle();
     str2 ^= Api::UnwrapHandle(ref);
@@ -2733,7 +2742,6 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   Dart_EnterScope();
   {
     CHECK_API_SCOPE(thread);
-    HANDLESCOPE(thread);
     Dart_Handle ref1 = Dart_NewStringFromCString(kTestString1);
     for (int i = 0; i < 1000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
@@ -2757,6 +2765,7 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   }
   Dart_ExitScope();
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     for (int i = 0; i < 500; i++) {
@@ -2796,7 +2805,6 @@ VM_UNIT_TEST_CASE(DartAPI_NewPersistentHandle_FromPersistentHandle) {
   EXPECT(state != NULL);
   Thread* thread = Thread::Current();
   CHECK_API_SCOPE(thread);
-  HANDLESCOPE(thread);
 
   // Start with a known persistent handle.
   Dart_PersistentHandle obj1 = Dart_NewPersistentHandle(Dart_True());
@@ -2824,25 +2832,33 @@ VM_UNIT_TEST_CASE(DartAPI_AssignToPersistentHandle) {
 
   Thread* T = Thread::Current();
   CHECK_API_SCOPE(T);
-  HANDLESCOPE(T);
   Isolate* isolate = T->isolate();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
-  String& str = String::Handle();
 
   // Start with a known persistent handle.
   Dart_Handle ref1 = Dart_NewStringFromCString(kTestString1);
   Dart_PersistentHandle obj = Dart_NewPersistentHandle(ref1);
   EXPECT(state->IsValidPersistentHandle(obj));
-  str ^= PersistentHandle::Cast(obj)->raw();
-  EXPECT(str.Equals(kTestString1));
+  {
+    TransitionNativeToVM transition(T);
+    HANDLESCOPE(T);
+    String& str = String::Handle();
+    str ^= PersistentHandle::Cast(obj)->raw();
+    EXPECT(str.Equals(kTestString1));
+  }
 
   // Now create another local handle and assign it to the persistent handle.
   Dart_Handle ref2 = Dart_NewStringFromCString(kTestString2);
   Dart_SetPersistentHandle(obj, ref2);
-  str ^= PersistentHandle::Cast(obj)->raw();
-  EXPECT(str.Equals(kTestString2));
+  {
+    TransitionNativeToVM transition(T);
+    HANDLESCOPE(T);
+    String& str = String::Handle();
+    str ^= PersistentHandle::Cast(obj)->raw();
+    EXPECT(str.Equals(kTestString2));
+  }
 
   // Now assign Null to the persistent handle and check.
   Dart_SetPersistentHandle(obj, Dart_Null());
@@ -3168,6 +3184,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
     // external size charged to old space.
     {
       CHECK_API_SCOPE(thread);
+      TransitionNativeToVM transition(thread);
       HANDLESCOPE(thread);
       String& handle = String::Handle(thread->zone());
       handle ^= Api::UnwrapHandle(obj);
@@ -3273,7 +3290,6 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
   Dart_EnterScope();
   {
     CHECK_API_SCOPE(thread);
-    HANDLESCOPE(thread);
 
     Dart_Handle local = AllocateOldString("strongly reachable");
     strong = Dart_NewPersistentHandle(local);
@@ -3337,7 +3353,6 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
   Dart_EnterScope();
   {
     CHECK_API_SCOPE(thread);
-    HANDLESCOPE(thread);
 
     Dart_Handle local = AllocateOldString("strongly reachable");
     strong = Dart_NewPersistentHandle(local);
@@ -3405,43 +3420,54 @@ VM_UNIT_TEST_CASE(DartAPI_LocalHandles) {
   Dart_Handle handles[300];
   {
     StackZone zone(thread);
+    TransitionNativeToVM transition1(thread);
     HANDLESCOPE(thread);
     Smi& val = Smi::Handle();
+    TransitionVMToNative transition2(thread);
 
     // Start a new scope and allocate some local handles.
     Dart_EnterScope();
-    for (int i = 0; i < 100; i++) {
-      handles[i] = Api::NewHandle(thread, Smi::New(i));
-    }
-    EXPECT_EQ(100, thread->CountLocalHandles());
-    for (int i = 0; i < 100; i++) {
-      val ^= Api::UnwrapHandle(handles[i]);
-      EXPECT_EQ(i, val.Value());
+    {
+      TransitionNativeToVM transition3(thread);
+      for (int i = 0; i < 100; i++) {
+        handles[i] = Api::NewHandle(thread, Smi::New(i));
+      }
+      EXPECT_EQ(100, thread->CountLocalHandles());
+      for (int i = 0; i < 100; i++) {
+        val ^= Api::UnwrapHandle(handles[i]);
+        EXPECT_EQ(i, val.Value());
+      }
     }
     // Start another scope and allocate some more local handles.
     {
       Dart_EnterScope();
-      for (int i = 100; i < 200; i++) {
-        handles[i] = Api::NewHandle(thread, Smi::New(i));
-      }
-      EXPECT_EQ(200, thread->CountLocalHandles());
-      for (int i = 100; i < 200; i++) {
-        val ^= Api::UnwrapHandle(handles[i]);
-        EXPECT_EQ(i, val.Value());
+      {
+        TransitionNativeToVM transition3(thread);
+        for (int i = 100; i < 200; i++) {
+          handles[i] = Api::NewHandle(thread, Smi::New(i));
+        }
+        EXPECT_EQ(200, thread->CountLocalHandles());
+        for (int i = 100; i < 200; i++) {
+          val ^= Api::UnwrapHandle(handles[i]);
+          EXPECT_EQ(i, val.Value());
+        }
       }
 
       // Start another scope and allocate some more local handles.
       {
         Dart_EnterScope();
-        for (int i = 200; i < 300; i++) {
-          handles[i] = Api::NewHandle(thread, Smi::New(i));
+        {
+          TransitionNativeToVM transition3(thread);
+          for (int i = 200; i < 300; i++) {
+            handles[i] = Api::NewHandle(thread, Smi::New(i));
+          }
+          EXPECT_EQ(300, thread->CountLocalHandles());
+          for (int i = 200; i < 300; i++) {
+            val ^= Api::UnwrapHandle(handles[i]);
+            EXPECT_EQ(i, val.Value());
+          }
+          EXPECT_EQ(300, thread->CountLocalHandles());
         }
-        EXPECT_EQ(300, thread->CountLocalHandles());
-        for (int i = 200; i < 300; i++) {
-          val ^= Api::UnwrapHandle(handles[i]);
-          EXPECT_EQ(i, val.Value());
-        }
-        EXPECT_EQ(300, thread->CountLocalHandles());
         VERIFY_ON_TRANSITION;
         Dart_ExitScope();
       }
@@ -4231,6 +4257,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
   CHECK_API_SCOPE(thread);
+  TransitionNativeToVM transition(thread);
   HANDLESCOPE(thread);
   Instance& obj = Instance::Handle();
   obj ^= Api::UnwrapHandle(result);
@@ -4312,6 +4339,7 @@ static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
                                                          bool* auto_scope) {
   ASSERT(auto_scope != NULL);
   *auto_scope = true;
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -4504,7 +4532,6 @@ TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
       "}\n";
   Dart_Handle result;
   CHECK_API_SCOPE(thread);
-  HANDLESCOPE(thread);
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -5351,7 +5378,6 @@ TEST_CASE(DartAPI_InvokeClosure) {
       "}\n";
   Dart_Handle result;
   CHECK_API_SCOPE(thread);
-  HANDLESCOPE(thread);
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -5556,6 +5582,7 @@ static void NativeArgumentAccess(Dart_NativeArguments args) {
 static Dart_NativeFunction native_args_lookup(Dart_Handle name,
                                               int argument_count,
                                               bool* auto_scope_setup) {
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -6151,10 +6178,10 @@ TEST_CASE(DartAPI_Multiroot_Valid) {
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
   EXPECT_VALID(lib);
-  Library& lib_obj = Library::Handle();
-  lib_obj ^= Api::UnwrapHandle(lib);
   {
     TransitionNativeToVM transition(thread);
+    Library& lib_obj = Library::Handle();
+    lib_obj ^= Api::UnwrapHandle(lib);
     EXPECT_STREQ("foo:///main.dart", String::Handle(lib_obj.url()).ToCString());
     const Array& lib_scripts = Array::Handle(lib_obj.LoadedScripts());
     Script& script = Script::Handle();
@@ -6719,6 +6746,7 @@ static Dart_NativeFunction MyNativeClosureResolver(Dart_Handle name,
                                                    bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = false;
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -6858,6 +6886,7 @@ static Dart_NativeFunction MyStaticNativeClosureResolver(
     bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = false;
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -7064,7 +7093,6 @@ TEST_CASE(DartAPI_CollectOneNewSpacePeer) {
   Dart_EnterScope();
   {
     CHECK_API_SCOPE(thread);
-    HANDLESCOPE(thread);
     Dart_Handle str = NewString("a string");
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -7142,7 +7170,6 @@ TEST_CASE(DartAPI_CollectTwoNewSpacePeers) {
   Dart_EnterScope();
   {
     CHECK_API_SCOPE(thread);
-    HANDLESCOPE(thread);
     Dart_Handle s1 = NewString("s1");
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
@@ -7234,6 +7261,7 @@ TEST_CASE(DartAPI_OnePromotedPeer) {
   }
   {
     CHECK_API_SCOPE(thread);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
     String& handle = String::Handle();
     handle ^= Api::UnwrapHandle(str);
@@ -7290,7 +7318,6 @@ TEST_CASE(DartAPI_CollectOneOldSpacePeer) {
   {
     Thread* T = Thread::Current();
     CHECK_API_SCOPE(T);
-    HANDLESCOPE(T);
     Dart_Handle str = AllocateOldString("str");
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -7372,7 +7399,6 @@ TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
   {
     Thread* T = Thread::Current();
     CHECK_API_SCOPE(T);
-    HANDLESCOPE(T);
     Dart_Handle s1 = AllocateOldString("s1");
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));

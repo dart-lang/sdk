@@ -12,6 +12,7 @@ bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 call: Fail # Test can't run.
 constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
 constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+duplicated_field_initializer: RuntimeError
 external_import: RuntimeError # Expected -- test uses import which doesn't exist.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
@@ -40,10 +41,10 @@ rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
 rasta/bad_default_constructor: Fail # Compile-time error destroys program.
 rasta/bad_explicit_super_constructor: RuntimeError
-rasta/bad_implicit_super_constructor: Fail
+rasta/bad_implicit_super_constructor: RuntimeError
 rasta/bad_interpolation: Fail
 rasta/bad_redirection: Fail
-rasta/bad_setter_initializer: Fail
+rasta/bad_setter_initializer: RuntimeError
 rasta/bad_unicode: Fail
 rasta/breaking_bad: Fail
 rasta/class_hierarchy: Fail

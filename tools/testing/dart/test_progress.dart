@@ -244,6 +244,13 @@ class UnexpectedCrashLogger extends EventListener {
         var arch = test.configuration.architecture.name;
         var archived = "binary.${mode}_${arch}_${binBaseName}";
         TestUtils.copyFile(new Path(binName), new Path(archived));
+        // On Windows also copy PDB file for the binary.
+        if (Platform.isWindows) {
+          final pdbPath = new Path("$binName.pdb");
+          if (new File(pdbPath.toNativePath()).existsSync()) {
+            TestUtils.copyFile(pdbPath, new Path("$archived.pdb"));
+          }
+        }
         archivedBinaries[binName] = archived;
       }
 

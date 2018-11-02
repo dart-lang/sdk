@@ -18,12 +18,12 @@ config("sdk") {
                              ],
                              "value") ]
 
-    # When using the pulled wheezy sysroot with gcc, we have to specify these
+    # When using the pulled Debian sysroot with gcc, we have to specify these
     # excplicitly.
-    if (dart_use_wheezy_sysroot && !is_clang) {
+    if (dart_use_debian_sysroot && !is_clang) {
       cflags += [
-        "-I=/usr/include/c++/4.6",
-        "-I=/usr/include/c++/4.6/i486-linux-gnu",
+        "-I=/usr/include/c++/4.8",
+        "-I=/usr/include/c++/4.8/i486-linux-gnu",
       ]
     }
   }

@@ -72,6 +72,28 @@ class DateTime {
     return new Duration(seconds: offsetInSeconds);
   }
 
+  @patch
+  bool operator ==(dynamic other) {
+    Object promotableOther = other;
+    return promotableOther is DateTime &&
+        _value == promotableOther.microsecondsSinceEpoch &&
+        isUtc == promotableOther.isUtc;
+  }
+
+  @patch
+  bool isBefore(DateTime other) => _value < other.microsecondsSinceEpoch;
+
+  @patch
+  bool isAfter(DateTime other) => _value > other.microsecondsSinceEpoch;
+
+  @patch
+  bool isAtSameMomentAs(DateTime other) =>
+      _value == other.microsecondsSinceEpoch;
+
+  @patch
+  int compareTo(DateTime other) =>
+      _value.compareTo(other.microsecondsSinceEpoch);
+
   /** The first list contains the days until each month in non-leap years. The
     * second list contains the days in leap years. */
   static const List<List<int>> _DAYS_UNTIL_MONTH = const [

@@ -77,9 +77,11 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
       }
     }
     isLeastClosure = !isLeastClosure;
+    DartType typedefType = node.typedefType?.accept(this);
     if (newReturnType == null &&
         newPositionalParameters == null &&
-        newNamedParameters == null) {
+        newNamedParameters == null &&
+        typedefType == null) {
       // No types had to be substituted.
       return null;
     } else {
@@ -89,7 +91,7 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: node.typeParameters,
           requiredParameterCount: node.requiredParameterCount,
-          typedefReference: node.typedefReference);
+          typedefType: typedefType);
     }
   }
 

@@ -384,7 +384,6 @@ class RunServiceTask : public ThreadPool::Task {
       if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
-      TransitionVMToNative transition(T);
       Dart::RunShutdownCallback();
     }
     ASSERT(ServiceIsolate::IsServiceIsolate(I));

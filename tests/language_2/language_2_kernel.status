@@ -171,8 +171,12 @@ assertion_initializer_const_error2_test/cc07: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc08: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError
+async_await_syntax_test/e5: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
+async_await_syntax_test/e6: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
 const_cast1_test/02: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
+constructor5_test: CompileTimeError # Verification error
+constructor6_test: CompileTimeError # Verification error
 implicit_creation/implicit_const_not_default_values_test/e1: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e10: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e11: MissingCompileTimeError
@@ -193,10 +197,14 @@ implicit_creation/implicit_const_not_default_values_test/e4: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
+mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
 vm/regress_33469_test/04: MissingCompileTimeError
+vm/regression_32912_test/01: MissingCompileTimeError
+vm/regression_32912_test/02: MissingCompileTimeError
+vm/regression_32912_test/03: MissingCompileTimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $fasta ]
@@ -237,6 +245,26 @@ syntax_test/61: MissingCompileTimeError # Issue 30470
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
+
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+generic_function_dcall_test/01: SkipByDesign # Prints type names
+invocation_mirror_test: RuntimeError # Issue 34911
+many_named_arguments_test: SkipByDesign # Checks names of arguments
+mixin_generic_test: SkipByDesign # Prints type names
+mixin_mixin3_test: SkipByDesign # Prints type names
+mixin_mixin5_test: SkipByDesign # Prints type names
+mixin_mixin6_test: SkipByDesign # Prints type names
+mixin_mixin_bound2_test: SkipByDesign # Prints type names
+no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "foobar" in noSuchMethod
+recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
+symbol_literal_test/02: SkipByDesign # We don't obfuscate const Symbol constructor
+tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
+type_literal_test: SkipByDesign # Uses lots of strings with type names in them
+vm/bool_check_stack_traces_test: SkipByDesign # Looks for filenames in stacktrace output
+vm/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
+vm/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
+vm/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated name in error message
+vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
 
 [ $compiler == app_jitk && $mode == product ]
 vm/causal_async_exception_stack2_test: RuntimeError
@@ -321,6 +349,10 @@ vm/bool_check_stack_traces_test/none: RuntimeError # No support for line numbers
 vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
 vm/causal_async_exception_stack_test: RuntimeError # No support for line numbers in stacktraces
 vm/regress_28325_test: RuntimeError # No support for line numbers in stacktraces
+
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+vm/symbols_test/01: MissingCompileTimeError
+vm/symbols_test/03: MissingCompileTimeError
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 external_test/13: Crash
@@ -629,11 +661,6 @@ vm/type_vm_test/32: MissingRuntimeError
 
 [ $compiler == dartkp && $system == windows ]
 disassemble_test: Pass, Slow
-
-[ $compiler == dartkp && $minified ]
-no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "foobar" in noSuchMethod
-recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
-tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
 
 [ $compiler == fasta && $strong ]
 compile_time_constant_static4_test/02: MissingCompileTimeError
@@ -968,9 +995,8 @@ async_star_test/01: Crash
 async_star_test/05: Crash
 
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-enum_duplicate_test/01: Pass, Crash # Issue 34606
 enum_duplicate_test/02: Crash # Issue 34606
-enum_duplicate_test/none: Crash # Issue 34606
+enum_duplicate_test/none: Pass, Crash # Issue 34606
 enum_private_test/01: Crash # Issue 34606
 enum_test: Crash # Issue 34606
 
@@ -1051,7 +1077,7 @@ deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_redirecting_factory_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-disassemble_test: Pass, Slow
+disassemble_test: Pass, Slow, Crash # dartbug.com/34971
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 example_constructor_test: Fail, OK
@@ -1969,3 +1995,7 @@ async_star_test/none: Skip # Timeout
 
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
+
+[ $compiler == dartkb || $compiler == dartkp ]
+mock_writable_final_private_field_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.
+vm/reflect_core_vm_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.

@@ -760,24 +760,23 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
   {
     TestIsolateScope __test_isolate__;
 
+    // Create a test library and Load up a test script in it.
+    TestCase::LoadTestScript(kScriptChars, NULL);
+
     Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HandleScope scope(thread);
 
-    // Create a test library and Load up a test script in it.
-    TestCase::LoadTestScript(kScriptChars, NULL);
     EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    {
-      TransitionNativeToVM transition(thread);
-      FullSnapshotWriter writer(
-          Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
-          &malloc_allocator, NULL, NULL /* image_writer */);
-      writer.WriteFullSnapshot();
-    }
+    FullSnapshotWriter writer(Snapshot::kFull, NULL,
+                              &isolate_snapshot_data_buffer, &malloc_allocator,
+                              NULL, NULL /* image_writer */);
+    writer.WriteFullSnapshot();
   }
 
   // Now Create another isolate using the snapshot and execute a method
@@ -869,8 +868,11 @@ VM_UNIT_TEST_CASE(FullSnapshot1) {
 // Helper function to call a top level Dart function and serialize the result.
 static Message* GetSerialized(Dart_Handle lib, const char* dart_function) {
   Dart_Handle result;
-  result = Dart_Invoke(lib, NewString(dart_function), 0, NULL);
-  EXPECT_VALID(result);
+  {
+    TransitionVMToNative transition(Thread::Current());
+    result = Dart_Invoke(lib, NewString(dart_function), 0, NULL);
+    EXPECT_VALID(result);
+  }
   Object& obj = Object::Handle(Api::UnwrapHandle(result));
 
   // Serialize the object into a message.
@@ -1009,6 +1011,7 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
   {
     Thread* thread = Thread::Current();
     CHECK_API_SCOPE(thread);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
 
     {
@@ -1081,6 +1084,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
 
   {
     CHECK_API_SCOPE(thread);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
     StackZone zone(thread);
     {
@@ -1208,6 +1212,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 
   {
     CHECK_API_SCOPE(thread);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
     StackZone zone(thread);
     {
@@ -1445,6 +1450,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
   {
     CHECK_API_SCOPE(thread);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
     StackZone zone(thread);
     {
@@ -1653,6 +1659,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
 
   {
     CHECK_API_SCOPE(thread);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
     StackZone zone(thread);
     {
@@ -1883,6 +1890,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
 
   {
     CHECK_API_SCOPE(thread);
+    TransitionNativeToVM transition(thread);
     HANDLESCOPE(thread);
     StackZone zone(thread);
     {

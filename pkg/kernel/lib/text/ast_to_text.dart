@@ -1345,10 +1345,10 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeWord(node.isImport ? 'import' : 'export');
     var uriString;
-    if (node.importedLibraryReference.node != null) {
+    if (node.importedLibraryReference?.node != null) {
       uriString = '${node.targetLibrary.importUri}';
     } else {
-      uriString = '${node.importedLibraryReference.canonicalName.name}';
+      uriString = '${node.importedLibraryReference?.canonicalName?.name}';
     }
     writeWord('"$uriString"');
     if (node.isDeferred) {

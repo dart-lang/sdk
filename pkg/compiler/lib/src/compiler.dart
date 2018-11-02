@@ -33,8 +33,10 @@ import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
-import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
+import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
+import 'serialization/task.dart';
+import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
 import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'types/types.dart'
@@ -115,6 +117,7 @@ abstract class Compiler {
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   DumpInfoTask dumpInfoTask;
+  SerializationTask serializationTask;
 
   bool get hasCrashed => _reporter.hasCrashed;
 
@@ -176,6 +179,7 @@ abstract class Compiler {
       enqueuer,
       dumpInfoTask = new DumpInfoTask(this),
       selfTask,
+      serializationTask = new SerializationTask(this, measurer),
     ];
 
     tasks.addAll(backend.tasks);
@@ -264,16 +268,23 @@ abstract class Compiler {
     assert(uri != null);
     // As far as I can tell, this branch is only used by test code.
     reporter.log('Compiling $uri (${options.buildId})');
-    LoadedLibraries loadedLibraries = await libraryLoader.loadLibraries(uri);
-    // Note: libraries may be null because of errors trying to find files or
-    // parse-time errors (when using `package:front_end` as a loader).
-    if (loadedLibraries == null) return;
-    if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
-      return;
+
+    if (options.readDataUri != null) {
+      GlobalTypeInferenceResults results =
+          await serializationTask.deserialize();
+      generateJavaScriptCode(results);
+    } else {
+      LoadedLibraries loadedLibraries = await libraryLoader.loadLibraries(uri);
+      // Note: libraries may be null because of errors trying to find files or
+      // parse-time errors (when using `package:front_end` as a loader).
+      if (loadedLibraries == null) return;
+      if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
+        return;
+      }
+      _mainLibraryUri = loadedLibraries.rootLibraryUri;
+      processLoadedLibraries(loadedLibraries);
+      await compileLoadedLibraries(loadedLibraries);
     }
-    _mainLibraryUri = loadedLibraries.rootLibraryUri;
-    processLoadedLibraries(loadedLibraries);
-    compileLoadedLibraries(loadedLibraries);
   }
 
   /// Starts the resolution phase, creating the [ResolutionEnqueuer] if not
@@ -391,6 +402,24 @@ abstract class Compiler {
       if (closedWorld != null) {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);
+        if (options.writeDataUri != null) {
+          serializationTask.serialize(globalInferenceResults);
+          return;
+        }
+        if (options.testMode) {
+          SerializationStrategy strategy =
+              const BytesInMemorySerializationStrategy();
+          List<int> irData =
+              strategy.serializeComponent(globalInferenceResults);
+          List worldData = strategy.serializeData(globalInferenceResults);
+          globalInferenceResults = strategy.deserializeData(
+              options,
+              reporter,
+              environment,
+              abstractValueStrategy,
+              strategy.deserializeComponent(irData),
+              worldData);
+        }
         if (stopAfterTypeInference) return;
         generateJavaScriptCode(globalInferenceResults);
       }
@@ -625,10 +654,16 @@ class _CompilerOutput implements api.CompilerOutput {
         // Disable output in test mode: The build bot currently uses the time
         // stamp of the generated file to determine whether the output is
         // up-to-date.
-        return NullSink.outputProvider(name, extension, type);
+        return const NullCompilerOutput()
+            .createOutputSink(name, extension, type);
       }
     }
     return _userOutput.createOutputSink(name, extension, type);
+  }
+
+  @override
+  api.BinaryOutputSink createBinarySink(Uri uri) {
+    return _userOutput.createBinarySink(uri);
   }
 }
 

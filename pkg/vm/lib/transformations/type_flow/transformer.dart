@@ -15,11 +15,11 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart';
 
 import 'analysis.dart';
-import 'native_code.dart';
 import 'calls.dart';
 import 'summary_collector.dart';
 import 'types.dart';
 import 'utils.dart';
+import '../pragma.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
@@ -452,6 +452,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
   @override
   visitTypedefType(TypedefType node) {
     shaker.addUsedTypedef(node.typedefNode);
+    node.visitChildren(this);
   }
 
   @override

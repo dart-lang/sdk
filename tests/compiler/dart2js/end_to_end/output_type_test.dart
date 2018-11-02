@@ -32,6 +32,9 @@ class TestRandomAccessFileOutputProvider implements CompilerOutput {
         provider.createUri(name, extension, type), Platform.isWindows));
     return NullSink.outputProvider(name, extension, type);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) => new NullBinarySink(uri);
 }
 
 CompileFunc oldCompileFunc;

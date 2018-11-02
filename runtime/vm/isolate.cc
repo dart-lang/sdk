@@ -1166,6 +1166,21 @@ Thread* Isolate::mutator_thread() const {
   return thread_registry()->mutator_thread();
 }
 
+RawObject* Isolate::CallTagHandler(Dart_LibraryTag tag,
+                                   const Object& arg1,
+                                   const Object& arg2) {
+  Thread* thread = Thread::Current();
+  Api::Scope api_scope(thread);
+  Dart_Handle api_arg1 = Api::NewHandle(thread, arg1.raw());
+  Dart_Handle api_arg2 = Api::NewHandle(thread, arg2.raw());
+  Dart_Handle api_result;
+  {
+    TransitionVMToNative transition(thread);
+    api_result = library_tag_handler_(tag, api_arg1, api_arg2);
+  }
+  return Api::UnwrapHandle(api_result);
+}
+
 void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
   Image image(image_buffer);
   heap_->SetupImagePage(image.object_start(), image.object_size(),
@@ -1665,7 +1680,6 @@ static void ShutdownIsolate(uword parameter) {
 #if defined(DEBUG)
     isolate->ValidateConstants();
 #endif  // defined(DEBUG)
-    TransitionVMToNative transition(thread);
     Dart::RunShutdownCallback();
   }
   // Shut the isolate down.

@@ -1440,43 +1440,6 @@ RawTypeArguments* ActivationFrame::BuildParameters(
   return type_arguments.raw();
 }
 
-RawObject* ActivationFrame::Evaluate(const String& expr,
-                                     const GrowableObjectArray& param_names,
-                                     const GrowableObjectArray& param_values) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Object::null();
-#else
-  Zone* zone = Thread::Current()->zone();
-  const GrowableObjectArray& type_params_names =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  TypeArguments& type_arguments = TypeArguments::Handle(
-      zone, BuildParameters(param_names, param_values, type_params_names));
-
-  if (function().is_static()) {
-    const Class& cls = Class::Handle(function().Owner());
-    return cls.Evaluate(
-        expr, Array::Handle(zone, Array::MakeFixedLength(param_names)),
-        Array::Handle(zone, Array::MakeFixedLength(param_values)),
-        Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-        type_arguments);
-  } else {
-    const Object& receiver = Object::Handle(GetReceiver());
-    const Class& method_cls = Class::Handle(function().origin());
-    ASSERT(receiver.IsInstance() || receiver.IsNull());
-    if (!(receiver.IsInstance() || receiver.IsNull())) {
-      return Object::null();
-    }
-    const Instance& inst = Instance::Cast(receiver);
-    return inst.Evaluate(
-        method_cls, expr,
-        Array::Handle(zone, Array::MakeFixedLength(param_names)),
-        Array::Handle(zone, Array::MakeFixedLength(param_values)),
-        Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-        type_arguments);
-  }
-#endif
-}
-
 const char* ActivationFrame::ToCString() {
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();

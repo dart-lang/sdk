@@ -102,7 +102,8 @@ jsAst.Statement buildSetupProgram(
     'needsMixinSupport': emitter.needsMixinSupport,
     'needsNativeSupport': program.needsNativeSupport,
     'enabledJsInterop': closedWorld.nativeData.isJsInteropUsed,
-    'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
+    'jsInteropBoostrap': jsInteropAnalysis.buildJsInteropBootstrap(
+        compiler.codegenWorldBuilder, closedWorld.nativeData, namer),
     'isInterceptorClass':
         namer.operatorIs(closedWorld.commonElements.jsInterceptorClass),
     'isObject': namer.operatorIs(closedWorld.commonElements.objectClass),

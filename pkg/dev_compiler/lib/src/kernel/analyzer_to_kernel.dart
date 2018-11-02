@@ -186,6 +186,7 @@ class AnalyzerToKernel {
     library ??= visitLibraryElement(e.library);
     library.addClass(class_);
 
+    class_.isMixinDeclaration = e.isMixin;
     class_.typeParameters
         .addAll(e.typeParameters.map(visitTypeParameterElement));
 
@@ -476,7 +477,7 @@ class AnalyzerToKernel {
     }
     t.typeParameters.addAll(typeParams.map(visitTypeParameterElement));
     setParents(t.typeParameters, t);
-    t.type = _visitDartType(type);
+    t.type = _visitDartType(type, originTypedef: t.thisType);
     _visitAnnotations(e.metadata, t.addAnnotation);
     return t;
   }
@@ -502,6 +503,9 @@ class AnalyzerToKernel {
 
     _visitUnit(a.CompilationUnitElement u) {
       for (var t in u.types) {
+        visitClassElement(t, library);
+      }
+      for (var t in u.mixins) {
         visitClassElement(t, library);
       }
       for (var t in u.functionTypeAliases) {
@@ -611,7 +615,8 @@ class AnalyzerToKernel {
   /// populated with the node (creating it if needed). Many members on
   /// [InterfaceType] and [TypedefType] rely on having a node present, so this
   /// enables the use of those members if they're needed by the converter.
-  DartType _visitDartType(a.DartType type, {bool ensureNode = false}) {
+  DartType _visitDartType(a.DartType type,
+      {bool ensureNode = false, TypedefType originTypedef}) {
     if (type.isVoid) {
       return const VoidType();
     } else if (type.isDynamic) {
@@ -654,7 +659,8 @@ class AnalyzerToKernel {
     return FunctionType(positional, visit(f.returnType),
         typeParameters: f.typeFormals.map(visitTypeParameterElement).toList(),
         namedParameters: named,
-        requiredParameterCount: params.where((p) => !p.isOptional).length);
+        requiredParameterCount: params.where((p) => !p.isOptional).length,
+        typedefType: originTypedef);
   }
 
   Supertype _typeToSupertype(a.InterfaceType t) {

@@ -377,6 +377,7 @@ abstract class RawSecureSocket implements RawSocket {
  * X509Certificate represents an SSL certificate, with accessors to
  * get the fields of the certificate.
  */
+@pragma("vm:entry-point")
 abstract class X509Certificate {
   @pragma("vm:entry-point")
   external factory X509Certificate._();
@@ -1288,6 +1289,7 @@ class TlsException implements IOException {
  * An exception that happens in the handshake phase of establishing
  * a secure network connection.
  */
+@pragma("vm:entry-point")
 class HandshakeException extends TlsException {
   @pragma("vm:entry-point")
   const HandshakeException([String message = "", OSError osError = null])

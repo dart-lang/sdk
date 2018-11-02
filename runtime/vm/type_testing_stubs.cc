@@ -345,8 +345,7 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   ASSERT(!type_class.IsNull());
 
   // To use the already-defined __ Macro !
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(&object_pool_wrapper);
+  Assembler assembler(nullptr);
   BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
 
   const char* name = namer_.StubNameForType(type);
@@ -360,7 +359,9 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
     code.Disassemble(&formatter);
     THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 #endif  // !PRODUCT
 

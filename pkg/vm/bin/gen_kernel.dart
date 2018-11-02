@@ -104,7 +104,6 @@ Future<int> compile(List<String> arguments) async {
     ..packagesFileUri =
         packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null
     ..onDiagnostic = (DiagnosticMessage m) {
-      printDiagnosticMessage(m, stderr.writeln);
       errorDetector(m);
     }
     ..embedSourceText = options['embed-sources'];

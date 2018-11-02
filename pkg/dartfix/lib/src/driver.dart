@@ -1,18 +1,21 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show File, Directory;
+import 'dart:io' show File, Platform;
 
 import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/server.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
+import 'package:dartfix/src/verbose_server.dart';
 import 'package:dartfix/src/options.dart';
-import 'package:dartfix/src/server.dart';
 import 'package:path/path.dart' as path;
 
 class Driver {
+  String dartfixVersion;
+
   Context context;
   Logger logger;
   Server server;
@@ -23,13 +26,49 @@ class Driver {
   bool overwrite;
   List<String> targets;
 
+  /// Read pubspec.yaml and return the version in that file.
+  static String get pubspecVersion {
+    String dir = path.dirname(Platform.script.toFilePath());
+    File pubspec = new File(path.join(dir, '..', 'pubspec.yaml'));
+
+    List<String> lines = pubspec.readAsLinesSync();
+    if (lines[0] != 'name: dartfix') {
+      throw 'Expected dartfix pubspec in: ${pubspec.path}';
+    }
+    String version;
+    if (lines[1].startsWith('version:')) {
+      version = lines[1].substring(8).trim();
+    }
+    if (version == null || version.isEmpty) {
+      throw 'Failed to find dartfix pubspec version in ${pubspec.path}';
+    }
+    return version;
+  }
+
+  Driver() {
+    this.dartfixVersion = pubspecVersion;
+  }
+
   Ansi get ansi => logger.ansi;
 
-  bool get runAnalysisServerFromSource {
-    // Automatically run analysis server from source
-    // if this command line tool is being run from source
-    // within the source tree.
-    return Server.findRoot() != null;
+  /// Return the analysis_server executable by proceeding upward
+  /// until finding the Dart SDK repository root then returning
+  /// the analysis_server executable within the repository.
+  /// Return `null` if it cannot be found.
+  String findServerPath() {
+    String pathname = Platform.script.toFilePath();
+    while (true) {
+      String parent = path.dirname(pathname);
+      if (parent.length >= pathname.length) {
+        return null;
+      }
+      String serverPath =
+          path.join(parent, 'pkg', 'analysis_server', 'bin', 'server.dart');
+      if (new File(serverPath).existsSync()) {
+        return serverPath;
+      }
+      pathname = parent;
+    }
   }
 
   Future start(List<String> args) async {
@@ -66,17 +105,28 @@ class Driver {
   }
 
   Future startServer(Options options) async {
-    server = new Server(logger);
+    server = logger.isVerbose ? new VerboseServer(logger) : new Server();
     const connectTimeout = const Duration(seconds: 15);
     serverConnected = new Completer();
     if (options.verbose) {
-      server.debugStdio();
+      logger.trace('Dart SDK version ${Platform.version}');
+      logger.trace('  ${Platform.resolvedExecutable}');
+      logger.trace('dartfix');
+      logger.trace('  ${Platform.script.toFilePath()}');
     }
-    logger.trace('Starting...');
+    // Automatically run analysis server from source
+    // if this command line tool is being run from source within the SDK repo.
+    String serverPath = findServerPath();
+    logger
+        .trace(serverPath != null ? 'Starting from source...' : 'Starting...');
     await server.start(
-        sdkPath: options.sdkPath, useSnapshot: !runAnalysisServerFromSource);
-    server.listenToOutput(dispatchNotification);
-    return serverConnected.future.timeout(connectTimeout, onTimeout: () {
+      clientId: 'dartfix',
+      clientVersion: dartfixVersion,
+      sdkPath: options.sdkPath,
+      serverPath: serverPath,
+    );
+    server.listenToOutput(notificationProcessor: handleEvent);
+    await serverConnected.future.timeout(connectTimeout, onTimeout: () {
       logger.stderr('Failed to connect to server');
       context.exit(15);
     });
@@ -122,25 +172,23 @@ class Driver {
   }
 
   Future applyFixes(EditDartfixResult result) async {
-    showDescriptions('Recommended changes', result.descriptionOfFixes);
-    showDescriptions(
-      'Recommended changes that cannot not be automatically applied',
-      result.otherRecommendations,
-    );
-    if (result.descriptionOfFixes.isEmpty) {
+    showDescriptions('Recommended changes', result.suggestions);
+    showDescriptions('Recommended changes that cannot be automatically applied',
+        result.otherSuggestions);
+    if (result.suggestions.isEmpty) {
       logger.stdout('');
-      logger.stdout(result.otherRecommendations.isNotEmpty
-          ? 'No recommended changes that cannot be automatically applied.'
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
           : 'No recommended changes.');
       return;
     }
     logger.stdout('');
     logger.stdout(ansi.emphasized('Files to be changed:'));
-    for (SourceFileEdit fileEdit in result.fixes) {
-      logger.stdout('  ${_relativePath(fileEdit.file)}');
+    for (SourceFileEdit fileEdit in result.edits) {
+      logger.stdout('  ${relativePath(fileEdit.file)}');
     }
     if (shouldApplyChanges(result)) {
-      for (SourceFileEdit fileEdit in result.fixes) {
+      for (SourceFileEdit fileEdit in result.edits) {
         final file = new File(fileEdit.file);
         String code = await file.readAsString();
         for (SourceEdit edit in fileEdit.edits) {
@@ -148,17 +196,25 @@ class Driver {
         }
         await file.writeAsString(code);
       }
-      logger.stdout('Changes applied.');
+      logger.stdout(ansi.emphasized('Changes applied.'));
     }
   }
 
-  void showDescriptions(String title, List<String> descriptions) {
-    if (descriptions.isNotEmpty) {
+  void showDescriptions(String title, List<DartFixSuggestion> suggestions) {
+    if (suggestions.isNotEmpty) {
       logger.stdout('');
       logger.stdout(ansi.emphasized('$title:'));
-      List<String> sorted = new List.from(descriptions)..sort();
-      for (String line in sorted) {
-        logger.stdout('  $line');
+      List<DartFixSuggestion> sorted = new List.from(suggestions)
+        ..sort(compareSuggestions);
+      for (DartFixSuggestion suggestion in sorted) {
+        final msg = new StringBuffer();
+        msg.write('  ${_toSentenceFragment(suggestion.description)}');
+        final loc = suggestion.location;
+        if (loc != null) {
+          msg.write(' • ${relativePath(loc.file)}');
+          msg.write(' • ${loc.startLine}:${loc.startColumn}');
+        }
+        logger.stdout(msg.toString());
       }
     }
   }
@@ -182,7 +238,7 @@ class Driver {
 
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
-  void dispatchNotification(String event, params) {
+  void handleEvent(String event, params) {
     ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
       case SERVER_NOTIFICATION_CONNECTED:
@@ -290,7 +346,7 @@ class Driver {
         if (!shouldFilterError(error)) {
           if (!foundAtLeastOneError) {
             foundAtLeastOneError = true;
-            logger.stdout('${_relativePath(params.file)}:');
+            logger.stdout('${relativePath(params.file)}:');
           }
           Location loc = error.location;
           logger.stdout('  ${_toSentenceFragment(error.message)}'
@@ -327,6 +383,23 @@ class Driver {
     }
   }
 
+  int compareSuggestions(DartFixSuggestion s1, DartFixSuggestion s2) {
+    int result = s1.description.compareTo(s2.description);
+    if (result != 0) {
+      return result;
+    }
+    return (s2.location?.offset ?? 0) - (s1.location?.offset ?? 0);
+  }
+
+  String relativePath(String filePath) {
+    for (String target in targets) {
+      if (filePath.startsWith(target)) {
+        return filePath.substring(target.length + 1);
+      }
+    }
+    return filePath;
+  }
+
   bool shouldFilterError(AnalysisError error) {
     // Do not show TODOs or errors that will be automatically fixed.
 
@@ -344,16 +417,6 @@ class Driver {
       }
     }
     return false;
-  }
-}
-
-String _relativePath(String filePath) {
-  final String currentPath = Directory.current.absolute.path;
-
-  if (filePath.startsWith(currentPath)) {
-    return filePath.substring(currentPath.length + 1);
-  } else {
-    return filePath;
   }
 }
 

@@ -329,10 +329,10 @@ namespace dart {
 //    Throw (Rethrow if A != 0) exception. Exception object and stack object
 //    are taken from TOS.
 //
-//  - MoveSpecial rA, D
+//  - MoveSpecial A, rX
 //
-//    Copy special values from inside interpreter to FP[rA]. Currently only
-//    used to pass exception object (D = 0) and stack trace object (D = 1) to
+//    Copy value from special variable to FP[rX]. Currently only
+//    used to pass exception object (A = 0) and stack trace object (A = 1) to
 //    catch handler.
 //
 //  - SetFrame A
@@ -396,7 +396,7 @@ namespace dart {
   V(EntryOptional,                     A_B_C, num, num, num)                   \
   V(LoadConstant,                        A_D, reg, lit, ___)                   \
   V(Frame,                                 D, num, ___, ___)                   \
-  V(CheckFunctionTypeArgs,               A_D, num, num, ___)                   \
+  V(CheckFunctionTypeArgs,               A_D, num, reg, ___)                   \
   V(CheckStack,                            0, ___, ___, ___)                   \
   V(Allocate,                              D, lit, ___, ___)                   \
   V(AllocateT,                             0, ___, ___, ___)                   \
@@ -441,7 +441,7 @@ namespace dart {
   V(InstantiateType,                       D, lit, ___, ___)                   \
   V(InstantiateTypeArgumentsTOS,         A_D, num, lit, ___)                   \
   V(Throw,                                 A, num, ___, ___)                   \
-  V(MoveSpecial,                         A_D, reg, num, ___)                   \
+  V(MoveSpecial,                         A_X, num, xeg, ___)                   \
   V(SetFrame,                              A, num, ___, num)                   \
   V(BooleanNegateTOS,                      0, ___, ___, ___)                   \
   V(EqualsNull,                            0, ___, ___, ___)                   \

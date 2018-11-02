@@ -796,11 +796,12 @@ const char* Dart::FeaturesString(Isolate* isolate,
 
 void Dart::RunShutdownCallback() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   Isolate* isolate = thread->isolate();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {
+    TransitionVMToNative transition(thread);
     (callback)(callback_data);
   }
 }

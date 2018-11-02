@@ -14,7 +14,6 @@ accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 cascaded_forwarding_stubs_test: CompileTimeError # Issue 34329
 config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-design: Will never pass, see Issue #34332
-conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333 (loops forever)
 const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
@@ -126,6 +125,9 @@ vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/reflect_core_vm_test: CompileTimeError # Issue 33994
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
+vm/regression_32912_test/01: MissingCompileTimeError # Issue 32912
+vm/regression_32912_test/02: MissingCompileTimeError # Issue 32912
+vm/regression_32912_test/03: MissingCompileTimeError # Issue 32912
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319

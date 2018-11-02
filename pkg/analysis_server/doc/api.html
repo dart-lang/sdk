@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.21.0
+  1.21.1
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2660,6 +2660,7 @@ a:focus, a:hover {
   
   
   
+  
 <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
     <p>
       A directive to begin overlaying the contents of a file. The supplied
@@ -4379,9 +4380,9 @@ a:focus, a:hover {
       </dd></dl></dd><dt class="typeDefinition"><a name="type_RuntimeCompletionExpression">RuntimeCompletionExpression: object</a></dt><dd>
     <p>
       An expression for which we want to know its runtime type.
-      In expressions like `a.b.c.where((e) =&gt; e.^)` we want to know the
-      runtime type of `a.b.c` to enforce it statically at the time when we
-      compute completion suggestions, and get better type for `e`.
+      In expressions like 'a.b.c.where((e) =&gt; e.^)' we want to know the
+      runtime type of 'a.b.c' to enforce it statically at the time when we
+      compute completion suggestions, and get better type for 'e'.
     </p>
     
   <dl><dt class="field"><b>offset: int</b></dt><dd>

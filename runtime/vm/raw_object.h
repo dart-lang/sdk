@@ -241,6 +241,11 @@ enum TypedDataElementType {
 #undef V
 };
 
+enum class MemoryOrder {
+  kRelaxed,
+  kRelease,
+};
+
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(SnapshotWriter* writer, intptr_t object_id,                     \
                Snapshot::Kind kind, bool as_reference);                        \
@@ -685,9 +690,13 @@ class RawObject {
   // methods below or their counterparts in Object, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type>
+  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
   void StorePointer(type const* addr, type value) {
-    *const_cast<type*>(addr) = value;
+    if (order == MemoryOrder::kRelease) {
+      AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
+    } else {
+      *const_cast<type*>(addr) = value;
+    }
     if (value->IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }

@@ -1530,11 +1530,13 @@ class JsKernelToElementMap extends JsToElementMapBase
       IndexedTypedef newTypedef = convertTypedef(newLibrary, oldTypedef);
       typedefMap[data.node] = typedefs.register(
           newTypedef,
-          new JTypedefData(new TypedefType(
-              newTypedef,
-              new List<DartType>.filled(
-                  data.node.typeParameters.length, const DynamicType()),
-              getDartType(data.node.type))));
+          new JTypedefData(
+              data.node,
+              new TypedefType(
+                  newTypedef,
+                  new List<DartType>.filled(
+                      data.node.typeParameters.length, const DynamicType()),
+                  getDartType(data.node.type))));
       assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
     }
     for (int memberIndex = 0;
@@ -1681,7 +1683,7 @@ class JsKernelToElementMap extends JsToElementMapBase
     source.begin(typedefDataTag);
     entityLookup.forEachTypedef((int index, JTypedef typedef) {
       JTypedefData data = new JTypedefData.readFromDataSource(source);
-      typedefs.registerByIndex(index, typedef, data);
+      typedefMap[data.node] = typedefs.registerByIndex(index, typedef, data);
       assert(index == typedef.typedefIndex);
     });
     source.end(typedefDataTag);
