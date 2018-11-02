@@ -604,6 +604,7 @@ LibTest/io/Directory/watch_A01_t01: Fail, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t01: Fail, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t02: Fail, Pass
 LibTest/io/FileSystemCreateEvent/path_A01_t01: Fail, Pass
+LibTest/io/FileSystemEntity/identical_A01_t06: Pass, RuntimeError # Issue 183 (co19)
 LibTest/io/FileSystemModifyEvent/isDirectory_A01_t02: Fail
 LibTest/io/FileSystemModifyEvent/path_A01_t01: Fail
 LibTest/io/FileSystemModifyEvent/type_A01_t02: Fail
