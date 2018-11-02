@@ -1238,6 +1238,7 @@ WebPlatformTest/html/semantics/forms/the-input-element/valueMode_t01: RuntimeErr
 WebPlatformTest/html/semantics/forms/the-meter-element/meter_t01: RuntimeError
 WebPlatformTest/html/semantics/forms/the-option-element/option-text-recurse_t01: RuntimeError
 WebPlatformTest/html/semantics/grouping-content/the-blockquote-element/grouping-blockquote_t01: RuntimeError
+WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t02: RuntimeError
 WebPlatformTest/html/semantics/interactive-elements/the-dialog-element/dialog-showModal_t01: RuntimeError
 WebPlatformTest/html/semantics/scripting-1/the-script-element/script-text_t02: RuntimeError
 WebPlatformTest/html/semantics/selectors/pseudo-classes/dir_t01: RuntimeError
@@ -2149,7 +2150,6 @@ LayoutTests/fast/dom/shadow/get-distributed-nodes-orphan_t01: RuntimeError
 LayoutTests/fast/dom/shadow/get-element-by-id-in-shadow-mutation_t01: RuntimeError
 LayoutTests/fast/dom/shadow/getelementbyid-shadow_t01: RuntimeError
 LayoutTests/fast/dom/shadow/host-context-pseudo-class-css-text_t01: RuntimeError
-LayoutTests/fast/dom/shadow/host-pseudo-class-css-text_t01: RuntimeError
 LayoutTests/fast/dom/shadow/host-wrapper-reclaimed_t01: RuntimeError
 LayoutTests/fast/dom/shadow/reinsert-insertion-point_t01: RuntimeError
 LayoutTests/fast/dom/shadow/remove-and-insert-style_t01: RuntimeError
@@ -2257,6 +2257,13 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/shadow-root
 WebPlatformTest/webstorage/event_local_url_t01: RuntimeError
 WebPlatformTest/webstorage/event_session_key_t01: RuntimeError
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: RuntimeError
+
+[ $compiler == dart2js && $runtime != chrome && $runtime != ff ]
+LayoutTests/fast/dom/shadow/host-pseudo-class-css-text_t01: RuntimeError
+
+[ $compiler == dart2js && $runtime != chrome && $runtime != ff && $runtime != safari ]
+LayoutTests/fast/dom/HTMLInputElement/input-hidden-value_t01: RuntimeError
+LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime != chrome && $runtime != ff && $runtime != safari && !$fast_startup ]
 LayoutTests/fast/animation/request-animation-frame-callback-id_t01: RuntimeError
@@ -2668,6 +2675,7 @@ LayoutTests/fast/files/file-reader-immediate-abort_t01: RuntimeError
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: RuntimeError
 LayoutTests/fast/files/not-enough-arguments_t01: RuntimeError
 LayoutTests/fast/files/revoke-blob-url_t01: RuntimeError
+LayoutTests/fast/filesystem/input-access-entries_t01: RuntimeError
 LayoutTests/fast/flexbox/child-flexing_t01: RuntimeError
 LayoutTests/fast/flexbox/crash-anonymous-box_t01: RuntimeError
 LayoutTests/fast/flexbox/crash-button-keygen_t01: RuntimeError
@@ -3361,7 +3369,6 @@ LayoutTests/fast/dom/Attr/direction-attribute-set-and-cleared_t01: RuntimeError
 LayoutTests/fast/dom/HTMLSelectElement/selected-index-preserved-when-option-text-changes_t01: RuntimeError
 LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError
 LayoutTests/fast/files/file-reader-readystate_t01: RuntimeError
-LayoutTests/fast/filesystem/input-access-entries_t01: RuntimeError
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: RuntimeError
 LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError
 LayoutTests/fast/forms/date/input-valueasnumber-date_t01: RuntimeError
@@ -3433,7 +3440,6 @@ LayoutTests/fast/dom/HTMLElement/set-false_t01: RuntimeError
 LayoutTests/fast/dom/HTMLElement/set-value-caseinsensitive_t01: RuntimeError
 LayoutTests/fast/dom/HTMLInputElement/input-hidden-value_t01: RuntimeError
 LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: RuntimeError
-LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError
 LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError
 LayoutTests/fast/dom/boolean-attribute-reflection_t01: RuntimeError
@@ -5366,6 +5372,7 @@ LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-column-flex-items_t01:
 LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-flex-items_t01: RuntimeError
 LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-replaced-absolutes_t01: RuntimeError
 LayoutTests/fast/css-intrinsic-dimensions/width-shrinks-avoid-floats_t01: RuntimeError
+LayoutTests/fast/css/MarqueeLayoutTest_t01: RuntimeError, Pass
 LayoutTests/fast/css/aspect-ratio-inheritance_t01: RuntimeError
 LayoutTests/fast/css/auto-min-size_t01: RuntimeError
 LayoutTests/fast/css/background-serialize_t01: RuntimeError
@@ -5785,6 +5792,7 @@ LayoutTests/fast/svg/whitespace-length_t01: RuntimeError
 LayoutTests/fast/svg/whitespace-number_t01: RuntimeError
 LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError
 LayoutTests/fast/table/min-width-css-block-table_t01: RuntimeError
+LayoutTests/fast/table/table-colgroup-present-after-table-row_t01: RuntimeError
 LayoutTests/fast/table/table-size-integer-overflow_t01: RuntimeError
 LayoutTests/fast/table/td-bordercolor-attribute_t01: RuntimeError
 LayoutTests/fast/text/find-kana_t01: RuntimeError
@@ -7131,6 +7139,7 @@ LayoutTests/fast/canvas/canvas-blending-transforms_t01: RuntimeError
 LayoutTests/fast/canvas/canvas-composite-canvas_t01: RuntimeError, Pass
 LayoutTests/fast/canvas/canvas-composite-stroke-alpha_t01: RuntimeError, Pass
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError, Pass
+LayoutTests/fast/canvas/canvas-currentColor_t01: Pass, RuntimeError
 LayoutTests/fast/canvas/canvas-drawImage-scaled-copy-to-self_t01: RuntimeError
 LayoutTests/fast/canvas/canvas-fillRect_t01: RuntimeError, Pass
 LayoutTests/fast/canvas/canvas-fillStyle-no-quirks-parsing_t01: RuntimeError
@@ -7222,7 +7231,7 @@ LayoutTests/fast/css/content/content-quotes-05_t01: RuntimeError
 LayoutTests/fast/css/cursor-parsing-image-set_t01: RuntimeError
 LayoutTests/fast/css/device-aspect-ratio_t01: RuntimeError
 LayoutTests/fast/css/draggable-region-parser_t01: RuntimeError
-LayoutTests/fast/css/dynamic-class-pseudo-elements_t01: RuntimeError
+LayoutTests/fast/css/dynamic-class-pseudo-elements_t01: Pass, RuntimeError
 LayoutTests/fast/css/fixed-width-intrinsic-width-excludes-scrollbars_t01: RuntimeError
 LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError
 LayoutTests/fast/css/font-face-insert-link_t01: RuntimeError
@@ -7991,7 +8000,6 @@ LibTest/math/log_A01_t01: RuntimeError
 WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError
 WebPlatformTest/dom/nodes/Document-createElementNS_t01: RuntimeError
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A02_t01: RuntimeError
-WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t02: RuntimeError
 
 [ $compiler == dart2js && $system != macos ]
 LayoutTests/fast/text/zero-width-characters_t01: RuntimeError
