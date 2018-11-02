@@ -1654,6 +1654,10 @@ InternalProblemStoringMultipleInferredTypes:
   template: "There's already an inferred type, '#type', for '#name'."
   severity: INTERNAL_PROBLEM
 
+InternalProblemLabelUsageInVariablesDeclaration:
+  template: "Unexpected usage of label inside declaration of variables."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED

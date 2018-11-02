@@ -4814,6 +4814,17 @@ const MessageCode messageInternalProblemExtendingUnmodifiableScope =
         message: r"""Can't extend an unmodifiable scope.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemLabelUsageInVariablesDeclaration =
+    messageInternalProblemLabelUsageInVariablesDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
+    const MessageCode("InternalProblemLabelUsageInVariablesDeclaration",
+        severity: Severity.internalProblem,
+        message:
+            r"""Unexpected usage of label inside declaration of variables.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemMissingContext =
     messageInternalProblemMissingContext;
 
