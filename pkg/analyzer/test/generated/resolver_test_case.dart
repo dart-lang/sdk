@@ -672,10 +672,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
         var packageMap = <String, List<Folder>>{};
         packages.forEach((args) {
           String name = args[0];
-          String path =
-              resourceProvider.convertPath('/packages/$name/$name.dart');
           String content = args[1];
-          File file = newFile(path, content: content);
+          File file = newFile('/packages/$name/$name.dart', content: content);
           packageMap[name] = <Folder>[file.parent];
         });
         resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));

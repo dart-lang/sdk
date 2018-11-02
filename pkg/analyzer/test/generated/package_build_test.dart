@@ -116,9 +116,8 @@ class PackageBuildFileUriResolverTest extends Object
         uri);
   }
 
-  Source _resolvePath(String absolutePosixPath) {
-    String absolutePath = resourceProvider.convertPath(absolutePosixPath);
-    Uri uri = resourceProvider.pathContext.toUri(absolutePath);
+  Source _resolvePath(String path) {
+    Uri uri = toUri(path);
     return resolver.resolveAbsolute(uri);
   }
 }

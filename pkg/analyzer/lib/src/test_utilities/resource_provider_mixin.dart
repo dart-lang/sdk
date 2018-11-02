@@ -20,7 +20,7 @@ mixin ResourceProviderMixin {
   /// The URI will use forward slashes on all platforms and absolute paths on Windows
   /// will be formatted as /X:/path/file.dart
   String convertAbsolutePathToUri(String path) {
-    path = resourceProvider.convertPath(path);
+    path = convertPath(path);
 
     // On Windows, absolute import paths are not quite the same as a normal fs path.
     // C:\test.dart must be imported as one of:
@@ -39,22 +39,22 @@ mixin ResourceProviderMixin {
   String convertPath(String path) => resourceProvider.convertPath(path);
 
   void deleteFile(String path) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     resourceProvider.deleteFile(convertedPath);
   }
 
   void deleteFolder(String path) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     resourceProvider.deleteFolder(convertedPath);
   }
 
   File getFile(String path) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     return resourceProvider.getFile(convertedPath);
   }
 
   Folder getFolder(String path) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     return resourceProvider.getFolder(convertedPath);
   }
 
@@ -70,33 +70,33 @@ mixin ResourceProviderMixin {
           .join(part1, part2, part3, part4, part5, part6, part7, part8);
 
   void modifyFile(String path, String content) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     resourceProvider.modifyFile(convertedPath, content);
   }
 
   File newFile(String path, {String content = ''}) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     return resourceProvider.newFile(convertedPath, content);
   }
 
   File newFileWithBytes(String path, List<int> bytes) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     return resourceProvider.newFileWithBytes(convertedPath, bytes);
   }
 
   Folder newFolder(String path) {
-    String convertedPath = resourceProvider.convertPath(path);
+    String convertedPath = convertPath(path);
     return resourceProvider.newFolder(convertedPath);
   }
 
   File newOptionsFile(String directoryPath) {
-    return newFile(resourceProvider.pathContext
-        .join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME));
+    String path = join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME);
+    return newFile(path);
   }
 
   File newPackagesFile(String directoryPath) {
-    return newFile(resourceProvider.pathContext
-        .join(directoryPath, ContextLocatorImpl.PACKAGES_FILE_NAME));
+    String path = join(directoryPath, ContextLocatorImpl.PACKAGES_FILE_NAME);
+    return newFile(path);
   }
 
   Uri toUri(String path) {

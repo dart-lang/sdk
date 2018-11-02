@@ -150,16 +150,14 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 
   void test_restoreAbsolute_library() {
     _SourceMock source = new _SourceMock();
-    Uri fileUri = resourceProvider.pathContext.toUri(coreCorePath);
-    source.uri = fileUri;
+    source.uri = toUri('/sdk/lib/core/core.dart');
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core');
   }
 
   void test_restoreAbsolute_part() {
     _SourceMock source = new _SourceMock();
-    Uri fileUri = resourceProvider.pathContext.toUri(coreIntPath);
-    source.uri = fileUri;
+    source.uri = toUri('/sdk/lib/core/int.dart');
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
   }
@@ -2054,30 +2052,26 @@ class UriKindTest {
 }
 
 class _SimpleDartSdkTest extends Object with ResourceProviderMixin {
-  String coreCorePath;
-  String coreIntPath;
   DartSdk sdk;
 
   void setUp() {
-    Folder sdkFolder =
-        resourceProvider.newFolder(resourceProvider.convertPath('/sdk'));
-    resourceProvider.newFile(
-        resourceProvider.convertPath(
-            '/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
-        '''
+    newFile('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+        content: '''
 const Map<String, LibraryInfo> libraries = const {
   "core": const LibraryInfo("core/core.dart")
 };
 ''');
-    coreCorePath = resourceProvider.convertPath('/sdk/lib/core/core.dart');
-    resourceProvider.newFile(coreCorePath, '''
+
+    newFile('/sdk/lib/core/core.dart', content: '''
 library dart.core;
 part 'int.dart';
 ''');
-    coreIntPath = resourceProvider.convertPath('/sdk/lib/core/int.dart');
-    resourceProvider.newFile(coreIntPath, '''
+
+    newFile('/sdk/lib/core/int.dart', content: '''
 part of dart.core;
 ''');
+
+    Folder sdkFolder = newFolder('/sdk');
     sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
   }
 }

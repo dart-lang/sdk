@@ -7,7 +7,6 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -38,11 +37,9 @@ class ContextBuilderImplTest extends Object with ResourceProviderMixin {
   }
 
   void setUp() {
-    resourceProvider.newFolder(resourceProvider.pathContext.dirname(
-        resourceProvider.pathContext.dirname(io.Platform.resolvedExecutable)));
+    newFile(io.Platform.resolvedExecutable); // create folders
+    var folder = newFolder('/home/test');
     contextBuilder = new ContextBuilderImpl(resourceProvider: resourceProvider);
-    String path = resourceProvider.convertPath('/temp/root');
-    Folder folder = resourceProvider.newFolder(path);
     contextRoot = new ContextRootImpl(resourceProvider, folder);
   }
 
