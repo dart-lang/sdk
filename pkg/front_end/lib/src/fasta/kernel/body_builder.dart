@@ -601,8 +601,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                       .desugared,
                   formal.charOffset);
             } else {
-              initializer = buildFieldInitializer(true, formal.name,
-                  formal.charOffset, new VariableGet(formal.declaration),
+              initializer = buildFieldInitializer(
+                  true,
+                  formal.name,
+                  formal.charOffset,
+                  formal.charOffset,
+                  new VariableGet(formal.declaration),
                   formalType: formal.declaration.type);
             }
             member.addInitializer(initializer, this);
@@ -4315,8 +4319,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   /// immediately enclosing class.  It is a static warning if the static type of
   /// _id_ is not a subtype of _Tid_."
   @override
-  Initializer buildFieldInitializer(
-      bool isSynthetic, String name, int offset, Expression expression,
+  Initializer buildFieldInitializer(bool isSynthetic, String name,
+      int fieldNameOffset, int assignmentOffset, Expression expression,
       {DartType formalType}) {
     Declaration builder =
         classBuilder.scope.local[name] ?? classBuilder.origin.scope.local[name];
@@ -4327,31 +4331,31 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               buildProblem(
                       fasta.templateDuplicatedDeclarationUse
                           .withArguments(name),
-                      offset,
+                      fieldNameOffset,
                       name.length)
                   .desugared
-                ..fileOffset = offset)
-            ..fileOffset = offset)
-        ..fileOffset = offset;
+                ..fileOffset = fieldNameOffset)
+            ..fileOffset = fieldNameOffset)
+        ..fileOffset = fieldNameOffset;
     } else if (builder is KernelFieldBuilder && builder.isInstanceMember) {
       initializedFields ??= <String, int>{};
       if (initializedFields.containsKey(name)) {
-        return buildDuplicatedInitializer(
-            builder.field, expression, name, offset, initializedFields[name]);
+        return buildDuplicatedInitializer(builder.field, expression, name,
+            assignmentOffset, initializedFields[name]);
       }
-      initializedFields[name] = offset;
+      initializedFields[name] = assignmentOffset;
       if (builder.isFinal && builder.hasInitializer) {
         // TODO(ahe): If CL 2843733002 is landed, this becomes a compile-time
         // error. Also, this is a compile-time error in strong mode.
         addProblem(
             fasta.templateFinalInstanceVariableAlreadyInitialized
                 .withArguments(name),
-            offset,
+            assignmentOffset,
             noLength,
             context: [
               fasta.templateFinalInstanceVariableAlreadyInitializedCause
                   .withArguments(name)
-                  .withLocation(uri, builder.charOffset, noLength)
+                  .withLocation(uri, builder.charOffset, name.length)
             ]);
         Declaration constructor =
             library.loader.getDuplicatedFieldInitializerError();
@@ -4363,12 +4367,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 buildStaticInvocation(
                     constructor.target,
                     forest.arguments(<Expression>[
-                      forest.literalString(name, null)..fileOffset = offset
+                      forest.literalString(name, null)
+                        ..fileOffset = assignmentOffset
                     ], noLocation)
-                      ..fileOffset = offset,
-                    charOffset: offset))
-              ..fileOffset = offset))
-          ..fileOffset = offset;
+                      ..fileOffset = assignmentOffset,
+                    charOffset: assignmentOffset))
+              ..fileOffset = assignmentOffset))
+          ..fileOffset = assignmentOffset;
       } else {
         if (library.loader.target.strongMode &&
             formalType != null &&
@@ -4376,7 +4381,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           library.addProblem(
               fasta.templateInitializingFormalTypeMismatch
                   .withArguments(name, formalType, builder.field.type),
-              offset,
+              assignmentOffset,
               noLength,
               uri,
               context: [
@@ -4385,17 +4390,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               ]);
         }
         return new ShadowFieldInitializer(builder.field, expression)
-          ..fileOffset = offset
+          ..fileOffset = assignmentOffset
           ..isSynthetic = isSynthetic;
       }
     } else {
       return buildInvalidInitializer(
           buildProblem(
                   fasta.templateInitializerForStaticField.withArguments(name),
-                  offset,
+                  fieldNameOffset,
                   name.length)
               .desugared,
-          offset);
+          fieldNameOffset);
     }
   }
 
