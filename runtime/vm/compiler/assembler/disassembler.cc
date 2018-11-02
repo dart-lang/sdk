@@ -16,7 +16,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
@@ -97,7 +97,6 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
-#if !defined(PRODUCT)
 void DisassembleToMemory::ConsumeInstruction(const Code& code,
                                              char* hex_buffer,
                                              intptr_t hex_size,
@@ -153,8 +152,6 @@ void DisassembleToMemory::Print(const char* format, ...) {
   remaining_--;
   *buffer_ = '\0';
 }
-
-#endif
 
 void Disassembler::Disassemble(uword start,
                                uword end,
@@ -396,6 +393,6 @@ void Disassembler::DisassembleCode(const Function& function,
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart

@@ -81,7 +81,7 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
   DISALLOW_COPY_AND_ASSIGN(DisassembleToJSONStream);
 };
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 // Basic disassembly formatter that outputs the disassembled instruction
 // to a memory buffer. This is only intended for test writing.
 class DisassembleToMemory : public DisassemblyFormatter {
@@ -130,7 +130,7 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end, const Code& code) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter, code);
@@ -140,7 +140,7 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter);
@@ -153,7 +153,7 @@ class Disassembler : public AllStatic {
                           uword end,
                           char* buffer,
                           uintptr_t buffer_size) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToMemory memory_formatter(buffer, buffer_size);
     LogBlock lb;
     Disassemble(start, end, &memory_formatter);
