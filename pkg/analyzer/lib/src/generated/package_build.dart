@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:package_config/packages.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /**
@@ -35,8 +35,8 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
-    String path = fileUriToNormalizedPath(provider.pathContext, uri);
-    File file = workspace.findFile(path);
+    String filePath = fileUriToNormalizedPath(provider.pathContext, uri);
+    File file = workspace.findFile(filePath);
     if (file != null) {
       return file.createSource(actualUri ?? uri);
     }
@@ -50,7 +50,7 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
 class PackageBuildPackageUriResolver extends UriResolver {
   final PackageBuildWorkspace _workspace;
   final UriResolver _normalUriResolver;
-  final Context _context;
+  final path.Context _context;
 
   /**
    * The cache of absolute [Uri]s to [Source]s mappings.
@@ -98,12 +98,11 @@ class PackageBuildPackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    Context context = _workspace.provider.pathContext;
-    String path = source.fullName;
+    String filePath = source.fullName;
 
-    if (context.isWithin(_workspace.root, path)) {
-      String relative = context.relative(path, from: _workspace.root);
-      List<String> components = context.split(relative);
+    if (_context.isWithin(_workspace.root, filePath)) {
+      String relative = _context.relative(filePath, from: _workspace.root);
+      List<String> components = _context.split(relative);
       if (components.length > 4 &&
           components[0] == 'build' &&
           components[1] == 'generated' &&
@@ -205,9 +204,10 @@ class PackageBuildWorkspace extends Workspace {
     if (!packageMap.containsKey(packageName)) {
       return null;
     }
-    String path = context.join(
+    path.Context context = provider.pathContext;
+    String fullBuiltPath = context.join(
         root, _dartToolRootName, 'build', 'generated', packageName, builtPath);
-    return provider.getFile(path);
+    return provider.getFile(fullBuiltPath);
   }
 
   /**
@@ -217,9 +217,10 @@ class PackageBuildWorkspace extends Workspace {
    * `bin/`, `web/`, and `test/` etc can all be built as well. This method
    * exists to give a name to that prefix processing step.
    */
-  String builtPackageSourcePath(String path) {
-    assert(context.isRelative(path));
-    return context.join('lib', path);
+  String builtPackageSourcePath(String filePath) {
+    path.Context context = provider.pathContext;
+    assert(context.isRelative(filePath), 'Not a relative path: $filePath');
+    return context.join('lib', filePath);
   }
 
   @override
@@ -234,44 +235,40 @@ class PackageBuildWorkspace extends Workspace {
   }
 
   /**
-   * Return the file with the given [path], looking first into directories for
+   * Return the file with the given [filePath], looking first into directories for
    * source files, and then in the generated directory
    * `.dart_tool/build/generated/$projectPackageName/$FILE`. The file in the
    * workspace root is returned even if it does not exist. Return `null` if the
-   * given [path] is not in the workspace [root].
+   * given [filePath] is not in the workspace [root].
    */
-  File findFile(String path) {
-    assert(context.isAbsolute(path));
+  File findFile(String filePath) {
+    path.Context context = provider.pathContext;
+    assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
     try {
-      final String builtPath = context.relative(path, from: root);
+      final String builtPath = context.relative(filePath, from: root);
       final File file = builtFile(builtPath, projectPackageName);
 
       if (file.exists) {
         return file;
       }
 
-      return provider.getFile(path);
+      return provider.getFile(filePath);
     } catch (_) {
       return null;
     }
   }
 
   /**
-   * Find the package:build workspace that contains the given [path].
+   * Find the package:build workspace that contains the given [filePath].
    *
-   * Return `null` if the path is not in a package:build workspace.
+   * Return `null` if the filePath is not in a package:build workspace.
    */
   static PackageBuildWorkspace find(
-      ResourceProvider provider, String path, ContextBuilder builder) {
-    Context context = provider.pathContext;
-
-    // Ensure that the path is absolute and normalized.
-    if (!context.isAbsolute(path)) {
-      throw new ArgumentError('Not an absolute path: $path');
-    }
-    path = context.normalize(path);
-
-    Folder folder = provider.getFolder(path);
+      ResourceProvider provider, String filePath, ContextBuilder builder) {
+    path.Context context = provider.pathContext;
+    assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
+    filePath = context.normalize(filePath);
+    Folder folder = provider.getFolder(filePath);
     while (true) {
       Folder parent = folder.parent;
       if (parent == null) {
