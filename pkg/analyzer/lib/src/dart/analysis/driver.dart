@@ -2017,6 +2017,9 @@ class AnalysisResult extends FileResult implements results.ResolveResult {
 
   @override
   TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
+
+  @override
+  TypeSystem get typeSystem => unit.declaredElement.context.typeSystem;
 }
 
 abstract class BaseAnalysisResult implements results.AnalysisResult {

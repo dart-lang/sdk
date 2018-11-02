@@ -12,6 +12,7 @@ import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -97,25 +98,7 @@ class EditDartFix {
       preferMixinFix,
       preferIntLiteralsFix,
     ];
-    final visitors = <AstVisitor>[];
-    final registry = new NodeLintRegistry(false);
-    for (Linter linter in linters) {
-      if (linter != null) {
-        final visitor = linter.getVisitor();
-        if (visitor != null) {
-          visitors.add(visitor);
-        }
-        if (linter is NodeLintRule) {
-          (linter as NodeLintRule).registerNodeProcessors(registry);
-        }
-      }
-    }
-    final AstVisitor astVisitor = visitors.isNotEmpty
-        ? new ExceptionHandlingDelegatingAstVisitor(
-            visitors, ExceptionHandlingDelegatingAstVisitor.logException)
-        : null;
-    final AstVisitor linterVisitor = new LinterVisitor(
-        registry, ExceptionHandlingDelegatingAstVisitor.logException);
+    final lintVisitorsBySession = <AnalysisSession, _LintVisitors>{};
 
     // TODO(danrubel): Determine if a lint is configured to run as part of
     // standard analysis and use those results if available instead of
@@ -159,10 +142,12 @@ class EditDartFix {
             linter.reporter.source = source;
           }
         }
-        if (astVisitor != null) {
-          unit.accept(astVisitor);
+        var lintVisitors = lintVisitorsBySession[result.session] ??=
+            await _setupLintVisitors(result, linters);
+        if (lintVisitors.astVisitor != null) {
+          unit.accept(lintVisitors.astVisitor);
         }
-        unit.accept(linterVisitor);
+        unit.accept(lintVisitors.linterVisitor);
         for (LinterFix fix in fixes) {
           await fix.applyLocalFixes(result);
         }
@@ -246,6 +231,48 @@ class EditDartFix {
     final location = new Location(
         result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
     return location;
+  }
+
+  Future<_LintVisitors> _setupLintVisitors(
+      AnalysisResult result, List<Linter> linters) async {
+    final visitors = <AstVisitor>[];
+    final registry = new NodeLintRegistry(false);
+    // TODO(paulberry): use an API that provides this information more readily
+    var unitElement = result.unit.declaredElement;
+    var session = result.session;
+    var currentUnit = LinterContextUnit(result.content, result.unit);
+    var allUnits = <LinterContextUnit>[];
+    for (var cu in unitElement.library.units) {
+      if (identical(cu, unitElement)) {
+        allUnits.add(currentUnit);
+      } else {
+        var result = await session.getResolvedAst(cu.source.fullName);
+        allUnits.add(LinterContextUnit(result.content, result.unit));
+      }
+    }
+    var context = LinterContextImpl(allUnits, currentUnit,
+        session.declaredVariables, result.typeProvider, result.typeSystem);
+    for (Linter linter in linters) {
+      if (linter != null) {
+        final visitor = linter.getVisitor();
+        if (visitor != null) {
+          visitors.add(visitor);
+        }
+        if (linter is NodeLintRuleWithContext) {
+          (linter as NodeLintRuleWithContext)
+              .registerNodeProcessors(registry, context);
+        } else if (linter is NodeLintRule) {
+          (linter as NodeLintRule).registerNodeProcessors(registry);
+        }
+      }
+    }
+    final AstVisitor astVisitor = visitors.isNotEmpty
+        ? new ExceptionHandlingDelegatingAstVisitor(
+            visitors, ExceptionHandlingDelegatingAstVisitor.logException)
+        : null;
+    final AstVisitor linterVisitor = new LinterVisitor(
+        registry, ExceptionHandlingDelegatingAstVisitor.logException);
+    return _LintVisitors(astVisitor, linterVisitor);
   }
 }
 
@@ -332,4 +359,12 @@ abstract class LinterFix implements ErrorReporter {
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
     // ignored
   }
+}
+
+class _LintVisitors {
+  final AstVisitor astVisitor;
+
+  final AstVisitor linterVisitor;
+
+  _LintVisitors(this.astVisitor, this.linterVisitor);
 }

@@ -49,6 +49,7 @@ class LibraryAnalyzer {
   final AnalysisContextImpl _context;
   final ElementResynthesizer _resynthesizer;
   final TypeProvider _typeProvider;
+  final TypeSystem _typeSystem;
 
   LibraryElement _libraryElement;
   LibraryScope _libraryScope;
@@ -72,7 +73,8 @@ class LibraryAnalyzer {
       this._resynthesizer,
       this._library)
       : _inheritance = new InheritanceManager2(_context.typeSystem),
-        _typeProvider = _context.typeProvider;
+        _typeProvider = _context.typeProvider,
+        _typeSystem = _context.typeSystem;
 
   /**
    * Compute analysis results for all units of the library.
@@ -142,9 +144,12 @@ class LibraryAnalyzer {
 
       if (_analysisOptions.lint) {
         PerformanceStatistics.lints.makeCurrentWhile(() {
-          units.forEach((file, unit) {
-            _computeLints(file, unit);
-          });
+          var allUnits = _library.libraryFiles
+              .map((file) => LinterContextUnit(file.content, units[file]))
+              .toList();
+          for (int i = 0; i < allUnits.length; i++) {
+            _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
+          }
         });
       }
     } finally {
@@ -248,7 +253,9 @@ class LibraryAnalyzer {
     }
   }
 
-  void _computeLints(FileState file, CompilationUnit unit) {
+  void _computeLints(FileState file, LinterContextUnit currentUnit,
+      List<LinterContextUnit> allUnits) {
+    var unit = currentUnit.unit;
     if (file.source == null) {
       return;
     }
@@ -257,9 +264,14 @@ class LibraryAnalyzer {
 
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
+    var context = LinterContextImpl(
+        allUnits, currentUnit, _declaredVariables, _typeProvider, _typeSystem);
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRule) {
+      if (linter is NodeLintRuleWithContext) {
+        (linter as NodeLintRuleWithContext)
+            .registerNodeProcessors(nodeRegistry, context);
+      } else if (linter is NodeLintRule) {
         (linter as NodeLintRule).registerNodeProcessors(nodeRegistry);
       } else {
         AstVisitor visitor = linter.getVisitor();
