@@ -1142,6 +1142,13 @@ class LocalElementBuilder extends _BaseElementBuilder {
       : super(initialHolder, compilationUnitElement);
 
   /**
+   * Initialize a newly created element builder as a first step to analyzing a
+   * dangling dart expression.
+   */
+  LocalElementBuilder.forDanglingExpression()
+      : super(new ElementHolder(), null);
+
+  /**
    * Builds the variable elements associated with [node] and stores them in
    * the element holder.
    */
