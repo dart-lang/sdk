@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -24,6 +25,9 @@ import 'package:analyzer/src/generated/source.dart';
 abstract class AnalysisSession {
   /// The analysis context that created this session.
   AnalysisContext get analysisContext;
+
+  /// The declared environment variables.
+  DeclaredVariables get declaredVariables;
 
   /// Return the [ResourceProvider] that is used to access the file system.
   ResourceProvider get resourceProvider;

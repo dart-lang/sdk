@@ -6,11 +6,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
@@ -186,6 +188,49 @@ class Hyperlink {
   String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
+/// Provides access to information needed by lint rules that is not available
+/// from AST nodes or the element model.
+abstract class LinterContext {
+  List<LinterContextUnit> get allUnits;
+
+  LinterContextUnit get currentUnit;
+
+  DeclaredVariables get declaredVariables;
+
+  TypeProvider get typeProvider;
+
+  TypeSystem get typeSystem;
+}
+
+/// Implementation of [LinterContext]
+class LinterContextImpl implements LinterContext {
+  @override
+  final List<LinterContextUnit> allUnits;
+
+  @override
+  final LinterContextUnit currentUnit;
+
+  @override
+  final DeclaredVariables declaredVariables;
+
+  @override
+  final TypeProvider typeProvider;
+
+  @override
+  final TypeSystem typeSystem;
+
+  LinterContextImpl(this.allUnits, this.currentUnit, this.declaredVariables,
+      this.typeProvider, this.typeSystem);
+}
+
+class LinterContextUnit {
+  final String content;
+
+  final CompilationUnit unit;
+
+  LinterContextUnit(this.content, this.unit);
+}
+
 /// Thrown when an error occurs in linting.
 class LinterException implements Exception {
   /// A message describing the error.
@@ -330,7 +375,27 @@ class Maturity implements Comparable<Maturity> {
 abstract class NodeLintRule {
   /// This method is invoked to let the [LintRule] register node processors
   /// in the given [registry].
+  ///
+  /// In a future release of the analyzer, a `context` argument will be added.
+  /// To opt into the new API, use [NodeLintRuleWithContext] instead.
   void registerNodeProcessors(NodeLintRegistry registry);
+}
+
+/// [LintRule]s that implement this interface want to process only some types
+/// of AST nodes, and will register their processors in the registry.
+///
+/// TODO(paulberry): once NodeLintRule is removed, rename this interface to
+/// NodeLintRule.
+abstract class NodeLintRuleWithContext extends NodeLintRule {
+  /// This method is invoked to let the [LintRule] register node processors
+  /// in the given [registry].
+  ///
+  /// The node processors may use the provided [context] to access information
+  /// that is not avaiable from the AST nodes or their associated elements.
+  /// In a future release of the analyzer, [context] will become a required
+  /// parameter.
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]);
 }
 
 class PrintingReporter implements Reporter, Logger {

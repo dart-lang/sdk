@@ -2097,6 +2097,9 @@ class AnalysisResult extends ResolvedUnitResultImpl {
 
   @override
   TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
+
+  @override
+  TypeSystem get typeSystem => unit.declaredElement.context.typeSystem;
 }
 
 class DriverPerformance {

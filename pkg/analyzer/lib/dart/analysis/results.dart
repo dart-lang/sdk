@@ -141,6 +141,9 @@ abstract class ResolveResult implements AnalysisResultWithErrors {
   /// The type provider used when resolving the compilation [unit].
   TypeProvider get typeProvider;
 
+  /// The type system used when resolving the compilation [unit].
+  TypeSystem get typeSystem;
+
   /// The fully resolved compilation unit for the [content].
   CompilationUnit get unit;
 }

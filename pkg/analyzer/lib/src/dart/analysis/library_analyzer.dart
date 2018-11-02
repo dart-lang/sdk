@@ -11,9 +11,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
-import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -45,6 +45,7 @@ class LibraryAnalyzer {
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
   final TypeProvider _typeProvider;
+  final TypeSystem _typeSystem;
 
   LibraryElement _libraryElement;
   LibraryScope _libraryScope;
@@ -68,7 +69,8 @@ class LibraryAnalyzer {
       this._resynthesizer,
       this._inheritance,
       this._library)
-      : _typeProvider = _context.typeProvider;
+      : _typeProvider = _context.typeProvider,
+        _typeSystem = _context.typeSystem;
 
   /**
    * Compute analysis results for all units of the library.
@@ -135,9 +137,12 @@ class LibraryAnalyzer {
 
     if (_analysisOptions.lint) {
       PerformanceStatistics.lints.makeCurrentWhile(() {
-        units.forEach((file, unit) {
-          _computeLints(file, unit);
-        });
+        var allUnits = _library.libraryFiles
+            .map((file) => LinterContextUnit(file.content, units[file]))
+            .toList();
+        for (int i = 0; i < allUnits.length; i++) {
+          _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
+        }
       });
     }
 
@@ -227,7 +232,9 @@ class LibraryAnalyzer {
     }
   }
 
-  void _computeLints(FileState file, CompilationUnit unit) {
+  void _computeLints(FileState file, LinterContextUnit currentUnit,
+      List<LinterContextUnit> allUnits) {
+    var unit = currentUnit.unit;
     if (file.source == null) {
       return;
     }
@@ -236,9 +243,14 @@ class LibraryAnalyzer {
 
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
+    var context = LinterContextImpl(
+        allUnits, currentUnit, _declaredVariables, _typeProvider, _typeSystem);
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRule) {
+      if (linter is NodeLintRuleWithContext) {
+        (linter as NodeLintRuleWithContext)
+            .registerNodeProcessors(nodeRegistry, context);
+      } else if (linter is NodeLintRule) {
         (linter as NodeLintRule).registerNodeProcessors(nodeRegistry);
       } else {
         AstVisitor visitor = linter.getVisitor();
