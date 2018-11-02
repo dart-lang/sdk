@@ -24,15 +24,12 @@ import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
 import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
-import 'js_backend/runtime_types.dart'
-    show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
+import 'js_backend/runtime_types.dart' show RuntimeTypesNeed;
 import 'js_model/locals.dart';
-import 'options.dart';
 import 'js_emitter/sorter.dart';
 import 'types/abstract_value_domain.dart';
 import 'universe/class_hierarchy.dart';
 import 'universe/selector.dart' show Selector;
-import 'universe/world_builder.dart';
 
 /// Common superinterface for [OpenWorld] and [JClosedWorld].
 abstract class World {}
@@ -232,18 +229,6 @@ abstract class OpenWorld implements World {
   /// `C` implement `I`, `isInheritedInSubtypeOf(A.M, I)` is true, but
   /// `isInheritedInSubtypeOf(A.M, J)` is false.
   bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type);
-}
-
-abstract class ClosedWorldRtiNeedMixin implements KClosedWorld {
-  RuntimeTypesNeed _rtiNeed;
-
-  void computeRtiNeed(ResolutionWorldBuilder resolutionWorldBuilder,
-      RuntimeTypesNeedBuilder rtiNeedBuilder, CompilerOptions options) {
-    _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
-        resolutionWorldBuilder, this, options);
-  }
-
-  RuntimeTypesNeed get rtiNeed => _rtiNeed;
 }
 
 abstract class KClosedWorld {
