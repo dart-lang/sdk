@@ -56,14 +56,13 @@ The tools are expected to offer a framework for querying these flags so that the
 implementation of the tools can easily access new flags.
 
 The flags are passed to CLI-based tools using the `--enable-experiment` flag
-(short-form `-e`). Multiple flags can be passed by using multiple flags, or by
-passing several comma-separated flags. Examples:
+Multiple flags can be passed by using multiple flags, or by passing several
+comma-separated flags. Examples:
 
 ```
 dart --enable-experiment super-mixins
-dart -e super-mixins
-dart -e super-mixins,no-slow-checks,preview-dart3
-dart -e super-mixins -e no-slow-checks -e preview-dart3
+dart --enable-experiment super-mixins,no-slow-checks,preview-dart3
+dart --enable-experiment super-mixins --enable-experiment no-slow-checks --enable-experiment preview-dart3
 ```
 
 If the user passes a flag that is not recognized (for example, when the flag is
