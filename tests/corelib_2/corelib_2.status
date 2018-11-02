@@ -279,6 +279,11 @@ string_static_test: MissingCompileTimeError
 [ $compiler != dartk && $runtime == vm && $checked ]
 apply_test/01: RuntimeError
 
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
@@ -290,11 +295,6 @@ symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
-
-[ $compiler != dartkp && $fasta ]
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ $compiler != fasta && !$strong ]
 core_runtime_types_test: SkipByDesign

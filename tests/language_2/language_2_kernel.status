@@ -350,6 +350,10 @@ vm/causal_async_exception_stack2_test: RuntimeError # No support for line number
 vm/causal_async_exception_stack_test: RuntimeError # No support for line numbers in stacktraces
 vm/regress_28325_test: RuntimeError # No support for line numbers in stacktraces
 
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+vm/symbols_test/01: MissingCompileTimeError
+vm/symbols_test/03: MissingCompileTimeError
+
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 external_test/13: Crash
 type_promotion_functions_test/05: Pass
@@ -1992,6 +1996,6 @@ async_star_test/none: Skip # Timeout
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 
-[ $compiler == dartk || $compiler == fasta ]
-vm/symbols_test/01: MissingCompileTimeError
-vm/symbols_test/03: MissingCompileTimeError
+[ $compiler == dartkb || $compiler == dartkp ]
+mock_writable_final_private_field_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.
+vm/reflect_core_vm_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.
