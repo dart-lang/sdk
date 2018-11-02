@@ -37,9 +37,6 @@ abstract class AnalysisResultWithErrors implements FileResult {
 
 /// The declaration of an [Element].
 abstract class ElementDeclarationResult {
-  /// The original code of the [node].
-  String get code;
-
   /// The [Element] that this object describes.
   Element get element;
 
@@ -47,6 +44,14 @@ abstract class ElementDeclarationResult {
   /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
   /// or just parsed.
   AstNode get node;
+
+  /// If this declaration is returned from [ParsedLibraryResult], the parsed
+  /// unit that contains the [node]. Otherwise `null`.
+  ParsedUnitResult get parsedUnit;
+
+  /// If this declaration is returned from [ResolvedLibraryResult], the
+  /// resolved unit that contains the [node]. Otherwise `null`.
+  ResolvedUnitResult get resolvedUnit;
 }
 
 /// The result of computing all of the errors contained in a single file, both

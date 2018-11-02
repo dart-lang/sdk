@@ -29,12 +29,16 @@ class ElementDeclarationResultImpl implements ElementDeclarationResult {
   final Element element;
 
   @override
-  final String code;
-
-  @override
   final AstNode node;
 
-  ElementDeclarationResultImpl(this.element, this.code, this.node);
+  @override
+  final ParsedUnitResult parsedUnit;
+
+  @override
+  final ResolvedUnitResult resolvedUnit;
+
+  ElementDeclarationResultImpl(
+      this.element, this.node, this.parsedUnit, this.resolvedUnit);
 }
 
 class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
@@ -127,8 +131,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
     var locator = NodeLocator2(element.nameOffset);
     var node = locator.searchWithin(unitResult.unit)?.parent;
-    var code = unitResult.content.substring(node.offset, node.end);
-    return ElementDeclarationResultImpl(element, code, node);
+    return ElementDeclarationResultImpl(element, node, unitResult, null);
   }
 }
 
@@ -185,8 +188,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
     var locator = NodeLocator2(element.nameOffset);
     var node = locator.searchWithin(unitResult.unit)?.parent;
-    var code = unitResult.content.substring(node.offset, node.end);
-    return ElementDeclarationResultImpl(element, code, node);
+    return ElementDeclarationResultImpl(element, node, null, unitResult);
   }
 
   @Deprecated('This method exists temporary until AnalysisSession migration.')

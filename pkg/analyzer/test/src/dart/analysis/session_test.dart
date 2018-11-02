@@ -105,10 +105,10 @@ class B {}
 
     var element = library.getType('A');
     var declaration = parsedLibrary.getElementDeclaration(element);
-    expect(declaration.code, 'class A {}');
-
     ClassDeclaration node = declaration.node;
     expect(node.name.name, 'A');
+    expect(node.offset, 0);
+    expect(node.length, 10);
   }
 
   test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
@@ -137,9 +137,10 @@ int foo = 0;
 
     // We can get the variable element declaration.
     var fooDeclaration = parsedLibrary.getElementDeclaration(fooElement);
-    expect(fooDeclaration.code, 'foo = 0');
     VariableDeclaration fooNode = fooDeclaration.node;
     expect(fooNode.name.name, 'foo');
+    expect(fooNode.offset, 4);
+    expect(fooNode.length, 7);
     expect(fooNode.name.staticElement, isNull);
 
     // Synthetic elements don't have nodes.
@@ -306,15 +307,17 @@ class B2 extends X {}
     expect(bUnitResult.errors, isNotEmpty);
 
     var aDeclaration = resolvedLibrary.getElementDeclaration(aClass);
-    expect(aDeclaration.code, 'class A /*a*/ {}');
     ClassDeclaration aNode = aDeclaration.node;
     expect(aNode.name.name, 'A');
+    expect(aNode.offset, 16);
+    expect(aNode.length, 16);
     expect(aNode.name.staticElement.name, 'A');
 
     var bDeclaration = resolvedLibrary.getElementDeclaration(bClass);
-    expect(bDeclaration.code, 'class B /*b*/ {}');
     ClassDeclaration bNode = bDeclaration.node;
     expect(bNode.name.name, 'B');
+    expect(bNode.offset, 19);
+    expect(bNode.length, 16);
     expect(bNode.name.staticElement.name, 'B');
   }
 
@@ -342,9 +345,10 @@ int foo = 0;
 
     // We can get the variable element declaration.
     var fooDeclaration = resolvedLibrary.getElementDeclaration(fooElement);
-    expect(fooDeclaration.code, 'foo = 0');
     VariableDeclaration fooNode = fooDeclaration.node;
     expect(fooNode.name.name, 'foo');
+    expect(fooNode.offset, 4);
+    expect(fooNode.length, 7);
     expect(fooNode.name.staticElement.name, 'foo');
 
     // Synthetic elements don't have nodes.

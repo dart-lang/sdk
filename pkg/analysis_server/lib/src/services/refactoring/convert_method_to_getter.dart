@@ -103,7 +103,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     {
       var sessionHelper = AnalysisSessionHelper(session);
       var result = await sessionHelper.getElementDeclaration(element);
-      var declaration = result.declaration;
+      var declaration = result.node;
       if (declaration is MethodDeclaration) {
         parameters = declaration.parameters;
       } else if (declaration is FunctionDeclaration) {

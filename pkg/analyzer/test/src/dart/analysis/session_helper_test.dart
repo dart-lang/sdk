@@ -83,8 +83,8 @@ class A {}
 
     var element = findNode.classDeclaration('A').declaredElement;
     var result = await helper.getElementDeclaration(element);
-    ClassDeclaration declaration = result.declaration;
-    expect(declaration.name.name, 'A');
+    ClassDeclaration node = result.node;
+    expect(node.name.name, 'A');
   }
 
   test_getElementDeclaration_class_duplicate() async {
@@ -97,10 +97,10 @@ class A {} // 2
     {
       var element = findNode.classDeclaration('A {} // 1').declaredElement;
       var result = await helper.getElementDeclaration(element);
-      ClassDeclaration declaration = result.declaration;
-      expect(declaration.name.name, 'A');
+      ClassDeclaration node = result.node;
+      expect(node.name.name, 'A');
       expect(
-        declaration.name.offset,
+        node.name.offset,
         this.result.content.indexOf('A {} // 1'),
       );
     }
@@ -108,10 +108,10 @@ class A {} // 2
     {
       var element = findNode.classDeclaration('A {} // 2').declaredElement;
       var result = await helper.getElementDeclaration(element);
-      ClassDeclaration declaration = result.declaration;
-      expect(declaration.name.name, 'A');
+      ClassDeclaration node = result.node;
+      expect(node.name.name, 'A');
       expect(
-        declaration.name.offset,
+        node.name.offset,
         this.result.content.indexOf('A {} // 2'),
       );
     }
@@ -129,15 +129,15 @@ class A {
     {
       var unnamed = findNode.constructor('A();').declaredElement;
       var result = await helper.getElementDeclaration(unnamed);
-      ConstructorDeclaration declaration = result.declaration;
-      expect(declaration.name, isNull);
+      ConstructorDeclaration node = result.node;
+      expect(node.name, isNull);
     }
 
     {
       var named = findNode.constructor('A.named();').declaredElement;
       var result = await helper.getElementDeclaration(named);
-      ConstructorDeclaration declaration = result.declaration;
-      expect(declaration.name.name, 'named');
+      ConstructorDeclaration node = result.node;
+      expect(node.name.name, 'named');
     }
   }
 
@@ -153,10 +153,10 @@ class A {
     {
       var element = findNode.constructor('A.named(); // 1').declaredElement;
       var result = await helper.getElementDeclaration(element);
-      ConstructorDeclaration declaration = result.declaration;
-      expect(declaration.name.name, 'named');
+      ConstructorDeclaration node = result.node;
+      expect(node.name.name, 'named');
       expect(
-        declaration.name.offset,
+        node.name.offset,
         this.result.content.indexOf('named(); // 1'),
       );
     }
@@ -164,10 +164,10 @@ class A {
     {
       var element = findNode.constructor('A.named(); // 2').declaredElement;
       var result = await helper.getElementDeclaration(element);
-      ConstructorDeclaration declaration = result.declaration;
-      expect(declaration.name.name, 'named');
+      ConstructorDeclaration node = result.node;
+      expect(node.name.name, 'named');
       expect(
-        declaration.name.offset,
+        node.name.offset,
         this.result.content.indexOf('named(); // 2'),
       );
     }
@@ -185,10 +185,10 @@ class A {
     {
       var element = findNode.constructor('A(); // 1').declaredElement;
       var result = await helper.getElementDeclaration(element);
-      ConstructorDeclaration declaration = result.declaration;
-      expect(declaration.name, isNull);
+      ConstructorDeclaration node = result.node;
+      expect(node.name, isNull);
       expect(
-        declaration.returnType.offset,
+        node.returnType.offset,
         this.result.content.indexOf('A(); // 1'),
       );
     }
@@ -196,10 +196,10 @@ class A {
     {
       var element = findNode.constructor('A(); // 2').declaredElement;
       var result = await helper.getElementDeclaration(element);
-      ConstructorDeclaration declaration = result.declaration;
-      expect(declaration.name, isNull);
+      ConstructorDeclaration node = result.node;
+      expect(node.name, isNull);
       expect(
-        declaration.returnType.offset,
+        node.returnType.offset,
         this.result.content.indexOf('A(); // 2'),
       );
     }
@@ -228,8 +228,8 @@ class C {
 
     var element = findElement.field('foo');
     var result = await helper.getElementDeclaration(element);
-    VariableDeclaration declaration = result.declaration;
-    expect(declaration.name.name, 'foo');
+    VariableDeclaration node = result.node;
+    expect(node.name.name, 'foo');
   }
 
   test_getElementDeclaration_functionDeclaration_local() async {
@@ -242,8 +242,8 @@ main() {
 
     var element = findElement.localFunction('foo');
     var result = await helper.getElementDeclaration(element);
-    FunctionDeclaration declaration = result.declaration;
-    expect(declaration.name.name, 'foo');
+    FunctionDeclaration node = result.node;
+    expect(node.name.name, 'foo');
   }
 
   test_getElementDeclaration_functionDeclaration_top() async {
@@ -254,8 +254,8 @@ void foo() {}
 
     var element = findElement.topFunction('foo');
     var result = await helper.getElementDeclaration(element);
-    FunctionDeclaration declaration = result.declaration;
-    expect(declaration.name.name, 'foo');
+    FunctionDeclaration node = result.node;
+    expect(node.name.name, 'foo');
   }
 
   test_getElementDeclaration_localVariable() async {
@@ -268,8 +268,8 @@ main() {
 
     var element = findElement.localVar('foo');
     var result = await helper.getElementDeclaration(element);
-    VariableDeclaration declaration = result.declaration;
-    expect(declaration.name.name, 'foo');
+    VariableDeclaration node = result.node;
+    expect(node.name.name, 'foo');
   }
 
   test_getElementDeclaration_method() async {
@@ -282,8 +282,8 @@ class C {
 
     var element = findElement.method('foo');
     var result = await helper.getElementDeclaration(element);
-    MethodDeclaration declaration = result.declaration;
-    expect(declaration.name.name, 'foo');
+    MethodDeclaration node = result.node;
+    expect(node.name.name, 'foo');
   }
 
   test_getElementDeclaration_topLevelVariable() async {
@@ -294,8 +294,8 @@ int foo;
 
     var element = findElement.topVar('foo');
     var result = await helper.getElementDeclaration(element);
-    VariableDeclaration declaration = result.declaration;
-    expect(declaration.name.name, 'foo');
+    VariableDeclaration node = result.node;
+    expect(node.name.name, 'foo');
   }
 
   test_getElementDeclaration_topLevelVariable_synthetic() async {

@@ -80,7 +80,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
           var declarationResult =
               await AnalysisSessionHelper(resolveResult.session)
                   .getElementDeclaration(element);
-          _variableNode = declarationResult.declaration;
+          _variableNode = declarationResult.node;
         }
       }
     }

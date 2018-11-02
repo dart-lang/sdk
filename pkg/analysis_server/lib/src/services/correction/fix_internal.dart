@@ -1613,13 +1613,13 @@ class FixProcessor {
     // prepare target ClassDeclaration
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetClassElement);
-    if (targetDeclarationResult.declaration is! ClassOrMixinDeclaration) {
+    if (targetDeclarationResult.node is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassOrMixinDeclaration targetNode = targetDeclarationResult.declaration;
+    ClassOrMixinDeclaration targetNode = targetDeclarationResult.node;
     // prepare location
     ClassMemberLocation targetLocation =
-        CorrectionUtils(targetDeclarationResult.resolveResult)
+        CorrectionUtils(targetDeclarationResult.resolvedUnit)
             .prepareNewFieldLocation(targetNode);
     // build field source
     Source targetSource = targetClassElement.source;
@@ -1778,13 +1778,13 @@ class FixProcessor {
     // prepare target ClassOrMixinDeclaration
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetClassElement);
-    if (targetDeclarationResult.declaration is! ClassOrMixinDeclaration) {
+    if (targetDeclarationResult.node is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassOrMixinDeclaration targetNode = targetDeclarationResult.declaration;
+    ClassOrMixinDeclaration targetNode = targetDeclarationResult.node;
     // prepare location
     ClassMemberLocation targetLocation =
-        CorrectionUtils(targetDeclarationResult.resolveResult)
+        CorrectionUtils(targetDeclarationResult.resolvedUnit)
             .prepareNewGetterLocation(targetNode);
     // build method source
     Source targetSource = targetClassElement.source;
@@ -2401,7 +2401,7 @@ class FixProcessor {
           getter.enclosingElement is ClassElement) {
         var declarationResult =
             await sessionHelper.getElementDeclaration(getter.variable);
-        AstNode variable = declarationResult.declaration;
+        AstNode variable = declarationResult.node;
         if (variable is VariableDeclaration &&
             variable.parent is VariableDeclarationList &&
             variable.parent.parent is FieldDeclaration) {
@@ -3644,8 +3644,8 @@ class FixProcessor {
   Future<ClassOrMixinDeclaration> _getClassDeclaration(
       ClassElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
-    if (result.declaration is ClassOrMixinDeclaration) {
-      return result.declaration;
+    if (result.node is ClassOrMixinDeclaration) {
+      return result.node;
     }
     return null;
   }
@@ -4114,7 +4114,7 @@ class _ExecutableParameters {
    */
   Future<FormalParameterList> getParameterList() async {
     var result = await sessionHelper.getElementDeclaration(executable);
-    var targetDeclaration = result.declaration;
+    var targetDeclaration = result.node;
     if (targetDeclaration is ConstructorDeclaration) {
       return targetDeclaration.parameters;
     } else if (targetDeclaration is FunctionDeclaration) {
@@ -4132,7 +4132,7 @@ class _ExecutableParameters {
    */
   Future<FormalParameter> getParameterNode(ParameterElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
-    var declaration = result.declaration;
+    var declaration = result.node;
     for (AstNode node = declaration; node != null; node = node.parent) {
       if (node is FormalParameter && node.parent is FormalParameterList) {
         return node;

@@ -6,9 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 
 /// A wrapper around [AnalysisSession] that provides additional utilities.
 ///
@@ -18,14 +16,14 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 class AnalysisSessionHelper {
   final AnalysisSession session;
 
+  final Map<String, ResolvedLibraryResult> _resolvedLibraries = {};
+
   AnalysisSessionHelper(this.session);
 
   /// Return the [ClassElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
   Future<ClassElement> getClass(String libraryUri, String className) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var libraryElement = await session.getLibraryByUri(libraryUri);
     var element = libraryElement.exportNamespace.get(className);
     if (element is ClassElement) {
@@ -39,17 +37,8 @@ class AnalysisSessionHelper {
   /// is synthetic.
   Future<ElementDeclarationResult> getElementDeclaration(
       Element element) async {
-    if (element.isSynthetic || element.nameOffset == -1) {
-      return null;
-    }
-
-    var path = element.source.fullName;
-    var resolveResult = await session.getResolvedUnit(path);
-    var unit = resolveResult.unit;
-    var locator = NodeLocator(element.nameOffset);
-    var declaration = locator.searchWithin(unit)?.parent;
-
-    return ElementDeclarationResult(resolveResult, declaration);
+    var resolvedLibrary = await _getResolvedLibrary(element.source.fullName);
+    return resolvedLibrary.getElementDeclaration(element);
   }
 
   /// Return the [PropertyAccessorElement] with the given [name] that is
@@ -57,8 +46,6 @@ class AnalysisSessionHelper {
   /// library does not export a top-level accessor with such name.
   Future<PropertyAccessorElement> getTopLevelPropertyAccessor(
       String uri, String name) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var libraryElement = await session.getLibraryByUri(uri);
     var element = libraryElement.exportNamespace.get(name);
     if (element is PropertyAccessorElement) {
@@ -67,13 +54,14 @@ class AnalysisSessionHelper {
       return null;
     }
   }
-}
 
-/// The result of searching an [Element] declaration in the resolved AST for
-/// the file where it is defined.
-class ElementDeclarationResult {
-  final ResolvedUnitResult resolveResult;
-  final AstNode declaration;
-
-  ElementDeclarationResult(this.resolveResult, this.declaration);
+  /// Return a newly resolved, or cached library with the given [path].
+  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
+    var result = _resolvedLibraries[path];
+    if (result == null) {
+      result = await session.getResolvedLibrary(path);
+      _resolvedLibraries[path] = result;
+    }
+    return result;
+  }
 }
