@@ -1,3 +1,7 @@
+## 0.33.2
+* Protect against self-referencing classes in InheritanceManager2. (#34333)
+* Introduce API so that the linter can be migrated away from Element.context.
+
 ## 0.33.1
 * Fix circular typedef stack overflow. (#33599)
 * Check that the implemented member is a valid override of the member from
