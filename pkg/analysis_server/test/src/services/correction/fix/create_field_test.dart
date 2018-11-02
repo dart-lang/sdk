@@ -11,7 +11,65 @@ import 'fix_processor.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateFieldTest);
+    defineReflectiveTests(CreateFieldMixinTest);
   });
+}
+
+@reflectiveTest
+class CreateFieldMixinTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_FIELD;
+
+  test_getter_qualified_instance() async {
+    await resolveTestUnit('''
+mixin M {
+}
+
+main(M m) {
+  int v = m.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+mixin M {
+  int test;
+}
+
+main(M m) {
+  int v = m.test;
+  print(v);
+}
+''');
+  }
+
+  test_setter_qualified_instance_hasField() async {
+    await resolveTestUnit('''
+mixin M {
+  int aaa;
+  int zzz;
+
+  existingMethod() {}
+}
+
+main(M m) {
+  m.test = 5;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  int aaa;
+  int zzz;
+
+  int test;
+
+  existingMethod() {}
+}
+
+main(M m) {
+  m.test = 5;
+}
+''');
+  }
 }
 
 @reflectiveTest

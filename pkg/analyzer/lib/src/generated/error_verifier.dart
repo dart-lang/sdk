@@ -4320,7 +4320,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     DartType type = typeName.type;
     if (type is InterfaceType) {
       ClassElement element = type.element;
-      if (element != null && element.isEnum) {
+      if (element.isEnum || element.isMixin) {
         // We have already reported the error.
         return;
       }

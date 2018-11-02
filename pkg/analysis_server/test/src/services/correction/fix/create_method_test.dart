@@ -12,7 +12,120 @@ import 'fix_processor.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateMethodTest);
+    defineReflectiveTests(CreateMethodMixinTest);
   });
+}
+
+@reflectiveTest
+class CreateMethodMixinTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_METHOD;
+
+  test_createQualified_instance() async {
+    await resolveTestUnit('''
+mixin M {}
+
+main(M m) {
+  m.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+mixin M {
+  void myUndefinedMethod() {}
+}
+
+main(M m) {
+  m.myUndefinedMethod();
+}
+''');
+  }
+
+  test_createQualified_static() async {
+    await resolveTestUnit('''
+mixin M {}
+
+main() {
+  M.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+mixin M {
+  static void myUndefinedMethod() {}
+}
+
+main() {
+  M.myUndefinedMethod();
+}
+''');
+  }
+
+  test_createUnqualified() async {
+    await resolveTestUnit('''
+mixin M {
+  main() {
+    myUndefinedMethod();
+  }
+}
+''');
+    await assertHasFix('''
+mixin M {
+  main() {
+    myUndefinedMethod();
+  }
+
+  void myUndefinedMethod() {}
+}
+''');
+  }
+
+  test_functionType_method_enclosingMixin_static() async {
+    await resolveTestUnit('''
+mixin M {
+  static foo() {
+    useFunction(test);
+  }
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+mixin M {
+  static foo() {
+    useFunction(test);
+  }
+
+  static int test(double a, String b) {
+  }
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  test_functionType_method_targetMixin() async {
+    await resolveTestUnit('''
+main(M m) {
+  useFunction(m.test);
+}
+
+mixin M {
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+main(M m) {
+  useFunction(m.test);
+}
+
+mixin M {
+  int test(double a, String b) {
+  }
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+  }
 }
 
 @reflectiveTest

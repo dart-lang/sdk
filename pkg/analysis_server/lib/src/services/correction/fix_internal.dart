@@ -1613,10 +1613,10 @@ class FixProcessor {
     // prepare target ClassDeclaration
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetClassElement);
-    if (targetDeclarationResult.declaration is! ClassDeclaration) {
+    if (targetDeclarationResult.declaration is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassDeclaration targetNode = targetDeclarationResult.declaration;
+    ClassOrMixinDeclaration targetNode = targetDeclarationResult.declaration;
     // prepare location
     ClassMemberLocation targetLocation =
         CorrectionUtils(targetDeclarationResult.resolveResult)
@@ -1696,8 +1696,8 @@ class FixProcessor {
             return;
           }
         } else {
-          ClassDeclaration enclosingClass =
-              node.getAncestor((node) => node is ClassDeclaration);
+          ClassOrMixinDeclaration enclosingClass =
+              node.getAncestor((node) => node is ClassOrMixinDeclaration);
           targetElement = enclosingClass?.declaredElement;
           argument = nameNode;
         }
@@ -1775,13 +1775,13 @@ class FixProcessor {
       return;
     }
     utils.targetClassElement = targetClassElement;
-    // prepare target ClassDeclaration
+    // prepare target ClassOrMixinDeclaration
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetClassElement);
-    if (targetDeclarationResult.declaration is! ClassDeclaration) {
+    if (targetDeclarationResult.declaration is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassDeclaration targetNode = targetDeclarationResult.declaration;
+    ClassOrMixinDeclaration targetNode = targetDeclarationResult.declaration;
     // prepare location
     ClassMemberLocation targetLocation =
         CorrectionUtils(targetDeclarationResult.resolveResult)
@@ -3244,7 +3244,7 @@ class FixProcessor {
       Element targetElement;
       bool staticModifier = false;
 
-      ClassDeclaration targetClassNode;
+      ClassOrMixinDeclaration targetClassNode;
       Expression target = invocation.realTarget;
       CorrectionUtils utils = this.utils;
       if (target == null) {
@@ -3639,11 +3639,12 @@ class FixProcessor {
   }
 
   /**
-   * Returns the [ClassDeclaration] for the given [element].
+   * Returns the [ClassOrMixinDeclaration] for the given [element].
    */
-  Future<ClassDeclaration> _getClassDeclaration(ClassElement element) async {
+  Future<ClassOrMixinDeclaration> _getClassDeclaration(
+      ClassElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
-    if (result.declaration is ClassDeclaration) {
+    if (result.declaration is ClassOrMixinDeclaration) {
       return result.declaration;
     }
     return null;

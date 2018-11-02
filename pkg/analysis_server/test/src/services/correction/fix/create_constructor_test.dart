@@ -11,7 +11,25 @@ import 'fix_processor.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateConstructorTest);
+    defineReflectiveTests(CreateConstructorMixinTest);
   });
+}
+
+@reflectiveTest
+class CreateConstructorMixinTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
+
+  test_named() async {
+    await resolveTestUnit('''
+mixin M {}
+
+main() {
+  new M.named();
+}
+''');
+    await assertNoFix();
+  }
 }
 
 @reflectiveTest

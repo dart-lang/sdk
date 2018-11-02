@@ -1268,6 +1268,24 @@ main() {
     assertInstanceCreation(creation, m, 'M', constructorName: 'named');
   }
 
+  test_error_mixinInstantiate_undefined() async {
+    addTestFile(r'''
+mixin M {}
+
+main() {
+  new M.named();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_INSTANTIATE,
+    ]);
+
+    var creation = findNode.instanceCreation('M.named();');
+    var m = findElement.mixin('M');
+    assertElement(creation.constructorName.type.name, m);
+  }
+
   test_error_onClause_deferredClass() async {
     addTestFile(r'''
 import 'dart:math' deferred as math;

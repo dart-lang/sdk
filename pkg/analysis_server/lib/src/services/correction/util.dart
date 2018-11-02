@@ -231,12 +231,12 @@ String getElementQualifiedName(Element element) {
 }
 
 /**
- * If the given [AstNode] is in a [ClassDeclaration], returns the
+ * If the given [AstNode] is in a [ClassOrMixinDeclaration], returns the
  * [ClassElement]. Otherwise returns `null`.
  */
 ClassElement getEnclosingClassElement(AstNode node) {
-  ClassDeclaration enclosingClassNode =
-      node.getAncestor((node) => node is ClassDeclaration);
+  ClassOrMixinDeclaration enclosingClassNode =
+      node.getAncestor((node) => node is ClassOrMixinDeclaration);
   if (enclosingClassNode != null) {
     return enclosingClassNode.declaredElement;
   }
@@ -1048,7 +1048,7 @@ class CorrectionUtils {
    * Return `true` if the given [classDeclaration] has open '{' and close '}'
    * at the same line, e.g. `class X {}`.
    */
-  bool isClassWithEmptyBody(ClassDeclaration classDeclaration) {
+  bool isClassWithEmptyBody(ClassOrMixinDeclaration classDeclaration) {
     return getLineThis(classDeclaration.leftBracket.offset) ==
         getLineThis(classDeclaration.rightBracket.offset);
   }
@@ -1067,7 +1067,7 @@ class CorrectionUtils {
   }
 
   ClassMemberLocation prepareNewClassMemberLocation(
-      ClassDeclaration classDeclaration,
+      ClassOrMixinDeclaration classDeclaration,
       bool shouldSkip(ClassMember existingMember)) {
     String indent = getIndent(1);
     // Find the last target member.
@@ -1102,13 +1102,13 @@ class CorrectionUtils {
   }
 
   ClassMemberLocation prepareNewFieldLocation(
-      ClassDeclaration classDeclaration) {
+      ClassOrMixinDeclaration classDeclaration) {
     return prepareNewClassMemberLocation(
         classDeclaration, (member) => member is FieldDeclaration);
   }
 
   ClassMemberLocation prepareNewGetterLocation(
-      ClassDeclaration classDeclaration) {
+      ClassOrMixinDeclaration classDeclaration) {
     return prepareNewClassMemberLocation(
         classDeclaration,
         (member) =>
@@ -1118,7 +1118,7 @@ class CorrectionUtils {
   }
 
   ClassMemberLocation prepareNewMethodLocation(
-      ClassDeclaration classDeclaration) {
+      ClassOrMixinDeclaration classDeclaration) {
     return prepareNewClassMemberLocation(
         classDeclaration,
         (member) =>
