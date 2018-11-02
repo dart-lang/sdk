@@ -208,30 +208,31 @@ class JsClosedWorldBuilder {
     OutputUnitData outputUnitData =
         _convertOutputUnitData(map, kOutputUnitData, closureData);
 
-    return new JsClosedWorld(_elementMap,
-        backendUsage: backendUsage,
-        noSuchMethodData: noSuchMethodData,
-        nativeData: nativeData,
-        interceptorData: interceptorData,
-        rtiNeed: rtiNeed,
-        classHierarchy: new ClassHierarchyImpl(
-            _elementMap.commonElements, _classHierarchyNodes, _classSets),
-        implementedClasses: implementedClasses,
-        liveNativeClasses: liveNativeClasses,
+    return new JsClosedWorld(
+        _elementMap,
+        nativeData,
+        interceptorData,
+        backendUsage,
+        rtiNeed,
+        allocatorAnalysis,
+        noSuchMethodData,
+        implementedClasses,
+        liveNativeClasses,
         // TODO(johnniwinther): Include the call method when we can also
         // represent the synthesized call methods for static and instance method
         // closurizations.
-        liveInstanceMembers: liveInstanceMembers /*..addAll(callMethods)*/,
-        assignedInstanceMembers: assignedInstanceMembers,
-        processedMembers: processedMembers,
-        mixinUses: mixinUses,
-        typesImplementedBySubclasses: typesImplementedBySubclasses,
-        abstractValueStrategy: _abstractValueStrategy,
-        allocatorAnalysis: allocatorAnalysis,
-        annotationsData: annotationsData,
-        globalLocalsMap: _globalLocalsMap,
-        closureDataLookup: closureData,
-        outputUnitData: outputUnitData);
+        liveInstanceMembers /*..addAll(callMethods)*/,
+        assignedInstanceMembers,
+        processedMembers,
+        mixinUses,
+        typesImplementedBySubclasses,
+        new ClassHierarchyImpl(
+            _elementMap.commonElements, _classHierarchyNodes, _classSets),
+        _abstractValueStrategy,
+        annotationsData,
+        _globalLocalsMap,
+        closureData,
+        outputUnitData);
   }
 
   BackendUsage _convertBackendUsage(
