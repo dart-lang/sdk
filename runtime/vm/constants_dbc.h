@@ -12,7 +12,7 @@
 namespace dart {
 
 // clang-format off
-// List of Dart Bytecode instructions.
+// List of Simulator Bytecode instructions.
 //
 // INTERPRETER STATE
 //
@@ -943,7 +943,7 @@ namespace dart {
 
 typedef uint32_t Instr;
 
-class Bytecode {
+class SimulatorBytecode {
  public:
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,
@@ -1015,18 +1015,18 @@ class Bytecode {
   }
 
   DART_FORCE_INLINE static bool IsTrap(Instr instr) {
-    return DecodeOpcode(instr) == Bytecode::kTrap;
+    return DecodeOpcode(instr) == SimulatorBytecode::kTrap;
   }
 
   DART_FORCE_INLINE static bool IsCallOpcode(Instr instr) {
     switch (DecodeOpcode(instr)) {
-      case Bytecode::kStaticCall:
-      case Bytecode::kIndirectStaticCall:
-      case Bytecode::kInstanceCall1:
-      case Bytecode::kInstanceCall2:
-      case Bytecode::kInstanceCall1Opt:
-      case Bytecode::kInstanceCall2Opt:
-      case Bytecode::kDebugBreak:
+      case SimulatorBytecode::kStaticCall:
+      case SimulatorBytecode::kIndirectStaticCall:
+      case SimulatorBytecode::kInstanceCall1:
+      case SimulatorBytecode::kInstanceCall2:
+      case SimulatorBytecode::kInstanceCall1Opt:
+      case SimulatorBytecode::kInstanceCall2Opt:
+      case SimulatorBytecode::kDebugBreak:
         return true;
 
       default:
@@ -1036,14 +1036,14 @@ class Bytecode {
 
   DART_FORCE_INLINE static bool IsFastSmiOpcode(Instr instr) {
     switch (DecodeOpcode(instr)) {
-      case Bytecode::kAddTOS:
-      case Bytecode::kSubTOS:
-      case Bytecode::kMulTOS:
-      case Bytecode::kBitOrTOS:
-      case Bytecode::kBitAndTOS:
-      case Bytecode::kEqualTOS:
-      case Bytecode::kLessThanTOS:
-      case Bytecode::kGreaterThanTOS:
+      case SimulatorBytecode::kAddTOS:
+      case SimulatorBytecode::kSubTOS:
+      case SimulatorBytecode::kMulTOS:
+      case SimulatorBytecode::kBitOrTOS:
+      case SimulatorBytecode::kBitAndTOS:
+      case SimulatorBytecode::kEqualTOS:
+      case SimulatorBytecode::kLessThanTOS:
+      case SimulatorBytecode::kGreaterThanTOS:
         return true;
 
       default:
@@ -1060,7 +1060,7 @@ class Bytecode {
 
  private:
   DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Bytecode);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(SimulatorBytecode);
 };
 
 // Various dummy declarations to make shared code compile.
