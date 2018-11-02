@@ -298,6 +298,18 @@ final Matcher isContextData =
         }));
 
 /**
+ * DartFixSuggestion
+ *
+ * {
+ *   "description": String
+ *   "location": optional Location
+ * }
+ */
+final Matcher isDartFixSuggestion = new LazyMatcher(() => new MatchesJsonObject(
+    "DartFixSuggestion", {"description": isString},
+    optionalFields: {"location": isLocation}));
+
+/**
  * Element
  *
  * {
@@ -2131,18 +2143,18 @@ final Matcher isEditDartfixParams = new LazyMatcher(() => new MatchesJsonObject(
  * edit.dartfix result
  *
  * {
- *   "descriptionOfFixes": List<String>
- *   "otherRecommendations": List<String>
+ *   "suggestions": List<DartFixSuggestion>
+ *   "otherSuggestions": List<DartFixSuggestion>
  *   "hasErrors": bool
- *   "fixes": List<SourceFileEdit>
+ *   "edits": List<SourceFileEdit>
  * }
  */
 final Matcher isEditDartfixResult =
     new LazyMatcher(() => new MatchesJsonObject("edit.dartfix result", {
-          "descriptionOfFixes": isListOf(isString),
-          "otherRecommendations": isListOf(isString),
+          "suggestions": isListOf(isDartFixSuggestion),
+          "otherSuggestions": isListOf(isDartFixSuggestion),
           "hasErrors": isBool,
-          "fixes": isListOf(isSourceFileEdit)
+          "edits": isListOf(isSourceFileEdit)
         }));
 
 /**

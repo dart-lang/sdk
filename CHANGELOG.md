@@ -1,3 +1,16 @@
+## 2.1.0-dev.9.1
+
+Cherry-pick commit 0fe448a99643e149acb2e7e32d7a30eba7dd646d to update the analysis server edit.dartfix protocol.
+
+Cherry-pick commit 45d070d437bb1b596516edd3717e6ee614c5f9ac to update linter to version 0.1.71.
+
+Cherry-pick commit 00f27a32cf52834b3e9e1f52889b6f1c83ad338c to fix usage of mixins in dart dev compiler.
+
+Cherry-pick commit 523353d28017fced825581ea327509c620eed67e to fix the ARM 32-bit build.
+
+Cherry-pick commit db4271378f56a66528a87f2f920c678162d59a35 to fix an
+issue with coverage
+
 ## 2.1.0-dev.9.0
 
 ## 2.1.0-dev.8.0
