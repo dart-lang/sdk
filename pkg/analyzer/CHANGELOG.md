@@ -1,3 +1,17 @@
+## 0.33.2
+* Protect against self-referencing classes in InheritanceManager2. (#34333)
+* Introduce API so that the linter can be migrated away from Element.context.
+
+## 0.33.1
+* Fix circular typedef stack overflow. (#33599)
+* Check that the implemented member is a valid override of the member from
+  the super constraint. (#34693)
+* Begin replacing InheritanceManager with InheritanceManager2 and
+  deprecate older members.
+* Performance fixups with Analysis Driver.
+* Verify the superconstraint signature invoked by a mixin. (#34896)
+* In_matchInterfaceSubtypeOf, account for mixins having null. (#34907)
+
 ## 0.33.0
 * Support handling 'class C with M', with extends missing.
 * Report ABSTRACT_SUPER_MEMBER_REFERENCE as an error.
