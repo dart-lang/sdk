@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' as ir
@@ -11,13 +10,16 @@ import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
+import '../../compiler_new.dart' as api;
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
 import '../js_model/js_strategy.dart';
 import '../options.dart';
+import '../source_file_provider.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import 'serialization.dart';
+import 'task.dart';
 
 abstract class SerializationStrategy<T> {
   const SerializationStrategy();
@@ -80,8 +82,9 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
   @override
   List<int> serializeData(GlobalTypeInferenceResults results) {
     Uri uri = Uri.base.resolve('world.data');
-    DataSink sink =
-        new BinarySink(new BufferedFileSink(uri), useDataKinds: useDataKinds);
+    DataSink sink = new BinarySink(
+        new BinaryOutputSinkAdapter(new RandomAccessBinaryOutputSink(uri)),
+        useDataKinds: useDataKinds);
     serializeGlobalTypeInferenceResults(results, sink);
     return new File.fromUri(uri).readAsBytesSync();
   }
@@ -128,37 +131,18 @@ class ObjectsInMemorySerializationStrategy
   }
 }
 
-class BufferedFileSink implements Sink<List<int>> {
-  int offset = 0;
-  List<int> buffer = new Uint8List(10000000);
-  RandomAccessFile output;
+class BinaryOutputSinkAdapter implements Sink<List<int>> {
+  api.BinaryOutputSink output;
 
-  BufferedFileSink(Uri uri) {
-    output = new File.fromUri(uri).openSync(mode: FileMode.write);
-  }
+  BinaryOutputSinkAdapter(this.output);
 
   @override
   void add(List<int> data) {
-    if (data.length > buffer.length) {
-      output.writeFromSync(buffer, 0, offset);
-      offset = 0;
-      output.writeFromSync(data);
-    } else if (offset + data.length > buffer.length) {
-      output.writeFromSync(buffer, 0, offset);
-      offset = data.length;
-      buffer.setRange(0, offset, data);
-    } else {
-      buffer.setRange(offset, offset + data.length, data);
-      offset += data.length;
-    }
+    output.write(data);
   }
 
   @override
   void close() {
-    if (offset > 0) {
-      output.writeFromSync(buffer, 0, offset);
-      offset = 0;
-    }
-    output.closeSync();
+    output.close();
   }
 }

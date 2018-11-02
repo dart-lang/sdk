@@ -230,13 +230,13 @@ class JsClosedWorldBuilder {
         map.toBackendClassMap(
             closedWorld.typesImplementedBySubclasses, map.toBackendClassSet);
 
-    Iterable<MemberEntity> assignedInstanceMembers =
+    Set<MemberEntity> assignedInstanceMembers =
         map.toBackendMemberSet(closedWorld.assignedInstanceMembers);
 
-    Iterable<ClassEntity> liveNativeClasses =
+    Set<ClassEntity> liveNativeClasses =
         map.toBackendClassSet(closedWorld.liveNativeClasses);
 
-    Iterable<MemberEntity> processedMembers =
+    Set<MemberEntity> processedMembers =
         map.toBackendMemberSet(closedWorld.processedMembers);
 
     RuntimeTypesNeed rtiNeed;
@@ -657,11 +657,11 @@ class JsClosedWorld extends ClosedWorldBase {
       this.rtiNeed,
       this.allocatorAnalysis,
       NoSuchMethodData noSuchMethodData,
-      Iterable<ClassEntity> implementedClasses,
-      Iterable<ClassEntity> liveNativeClasses,
-      Iterable<MemberEntity> liveInstanceMembers,
-      Iterable<MemberEntity> assignedInstanceMembers,
-      Iterable<MemberEntity> processedMembers,
+      Set<ClassEntity> implementedClasses,
+      Set<ClassEntity> liveNativeClasses,
+      Set<MemberEntity> liveInstanceMembers,
+      Set<MemberEntity> assignedInstanceMembers,
+      Set<MemberEntity> processedMembers,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       ClassHierarchy classHierarchy,
@@ -722,10 +722,10 @@ class JsClosedWorld extends ClosedWorldBase {
         new NoSuchMethodData.readFromDataSource(source);
 
     Set<ClassEntity> implementedClasses = source.readClasses().toSet();
-    Iterable<ClassEntity> liveNativeClasses = source.readClasses();
-    Iterable<MemberEntity> liveInstanceMembers = source.readMembers();
-    Iterable<MemberEntity> assignedInstanceMembers = source.readMembers();
-    Iterable<MemberEntity> processedMembers = source.readMembers();
+    Set<ClassEntity> liveNativeClasses = source.readClasses().toSet();
+    Set<MemberEntity> liveInstanceMembers = source.readMembers().toSet();
+    Set<MemberEntity> assignedInstanceMembers = source.readMembers().toSet();
+    Set<MemberEntity> processedMembers = source.readMembers().toSet();
     Map<ClassEntity, Set<ClassEntity>> mixinUses =
         source.readClassMap(() => source.readClasses().toSet());
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =

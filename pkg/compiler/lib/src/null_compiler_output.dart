@@ -16,6 +16,11 @@ class NullCompilerOutput implements CompilerOutput {
   OutputSink createOutputSink(String name, String extension, OutputType type) {
     return NullSink.outputProvider(name, extension, type);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) {
+    return new NullBinarySink(uri);
+  }
 }
 
 /// A sink that drains into /dev/null.
@@ -24,15 +29,29 @@ class NullSink implements OutputSink {
 
   NullSink(this.name);
 
-  add(String value) {}
+  void add(String value) {}
 
   void close() {}
 
-  toString() => name;
+  String toString() => name;
 
   /// Convenience method for getting an [api.CompilerOutputProvider].
   static NullSink outputProvider(
       String name, String extension, OutputType type) {
     return new NullSink('$name.$extension.$type');
   }
+}
+
+class NullBinarySink implements BinaryOutputSink {
+  final Uri uri;
+
+  NullBinarySink(this.uri);
+
+  @override
+  void write(List<int> buffer, [int start = 0, int end]) {}
+
+  @override
+  void close() {}
+
+  String toString() => 'NullBinarySink($uri)';
 }

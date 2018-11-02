@@ -26,7 +26,6 @@ import '../../js_backend/constant_handler_javascript.dart'
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
@@ -74,7 +73,6 @@ class ProgramBuilder {
   final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
-  final JsInteropAnalysis _jsInteropAnalysis;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final Map<MemberEntity, js.Expression> _generatedCode;
@@ -119,7 +117,6 @@ class ProgramBuilder {
       this._superMemberData,
       this._rtiChecks,
       this._rtiEncoder,
-      this._jsInteropAnalysis,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
       this._generatedCode,
@@ -643,8 +640,7 @@ class ProgramBuilder {
         _task,
         _namer,
         _rtiChecks,
-        _rtiEncoder,
-        _jsInteropAnalysis);
+        _rtiEncoder);
 
     void visitInstanceMember(MemberEntity member) {
       if (!member.isAbstract && !member.isField) {

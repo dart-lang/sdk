@@ -369,9 +369,6 @@ void Precompiler::Iterate() {
     }
 
     CheckForNewDynamicFunctions();
-    if (!changed_) {
-      TraceConstFunctions();
-    }
     CollectCallbackFields();
   }
 }
@@ -1309,35 +1306,6 @@ void Precompiler::CollectDynamicFunctionNames() {
   isolate()->object_store()->set_unique_dynamic_targets(
       functions_set.Release());
   table.Release();
-}
-
-void Precompiler::TraceConstFunctions() {
-  // Compilation of const accessors happens outside of the treeshakers
-  // queue, so we haven't previously scanned its literal pool.
-
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Array& functions = Array::Handle(Z);
-  Function& function = Function::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
-      functions = cls.functions();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        function ^= functions.At(j);
-        if (function.is_const() && function.HasCode()) {
-          AddCalleesOf(function);
-        }
-      }
-    }
-  }
 }
 
 void Precompiler::TraceForRetainedFunctions() {

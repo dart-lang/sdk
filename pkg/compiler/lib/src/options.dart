@@ -59,6 +59,17 @@ class CompilerOptions implements DiagnosticOptions {
   // hold code, just configuration options.
   PackagesDiscoveryProvider packagesDiscoveryProvider;
 
+  /// Location from which serialized inference data is read.
+  ///
+  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// frontend work is skipped.
+  Uri readDataUri;
+
+  /// Location to which inference data is serialized.
+  ///
+  /// If this is set, the compilation stops after type inference.
+  Uri writeDataUri;
+
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
   Map<String, String> environment = const <String, String>{};
@@ -316,7 +327,9 @@ class CompilerOptions implements DiagnosticOptions {
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
       ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
-      ..verbose = _hasOption(options, Flags.verbose);
+      ..verbose = _hasOption(options, Flags.verbose)
+      ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
+      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=');
   }
 
   void validate() {

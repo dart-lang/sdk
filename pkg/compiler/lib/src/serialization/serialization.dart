@@ -6,21 +6,16 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/binary/ast_from_binary.dart' as ir;
+import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../closure.dart';
 import '../constants/values.dart';
-import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
-import '../environment.dart';
-import '../js_backend/inferred_data.dart';
 import '../js_model/closure.dart';
-import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
-import '../options.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 
 part 'abstract_sink.dart';
 part 'abstract_source.dart';
@@ -634,29 +629,4 @@ abstract class EntityLookup {
 /// Interface used for looking up locals by index during deserialization.
 abstract class LocalLookup {
   Local getLocalByIndex(MemberEntity memberContext, int index);
-}
-
-void serializeGlobalTypeInferenceResults(
-    GlobalTypeInferenceResults results, DataSink sink) {
-  JsClosedWorld closedWorld = results.closedWorld;
-  InferredData inferredData = results.inferredData;
-  closedWorld.writeToDataSink(sink);
-  inferredData.writeToDataSink(sink);
-  results.writeToDataSink(sink);
-  sink.close();
-}
-
-GlobalTypeInferenceResults deserializeGlobalTypeInferenceResults(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Environment environment,
-    AbstractValueStrategy abstractValueStrategy,
-    ir.Component component,
-    DataSource source) {
-  JsClosedWorld newClosedWorld = new JsClosedWorld.readFromDataSource(
-      options, reporter, environment, abstractValueStrategy, component, source);
-  InferredData newInferredData =
-      new InferredData.readFromDataSource(source, newClosedWorld);
-  return new GlobalTypeInferenceResults.readFromDataSource(
-      source, newClosedWorld, newInferredData);
 }

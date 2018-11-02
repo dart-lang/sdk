@@ -112,8 +112,9 @@ Future<api.CompilationResult> compile(List<String> argv,
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
   bool outputSpecified = false;
-  Uri out = currentDirectory.resolve('out.js');
-  Uri sourceMapOut = currentDirectory.resolve('out.js.map');
+  Uri out;
+  Uri sourceMapOut;
+  Uri writeDataUri;
   List<String> bazelPaths;
   Uri packageConfig = null;
   Uri packageRoot = null;
@@ -133,6 +134,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   int optimizationLevel = null;
   Uri platformBinaries = fe.computePlatformBinariesLocation();
   Map<String, String> environment = new Map<String, String>();
+  CompilationStrategy compilationStrategy = CompilationStrategy.direct;
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -166,7 +168,6 @@ Future<api.CompilationResult> compile(List<String> argv,
       path = extractParameter(arguments.current);
     }
     out = currentDirectory.resolve(nativeToUriPath(path));
-    sourceMapOut = Uri.parse('$out.map');
   }
 
   void setOptimizationLevel(String argument) {
@@ -250,6 +251,20 @@ Future<api.CompilationResult> compile(List<String> argv,
         currentDirectory.resolve(extractPath(argument, isDirectory: true));
   }
 
+  void setReadData(String argument) {
+    if (compilationStrategy == CompilationStrategy.toData) {
+      fail("Cannot read and write serialized simultaneously.");
+    }
+    compilationStrategy = CompilationStrategy.fromData;
+  }
+
+  void setWriteData(String argument) {
+    if (compilationStrategy == CompilationStrategy.fromData) {
+      fail("Cannot read and write serialized simultaneously.");
+    }
+    compilationStrategy = CompilationStrategy.toData;
+  }
+
   void handleThrowOnError(String argument) {
     throwOnError = true;
     String parameter = extractParameter(argument, isOptionalArgument: true);
@@ -305,6 +320,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
+    new OptionHandler(Flags.readData, setReadData),
+    new OptionHandler(Flags.writeData, setWriteData),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('-O.*', setOptimizationLevel),
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
@@ -455,8 +472,26 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndFail("Cannot specify both '--package-root' and '--packages.");
   }
 
+  String scriptName = arguments[0];
+
+  switch (compilationStrategy) {
+    case CompilationStrategy.direct:
+      out ??= currentDirectory.resolve('out.js');
+      break;
+    case CompilationStrategy.toData:
+      out ??= currentDirectory.resolve('out.dill');
+      writeDataUri = currentDirectory.resolve('$out.data');
+      options.add('${Flags.writeData}=${writeDataUri}');
+      break;
+    case CompilationStrategy.fromData:
+      out ??= currentDirectory.resolve('out.js');
+      options.add(
+          '${Flags.readData}=${currentDirectory.resolve('$scriptName.data')}');
+      break;
+  }
   options.add('--out=$out');
-  options.add('--source-map=$sourceMapOut');
+  sourceMapOut = Uri.parse('$out.map');
+  options.add('--source-map=${sourceMapOut}');
 
   RandomAccessFileOutputProvider outputProvider =
       new RandomAccessFileOutputProvider(out, sourceMapOut,
@@ -468,37 +503,91 @@ Future<api.CompilationResult> compile(List<String> argv,
     }
     writeString(
         Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
-    int dartCharactersRead = inputProvider.dartCharactersRead;
-    int jsCharactersWritten = outputProvider.totalCharactersWrittenJavaScript;
-    int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;
+    switch (compilationStrategy) {
+      case CompilationStrategy.direct:
+        int dartCharactersRead = inputProvider.dartCharactersRead;
+        int jsCharactersWritten =
+            outputProvider.totalCharactersWrittenJavaScript;
+        int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;
+        print('Compiled '
+            '${_formatCharacterCount(dartCharactersRead)} characters Dart to '
+            '${_formatCharacterCount(jsCharactersWritten)} characters '
+            'JavaScript in '
+            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
 
-    print('Compiled '
-        '${_formatCharacterCount(dartCharactersRead)} characters Dart'
-        ' to '
-        '${_formatCharacterCount(jsCharactersWritten)} characters JavaScript'
-        ' in '
-        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+        diagnosticHandler
+            .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
+                'JavaScript in '
+                '${relativize(currentDirectory, out, Platform.isWindows)}');
+        if (diagnosticHandler.verbose) {
+          String input = uriPathToNative(scriptName);
+          print('Dart file ($input) compiled to JavaScript.');
+          print('Wrote the following files:');
+          for (String filename in outputProvider.allOutputFiles) {
+            print("  $filename");
+          }
+        } else if (outputSpecified) {
+          String input = uriPathToNative(scriptName);
+          String output = relativize(currentDirectory, out, Platform.isWindows);
+          print('Dart file ($input) compiled to JavaScript: $output');
+        }
+        break;
+      case CompilationStrategy.toData:
+        int dartCharactersRead = inputProvider.dartCharactersRead;
+        int dataBytesWritten = outputProvider.totalDataWritten;
+        print('Serialized '
+            '${_formatCharacterCount(dartCharactersRead)} characters Dart to '
+            '${_formatCharacterCount(dataBytesWritten)} bytes data in '
+            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+        String input = uriPathToNative(scriptName);
+        String dillOutput =
+            relativize(currentDirectory, out, Platform.isWindows);
+        String dataOutput =
+            relativize(currentDirectory, writeDataUri, Platform.isWindows);
+        print('Dart file ($input) serialized to '
+            '${dillOutput} and ${dataOutput}.');
+        if (diagnosticHandler.verbose) {
+          print('Wrote the following files:');
+          for (String filename in outputProvider.allOutputFiles) {
+            print("  $filename");
+          }
+        }
+        break;
+      case CompilationStrategy.fromData:
+        int dataCharactersRead = inputProvider.dartCharactersRead;
+        int jsCharactersWritten =
+            outputProvider.totalCharactersWrittenJavaScript;
+        int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;
+        print('Compiled '
+            '${_formatCharacterCount(dataCharactersRead)} bytes data to '
+            '${_formatCharacterCount(jsCharactersWritten)} characters '
+            'JavaScript in '
+            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
 
-    diagnosticHandler.info(
-        '${_formatCharacterCount(jsCharactersPrimary)} characters JavaScript'
-        ' in '
-        '${relativize(currentDirectory, out, Platform.isWindows)}');
-    if (diagnosticHandler.verbose) {
-      String input = uriPathToNative(arguments[0]);
-      print('Dart file ($input) compiled to JavaScript.');
-      print('Wrote the following files:');
-      for (String filename in outputProvider.allOutputFiles) {
-        print("  $filename");
-      }
-    } else if (outputSpecified) {
-      String input = uriPathToNative(arguments[0]);
-      String output = relativize(currentDirectory, out, Platform.isWindows);
-      print('Dart file ($input) compiled to JavaScript: $output');
+        diagnosticHandler
+            .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
+                'JavaScript in '
+                '${relativize(currentDirectory, out, Platform.isWindows)}');
+        if (diagnosticHandler.verbose) {
+          String input = uriPathToNative(scriptName);
+          print('Dart file ($input) compiled to JavaScript.');
+          print('Wrote the following files:');
+          for (String filename in outputProvider.allOutputFiles) {
+            print("  $filename");
+          }
+        } else if (outputSpecified) {
+          String input = uriPathToNative(scriptName);
+          String output = relativize(currentDirectory, out, Platform.isWindows);
+          print('Dart file ($input) compiled to JavaScript: $output');
+        }
+        break;
     }
+
     return result;
   }
 
-  Uri script = currentDirectory.resolve(arguments[0]);
+  Uri script = currentDirectory.resolve(scriptName);
+
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       libraryRoot: libraryRoot, platformBinaries: platformBinaries)
@@ -908,3 +997,5 @@ void batchMain(List<String> batchArguments) {
     });
   });
 }
+
+enum CompilationStrategy { direct, toData, fromData }
