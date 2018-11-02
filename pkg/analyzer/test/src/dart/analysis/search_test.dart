@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -620,7 +620,7 @@ Random v2;
     ClassElement randomElement;
     {
       String randomPath = sdk.mapDartUri('dart:math').fullName;
-      AnalysisResult result = await driver.getResult(randomPath);
+      ResolvedUnitResult result = await driver.getResult(randomPath);
       randomElement = result.unit.declaredElement.getType('Random');
     }
 
@@ -1484,7 +1484,7 @@ _C v1;
     driver.addFile(p1);
     driver.addFile(p2);
 
-    AnalysisResult result = await driver.getResult(p);
+    ResolvedUnitResult result = await driver.getResult(p);
     testUnit = result.unit;
     testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
@@ -2024,7 +2024,7 @@ class NoMatchABCDEF {}
       newFile(testFile, content: testCode);
     }
     if (testUnit == null) {
-      AnalysisResult result = await driver.getResult(testFile);
+      ResolvedUnitResult result = await driver.getResult(testFile);
       testUnit = result.unit;
       testUnitElement = testUnit.declaredElement;
       testLibraryElement = testUnitElement.library;

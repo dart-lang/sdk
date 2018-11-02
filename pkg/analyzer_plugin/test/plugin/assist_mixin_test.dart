@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/assist_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -85,7 +84,7 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
       EditGetAssistsParams parameters) async {
-    AnalysisResult result = new MockAnalysisResult();
+    var result = new MockResolvedUnitResult();
     return new DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

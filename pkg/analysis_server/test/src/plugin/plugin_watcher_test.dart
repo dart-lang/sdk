@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
@@ -119,7 +120,7 @@ class TestDriver implements AnalysisDriver {
   AnalysisSession currentSession;
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
 
-  final _resultController = new StreamController<AnalysisResult>();
+  final _resultController = new StreamController<ResolvedUnitResult>();
 
   TestDriver(this.resourceProvider, ContextRoot contextRoot) {
     path.Context pathContext = resourceProvider.pathContext;
@@ -147,12 +148,11 @@ class TestDriver implements AnalysisDriver {
     currentSession = new AnalysisSessionImpl(this);
   }
 
-  Stream<AnalysisResult> get results => _resultController.stream;
+  Stream<ResolvedUnitResult> get results => _resultController.stream;
 
   Future<void> computeResult(String uri) {
     FileState file = fsState.getFileForUri(Uri.parse(uri));
-    AnalysisResult result = new AnalysisResult(this, null, file.path, null,
-        true, null, null, false, null, null, null, null);
+    var result = new _ResolvedUnitResultMock(currentSession, file.path);
     _resultController.add(result);
     return new Future.delayed(new Duration(milliseconds: 1));
   }
@@ -181,4 +181,16 @@ class TestPluginManager implements PluginManager {
   void removedContextRoot(ContextRoot contextRoot) {
     removedContextRoots.add(contextRoot);
   }
+}
+
+class _ResolvedUnitResultMock implements ResolvedUnitResult {
+  @override
+  final AnalysisSession session;
+
+  @override
+  final String path;
+
+  _ResolvedUnitResultMock(this.session, this.path);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

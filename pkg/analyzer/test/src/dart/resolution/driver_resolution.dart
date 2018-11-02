@@ -32,7 +32,7 @@ class DriverResolutionTest extends Object
 
   @override
   Future<TestAnalysisResult> resolveFile(String path) async {
-    AnalysisResult result = await driver.getResult(path);
+    var result = await driver.getResult(path);
     return new TestAnalysisResult(
       path,
       result.content,

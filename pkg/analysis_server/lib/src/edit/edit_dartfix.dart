@@ -139,7 +139,7 @@ class EditDartFix {
         }
         continue;
       }
-      ResolvedUnitResult result = await server.getAnalysisResult(res.path);
+      ResolvedUnitResult result = await server.getResolvedUnit(res.path);
       CompilationUnit unit = result?.unit;
       if (unit != null) {
         if (!hasErrors) {

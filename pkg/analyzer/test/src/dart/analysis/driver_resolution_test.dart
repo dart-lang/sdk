@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -41,7 +41,7 @@ final isVoidType = new TypeMatcher<VoidTypeImpl>();
  */
 @reflectiveTest
 class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
-  AnalysisResult result;
+  ResolvedUnitResult result;
   FindNode findNode;
   FindElement findElement;
 
@@ -8826,7 +8826,7 @@ main() {
     expect(identifier.staticType, type);
   }
 
-  List<Statement> _getMainStatements(AnalysisResult result) {
+  List<Statement> _getMainStatements(ResolvedUnitResult result) {
     for (var declaration in result.unit.declarations) {
       if (declaration is FunctionDeclaration &&
           declaration.name.name == 'main') {
@@ -8838,7 +8838,7 @@ main() {
   }
 
   TopLevelVariableElement _getTopLevelVariable(
-      AnalysisResult result, String name) {
+      ResolvedUnitResult result, String name) {
     for (var variable in result.unit.declaredElement.topLevelVariables) {
       if (variable.name == name) {
         return variable;

@@ -45,6 +45,7 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -496,31 +497,10 @@ class AnalysisServer {
   }
 
   /**
-   * Return the analysis result for the file with the given [path]. The file is
-   * analyzed in one of the analysis drivers to which the file was added,
-   * otherwise in the first driver, otherwise `null` is returned.
-   */
-  Future<nd.AnalysisResult> getAnalysisResult(String path,
-      {bool sendCachedToStream: false}) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return null;
-    }
-
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
-    if (driver == null) {
-      return new Future.value();
-    }
-
-    return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
-        .catchError((_) => null);
-  }
-
-  /**
    * Return the cached analysis result for the file with the given [path].
    * If there is no cached result, return `null`.
    */
-  nd.AnalysisResult getCachedAnalysisResult(String path) {
+  ResolvedUnitResult getCachedResolvedUnit(String path) {
     if (!AnalysisEngine.isDartFileName(path)) {
       return null;
     }
@@ -590,7 +570,7 @@ class AnalysisServer {
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    nd.AnalysisResult result = await getAnalysisResult(file);
+    ResolvedUnitResult result = await getResolvedUnit(file);
     CompilationUnit unit = result?.unit;
     if (unit != null) {
       return new NodeLocator(offset).searchWithin(unit);
@@ -606,8 +586,29 @@ class AnalysisServer {
   Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    nd.AnalysisResult result = await getAnalysisResult(path);
+    ResolvedUnitResult result = await getResolvedUnit(path);
     return result?.unit;
+  }
+
+  /**
+   * Return the resolved unit for the file with the given [path]. The file is
+   * analyzed in one of the analysis drivers to which the file was added,
+   * otherwise in the first driver, otherwise `null` is returned.
+   */
+  Future<ResolvedUnitResult> getResolvedUnit(String path,
+      {bool sendCachedToStream: false}) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return new Future.value();
+    }
+
+    return driver
+        .getResult(path, sendCachedToStream: sendCachedToStream)
+        .catchError((_) => null);
   }
 
   /**
@@ -817,7 +818,7 @@ class AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (AnalysisEngine.isDartFileName(file)) {
-        getAnalysisResult(file, sendCachedToStream: true);
+        getResolvedUnit(file, sendCachedToStream: true);
       }
     }
   }
@@ -834,7 +835,7 @@ class AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (AnalysisEngine.isDartFileName(file)) {
-        getAnalysisResult(file, sendCachedToStream: true);
+        getResolvedUnit(file, sendCachedToStream: true);
       }
     }
   }
@@ -1116,7 +1117,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
               NotificationManager.serverId,
               path,
               server.doAnalysisError_listFromEngine(
-                  result.driver.analysisOptions,
+                  result.session.analysisContext.analysisOptions,
                   result.lineInfo,
                   result.errors));
         } else {

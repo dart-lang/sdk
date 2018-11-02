@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -159,6 +160,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final ContextRoot contextRoot;
 
   /**
+   * The analysis context that created this driver / session.
+   */
+  api.AnalysisContext analysisContext;
+
+  /**
    * The salt to mix into all hashes used as keys for unlinked data.
    */
   final Uint32List _unlinkedSalt =
@@ -179,7 +185,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The mapping from the files for which analysis was requested using
    * [getResult] to the [Completer]s to report the result.
    */
-  final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
+  final _requestedFiles = <String, List<Completer<ResolvedUnitResult>>>{};
 
   /**
    * The mapping from the files for which analysis was requested using
@@ -250,7 +256,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * [getResult], and which were found to be parts without known libraries,
    * to the [Completer]s to report the result.
    */
-  final _requestedParts = <String, List<Completer<AnalysisResult>>>{};
+  final _requestedParts = <String, List<Completer<ResolvedUnitResult>>>{};
 
   /**
    * The set of part files that are currently scheduled for analysis.
@@ -260,12 +266,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The controller for the [results] stream.
    */
-  final _resultController = new StreamController<AnalysisResult>();
+  final _resultController = new StreamController<ResolvedUnitResult>();
 
   /**
    * The stream that will be written to when analysis results are produced.
    */
-  Stream<AnalysisResult> _onResults;
+  Stream<ResolvedUnitResult> _onResults;
 
   /**
    * Resolution signatures of the most recently produced results for files.
@@ -275,7 +281,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Cached results for [_priorityFiles].
    */
-  final Map<String, AnalysisResult> _priorityResults = {};
+  final Map<String, ResolvedUnitResult> _priorityResults = {};
 
   /**
    * The controller for the [exceptions] stream.
@@ -460,7 +466,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Results might be produced even for files that have never been added
    * using [addFile], for example when [getResult] was called for a file.
    */
-  Stream<AnalysisResult> get results => _onResults;
+  Stream<ResolvedUnitResult> get results => _onResults;
 
   /**
    * Return the search support for the driver.
@@ -618,17 +624,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Return the cached [AnalysisResult] for the Dart file with the given [path].
-   * If there is no cached result, return `null`. Usually only results of
-   * priority files are cached.
+   * Return the cached [ResolvedUnitResult] for the Dart file with the given
+   * [path]. If there is no cached result, return `null`. Usually only results
+   * of priority files are cached.
    *
    * The [path] must be absolute and normalized.
    *
    * The [path] can be any file - explicitly or implicitly analyzed, or neither.
    */
-  AnalysisResult getCachedResult(String path) {
+  ResolvedUnitResult getCachedResult(String path) {
     _throwIfNotAbsolutePath(path);
-    AnalysisResult result = _priorityResults[path];
+    ResolvedUnitResult result = _priorityResults[path];
     if (disableChangesAndCacheAllResults) {
       result ??= _allCachedResults[path];
     }
@@ -652,7 +658,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // Ask the analysis result without unit, so return cached errors.
     // If no cached analysis result, it will be computed.
-    AnalysisResult analysisResult = _computeAnalysisResult(path);
+    ResolvedUnitResult analysisResult = _computeAnalysisResult(path);
 
     // If not computed yet, because a part file without a known library,
     // we have to compute the full analysis result, with the unit.
@@ -804,7 +810,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Return a [Future] that completes with a [AnalysisResult] for the Dart
+   * Return a [Future] that completes with a [ResolvedUnitResult] for the Dart
    * file with the given [path]. If the file is not a Dart file or cannot
    * be analyzed, the [Future] completes with `null`.
    *
@@ -831,7 +837,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // Return the cached result.
     {
-      AnalysisResult result = getCachedResult(path);
+      ResolvedUnitResult result = getCachedResult(path);
       if (result != null) {
         if (sendCachedToStream) {
           _resultController.add(result);
@@ -841,9 +847,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     // Schedule analysis.
-    var completer = new Completer<AnalysisResult>();
+    var completer = new Completer<ResolvedUnitResult>();
     _requestedFiles
-        .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
+        .putIfAbsent(path, () => <Completer<ResolvedUnitResult>>[])
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
@@ -1391,7 +1397,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         var unitResult = unitResults[unitFile];
         resolvedUnits.add(
           new AnalysisResult(
-            this,
+            currentSession,
             _sourceFactory,
             unitFile.path,
             unitFile.uri,
@@ -1544,7 +1550,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);
     _updateHasErrorOrWarningFlag(file, errors);
     return new AnalysisResult(
-        this,
+        currentSession,
         _sourceFactory,
         file.path,
         file.uri,
@@ -1634,7 +1640,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       FileState file, String missingUri) {
     // TODO(scheglov) Find a better way to report this.
     return new AnalysisResult(
-        this,
+        currentSession,
         _sourceFactory,
         file.path,
         file.uri,
@@ -2028,7 +2034,9 @@ class AnalysisDriverTestView {
 
   FileTracker get fileTracker => driver._fileTracker;
 
-  Map<String, AnalysisResult> get priorityResults => driver._priorityResults;
+  Map<String, ResolvedUnitResult> get priorityResults {
+    return driver._priorityResults;
+  }
 
   SummaryDataStore getSummaryStore(String libraryPath) {
     FileState library = driver.fsState.getFileForPath(libraryPath);
@@ -2052,11 +2060,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
   static final _UNCHANGED = new AnalysisResult(
       null, null, null, null, null, null, null, null, null, null, null, null);
   /**
-   * The [AnalysisDriver] that produced this result.
-   */
-  final AnalysisDriver driver;
-
-  /**
    * The [SourceFactory] with which the file was analyzed.
    */
   final SourceFactory sourceFactory;
@@ -2074,7 +2077,7 @@ class AnalysisResult extends ResolvedUnitResultImpl {
   final AnalysisDriverUnitIndex _index;
 
   AnalysisResult(
-      this.driver,
+      AnalysisSession session,
       this.sourceFactory,
       String path,
       Uri uri,
@@ -2086,8 +2089,8 @@ class AnalysisResult extends ResolvedUnitResultImpl {
       CompilationUnit unit,
       List<AnalysisError> errors,
       this._index)
-      : super(driver?.currentSession, path, uri, exists, content, lineInfo,
-            isPart, unit, errors);
+      : super(session, path, uri, exists, content, lineInfo, isPart, unit,
+            errors);
 
   @override
   LibraryElement get libraryElement => unit.declaredElement.library;

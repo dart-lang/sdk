@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -524,7 +525,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
     if (enableNewAnalysisDriver) {
-      AnalysisResult result = await driver.getResult(source.fullName);
+      ResolvedUnitResult result = await driver.getResult(source.fullName);
       analysisResult =
           new TestAnalysisResult(source, result.unit, result.errors);
     } else {

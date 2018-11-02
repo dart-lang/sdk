@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -1339,7 +1339,7 @@ main() {
   Future<Null> _indexTestUnit(String code) async {
     addTestFile(code);
 
-    AnalysisResult result = await driver.getResult(testFile);
+    ResolvedUnitResult result = await driver.getResult(testFile);
     testUnit = result.unit;
     testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;

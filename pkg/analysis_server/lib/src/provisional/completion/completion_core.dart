@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
@@ -53,7 +53,7 @@ abstract class CompletionRequest {
    * The analysis result for the file in which the completion is being
    * requested.
    */
-  AnalysisResult get result;
+  ResolvedUnitResult get result;
 
   /**
    * Return the source in which the completion is being requested.

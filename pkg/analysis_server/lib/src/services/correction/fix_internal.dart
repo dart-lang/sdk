@@ -24,8 +24,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -3890,27 +3888,24 @@ class FixProcessor {
   }
 
   /**
-   * Return `true` if the [source] can be imported into [unitLibraryFile].
+   * Return `true` if the [source] can be imported into current library.
    */
   bool _isSourceVisibleToLibrary(Source source) {
     String path = source.fullName;
 
-    ContextRoot contextRoot =
-        (context.resolveResult.session as AnalysisSessionImpl)
-            .getDriver()
-            .contextRoot;
+    var contextRoot = context.resolveResult.session.analysisContext.contextRoot;
     if (contextRoot == null) {
       return true;
     }
 
     // We don't want to use private libraries of other packages.
     if (source.uri.isScheme('package') && _isLibSrcPath(path)) {
-      return resourceProvider.pathContext.isWithin(contextRoot.root, path);
+      return contextRoot.root.contains(path);
     }
 
     // We cannot use relative URIs to reference files outside of our package.
     if (source.uri.isScheme('file')) {
-      return resourceProvider.pathContext.isWithin(contextRoot.root, path);
+      return contextRoot.root.contains(path);
     }
 
     return true;

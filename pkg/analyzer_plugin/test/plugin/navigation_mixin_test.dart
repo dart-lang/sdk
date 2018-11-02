@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/navigation_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -104,7 +103,7 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
-    AnalysisResult result = new MockAnalysisResult(path: parameters.file);
+    var result = new MockResolvedUnitResult(path: parameters.file);
     return new DartNavigationRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

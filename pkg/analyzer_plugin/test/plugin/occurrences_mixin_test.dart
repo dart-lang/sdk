@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/occurrences_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -115,7 +114,7 @@ class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
 
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
-    AnalysisResult result = new MockAnalysisResult(path: path);
+    var result = new MockResolvedUnitResult(path: path);
     return new DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }

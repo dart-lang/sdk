@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -2251,10 +2251,10 @@ class OpTypeTestCommon extends AbstractContextTest {
       bool voidReturn: false,
       CompletionSuggestionKind kind:
           CompletionSuggestionKind.INVOCATION}) async {
-    AnalysisResult analysisResult = await driver.getResult(testPath);
+    ResolvedUnitResult resolvedUnit = await driver.getResult(testPath);
 
     CompletionTarget completionTarget =
-        new CompletionTarget.forOffset(analysisResult.unit, completionOffset);
+        new CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
     visitor = new OpType.forCompletion(completionTarget, completionOffset);
 
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');

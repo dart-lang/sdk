@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/folding_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -88,7 +87,7 @@ class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
 
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
-    AnalysisResult result = new MockAnalysisResult(path: path);
+    var result = new MockResolvedUnitResult(path: path);
     return new DartFoldingRequestImpl(resourceProvider, result);
   }
 }

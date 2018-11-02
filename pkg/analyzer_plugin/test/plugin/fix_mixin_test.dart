@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -93,7 +92,7 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
     int offset = parameters.offset;
     AnalysisError error = new AnalysisError(
         new MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
-    AnalysisResult result = new MockAnalysisResult(
+    var result = new MockResolvedUnitResult(
         lineInfo: new LineInfo([0, 20]), errors: [error]);
     return new DartFixesRequestImpl(resourceProvider, offset, [error], result);
   }

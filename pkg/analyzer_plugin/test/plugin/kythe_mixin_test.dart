@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/kythe_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -89,7 +88,7 @@ class _TestServerPlugin extends MockServerPlugin with EntryMixin {
   @override
   Future<EntryRequest> getEntryRequest(
       KytheGetKytheEntriesParams parameters) async {
-    AnalysisResult result = new MockAnalysisResult();
+    var result = new MockResolvedUnitResult();
     return new DartEntryRequestImpl(resourceProvider, result);
   }
 }

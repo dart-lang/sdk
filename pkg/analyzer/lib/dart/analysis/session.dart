@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,6 +22,9 @@ import 'package:analyzer/src/generated/source.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisSession {
+  /// The analysis context that created this session.
+  AnalysisContext get analysisContext;
+
   /// Return the [ResourceProvider] that is used to access the file system.
   ResourceProvider get resourceProvider;
 

@@ -33,7 +33,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
     String file = params.file;
     int offset = params.offset;
 
-    ResolvedUnitResult result = await server.getAnalysisResult(file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result != null) {
       var corrections = new FlutterCorrections(
         resolveResult: result,

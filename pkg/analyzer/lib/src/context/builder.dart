@@ -23,6 +23,11 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
+import 'package:analyzer/dart/analysis/context_locator.dart' as api;
+import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
+    as api;
+import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/package_build.dart';
@@ -196,6 +201,20 @@ class ContextBuilder {
         options,
         enableIndex: enableIndex,
         externalSummaries: summaryData);
+
+    // Set API AnalysisContext for the driver.
+    var apiContextRoots = api.ContextLocator(
+      resourceProvider: resourceProvider,
+    ).locateRoots(
+      includedPaths: [contextRoot.root],
+      excludedPaths: contextRoot.exclude,
+    );
+    driver.analysisContext = api.DriverBasedAnalysisContext(
+      resourceProvider,
+      apiContextRoots.first,
+      driver,
+    );
+
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,

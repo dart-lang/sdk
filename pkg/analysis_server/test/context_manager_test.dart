@@ -2167,7 +2167,7 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
 
-    AnalysisResult result = await callbacks.currentDriver.getResult(file.path);
+    var result = await callbacks.currentDriver.getResult(file.path);
 
     // Not strong mode - both in the context and the SDK context.
 //    AnalysisContext sdkContext = sourceFactory.dartSdk.context;

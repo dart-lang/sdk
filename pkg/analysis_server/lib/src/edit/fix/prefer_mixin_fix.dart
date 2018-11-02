@@ -31,7 +31,7 @@ class PreferMixinFix extends LinterFix {
 
   Future<void> convertClassToMixin(Element elem) async {
     ResolvedUnitResult result =
-        await dartFix.server.getAnalysisResult(elem.source?.fullName);
+        await dartFix.server.getResolvedUnit(elem.source?.fullName);
 
     for (CompilationUnitMember declaration in result.unit.declarations) {
       if (declaration is ClassOrMixinDeclaration &&

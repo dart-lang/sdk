@@ -18,12 +18,12 @@ void main() {
 
 @reflectiveTest
 class NavigationGeneratorTest with ResourceProviderMixin {
-  ResolvedUnitResult resolveResult = new MockAnalysisResult(path: 'a.dart');
+  ResolvedUnitResult resolvedUnit = new MockResolvedUnitResult(path: 'a.dart');
 
   test_none() {
     NavigationGenerator generator = new NavigationGenerator([]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
   }
@@ -32,7 +32,7 @@ class NavigationGeneratorTest with ResourceProviderMixin {
     TestContributor contributor = new TestContributor();
     NavigationGenerator generator = new NavigationGenerator([contributor]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
     expect(contributor.count, 1);
@@ -51,7 +51,7 @@ class NavigationGeneratorTest with ResourceProviderMixin {
     NavigationGenerator generator = new NavigationGenerator(
         [contributor1, contributor2, contributor3, contributor4]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(3));
     expect(

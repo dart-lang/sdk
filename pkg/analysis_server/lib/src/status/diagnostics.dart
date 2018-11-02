@@ -18,6 +18,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/context_root.dart';
@@ -184,7 +185,7 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    AnalysisResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(path);
     if (result == null) {
       p(
           'An AST could not be produced for the file '
@@ -780,7 +781,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    AnalysisResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(path);
     if (result == null) {
       p(
           'An element model could not be produced for the file '

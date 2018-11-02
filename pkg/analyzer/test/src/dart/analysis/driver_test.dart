@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -1472,10 +1471,10 @@ class Test {}
     String content = 'int f() => 42;';
     addTestFile(content, priority: true);
 
-    nd.AnalysisResult result = await driver.getResult(testFile);
+    ResolvedUnitResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.exists, isTrue);
+    expect(result.state, ResultState.VALID);
     expect(result.content, content);
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
@@ -1511,10 +1510,10 @@ main() {
   test_getResult_doesNotExist() async {
     var a = convertPath('/test/lib/a.dart');
 
-    nd.AnalysisResult result = await driver.getResult(a);
+    ResolvedUnitResult result = await driver.getResult(a);
     expect(result.path, a);
     expect(result.uri.toString(), 'package:test/a.dart');
-    expect(result.exists, isFalse);
+    expect(result.state, ResultState.NOT_A_FILE);
     expect(result.content, '');
   }
 
