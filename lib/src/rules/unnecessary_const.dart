@@ -34,7 +34,7 @@ m(){
 
 ''';
 
-class UnnecessaryConst extends LintRule implements NodeLintRule {
+class UnnecessaryConst extends LintRule implements NodeLintRuleWithContext {
   UnnecessaryConst()
       : super(
             name: 'unnecessary_const',
@@ -43,7 +43,8 @@ class UnnecessaryConst extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);

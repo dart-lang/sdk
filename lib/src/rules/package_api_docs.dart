@@ -58,7 +58,8 @@ Advice for writing good doc comments can be found in the
 
 ''';
 
-class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
+class PackageApiDocs extends LintRule
+    implements ProjectVisitor, NodeLintRuleWithContext {
   DartProject project;
 
   PackageApiDocs()
@@ -77,7 +78,8 @@ class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
   }
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     var visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);

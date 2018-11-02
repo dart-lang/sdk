@@ -63,7 +63,7 @@ const List<String> _fileSystemEntityMethodNames = const <String>[
   'type',
 ];
 
-class AvoidSlowAsyncIo extends LintRule implements NodeLintRule {
+class AvoidSlowAsyncIo extends LintRule implements NodeLintRuleWithContext {
   AvoidSlowAsyncIo()
       : super(
             name: 'avoid_slow_async_io',
@@ -72,7 +72,8 @@ class AvoidSlowAsyncIo extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

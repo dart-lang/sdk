@@ -38,7 +38,7 @@ new Button(ButtonState.enabled);
 ''';
 
 class AvoidPositionalBooleanParameters extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidPositionalBooleanParameters()
       : super(
             name: 'avoid_positional_boolean_parameters',
@@ -48,7 +48,8 @@ class AvoidPositionalBooleanParameters extends LintRule
             maturity: Maturity.experimental);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);

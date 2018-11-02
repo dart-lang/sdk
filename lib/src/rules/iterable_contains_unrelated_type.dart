@@ -119,7 +119,8 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 
 ''';
 
-class IterableContainsUnrelatedType extends LintRule implements NodeLintRule {
+class IterableContainsUnrelatedType extends LintRule
+    implements NodeLintRuleWithContext {
   IterableContainsUnrelatedType()
       : super(
             name: 'iterable_contains_unrelated_type',
@@ -128,7 +129,8 @@ class IterableContainsUnrelatedType extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

@@ -45,7 +45,7 @@ class Better {
 
 ''';
 
-class HashAndEquals extends LintRule implements NodeLintRule {
+class HashAndEquals extends LintRule implements NodeLintRuleWithContext {
   HashAndEquals()
       : super(
             name: 'hash_and_equals',
@@ -54,7 +54,8 @@ class HashAndEquals extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

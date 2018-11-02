@@ -35,7 +35,8 @@ lookUpOrDefault(String name, Map map, defaultValue) {
 
 ''';
 
-class AvoidAnnotatingWithDynamic extends LintRule implements NodeLintRule {
+class AvoidAnnotatingWithDynamic extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidAnnotatingWithDynamic()
       : super(
             name: 'avoid_annotating_with_dynamic',
@@ -44,7 +45,8 @@ class AvoidAnnotatingWithDynamic extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addSimpleFormalParameter(this, visitor);
   }

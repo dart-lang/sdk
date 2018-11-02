@@ -56,7 +56,8 @@ bool samePackage(Uri uri1, Uri uri2) {
   return segments1[0] == segments2[0];
 }
 
-class ImplementationImports extends LintRule implements NodeLintRule {
+class ImplementationImports extends LintRule
+    implements NodeLintRuleWithContext {
   ImplementationImports()
       : super(
             name: 'implementation_imports',
@@ -65,7 +66,8 @@ class ImplementationImports extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addImportDirective(this, visitor);
   }

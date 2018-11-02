@@ -204,7 +204,7 @@ final Map<String, Set<NonNullableFunction>>
   ]),
 };
 
-class NullClosures extends LintRule implements NodeLintRule {
+class NullClosures extends LintRule implements NodeLintRuleWithContext {
   NullClosures()
       : super(
             name: 'null_closures',
@@ -213,7 +213,8 @@ class NullClosures extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);

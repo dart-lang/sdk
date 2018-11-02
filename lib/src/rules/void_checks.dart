@@ -29,7 +29,7 @@ void main() {
 ```
 ''';
 
-class VoidChecks extends LintRule implements NodeLintRule {
+class VoidChecks extends LintRule implements NodeLintRuleWithContext {
   VoidChecks()
       : super(
             name: 'void_checks',
@@ -38,8 +38,9 @@ class VoidChecks extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addMethodInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
@@ -51,10 +52,12 @@ class VoidChecks extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  final LinterContext context;
+
   InterfaceType _futureDynamicType;
   InterfaceType _futureOrDynamicType;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   bool isTypeAcceptableWhenExpectingVoid(DartType type) {
     if (type.isVoid) return true;
@@ -77,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final typeProvider = node.declaredElement.context.typeProvider;
+    final typeProvider = context.typeProvider;
     _futureDynamicType =
         typeProvider.futureType.instantiate([typeProvider.dynamicType]);
     _futureOrDynamicType =

@@ -42,7 +42,8 @@ abstract class B extends A {
 
 ''';
 
-class AvoidRenamingMethodParameters extends LintRule implements NodeLintRule {
+class AvoidRenamingMethodParameters extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidRenamingMethodParameters()
       : super(
             name: 'avoid_renaming_method_parameters',
@@ -51,7 +52,8 @@ class AvoidRenamingMethodParameters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

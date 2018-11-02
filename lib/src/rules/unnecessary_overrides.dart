@@ -47,7 +47,7 @@ super method,
 
 ''';
 
-class UnnecessaryOverrides extends LintRule implements NodeLintRule {
+class UnnecessaryOverrides extends LintRule implements NodeLintRuleWithContext {
   UnnecessaryOverrides()
       : super(
             name: 'unnecessary_overrides',
@@ -56,7 +56,8 @@ class UnnecessaryOverrides extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

@@ -32,7 +32,8 @@ button.visible = false;
 bool _hasInheritedMethod(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedMethod(node) != null;
 
-class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
+class UseSettersToChangeAProperty extends LintRule
+    implements NodeLintRuleWithContext {
   UseSettersToChangeAProperty()
       : super(
             name: 'use_setters_to_change_properties',
@@ -41,7 +42,8 @@ class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

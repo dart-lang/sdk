@@ -48,7 +48,8 @@ Element _getElementFromReturnStatement(Statement node) {
   return null;
 }
 
-class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
+class JoinReturnWithAssignment extends LintRule
+    implements NodeLintRuleWithContext {
   JoinReturnWithAssignment()
       : super(
             name: 'join_return_with_assignment',
@@ -57,7 +58,8 @@ class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBlock(this, visitor);
   }

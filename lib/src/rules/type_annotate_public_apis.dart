@@ -48,7 +48,8 @@ With types, all of this is clarified.
 
 ''';
 
-class TypeAnnotatePublicApis extends LintRule implements NodeLintRule {
+class TypeAnnotatePublicApis extends LintRule
+    implements NodeLintRuleWithContext {
   TypeAnnotatePublicApis()
       : super(
             name: 'type_annotate_public_apis',
@@ -57,7 +58,8 @@ class TypeAnnotatePublicApis extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);

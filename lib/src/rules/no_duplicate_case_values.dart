@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -44,7 +43,8 @@ switch (v) {
 String message(String value1, String value2) =>
     'Do not use more than one case with same value ($value1 and $value2)';
 
-class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
+class NoDuplicateCaseValues extends LintRule
+    implements NodeLintRuleWithContext {
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',
@@ -53,8 +53,9 @@ class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addSwitchStatement(this, visitor);
   }
 
@@ -77,19 +78,12 @@ class _LintCode extends LintCode {
 class _Visitor extends SimpleAstVisitor<void> {
   final NoDuplicateCaseValues rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    AnalysisContext context = node?.expression == null
-        ? null
-        : resolutionMap
-            .staticTypeForExpression(node.expression)
-            ?.element
-            ?.context;
-    if (context == null) {
-      return;
-    }
     TypeProvider typeProvider = context.typeProvider;
     TypeSystem typeSystem = context.typeSystem;
     DeclaredVariables declaredVariables = context.declaredVariables;

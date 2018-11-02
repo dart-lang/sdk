@@ -62,7 +62,7 @@ bool _isSink(DartType type) =>
 bool _isSocket(DartType type) =>
     DartTypeUtilities.implementsInterface(type, 'Socket', 'dart.io');
 
-class CloseSinks extends LintRule implements NodeLintRule {
+class CloseSinks extends LintRule implements NodeLintRuleWithContext {
   CloseSinks()
       : super(
             name: 'close_sinks',
@@ -71,7 +71,8 @@ class CloseSinks extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);

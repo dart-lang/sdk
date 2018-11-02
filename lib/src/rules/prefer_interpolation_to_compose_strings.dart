@@ -30,7 +30,7 @@ and read than concatenation.
 ''';
 
 class PreferInterpolationToComposeStrings extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferInterpolationToComposeStrings()
       : super(
             name: 'prefer_interpolation_to_compose_strings',
@@ -39,7 +39,8 @@ class PreferInterpolationToComposeStrings extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

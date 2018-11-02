@@ -28,7 +28,8 @@ class A<T> {
 
 ''';
 
-class AvoidShadowingTypeParameters extends LintRule implements NodeLintRule {
+class AvoidShadowingTypeParameters extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidShadowingTypeParameters()
       : super(
             name: 'avoid_shadowing_type_parameters',
@@ -37,7 +38,8 @@ class AvoidShadowingTypeParameters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
     registry.addFunctionDeclarationStatement(this, visitor);

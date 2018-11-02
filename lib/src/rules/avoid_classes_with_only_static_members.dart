@@ -54,7 +54,7 @@ bool _isStaticMember(ClassMember classMember) {
 }
 
 class AvoidClassesWithOnlyStaticMembers extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidClassesWithOnlyStaticMembers()
       : super(
             name: 'avoid_classes_with_only_static_members',
@@ -63,7 +63,8 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

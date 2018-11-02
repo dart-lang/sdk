@@ -37,7 +37,8 @@ class A {
 
 ''';
 
-class PreferAssertsInInitializerLists extends LintRule implements NodeLintRule {
+class PreferAssertsInInitializerLists extends LintRule
+    implements NodeLintRuleWithContext {
   PreferAssertsInInitializerLists()
       : super(
             name: 'prefer_asserts_in_initializer_lists',
@@ -46,7 +47,8 @@ class PreferAssertsInInitializerLists extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }

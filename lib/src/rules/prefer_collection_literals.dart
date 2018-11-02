@@ -27,7 +27,8 @@ var addresses = {};
 
 ''';
 
-class PreferCollectionLiterals extends LintRule implements NodeLintRule {
+class PreferCollectionLiterals extends LintRule
+    implements NodeLintRuleWithContext {
   PreferCollectionLiterals()
       : super(
             name: 'prefer_collection_literals',
@@ -36,7 +37,8 @@ class PreferCollectionLiterals extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }

@@ -36,7 +36,8 @@ class A {
 
 ''';
 
-class PreferConstDeclarations extends LintRule implements NodeLintRule {
+class PreferConstDeclarations extends LintRule
+    implements NodeLintRuleWithContext {
   PreferConstDeclarations()
       : super(
             name: 'prefer_const_declarations',
@@ -45,8 +46,9 @@ class PreferConstDeclarations extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
@@ -56,7 +58,9 @@ class PreferConstDeclarations extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
@@ -77,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isFinal) return;
     if (node.variables.every((declaration) =>
         declaration.initializer != null &&
-        !hasErrorWithConstantVisitor(declaration.initializer))) {
+        !hasErrorWithConstantVisitor(context, declaration.initializer))) {
       rule.reportLint(node);
     }
   }

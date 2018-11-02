@@ -45,7 +45,7 @@ void mutableCase() {
 
 ''';
 
-class PreferFinalLocals extends LintRule implements NodeLintRule {
+class PreferFinalLocals extends LintRule implements NodeLintRuleWithContext {
   PreferFinalLocals()
       : super(
             name: 'prefer_final_locals',
@@ -54,7 +54,8 @@ class PreferFinalLocals extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addVariableDeclaration(this, visitor);
   }

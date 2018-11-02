@@ -166,7 +166,7 @@ String _thirdPartyPackageDirectiveBeforeOwn(String type) =>
     "Place 'third-party' 'package:' ${type}s before other ${type}s.";
 
 class DirectivesOrdering extends LintRule
-    implements ProjectVisitor, NodeLintRule {
+    implements ProjectVisitor, NodeLintRuleWithContext {
   DartProject project;
 
   DirectivesOrdering()
@@ -180,7 +180,8 @@ class DirectivesOrdering extends LintRule
   ProjectVisitor getProjectVisitor() => this;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }

@@ -41,7 +41,8 @@ Future<void> f2() async {
 
 ''';
 
-class AvoidReturningNullForVoid extends LintRule implements NodeLintRule {
+class AvoidReturningNullForVoid extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidReturningNullForVoid()
       : super(
             name: 'avoid_returning_null_for_void',
@@ -50,7 +51,8 @@ class AvoidReturningNullForVoid extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);

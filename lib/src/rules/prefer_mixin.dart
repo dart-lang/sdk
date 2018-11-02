@@ -30,7 +30,7 @@ class C with M {}
 
 ''';
 
-class PreferMixin extends LintRule implements NodeLintRule {
+class PreferMixin extends LintRule implements NodeLintRuleWithContext {
   PreferMixin()
       : super(
             name: 'prefer_mixin',
@@ -39,7 +39,8 @@ class PreferMixin extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addWithClause(this, visitor);
   }

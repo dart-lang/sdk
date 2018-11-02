@@ -36,7 +36,8 @@ class Point {
 
 ''';
 
-class EmptyConstructorBodies extends LintRule implements NodeLintRule {
+class EmptyConstructorBodies extends LintRule
+    implements NodeLintRuleWithContext {
   EmptyConstructorBodies()
       : super(
             name: 'empty_constructor_bodies',
@@ -45,7 +46,8 @@ class EmptyConstructorBodies extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }

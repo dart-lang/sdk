@@ -40,7 +40,7 @@ if (!sources.isEmpty) {
 
 ''';
 
-class PreferIsNotEmpty extends LintRule implements NodeLintRule {
+class PreferIsNotEmpty extends LintRule implements NodeLintRuleWithContext {
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',
@@ -49,7 +49,8 @@ class PreferIsNotEmpty extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }

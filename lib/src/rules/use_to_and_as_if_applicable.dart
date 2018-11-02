@@ -55,7 +55,8 @@ bool _beginsWithAsOrTo(String name) {
 bool _isVoid(TypeAnnotation returnType) =>
     returnType is TypeName && returnType.name.name == 'void';
 
-class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
+class UseToAndAsIfApplicable extends LintRule
+    implements NodeLintRuleWithContext {
   UseToAndAsIfApplicable()
       : super(
             name: 'use_to_and_as_if_applicable',
@@ -64,7 +65,8 @@ class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

@@ -43,7 +43,8 @@ Map<int, List<Person>> groupByZip(Iterable<Person> people) {
 
 ''';
 
-class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
+class OmitLocalVariableTypes extends LintRule
+    implements NodeLintRuleWithContext {
   OmitLocalVariableTypes()
       : super(
             name: 'omit_local_variable_types',
@@ -52,7 +53,8 @@ class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);

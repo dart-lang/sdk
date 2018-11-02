@@ -30,7 +30,7 @@ main() async {
 
 ''';
 
-class AwaitOnlyFutures extends LintRule implements NodeLintRule {
+class AwaitOnlyFutures extends LintRule implements NodeLintRuleWithContext {
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',
@@ -39,7 +39,8 @@ class AwaitOnlyFutures extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addAwaitExpression(this, visitor);
   }

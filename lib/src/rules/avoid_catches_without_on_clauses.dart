@@ -37,7 +37,8 @@ on Exception catch(e) {
 
 ''';
 
-class AvoidCatchesWithoutOnClauses extends LintRule implements NodeLintRule {
+class AvoidCatchesWithoutOnClauses extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidCatchesWithoutOnClauses()
       : super(
             name: 'avoid_catches_without_on_clauses',
@@ -46,7 +47,8 @@ class AvoidCatchesWithoutOnClauses extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCatchClause(this, visitor);
   }

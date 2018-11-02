@@ -95,7 +95,6 @@ void updateRuleRegistry(String ruleName) {
   print('  pub run test -N $ruleName');
 }
 
-/// TODO(scheglov) Update to implement NodeLintRule, _Visitor, etc.
 String _generateClass(String ruleName, String className) => """
 // Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -124,7 +123,7 @@ const _details = r'''
 
 ''';
 
-class $className extends LintRule implements NodeLintRule {
+class $className extends LintRule implements NodeLintRuleWithContext {
   $className() : super(
           name: '$ruleName',
             description: _desc,
@@ -132,7 +131,7 @@ class $className extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry, [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }

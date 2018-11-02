@@ -49,7 +49,8 @@ class Box {
 
 ''';
 
-class UnnecessaryGettersSetters extends LintRule implements NodeLintRule {
+class UnnecessaryGettersSetters extends LintRule
+    implements NodeLintRuleWithContext {
   UnnecessaryGettersSetters()
       : super(
             name: 'unnecessary_getters_setters',
@@ -58,7 +59,8 @@ class UnnecessaryGettersSetters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

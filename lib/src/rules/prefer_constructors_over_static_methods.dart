@@ -52,7 +52,7 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) {
 }
 
 class PreferConstructorsInsteadOfStaticMethods extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferConstructorsInsteadOfStaticMethods()
       : super(
             name: 'prefer_constructors_over_static_methods',
@@ -61,7 +61,8 @@ class PreferConstructorsInsteadOfStaticMethods extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

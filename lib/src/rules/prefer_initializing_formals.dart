@@ -67,7 +67,8 @@ Element _getRightElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(
         assignment.rightHandSide);
 
-class PreferInitializingFormals extends LintRule implements NodeLintRule {
+class PreferInitializingFormals extends LintRule
+    implements NodeLintRuleWithContext {
   PreferInitializingFormals()
       : super(
             name: 'prefer_initializing_formals',
@@ -76,7 +77,8 @@ class PreferInitializingFormals extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }

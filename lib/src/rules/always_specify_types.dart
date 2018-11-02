@@ -79,7 +79,7 @@ bool _isOptionalTypeArgs(Element element) =>
     element.name == _OPTIONAL_TYPE_ARGS_VAR_NAME &&
     element.library?.name == _META_LIB_NAME;
 
-class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
+class AlwaysSpecifyTypes extends LintRule implements NodeLintRuleWithContext {
   AlwaysSpecifyTypes()
       : super(
             name: 'always_specify_types',
@@ -88,7 +88,8 @@ class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);

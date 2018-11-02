@@ -28,7 +28,8 @@ var names = people.map((person) => person.name);
 
 ''';
 
-class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
+class AvoidTypesOnClosureParameters extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidTypesOnClosureParameters()
       : super(
             name: 'avoid_types_on_closure_parameters',
@@ -37,7 +38,8 @@ class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionExpression(this, visitor);
   }

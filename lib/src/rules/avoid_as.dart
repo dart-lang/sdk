@@ -58,7 +58,7 @@ HasScrollDirection scrollable = renderObject as dynamic;
 
 ''';
 
-class AvoidAs extends LintRule implements NodeLintRule {
+class AvoidAs extends LintRule implements NodeLintRuleWithContext {
   AvoidAs()
       : super(
             name: 'avoid_as',
@@ -67,7 +67,8 @@ class AvoidAs extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addAsExpression(this, visitor);
   }

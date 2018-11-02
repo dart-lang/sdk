@@ -50,7 +50,7 @@ class Box {
 
 ''';
 
-class UnnecessaryThis extends LintRule implements NodeLintRule {
+class UnnecessaryThis extends LintRule implements NodeLintRuleWithContext {
   UnnecessaryThis()
       : super(
             name: 'unnecessary_this',
@@ -59,8 +59,9 @@ class UnnecessaryThis extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    var visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    var visitor = new _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addConstructorFieldInitializer(this, visitor);
   }
@@ -69,12 +70,10 @@ class UnnecessaryThis extends LintRule implements NodeLintRule {
 class _UnnecessaryThisVisitor extends ScopedVisitor {
   final LintRule rule;
 
-  _UnnecessaryThisVisitor(this.rule, CompilationUnit node)
-      : super(
-            node.declaredElement.library,
-            rule.reporter.source,
-            node.declaredElement.library.context.typeProvider,
-            AnalysisErrorListener.NULL_LISTENER);
+  _UnnecessaryThisVisitor(
+      this.rule, LinterContext context, CompilationUnit node)
+      : super(node.declaredElement.library, rule.reporter.source,
+            context.typeProvider, AnalysisErrorListener.NULL_LISTENER);
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
@@ -115,10 +114,12 @@ class _UnnecessaryThisVisitor extends ScopedVisitor {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    new _UnnecessaryThisVisitor(rule, node).visitCompilationUnit(node);
+    new _UnnecessaryThisVisitor(rule, context, node).visitCompilationUnit(node);
   }
 }

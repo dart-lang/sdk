@@ -55,7 +55,7 @@ bool _isThrowable(DartType type) =>
     type.isDynamic ||
     DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);
 
-class OnlyThrowErrors extends LintRule implements NodeLintRule {
+class OnlyThrowErrors extends LintRule implements NodeLintRuleWithContext {
   OnlyThrowErrors()
       : super(
             name: 'only_throw_errors',
@@ -64,7 +64,8 @@ class OnlyThrowErrors extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }

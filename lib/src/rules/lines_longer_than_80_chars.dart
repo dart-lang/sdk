@@ -33,7 +33,8 @@ if they go over the line limit. This makes it easier to search source files for
 a given path.
 ''';
 
-class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
+class LinesLongerThan80Chars extends LintRule
+    implements NodeLintRuleWithContext {
   LinesLongerThan80Chars()
       : super(
             name: 'lines_longer_than_80_chars',
@@ -42,8 +43,9 @@ class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -51,14 +53,15 @@ class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
     final lineInfo = node.lineInfo;
     final lineCount = lineInfo.lineCount;
     final longLines = <_LineInfo>[];
-    String chars;
     for (int i = 0; i < lineCount; i++) {
       final start = lineInfo.getOffsetOfLine(i);
       int end;
@@ -68,8 +71,8 @@ class _Visitor extends SimpleAstVisitor {
         end = lineInfo.getOffsetOfLine(i + 1) - 1;
         final length = end - start;
         if (length > 80) {
-          chars ??= _getChars(node);
-          if (chars[end] == _lf && chars[end - 1] == _cr) {
+          if (context.currentUnit.content[end] == _lf &&
+              context.currentUnit.content[end - 1] == _cr) {
             end--;
           }
         }
@@ -102,11 +105,6 @@ class _Visitor extends SimpleAstVisitor {
 
 const _cr = '\r';
 const _lf = '\n';
-
-String _getChars(CompilationUnit unit) {
-  final element = unit.declaredElement;
-  return element.context.getContents(element.source).data;
-}
 
 class _LineInfo {
   _LineInfo({this.index, this.offset, this.end});

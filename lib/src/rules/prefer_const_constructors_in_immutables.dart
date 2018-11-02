@@ -53,7 +53,7 @@ bool _isImmutable(Element element) =>
     element.library?.name == _META_LIB_NAME;
 
 class PreferConstConstructorsInImmutables extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',
@@ -62,8 +62,9 @@ class PreferConstConstructorsInImmutables extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -71,7 +72,9 @@ class PreferConstConstructorsInImmutables extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -134,7 +137,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // put a fake const keyword and check if there's const error
     node.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     try {
-      hasConstError = hasErrorWithConstantVerifier(node);
+      hasConstError = hasErrorWithConstantVerifier(context, node);
     } finally {
       // restore const keyword
       node.constKeyword = null;

@@ -98,7 +98,8 @@ bool _onlyLiterals(Expression rawExpression) {
   return false;
 }
 
-class LiteralOnlyBooleanExpressions extends LintRule implements NodeLintRule {
+class LiteralOnlyBooleanExpressions extends LintRule
+    implements NodeLintRuleWithContext {
   LiteralOnlyBooleanExpressions()
       : super(
             name: 'literal_only_boolean_expressions',
@@ -108,7 +109,8 @@ class LiteralOnlyBooleanExpressions extends LintRule implements NodeLintRule {
             maturity: Maturity.experimental);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);

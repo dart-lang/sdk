@@ -33,7 +33,7 @@ typedef F = void Function();
 ''';
 
 class PreferGenericFunctionTypeAliases extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferGenericFunctionTypeAliases()
       : super(
             name: 'prefer_generic_function_type_aliases',
@@ -42,7 +42,8 @@ class PreferGenericFunctionTypeAliases extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionTypeAlias(this, visitor);
   }

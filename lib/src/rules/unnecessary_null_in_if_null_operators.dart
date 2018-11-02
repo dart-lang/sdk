@@ -31,7 +31,7 @@ var y = null ?? 1;
 ''';
 
 class UnnecessaryNullInIfNullOperators extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',
@@ -40,7 +40,8 @@ class UnnecessaryNullInIfNullOperators extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

@@ -31,7 +31,7 @@ class BadTwo {
 ''';
 
 class AvoidUnusedConstructorParameters extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidUnusedConstructorParameters()
       : super(
             name: 'avoid_unused_constructor_parameters',
@@ -40,7 +40,8 @@ class AvoidUnusedConstructorParameters extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }

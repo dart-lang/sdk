@@ -38,7 +38,7 @@ NOTE: Only asserts at the start of the bodies will be taken into account.
 ''';
 
 class AlwaysRequireNonNullNamedParameters extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AlwaysRequireNonNullNamedParameters()
       : super(
             name: 'always_require_non_null_named_parameters',
@@ -47,7 +47,8 @@ class AlwaysRequireNonNullNamedParameters extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFormalParameterList(this, visitor);
   }

@@ -31,7 +31,7 @@ people.forEach(print);
 ''';
 
 class AvoidFunctionLiteralInForeachMethod extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidFunctionLiteralInForeachMethod()
       : super(
             name: 'avoid_function_literals_in_foreach_calls',
@@ -40,7 +40,8 @@ class AvoidFunctionLiteralInForeachMethod extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

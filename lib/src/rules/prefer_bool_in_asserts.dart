@@ -34,7 +34,7 @@ assert(() {
 
 ''';
 
-class PreferBoolInAsserts extends LintRule implements NodeLintRule {
+class PreferBoolInAsserts extends LintRule implements NodeLintRuleWithContext {
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',
@@ -43,9 +43,9 @@ class PreferBoolInAsserts extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
-    registry.addCompilationUnit(this, visitor);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addAssertStatement(this, visitor);
   }
 }
@@ -53,19 +53,15 @@ class PreferBoolInAsserts extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, LinterContext context)
+      : boolType = context.typeProvider.boolType;
 
-  DartType boolType;
+  final DartType boolType;
   @override
   void visitAssertStatement(AssertStatement node) {
     if (!_unbound(node.condition.staticType).isAssignableTo(boolType)) {
       rule.reportLint(node.condition);
     }
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    boolType = node.declaredElement.context.typeProvider.boolType;
   }
 
   DartType _unbound(DartType type) {

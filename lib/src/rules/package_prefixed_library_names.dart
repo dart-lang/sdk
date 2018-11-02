@@ -50,7 +50,7 @@ bool matchesOrIsPrefixedBy(String name, String prefix) =>
     name == prefix || name.startsWith('$prefix.');
 
 class PackagePrefixedLibraryNames extends LintRule
-    implements ProjectVisitor, NodeLintRule {
+    implements ProjectVisitor, NodeLintRuleWithContext {
   DartProject project;
 
   PackagePrefixedLibraryNames()
@@ -64,7 +64,8 @@ class PackagePrefixedLibraryNames extends LintRule
   ProjectVisitor getProjectVisitor() => this;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addLibraryDirective(this, visitor);
   }

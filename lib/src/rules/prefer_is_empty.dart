@@ -41,7 +41,7 @@ if (words.length != 0) return words.join(' ');
 
 ''';
 
-class PreferIsEmpty extends LintRule implements NodeLintRule {
+class PreferIsEmpty extends LintRule implements NodeLintRuleWithContext {
   PreferIsEmpty()
       : super(
             name: 'prefer_is_empty',
@@ -50,8 +50,9 @@ class PreferIsEmpty extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addSimpleIdentifier(this, visitor);
   }
 
@@ -74,7 +75,9 @@ class _LintCode extends LintCode {
 class _Visitor extends SimpleAstVisitor<void> {
   final PreferIsEmpty rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier identifier) {
@@ -106,7 +109,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Should be subtype of Iterable, Map or String.
-    AnalysisContext context = propertyElement.context;
     TypeProvider typeProvider = context.typeProvider;
     TypeSystem typeSystem = context.typeSystem;
 

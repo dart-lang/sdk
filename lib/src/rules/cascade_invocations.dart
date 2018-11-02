@@ -97,7 +97,7 @@ bool _isInvokedWithoutNullAwareOperator(Token token) =>
 
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
-class CascadeInvocations extends LintRule implements NodeLintRule {
+class CascadeInvocations extends LintRule implements NodeLintRuleWithContext {
   /// Default constructor.
   CascadeInvocations()
       : super(
@@ -107,7 +107,8 @@ class CascadeInvocations extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBlock(this, visitor);
   }

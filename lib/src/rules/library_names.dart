@@ -32,7 +32,7 @@ file.
 
 ''';
 
-class LibraryNames extends LintRule implements NodeLintRule {
+class LibraryNames extends LintRule implements NodeLintRuleWithContext {
   LibraryNames()
       : super(
             name: 'library_names',
@@ -41,7 +41,8 @@ class LibraryNames extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addLibraryDirective(this, visitor);
   }

@@ -45,7 +45,7 @@ class Lucky extends Cat {
 
 ''';
 
-class AnnotateOverrides extends LintRule implements NodeLintRule {
+class AnnotateOverrides extends LintRule implements NodeLintRuleWithContext {
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
@@ -54,7 +54,8 @@ class AnnotateOverrides extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);

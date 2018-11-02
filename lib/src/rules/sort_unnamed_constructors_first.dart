@@ -32,7 +32,8 @@ class _PriorityItem {
 
 ''';
 
-class SortUnnamedConstructorsFirst extends LintRule implements NodeLintRule {
+class SortUnnamedConstructorsFirst extends LintRule
+    implements NodeLintRuleWithContext {
   SortUnnamedConstructorsFirst()
       : super(
             name: 'sort_unnamed_constructors_first',
@@ -41,7 +42,8 @@ class SortUnnamedConstructorsFirst extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

@@ -51,7 +51,8 @@ containsValue(String value) => getValues().contains(value);
 
 ''';
 
-class PreferExpressionFunctionBodies extends LintRule implements NodeLintRule {
+class PreferExpressionFunctionBodies extends LintRule
+    implements NodeLintRuleWithContext {
   PreferExpressionFunctionBodies()
       : super(
             name: 'prefer_expression_function_bodies',
@@ -60,7 +61,8 @@ class PreferExpressionFunctionBodies extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBlockFunctionBody(this, visitor);
   }

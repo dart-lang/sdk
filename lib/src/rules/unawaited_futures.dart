@@ -40,7 +40,7 @@ void main() async {
 
 ''';
 
-class UnawaitedFutures extends LintRule implements NodeLintRule {
+class UnawaitedFutures extends LintRule implements NodeLintRuleWithContext {
   UnawaitedFutures()
       : super(
             name: 'unawaited_futures',
@@ -49,7 +49,8 @@ class UnawaitedFutures extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);

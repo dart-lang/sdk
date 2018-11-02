@@ -50,7 +50,7 @@ if (overflowChars != other.overflowChars)
 ''';
 
 class CurlyBracesInFlowControlStructures extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   CurlyBracesInFlowControlStructures()
       : super(
             name: 'curly_braces_in_flow_control_structures',
@@ -59,7 +59,8 @@ class CurlyBracesInFlowControlStructures extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForEachStatement(this, visitor);

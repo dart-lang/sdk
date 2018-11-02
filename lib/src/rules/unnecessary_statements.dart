@@ -45,7 +45,8 @@ return myvar;
 
 ''';
 
-class UnnecessaryStatements extends LintRule implements NodeLintRule {
+class UnnecessaryStatements extends LintRule
+    implements NodeLintRuleWithContext {
   UnnecessaryStatements()
       : super(
             name: 'unnecessary_statements',
@@ -54,7 +55,8 @@ class UnnecessaryStatements extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(new _ReportNoClearEffectVisitor(this));
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);

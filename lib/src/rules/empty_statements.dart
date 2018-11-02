@@ -40,7 +40,7 @@ if (complicated.expression.foo())
 
 ''';
 
-class EmptyStatements extends LintRule implements NodeLintRule {
+class EmptyStatements extends LintRule implements NodeLintRuleWithContext {
   EmptyStatements()
       : super(
             name: 'empty_statements',
@@ -49,7 +49,8 @@ class EmptyStatements extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addEmptyStatement(this, visitor);
   }
