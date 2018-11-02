@@ -27,6 +27,7 @@ import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart'
     show ConstantEmitter, JavaScriptBackend, Namer;
 import '../../js_backend/native_data.dart';
+import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../../util/uri_extras.dart' show relativize;

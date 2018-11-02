@@ -64,6 +64,9 @@ class Flags {
   static const String verbose = '--verbose';
   static const String version = '--version';
 
+  static const String readData = '--read-data';
+  static const String writeData = '--write-data';
+
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
 

@@ -568,9 +568,9 @@ class FragmentEmitter {
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
-      'jsInteropSupport': _closedWorld.nativeData.isJsInteropUsed
-          ? backend.jsInteropAnalysis.buildJsInteropBootstrap()
-          : new js.EmptyStatement(),
+      'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
+              compiler.codegenWorldBuilder, _closedWorld.nativeData, namer) ??
+          new js.EmptyStatement(),
       'invokeMain': fragment.invokeMain,
     });
     if (program.hasSoftDeferredClasses) {

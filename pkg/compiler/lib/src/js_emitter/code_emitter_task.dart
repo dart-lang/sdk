@@ -190,7 +190,6 @@ class CodeEmitterTask extends CompilerTask {
           backend.superMemberData,
           typeTestRegistry.rtiChecks,
           backend.rtiEncoder,
-          backend.jsInteropAnalysis,
           backend.oneShotInterceptorData,
           backend.customElementsCodegenAnalysis,
           backend.generatedCode,
