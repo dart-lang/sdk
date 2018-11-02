@@ -287,7 +287,6 @@ issue31596_super_test/05: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_subtype_test: RuntimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError

@@ -413,7 +413,7 @@ class KernelTarget extends TargetImplementation {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
       if (builder.target != objectClass) {
-        if (builder.isPatch) continue;
+        if (builder.isPatch || builder.isMixinDeclaration) continue;
         if (builder.isMixinApplication) {
           installForwardingConstructors(builder);
         } else {
@@ -727,7 +727,8 @@ class KernelTarget extends TargetImplementation {
     for (Field field in uninitializedFields) {
       if (initializedFields == null || !initializedFields.contains(field)) {
         field.initializer = new NullLiteral()..parent = field;
-        if (field.isFinal && cls.constructors.isNotEmpty) {
+        if (field.isFinal &&
+            (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
           builder.library.addProblem(
               templateFinalFieldNotInitialized.withArguments(field.name.name),
               field.fileOffset,

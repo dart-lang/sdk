@@ -59,21 +59,12 @@ import self as self;
 import "dart:core" as core;
 
 abstract class M1 extends core::Object {
-  synthetic constructor •() → self::M1
-    : super core::Object::•()
-    ;
   get m() → core::int
     return 1;
 }
 abstract class M2 extends core::Object {
-  synthetic constructor •() → self::M2
-    : super core::Object::•()
-    ;
 }
 abstract class M3 extends core::Object {
-  synthetic constructor •() → self::M3
-    : super core::Object::•()
-    ;
 }
 class C1 extends core::Object {
   synthetic constructor •() → self::C1
