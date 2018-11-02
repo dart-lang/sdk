@@ -3438,7 +3438,7 @@ LayoutTests/fast/dom/HTMLElement/attr-missing-ancestor-false_t01: RuntimeError
 LayoutTests/fast/dom/HTMLElement/attr-true-string_t01: RuntimeError
 LayoutTests/fast/dom/HTMLElement/set-false_t01: RuntimeError
 LayoutTests/fast/dom/HTMLElement/set-value-caseinsensitive_t01: RuntimeError
-LayoutTests/fast/dom/HTMLInputElement/input-hidden-value_t01: RuntimeError
+LayoutTests/fast/dom/HTMLInputElement/input-hidden-value_t01: Pass, RuntimeError
 LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: RuntimeError
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError
 LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError
@@ -5792,7 +5792,7 @@ LayoutTests/fast/svg/whitespace-length_t01: RuntimeError
 LayoutTests/fast/svg/whitespace-number_t01: RuntimeError
 LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError
 LayoutTests/fast/table/min-width-css-block-table_t01: RuntimeError
-LayoutTests/fast/table/table-colgroup-present-after-table-row_t01: RuntimeError
+LayoutTests/fast/table/table-colgroup-present-after-table-row_t01: Pass, RuntimeError
 LayoutTests/fast/table/table-size-integer-overflow_t01: RuntimeError
 LayoutTests/fast/table/td-bordercolor-attribute_t01: RuntimeError
 LayoutTests/fast/text/find-kana_t01: RuntimeError
@@ -7953,6 +7953,7 @@ LayoutTests/fast/css/focus-display-block-inline_t01: RuntimeError, Pass
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: RuntimeError, Pass
 LayoutTests/fast/forms/autofocus-input-css-style-change_t01: RuntimeError, Pass
 LayoutTests/fast/mediastream/getusermedia_t01: RuntimeError, Pass
+LayoutTests/fast/replaced/preferred-widths_t01: RuntimeError, Pass
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t02: RuntimeError, Pass
 WebPlatformTest/dom/nodes/Document-createElementNS_t01: RuntimeError, Pass
 
