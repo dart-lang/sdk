@@ -23,8 +23,8 @@ import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
+import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
-import 'js_strategy.dart' show JsClosedWorldBuilder;
 
 class KernelClosureAnalysis {
   /// Inspect members and mark if those members capture any state that needs to

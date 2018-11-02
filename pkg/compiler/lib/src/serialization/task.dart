@@ -11,7 +11,7 @@ import '../compiler.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
