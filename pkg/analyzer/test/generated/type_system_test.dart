@@ -1,25 +1,26 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // Tests related to the [TypeSystem] class.
 
-import 'package:analyzer/analyzer.dart'
-    show ErrorReporter, ParameterKind, StrongModeCode;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
     show NonExistingSource, UriKind;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

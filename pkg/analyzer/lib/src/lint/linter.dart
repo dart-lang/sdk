@@ -1,14 +1,17 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
