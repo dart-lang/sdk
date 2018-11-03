@@ -3380,6 +3380,8 @@ class UriData {
    * content that can't be decoded successfully as a string, for example if
    * existing percent escapes represent bytes that cannot be decoded
    * by the chosen [Encoding] (see [contentAsString]).
+   *
+   * A [FormatException] is thrown if [uri] is not a valid data URI.
    */
   static UriData parse(String uri) {
     if (uri.length >= 5) {
