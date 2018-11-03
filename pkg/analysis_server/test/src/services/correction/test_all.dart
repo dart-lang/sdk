@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'assist/test_all.dart' as assist_all;
 import 'fix/test_all.dart' as fix_all;
 
 main() {
   defineReflectiveSuite(() {
+    assist_all.main();
     fix_all.main();
   }, name: 'correction');
 }

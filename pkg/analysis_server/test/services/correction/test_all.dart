@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'assist_test.dart' as assist_test;
 import 'change_test.dart' as change_test;
 import 'fix_test.dart' as fix_test;
 import 'levenshtein_test.dart' as levenshtein_test;
@@ -18,7 +17,6 @@ import 'util_test.dart' as util_test;
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
-    assist_test.main();
     change_test.main();
     fix_test.main();
     levenshtein_test.main();
