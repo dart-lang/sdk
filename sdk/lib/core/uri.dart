@@ -2719,20 +2719,17 @@ class _Uri implements Uri {
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is Uri) {
-      Uri uri = other;
-      return scheme == uri.scheme &&
-          hasAuthority == uri.hasAuthority &&
-          userInfo == uri.userInfo &&
-          host == uri.host &&
-          port == uri.port &&
-          path == uri.path &&
-          hasQuery == uri.hasQuery &&
-          query == uri.query &&
-          hasFragment == uri.hasFragment &&
-          fragment == uri.fragment;
-    }
-    return false;
+    return other is Uri &&
+        scheme == other.scheme &&
+        hasAuthority == other.hasAuthority &&
+        userInfo == other.userInfo &&
+        host == other.host &&
+        port == other.port &&
+        path == other.path &&
+        hasQuery == other.hasQuery &&
+        query == other.query &&
+        hasFragment == other.hasFragment &&
+        fragment == other.fragment;
   }
 
   int get hashCode {
@@ -4621,8 +4618,7 @@ class _SimpleUri implements Uri {
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is Uri) return _uri == other.toString();
-    return false;
+    return other is Uri && _uri == other.toString();
   }
 
   Uri _toNonSimple() {

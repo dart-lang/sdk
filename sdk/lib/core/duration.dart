@@ -213,11 +213,8 @@ class Duration implements Comparable<Duration> {
   /**
    * Returns `true` if this [Duration] is the same object as [other].
    */
-  bool operator ==(dynamic other) {
-    Object promotableOther = other;
-    return promotableOther is Duration &&
-        _duration == promotableOther.inMicroseconds;
-  }
+  bool operator ==(dynamic other) =>
+      other is Duration && _duration == other.inMicroseconds;
 
   int get hashCode => _duration.hashCode;
 
