@@ -39,6 +39,7 @@ class Utf8Codec extends Encoding {
   const Utf8Codec({bool allowMalformed = false})
       : _allowMalformed = allowMalformed;
 
+  /// The name of this codec, "utf-8".
   String get name => "utf-8";
 
   /// Decodes the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the

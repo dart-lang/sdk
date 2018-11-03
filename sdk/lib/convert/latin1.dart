@@ -34,6 +34,7 @@ class Latin1Codec extends Encoding {
   /// Encoders will not accept invalid (non Latin-1) characters.
   const Latin1Codec({bool allowInvalid = false}) : _allowInvalid = allowInvalid;
 
+  /// The name of this codec, "iso-8859-1".
   String get name => "iso-8859-1";
 
   Uint8List encode(String source) => encoder.convert(source);

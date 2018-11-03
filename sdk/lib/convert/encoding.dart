@@ -8,7 +8,14 @@ part of dart.convert;
 abstract class Encoding extends Codec<String, List<int>> {
   const Encoding();
 
+  /// Returns the encoder from `String` to `List<int>`.
+  ///
+  /// It may be stateful and should not be reused.
   Converter<String, List<int>> get encoder;
+
+  /// Returns the decoder of `this`, converting from `List<int>` to `String`.
+  ///
+  /// It may be stateful and should not be reused.
   Converter<List<int>, String> get decoder;
 
   Future<String> decodeStream(Stream<List<int>> byteStream) {
