@@ -8,13 +8,21 @@ abstract class A {
   int _w;
   int _x;
 
-  void setW(int w) => this._w = w; // LINT
+  void setW(int w) => _w = w; // LINT
 
+  void setW1(int w) => this._w = w; // LINT
+  
   void setX(int x) { // LINT
+    _x = x;
+  }
+
+  void setX1(int x) { // LINT
     this._x = x;
   }
 
   void setY(int y);
+
+  void grow1(int value) => _w += value; //OK
 }
 
 class B extends A {
