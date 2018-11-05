@@ -108,6 +108,12 @@ testDatagramSocketTtl() {
   test(InternetAddress.loopbackIPv4, 256, false);
   test(InternetAddress.loopbackIPv4, 0, false);
   test(InternetAddress.loopbackIPv4, null, false);
+
+  test(InternetAddress.loopbackIPv6, 1, true);
+  test(InternetAddress.loopbackIPv6, 255, true);
+  test(InternetAddress.loopbackIPv6, 256, false);
+  test(InternetAddress.loopbackIPv6, 0, false);
+  test(InternetAddress.loopbackIPv6, null, false);
 }
 
 testBroadcast() {

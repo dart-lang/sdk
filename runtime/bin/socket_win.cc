@@ -173,13 +173,15 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     // ignore reusePort - not supported on this platform.
     Log::PrintErr(
         "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
-        "Windows." __FILE__,
-        __LINE__);
+        "Windows.",
+        __FILE__, __LINE__);
   }
 
-  status = setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL,
-                      reinterpret_cast<const char*>(&ttl), sizeof(ttl));
-  if (status == SOCKET_ERROR) {
+  if (!SocketBase::SetMulticastHops(s,
+                                    addr.addr.sa_family == AF_INET
+                                        ? SocketAddress::TYPE_IPV4
+                                        : SocketAddress::TYPE_IPV6,
+                                    ttl)) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
     SetLastError(rc);
