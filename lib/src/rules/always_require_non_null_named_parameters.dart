@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // without default value
         .where((p) => p.defaultValue == null)
         // without @required
-        .where((p) => !p.element.hasRequired)
+        .where((p) => !p.declaredElement.hasRequired)
         .toList();
     final parent = node.parent;
     if (parent is FunctionExpression) {
