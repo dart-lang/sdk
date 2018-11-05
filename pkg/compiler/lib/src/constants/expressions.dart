@@ -829,6 +829,8 @@ class AsConstantExpression extends ConstantExpression {
     ConstantValue expressionValue =
         expression.evaluate(environment, constantSystem);
 
+    if (!environment.checkCasts) return expressionValue;
+
     // The expression type is `int`.
     DartType expressionType =
         expressionValue.getType(environment.commonElements);

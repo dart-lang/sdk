@@ -502,9 +502,9 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   ConstantValue computeConstantValue(
       Spannable spannable, ConstantExpression constant,
-      {bool requireConstant: true}) {
+      {bool requireConstant: true, bool checkCasts: true}) {
     return _constantEnvironment._getConstantValue(spannable, constant,
-        constantRequired: requireConstant);
+        constantRequired: requireConstant, checkCasts: checkCasts);
   }
 
   DartType substByContext(DartType type, InterfaceType context) {
@@ -1017,7 +1017,9 @@ abstract class KernelToElementMapBase implements IrToElementMap {
   }
 
   ConstantValue getConstantValue(ir.Expression node,
-      {bool requireConstant: true, bool implicitNull: false}) {
+      {bool requireConstant: true,
+      bool implicitNull: false,
+      bool checkCasts: true}) {
     ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {
@@ -1038,7 +1040,7 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     }
     ConstantValue value = computeConstantValue(
         computeSourceSpanFromTreeNode(node), constant,
-        requireConstant: requireConstant);
+        requireConstant: requireConstant, checkCasts: checkCasts);
     if (!value.isConstant && !requireConstant) {
       return null;
     }
@@ -1050,7 +1052,9 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     if (annotations.isEmpty) return const <ConstantValue>[];
     List<ConstantValue> metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
-      metadata.add(getConstantValue(node));
+      // We skip the implicit cast checks for metadata to avoid circular
+      // dependencies in the js-interop class registration.
+      metadata.add(getConstantValue(node, checkCasts: false));
     });
     return metadata;
   }
@@ -2024,11 +2028,11 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
-      {bool constantRequired}) {
+      {bool constantRequired, bool checkCasts: true}) {
     return _valueMap.putIfAbsent(expression, () {
       return expression.evaluate(
           new KernelEvaluationEnvironment(_elementMap, _environment, spannable,
-              constantRequired: constantRequired),
+              constantRequired: constantRequired, checkCasts: checkCasts),
           constantSystem);
     });
   }
@@ -2039,10 +2043,11 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   final KernelToElementMapBase _elementMap;
   final Environment _environment;
+  final bool checkCasts;
 
   KernelEvaluationEnvironment(
       this._elementMap, this._environment, Spannable spannable,
-      {bool constantRequired})
+      {bool constantRequired, this.checkCasts: true})
       : super(spannable, constantRequired: constantRequired);
 
   @override
