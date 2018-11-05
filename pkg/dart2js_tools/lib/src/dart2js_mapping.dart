@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:source_maps/source_maps.dart';
+import 'package:source_maps/src/vlq.dart';
 
 import 'util.dart';
 
@@ -35,48 +36,16 @@ class Dart2jsMapping {
     if (extensions == null) return;
     var minifiedNames = extensions['minified_names'];
     if (minifiedNames != null) {
-      minifiedNames['global'].forEach((minifiedName, id) {
-        globalNames[minifiedName] = sourceMap.names[id];
-      });
-      minifiedNames['instance'].forEach((minifiedName, id) {
-        instanceNames[minifiedName] = sourceMap.names[id];
-      });
+      _extractMinifedNames(minifiedNames['global'], sourceMap, globalNames);
+      _extractMinifedNames(minifiedNames['instance'], sourceMap, instanceNames);
     }
-    List jsonFrames = extensions['frames'];
+    String jsonFrames = extensions['frames'];
     if (jsonFrames != null) {
-      for (List values in jsonFrames) {
-        if (values.length < 2) {
-          warn("warning: incomplete frame data: $values");
-          continue;
-        }
-        int offset = values[0];
-        List<FrameEntry> entries = frames[offset] ??= [];
-        if (entries.length > 0) {
-          warn("warning: duplicate entries for $offset");
-          continue;
-        }
-        for (int i = 1; i < values.length; i++) {
-          var current = values[i];
-          if (current == -1) {
-            entries.add(new FrameEntry.pop(false));
-          } else if (current == 0) {
-            entries.add(new FrameEntry.pop(true));
-          } else {
-            if (current is List) {
-              if (current.length == 4) {
-                entries.add(new FrameEntry.push(sourceMap.urls[current[0]],
-                    current[1], current[2], sourceMap.names[current[3]]));
-              } else {
-                warn("warning: unexpected entry $current");
-              }
-            } else {
-              warn("warning: unexpected entry $current");
-            }
-          }
-        }
-      }
+      new _FrameDecoder(jsonFrames).parseFrames(frames, sourceMap);
     }
   }
+
+  Dart2jsMapping.json(Map json) : this(parseJson(json), json);
 }
 
 class FrameEntry {
@@ -130,4 +99,64 @@ Dart2jsMapping parseMappingFor(Uri uri) {
   }
   var json = jsonDecode(sourcemapFile.readAsStringSync());
   return new Dart2jsMapping(parseJson(json), json);
+}
+
+class _FrameDecoder implements Iterator<String> {
+  final String _internal;
+  final int _length;
+  int index = -1;
+  _FrameDecoder(this._internal) : _length = _internal.length;
+
+  // Iterator API is used by decodeVlq to consume VLQ entries.
+  bool moveNext() => ++index < _length;
+
+  String get current =>
+      (index >= 0 && index < _length) ? _internal[index] : null;
+
+  bool get hasTokens => index < _length - 1 && _length > 0;
+
+  int _readDelta() => decodeVlq(this);
+
+  void parseFrames(Map<int, List<FrameEntry>> frames, SingleMapping sourceMap) {
+    var offset = 0;
+    var uriId = 0;
+    var nameId = 0;
+    var line = 0;
+    var column = 0;
+    while (hasTokens) {
+      offset += _readDelta();
+      List<FrameEntry> entries = frames[offset] ??= [];
+      var marker = _internal[index + 1];
+      if (marker == ';') {
+        entries.add(new FrameEntry.pop(true));
+        index++;
+        continue;
+      } else if (marker == ',') {
+        entries.add(new FrameEntry.pop(false));
+        index++;
+        continue;
+      } else {
+        uriId += _readDelta();
+        var uri = sourceMap.urls[uriId];
+        line += _readDelta();
+        column += _readDelta();
+        nameId += _readDelta();
+        var name = sourceMap.names[nameId];
+        entries.add(new FrameEntry.push(uri, line, column, name));
+      }
+    }
+  }
+}
+
+_extractMinifedNames(String encodedInput, SingleMapping sourceMap,
+    Map<String, String> minifiedNames) {
+  List<String> input = encodedInput.split(',');
+  if (input.length % 2 != 0) {
+    warn("expected an even number of entries");
+  }
+  for (int i = 0; i < input.length; i += 2) {
+    String minifiedName = input[i];
+    int id = int.tryParse(input[i + 1]);
+    minifiedNames[minifiedName] = sourceMap.names[id];
+  }
 }

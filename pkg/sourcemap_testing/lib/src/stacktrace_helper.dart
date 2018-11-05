@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_maps/src/utils.dart';
 import 'package:source_span/source_span.dart';
+import 'package:dart2js_tools/src/dart2js_mapping.dart';
 
 import 'annotated_code_helper.dart';
 
@@ -431,25 +432,6 @@ class LineException {
   const LineException(this.methodName, this.fileName);
 }
 
-class FrameEntry {
-  final String callUri;
-  final int callLine;
-  final int callColumn;
-  final String inlinedMethodName;
-  final bool isEmpty;
-  FrameEntry.push(
-      this.callUri, this.callLine, this.callColumn, this.inlinedMethodName)
-      : isEmpty = false;
-  FrameEntry.pop(this.isEmpty)
-      : callUri = null,
-        callLine = null,
-        callColumn = null,
-        inlinedMethodName = null;
-
-  bool get isPush => callUri != null;
-  bool get isPop => callUri == null;
-}
-
 /// Search backwards in [sources] for a function declaration that includes the
 /// [start] offset.
 TargetEntry findEnclosingFunction(
@@ -466,44 +448,5 @@ TargetEntry findEnclosingFunction(
 Map<int, List<FrameEntry>> _loadInlinedFrameData(
     SingleMapping mapping, String sourceMapText) {
   var json = jsonDecode(sourceMapText);
-  var frames = <int, List<FrameEntry>>{};
-  var extensions = json['x_org_dartlang_dart2js'];
-  if (extensions == null) return null;
-  List jsonFrames = extensions['frames'];
-  if (jsonFrames == null) return null;
-
-  for (List values in jsonFrames) {
-    if (values.length < 2) {
-      print("warning: incomplete frame data: $values");
-      continue;
-    }
-
-    int offset = values[0];
-    List<FrameEntry> entries = frames[offset] ??= [];
-    if (entries.length > 0) {
-      print("warning: duplicate entries for $offset");
-      continue;
-    }
-
-    for (int i = 1; i < values.length; i++) {
-      var current = values[i];
-      if (current == -1) {
-        entries.add(new FrameEntry.pop(false));
-      } else if (current == 0) {
-        entries.add(new FrameEntry.pop(true));
-      } else {
-        if (current is List) {
-          if (current.length == 4) {
-            entries.add(new FrameEntry.push(mapping.urls[current[0]],
-                current[1], current[2], mapping.names[current[3]]));
-          } else {
-            print("warning: unexpected entry $current");
-          }
-        } else {
-          print("warning: unexpected entry $current");
-        }
-      }
-    }
-  }
-  return frames;
+  return Dart2jsMapping(mapping, json).frames;
 }
