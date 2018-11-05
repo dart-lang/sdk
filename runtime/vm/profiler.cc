@@ -611,12 +611,6 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     }
     // In regular Dart frame.
     uword* new_pc = CallerPC();
-    // Check if we've moved into the invocation stub.
-    if (StubCode::InInvocationStub(reinterpret_cast<uword>(new_pc),
-                                   is_interpreted_frame_)) {
-      // New PC is inside invocation stub, skip.
-      return NextExit();
-    }
     uword* new_fp = CallerFP();
     if (!IsCalleeFrameOf(reinterpret_cast<uword>(new_fp),
                          reinterpret_cast<uword>(fp_))) {
@@ -626,6 +620,11 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     // Success, update fp and pc.
     fp_ = new_fp;
     pc_ = new_pc;
+    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                   is_interpreted_frame_)) {
+      // In invocation stub.
+      return NextExit();
+    }
     return true;
   }
 

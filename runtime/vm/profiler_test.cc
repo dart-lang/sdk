@@ -18,6 +18,7 @@ namespace dart {
 #ifndef PRODUCT
 
 DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(bool, profile_vm_allocation);
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(int, optimization_counter_threshold);
@@ -25,14 +26,21 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
  public:
-  DisableNativeProfileScope() : FLAG_profile_vm_(FLAG_profile_vm) {
+  DisableNativeProfileScope()
+      : FLAG_profile_vm_(FLAG_profile_vm),
+        FLAG_profile_vm_allocation_(FLAG_profile_vm_allocation) {
     FLAG_profile_vm = false;
+    FLAG_profile_vm_allocation = false;
   }
 
-  ~DisableNativeProfileScope() { FLAG_profile_vm = FLAG_profile_vm_; }
+  ~DisableNativeProfileScope() {
+    FLAG_profile_vm = FLAG_profile_vm_;
+    FLAG_profile_vm_allocation = FLAG_profile_vm_allocation_;
+  }
 
  private:
   const bool FLAG_profile_vm_;
+  const bool FLAG_profile_vm_allocation_;
 };
 
 class DisableBackgroundCompilationScope : public ValueObject {
@@ -224,6 +232,7 @@ static void EnableProfiler() {
 ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -550,6 +559,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
   EnableProfiler();
 
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -674,6 +684,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
 ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -770,6 +781,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
 ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -866,6 +878,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
 ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript = "double foo(double a, double b) => a + b;";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
@@ -935,6 +948,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
 ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "List foo() => new List(4);\n"
       "List bar() => new List();\n";
@@ -1022,6 +1036,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
 ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "var msg1 = 'a';\n"
       "foo() {\n"
@@ -1086,6 +1101,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
 ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "var msg1 = 'a';\n"
       "\n"
@@ -1153,6 +1169,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
 ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "import 'dart:typed_data';\n"
       "List foo() => new Float32List(4);\n";
@@ -1231,6 +1248,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
 ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => a + b;";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
@@ -1399,6 +1417,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
 
   const char* kScript =
       "class A {\n"
@@ -1683,6 +1702,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
+
   const char* kScript =
       "class A {\n"
       "}\n"
@@ -1783,12 +1804,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     EXPECT_STREQ("a", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("mainAlloc", walker.CurrentName());
-    EXPECT(walker.Down());  // Account for "[Native] [xxxxxxx, xxxxxxx)"
-    EXPECT(!walker.Down());
 
     // Inline expansion should show us the complete call chain:
     walker.Reset(Profile::kInclusiveFunction);
-    EXPECT(walker.Down());  // Account for "[Native] [xxxxxxx, xxxxxxx)"
     EXPECT(walker.Down());
     EXPECT_STREQ("mainAlloc", walker.CurrentName());
     EXPECT(walker.Down());
@@ -2583,10 +2601,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
       "}\n";
 
   // Token position of * in `i * i`.
-  const TokenPosition squarePosition = TokenPosition(6);
+  const TokenPosition squarePosition = TokenPosition(15);
 
   // Token position of the call to `doWork`.
-  const TokenPosition callPosition = TokenPosition(39);
+  const TokenPosition callPosition = TokenPosition(90);
 
   DisableNativeProfileScope dnps;
   // Disable profiling for this thread.
@@ -2642,10 +2660,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
       FindPCForTokenPosition(do_work_code, TokenPosition::kControlFlow);
   EXPECT(controlFlowPc != 0);
 
-  uword tempMovePc =
-      FindPCForTokenPosition(main_code, TokenPosition::kTempMove);
-  EXPECT(tempMovePc != 0);
-
   // Insert fake samples.
 
   // Sample 1:
@@ -2669,15 +2683,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
                      callPositionPc,  // main.
                      0};
 
-  // Sample 4:
-  // tempMovePc exclusive.
-  uword sample4[] = {tempMovePc,  // main.
-                     0};
-
   InsertFakeSample(sample_buffer, &sample1[0]);
   InsertFakeSample(sample_buffer, &sample2[0]);
   InsertFakeSample(sample_buffer, &sample3[0]);
-  InsertFakeSample(sample_buffer, &sample4[0]);
 
   // Generate source report for main.
   JSONStream js;
@@ -2688,18 +2696,18 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   }
 
   // Verify positions in do_work.
-  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",6]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",15]", js.ToCString());
   // Verify exclusive ticks in do_work.
   EXPECT_SUBSTRING("\"exclusiveTicks\":[1,2]", js.ToCString());
   // Verify inclusive ticks in do_work.
   EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 
   // Verify positions in main.
-  EXPECT_SUBSTRING("\"positions\":[\"TempMove\",39]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[90]", js.ToCString());
   // Verify exclusive ticks in main.
-  EXPECT_SUBSTRING("\"exclusiveTicks\":[1,0]", js.ToCString());
+  EXPECT_SUBSTRING("\"exclusiveTicks\":[0]", js.ToCString());
   // Verify inclusive ticks in main.
-  EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
+  EXPECT_SUBSTRING("\"inclusiveTicks\":[2]", js.ToCString());
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
