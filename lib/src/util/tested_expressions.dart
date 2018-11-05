@@ -122,7 +122,7 @@ class TestedExpressions {
   LinkedHashSet<ContradictoryComparisons> _findContradictoryComparisons(
       Set<Expression> comparisons, TokenType tokenType) {
     final Iterable<Expression> binaryExpressions =
-        comparisons.where((e) => e is BinaryExpression).toSet();
+        comparisons.whereType<BinaryExpression>().toSet();
     LinkedHashSet<ContradictoryComparisons> contradictions =
         new LinkedHashSet.identity();
 

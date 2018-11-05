@@ -63,7 +63,7 @@ class ConditionScope {
   }
 
   Iterable<_ExpressionBox> getUndefinedExpressions() =>
-      environment.where((e) => e is _UndefinedExpression);
+      environment.whereType<_UndefinedExpression>();
 
   void _recursiveGetExpressions(
       List<Expression> expressions, Iterable<Element> elements, bool value) {

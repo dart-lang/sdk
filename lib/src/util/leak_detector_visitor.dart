@@ -72,9 +72,8 @@ _VisitVariableDeclaration _buildVariableReporter(
 
 Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
     VariableDeclaration variable, Map<DartTypePredicate, String> predicates) {
-  Iterable<PrefixedIdentifier> prefixedIdentifiers = containerNodes
-      .where((n) => n is PrefixedIdentifier)
-      .cast<PrefixedIdentifier>();
+  Iterable<PrefixedIdentifier> prefixedIdentifiers =
+      containerNodes.whereType<PrefixedIdentifier>();
   return prefixedIdentifiers.where((n) =>
       n.prefix.staticElement == variable.name.staticElement &&
       _hasMatch(
@@ -85,12 +84,11 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
 
 Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
     Iterable<AstNode> containerNodes, VariableDeclaration variable) {
-  Iterable<MethodInvocation> prefixedIdentifiers = containerNodes
-      .where((n) => n is MethodInvocation)
-      .cast<MethodInvocation>();
+  Iterable<MethodInvocation> prefixedIdentifiers =
+      containerNodes.whereType<MethodInvocation>();
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
-      .where((e) => e is SimpleIdentifier)
-      .map((e) => (e as SimpleIdentifier).staticElement)
+      .whereType<SimpleIdentifier>()
+      .map((e) => e.staticElement)
       .contains(variable.name.staticElement));
 }
 

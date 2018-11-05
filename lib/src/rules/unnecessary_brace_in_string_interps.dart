@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    var expressions = node.elements.where((e) => e is InterpolationExpression);
+    var expressions = node.elements.whereType<InterpolationExpression>();
     for (InterpolationExpression expression in expressions) {
       if (expression.expression is SimpleIdentifier) {
         SimpleIdentifier identifier = expression.expression;
