@@ -292,7 +292,7 @@ class RawObject {
   // The tags field which is a part of the object header uses the following
   // bit fields for storing tags.
   enum TagBits {
-    kReservedBit = 0,
+    kCardRememberedBit = 0,
     kOldAndNotMarkedBit = 1,      // Incremental barrier target.
     kNewBit = 2,                  // Generational barrier target.
     kOldBit = 3,                  // Incremental barrier source.
@@ -320,7 +320,7 @@ class RawObject {
   // The bit in the Smi tag position must be something that can be set to 0
   // for a dead filler object of either generation.
   // See Object::MakeUnusedSpaceTraversable.
-  COMPILE_ASSERT(kReservedBit == 0);
+  COMPILE_ASSERT(kCardRememberedBit == 0);
 
   COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
 
@@ -359,6 +359,9 @@ class RawObject {
   class ClassIdTag
       : public BitField<uint32_t, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
 
+  class CardRememberedBit
+      : public BitField<uint32_t, bool, kCardRememberedBit, 1> {};
+
   class OldAndNotMarkedBit
       : public BitField<uint32_t, bool, kOldAndNotMarkedBit, 1> {};
 
@@ -392,6 +395,12 @@ class RawObject {
     ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;
+  }
+  bool IsNewObjectMayBeSmi() const {
+    static const uword kNewObjectBits =
+        (kNewObjectAlignmentOffset | kHeapObjectTag);
+    const uword addr = reinterpret_cast<uword>(this);
+    return (addr & kObjectAlignmentMask) == kNewObjectBits;
   }
   // Assumes this is a heap object.
   bool IsOldObject() const {
@@ -476,11 +485,22 @@ class RawObject {
   }
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
+    ASSERT(!IsCardRemembered());
     UpdateTagBit<OldAndNotRememberedBit>(false);
   }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
     UpdateTagBit<OldAndNotRememberedBit>(true);
+  }
+
+  bool IsCardRemembered() const {
+    return CardRememberedBit::decode(ptr()->tags_);
+  }
+  void SetCardRememberedBitUnsynchronized() {
+    ASSERT(!IsRemembered());
+    ASSERT(!IsCardRemembered());
+    uint32_t tags = ptr()->tags_;
+    ptr()->tags_ = CardRememberedBit::update(true, tags);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -733,6 +753,51 @@ class RawObject {
     }
   }
 
+  template <typename type>
+  void StoreArrayPointer(type const* addr, type value) {
+    *const_cast<type*>(addr) = value;
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+
+  template <typename type>
+  void StoreArrayPointer(type const* addr, type value, Thread* thread) {
+    *const_cast<type*>(addr) = value;
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, thread);
+    }
+  }
+
+  template <typename type>
+  DART_FORCE_INLINE void CheckArrayPointerStore(type const* addr,
+                                                RawObject* value,
+                                                Thread* thread) {
+    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t target_tags = value->ptr()->tags_;
+    if (((source_tags >> kBarrierOverlapShift) & target_tags &
+         thread->write_barrier_mask()) != 0) {
+      if (value->IsNewObject()) {
+        // Generational barrier: record when a store creates an
+        // old-and-not-remembered -> new reference.
+        ASSERT(!this->IsRemembered());
+        if (this->IsCardRemembered()) {
+          RememberCard(reinterpret_cast<RawObject* const*>(addr));
+        } else {
+          this->SetRememberedBit();
+          Thread::Current()->StoreBufferAddObject(this);
+        }
+      } else {
+        // Incremental barrier: record when a store creates an
+        // old -> old-and-not-marked reference.
+        ASSERT(value->IsOldObject());
+        if (value->TryAcquireMarkBit()) {
+          thread->MarkingStackAddObject(value);
+        }
+      }
+    }
+  }
+
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
@@ -740,6 +805,10 @@ class RawObject {
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
     *const_cast<RawSmi**>(addr) = value;
   }
+
+ protected:
+  friend class StoreBufferUpdateVisitor;  // RememberCard
+  void RememberCard(RawObject* const* slot);
 
   friend class Api;
   friend class ApiMessageReader;  // GetClassId
@@ -2183,6 +2252,8 @@ class RawArray : public RawInstance {
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
+
+  friend class HeapPage;
 };
 
 class RawImmutableArray : public RawArray {

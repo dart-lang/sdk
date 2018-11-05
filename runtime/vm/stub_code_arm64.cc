@@ -1411,17 +1411,34 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   }
 }
 
-// Helper stub to implement Assembler::StoreIntoObject.
+// Helper stub to implement Assembler::StoreIntoObject/Array.
 // Input parameters:
 //   R1: Object (old)
 //   R0: Value (old or new)
+//  R25: Slot
 // If R0 is new, add R1 to the store buffer. Otherwise R0 is old, mark R0
 // and add it to the mark list.
 COMPILE_ASSERT(kWriteBarrierObjectReg == R1);
 COMPILE_ASSERT(kWriteBarrierValueReg == R0);
-void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
-  Label add_to_mark_stack;
+COMPILE_ASSERT(kWriteBarrierSlotReg == R25);
+static void GenerateWriteBarrierStubHelper(Assembler* assembler,
+                                           Address stub_code,
+                                           bool cards) {
+  Label add_to_mark_stack, remember_card;
   __ tbz(&add_to_mark_stack, R0, kNewObjectBitPosition);
+
+  if (cards) {
+    __ LoadFieldFromOffset(TMP, R1, Object::tags_offset(), kWord);
+    __ tbnz(&remember_card, TMP, RawObject::kCardRememberedBit);
+  } else {
+#if defined(DEBUG)
+    Label ok;
+    __ LoadFieldFromOffset(TMP, R1, Object::tags_offset(), kWord);
+    __ tbz(&ok, TMP, RawObject::kCardRememberedBit);
+    __ Stop("Wrong barrier");
+    __ Bind(&ok);
+#endif
+  }
 
   // Save values being destroyed.
   __ Push(R2);
@@ -1467,7 +1484,7 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ Push(CODE_REG);
-  __ ldr(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
+  __ ldr(CODE_REG, stub_code);
   __ EnterCallRuntimeFrame(0 * kWordSize);
   __ mov(R0, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
@@ -1510,7 +1527,7 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 
   __ Bind(&marking_overflow);
   __ Push(CODE_REG);
-  __ ldr(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
+  __ ldr(CODE_REG, stub_code);
   __ EnterCallRuntimeFrame(0 * kWordSize);
   __ mov(R0, THR);
   __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
@@ -1523,6 +1540,50 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ Pop(R3);  // Unspill.
   __ Pop(R2);  // Unspill.
   __ ret();
+
+  if (cards) {
+    Label remember_card_slow;
+
+    // Get card table.
+    __ Bind(&remember_card);
+    __ AndImmediate(TMP, R1, kPageMask);                       // HeapPage.
+    __ ldr(TMP, Address(TMP, HeapPage::card_table_offset()));  // Card table.
+    __ cbz(&remember_card_slow, TMP);
+
+    // Dirty the card.
+    __ AndImmediate(TMP, R1, kPageMask);  // HeapPage.
+    __ sub(R25, R25, Operand(TMP));       // Offset in page.
+    __ ldr(TMP, Address(TMP, HeapPage::card_table_offset()));  // Card table.
+    __ add(TMP, TMP,
+           Operand(R25, LSR, HeapPage::kBytesPerCardLog2));  // Card address.
+    __ str(R1, Address(TMP, 0),
+           kUnsignedByte);  // Low byte of R1 is non-zero from object tag.
+    __ ret();
+
+    // Card table not yet allocated.
+    __ Bind(&remember_card_slow);
+    __ Push(CODE_REG);
+    __ PushPair(R0, R1);
+    __ ldr(CODE_REG, stub_code);
+    __ mov(R0, R1);   // Arg0 = Object
+    __ mov(R1, R25);  // Arg1 = Slot
+    __ EnterCallRuntimeFrame(0);
+    __ CallRuntime(kRememberCardRuntimeEntry, 2);
+    __ LeaveCallRuntimeFrame();
+    __ PopPair(R0, R1);
+    __ Pop(CODE_REG);
+    __ ret();
+  }
+}
+
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::write_barrier_code_offset()), false);
+}
+
+void StubCode::GenerateArrayWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::array_write_barrier_code_offset()), true);
 }
 
 // Called for inline allocation of objects.

@@ -72,6 +72,7 @@ const Register kStackTraceObjectReg = EDX;
 // ABI for write barrier stub.
 const Register kWriteBarrierObjectReg = EDX;
 const Register kWriteBarrierValueReg = kNoRegister;
+const Register kWriteBarrierSlotReg = EDI;
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;

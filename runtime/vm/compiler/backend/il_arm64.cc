@@ -1355,7 +1355,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = aligned() ? 0 : 2;
+  const intptr_t kNumTemps = aligned() ? 1 : 2;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1364,11 +1364,19 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   } else {
     locs->set_in(1, Location::WritableRegister());
   }
+  for (intptr_t i = 0; i < kNumTemps; i++) {
+    locs->set_temp(i, Location::RequiresRegister());
+  }
+
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::RegisterLocation(kWriteBarrierValueReg)
                           : Location::RegisterOrConstant(value()));
+      if (ShouldEmitStoreBarrier()) {
+        locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
+        locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
+      }
       break;
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
@@ -1397,10 +1405,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       UNREACHABLE();
       return NULL;
   }
-  if (!aligned()) {
-    locs->set_temp(0, Location::RequiresRegister());
-    locs->set_temp(1, Location::RequiresRegister());
-  }
   return locs;
 }
 
@@ -1408,30 +1412,18 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
-  const Register address = aligned() ? kNoRegister : locs()->temp(0).reg();
+  const Register address = locs()->temp(0).reg();
   const Register scratch = aligned() ? kNoRegister : locs()->temp(1).reg();
 
-  Address element_address(TMP);  // Bad address.
-  if (aligned()) {
-    element_address =
-        index.IsRegister()
-            ? __ ElementAddressForRegIndex(false,  // Store.
-                                           IsExternal(), class_id(),
-                                           index_scale(), array, index.reg())
-            : __ ElementAddressForIntIndex(IsExternal(), class_id(),
-                                           index_scale(), array,
-                                           Smi::Cast(index.constant()).Value());
+  if (index.IsRegister()) {
+    __ LoadElementAddressForRegIndex(address,
+                                     false,  // Store.
+                                     IsExternal(), class_id(), index_scale(),
+                                     array, index.reg());
   } else {
-    if (index.IsRegister()) {
-      __ LoadElementAddressForRegIndex(address,
-                                       false,  // Store.
-                                       IsExternal(), class_id(), index_scale(),
-                                       array, index.reg());
-    } else {
-      __ LoadElementAddressForIntIndex(address, IsExternal(), class_id(),
-                                       index_scale(), array,
-                                       Smi::Cast(index.constant()).Value());
-    }
+    __ LoadElementAddressForIntIndex(address, IsExternal(), class_id(),
+                                     index_scale(), array,
+                                     Smi::Cast(index.constant()).Value());
   }
 
   switch (class_id()) {
@@ -1439,14 +1431,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(aligned());
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObject(array, element_address, value, CanValueBeSmi(),
-                           /*lr_reserved=*/!compiler->intrinsic_mode());
+        __ StoreIntoArray(array, address, value, CanValueBeSmi(),
+                          /*lr_reserved=*/!compiler->intrinsic_mode());
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
-        __ StoreIntoObjectNoBarrier(array, element_address, constant);
+        __ StoreIntoObjectNoBarrier(array, Address(address), constant);
       } else {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObjectNoBarrier(array, element_address, value);
+        __ StoreIntoObjectNoBarrier(array, Address(address), value);
       }
       break;
     case kTypedDataInt8ArrayCid:
@@ -1457,11 +1449,11 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ LoadImmediate(TMP, static_cast<int8_t>(constant.Value()));
-        __ str(TMP, element_address, kUnsignedByte);
+        __ str(TMP, Address(address), kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
         __ SmiUntag(TMP, value);
-        __ str(TMP, element_address, kUnsignedByte);
+        __ str(TMP, Address(address), kUnsignedByte);
       }
       break;
     }
@@ -1478,7 +1470,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           value = 0;
         }
         __ LoadImmediate(TMP, static_cast<int8_t>(value));
-        __ str(TMP, element_address, kUnsignedByte);
+        __ str(TMP, Address(address), kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
         __ CompareImmediate(value, 0x1FE);  // Smi value and smi 0xFF.
@@ -1486,7 +1478,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ csetm(TMP, GT);             // TMP = value > 0x1FE ? -1 : 0.
         __ csel(TMP, value, TMP, LS);  // TMP = value in range ? value : TMP.
         __ SmiUntag(TMP);
-        __ str(TMP, element_address, kUnsignedByte);
+        __ str(TMP, Address(address), kUnsignedByte);
       }
       break;
     }
@@ -1495,7 +1487,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const Register value = locs()->in(2).reg();
       __ SmiUntag(TMP, value);
       if (aligned()) {
-        __ str(TMP, element_address, kUnsignedHalfword);
+        __ str(TMP, Address(address), kUnsignedHalfword);
       } else {
         __ StoreUnaligned(TMP, address, scratch, kUnsignedHalfword);
       }
@@ -1505,7 +1497,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint32ArrayCid: {
       const Register value = locs()->in(2).reg();
       if (aligned()) {
-        __ str(value, element_address, kUnsignedWord);
+        __ str(value, Address(address), kUnsignedWord);
       } else {
         __ StoreUnaligned(value, address, scratch, kUnsignedWord);
       }
@@ -1515,7 +1507,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint64ArrayCid: {
       const Register value = locs()->in(2).reg();
       if (aligned()) {
-        __ str(value, element_address, kDoubleWord);
+        __ str(value, Address(address), kDoubleWord);
       } else {
         __ StoreUnaligned(value, address, scratch, kDoubleWord);
       }
@@ -1524,7 +1516,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat32ArrayCid: {
       const VRegister value_reg = locs()->in(2).fpu_reg();
       if (aligned()) {
-        __ fstrs(value_reg, element_address);
+        __ fstrs(value_reg, Address(address));
       } else {
         __ fmovrs(TMP, value_reg);
         __ StoreUnaligned(TMP, address, scratch, kWord);
@@ -1534,7 +1526,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64ArrayCid: {
       const VRegister value_reg = locs()->in(2).fpu_reg();
       if (aligned()) {
-        __ fstrd(value_reg, element_address);
+        __ fstrd(value_reg, Address(address));
       } else {
         __ fmovrd(TMP, value_reg);
         __ StoreUnaligned(TMP, address, scratch, kDoubleWord);
@@ -1546,7 +1538,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat32x4ArrayCid: {
       ASSERT(aligned());
       const VRegister value_reg = locs()->in(2).fpu_reg();
-      __ fstrq(value_reg, element_address);
+      __ fstrq(value_reg, Address(address));
       break;
     }
     default:

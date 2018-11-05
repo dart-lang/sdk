@@ -63,6 +63,7 @@ namespace dart {
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(void, MarkingStackBlockProcess, Thread*)                                   \
+  V(void, RememberCard, RawObject*, RawObject**)                               \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
   V(double, LibcFloor, double)                                                 \

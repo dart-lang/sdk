@@ -1645,6 +1645,55 @@ void Assembler::StoreIntoObject(Register object,
   Bind(&done);
 }
 
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi,
+                               bool lr_reserved) {
+  // x.slot = x. Barrier should have be removed at the IL level.
+  ASSERT(object != value);
+  ASSERT(object != LR);
+  ASSERT(value != LR);
+  ASSERT(slot != LR);
+  ASSERT(object != TMP);
+  ASSERT(value != TMP);
+  ASSERT(slot != TMP);
+
+  str(value, Address(slot, 0));
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
+  Label done;
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done);
+  }
+  if (!lr_reserved) Push(LR);
+  ldrb(TMP, FieldAddress(object, Object::tags_offset()));
+  ldrb(LR, FieldAddress(value, Object::tags_offset()));
+  and_(TMP, LR, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  ldr(LR, Address(THR, Thread::write_barrier_mask_offset()));
+  tst(TMP, Operand(LR));
+
+  if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
+      (slot != kWriteBarrierSlotReg)) {
+    // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
+    // from StoreIndexInstr, which gets these exact registers from the register
+    // allocator.
+    UNIMPLEMENTED();
+  }
+
+  ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()), NE);
+  blx(LR, NE);
+
+  if (!lr_reserved) Pop(LR);
+  Bind(&done);
+}
+
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,

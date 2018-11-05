@@ -82,6 +82,32 @@ class HeapPage {
     return reinterpret_cast<HeapPage*>(addr & kPageMask);
   }
 
+  // 1 card = 128 slots.
+  static const intptr_t kSlotsPerCardLog2 = 7;
+  static const intptr_t kBytesPerCardLog2 = kWordSizeLog2 + kSlotsPerCardLog2;
+
+  intptr_t card_table_size() const {
+    return memory_->size() >> kBytesPerCardLog2;
+  }
+
+  static intptr_t card_table_offset() {
+    return OFFSET_OF(HeapPage, card_table_);
+  }
+
+  void RememberCard(RawObject* const* slot) {
+    ASSERT(Contains(reinterpret_cast<uword>(slot)));
+    if (card_table_ == NULL) {
+      card_table_ = reinterpret_cast<uint8_t*>(
+          calloc(card_table_size(), sizeof(uint8_t)));
+    }
+    intptr_t offset =
+        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    card_table_[index] = 1;
+  }
+  void VisitRememberedCards(ObjectPointerVisitor* visitor);
+
  private:
   void set_object_end(uword value) {
     ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
@@ -102,6 +128,7 @@ class HeapPage {
   uword object_end_;
   uword used_in_bytes_;
   ForwardingPage* forwarding_page_;
+  uint8_t* card_table_;  // Remembered set, not marking.
   PageType type_;
 
   friend class PageSpace;
@@ -276,6 +303,8 @@ class PageSpace {
   void VisitObjectsNoImagePages(ObjectVisitor* visitor) const;
   void VisitObjectsImagePages(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
+
+  void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
 
   RawObject* FindObject(FindObjectVisitor* visitor,
                         HeapPage::PageType type) const;

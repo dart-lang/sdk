@@ -283,6 +283,7 @@ const Register kStackTraceObjectReg = R1;
 // ABI for write barrier stub.
 const Register kWriteBarrierObjectReg = R1;
 const Register kWriteBarrierValueReg = R0;
+const Register kWriteBarrierSlotReg = R9;
 
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;

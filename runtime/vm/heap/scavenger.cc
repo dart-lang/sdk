@@ -90,6 +90,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   void VisitingOldObject(RawObject* obj) {
     ASSERT((obj == NULL) || obj->IsOldObject());
     visiting_old_object_ = obj;
+    if (obj != NULL) {
+      // Card update happens in HeapPage::VisitRememberedCards.
+      ASSERT(!obj->IsCardRemembered());
+    }
   }
 
   intptr_t bytes_promoted() const { return bytes_promoted_; }
@@ -581,6 +585,10 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     isolate->store_buffer()->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
     pending = next;
   }
+
+  visitor->VisitingOldObject(NULL);
+  heap_->old_space()->VisitRememberedCards(visitor);
+
   heap_->RecordData(kStoreBufferEntries, total_count);
   heap_->RecordData(kDataUnused1, 0);
   heap_->RecordData(kDataUnused2, 0);

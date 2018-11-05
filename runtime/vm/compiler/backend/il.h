@@ -5124,7 +5124,15 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
-  virtual bool WillAllocateNewOrRemembered() const { return true; }
+  virtual bool WillAllocateNewOrRemembered() const {
+    // Large arrays will use cards instead; cannot skip write barrier.
+    if (!num_elements()->BindsToConstant()) return false;
+    const Object& length = num_elements()->BoundConstant();
+    if (!length.IsSmi()) return false;
+    intptr_t raw_length = Smi::Cast(length).Value();
+    // Compare Array::New.
+    return (raw_length >= 0) && (raw_length < Array::kMaxNewSpaceElements);
+  }
 
  private:
   const TokenPosition token_pos_;

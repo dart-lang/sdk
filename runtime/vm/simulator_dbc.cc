@@ -202,8 +202,8 @@ class SimulatorHelpers {
     RawSmi* index = static_cast<RawSmi*>(args[1]);
     RawArray* array = static_cast<RawArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
-      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2],
-                          thread);
+      array->StoreArrayPointer(array->ptr()->data() + Smi::Value(index),
+                               args[2], thread);
       return true;
     }
     return false;
@@ -238,8 +238,8 @@ class SimulatorHelpers {
         static_cast<RawGrowableObjectArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
       RawArray* data = array->ptr()->data_;
-      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2],
-                         thread);
+      data->StoreArrayPointer(data->ptr()->data() + Smi::Value(index), args[2],
+                              thread);
       return true;
     }
     return false;
@@ -3636,8 +3636,8 @@ RawObject* Simulator::Call(const Code& code,
     RawSmi* index = RAW_CAST(Smi, SP[2]);
     RawObject* value = SP[3];
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
-                        thread);
+    array->StoreArrayPointer(array->ptr()->data() + Smi::Value(index), value,
+                             thread);
     DISPATCH();
   }
 
@@ -3647,8 +3647,8 @@ RawObject* Simulator::Call(const Code& code,
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawObject* value = FP[rC];
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
-                        thread);
+    array->StoreArrayPointer(array->ptr()->data() + Smi::Value(index), value,
+                             thread);
     DISPATCH();
   }
 

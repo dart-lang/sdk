@@ -783,6 +783,11 @@ class Assembler : public AssemblerBase {
                        Register value,       // Value we are storing.
                        CanBeSmi can_value_be_smi = kValueCanBeSmi,
                        bool lr_reserved = false);
+  void StoreIntoArray(Register object,
+                      Register slot,
+                      Register value,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      bool lr_reserved = false);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,

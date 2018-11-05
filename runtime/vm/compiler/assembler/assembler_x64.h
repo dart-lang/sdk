@@ -726,6 +726,10 @@ class Assembler : public AssemblerBase {
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
                        CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreIntoArray(Register object,  // Object we are storing into.
+                      Register slot,    // Where we are storing into.
+                      Register value,   // Value we are storing.
+                      CanBeSmi can_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
