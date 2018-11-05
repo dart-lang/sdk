@@ -9,6 +9,7 @@
 */*/*/packages/*/*: Skip
 */*/packages/*/*: Skip
 */packages/*/*: Skip
+analysis_server/test/domain_edit_dartfix_test: RuntimeError # Issue 35055
 analysis_server/tool/spec/check_all_test: Skip # Issue 29133
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_kernel_test: Slow, Pass
