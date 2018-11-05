@@ -323,13 +323,6 @@ testRule(String ruleName, File file, {bool debug = false}) {
       return;
     }
 
-    // TODO(pq): re-enable w/ analyzer >=0.33.1 https://github.com/dart-lang/linter/issues/1195
-    if (ruleName == 'package_names') {
-      print(
-          'WARNING: Test skipped -- testing rule `$ruleName` requires an unpublished analyzer (>=0.33.1).');
-      return;
-    }
-
     MemoryResourceProvider memoryResourceProvider = new MemoryResourceProvider(
         context: PhysicalResourceProvider.INSTANCE.pathContext);
     TestResourceProvider resourceProvider =
