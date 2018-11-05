@@ -41,10 +41,10 @@ rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
 rasta/bad_default_constructor: Fail # Compile-time error destroys program.
 rasta/bad_explicit_super_constructor: RuntimeError
-rasta/bad_implicit_super_constructor: Fail
+rasta/bad_implicit_super_constructor: RuntimeError
 rasta/bad_interpolation: Fail
 rasta/bad_redirection: Fail
-rasta/bad_setter_initializer: Fail
+rasta/bad_setter_initializer: RuntimeError
 rasta/bad_unicode: Fail
 rasta/breaking_bad: Fail
 rasta/class_hierarchy: Fail

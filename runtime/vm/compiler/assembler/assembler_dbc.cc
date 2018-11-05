@@ -21,14 +21,15 @@ DECLARE_FLAG(bool, inline_alloc);
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   const uword end = data + length;
   while (data < end) {
-    *reinterpret_cast<int32_t*>(data) = Bytecode::kTrap;
+    *reinterpret_cast<int32_t*>(data) = SimulatorBytecode::kTrap;
     data += sizeof(int32_t);
   }
 }
 
 #define DEFINE_EMIT(Name, Signature, Fmt0, Fmt1, Fmt2)                         \
   void Assembler::Name(PARAMS_##Signature) {                                   \
-    Emit(Bytecode::FENCODE_##Signature(Bytecode::k##Name ENCODE_##Signature)); \
+    Emit(SimulatorBytecode::FENCODE_##Signature(                               \
+        SimulatorBytecode::k##Name ENCODE_##Signature));                       \
   }
 
 #define PARAMS_0
@@ -75,7 +76,7 @@ const char* Assembler::RegisterName(Register reg) {
 }
 
 static int32_t EncodeJump(int32_t relative_pc) {
-  return Bytecode::kJump | (relative_pc << 8);
+  return SimulatorBytecode::kJump | (relative_pc << 8);
 }
 
 static int32_t OffsetToPC(int32_t offset) {
@@ -108,7 +109,7 @@ void Assembler::Bind(Label* label) {
 
 void Assembler::Stop(const char* message) {
   // TODO(vegorov) support passing a message to the bytecode.
-  Emit(Bytecode::kTrap);
+  Emit(SimulatorBytecode::kTrap);
 }
 
 void Assembler::PushConstant(const Object& obj) {

@@ -32,9 +32,10 @@ class AsciiCodec extends Encoding {
   /// Replacement character (U+FFFD). If not, an exception will be thrown.
   /// Calls to the [decode] method can choose to override this default.
   ///
-  /// Encoders will not accept invalid (non Latin-1) characters.
+  /// Encoders will not accept invalid (non ASCII) characters.
   const AsciiCodec({bool allowInvalid = false}) : _allowInvalid = allowInvalid;
 
+  /// The name of this codec, "us-ascii".
   String get name => "us-ascii";
 
   Uint8List encode(String source) => encoder.convert(source);

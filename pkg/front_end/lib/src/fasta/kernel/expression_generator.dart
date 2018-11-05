@@ -976,8 +976,8 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
         !generator.isThisPropertyAccess) {
       return generator.buildFieldInitializer(initializedFields);
     }
-    return helper.buildFieldInitializer(
-        false, generator.plainNameForRead, offsetForToken(token), value);
+    return helper.buildFieldInitializer(false, generator.plainNameForRead,
+        offsetForToken(generator.token), offsetForToken(token), value);
   }
 }
 

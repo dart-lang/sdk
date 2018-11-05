@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
@@ -11,7 +12,7 @@ import '../compiler.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';

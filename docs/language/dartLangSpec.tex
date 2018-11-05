@@ -10848,8 +10848,11 @@ See the discussion in section \ref{imports} for the reasoning behind this rule.
 }
 
 \LMHash{}%
-We say that $L$ \Index{re-exports library } $B$, and also that $L$ {\em re-exports namespace } $NS_n$.
-When no confusion can arise, we may simply state that $L$ \NoIndex{re-exports }$B$, or that $L$ {\em re-exports }$NS_n$.
+We say that $L$ \Index{re-exports library} $B$, and also
+that $L$ \Index{re-exports namespace} $NS_n$.
+When no confusion can arise, we may simply state
+that $L$ \NoIndex{re-exports} $B$, or
+that $L$ \NoIndex{re-exports} $NS_n$.
 
 \LMHash{}%
 It is a compile-time error if a name $N$ is re-exported by a library $L$ and $N$ is introduced into the export namespace of $L$ by more than one export, unless all exports refer to same declaration for the name $N$.
@@ -10985,7 +10988,10 @@ It is a compile-time error if the string literal $x$ that describes a URI contai
 \LMHash{}%
 It is a compile-time error if the string literal $x$ that is used in a \synt{uriTest} is not a constant expression, or if $x$ involves string interpolation.
 
-\LMHash{}% A {\em configurable URI} $c$ of the form \code{\metavar{uri} $\metavar{configurationUri}_1$ \ldots $\metavar{configurationUri}_n$} {\em specifies a URI} as follows:
+\LMHash{}%
+A \Index{configurable URI} $c$ of the form
+\code{\metavar{uri} $\metavar{configurationUri}_1$ \ldots $\metavar{configurationUri}_n$}
+\IndexCustom{specifies a URI}{specify a URI} as follows:
 \begin{itemize}
 \item{} Let $u$ be \metavar{uri}.
 \item{} For each of the following configuration URIs of the form \code{\IF{} ($\metavar{test}_i$) $\metavar{uri}_i$}, in source order, do the following.

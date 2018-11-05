@@ -34,16 +34,11 @@ import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
-import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
-import '../js_backend/interceptor_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../native/native.dart' as native;
@@ -52,10 +47,7 @@ import '../options.dart';
 import '../ordered_typeset.dart';
 import '../universe/call_structure.dart';
 import '../universe/class_hierarchy.dart';
-import '../universe/class_set.dart';
 import '../universe/selector.dart';
-import '../universe/world_builder.dart';
-import '../world.dart';
 
 import 'element_map.dart';
 import 'env.dart';
@@ -510,9 +502,9 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   ConstantValue computeConstantValue(
       Spannable spannable, ConstantExpression constant,
-      {bool requireConstant: true}) {
+      {bool requireConstant: true, bool checkCasts: true}) {
     return _constantEnvironment._getConstantValue(spannable, constant,
-        constantRequired: requireConstant);
+        constantRequired: requireConstant, checkCasts: checkCasts);
   }
 
   DartType substByContext(DartType type, InterfaceType context) {
@@ -1025,7 +1017,9 @@ abstract class KernelToElementMapBase implements IrToElementMap {
   }
 
   ConstantValue getConstantValue(ir.Expression node,
-      {bool requireConstant: true, bool implicitNull: false}) {
+      {bool requireConstant: true,
+      bool implicitNull: false,
+      bool checkCasts: true}) {
     ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {
@@ -1046,7 +1040,7 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     }
     ConstantValue value = computeConstantValue(
         computeSourceSpanFromTreeNode(node), constant,
-        requireConstant: requireConstant);
+        requireConstant: requireConstant, checkCasts: checkCasts);
     if (!value.isConstant && !requireConstant) {
       return null;
     }
@@ -1058,7 +1052,9 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     if (annotations.isEmpty) return const <ConstantValue>[];
     List<ConstantValue> metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
-      metadata.add(getConstantValue(node));
+      // We skip the implicit cast checks for metadata to avoid circular
+      // dependencies in the js-interop class registration.
+      metadata.add(getConstantValue(node, checkCasts: false));
     });
     return metadata;
   }
@@ -2032,11 +2028,11 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
-      {bool constantRequired}) {
+      {bool constantRequired, bool checkCasts: true}) {
     return _valueMap.putIfAbsent(expression, () {
       return expression.evaluate(
           new KernelEvaluationEnvironment(_elementMap, _environment, spannable,
-              constantRequired: constantRequired),
+              constantRequired: constantRequired, checkCasts: checkCasts),
           constantSystem);
     });
   }
@@ -2047,10 +2043,11 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   final KernelToElementMapBase _elementMap;
   final Environment _environment;
+  final bool checkCasts;
 
   KernelEvaluationEnvironment(
       this._elementMap, this._environment, Spannable spannable,
-      {bool constantRequired})
+      {bool constantRequired, this.checkCasts: true})
       : super(spannable, constantRequired: constantRequired);
 
   @override
@@ -2089,71 +2086,6 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 
   @override
   bool get enableAssertions => _elementMap.options.enableUserAssertions;
-}
-
-class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
-  final KernelToElementMapImpl elementMap;
-  final KElementEnvironment elementEnvironment;
-  final DartTypes dartTypes;
-  final KCommonElements commonElements;
-  final NativeData nativeData;
-  final InterceptorData interceptorData;
-  final BackendUsage backendUsage;
-  final NoSuchMethodData noSuchMethodData;
-
-  final Map<ClassEntity, Set<ClassEntity>> mixinUses;
-
-  final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
-
-  // TODO(johnniwinther): Can this be derived from [ClassSet]s?
-  final Set<ClassEntity> _implementedClasses;
-
-  final Iterable<MemberEntity> liveInstanceMembers;
-
-  /// Members that are written either directly or through a setter selector.
-  final Iterable<MemberEntity> assignedInstanceMembers;
-  final KAllocatorAnalysis allocatorAnalysis;
-
-  final Iterable<ClassEntity> liveNativeClasses;
-
-  final Iterable<MemberEntity> processedMembers;
-
-  final ClassHierarchy classHierarchy;
-
-  final AnnotationsData annotationsData;
-
-  KClosedWorldImpl(this.elementMap,
-      {CompilerOptions options,
-      this.elementEnvironment,
-      this.dartTypes,
-      this.commonElements,
-      this.nativeData,
-      this.interceptorData,
-      this.backendUsage,
-      this.noSuchMethodData,
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      RuntimeTypesNeedBuilder rtiNeedBuilder,
-      this.allocatorAnalysis,
-      Set<ClassEntity> implementedClasses,
-      this.liveNativeClasses,
-      this.liveInstanceMembers,
-      this.assignedInstanceMembers,
-      this.processedMembers,
-      this.mixinUses,
-      this.typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets,
-      this.annotationsData})
-      : _implementedClasses = implementedClasses,
-        classHierarchy = new ClassHierarchyImpl(
-            commonElements, classHierarchyNodes, classSets) {
-    computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder, options);
-  }
-
-  /// Returns `true` if [cls] is implemented by an instantiated class.
-  bool isImplemented(ClassEntity cls) {
-    return _implementedClasses.contains(cls);
-  }
 }
 
 class KernelNativeMemberResolver extends NativeMemberResolverBase {

@@ -25,6 +25,7 @@ import '../js_model/element_map_impl.dart';
 import '../js_model/elements.dart' show JSignatureMethod;
 import '../kernel/element_map_impl.dart';
 import '../kernel/kelements.dart';
+import '../kernel/kernel_world.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../options.dart';
 import '../universe/class_set.dart';

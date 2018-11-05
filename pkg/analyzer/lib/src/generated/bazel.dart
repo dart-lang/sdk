@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 
 /**
  * Instances of the class `BazelFileUriResolver` resolve `file` URI's by first
@@ -32,8 +32,8 @@ class BazelFileUriResolver extends ResourceUriResolver {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
-    String path = fileUriToNormalizedPath(provider.pathContext, uri);
-    File file = workspace.findFile(path);
+    String filePath = fileUriToNormalizedPath(provider.pathContext, uri);
+    File file = workspace.findFile(filePath);
     if (file != null) {
       return file.createSource(actualUri ?? uri);
     }
@@ -46,7 +46,7 @@ class BazelFileUriResolver extends ResourceUriResolver {
  */
 class BazelPackageUriResolver extends UriResolver {
   final BazelWorkspace _workspace;
-  final Context _context;
+  final path.Context _context;
 
   /**
    * The cache of absolute [Uri]s to [Source]s mappings.
@@ -76,15 +76,15 @@ class BazelPackageUriResolver extends UriResolver {
       String filePath = fileUriPart.replaceAll('/', _context.separator);
 
       if (packageName.indexOf('.') == -1) {
-        String path = _context.join(_workspace.root, 'third_party', 'dart',
-            packageName, 'lib', filePath);
-        File file = _workspace.findFile(path);
+        String fullFilePath = _context.join(_workspace.root, 'third_party',
+            'dart', packageName, 'lib', filePath);
+        File file = _workspace.findFile(fullFilePath);
         return file?.createSource(uri);
       } else {
         String packagePath = packageName.replaceAll('.', _context.separator);
-        String path =
+        String fullFilePath =
             _context.join(_workspace.root, packagePath, 'lib', filePath);
-        File file = _workspace.findFile(path);
+        File file = _workspace.findFile(fullFilePath);
         return file?.createSource(uri);
       }
     });
@@ -92,12 +92,12 @@ class BazelPackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    Context context = _workspace.provider.pathContext;
-    String path = source.fullName;
+    path.Context context = _workspace.provider.pathContext;
+    String filePath = source.fullName;
 
-    Uri restore(String root, String path) {
-      if (root != null && context.isWithin(root, path)) {
-        String relative = context.relative(path, from: root);
+    Uri restore(String root, String filePath) {
+      if (root != null && context.isWithin(root, filePath)) {
+        String relative = context.relative(filePath, from: root);
         List<String> components = context.split(relative);
         if (components.length > 4 &&
             components[0] == 'third_party' &&
@@ -127,7 +127,7 @@ class BazelPackageUriResolver extends UriResolver {
       _workspace.readonly,
       _workspace.root
     ]) {
-      Uri uri = restore(root, path);
+      Uri uri = restore(root, filePath);
       if (uri != null) {
         return uri;
       }
@@ -207,7 +207,7 @@ class BazelWorkspace extends Workspace {
    * not in the workspace [root].
    */
   File findFile(String absolutePath) {
-    Context context = provider.pathContext;
+    path.Context context = provider.pathContext;
     try {
       String relative = context.relative(absolutePath, from: root);
       if (relative == '.') {
@@ -259,16 +259,12 @@ class BazelWorkspace extends Workspace {
    * folder, but there is corresponding folder 'foo' in `READONLY`, i.e. the
    * corresponding readonly workspace root.
    */
-  static BazelWorkspace find(ResourceProvider provider, String path) {
-    Context context = provider.pathContext;
+  static BazelWorkspace find(ResourceProvider provider, String filePath) {
+    path.Context context = provider.pathContext;
+    assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
+    filePath = context.normalize(filePath);
 
-    // Ensure that the path is absolute and normalized.
-    if (!context.isAbsolute(path)) {
-      throw new ArgumentError('not absolute: $path');
-    }
-    path = context.normalize(path);
-
-    Folder folder = provider.getFolder(path);
+    Folder folder = provider.getFolder(filePath);
     while (true) {
       Folder parent = folder.parent;
       if (parent == null) {
@@ -321,7 +317,7 @@ class BazelWorkspace extends Workspace {
    * exists.
    */
   static String _findSymlinkPrefix(ResourceProvider provider, String root) {
-    Context context = provider.pathContext;
+    path.Context context = provider.pathContext;
     if (provider.getFolder(context.join(root, 'blaze-genfiles')).exists) {
       return 'blaze';
     }

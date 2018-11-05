@@ -272,7 +272,7 @@ class PackageBuildWorkspaceTest extends Object with ResourceProviderMixin {
     expect(
         () => PackageBuildWorkspace.find(resourceProvider,
             convertPath('not_absolute'), new MockContextBuilder()),
-        throwsArgumentError);
+        throwsA(const TypeMatcher<AssertionError>()));
   }
 
   void test_find_hasDartToolAndPubspec() {

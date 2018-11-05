@@ -227,7 +227,7 @@ class Stdout extends _StdSink implements IOSink {
    */
   int get terminalColumns => _terminalColumns(_fd);
 
-  /*
+  /**
    * Get the number of lines of the terminal.
    *
    * If no terminal is attached to stdout, a [StdoutException] is thrown. See

@@ -73,12 +73,10 @@ class DateTime {
   }
 
   @patch
-  bool operator ==(dynamic other) {
-    Object promotableOther = other;
-    return promotableOther is DateTime &&
-        _value == promotableOther.microsecondsSinceEpoch &&
-        isUtc == promotableOther.isUtc;
-  }
+  bool operator ==(dynamic other) =>
+      other is DateTime &&
+      _value == other.microsecondsSinceEpoch &&
+      isUtc == other.isUtc;
 
   @patch
   bool isBefore(DateTime other) => _value < other.microsecondsSinceEpoch;

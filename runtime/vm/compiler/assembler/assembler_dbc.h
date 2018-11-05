@@ -47,7 +47,7 @@ class Assembler : public AssemblerBase {
 
   static const char* FpuRegisterName(FpuRegister reg) { return "?"; }
 
-  static uword GetBreakInstructionFiller() { return Bytecode::kTrap; }
+  static uword GetBreakInstructionFiller() { return SimulatorBytecode::kTrap; }
 
   static bool IsSafe(const Object& value) { return true; }
   static bool IsSafeSmi(const Object& value) { return false; }
