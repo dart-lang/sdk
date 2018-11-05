@@ -122,32 +122,52 @@ class EditDartFix {
         }
         continue;
       }
-      ResolvedUnitResult result = await server.getResolvedUnit(res.path);
-      CompilationUnit unit = result?.unit;
-      if (unit != null) {
-        if (!hasErrors) {
-          for (AnalysisError error in result.errors) {
-            if (!(await fixError(result, error))) {
-              if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
-                hasErrors = true;
+
+      const maxAttempts = 3;
+      int attempt = 0;
+      while (attempt < maxAttempts) {
+        ResolvedUnitResult result = await server.getResolvedUnit(res.path);
+
+        // TODO(danrubel): Investigate why InconsistentAnalysisException occurs
+        // and whether this is an appropriate way to handle the situation
+        ++attempt;
+        try {
+          CompilationUnit unit = result?.unit;
+          if (unit != null) {
+            if (!hasErrors) {
+              for (AnalysisError error in result.errors) {
+                if (!(await fixError(result, error))) {
+                  if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
+                    hasErrors = true;
+                  }
+                }
               }
             }
+            Source source = result.unit.declaredElement.source;
+            for (Linter linter in linters) {
+              if (linter != null) {
+                linter.reporter.source = source;
+              }
+            }
+            var lintVisitors = lintVisitorsBySession[result.session] ??=
+                await _setupLintVisitors(result, linters);
+            if (lintVisitors.astVisitor != null) {
+              unit.accept(lintVisitors.astVisitor);
+            }
+            unit.accept(lintVisitors.linterVisitor);
+            for (LinterFix fix in fixes) {
+              await fix.applyLocalFixes(result);
+            }
           }
-        }
-        Source source = result.unit.declaredElement.source;
-        for (Linter linter in linters) {
-          if (linter != null) {
-            linter.reporter.source = source;
+          break;
+        } on InconsistentAnalysisException catch (_) {
+          if (attempt == maxAttempts) {
+            // TODO(danrubel): Consider improving the edit.dartfix protocol
+            // to gracefully report inconsistent results for a particular
+            // file rather than aborting the entire operation.
+            rethrow;
           }
-        }
-        var lintVisitors = lintVisitorsBySession[result.session] ??=
-            await _setupLintVisitors(result, linters);
-        if (lintVisitors.astVisitor != null) {
-          unit.accept(lintVisitors.astVisitor);
-        }
-        unit.accept(lintVisitors.linterVisitor);
-        for (LinterFix fix in fixes) {
-          await fix.applyLocalFixes(result);
+          // try again
         }
       }
     }
