@@ -99,8 +99,6 @@ regress_30339_test: CompileTimeError
 regress_33479_test/01: Crash # Issue #33479
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-string_split_test: CompileTimeError
-string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_no_such_method1_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
 super_no_such_method2_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
