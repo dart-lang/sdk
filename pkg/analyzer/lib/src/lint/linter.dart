@@ -391,7 +391,7 @@ abstract class NodeLintRuleWithContext extends NodeLintRule {
   /// in the given [registry].
   ///
   /// The node processors may use the provided [context] to access information
-  /// that is not avaiable from the AST nodes or their associated elements.
+  /// that is not available from the AST nodes or their associated elements.
   /// In a future release of the analyzer, [context] will become a required
   /// parameter.
   void registerNodeProcessors(NodeLintRegistry registry,
