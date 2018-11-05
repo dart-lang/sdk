@@ -22,11 +22,15 @@ main() {
 class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   String libPath;
 
-  void expectSourceEdit(
-      SourceEdit sourceEdit, String replacement, int offset, int length) {
-    expect(sourceEdit.replacement, replacement);
-    expect(sourceEdit.offset, offset);
-    expect(sourceEdit.length, length);
+  void expectEdits(List<SourceFileEdit> fileEdits, String expectedSource) {
+    expect(fileEdits, hasLength(1));
+    expect(fileEdits[0].file, testFile);
+    List<SourceEdit> edits = fileEdits[0].edits;
+    String source = testCode;
+    for (SourceEdit edit in edits) {
+      source = edit.apply(source);
+    }
+    expect(source, expectedSource);
   }
 
   void expectSuggestion(DartFixSuggestion suggestion, String partialText,
@@ -34,6 +38,16 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     expect(suggestion.description, contains(partialText));
     expect(suggestion.location.offset, offset);
     expect(suggestion.location.length, length);
+  }
+
+  Future<EditDartfixResult> performFix() async {
+    final request = new Request(
+        '33', 'edit.dartfix', new EditDartfixParams([libPath]).toJson());
+
+    final response = await new EditDartFix(server, request).compute();
+    expect(response.id, '33');
+
+    return EditDartfixResult.fromResponse(response);
   }
 
   @override
@@ -45,49 +59,49 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     testFile = resourceProvider.convertPath('/project/lib/fileToBeFixed.dart');
   }
 
-  test_dartfix_literal_int() async {
-    addTestFile('''
-const double myDouble = 42.0;
-    ''');
-
-    final request = new Request(
-        '33', 'edit.dartfix', new EditDartfixParams([libPath]).toJson());
-
-    final response = await new EditDartFix(server, request).compute();
-    expect(response.id, '33');
-
-    final result = EditDartfixResult.fromResponse(response);
-
-    expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
-
-    expect(result.edits, hasLength(1));
-    expect(result.edits[0].file, testFile);
-    expect(result.edits[0].edits, hasLength(1));
-    expectSourceEdit(result.edits[0].edits[0], '42', 24, 4);
-  }
-
-  test_dartfix_mixin() async {
+  test_dartfix_convertClassToMixin() async {
     addTestFile('''
 class A {}
 class B extends A {}
 class C with B {}
     ''');
-
-    final request = new Request(
-        '33', 'edit.dartfix', new EditDartfixParams([libPath]).toJson());
-
-    final response = await new EditDartFix(server, request).compute();
-    expect(response.id, '33');
-
-    final result = EditDartfixResult.fromResponse(response);
-
+    EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
+    expectEdits(result.edits, '''
+class A {}
+mixin B implements A {}
+class C with B {}
+    ''');
+  }
 
-    expect(result.edits, hasLength(1));
-    expect(result.edits[0].file, testFile);
-    expect(result.edits[0].edits, hasLength(1));
-    expectSourceEdit(result.edits[0].edits[0], 'mixin B implements A ', 11, 18);
+  test_dartfix_convertToIntLiteral() async {
+    addTestFile('''
+const double myDouble = 42.0;
+    ''');
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
+    expectEdits(result.edits, '''
+const double myDouble = 42;
+    ''');
+  }
+
+  test_dartfix_moveTypeArgumentToClass() async {
+    addTestFile('''
+class A<T> { A.from(Object obj) { } }
+main() {
+  print(new A.from<String>([]));
+}
+    ''');
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
+    expectEdits(result.edits, '''
+class A<T> { A.from(Object obj) { } }
+main() {
+  print(new A<String>.from([]));
+}
+    ''');
   }
 }

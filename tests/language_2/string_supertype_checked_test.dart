@@ -7,12 +7,12 @@ import "package:expect/expect.dart";
 // This tests a bug in dart2js which caused the compiler to emit bad
 // type assertions for supertypes of String.
 
-class A implements Comparable {
+class A implements Comparable<A> {
   int value;
 
   A(this.value);
 
-  int compareTo(Comparable other) {
+  int compareTo(Object other) {
     A o = promote(other);
     return value.compareTo(o.value);
   }

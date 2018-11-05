@@ -233,7 +233,7 @@ class DartFixKind {
   static const REMOVE_THIS_EXPRESSION =
       const FixKind('REMOVE_THIS_EXPRESSION', 50, "Remove this expression");
   static const REMOVE_TYPE_ARGUMENTS =
-      const FixKind('REMOVE_TYPE_ARGUMENTS', 51, "Remove type arguments");
+      const FixKind('REMOVE_TYPE_ARGUMENTS', 49, "Remove type arguments");
   static const REMOVE_TYPE_NAME =
       const FixKind('REMOVE_TYPE_NAME', 50, "Remove type name");
   static const REMOVE_UNNECESSARY_CAST = const FixKind(
