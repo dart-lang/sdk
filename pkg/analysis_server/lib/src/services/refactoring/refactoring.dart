@@ -56,8 +56,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
    */
   factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
       AnalysisSession session, ExecutableElement element) {
-    return new ConvertMethodToGetterRefactoringImpl(
-        searchEngine, session, element);
+    return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
   }
 }
 
@@ -461,7 +460,7 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameLibraryRefactoringImpl(workspace, element);
     }
     if (element is LocalElement) {
-      return new RenameLocalRefactoringImpl(workspace, session, element);
+      return new RenameLocalRefactoringImpl(workspace, element);
     }
     if (element.enclosingElement is ClassElement) {
       return new RenameClassMemberRefactoringImpl(workspace, session, element);
@@ -495,32 +494,4 @@ abstract class RenameRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkNewName();
-}
-
-/**
- * Cache for accessing resolved [CompilationUnit]s by [Element]s.
- *
- * Must by short-lived.
- *
- * TODO(scheglov) consider moving to request-bound object.
- */
-class ResolvedUnitCache {
-  final AnalysisSession _session;
-  final Map<String, ResolvedUnitResult> _map = {};
-
-  ResolvedUnitCache(ResolvedUnitResult result) : _session = result.session {
-    _map[result.path] = result;
-  }
-
-  ResolvedUnitCache.empty(AnalysisSession session) : _session = session;
-
-  Future<ResolvedUnitResult> getResolvedAst(Element element) async {
-    var path = element.source.fullName;
-    var result = _map[path];
-    if (result == null) {
-      result = await _session.getResolvedUnit(path);
-      _map[path] = result;
-    }
-    return result;
-  }
 }

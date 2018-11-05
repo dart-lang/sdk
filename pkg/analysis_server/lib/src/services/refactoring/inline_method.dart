@@ -16,6 +16,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -189,7 +190,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final SearchEngine searchEngine;
   final ResolvedUnitResult resolveResult;
   final int offset;
-  ResolvedUnitCache _unitCache;
+  final AnalysisSessionHelper sessionHelper;
   CorrectionUtils utils;
   SourceChange change;
 
@@ -198,7 +199,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   bool inlineAll = true;
 
   ExecutableElement _methodElement;
-  bool _isAccessor;
   CompilationUnit _methodUnit;
   CorrectionUtils _methodUtils;
   AstNode _methodNode;
@@ -211,8 +211,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final Set<Element> _alreadyMadeAsync = new Set<Element>();
 
   InlineMethodRefactoringImpl(
-      this.searchEngine, this.resolveResult, this.offset) {
-    _unitCache = new ResolvedUnitCache(resolveResult);
+      this.searchEngine, this.resolveResult, this.offset)
+      : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
     utils = new CorrectionUtils(resolveResult);
   }
 
@@ -308,20 +308,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return new Future.value(change);
   }
 
-  Future<FunctionDeclaration> _computeFunctionDeclaration() async {
-    var resolveResult = await _unitCache.getResolvedAst(_methodElement);
-    return new NodeLocator(_methodElement.nameOffset)
-        .searchWithin(resolveResult.unit)
-        .getAncestor((n) => n is FunctionDeclaration) as FunctionDeclaration;
-  }
-
-  Future<MethodDeclaration> _computeMethodDeclaration() async {
-    var resolveResult = await _unitCache.getResolvedAst(_methodElement);
-    return new NodeLocator(_methodElement.nameOffset)
-        .searchWithin(resolveResult.unit)
-        .getAncestor((n) => n is MethodDeclaration) as MethodDeclaration;
-  }
-
   _SourcePart _createSourcePart(SourceRange range) {
     String source = _methodUtils.getRangeText(range);
     String prefix = getLinePrefix(source);
@@ -361,43 +347,30 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       return fatalStatus;
     }
     _methodElement = element as ExecutableElement;
-    _isAccessor = element is PropertyAccessorElement;
 
-    var methodAstResult = await _unitCache.getResolvedAst(element);
-    _methodUnit = methodAstResult.unit;
-    _methodUtils = new CorrectionUtils(methodAstResult);
+    var declaration = await sessionHelper.getElementDeclaration(_methodElement);
+    var methodNode = declaration.node;
+    _methodNode = methodNode;
 
-    // class member
-    bool isClassMember = element.enclosingElement is ClassElement;
-    if (element is MethodElement || _isAccessor && isClassMember) {
-      MethodDeclaration methodDeclaration = await _computeMethodDeclaration();
-      _methodNode = methodDeclaration;
-      _methodParameters = methodDeclaration.parameters;
-      _methodBody = methodDeclaration.body;
-      // prepare mode
-      isDeclaration = resolveResult.uri == element.source.uri &&
-          node.offset == element.nameOffset;
-      deleteSource = isDeclaration;
-      inlineAll = deleteSource;
-      return new RefactoringStatus();
+    var resolvedUnit = declaration.resolvedUnit;
+    _methodUnit = resolvedUnit.unit;
+    _methodUtils = new CorrectionUtils(resolvedUnit);
+
+    if (methodNode is MethodDeclaration) {
+      _methodParameters = methodNode.parameters;
+      _methodBody = methodNode.body;
+    } else if (methodNode is FunctionDeclaration) {
+      _methodParameters = methodNode.functionExpression.parameters;
+      _methodBody = methodNode.functionExpression.body;
+    } else {
+      return fatalStatus;
     }
-    // unit member
-    bool isUnitMember = element.enclosingElement is CompilationUnitElement;
-    if (element is FunctionElement || _isAccessor && isUnitMember) {
-      FunctionDeclaration functionDeclaration =
-          await _computeFunctionDeclaration();
-      _methodNode = functionDeclaration;
-      _methodParameters = functionDeclaration.functionExpression.parameters;
-      _methodBody = functionDeclaration.functionExpression.body;
-      // prepare mode
-      isDeclaration = resolveResult.uri == element.source.uri &&
-          node.offset == element.nameOffset;
-      deleteSource = isDeclaration;
-      inlineAll = deleteSource;
-      return new RefactoringStatus();
-    }
-    // OK
-    return fatalStatus;
+
+    isDeclaration = resolveResult.uri == element.source.uri &&
+        node.offset == element.nameOffset;
+    deleteSource = isDeclaration;
+    inlineAll = deleteSource;
+    return new RefactoringStatus();
   }
 
   /**
@@ -467,7 +440,7 @@ class _ReferenceProcessor {
     refElement = reference.element;
 
     // prepare CorrectionUtils
-    var result = await ref._unitCache.getResolvedAst(refElement);
+    var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
     _refUtils = new CorrectionUtils(result);
 
     // prepare node and environment

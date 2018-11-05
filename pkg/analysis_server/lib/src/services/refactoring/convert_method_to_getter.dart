@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -24,13 +23,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     implements ConvertMethodToGetterRefactoring {
   final SearchEngine searchEngine;
-  final AnalysisSession session;
+  final AnalysisSessionHelper sessionHelper;
   final ExecutableElement element;
 
   SourceChange change;
 
-  ConvertMethodToGetterRefactoringImpl(
-      this.searchEngine, this.session, this.element);
+  ConvertMethodToGetterRefactoringImpl(this.searchEngine, this.element)
+      : sessionHelper = AnalysisSessionHelper(element.session);
 
   @override
   String get refactoringName => 'Convert Method To Getter';
@@ -101,7 +100,6 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     // prepare parameters
     FormalParameterList parameters;
     {
-      var sessionHelper = AnalysisSessionHelper(session);
       var result = await sessionHelper.getElementDeclaration(element);
       var declaration = result.node;
       if (declaration is MethodDeclaration) {
@@ -129,15 +127,15 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     await null;
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
-    var unitCache = ResolvedUnitCache.empty(session);
     for (SourceReference reference in references) {
       Element refElement = reference.element;
       SourceRange refRange = reference.range;
       // prepare invocation
       MethodInvocation invocation;
       {
-        var refResult = await unitCache.getResolvedAst(refElement);
-        var refUnit = refResult.unit;
+        var resolvedUnit =
+            await sessionHelper.getResolvedUnitByElement(refElement);
+        var refUnit = resolvedUnit.unit;
         var refNode = new NodeLocator(refRange.offset).searchWithin(refUnit);
         invocation = refNode.getAncestor((node) => node is MethodInvocation);
       }

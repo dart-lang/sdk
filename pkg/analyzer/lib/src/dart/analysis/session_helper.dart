@@ -41,6 +41,17 @@ class AnalysisSessionHelper {
     return resolvedLibrary.getElementDeclaration(element);
   }
 
+  /// Return the resolved unit that declares the given [element].
+  Future<ResolvedUnitResult> getResolvedUnitByElement(Element element) async {
+    var libraryPath = element.library.source.fullName;
+    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+
+    var unitPath = element.source.fullName;
+    return resolvedLibrary.units.singleWhere((resolvedUnit) {
+      return resolvedUnit.path == unitPath;
+    });
+  }
+
   /// Return the [PropertyAccessorElement] with the given [name] that is
   /// exported from the library with the given [uri], or `null` if the
   /// library does not export a top-level accessor with such name.

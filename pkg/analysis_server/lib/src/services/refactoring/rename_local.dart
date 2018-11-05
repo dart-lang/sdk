@@ -16,20 +16,20 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A [Refactoring] for renaming [LocalElement]s.
  */
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
-  final AnalysisSession session;
-  final ResolvedUnitCache unitCache;
+  final AnalysisSessionHelper sessionHelper;
 
   List<LocalElement> elements = [];
 
   RenameLocalRefactoringImpl(
-      RefactoringWorkspace workspace, this.session, LocalElement element)
-      : unitCache = ResolvedUnitCache.empty(session),
+      RefactoringWorkspace workspace, LocalElement element)
+      : sessionHelper = AnalysisSessionHelper(element.session),
         super(workspace, element);
 
   @override
@@ -53,8 +53,8 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     RefactoringStatus result = new RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
-      var unitResult = await unitCache.getResolvedAst(element);
-      var unit = unitResult.unit;
+      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
+      var unit = resolvedUnit.unit;
       unit.accept(new _ConflictValidatorVisitor(result, newName, element));
     }
     return result;

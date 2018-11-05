@@ -309,6 +309,18 @@ int get foo => 0;
     expect(result, isNull);
   }
 
+  test_getResolvedUnitByElement() async {
+    newFile('/test/lib/test.dart', content: r'''
+class A {}
+class B {}
+''');
+    await resolveTestFile();
+
+    var element = findNode.classDeclaration('A').declaredElement;
+    var resolvedUnit = await helper.getResolvedUnitByElement(element);
+    expect(resolvedUnit.unit.declarations, hasLength(2));
+  }
+
   test_getTopLevelPropertyAccessor_defined_getter() async {
     var file = newFile('/test/lib/test.dart', content: r'''
 int get a => 0;

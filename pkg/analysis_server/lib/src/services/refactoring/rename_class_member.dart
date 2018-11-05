@@ -18,6 +18,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -25,10 +26,13 @@ import 'package:analyzer/src/generated/source.dart';
  * Checks if creating a method with the given [name] in [classElement] will
  * cause any conflicts.
  */
-Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
-    ResolvedUnitCache unitCache, ClassElement classElement, String name) {
+Future<RefactoringStatus> validateCreateMethod(
+    SearchEngine searchEngine,
+    AnalysisSessionHelper sessionHelper,
+    ClassElement classElement,
+    String name) {
   return new _ClassMemberValidator.forCreate(
-          searchEngine, unitCache, classElement, name)
+          searchEngine, sessionHelper, classElement, name)
       .validate();
 }
 
@@ -36,13 +40,14 @@ Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
  * A [Refactoring] for renaming class member [Element]s.
  */
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
-  final AnalysisSession session;
+  final AnalysisSessionHelper sessionHelper;
 
   _ClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(
-      RefactoringWorkspace workspace, this.session, Element element)
-      : super(workspace, element);
+      RefactoringWorkspace workspace, AnalysisSession session, Element element)
+      : sessionHelper = AnalysisSessionHelper(session),
+        super(workspace, element);
 
   @override
   String get refactoringName {
@@ -58,7 +63,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = new _ClassMemberValidator.forRename(
-        searchEngine, ResolvedUnitCache.empty(session), element, newName);
+        searchEngine, sessionHelper, element, newName);
     return _validator.validate();
   }
 
@@ -132,7 +137,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
  */
 class _ClassMemberValidator {
   final SearchEngine searchEngine;
-  final ResolvedUnitCache unitCache;
+  final AnalysisSessionHelper sessionHelper;
   final LibraryElement library;
   final Element element;
   final ClassElement elementClass;
@@ -145,14 +150,14 @@ class _ClassMemberValidator {
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
-      this.searchEngine, this.unitCache, this.elementClass, this.name)
+      this.searchEngine, this.sessionHelper, this.elementClass, this.name)
       : isRename = false,
         library = null,
         element = null,
         elementKind = ElementKind.METHOD;
 
   _ClassMemberValidator.forRename(
-      this.searchEngine, this.unitCache, Element element, this.name)
+      this.searchEngine, this.sessionHelper, Element element, this.name)
       : isRename = true,
         library = element.library,
         element = element,
@@ -259,12 +264,12 @@ class _ClassMemberValidator {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
 
-      var unitResult = await unitCache.getResolvedAst(element);
-      var unitElement = unitResult.unit.declaredElement;
+      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
+      var unitElement = resolvedUnit.unit.declaredElement;
       var localElements = localElementMap[unitElement];
       if (localElements == null) {
         var collector = new _LocalElementsCollector(name);
-        unitResult.unit.accept(collector);
+        resolvedUnit.unit.accept(collector);
         localElements = collector.elements;
         localElementMap[unitElement] = localElements;
       }

@@ -23,6 +23,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
@@ -451,8 +452,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // method of class
     if (parent is ClassDeclaration) {
       ClassElement classElement = parent.declaredElement;
-      return validateCreateMethod(
-          searchEngine, ResolvedUnitCache(resolveResult), classElement, name);
+      return validateCreateMethod(searchEngine,
+          AnalysisSessionHelper(resolveResult.session), classElement, name);
     }
     // OK
     return new Future<RefactoringStatus>.value(result);
