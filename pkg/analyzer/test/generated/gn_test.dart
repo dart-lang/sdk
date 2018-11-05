@@ -33,7 +33,7 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
   void test_find_notAbsolute() {
     expect(
         () => GnWorkspace.find(resourceProvider, convertPath('not_absolute')),
-        throwsA(const TypeMatcher<AssertionError>()));
+        throwsArgumentError);
   }
 
   void test_find_withRoot() {

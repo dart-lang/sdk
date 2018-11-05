@@ -16,7 +16,7 @@ import 'package:analyzer/src/util/uri.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart';
 
 /**
  * Information about a Gn workspace.
@@ -103,8 +103,8 @@ class GnWorkspace extends Workspace {
     if (packages != null && packages != Packages.noPackages) {
       var pathContext = provider.pathContext;
       packages.asMap().forEach((String packageName, Uri uri) {
-        String filePath = fileUriToNormalizedPath(pathContext, uri);
-        folderMap[packageName] = [provider.getFolder(filePath)];
+        String path = fileUriToNormalizedPath(pathContext, uri);
+        folderMap[packageName] = [provider.getFolder(path)];
       });
     }
     return folderMap;
@@ -114,8 +114,8 @@ class GnWorkspace extends Workspace {
    * Loads the packages from the .packages file.
    */
   Packages _createPackages() {
-    Map<String, Uri> map = _packagesFilePaths.map((String filePath) {
-      File configFile = provider.getFile(filePath);
+    Map<String, Uri> map = _packagesFilePaths.map((String path) {
+      File configFile = provider.getFile(path);
       List<int> bytes = configFile.readAsBytesSync();
       return parse(bytes, configFile.toUri());
     }).reduce((mapOne, mapTwo) {
@@ -142,10 +142,10 @@ class GnWorkspace extends Workspace {
    * replacing the values in the map.
    */
   void _resolveSymbolicLinks(Map<String, Uri> map) {
-    path.Context pathContext = provider.pathContext;
+    Context pathContext = provider.pathContext;
     for (String packageName in map.keys) {
-      String filePath = fileUriToNormalizedPath(pathContext, map[packageName]);
-      Folder folder = provider.getFolder(filePath);
+      String path = fileUriToNormalizedPath(pathContext, map[packageName]);
+      Folder folder = provider.getFolder(path);
       String folderPath = _resolveSymbolicLink(folder);
       // Add a '.' so that the URI is suitable for resolving relative URI's
       // against it.
@@ -155,18 +155,22 @@ class GnWorkspace extends Workspace {
   }
 
   /**
-   * Find the GN workspace that contains the given [filePath].
+   * Find the GN workspace that contains the given [path].
    *
    * Return `null` if a workspace could not be found. For a workspace to be
    * found, both a `.jiri_root` file must be found, and at least one "packages"
-   * file must be found in [filePath]'s output directory.
+   * file must be found in [path]'s output directory.
    */
-  static GnWorkspace find(ResourceProvider provider, String filePath) {
-    path.Context context = provider.pathContext;
-    assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
-    filePath = context.normalize(filePath);
+  static GnWorkspace find(ResourceProvider provider, String path) {
+    Context context = provider.pathContext;
 
-    Folder folder = provider.getFolder(filePath);
+    // Ensure that the path is absolute and normalized.
+    if (!context.isAbsolute(path)) {
+      throw new ArgumentError('Not an absolute path: $path');
+    }
+    path = context.normalize(path);
+
+    Folder folder = provider.getFolder(path);
     while (true) {
       Folder parent = folder.parent;
       if (parent == null) {
@@ -176,8 +180,7 @@ class GnWorkspace extends Workspace {
       // Found the .jiri_root file, must be a non-git workspace.
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
         String root = folder.path;
-        List<String> packagesFiles =
-            _findPackagesFile(provider, root, filePath);
+        List<String> packagesFiles = _findPackagesFile(provider, root, path);
         if (packagesFiles.isEmpty) {
           return null;
         }
@@ -201,10 +204,10 @@ class GnWorkspace extends Workspace {
   static List<String> _findPackagesFile(
     ResourceProvider provider,
     String root,
-    String filePath,
+    String path,
   ) {
-    path.Context pathContext = provider.pathContext;
-    String sourceDirectory = pathContext.relative(filePath, from: root);
+    Context pathContext = provider.pathContext;
+    String sourceDirectory = pathContext.relative(path, from: root);
     Folder outDirectory = _getOutDirectory(root, provider);
     if (outDirectory == null) {
       return const <String>[];
@@ -231,7 +234,7 @@ class GnWorkspace extends Workspace {
    * that file cannot be found, looks for standard output directory locations.
    */
   static Folder _getOutDirectory(String root, ResourceProvider provider) {
-    path.Context pathContext = provider.pathContext;
+    Context pathContext = provider.pathContext;
     File config = provider.getFile(pathContext.join(root, '.config'));
     if (config.exists) {
       String content = config.readAsStringSync();
@@ -239,11 +242,11 @@ class GnWorkspace extends Workspace {
           new RegExp(r'^FUCHSIA_BUILD_DIR=["\x27](.+)["\x27]$', multiLine: true)
               .firstMatch(content);
       if (match != null) {
-        String buildDirPath = match.group(1);
-        if (pathContext.isRelative(buildDirPath)) {
-          buildDirPath = pathContext.join(root, buildDirPath);
+        String path = match.group(1);
+        if (pathContext.isRelative(path)) {
+          path = pathContext.join(root, path);
         }
-        return provider.getFolder(buildDirPath);
+        return provider.getFolder(path);
       }
     }
     Folder outDirectory = provider.getFolder(pathContext.join(root, 'out'));

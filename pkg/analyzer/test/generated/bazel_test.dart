@@ -487,7 +487,7 @@ class BazelWorkspaceTest extends Object with ResourceProviderMixin {
     expect(
         () =>
             BazelWorkspace.find(resourceProvider, convertPath('not_absolute')),
-        throwsA(const TypeMatcher<AssertionError>()));
+        throwsArgumentError);
   }
 
   void test_find_hasReadonlyFolder() {
