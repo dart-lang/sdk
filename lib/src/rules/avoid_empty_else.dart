@@ -22,7 +22,7 @@ else ;
 
 ''';
 
-class AvoidEmptyElse extends LintRule implements NodeLintRule {
+class AvoidEmptyElse extends LintRule implements NodeLintRuleWithContext {
   AvoidEmptyElse()
       : super(
             name: 'avoid_empty_else',
@@ -31,7 +31,8 @@ class AvoidEmptyElse extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addIfStatement(this, visitor);
   }

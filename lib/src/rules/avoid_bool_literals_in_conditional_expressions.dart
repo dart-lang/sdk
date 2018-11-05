@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
 
 const _desc = r'Avoid bool literals in conditional expressions.';
 
@@ -32,7 +31,7 @@ condition && boolExpression
 ''';
 
 class AvoidBoolLiteralsInConditionalExpressions extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidBoolLiteralsInConditionalExpressions()
       : super(
             name: 'avoid_bool_literals_in_conditional_expressions',
@@ -41,8 +40,9 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addConditionalExpression(this, visitor);
   }
 }
@@ -50,12 +50,13 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    final typeProvider =
-        getCompilationUnit(node).declaredElement.context.typeProvider;
+    final typeProvider = context.typeProvider;
     final thenExp = node.thenExpression;
     final elseExp = node.elseExpression;
 

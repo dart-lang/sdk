@@ -36,7 +36,7 @@ class A {
 ''';
 
 class AvoidFieldInitializersInConstClasses extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidFieldInitializersInConstClasses()
       : super(
             name: 'avoid_field_initializers_in_const_classes',
@@ -45,7 +45,8 @@ class AvoidFieldInitializersInConstClasses extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addConstructorFieldInitializer(this, visitor);

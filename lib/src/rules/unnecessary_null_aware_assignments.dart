@@ -31,7 +31,8 @@ x ??= null;
 
 ''';
 
-class UnnecessaryNullAwareAssignments extends LintRule implements NodeLintRule {
+class UnnecessaryNullAwareAssignments extends LintRule
+    implements NodeLintRuleWithContext {
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
@@ -40,7 +41,8 @@ class UnnecessaryNullAwareAssignments extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addAssignmentExpression(this, visitor);
   }

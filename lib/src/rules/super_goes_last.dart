@@ -45,7 +45,7 @@ View(Style style, List children)
 
 ''';
 
-class SuperGoesLast extends LintRule implements NodeLintRule {
+class SuperGoesLast extends LintRule implements NodeLintRuleWithContext {
   SuperGoesLast()
       : super(
             name: 'super_goes_last',
@@ -54,7 +54,8 @@ class SuperGoesLast extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }

@@ -32,7 +32,7 @@ BigInt value = BigInt.parse('9007199254740995');
 
 ''';
 
-class AvoidJsRoundedInts extends LintRule implements NodeLintRule {
+class AvoidJsRoundedInts extends LintRule implements NodeLintRuleWithContext {
   AvoidJsRoundedInts()
       : super(
             name: 'avoid_js_rounded_ints',
@@ -41,7 +41,8 @@ class AvoidJsRoundedInts extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addIntegerLiteral(this, visitor);
   }

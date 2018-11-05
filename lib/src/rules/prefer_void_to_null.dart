@@ -45,7 +45,7 @@ for any type of map or list:
 ```
 ''';
 
-class PreferVoidToNull extends LintRule implements NodeLintRule {
+class PreferVoidToNull extends LintRule implements NodeLintRuleWithContext {
   PreferVoidToNull()
       : super(
             name: 'prefer_void_to_null',
@@ -55,7 +55,8 @@ class PreferVoidToNull extends LintRule implements NodeLintRule {
             maturity: Maturity.experimental);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }

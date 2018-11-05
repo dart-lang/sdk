@@ -33,7 +33,7 @@ typedef num Adder(num x, num y);
 
 ''';
 
-class CamelCaseTypes extends LintRule implements NodeLintRule {
+class CamelCaseTypes extends LintRule implements NodeLintRuleWithContext {
   CamelCaseTypes()
       : super(
             name: 'camel_case_types',
@@ -42,7 +42,8 @@ class CamelCaseTypes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);

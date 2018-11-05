@@ -22,7 +22,7 @@ const _details = r'''
 
 ''';
 
-class FlutterStyleTodos extends LintRule implements NodeLintRule {
+class FlutterStyleTodos extends LintRule implements NodeLintRuleWithContext {
   FlutterStyleTodos()
       : super(
             name: 'flutter_style_todos',
@@ -31,7 +31,8 @@ class FlutterStyleTodos extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }

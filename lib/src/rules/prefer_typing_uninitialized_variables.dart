@@ -56,7 +56,7 @@ class GoodClass {
 ''';
 
 class PreferTypingUninitializedVariables extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferTypingUninitializedVariables()
       : super(
             name: 'prefer_typing_uninitialized_variables',
@@ -65,7 +65,8 @@ class PreferTypingUninitializedVariables extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }

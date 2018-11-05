@@ -153,7 +153,8 @@ bool _hasNonComparableOperands(BinaryExpression node) {
       !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 }
 
-class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
+class UnrelatedTypeEqualityChecks extends LintRule
+    implements NodeLintRuleWithContext {
   UnrelatedTypeEqualityChecks()
       : super(
             name: 'unrelated_type_equality_checks',
@@ -162,7 +163,8 @@ class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

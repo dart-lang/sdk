@@ -25,7 +25,7 @@ m({b, c, @required a}) ;
 ''';
 
 class AlwaysPutRequiredNamedParametersFirst extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AlwaysPutRequiredNamedParametersFirst()
       : super(
             name: 'always_put_required_named_parameters_first',
@@ -34,7 +34,8 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFormalParameterList(this, visitor);
   }

@@ -38,7 +38,8 @@ try {
 
 ''';
 
-class UseRethrowWhenPossible extends LintRule implements NodeLintRule {
+class UseRethrowWhenPossible extends LintRule
+    implements NodeLintRuleWithContext {
   UseRethrowWhenPossible()
       : super(
             name: 'use_rethrow_when_possible',
@@ -47,7 +48,8 @@ class UseRethrowWhenPossible extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }

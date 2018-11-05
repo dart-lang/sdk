@@ -44,7 +44,8 @@ typedef bool predicate(Object o);
 
 ''';
 
-class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
+class AlwaysDeclareReturnTypes extends LintRule
+    implements NodeLintRuleWithContext {
   AlwaysDeclareReturnTypes()
       : super(
             name: 'always_declare_return_types',
@@ -53,7 +54,8 @@ class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);

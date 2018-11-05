@@ -37,7 +37,8 @@ import '../lib/baz.dart';
 
 ''';
 
-class AvoidRelativeLibImports extends LintRule implements NodeLintRule {
+class AvoidRelativeLibImports extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidRelativeLibImports()
       : super(
             name: 'avoid_relative_lib_imports',
@@ -46,7 +47,8 @@ class AvoidRelativeLibImports extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addImportDirective(this, visitor);
   }

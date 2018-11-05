@@ -36,7 +36,7 @@ int get field => _field;
 
 ''';
 
-class RecursiveGetters extends LintRule implements NodeLintRule {
+class RecursiveGetters extends LintRule implements NodeLintRuleWithContext {
   RecursiveGetters()
       : super(
             name: 'recursive_getters',
@@ -45,7 +45,8 @@ class RecursiveGetters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

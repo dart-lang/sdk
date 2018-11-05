@@ -32,7 +32,7 @@ m(){
 
 ''';
 
-class UnnecessaryNew extends LintRule implements NodeLintRule {
+class UnnecessaryNew extends LintRule implements NodeLintRuleWithContext {
   UnnecessaryNew()
       : super(
             name: 'unnecessary_new',
@@ -41,7 +41,8 @@ class UnnecessaryNew extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }

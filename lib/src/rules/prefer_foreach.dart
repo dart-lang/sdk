@@ -42,7 +42,7 @@ myList.forEach(foo().f); // But this one invokes foo() just once.
 
 ''';
 
-class PreferForeach extends LintRule implements NodeLintRule {
+class PreferForeach extends LintRule implements NodeLintRuleWithContext {
   PreferForeach()
       : super(
             name: 'prefer_foreach',
@@ -52,7 +52,8 @@ class PreferForeach extends LintRule implements NodeLintRule {
             maturity: Maturity.experimental);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addForEachStatement(this, visitor);
   }

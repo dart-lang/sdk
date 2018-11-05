@@ -45,7 +45,8 @@ while (condition) i += 1;
 
 ''';
 
-class AlwaysPutControlBodyOnNewLine extends LintRule implements NodeLintRule {
+class AlwaysPutControlBodyOnNewLine extends LintRule
+    implements NodeLintRuleWithContext {
   AlwaysPutControlBodyOnNewLine()
       : super(
             name: 'always_put_control_body_on_new_line',
@@ -54,7 +55,8 @@ class AlwaysPutControlBodyOnNewLine extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForEachStatement(this, visitor);

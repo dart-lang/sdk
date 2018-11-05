@@ -69,7 +69,8 @@ Element _getElementInCondition(Expression rawExpression) {
   return null;
 }
 
-class PreferConditionalAssignment extends LintRule implements NodeLintRule {
+class PreferConditionalAssignment extends LintRule
+    implements NodeLintRuleWithContext {
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',
@@ -78,7 +79,8 @@ class PreferConditionalAssignment extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addIfStatement(this, visitor);
   }

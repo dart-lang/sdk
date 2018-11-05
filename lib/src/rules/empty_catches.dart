@@ -48,7 +48,7 @@ try {
 
 ''';
 
-class EmptyCatches extends LintRule implements NodeLintRule {
+class EmptyCatches extends LintRule implements NodeLintRuleWithContext {
   EmptyCatches()
       : super(
             name: 'empty_catches',
@@ -57,7 +57,8 @@ class EmptyCatches extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCatchClause(this, visitor);
   }

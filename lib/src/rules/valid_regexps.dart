@@ -30,7 +30,7 @@ print(new RegExp('[(]').hasMatch('foo()'));
 
 ''';
 
-class ValidRegExps extends LintRule implements NodeLintRule {
+class ValidRegExps extends LintRule implements NodeLintRuleWithContext {
   ValidRegExps()
       : super(
             name: 'valid_regexps',
@@ -39,7 +39,8 @@ class ValidRegExps extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }

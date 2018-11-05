@@ -43,7 +43,7 @@ useStrings(
 
 ''';
 
-class PreferSingleQuotes extends LintRule implements NodeLintRule {
+class PreferSingleQuotes extends LintRule implements NodeLintRuleWithContext {
   PreferSingleQuotes()
       : super(
             name: 'prefer_single_quotes',
@@ -52,7 +52,8 @@ class PreferSingleQuotes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);

@@ -30,7 +30,7 @@ Future<void> f2() async => null;
 
 ''';
 
-class AvoidVoidAsync extends LintRule implements NodeLintRule {
+class AvoidVoidAsync extends LintRule implements NodeLintRuleWithContext {
   AvoidVoidAsync()
       : super(
             name: 'avoid_void_async',
@@ -39,7 +39,8 @@ class AvoidVoidAsync extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

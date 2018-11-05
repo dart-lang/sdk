@@ -51,7 +51,8 @@ void accessA() {
 
 ''';
 
-class PreferConstConstructors extends LintRule implements NodeLintRule {
+class PreferConstConstructors extends LintRule
+    implements NodeLintRuleWithContext {
   PreferConstConstructors()
       : super(
             name: 'prefer_const_constructors',
@@ -60,8 +61,9 @@ class PreferConstConstructors extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -69,14 +71,16 @@ class PreferConstConstructors extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst &&
         node.staticElement != null &&
         node.staticElement.isConst) {
-      final typeProvider = node.staticElement.context.typeProvider;
+      final typeProvider = context.typeProvider;
 
       if (node.staticElement.enclosingElement.type == typeProvider.objectType) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
@@ -89,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       final oldKeyword = node.keyword;
       node.keyword = new KeywordToken(Keyword.CONST, node.offset);
       try {
-        hasConstError = hasErrorWithConstantVerifier(node);
+        hasConstError = hasErrorWithConstantVerifier(context, node);
       } finally {
         // restore old keyword
         node.keyword = oldKeyword;

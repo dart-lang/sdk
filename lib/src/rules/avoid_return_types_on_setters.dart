@@ -26,7 +26,8 @@ void set speed(int ms);
 
 ''';
 
-class AvoidReturnTypesOnSetters extends LintRule implements NodeLintRule {
+class AvoidReturnTypesOnSetters extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidReturnTypesOnSetters()
       : super(
             name: 'avoid_return_types_on_setters',
@@ -35,7 +36,8 @@ class AvoidReturnTypesOnSetters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

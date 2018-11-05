@@ -95,7 +95,7 @@ Iterable<InterfaceType> _findAllSupertypesInMixin(ClassElement classElement) {
   return supertypes;
 }
 
-class OverriddenFields extends LintRule implements NodeLintRule {
+class OverriddenFields extends LintRule implements NodeLintRuleWithContext {
   OverriddenFields()
       : super(
             name: 'overridden_fields',
@@ -104,7 +104,8 @@ class OverriddenFields extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
   }

@@ -69,7 +69,7 @@ class Bad {
 
 ''';
 
-class TestTypesInEquals extends LintRule implements NodeLintRule {
+class TestTypesInEquals extends LintRule implements NodeLintRuleWithContext {
   TestTypesInEquals()
       : super(
             name: 'test_types_in_equals',
@@ -78,7 +78,8 @@ class TestTypesInEquals extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addAsExpression(this, visitor);
   }

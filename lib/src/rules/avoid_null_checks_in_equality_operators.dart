@@ -71,7 +71,7 @@ bool _isParameterWithQuestionQuestion(
     _isParameter(node.leftOperand, parameter);
 
 class AvoidNullChecksInEqualityOperators extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidNullChecksInEqualityOperators()
       : super(
             name: 'avoid_null_checks_in_equality_operators',
@@ -80,7 +80,8 @@ class AvoidNullChecksInEqualityOperators extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

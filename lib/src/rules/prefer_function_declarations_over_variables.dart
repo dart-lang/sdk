@@ -36,7 +36,7 @@ void main() {
 ''';
 
 class PreferFunctionDeclarationsOverVariables extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferFunctionDeclarationsOverVariables()
       : super(
             name: 'prefer_function_declarations_over_variables',
@@ -45,7 +45,8 @@ class PreferFunctionDeclarationsOverVariables extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addVariableDeclaration(this, visitor);
   }

@@ -32,10 +32,11 @@ export 'package:analyzer/src/lint/linter.dart'
         LintRule,
         Group,
         Maturity,
+        LinterContext,
         LinterOptions,
         LintFilter,
         NodeLintRegistry,
-        NodeLintRule;
+        NodeLintRuleWithContext;
 export 'package:analyzer/src/lint/project.dart'
     show DartProject, ProjectVisitor;
 export 'package:analyzer/src/lint/pub.dart' show PubspecVisitor, PSEntry;

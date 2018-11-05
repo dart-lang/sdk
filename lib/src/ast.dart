@@ -297,23 +297,23 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
   }
 }
 
-bool hasErrorWithConstantVerifier(AstNode node) {
+bool hasErrorWithConstantVerifier(LinterContext context, AstNode node) {
   final cu = getCompilationUnit(node);
   final listener = new HasConstErrorListener();
   node.accept(new ConstantVerifier(
       new ErrorReporter(listener, cu.declaredElement.source),
       cu.declaredElement.library,
-      cu.declaredElement.context.typeProvider,
-      cu.declaredElement.context.declaredVariables));
+      context.typeProvider,
+      context.declaredVariables));
   return listener.hasConstError;
 }
 
-bool hasErrorWithConstantVisitor(AstNode node) {
+bool hasErrorWithConstantVisitor(LinterContext context, AstNode node) {
   final cu = getCompilationUnit(node);
   final listener = new HasConstErrorListener();
   node.accept(new ConstantVisitor(
-      new ConstantEvaluationEngine(cu.declaredElement.context.typeProvider,
-          cu.declaredElement.context.declaredVariables),
+      new ConstantEvaluationEngine(
+          context.typeProvider, context.declaredVariables),
       new ErrorReporter(listener, cu.declaredElement.source)));
   return listener.hasConstError;
 }

@@ -30,7 +30,8 @@ align(clearItems) {
 
 ''';
 
-class NonConstantIdentifierNames extends LintRule implements NodeLintRule {
+class NonConstantIdentifierNames extends LintRule
+    implements NodeLintRuleWithContext {
   NonConstantIdentifierNames()
       : super(
             name: 'non_constant_identifier_names',
@@ -39,7 +40,8 @@ class NonConstantIdentifierNames extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFormalParameterList(this, visitor);

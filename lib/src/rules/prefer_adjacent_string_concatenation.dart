@@ -29,7 +29,7 @@ raiseAlarm(
 ''';
 
 class PreferAdjacentStringConcatenation extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferAdjacentStringConcatenation()
       : super(
             name: 'prefer_adjacent_string_concatenation',
@@ -38,7 +38,8 @@ class PreferAdjacentStringConcatenation extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

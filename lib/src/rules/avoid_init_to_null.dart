@@ -54,7 +54,7 @@ class LazyId {
 
 ''';
 
-class AvoidInitToNull extends LintRule implements NodeLintRule {
+class AvoidInitToNull extends LintRule implements NodeLintRuleWithContext {
   AvoidInitToNull()
       : super(
             name: 'avoid_init_to_null',
@@ -63,7 +63,8 @@ class AvoidInitToNull extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addVariableDeclaration(this, visitor);
     registry.addDefaultFormalParameter(this, visitor);

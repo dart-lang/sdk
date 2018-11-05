@@ -60,7 +60,7 @@ void someFunctionOK() {
 bool _isSubscription(DartType type) => DartTypeUtilities.implementsInterface(
     type, 'StreamSubscription', 'dart.async');
 
-class CancelSubscriptions extends LintRule implements NodeLintRule {
+class CancelSubscriptions extends LintRule implements NodeLintRuleWithContext {
   CancelSubscriptions()
       : super(
             name: 'cancel_subscriptions',
@@ -69,7 +69,8 @@ class CancelSubscriptions extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);

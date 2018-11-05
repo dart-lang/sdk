@@ -50,7 +50,7 @@ bool _isImmutable(Element element) =>
     element.library?.name == _META_LIB_NAME;
 
 class PreferConstLiteralsToCreateImmutables extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   PreferConstLiteralsToCreateImmutables()
       : super(
             name: 'prefer_const_literals_to_create_immutables',
@@ -59,8 +59,9 @@ class PreferConstLiteralsToCreateImmutables extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addListLiteral(this, visitor);
     registry.addMapLiteral(this, visitor);
   }
@@ -69,7 +70,9 @@ class PreferConstLiteralsToCreateImmutables extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
@@ -126,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final oldKeyword = literal.constKeyword;
     literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     try {
-      hasConstError = hasErrorWithConstantVerifier(literal);
+      hasConstError = hasErrorWithConstantVerifier(context, literal);
     } finally {
       // restore old keyword
       literal.constKeyword = oldKeyword;

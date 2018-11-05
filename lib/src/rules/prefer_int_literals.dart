@@ -32,7 +32,7 @@ main() {
 
 ''';
 
-class PreferIntLiterals extends LintRule implements NodeLintRule {
+class PreferIntLiterals extends LintRule implements NodeLintRuleWithContext {
   PreferIntLiterals()
       : super(
             name: 'prefer_int_literals',
@@ -41,7 +41,8 @@ class PreferIntLiterals extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     registry.addDoubleLiteral(this, new _Visitor(this));
   }
 }

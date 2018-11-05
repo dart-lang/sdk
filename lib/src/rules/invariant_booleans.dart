@@ -103,7 +103,7 @@ Iterable<Element> _getElementsInExpression(Expression node) =>
         .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
         .where((e) => e != null);
 
-class InvariantBooleans extends LintRule implements NodeLintRule {
+class InvariantBooleans extends LintRule implements NodeLintRuleWithContext {
   InvariantBooleans()
       : super(
             name: 'invariant_booleans',
@@ -113,7 +113,8 @@ class InvariantBooleans extends LintRule implements NodeLintRule {
             maturity: Maturity.stable);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     var visitor = new _InvariantBooleansVisitor(this);
     registry.addCompilationUnit(this, visitor);
   }

@@ -106,7 +106,7 @@ bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
         (n.operand as SimpleIdentifier).staticElement ==
             parameter.declaredElement;
 
-class ParameterAssignments extends LintRule implements NodeLintRule {
+class ParameterAssignments extends LintRule implements NodeLintRuleWithContext {
   ParameterAssignments()
       : super(
             name: 'parameter_assignments',
@@ -115,7 +115,8 @@ class ParameterAssignments extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

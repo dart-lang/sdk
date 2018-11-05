@@ -42,7 +42,7 @@ bool isJavaStyle(Comment comment) {
   return comment.tokens[0].lexeme.startsWith('/**');
 }
 
-class SlashForDocComments extends LintRule implements NodeLintRule {
+class SlashForDocComments extends LintRule implements NodeLintRuleWithContext {
   SlashForDocComments()
       : super(
             name: 'slash_for_doc_comments',
@@ -51,7 +51,8 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);

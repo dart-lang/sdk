@@ -27,7 +27,8 @@ m({a = 1})
 
 ''';
 
-class PreferEqualForDefaultValues extends LintRule implements NodeLintRule {
+class PreferEqualForDefaultValues extends LintRule
+    implements NodeLintRuleWithContext {
   PreferEqualForDefaultValues()
       : super(
             name: 'prefer_equal_for_default_values',
@@ -36,7 +37,8 @@ class PreferEqualForDefaultValues extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDefaultFormalParameter(this, visitor);
   }

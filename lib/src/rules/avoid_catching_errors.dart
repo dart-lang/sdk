@@ -36,7 +36,7 @@ try {
 
 ''';
 
-class AvoidCatchingErrors extends LintRule implements NodeLintRule {
+class AvoidCatchingErrors extends LintRule implements NodeLintRuleWithContext {
   AvoidCatchingErrors()
       : super(
             name: 'avoid_catching_errors',
@@ -45,7 +45,8 @@ class AvoidCatchingErrors extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCatchClause(this, visitor);
   }

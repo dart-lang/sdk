@@ -50,7 +50,8 @@ bool _hasGetter(MethodDeclaration node) =>
 bool _hasInheritedSetter(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedConcreteSetter(node) != null;
 
-class AvoidSettersWithoutGetters extends LintRule implements NodeLintRule {
+class AvoidSettersWithoutGetters extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidSettersWithoutGetters()
       : super(
             name: 'avoid_setters_without_getters',
@@ -59,7 +60,8 @@ class AvoidSettersWithoutGetters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

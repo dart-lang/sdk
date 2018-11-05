@@ -18,7 +18,8 @@ developer simply forgot to put an `async` keyword on the function.
 
 ''';
 
-class AvoidReturningNullForFuture extends LintRule implements NodeLintRule {
+class AvoidReturningNullForFuture extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidReturningNullForFuture()
       : super(
             name: 'avoid_returning_null_for_future',
@@ -27,7 +28,8 @@ class AvoidReturningNullForFuture extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);

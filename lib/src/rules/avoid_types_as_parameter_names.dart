@@ -24,7 +24,8 @@ m(f(int v));
 
 ''';
 
-class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
+class AvoidTypesAsParameterNames extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidTypesAsParameterNames()
       : super(
             name: 'avoid_types_as_parameter_names',
@@ -33,7 +34,8 @@ class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFormalParameterList(this, visitor);
   }

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
 
 const _desc = r'Avoid private typedef functions.';
 
@@ -27,7 +26,8 @@ m(void Function() f);
 
 ''';
 
-class AvoidPrivateTypedefFunctions extends LintRule implements NodeLintRule {
+class AvoidPrivateTypedefFunctions extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidPrivateTypedefFunctions()
       : super(
             name: 'avoid_private_typedef_functions',
@@ -36,8 +36,9 @@ class AvoidPrivateTypedefFunctions extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
   }
@@ -57,7 +58,9 @@ class _CountVisitor extends RecursiveAstVisitor {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
@@ -75,13 +78,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _countAndReport(String name, AstNode node) {
     final visitor = new _CountVisitor(name);
-    final units = getCompilationUnit(node)
-        .declaredElement
-        .library
-        .units
-        .map((cu) => cu.computeNode());
-    for (final unit in units) {
-      unit.visitChildren(visitor);
+    for (final unit in context.allUnits) {
+      unit.unit.visitChildren(visitor);
     }
     if (visitor.count <= 1) {
       rule.reportLint(node);

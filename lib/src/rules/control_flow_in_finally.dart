@@ -83,7 +83,7 @@ class BadBreak {
 
 ''';
 
-class ControlFlowInFinally extends LintRule implements NodeLintRule {
+class ControlFlowInFinally extends LintRule implements NodeLintRuleWithContext {
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',
@@ -92,7 +92,8 @@ class ControlFlowInFinally extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addBreakStatement(this, visitor);
     registry.addContinueStatement(this, visitor);

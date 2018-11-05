@@ -85,7 +85,8 @@ void main() {
 
 ''';
 
-class AvoidImplementingValueTypes extends LintRule implements NodeLintRule {
+class AvoidImplementingValueTypes extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidImplementingValueTypes()
       : super(
             name: 'avoid_implementing_value_types',
@@ -94,7 +95,8 @@ class AvoidImplementingValueTypes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

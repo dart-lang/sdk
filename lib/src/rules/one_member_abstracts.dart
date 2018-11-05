@@ -35,7 +35,7 @@ abstract class Predicate {
 
 ''';
 
-class OneMemberAbstracts extends LintRule implements NodeLintRule {
+class OneMemberAbstracts extends LintRule implements NodeLintRuleWithContext {
   OneMemberAbstracts()
       : super(
             name: 'one_member_abstracts',
@@ -44,7 +44,8 @@ class OneMemberAbstracts extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

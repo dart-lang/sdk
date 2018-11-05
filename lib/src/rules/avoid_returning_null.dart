@@ -50,7 +50,7 @@ bool _isPrimitiveType(DartType type) =>
 bool _isReturnNull(AstNode node) =>
     node is ReturnStatement && DartTypeUtilities.isNullLiteral(node.expression);
 
-class AvoidReturningNull extends LintRule implements NodeLintRule {
+class AvoidReturningNull extends LintRule implements NodeLintRuleWithContext {
   AvoidReturningNull()
       : super(
             name: 'avoid_returning_null',
@@ -59,7 +59,8 @@ class AvoidReturningNull extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionExpression(this, visitor);
     registry.addMethodDeclaration(this, visitor);

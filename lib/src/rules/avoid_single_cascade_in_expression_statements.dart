@@ -25,7 +25,7 @@ o.m();
 ''';
 
 class AvoidSingleCascadeInExpressionStatements extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   AvoidSingleCascadeInExpressionStatements()
       : super(
             name: 'avoid_single_cascade_in_expression_statements',
@@ -34,7 +34,8 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCascadeExpression(this, visitor);
   }

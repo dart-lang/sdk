@@ -67,7 +67,7 @@ setters inherit the docs from the getters.
 // of the actual API surface area of a package - including that defined by
 // exports - and linting against that.
 
-class PublicMemberApiDocs extends LintRule implements NodeLintRule {
+class PublicMemberApiDocs extends LintRule implements NodeLintRuleWithContext {
   PublicMemberApiDocs()
       : super(
             name: 'public_member_api_docs',
@@ -76,7 +76,8 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);

@@ -67,7 +67,7 @@ class GoodMutable {
 
 ''';
 
-class PreferFinalFields extends LintRule implements NodeLintRule {
+class PreferFinalFields extends LintRule implements NodeLintRuleWithContext {
   PreferFinalFields()
       : super(
             name: 'prefer_final_fields',
@@ -76,7 +76,8 @@ class PreferFinalFields extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);

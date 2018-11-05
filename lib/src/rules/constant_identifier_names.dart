@@ -43,7 +43,8 @@ class Dice {
 
 ''';
 
-class ConstantIdentifierNames extends LintRule implements NodeLintRule {
+class ConstantIdentifierNames extends LintRule
+    implements NodeLintRuleWithContext {
   ConstantIdentifierNames()
       : super(
             name: 'constant_identifier_names',
@@ -52,7 +53,8 @@ class ConstantIdentifierNames extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addEnumConstantDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);

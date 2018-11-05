@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
 
 const _desc = r'Avoid double and int checks.';
 
@@ -42,7 +41,8 @@ f(dynamic x) {
 
 ''';
 
-class AvoidDoubleAndIntChecks extends LintRule implements NodeLintRule {
+class AvoidDoubleAndIntChecks extends LintRule
+    implements NodeLintRuleWithContext {
   AvoidDoubleAndIntChecks()
       : super(
             name: 'avoid_double_and_int_checks',
@@ -51,8 +51,9 @@ class AvoidDoubleAndIntChecks extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addIfStatement(this, visitor);
   }
 }
@@ -60,7 +61,9 @@ class AvoidDoubleAndIntChecks extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -69,8 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       final ifCondition = node.condition;
       final elseCondition = elseStatement.condition;
       if (ifCondition is IsExpression && elseCondition is IsExpression) {
-        final typeProvider =
-            getCompilationUnit(node).declaredElement.context.typeProvider;
+        final typeProvider = context.typeProvider;
         final ifExpression = ifCondition.expression;
         final elseIsExpression = elseCondition.expression;
         if (ifExpression is SimpleIdentifier &&

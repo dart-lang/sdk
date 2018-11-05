@@ -48,7 +48,7 @@ class BadThrow {
 
 ''';
 
-class ThrowInFinally extends LintRule implements NodeLintRule {
+class ThrowInFinally extends LintRule implements NodeLintRuleWithContext {
   ThrowInFinally()
       : super(
             name: 'throw_in_finally',
@@ -57,7 +57,8 @@ class ThrowInFinally extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }

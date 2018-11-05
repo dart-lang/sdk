@@ -35,7 +35,7 @@ class Point {
 
 ''';
 
-class TypeInitFormals extends LintRule implements NodeLintRule {
+class TypeInitFormals extends LintRule implements NodeLintRuleWithContext {
   TypeInitFormals()
       : super(
             name: 'type_init_formals',
@@ -44,7 +44,8 @@ class TypeInitFormals extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFieldFormalParameter(this, visitor);
   }

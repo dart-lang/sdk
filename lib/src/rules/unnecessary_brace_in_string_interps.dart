@@ -33,7 +33,8 @@ final RegExp identifierPart = new RegExp(r'^[a-zA-Z0-9_]');
 bool isIdentifierPart(Token token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
-class UnnecessaryBraceInStringInterps extends LintRule implements NodeLintRule {
+class UnnecessaryBraceInStringInterps extends LintRule
+    implements NodeLintRuleWithContext {
   UnnecessaryBraceInStringInterps()
       : super(
             name: 'unnecessary_brace_in_string_interps',
@@ -42,7 +43,8 @@ class UnnecessaryBraceInStringInterps extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addStringInterpolation(this, visitor);
   }

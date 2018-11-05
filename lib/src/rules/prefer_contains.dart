@@ -41,7 +41,8 @@ if (lunchBox.indexOf('sandwich') == -1 return 'so hungry...';
 
 ''';
 
-class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
+class PreferContainsOverIndexOf extends LintRule
+    implements NodeLintRuleWithContext {
   PreferContainsOverIndexOf()
       : super(
             name: 'prefer_contains',
@@ -50,8 +51,9 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
+    final visitor = new _Visitor(this, context);
     registry.addSimpleIdentifier(this, visitor);
   }
 
@@ -75,7 +77,9 @@ class _LintCode extends LintCode {
 class _Visitor extends SimpleAstVisitor<void> {
   final PreferContainsOverIndexOf rule;
 
-  _Visitor(this.rule);
+  final LinterContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -123,7 +127,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     final BinaryExpression binaryExpression = search;
     final Token operator = binaryExpression.operator;
 
-    final AnalysisContext context = propertyElement.context;
     final TypeProvider typeProvider = context.typeProvider;
     final TypeSystem typeSystem = context.typeSystem;
 

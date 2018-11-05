@@ -34,7 +34,7 @@ library.
 
 ''';
 
-class FileNames extends LintRule implements NodeLintRule {
+class FileNames extends LintRule implements NodeLintRuleWithContext {
   FileNames()
       : super(
             name: 'file_names',
@@ -43,7 +43,8 @@ class FileNames extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }

@@ -24,7 +24,8 @@ a = (b);
 
 ''';
 
-class UnnecessaryParenthesis extends LintRule implements NodeLintRule {
+class UnnecessaryParenthesis extends LintRule
+    implements NodeLintRuleWithContext {
   UnnecessaryParenthesis()
       : super(
             name: 'unnecessary_parenthesis',
@@ -33,7 +34,8 @@ class UnnecessaryParenthesis extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addParenthesizedExpression(this, visitor);
   }

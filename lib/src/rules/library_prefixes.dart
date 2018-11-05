@@ -32,7 +32,7 @@ import 'package:javascript_utils/javascript_utils.dart' as jsUtils;
 
 ''';
 
-class LibraryPrefixes extends LintRule implements NodeLintRule {
+class LibraryPrefixes extends LintRule implements NodeLintRuleWithContext {
   LibraryPrefixes()
       : super(
             name: 'library_prefixes',
@@ -41,7 +41,8 @@ class LibraryPrefixes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addImportDirective(this, visitor);
   }
