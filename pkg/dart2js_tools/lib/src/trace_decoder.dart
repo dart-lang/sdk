@@ -42,21 +42,21 @@ StackDeobfuscationResult deobfuscateStack(
     }
 
     // If there's no column, try using the first column of the line.
-    var column = frame.column == null ? 0 : frame.column;
+    var column = frame.column ?? 0;
 
-    var mapping = provider.mappingFor(frame.uri);
+    Dart2jsMapping mapping = provider.mappingFor(frame.uri);
     if (mapping == null) continue;
 
     // Subtract 1 because stack traces use 1-indexed lines and columns and
     // source maps uses 0-indexed.
-    var span = mapping.sourceMap
+    SourceSpan span = mapping.sourceMap
         .spanFor(frame.line - 1, column - 1, uri: frame.uri?.toString());
 
     // If we can't find a source span, ignore the frame. It's probably something
     // internal that the user doesn't care about.
     if (span == null) continue;
 
-    var mappedFrames = frameMap[frame] = <Frame>[];
+    List<Frame> mappedFrames = frameMap[frame] = [];
 
     SourceFile jsFile = provider.fileFor(frame.uri);
     int offset = jsFile.getOffset(frame.line - 1, column - 1);

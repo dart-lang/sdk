@@ -62,9 +62,7 @@ class MinifiedNameDecoder extends ErrorMapDecoder {
   String _decodeInternal(Match match, Dart2jsMapping mapping,
       StackTraceLine line, TargetEntry entry) {
     var minifiedName = match.group(1);
-    var name = mapping.globalNames[minifiedName];
-    if (name == null) return null;
-    return name;
+    return mapping.globalNames[minifiedName];
   }
 }
 

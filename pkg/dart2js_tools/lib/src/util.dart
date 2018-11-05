@@ -26,7 +26,7 @@ class CachingFileProvider implements FileProvider {
 /// files were downloaded on the current working directory.
 ///
 /// Typically used when downloading the source and source-map files and applying
-/// deobfuscation locally for debugging pruposes.
+/// deobfuscation locally for debugging purposes.
 class DownloadedFileProvider extends CachingFileProvider {
   _localize(uri) {
     if (uri.scheme == 'http' || uri.scheme == 'https') {

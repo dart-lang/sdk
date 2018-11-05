@@ -4,13 +4,9 @@
 
 import 'dart:io';
 import 'dart:math' show max;
-import 'package:source_maps/source_maps.dart';
-import 'package:source_maps/src/utils.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:dart2js_tools/src/trace.dart';
-import 'package:dart2js_tools/src/sourcemap_helper.dart';
 import 'package:dart2js_tools/src/name_decoder.dart';
-import 'package:dart2js_tools/src/dart2js_mapping.dart';
 import 'package:dart2js_tools/src/util.dart';
 import 'package:dart2js_tools/src/trace_decoder.dart';
 
@@ -53,8 +49,8 @@ main(List<String> args) {
     String obfuscatedTrace = new File(args[0]).readAsStringSync();
     String error = extractErrorMessage(obfuscatedTrace);
     var provider = new CachingFileProvider();
-    var result = deobfuscateStack(obfuscatedTrace, provider);
-    Trace trace = result.deobfuscated;
+    StackDeobfuscationResult result =
+        deobfuscateStack(obfuscatedTrace, provider);
     Frame firstFrame = result.original.frames.first;
     String translatedError =
         translate(error, provider.mappingFor(firstFrame.uri));
@@ -78,8 +74,8 @@ main(List<String> args) {
   }
 }
 
-final green = stdout.hasTerminal ? '[32m' : '';
-final none = stdout.hasTerminal ? '[0m' : '';
+final green = stdout.hasTerminal ? '\x1b[32m' : '';
+final none = stdout.hasTerminal ? '\x1b[0m' : '';
 
 printPadded(String mapping, String original, sb) {
   var len = mapping.length;
