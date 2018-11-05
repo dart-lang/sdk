@@ -247,11 +247,8 @@ class LibraryAnalyzer {
         allUnits, currentUnit, _declaredVariables, _typeProvider, _typeSystem);
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRuleWithContext) {
-        (linter as NodeLintRuleWithContext)
-            .registerNodeProcessors(nodeRegistry, context);
-      } else if (linter is NodeLintRule) {
-        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry);
+      if (linter is NodeLintRule) {
+        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry, context);
       } else {
         AstVisitor visitor = linter.getVisitor();
         if (visitor != null) {

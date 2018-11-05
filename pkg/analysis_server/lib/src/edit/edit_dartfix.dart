@@ -272,11 +272,8 @@ class EditDartFix {
         if (visitor != null) {
           visitors.add(visitor);
         }
-        if (linter is NodeLintRuleWithContext) {
-          (linter as NodeLintRuleWithContext)
-              .registerNodeProcessors(registry, context);
-        } else if (linter is NodeLintRule) {
-          (linter as NodeLintRule).registerNodeProcessors(registry);
+        if (linter is NodeLintRule) {
+          (linter as NodeLintRule).registerNodeProcessors(registry, context);
         }
       }
     }

@@ -379,27 +379,19 @@ abstract class NodeLintRule {
   /// This method is invoked to let the [LintRule] register node processors
   /// in the given [registry].
   ///
-  /// In a future release of the analyzer, a `context` argument will be added.
-  /// To opt into the new API, use [NodeLintRuleWithContext] instead.
-  void registerNodeProcessors(NodeLintRegistry registry);
+  /// The node processors may use the provided [context] to access information
+  /// that is not avaiable from the AST nodes or their associated elements.
+  void registerNodeProcessors(NodeLintRegistry registry, LinterContext context);
 }
 
 /// [LintRule]s that implement this interface want to process only some types
 /// of AST nodes, and will register their processors in the registry.
 ///
-/// TODO(paulberry): once NodeLintRule is removed, rename this interface to
-/// NodeLintRule.
-abstract class NodeLintRuleWithContext extends NodeLintRule {
-  /// This method is invoked to let the [LintRule] register node processors
-  /// in the given [registry].
-  ///
-  /// The node processors may use the provided [context] to access information
-  /// that is not avaiable from the AST nodes or their associated elements.
-  /// In a future release of the analyzer, [context] will become a required
-  /// parameter.
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]);
-}
+/// This class exists solely to allow a smoother transition from analyzer
+/// version 0.33.*.  It will be removed in a future analyzer release, so please
+/// use [NodeLintRule] instead.
+@deprecated
+abstract class NodeLintRuleWithContext extends NodeLintRule {}
 
 class PrintingReporter implements Reporter, Logger {
   final Printer _print;
