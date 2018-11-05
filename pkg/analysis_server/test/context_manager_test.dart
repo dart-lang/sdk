@@ -2569,7 +2569,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     ContextBuilder builder = new ContextBuilder(
-        resourceProvider, sdkManager, new ContentCache(),
+        resourceProvider, sdkManager, null,
         options: builderOptions);
     return builder;
   }

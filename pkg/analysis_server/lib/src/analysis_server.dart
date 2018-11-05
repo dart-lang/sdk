@@ -219,12 +219,6 @@ class AnalysisServer {
   final nd.FileContentOverlay fileContentOverlay = new nd.FileContentOverlay();
 
   /**
-   * The current state of overlays from the client.  This is used as the
-   * content cache for all contexts.
-   */
-  final ContentCache overlayState = new ContentCache();
-
-  /**
    * If the "analysis.analyzedFiles" notification is currently being subscribed
    * to (see [generalAnalysisServices]), and at least one such notification has
    * been sent since the subscription was enabled, the set of analyzed files
@@ -1288,8 +1282,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    ContextBuilder builder = new ContextBuilder(resourceProvider,
-        analysisServer.sdkManager, analysisServer.overlayState,
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
     builder.fileResolverProvider = analysisServer.fileResolverProvider;
     builder.packageResolverProvider = analysisServer.packageResolverProvider;

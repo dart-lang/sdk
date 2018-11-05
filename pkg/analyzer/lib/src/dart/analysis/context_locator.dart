@@ -13,19 +13,18 @@ import 'package:analyzer/file_system/physical_file_system.dart'
 import 'package:analyzer/src/context/builder.dart'
     show ContextBuilder, ContextBuilderOptions;
 import 'package:analyzer/src/context/context_root.dart' as old;
+import 'package:analyzer/src/dart/analysis/byte_store.dart'
+    show MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
-import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
-import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
-import 'package:analyzer/src/generated/source.dart' show ContentCache;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
-import 'package:analyzer/src/dart/analysis/byte_store.dart'
-    show MemoryByteStore;
+import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:meta/meta.dart';
 
 /**
@@ -91,7 +90,7 @@ class ContextLocatorImpl implements ContextLocator {
     scheduler.start();
     ContextBuilderOptions options = new ContextBuilderOptions();
     ContextBuilder builder = new ContextBuilder(
-        resourceProvider, sdkManager, new ContentCache(),
+        resourceProvider, sdkManager, null,
         options: options);
     if (packagesFile != null) {
       options.defaultPackageFilePath = packagesFile;
