@@ -25,7 +25,7 @@ Iterable<T> where(bool Function(T) predicate) {}
 ''';
 
 class UseFunctionTypeSyntaxForParameters extends LintRule
-    implements NodeLintRule {
+    implements NodeLintRuleWithContext {
   UseFunctionTypeSyntaxForParameters()
       : super(
             name: 'use_function_type_syntax_for_parameters',
@@ -34,7 +34,8 @@ class UseFunctionTypeSyntaxForParameters extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry) {
+  void registerNodeProcessors(NodeLintRegistry registry,
+      [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addFunctionTypedFormalParameter(this, visitor);
   }
