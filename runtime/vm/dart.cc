@@ -170,7 +170,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   NOT_IN_PRODUCT(
       TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init"));
   Isolate::InitVM();
-  IdleNotifier::Init();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -441,8 +440,6 @@ char* Dart::Cleanup() {
   }
   WaitForIsolateShutdown();
 
-  IdleNotifier::Stop();
-
 #if !defined(PRODUCT)
   {
     // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
@@ -500,7 +497,6 @@ char* Dart::Cleanup() {
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
-  IdleNotifier::Cleanup();
   ICData::Cleanup();
   ArgumentsDescriptor::Cleanup();
   TargetCPUFeatures::Cleanup();
