@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool nonRequiredSeen = false;
     for (DefaultFormalParameter param
         in node.parameters.where((p) => p.isNamed)) {
-      if (param.element.hasRequired) {
+      if (param.declaredElement.hasRequired) {
         if (nonRequiredSeen) {
           rule.reportLintForToken(param.identifier.token);
         }
