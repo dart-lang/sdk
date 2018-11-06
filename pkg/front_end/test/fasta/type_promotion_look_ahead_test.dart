@@ -4,12 +4,11 @@
 
 import 'package:front_end/src/fasta/parser.dart' show Parser;
 
-import 'package:front_end/src/fasta/scanner.dart' show ScannerResult;
-
 import 'package:front_end/src/fasta/source/type_promotion_look_ahead_listener.dart'
     show TypePromotionLookAheadListener;
 
-import 'package:front_end/src/fasta/testing/scanner_chain.dart' show Read, Scan;
+import 'package:front_end/src/fasta/testing/scanner_chain.dart'
+    show Read, Scan, ScannedFile;
 
 import 'package:testing/testing.dart';
 
@@ -27,15 +26,15 @@ class TypePromotionLookAheadContext extends ChainContext {
 }
 
 class TypePromotionLookAheadStep
-    extends Step<ScannerResult, Null, TypePromotionLookAheadContext> {
+    extends Step<ScannedFile, Null, TypePromotionLookAheadContext> {
   const TypePromotionLookAheadStep();
 
   String get name => "Type Promotion Look Ahead";
 
   Future<Result<Null>> run(
-      ScannerResult scan, TypePromotionLookAheadContext context) async {
+      ScannedFile file, TypePromotionLookAheadContext context) async {
     Parser parser = new Parser(new TypePromotionLookAheadListener());
-    parser.parseUnit(scan.tokens);
+    parser.parseUnit(file.result.tokens);
     return pass(null);
   }
 }

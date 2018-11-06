@@ -10,24 +10,39 @@ import '../scanner.dart';
 
 import '../scanner/io.dart';
 
-class Read extends Step<TestDescription, List<int>, ChainContext> {
+class ReadFile {
+  final Uri uri;
+
+  final List<int> bytes;
+
+  const ReadFile(this.uri, this.bytes);
+}
+
+class ScannedFile {
+  final ReadFile file;
+
+  final ScannerResult result;
+
+  const ScannedFile(this.file, this.result);
+}
+
+class Read extends Step<TestDescription, ReadFile, ChainContext> {
   const Read();
 
   String get name => "read";
 
-  Future<Result<List<int>>> run(
+  Future<Result<ReadFile>> run(
       TestDescription input, ChainContext context) async {
-    return pass(await readBytesFromFile(input.uri));
+    return pass(new ReadFile(input.uri, await readBytesFromFile(input.uri)));
   }
 }
 
-class Scan extends Step<List<int>, ScannerResult, ChainContext> {
+class Scan extends Step<ReadFile, ScannedFile, ChainContext> {
   const Scan();
 
   String get name => "scan";
 
-  Future<Result<ScannerResult>> run(
-      List<int> bytes, ChainContext context) async {
-    return pass(scan(bytes));
+  Future<Result<ScannedFile>> run(ReadFile file, ChainContext context) async {
+    return pass(new ScannedFile(file, scan(file.bytes)));
   }
 }
