@@ -220,21 +220,29 @@ class AstRewriteVisitor extends ScopedVisitor {
   static InterfaceType getType(TypeSystem typeSystem, ClassElement element,
       TypeArgumentList typeArguments) {
     DartType type = element.type;
+
     List<TypeParameterElement> typeParameters = element.typeParameters;
-    if (typeArguments != null &&
-        typeParameters != null &&
-        typeArguments.arguments.length == typeParameters.length) {
-      List<DartType> argumentTypes = typeArguments.arguments
+    if (typeParameters.isEmpty) {
+      return type;
+    }
+
+    if (typeArguments == null) {
+      return typeSystem.instantiateToBounds(type);
+    }
+
+    List<DartType> argumentTypes;
+    if (typeArguments.arguments.length == typeParameters.length) {
+      argumentTypes = typeArguments.arguments
           .map((TypeAnnotation argument) => argument.type)
           .toList();
-      List<DartType> parameterTypes = typeParameters
-          .map((TypeParameterElement parameter) => parameter.type)
-          .toList();
-      type = type.substitute2(argumentTypes, parameterTypes);
-    } else if (typeArguments == null && typeParameters != null) {
-      type = typeSystem.instantiateToBounds(type);
+    } else {
+      argumentTypes = List<DartType>.filled(
+          typeParameters.length, DynamicTypeImpl.instance);
     }
-    return type;
+    List<DartType> parameterTypes = typeParameters
+        .map((TypeParameterElement parameter) => parameter.type)
+        .toList();
+    return type.substitute2(argumentTypes, parameterTypes);
   }
 }
 

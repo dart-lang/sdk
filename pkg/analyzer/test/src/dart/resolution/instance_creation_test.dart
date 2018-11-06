@@ -47,6 +47,24 @@ main() {
 //    );
   }
 
+  test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
+    addTestFile(r'''
+final foo = Map<int>();
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
+    ]);
+
+    var creation = findNode.instanceCreation('Map<int>');
+    assertInstanceCreation(
+      creation,
+      mapElement,
+      'Map<dynamic, dynamic>',
+      expectedConstructorMember: true,
+    );
+  }
+
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
     newFile('/test/lib/a.dart', content: '''
 class Foo<X> {
@@ -137,4 +155,10 @@ main() {
 
 @reflectiveTest
 class InstanceCreationTaskResolutionTest extends TaskResolutionTest
-    with InstanceCreationResolutionMixin {}
+    with InstanceCreationResolutionMixin {
+  @FailingTest(reason: 'Does not report the error.')
+  test_error_newWithInvalidTypeParameters_implicitNew_inference_top() {
+    return super
+        .test_error_newWithInvalidTypeParameters_implicitNew_inference_top();
+  }
+}
