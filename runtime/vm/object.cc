@@ -3378,6 +3378,26 @@ static RawObject* ThrowNoSuchMethod(const Instance& receiver,
   return DartEntry::InvokeFunction(throwNew, args);
 }
 
+static RawObject* ThrowTypeError(const TokenPosition token_pos,
+                                 const Instance& src_value,
+                                 const AbstractType& dst_type,
+                                 const String& dst_name) {
+  const Array& args = Array::Handle(Array::New(5));
+  const Smi& pos = Smi::Handle(Smi::New(token_pos.value()));
+  args.SetAt(0, pos);
+  args.SetAt(1, src_value);
+  args.SetAt(2, dst_type);
+  args.SetAt(3, dst_name);
+  args.SetAt(4, String::Handle());  // bound error message
+
+  const Library& libcore = Library::Handle(Library::CoreLibrary());
+  const Class& TypeError =
+      Class::Handle(libcore.LookupClassAllowPrivate(Symbols::TypeError()));
+  const Function& throwNew = Function::Handle(
+      TypeError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  return DartEntry::InvokeFunction(throwNew, args);
+}
+
 RawObject* Class::InvokeGetter(const String& getter_name,
                                bool throw_nsm_if_absent,
                                bool respect_reflectable) const {
@@ -3442,21 +3462,31 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
 
+  AbstractType& parameter_type = AbstractType::Handle(zone);
+  AbstractType& argument_type =
+      AbstractType::Handle(zone, value.GetType(Heap::kOld));
+
   if (field.IsNull()) {
     const Function& setter =
         Function::Handle(zone, LookupStaticFunction(internal_setter_name));
-
     const int kNumArgs = 1;
     const Array& args = Array::Handle(zone, Array::New(kNumArgs));
     args.SetAt(0, value);
-
     if (setter.IsNull() || (respect_reflectable && !setter.is_reflectable())) {
       return ThrowNoSuchMethod(AbstractType::Handle(zone, RareType()),
                                internal_setter_name, args, Object::null_array(),
                                InvocationMirror::kStatic,
                                InvocationMirror::kSetter);
     }
-
+    parameter_type ^= setter.ParameterTypeAt(0);
+    if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
+        !value.IsInstanceOf(parameter_type, Object::null_type_arguments(),
+                            Object::null_type_arguments(), NULL)) {
+      const String& argument_name =
+          String::Handle(zone, setter.ParameterNameAt(0));
+      return ThrowTypeError(setter.token_pos(), value, parameter_type,
+                            argument_name);
+    }
     // Invoke the setter and return the result.
     return DartEntry::InvokeFunction(setter, args);
   }
@@ -3465,13 +3495,20 @@ RawObject* Class::InvokeSetter(const String& setter_name,
     const int kNumArgs = 1;
     const Array& args = Array::Handle(zone, Array::New(kNumArgs));
     args.SetAt(0, value);
-
     return ThrowNoSuchMethod(AbstractType::Handle(zone, RareType()),
                              internal_setter_name, args, Object::null_array(),
                              InvocationMirror::kStatic,
                              InvocationMirror::kSetter);
   }
 
+  parameter_type ^= field.type();
+  if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
+      !value.IsInstanceOf(parameter_type, Object::null_type_arguments(),
+                          Object::null_type_arguments(), NULL)) {
+    const String& argument_name = String::Handle(zone, field.name());
+    return ThrowTypeError(field.token_pos(), value, parameter_type,
+                          argument_name);
+  }
   field.SetStaticValue(value);
   return value.raw();
 }
@@ -3521,19 +3558,21 @@ RawObject* Class::Invoke(const String& function_name,
       return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
     }
   }
-
   const Array& args_descriptor_array = Array::Handle(
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
-
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-
+  const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(zone, RareType()), function_name, args, arg_names,
         InvocationMirror::kStatic, InvocationMirror::kMethod);
   }
-
+  RawObject* type_error =
+      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
+  if (type_error != Error::null()) {
+    return type_error;
+  }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
 
@@ -6960,6 +6999,87 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
     }
   }
   return true;
+}
+
+RawObject* Function::DoArgumentTypesMatch(
+    const Array& args,
+    const ArgumentsDescriptor& args_desc,
+    const TypeArguments& instantiator_type_args) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& instantiated_func = Function::Handle(zone, raw());
+
+  if (!HasInstantiatedSignature()) {
+    instantiated_func ^= InstantiateSignatureFrom(instantiator_type_args,
+                                                  Object::null_type_arguments(),
+                                                  kAllFree, Heap::kOld);
+  }
+  AbstractType& argument_type = AbstractType::Handle(zone);
+  AbstractType& parameter_type = AbstractType::Handle(zone);
+  Instance& argument = Instance::Handle(zone);
+
+  // Check types of the provided arguments against the expected parameter types.
+  for (intptr_t i = args_desc.FirstArgIndex(); i < args_desc.PositionalCount();
+       ++i) {
+    argument ^= args.At(i);
+    argument_type ^= argument.GetType(Heap::kOld);
+    parameter_type ^= instantiated_func.ParameterTypeAt(i);
+
+    // If the argument type is dynamic or the parameter is null, move on.
+    if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
+      continue;
+    }
+    if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
+                               Object::null_type_arguments(), NULL)) {
+      String& argument_name = String::Handle(zone, ParameterNameAt(i));
+      return ThrowTypeError(token_pos(), argument, parameter_type,
+                            argument_name);
+    }
+  }
+
+  const intptr_t num_arguments = args_desc.Count();
+  const intptr_t num_named_arguments = args_desc.NamedCount();
+  if (num_named_arguments == 0) {
+    return Error::null();
+  }
+
+  String& argument_name = String::Handle(zone);
+  String& parameter_name = String::Handle(zone);
+
+  // Check types of named arguments against expected parameter type.
+  for (intptr_t i = 0; i < num_named_arguments; i++) {
+    argument_name ^= args_desc.NameAt(i);
+    ASSERT(argument_name.IsSymbol());
+    bool found = false;
+    const intptr_t num_positional_args = num_arguments - num_named_arguments;
+    const int num_parameters = NumParameters();
+
+    // Try to find the named parameter that matches the provided argument.
+    for (intptr_t j = num_positional_args; !found && (j < num_parameters);
+         j++) {
+      parameter_name = ParameterNameAt(j);
+      ASSERT(argument_name.IsSymbol());
+      if (argument_name.Equals(parameter_name)) {
+        found = true;
+        argument ^= args.At(args_desc.PositionAt(i));
+        argument_type ^= argument.GetType(Heap::kOld);
+        parameter_type ^= instantiated_func.ParameterTypeAt(j);
+
+        // If the argument type is dynamic or the parameter is null, move on.
+        if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
+          continue;
+        }
+        if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
+                                   Object::null_type_arguments(), NULL)) {
+          String& argument_name = String::Handle(zone, ParameterNameAt(i));
+          return ThrowTypeError(token_pos(), argument, parameter_type,
+                                argument_name);
+        }
+      }
+    }
+    ASSERT(found);
+  }
+  return Error::null();
 }
 
 // Helper allocating a C string buffer in the zone, printing the fully qualified
@@ -11124,12 +11244,14 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 // Invoke the function, or noSuchMethod if it is null.
-static RawObject* InvokeInstanceFunction(const Instance& receiver,
-                                         const Function& function,
-                                         const String& target_name,
-                                         const Array& args,
-                                         const Array& args_descriptor_array,
-                                         bool respect_reflectable) {
+static RawObject* InvokeInstanceFunction(
+    const Instance& receiver,
+    const Function& function,
+    const String& target_name,
+    const Array& args,
+    const Array& args_descriptor_array,
+    bool respect_reflectable,
+    const TypeArguments& instantiator_type_args) {
   // Note "args" is already the internal arguments with the receiver as the
   // first element.
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
@@ -11137,6 +11259,11 @@ static RawObject* InvokeInstanceFunction(const Instance& receiver,
       (respect_reflectable && !function.is_reflectable())) {
     return DartEntry::InvokeNoSuchMethod(receiver, target_name, args,
                                          args_descriptor_array);
+  }
+  RawObject* type_error = function.DoArgumentTypesMatch(args, args_descriptor,
+                                                        instantiator_type_args);
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -11199,9 +11326,16 @@ RawObject* Library::InvokeSetter(const String& setter_name,
   Object& obj = Object::Handle(LookupLocalOrReExportObject(setter_name));
   const String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
-
+  AbstractType& setter_type = AbstractType::Handle();
+  AbstractType& argument_type = AbstractType::Handle(value.GetType(Heap::kOld));
   if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
+    setter_type ^= field.type();
+    if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
+        !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
+                            Object::null_type_arguments(), NULL)) {
+      return ThrowTypeError(field.token_pos(), value, setter_type, setter_name);
+    }
     if (field.is_final() || (respect_reflectable && !field.is_reflectable())) {
       const int kNumArgs = 1;
       const Array& args = Array::Handle(Array::New(kNumArgs));
@@ -11230,6 +11364,13 @@ RawObject* Library::InvokeSetter(const String& setter_name,
         AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
         internal_setter_name, args, Object::null_array(),
         InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+  }
+
+  setter_type ^= setter.ParameterTypeAt(0);
+  if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
+      !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
+                          Object::null_type_arguments(), NULL)) {
+    return ThrowTypeError(setter.token_pos(), value, setter_type, setter_name);
   }
 
   return DartEntry::InvokeFunction(setter, args);
@@ -11273,7 +11414,7 @@ RawObject* Library::Invoke(const String& function_name,
   const Array& args_descriptor_array = Array::Handle(
       ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-
+  const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
@@ -11281,7 +11422,11 @@ RawObject* Library::Invoke(const String& function_name,
         function_name, args, arg_names, InvocationMirror::kTopLevel,
         InvocationMirror::kMethod);
   }
-
+  RawObject* type_error =
+      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
+  if (type_error != Error::null()) {
+    return type_error;
+  }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
 
@@ -15869,6 +16014,10 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   Zone* zone = Thread::Current()->zone();
 
   Class& klass = Class::Handle(zone, clazz());
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  if (klass.NumTypeArguments() > 0) {
+    type_args ^= GetTypeArguments();
+  }
 
   const String& internal_getter_name =
       String::Handle(zone, Field::GetterName(getter_name));
@@ -15893,7 +16042,8 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   return InvokeInstanceFunction(*this, function, internal_getter_name, args,
-                                args_descriptor, respect_reflectable);
+                                args_descriptor, respect_reflectable,
+                                type_args);
 }
 
 RawObject* Instance::InvokeSetter(const String& setter_name,
@@ -15902,6 +16052,11 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
   Zone* zone = Thread::Current()->zone();
 
   const Class& klass = Class::Handle(zone, clazz());
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  if (klass.NumTypeArguments() > 0) {
+    type_args ^= GetTypeArguments();
+  }
+
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
   const Function& setter = Function::Handle(
@@ -15916,7 +16071,8 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   return InvokeInstanceFunction(*this, setter, internal_setter_name, args,
-                                args_descriptor, respect_reflectable);
+                                args_descriptor, respect_reflectable,
+                                type_args);
 }
 
 RawObject* Instance::Invoke(const String& function_name,
@@ -15933,6 +16089,11 @@ RawObject* Instance::Invoke(const String& function_name,
   const Array& args_descriptor = Array::Handle(
       zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  if (klass.NumTypeArguments() > 0) {
+    type_args ^= GetTypeArguments();
+  }
+
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
     const String& getter_name =
@@ -15947,9 +16108,9 @@ RawObject* Instance::Invoke(const String& function_name,
       const Array& getter_args_descriptor = Array::Handle(
           zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length()));
       const Object& getter_result = Object::Handle(
-          zone,
-          InvokeInstanceFunction(*this, function, getter_name, getter_args,
-                                 getter_args_descriptor, respect_reflectable));
+          zone, InvokeInstanceFunction(*this, function, getter_name,
+                                       getter_args, getter_args_descriptor,
+                                       respect_reflectable, type_args));
       if (getter_result.IsError()) {
         return getter_result.raw();
       }
@@ -15962,7 +16123,8 @@ RawObject* Instance::Invoke(const String& function_name,
 
   // Found an ordinary method.
   return InvokeInstanceFunction(*this, function, function_name, args,
-                                args_descriptor, respect_reflectable);
+                                args_descriptor, respect_reflectable,
+                                type_args);
 }
 
 RawObject* Instance::EvaluateCompiledExpression(
