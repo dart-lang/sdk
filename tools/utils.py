@@ -860,7 +860,7 @@ class BaseCoreDumpArchiver(object):
         files.add(core)
       else:
         missing.append(crash)
-    if self._output_directory is not None:
+    if self._output_directory is not None and self._is_shard():
       print (
           "INFO: Copying collected dumps and binaries into output directory\n"
           "INFO: They will be uploaded to isolate server. Look for \"isolated"
@@ -876,6 +876,10 @@ class BaseCoreDumpArchiver(object):
 
     if missing:
       self._report_missing_crashes(missing, throw=True)
+
+  # todo(athom): move the logic to decide where to copy core dumps into the recipes.
+  def _is_shard(self):
+    return 'BUILDBOT_BUILDERNAME' not in os.environ
 
   def _report_missing_crashes(self, missing, throw=True):
     missing_as_string = ', '.join([str(c) for c in missing])
