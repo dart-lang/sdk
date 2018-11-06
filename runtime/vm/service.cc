@@ -2413,6 +2413,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= receiver.raw();
+
     const Object& result =
         Object::Handle(zone, instance.Invoke(selector, args, arg_names));
     result.PrintJSON(js, true);
