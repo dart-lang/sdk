@@ -2687,6 +2687,7 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
         case CompileTimeErrorCode
@@ -6526,7 +6527,10 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    *
    * Also note that this method can cause constant evaluation to occur, which
    * can be computationally expensive.
+   * 
+   * Deprecated: Use `LinterContext.canBeConst` instead.
    */
+  @deprecated
   bool canBeConst() {
     //
     // Verify that the invoked constructor is a const constructor.

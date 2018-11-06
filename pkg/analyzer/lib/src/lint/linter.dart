@@ -8,9 +8,12 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
@@ -203,6 +206,16 @@ abstract class LinterContext {
   TypeProvider get typeProvider;
 
   TypeSystem get typeSystem;
+
+  /// Return `true` if it would be valid for the given instance creation
+  /// [expression] to have a keyword of `const`.
+  ///
+  /// The [expression] is expected to be a node within one of the compilation
+  /// units in [allUnits].
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool canBeConst(InstanceCreationExpression expression);
 }
 
 /// Implementation of [LinterContext]
@@ -224,6 +237,34 @@ class LinterContextImpl implements LinterContext {
 
   LinterContextImpl(this.allUnits, this.currentUnit, this.declaredVariables,
       this.typeProvider, this.typeSystem);
+
+  @override
+  bool canBeConst(InstanceCreationExpression expression) {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
+    ConstructorElement element = expression.staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
+    Token oldKeyword = expression.keyword;
+    ConstantAnalysisErrorListener listener =
+        new ConstantAnalysisErrorListener();
+    try {
+      expression.keyword = new KeywordToken(Keyword.CONST, expression.offset);
+      LibraryElement library = element.library;
+      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
+      expression.accept(new ConstantVerifier(
+          errorReporter, library, typeProvider, declaredVariables));
+    } finally {
+      expression.keyword = oldKeyword;
+    }
+    return !listener.hasConstError;
+  }
 }
 
 class LinterContextUnit {
