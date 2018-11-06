@@ -455,7 +455,7 @@ class AssemblerBase : public ValueObject {
     if (object_pool_wrapper_ != nullptr) {
       return object_pool_wrapper_->MakeObjectPool();
     }
-    return nullptr;
+    return ObjectPool::null();
   }
 
  protected:
