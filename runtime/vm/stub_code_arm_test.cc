@@ -57,8 +57,9 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
   ObjectPoolWrapper object_pool_wrapper;
   Assembler assembler(&object_pool_wrapper);
   GenerateCallToCallRuntimeStub(&assembler, length);
-  const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler));
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(*CreateFunction("Test_CallRuntimeStubCode"), nullptr,
+                         &assembler, Code::PoolAttachment::kAttachPool));
   const Function& function = RegisterFakeFunction(kName, code);
   Array& result = Array::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
@@ -98,7 +99,8 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler));
+      *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
+      Code::PoolAttachment::kAttachPool));
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());

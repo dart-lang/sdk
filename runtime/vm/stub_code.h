@@ -215,6 +215,7 @@ class StubCode : public AllStatic {
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
   static RawCode* Generate(const char* name,
+                           ObjectPoolWrapper* object_pool_wrapper,
                            void (*GenerateStub)(Assembler* assembler));
 
   static void GenerateSharedStub(Assembler* assembler,

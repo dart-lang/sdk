@@ -4965,6 +4965,11 @@ class Code : public Object {
     kSCallTableEntryLength = 3,
   };
 
+  enum class PoolAttachment {
+    kAttachPool,
+    kNotAttachPool,
+  };
+
   class KindField : public BitField<intptr_t, CallKind, 0, 2> {};
   class OffsetField : public BitField<intptr_t, intptr_t, 2, 28> {};
 
@@ -5129,14 +5134,24 @@ class Code : public Object {
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Finalizes the generated code, by generating various kinds of metadata (e.g.
+  // stack maps, pc descriptors, ...) and attach them to a newly generated
+  // [Code] object.
+  //
+  // If Code::PoolAttachment::kAttachPool is specified for [pool_attachment]
+  // then a new [ObjectPool] will be attached to the code object as well.
+  // Otherwise the caller is responsible for doing this via
+  // `Object::set_object_pool()`.
   static RawCode* FinalizeCode(const Function& function,
                                FlowGraphCompiler* compiler,
                                Assembler* assembler,
+                               PoolAttachment pool_attachment,
                                bool optimized = false,
                                CodeStatistics* stats = nullptr);
   static RawCode* FinalizeCode(const char* name,
                                FlowGraphCompiler* compiler,
                                Assembler* assembler,
+                               PoolAttachment pool_attachment,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
   static RawCode* FinalizeBytecode(const void* bytecode_data,
@@ -5272,6 +5287,8 @@ class Code : public Object {
   friend class SnapshotWriter;
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
+  friend class StubCode;               // for set_object_pool
+  friend class MegamorphicCacheTable;  // for set_object_pool
   friend class CodePatcher;     // for set_instructions
   friend class ProgramVisitor;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the

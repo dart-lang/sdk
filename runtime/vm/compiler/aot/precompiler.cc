@@ -2220,7 +2220,8 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   const Code& code = Code::Handle(Code::FinalizeCode(
-      function, graph_compiler, assembler, optimized(), stats));
+      function, graph_compiler, assembler, Code::PoolAttachment::kAttachPool,
+      optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {
