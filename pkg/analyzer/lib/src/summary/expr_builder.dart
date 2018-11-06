@@ -613,11 +613,11 @@ class ExprBuilder {
       } else if (info.element is ClassElement) {
         constructorName = null;
       } else {
-        List<Expression> arguments = _buildArguments();
-        SimpleIdentifier name = AstTestFactory.identifier3(info.name);
-        name.staticElement = info.element;
-        name.setProperty(ARGUMENT_LIST, AstTestFactory.argumentList(arguments));
-        _push(name);
+        // Unexpected element, consider it unresolved.
+        _buildArguments();
+        var identifier = AstTestFactory.identifier3('__unresolved__')
+          ..staticType = resynthesizer.typeProvider.dynamicType;
+        _push(identifier);
         return;
       }
       InterfaceType definingType = resynthesizer.createConstructorDefiningType(
