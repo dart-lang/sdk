@@ -1,3 +1,12 @@
+# 0.1.72
+
+* new lint: `use_function_type_syntax_for_parameters`
+* internal changes to migrate towards analyzer's new `LinterContext` API
+* fix false positive in `use_setters_to_change_properties`
+* implementation improvements (and speed-ups) to `prefer_foreach` and `public_member_api_docs`
+* new lint: `avoid_returning_null_for_future`
+* new lint: `avoid_shadowing_type_parameters`
+
 # 0.1.71
 
 * new lint: `prefer_int_literals`
