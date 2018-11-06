@@ -494,5 +494,5 @@ class ParserRecovery {
   final int charOffset;
   ParserRecovery(this.charOffset);
 
-  String toString() => "ParserRecovery(charOffset)";
+  String toString() => "ParserRecovery(@$charOffset)";
 }
