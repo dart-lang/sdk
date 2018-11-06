@@ -4322,6 +4322,14 @@ class Instructions : public Object {
     return FlagsBits::decode(instr->ptr()->size_and_flags_);
   }
 
+  static bool ContainsPc(RawInstructions* instruction, uword pc) {
+    const uword offset = pc - PayloadStart(instruction);
+    // We use <= instead of < here because the saved-pc can be outside the
+    // instruction stream if the last instruction is a call we don't expect to
+    // return (e.g. because it throws an exception).
+    return offset <= static_cast<uword>(Size(instruction));
+  }
+
   uword PayloadStart() const { return PayloadStart(raw()); }
   uword MonomorphicEntryPoint() const { return MonomorphicEntryPoint(raw()); }
   uword EntryPoint() const { return EntryPoint(raw()); }
@@ -4399,11 +4407,13 @@ class Instructions : public Object {
   }
 
   bool Equals(const Instructions& other) const {
-    if (Size() != other.Size()) {
-      return false;
-    }
+    return Equals(raw(), other.raw());
+  }
+
+  static bool Equals(RawInstructions* a, RawInstructions* b) {
+    if (Size(a) != Size(b)) return false;
     NoSafepointScope no_safepoint;
-    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Size())) == 0;
+    return memcmp(a->ptr(), b->ptr(), InstanceSize(Size(a))) == 0;
   }
 
   CodeStatistics* stats() const {
@@ -4879,10 +4889,13 @@ class Code : public Object {
   }
   intptr_t Size() const { return Instructions::Size(instructions()); }
   RawObjectPool* GetObjectPool() const { return object_pool(); }
+
   bool ContainsInstructionAt(uword addr) const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    const uword offset = addr - instr.PayloadStart();
-    return offset < static_cast<uword>(instr.Size());
+    return ContainsInstructionAt(raw(), addr);
+  }
+
+  static bool ContainsInstructionAt(RawCode* code, uword addr) {
+    return Instructions::ContainsPc(code->ptr()->instructions_, addr);
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.
@@ -4950,6 +4963,11 @@ class Code : public Object {
     kSCallTableCodeTarget = 1,
     kSCallTableFunctionTarget = 2,
     kSCallTableEntryLength = 3,
+  };
+
+  enum class PoolAttachment {
+    kAttachPool,
+    kNotAttachPool,
   };
 
   class KindField : public BitField<intptr_t, CallKind, 0, 2> {};
@@ -5116,14 +5134,24 @@ class Code : public Object {
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Finalizes the generated code, by generating various kinds of metadata (e.g.
+  // stack maps, pc descriptors, ...) and attach them to a newly generated
+  // [Code] object.
+  //
+  // If Code::PoolAttachment::kAttachPool is specified for [pool_attachment]
+  // then a new [ObjectPool] will be attached to the code object as well.
+  // Otherwise the caller is responsible for doing this via
+  // `Object::set_object_pool()`.
   static RawCode* FinalizeCode(const Function& function,
                                FlowGraphCompiler* compiler,
                                Assembler* assembler,
+                               PoolAttachment pool_attachment,
                                bool optimized = false,
                                CodeStatistics* stats = nullptr);
   static RawCode* FinalizeCode(const char* name,
                                FlowGraphCompiler* compiler,
                                Assembler* assembler,
+                               PoolAttachment pool_attachment,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
   static RawCode* FinalizeBytecode(const void* bytecode_data,
@@ -5259,6 +5287,8 @@ class Code : public Object {
   friend class SnapshotWriter;
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
+  friend class StubCode;               // for set_object_pool
+  friend class MegamorphicCacheTable;  // for set_object_pool
   friend class CodePatcher;     // for set_instructions
   friend class ProgramVisitor;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
@@ -7987,9 +8017,9 @@ class Array : public Instance {
   // architecture.
   static const intptr_t kHashBits = 30;
 
-  intptr_t Length() const {
-    ASSERT(!IsNull());
-    return Smi::Value(raw_ptr()->length_);
+  intptr_t Length() const { return LengthOf(raw()); }
+  static intptr_t LengthOf(const RawArray* array) {
+    return Smi::Value(array->ptr()->length_);
   }
   static intptr_t length_offset() { return OFFSET_OF(RawArray, length_); }
   static intptr_t data_offset() {
@@ -7997,6 +8027,15 @@ class Array : public Instance {
   }
   static intptr_t element_offset(intptr_t index) {
     return OFFSET_OF_RETURNED_VALUE(RawArray, data) + kWordSize * index;
+  }
+
+  static bool Equals(RawArray* a, RawArray* b) {
+    if (a == b) return true;
+    if (a->IsRawNull() || b->IsRawNull()) return false;
+    if (a->ptr()->length_ != b->ptr()->length_) return false;
+    if (a->ptr()->type_arguments_ != b->ptr()->type_arguments_) return false;
+    const intptr_t length = LengthOf(a);
+    return memcmp(a->ptr()->data(), b->ptr()->data(), kWordSize * length) == 0;
   }
 
   RawObject* At(intptr_t index) const { return *ObjectAddr(index); }

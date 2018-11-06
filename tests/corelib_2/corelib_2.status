@@ -129,6 +129,9 @@ integer_parsed_mul_div_vm_test: Pass, Slow
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+nsm_invocation_test: RuntimeError # Issue 35066
+
 [ $builder_tag == obfuscated && $runtime == dart_precompiled ]
 apply_generic_function_test: SkipByDesign # Function.apply with named args
 apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper

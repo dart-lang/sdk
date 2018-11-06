@@ -196,6 +196,7 @@ implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
 mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
+set_literals/*: Skip
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError

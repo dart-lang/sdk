@@ -14865,6 +14865,7 @@ class CodeCommentsWrapper final : public CodeComments {
 RawCode* Code::FinalizeCode(const char* name,
                             FlowGraphCompiler* compiler,
                             Assembler* assembler,
+                            PoolAttachment pool_attachment,
                             bool optimized,
                             CodeStatistics* stats /* = nullptr */) {
   Isolate* isolate = Isolate::Current();
@@ -14873,7 +14874,10 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 
   ASSERT(assembler != NULL);
-  const auto& object_pool = ObjectPool::Handle(assembler->MakeObjectPool());
+  const auto object_pool =
+      pool_attachment == PoolAttachment::kAttachPool
+          ? &ObjectPool::Handle(assembler->MakeObjectPool())
+          : nullptr;
 
   // Allocate the Code and Instructions objects.  Code is allocated first
   // because a GC during allocation of the code will leave the instruction
@@ -14924,7 +14928,9 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    code.set_object_pool(object_pool.raw());
+    if (pool_attachment == PoolAttachment::kAttachPool) {
+      code.set_object_pool(object_pool->raw());
+    }
 
     if (FLAG_write_protect_code) {
       uword address = RawObject::ToAddr(instrs.raw());
@@ -14964,6 +14970,7 @@ RawCode* Code::FinalizeCode(const char* name,
 RawCode* Code::FinalizeCode(const Function& function,
                             FlowGraphCompiler* compiler,
                             Assembler* assembler,
+                            PoolAttachment pool_attachment,
                             bool optimized /* = false */,
                             CodeStatistics* stats /* = nullptr */) {
 // Calling ToLibNamePrefixedQualifiedCString is very expensive,
@@ -14971,10 +14978,11 @@ RawCode* Code::FinalizeCode(const Function& function,
 #ifndef PRODUCT
   if (CodeObservers::AreActive()) {
     return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(), compiler,
-                        assembler, optimized, stats);
+                        assembler, pool_attachment, optimized, stats);
   }
 #endif  // !PRODUCT
-  return FinalizeCode("", compiler, assembler, optimized, stats);
+  return FinalizeCode("", compiler, assembler, pool_attachment, optimized,
+                      stats);
 }
 
 RawCode* Code::FinalizeBytecode(const void* bytecode_data,

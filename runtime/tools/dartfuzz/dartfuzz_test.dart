@@ -476,7 +476,9 @@ main(List<String> arguments) {
     // Undocumented options for cluster runs.
     ..addOption('shards',
         help: 'number of shards used in cluster run', defaultsTo: '1')
-    ..addOption('shard', help: 'shard id in cluster run', defaultsTo: '1');
+    ..addOption('shard', help: 'shard id in cluster run', defaultsTo: '1')
+    ..addOption('output_directory',
+        help: 'path to output (ignored)', defaultsTo: null);
 
   // Starts fuzz testing session.
   try {
