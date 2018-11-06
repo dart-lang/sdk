@@ -1308,6 +1308,47 @@ void Assembler::StoreIntoObject(Register object,
   Bind(&done);
 }
 
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi) {
+  ASSERT(object != TMP);
+  ASSERT(value != TMP);
+  ASSERT(slot != TMP);
+
+  movq(Address(slot, 0), value);
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
+  Label done;
+  if (can_be_smi == kValueCanBeSmi) {
+    testq(value, Immediate(kSmiTagMask));
+    j(ZERO, &done, kNearJump);
+  }
+  movb(TMP, FieldAddress(object, Object::tags_offset()));
+  shrl(TMP, Immediate(RawObject::kBarrierOverlapShift));
+  andl(TMP, Address(THR, Thread::write_barrier_mask_offset()));
+  testb(FieldAddress(value, Object::tags_offset()), TMP);
+  j(ZERO, &done, kNearJump);
+
+  if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
+      (slot != kWriteBarrierSlotReg)) {
+    // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
+    // from StoreIndexInstr, which gets these exact registers from the register
+    // allocator.
+    UNIMPLEMENTED();
+  }
+
+  call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+
+  Bind(&done);
+}
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {

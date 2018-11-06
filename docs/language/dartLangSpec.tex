@@ -11,7 +11,7 @@
 \makeindex
 \title{Dart Programming Language Specification\\
 {5th edition draft}\\
-{\large Version 2.1.0-dev}}
+{\large Version 2.2.0-dev}}
 \author{}
 
 % For information about Location Markers (and in particular the
@@ -21,6 +21,9 @@
 % CHANGES
 % =======
 % Significant changes to the specification.
+% 2.2
+%  - Specify whether the values of literal expressions override Object.==.
+%  - Allow Type objects as case expressions and const map keys.
 %
 % 2.1
 % - Remove 64-bit constraint on integer literals compiled to JavaScript numbers.
@@ -4457,7 +4460,7 @@ For example, if $C$ is the name of a class or type alias, the expression \code{$
 \item A constant object expression (\ref{const}),
 \code{\CONST{} $C$<$T_1,\ \ldots,\ T_k$>(\metavar{arguments})} or
 \code{\CONST{} $C$<$T_1,\ \ldots,\ T_k$>.\id(\metavar{arguments})},
-or either expression without the leading \CONST{} that occurs in a constant context, is a potentially constant expression if $T_1$, \ldots{}, $T_k$ are constant type expressions, and the actual argument expressions in \metavar{arguments} are constant expressions.
+or either expression without the leading \CONST{} that occurs in a constant context, is a potentially constant expression.
 It is further a constant expression if the invocation evaluates to a value.
 % \ref{const} requires each actual argument to be a constant expression,
 % but here we also catch errors during evaluation, e.g., `C(1, 0)` where
@@ -4472,15 +4475,10 @@ that occurs in a constant context, is a potentially constant expression if $T$ i
 It is further a constant expression if the list literal evaluates to a value.
 
 \item A constant map literal (\ref{maps}),
-\code{\CONST{} <$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}}
-is a potentially constant expression if
-\begin{itemize}
-  \item $K$ and $V$ are constant type expressions,
-  \item $k_1$, \ldots{}, $k_n$ are constant expressions evaluating to values that are either \code{int} or \code{String} instances, created using a symbol literal or a const invocation of the \code{Symbol} constructor, or instances of classes that that do not override the \code{==} operator inherited from \code{Object}, and
-  \item $v_1$, \ldots{}, $v_n$ are constant expressions.
-\end{itemize}
+\code{\CONST{} <$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}}, or
+\code{<$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}} that occurs in a constant context,
+is a potentially constant expression.
 It is further a constant expression if the map literal evaluates to a value.
-%Should we also require the key instances to not override hashCode? Because Symbols do.
 
 \item A parenthesized expression \code{($e$)} is a potentially constant expression if $e$ is a potentially constant expression. It is further a constant expression if $e$ is a constant expression.
 
@@ -5166,7 +5164,8 @@ Attempting to mutate a constant list literal will result in a dynamic error.
 \LMHash{}%
 It is a compile-time error if an element of a constant list literal is not a constant expression.
 % Need 'free': `const <Function(Function<X>(X))>[]` is OK, but `X` is not free.
-It is a compile-time error if the type argument of a constant list literal is or contains a free type variable.
+It is a compile-time error if the type argument of a constant list literal is
+not a constant type expression.
 \rationale{
 The binding of a type parameter is not known at compile time, so we cannot use type parameters inside constant expressions.
 }
@@ -5284,14 +5283,17 @@ It is a compile-time error if either a key or a value of an entry in a constant 
 It is a compile-time error if the key of an entry in a constant map literal is an instance of
 a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
 unless the key is a string or an integer,
-or the key expression evaluates to an instance of the built-in
+the key expression evaluates to an instance of the built-in
 class \code{Symbol} which was originally obtained by evaluation of a
 literal symbol or
-a constant invocation of a constructor of the \code{Symbol} class.
+a constant invocation of a constructor of the \code{Symbol} class,
+or to an object implementing the built-in class \code{Type}
+which was originally obtained by evaluating a constant type literal
+(\ref{{dynamicTypeSystem}).
 % Needs 'free': `const <int, Function(Function<X>(X))>{}` is OK, but
 % `X` is not free.
 It is a compile-time error if a type argument of a constant map literal
-is or contains a free type variable.
+is not a constant type expression \ref{constants}.
 
 \LMHash{}%
 The value of a constant map literal
@@ -5919,7 +5921,7 @@ If $T$ is not a parameterized type, let $R$ be $T$.
 
 \LMHash{}%
 If $T$ is a parameterized type,
-it is a compile-time error if $U_j$ contains a type variable for any
+it is a compile-time error if $U_j$ is not a constant type expression for any
 $j \in 1 .. m$.
 
 \begin{itemize}
@@ -8788,7 +8790,7 @@ If no such declaration exists in the lexical scope, let $d$ be the declaration o
 
 \begin{itemize}
 \item if $d$ is a prefix $p$, a compile-time error occurs unless the token immediately following $d$ is \code{'.'}.
-\item If $d$ is a class or type alias $T$, the value of $e$ is an instance of class \code{Type} (or a subclass thereof) reifying $T$.
+\item If $d$ is a class or type alias $T$, the value of $e$ is an object implementing the class \code{Type} which reifies $T$.
 \item If $d$ is a type parameter $T$, then the value of $e$ is the value of the actual type argument corresponding to $T$ that was passed to the generative constructor that created the current binding of \THIS{}.
 If, however, $e$ occurs inside a static member, a compile-time error occurs.
 
@@ -9661,10 +9663,13 @@ Note that the values of the expressions are known at compile time, and are indep
 It is a compile-time error if the class $C$ has an implementation of
 the operator \code{==} other than the one inherited from \code{Object},
 unless the expression evaluates to a string or an integer,
-or the expression evaluates to an instance of the built-in
+the expression evaluates to an instance of the built-in
 class \code{Symbol} which was initially obtained by evaluation of a
 literal symbol or
-a constant invocation of a constructor of the \code{Symbol} class.
+a constant invocation of a constructor of the \code{Symbol} class,
+or to an object implementing the built-in class \code{Type}
+which was originally created by evaluating a constant type literal
+(\ref{dynamicTypeSystem}).
 
 \rationale{
 The prohibition on user defined equality allows us to implement the switch efficiently for user defined types.
@@ -11248,6 +11253,24 @@ declaring a name for the same function type are equal:
 \}
 \end{dartCode}
 
+\LMHash{}
+\commentary{
+Instances of \code{Type} can be obtained in various ways,
+for example by using reflection,
+by reading the \code{runtimeType} of an object,
+or by evaluating a \emph{type literal} expression.
+}
+
+\LMHash{}
+An expression is a \emph{type literal} if it is an identifier,
+or a qualified identifier,
+which denotes a class, mixin or type alias declaration, or it is
+an identifier denoting a type parameter of a generic class or function.
+It is a \emph{constant type literal} if it does not denote a type parameter,
+and it is not qualified by a deferred prefix.
+\commentary{
+A constant type literal is a constant expression (\ref{constants}).
+}
 
 \subsection{Type Declarations}
 \LMLabel{typeDeclarations}

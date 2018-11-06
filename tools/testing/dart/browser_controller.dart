@@ -538,12 +538,24 @@ class IE extends Browser {
     });
   }
 
-  // Clears the recovery cache if the static resetBrowserConfiguration flag is
-  // set.
-  Future<bool> resetConfiguration() {
-    if (!Browser.resetBrowserConfiguration) return new Future.value(true);
-    var localAppData = Platform.environment['LOCALAPPDATA'];
+  // Clears the recovery cache and allows popups on localhost if the static
+  // resetBrowserConfiguration flag is set.
+  Future<bool> resetConfiguration() async {
+    if (!Browser.resetBrowserConfiguration) return true;
+    // todo(athom) Move this into the puppet configuration
+    var args = [
+      "add",
+      r"HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\New Windows\Allow",
+      "/v",
+      "127.0.0.1",
+      "/f"
+    ];
+    var result = await Process.run("reg", args);
+    if (result.exitCode != 0) {
+      _logEvent("Failed to override user popup blocker settings");
+    }
 
+    var localAppData = Platform.environment['LOCALAPPDATA'];
     Directory dir = new Directory("$localAppData\\Microsoft\\"
         "Internet Explorer\\Recovery");
     return dir.delete(recursive: true).then((_) {
@@ -1676,9 +1688,12 @@ Future captureInternetExplorerScreenshot(String message) async {
         'stdout: ${result.stdout}\n'
         'stderr: ${result.stderr}');
   } else {
+    final gsutilScript = Platform.script
+        .resolve('../../../third_party/gsutil/gsutil.py')
+        .toFilePath();
     final storageUrl = 'gs://dart-temp-crash-archive/$screenshotName';
     final args = [
-      r'e:\b\depot_tools\gsutil.py',
+      gsutilScript,
       'cp',
       screenshotFile,
       storageUrl,

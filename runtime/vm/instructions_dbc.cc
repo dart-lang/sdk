@@ -16,21 +16,21 @@
 namespace dart {
 
 static bool HasLoadFromPool(Instr instr) {
-  switch (Bytecode::DecodeOpcode(instr)) {
-    case Bytecode::kLoadConstant:
-    case Bytecode::kPushConstant:
-    case Bytecode::kStaticCall:
-    case Bytecode::kIndirectStaticCall:
-    case Bytecode::kInstanceCall1:
-    case Bytecode::kInstanceCall2:
-    case Bytecode::kInstanceCall1Opt:
-    case Bytecode::kInstanceCall2Opt:
-    case Bytecode::kStoreStaticTOS:
-    case Bytecode::kPushStatic:
-    case Bytecode::kAllocate:
-    case Bytecode::kInstantiateType:
-    case Bytecode::kInstantiateTypeArgumentsTOS:
-    case Bytecode::kAssertAssignable:
+  switch (SimulatorBytecode::DecodeOpcode(instr)) {
+    case SimulatorBytecode::kLoadConstant:
+    case SimulatorBytecode::kPushConstant:
+    case SimulatorBytecode::kStaticCall:
+    case SimulatorBytecode::kIndirectStaticCall:
+    case SimulatorBytecode::kInstanceCall1:
+    case SimulatorBytecode::kInstanceCall2:
+    case SimulatorBytecode::kInstanceCall1Opt:
+    case SimulatorBytecode::kInstanceCall2Opt:
+    case SimulatorBytecode::kStoreStaticTOS:
+    case SimulatorBytecode::kPushStatic:
+    case SimulatorBytecode::kAllocate:
+    case SimulatorBytecode::kInstantiateType:
+    case SimulatorBytecode::kInstantiateTypeArgumentsTOS:
+    case SimulatorBytecode::kAssertAssignable:
       return true;
     default:
       return false;
@@ -40,9 +40,9 @@ static bool HasLoadFromPool(Instr instr) {
 static bool GetLoadedObjectAt(uword pc,
                               const ObjectPool& object_pool,
                               Object* obj) {
-  Instr instr = Bytecode::At(pc);
+  Instr instr = SimulatorBytecode::At(pc);
   if (HasLoadFromPool(instr)) {
-    uint16_t index = Bytecode::DecodeD(instr);
+    uint16_t index = SimulatorBytecode::DecodeD(instr);
     if (object_pool.TypeAt(index) == ObjectPool::kTaggedObject) {
       *obj = object_pool.ObjectAt(index);
       return true;
@@ -59,10 +59,10 @@ CallPattern::CallPattern(uword pc, const Code& code)
       ic_data_(ICData::Handle()) {
   ASSERT(code.ContainsInstructionAt(end_));
   const uword call_pc = end_ - sizeof(Instr);
-  Instr call_instr = Bytecode::At(call_pc);
-  ASSERT(Bytecode::IsCallOpcode(call_instr));
+  Instr call_instr = SimulatorBytecode::At(call_pc);
+  ASSERT(SimulatorBytecode::IsCallOpcode(call_instr));
   ic_data_load_end_ = call_pc;
-  target_code_pool_index_ = Bytecode::DecodeD(call_instr);
+  target_code_pool_index_ = SimulatorBytecode::DecodeD(call_instr);
 }
 
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
@@ -72,10 +72,11 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
       trampoline_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(end_));
   const uword call_pc = end_ - sizeof(Instr);
-  Instr call_instr = Bytecode::At(call_pc);
-  ASSERT(Bytecode::DecodeOpcode(call_instr) == Bytecode::kNativeCall);
-  native_function_pool_index_ = Bytecode::DecodeB(call_instr);
-  trampoline_pool_index_ = Bytecode::DecodeA(call_instr);
+  Instr call_instr = SimulatorBytecode::At(call_pc);
+  ASSERT(SimulatorBytecode::DecodeOpcode(call_instr) ==
+         SimulatorBytecode::kNativeCall);
+  native_function_pool_index_ = SimulatorBytecode::DecodeB(call_instr);
+  trampoline_pool_index_ = SimulatorBytecode::DecodeA(call_instr);
 }
 
 NativeFunctionWrapper NativeCallPattern::target() const {
@@ -160,10 +161,12 @@ void CallPattern::SetTargetCode(const Code& target_code) const {
 }
 
 void CallPattern::InsertDeoptCallAt(uword pc) {
-  const uint8_t argc = Bytecode::IsCallOpcode(Bytecode::At(pc))
-                           ? Bytecode::DecodeArgc(Bytecode::At(pc))
-                           : 0;
-  *reinterpret_cast<Instr*>(pc) = Bytecode::Encode(Bytecode::kDeopt, argc, 0);
+  const uint8_t argc =
+      SimulatorBytecode::IsCallOpcode(SimulatorBytecode::At(pc))
+          ? SimulatorBytecode::DecodeArgc(SimulatorBytecode::At(pc))
+          : 0;
+  *reinterpret_cast<Instr*>(pc) =
+      SimulatorBytecode::Encode(SimulatorBytecode::kDeopt, argc, 0);
 }
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)

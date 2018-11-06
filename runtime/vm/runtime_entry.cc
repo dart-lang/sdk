@@ -288,7 +288,9 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
       ASSERT(element_type.IsNull() ||
              ((element_type.Length() >= 1) && element_type.IsInstantiated()));
       array.SetTypeArguments(element_type);  // May be null.
-      EnsureNewOrRemembered(isolate, thread, array);
+      if (!array.raw()->IsCardRemembered()) {
+        EnsureNewOrRemembered(isolate, thread, array);
+      }
       return;
     }
   }

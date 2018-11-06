@@ -10,6 +10,7 @@
 #include "vm/heap/freelist.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/runtime_entry.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -604,5 +605,20 @@ intptr_t RawImmutableArray::VisitImmutableArrayPointers(
     ObjectPointerVisitor* visitor) {
   return RawArray::VisitArrayPointers(raw_obj, visitor);
 }
+
+void RawObject::RememberCard(RawObject* const* slot) {
+  HeapPage::Of(this)->RememberCard(slot);
+}
+
+DEFINE_LEAF_RUNTIME_ENTRY(void,
+                          RememberCard,
+                          2,
+                          RawObject* object,
+                          RawObject** slot) {
+  ASSERT(object->IsOldObject());
+  ASSERT(object->IsCardRemembered());
+  HeapPage::Of(object)->RememberCard(slot);
+}
+END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

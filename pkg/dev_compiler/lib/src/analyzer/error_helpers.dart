@@ -3,7 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart'
-    show AnalysisError, ErrorSeverity, ErrorType, StrongModeCode;
+    show
+        AnalysisError,
+        ErrorSeverity,
+        ErrorType,
+        StrongModeCode,
+        StaticTypeWarningCode;
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:path/path.dart' as path;
@@ -85,6 +90,21 @@ ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
   return ErrorProcessor.getProcessor(context.analysisOptions, error)
           ?.severity ??
       errorCode.errorSeverity;
+}
+
+bool isFatalError(AnalysisContext context, AnalysisError e, bool replCompile) {
+  if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
+
+  // These errors are not fatal in the REPL compile mode as we
+  // allow access to private members across library boundaries
+  // and those accesses will show up as undefined members unless
+  // additional analyzer changes are made to support them.
+  // TODO(jacobr): consider checking that the identifier name
+  // referenced by the error is private.
+  return !replCompile ||
+      (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
+          e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
+          e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
 }
 
 const invalidImportDartMirrors = StrongModeCode(

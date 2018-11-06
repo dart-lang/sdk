@@ -13,7 +13,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import '../../compiler_new.dart' as api;
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
-import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart';
 import '../options.dart';
 import '../source_file_provider.dart';
 import '../types/abstract_value_domain.dart';

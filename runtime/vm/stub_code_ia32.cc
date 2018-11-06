@@ -978,13 +978,19 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
-// Helper stub to implement Assembler::StoreIntoObject.
+// Helper stub to implement Assembler::StoreIntoObject/Array.
 // Input parameters:
 //   EDX: Object (old)
+//   EDI: Slot
 // If EDX is not remembered, mark as remembered and add to the store buffer.
 COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
-void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+COMPILE_ASSERT(kWriteBarrierSlotReg == EDI);
+static void GenerateWriteBarrierStubHelper(Assembler* assembler,
+                                           Address stub_code,
+                                           bool cards) {
+  Label remember_card;
+
   // Save values being destroyed.
   __ pushl(EAX);
   __ pushl(ECX);
@@ -1005,6 +1011,21 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // EDX: Address being stored
   // EAX: Current tag value
   __ Bind(&add_to_buffer);
+
+  if (cards) {
+    // Check if this object is using remembered cards.
+    __ testl(EAX, Immediate(1 << RawObject::kCardRememberedBit));
+    __ j(NOT_EQUAL, &remember_card, Assembler::kFarJump);  // Unlikely.
+  } else {
+#if defined(DEBUG)
+    Label ok;
+    __ testl(EAX, Immediate(1 << RawObject::kCardRememberedBit));
+    __ j(ZERO, &ok, Assembler::kFarJump);  // Unlikely.
+    __ Stop("Wrong barrier");
+    __ Bind(&ok);
+#endif
+  }
+
   // lock+andl is an atomic read-modify-write.
   __ lock();
   __ andl(FieldAddress(EDX, Object::tags_offset()),
@@ -1043,6 +1064,48 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
   __ ret();
+
+  if (cards) {
+    Label remember_card_slow;
+
+    // Get card table.
+    __ Bind(&remember_card);
+    __ movl(EAX, EDX);                   // Object.
+    __ andl(EAX, Immediate(kPageMask));  // HeapPage.
+    __ cmpl(Address(EAX, HeapPage::card_table_offset()), Immediate(0));
+    __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
+
+    // Dirty the card.
+    __ subl(EDI, EAX);  // Offset in page.
+    __ movl(EAX, Address(EAX, HeapPage::card_table_offset()));  // Card table.
+    __ shrl(EDI,
+            Immediate(HeapPage::kBytesPerCardLog2));  // Index in card table.
+    __ movb(Address(EAX, EDI, TIMES_1, 0), Immediate(1));
+    __ popl(ECX);
+    __ popl(EAX);
+    __ ret();
+
+    // Card table not yet allocated.
+    __ Bind(&remember_card_slow);
+    __ EnterCallRuntimeFrame(2 * kWordSize);
+    __ movl(Address(ESP, 0 * kWordSize), EDX);  // Object
+    __ movl(Address(ESP, 1 * kWordSize), EDI);  // Slot
+    __ CallRuntime(kRememberCardRuntimeEntry, 2);
+    __ LeaveCallRuntimeFrame();
+    __ popl(ECX);
+    __ popl(EAX);
+    __ ret();
+  }
+}
+
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::write_barrier_code_offset()), false);
+}
+
+void StubCode::GenerateArrayWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::array_write_barrier_code_offset()), true);
 }
 
 // Called for inline allocation of objects.

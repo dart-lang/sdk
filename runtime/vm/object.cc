@@ -2091,10 +2091,19 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
   }
 
   void VisitPointers(RawObject** from, RawObject** to) {
-    for (RawObject** slot = from; slot <= to; ++slot) {
-      RawObject* value = *slot;
-      if (value->IsHeapObject()) {
-        old_obj_->CheckHeapPointerStore(value, thread_);
+    if (old_obj_->IsArray()) {
+      for (RawObject** slot = from; slot <= to; ++slot) {
+        RawObject* value = *slot;
+        if (value->IsHeapObject()) {
+          old_obj_->CheckHeapPointerStore(value, thread_);
+        }
+      }
+    } else {
+      for (RawObject** slot = from; slot <= to; ++slot) {
+        RawObject* value = *slot;
+        if (value->IsHeapObject()) {
+          old_obj_->CheckArrayPointerStore(slot, value, thread_);
+        }
       }
     }
   }
@@ -2126,6 +2135,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
           reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
           size - kHeaderSizeInBytes);
+
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
@@ -14855,6 +14865,7 @@ class CodeCommentsWrapper final : public CodeComments {
 RawCode* Code::FinalizeCode(const char* name,
                             FlowGraphCompiler* compiler,
                             Assembler* assembler,
+                            PoolAttachment pool_attachment,
                             bool optimized,
                             CodeStatistics* stats /* = nullptr */) {
   Isolate* isolate = Isolate::Current();
@@ -14863,7 +14874,10 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 
   ASSERT(assembler != NULL);
-  const auto& object_pool = ObjectPool::Handle(assembler->MakeObjectPool());
+  const auto object_pool =
+      pool_attachment == PoolAttachment::kAttachPool
+          ? &ObjectPool::Handle(assembler->MakeObjectPool())
+          : nullptr;
 
   // Allocate the Code and Instructions objects.  Code is allocated first
   // because a GC during allocation of the code will leave the instruction
@@ -14914,7 +14928,9 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    code.set_object_pool(object_pool.raw());
+    if (pool_attachment == PoolAttachment::kAttachPool) {
+      code.set_object_pool(object_pool->raw());
+    }
 
     if (FLAG_write_protect_code) {
       uword address = RawObject::ToAddr(instrs.raw());
@@ -14954,6 +14970,7 @@ RawCode* Code::FinalizeCode(const char* name,
 RawCode* Code::FinalizeCode(const Function& function,
                             FlowGraphCompiler* compiler,
                             Assembler* assembler,
+                            PoolAttachment pool_attachment,
                             bool optimized /* = false */,
                             CodeStatistics* stats /* = nullptr */) {
 // Calling ToLibNamePrefixedQualifiedCString is very expensive,
@@ -14961,10 +14978,11 @@ RawCode* Code::FinalizeCode(const Function& function,
 #ifndef PRODUCT
   if (CodeObservers::AreActive()) {
     return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(), compiler,
-                        assembler, optimized, stats);
+                        assembler, pool_attachment, optimized, stats);
   }
 #endif  // !PRODUCT
-  return FinalizeCode("", compiler, assembler, optimized, stats);
+  return FinalizeCode("", compiler, assembler, pool_attachment, optimized,
+                      stats);
 }
 
 RawCode* Code::FinalizeBytecode(const void* bytecode_data,
@@ -21383,7 +21401,12 @@ uint32_t Array::CanonicalizeHash() const {
 
 RawArray* Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->array_class() != Class::null());
-  return New(kClassId, len, space);
+  RawArray* result = New(kClassId, len, space);
+  if (result->Size() > Heap::kNewAllocatableSize) {
+    ASSERT(result->IsOldObject());
+    result->SetCardRememberedBitUnsynchronized();
+  }
+  return result;
 }
 
 RawArray* Array::New(intptr_t len,
@@ -21420,7 +21443,7 @@ RawArray* Array::Slice(intptr_t start,
   // allocated array with values from the given source array instead of
   // null-initializing all elements.
   Array& dest = Array::Handle(Array::New(count));
-  dest.StorePointers(dest.ObjectAddr(0), ObjectAddr(start), count);
+  dest.StoreArrayPointers(dest.ObjectAddr(0), ObjectAddr(start), count);
 
   if (with_type_argument) {
     dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));

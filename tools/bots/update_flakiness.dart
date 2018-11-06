@@ -39,9 +39,12 @@ ${parser.usage}""");
   for (final path in parameters) {
     final results = await loadResults(path);
     for (final result in results) {
+      final String configuration = result["configuration"];
       final String name = result["name"];
+      final key = "$configuration:$name";
       final Map<String, dynamic> testData =
-          data.putIfAbsent(name, () => <String, dynamic>{});
+          data.putIfAbsent(key, () => <String, dynamic>{});
+      testData["configuration"] = configuration;
       testData["name"] = name;
       final outcomes = testData.putIfAbsent("outcomes", () => []);
       if (!outcomes.contains(result["result"])) {
@@ -56,9 +59,9 @@ ${parser.usage}""");
   final sink = options["output"] != null
       ? new File(options["output"]).openWrite()
       : stdout;
-  final names = new List<String>.from(data.keys)..sort();
-  for (final name in names) {
-    final testData = data[name];
+  final keys = new List<String>.from(data.keys)..sort();
+  for (final key in keys) {
+    final testData = data[key];
     if (testData["outcomes"].length < 2) continue;
     sink.writeln(jsonEncode(testData));
   }

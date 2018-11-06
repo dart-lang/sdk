@@ -827,9 +827,8 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! _ControllerStream) return false;
-    _ControllerStream otherStream = other;
-    return identical(otherStream._controller, this._controller);
+    return other is _ControllerStream &&
+        identical(other._controller, this._controller);
   }
 }
 

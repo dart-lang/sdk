@@ -11,8 +11,10 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
+import '../compiler/shared_command.dart' show CompilerResult;
 import 'context.dart' show AnalyzerOptions;
-import 'module_compiler.dart' show CompilerOptions, ModuleCompiler;
+import 'driver.dart';
+import 'module_compiler.dart';
 
 const _binaryName = 'dartdevc';
 
@@ -23,9 +25,8 @@ bool _verbose = false;
 /// This handles argument parsing, usage, error handling.
 /// See bin/dartdevc.dart for the actual entry point, which includes Bazel
 /// worker support.
-int compile(List<String> args, {void printFn(Object obj)}) {
-  printFn ??= print;
-
+CompilerResult compile(List<String> args,
+    {CompilerAnalysisDriver compilerState}) {
   ArgResults argResults;
   AnalyzerOptions analyzerOptions;
   try {
@@ -36,36 +37,36 @@ int compile(List<String> args, {void printFn(Object obj)}) {
     argResults = parser.parse(args);
     analyzerOptions = AnalyzerOptions.fromArguments(argResults);
   } on FormatException catch (error) {
-    printFn('$error\n\n$_usageMessage');
-    return 64;
+    print('$error\n\n$_usageMessage');
+    return CompilerResult(64);
   }
 
   _verbose = argResults['verbose'] as bool;
   if (argResults['help'] as bool || args.isEmpty) {
-    printFn(_usageMessage);
-    return 0;
+    print(_usageMessage);
+    return CompilerResult(0);
   }
 
   if (argResults['version'] as bool) {
-    printFn('$_binaryName version ${_getVersion()}');
-    return 0;
+    print('$_binaryName version ${_getVersion()}');
+    return CompilerResult(0);
   }
 
   try {
-    _compile(argResults, analyzerOptions, printFn);
-    return 0;
+    var driver = _compile(argResults, analyzerOptions);
+    return CompilerResult(0, analyzerState: driver);
   } on UsageException catch (error) {
     // Incorrect usage, input file not found, etc.
-    printFn('${error.message}\n\n$_usageMessage');
-    return 64;
+    print('${error.message}\n\n$_usageMessage');
+    return CompilerResult(64);
   } on ConflictingSummaryException catch (error) {
     // Same input file appears in multiple provided summaries.
-    printFn(error);
-    return 65;
+    print(error);
+    return CompilerResult(65);
   } on CompileErrorException catch (error) {
     // Code has error(s) and failed to compile.
-    printFn(error);
-    return 1;
+    print(error);
+    return CompilerResult(1);
   } catch (error, stackTrace) {
     // Anything else is likely a compiler bug.
     //
@@ -73,7 +74,7 @@ int compile(List<String> args, {void printFn(Object obj)}) {
     // crash while compiling
     // (of course, output code may crash, if it had errors).
     //
-    printFn('''
+    print('''
 We're sorry, you've found a bug in our compiler.
 You can report this bug at:
     https://github.com/dart-lang/sdk/issues/labels/area-dev-compiler
@@ -85,16 +86,20 @@ any other information that may help us track it down. Thanks!
 $error
 $stackTrace
 ```''');
-    return 70;
+    return CompilerResult(70);
   }
 }
 
-ArgParser ddcArgParser({bool hide = true}) {
-  var argParser = ArgParser(allowTrailingOptions: true)
-    ..addFlag('help',
+ArgParser ddcArgParser(
+    {bool hide = true, bool help = true, ArgParser argParser}) {
+  argParser ??= ArgParser(allowTrailingOptions: true);
+  if (help) {
+    argParser.addFlag('help',
         abbr: 'h',
         help: 'Display this message. Add -v to show hidden options.',
-        negatable: false)
+        negatable: false);
+  }
+  argParser
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Verbose help output.', hide: hide)
     ..addFlag('version',
@@ -119,11 +124,16 @@ bool _changed(List<int> list1, List<int> list2) {
   return false;
 }
 
-void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
-    void printFn(Object obj)) {
+CompilerAnalysisDriver _compile(
+    ArgResults argResults, AnalyzerOptions analyzerOptions,
+    {CompilerAnalysisDriver compilerDriver}) {
   var compilerOpts = CompilerOptions.fromArguments(argResults);
-  var compiler = ModuleCompiler(analyzerOptions,
-      summaryPaths: compilerOpts.summaryModules.keys);
+  var summaryPaths = compilerOpts.summaryModules.keys.toList();
+  if (compilerDriver == null ||
+      !compilerDriver.isCompatibleWith(analyzerOptions, summaryPaths)) {
+    compilerDriver =
+        CompilerAnalysisDriver(analyzerOptions, summaryPaths: summaryPaths);
+  }
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = compilerOpts.moduleFormats;
   if (outPaths.isEmpty) {
@@ -138,8 +148,13 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
         '');
   }
 
-  var module = compiler.compile(argResults.rest, compilerOpts);
-  module.errors.forEach(printFn);
+  var module = compileWithAnalyzer(
+    compilerDriver,
+    argResults.rest,
+    analyzerOptions,
+    compilerOpts,
+  );
+  module.errors.forEach(print);
 
   if (!module.isValid) {
     throw compilerOpts.unsafeForceCompile
@@ -151,7 +166,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
   for (var i = 0; i < outPaths.length; i++) {
     module.writeCodeSync(moduleFormats[i], outPaths[i]);
   }
-  if (module.summaryBytes != null) {
+  if (compilerOpts.summarizeApi) {
     var summaryPaths = compilerOpts.summaryOutPath != null
         ? [compilerOpts.summaryOutPath]
         : outPaths.map((p) =>
@@ -169,6 +184,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
       }
     }
   }
+  return compilerDriver;
 }
 
 String get _usageMessage =>

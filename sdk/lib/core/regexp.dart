@@ -40,6 +40,24 @@ abstract class RegExp implements Pattern {
    *
    * Throws a [FormatException] if [source] is not valid regular
    * expression syntax.
+   *
+   * If `multiLine` is enabled, then `^` and `$` will match the beginning and
+   * end of a _line_, in addition to matching beginning and end of input,
+   * respectively.
+   *
+   * If `caseSensitive` is disabled, then case is ignored.
+   *
+   * Example:
+   *
+   * ```dart
+   * var wordPattern = RegExp(r"(\w+)");
+   * var bracketedNumberValue = RegExp("$key: \\[\\d+\\]");
+   * ```
+   *
+   * Notice the use of a _raw string_ in the first example, and a regular
+   * string in the second. Because of the many character classes used in
+   * regular expressions, it is common to use a raw string here, unless string
+   * interpolation is required.
    */
   external factory RegExp(String source,
       {bool multiLine: false, bool caseSensitive: true});

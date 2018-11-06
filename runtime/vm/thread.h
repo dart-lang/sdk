@@ -85,6 +85,8 @@ class Zone;
 #define CACHED_VM_STUBS_LIST(V)                                                \
   V(RawCode*, write_barrier_code_, StubCode::WriteBarrier_entry()->code(),     \
     NULL)                                                                      \
+  V(RawCode*, array_write_barrier_code_,                                       \
+    StubCode::ArrayWriteBarrier_entry()->code(), NULL)                         \
   V(RawCode*, fix_callers_target_code_,                                        \
     StubCode::FixCallersTarget_entry()->code(), NULL)                          \
   V(RawCode*, fix_allocation_stub_code_,                                       \
@@ -142,6 +144,8 @@ class Zone;
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
   V(uword, write_barrier_entry_point_,                                         \
     StubCode::WriteBarrier_entry()->EntryPoint(), 0)                           \
+  V(uword, array_write_barrier_entry_point_,                                   \
+    StubCode::ArrayWriteBarrier_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
   V(uword, null_error_shared_without_fpu_regs_entry_point_,                    \

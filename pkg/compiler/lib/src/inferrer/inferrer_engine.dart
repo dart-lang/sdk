@@ -17,7 +17,7 @@ import '../elements/types.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
