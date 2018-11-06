@@ -78,6 +78,37 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
+    "fuzzer": [
+      "runtime/tools/dartfuzz/",
+      "out/DebugIA32/",
+      "out/DebugSIMARM/",
+      "out/DebugSIMARM64/",
+      "out/DebugSIMDBC/",
+      "out/DebugSIMDBC64/",
+      "out/DebugX64/",
+      "out/ProductX64/",
+      "out/ReleaseIA32/",
+      "out/ReleaseSIMARM/",
+      "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMDBC/",
+      "out/ReleaseSIMDBC64/",
+      "out/ReleaseX64/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/observatory_pub_packages/packages/",
+      "tools/sdks/dart-sdk/",
+      "pkg/async_helper/",
+      "pkg/dart_internal/",
+      "pkg/expect/",
+      "pkg/front_end/",
+      "pkg/js/",
+      "pkg/kernel/",
+      "pkg/meta/",
+      "pkg/vm/",
+      "runtime/",
+      "sdk/",
+      ".packages"
+    ],
     "vm-kernel": [
       "out/DebugIA32/",
       "out/DebugSIMARM/",
@@ -1744,7 +1775,9 @@
             "--no-show-stats",
             "--repeat",
             "125"
-          ]
+          ],
+          "shards": 10,
+          "fileset": "fuzzer"
         }
       ]
     }
