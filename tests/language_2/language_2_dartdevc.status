@@ -19,14 +19,12 @@ async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
-bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 28816
 built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28816
 built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
-conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
@@ -99,70 +97,16 @@ issue31596_super_test/05: CompileTimeError
 issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
-issue32353_test: CompileTimeError # Issue 34846
-issue34404_flutter_modified_test: CompileTimeError # DDC doesn't support mixin inference
-issue34404_flutter_test: CompileTimeError # DDC doesn't support mixin inference
 issue34498_test: MissingCompileTimeError # Issue 34500
-issue34635_test: MissingCompileTimeError
-issue34636_test: MissingCompileTimeError
 label_test: RuntimeError
 labeled_variable_declaration_test: RuntimeError
 large_class_declaration_test: Slow, Pass
 left_shift_test: RuntimeError # Ints and doubles are unified.
 mixin_declaration/mixin_declaration_factory_test/02: Crash
-mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_04_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_06_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_08_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_11_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_valid_A00_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A01_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A02_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A10_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A11_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A12_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A20_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A21_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A22_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A23_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A30_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A31_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_A42_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B00_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B01_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B02_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B03_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B10_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B11_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B12_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_B13_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C00_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C01_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C02_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C03_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C10_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C11_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C12_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_C13_test: CompileTimeError # Issue #34164
-mixin_declaration/mixin_declaration_inference_valid_mixin_applications_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Analyzer chooses wrong(?) super method.
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test: CompileTimeError # Issue 34806
 mixin_super_use_test: CompileTimeError # Issue 34806
-mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/06: MissingCompileTimeError
-mixin_type_parameter_inference_test/07: MissingCompileTimeError
-mixin_type_parameter_inference_test/08: RuntimeError
-mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
@@ -171,7 +115,7 @@ part_of_multiple_libs_test/01: MissingCompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
 private_method_tearoff_test: RuntimeError
-regress_23089_test: MissingCompileTimeError
+regress_22976_test: CompileTimeError # Issue 31935, test is not legal in Dart 2.
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
 regress_27617_test/1: MissingCompileTimeError
@@ -198,7 +142,6 @@ syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
-type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
 type_promotion_functions_test/03: CompileTimeError # Issue 30895
