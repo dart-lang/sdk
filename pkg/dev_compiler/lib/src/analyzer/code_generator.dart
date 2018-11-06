@@ -6,6 +6,7 @@ import 'dart:collection' show HashMap, HashSet;
 import 'dart:math' show min, max;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
@@ -13,23 +14,15 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
-import 'package:analyzer/src/summary/idl.dart' show UnlinkedUnit;
-import 'package:analyzer/src/summary/link.dart' as summary_link;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart'
-    show serializeAstUnlinked;
-import 'package:analyzer/src/summary/summarize_elements.dart'
-    show PackageBundleAssembler;
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart' show SourceLocation;
@@ -43,6 +36,7 @@ import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
 import 'ast_builder.dart';
+import 'driver.dart';
 import 'element_helpers.dart';
 import 'error_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
@@ -73,7 +67,6 @@ import 'type_utilities.dart';
 class CodeGenerator extends Object
     with NullableTypeInference, SharedCompiler<LibraryElement>
     implements AstVisitor<JS.Node> {
-  final AnalysisContext context;
   final SummaryDataStore summaryData;
 
   final CompilerOptions options;
@@ -200,38 +193,45 @@ class CodeGenerator extends Object
 
   final _usedCovariantPrivateMembers = HashSet<ExecutableElement>();
 
-  CodeGenerator(AnalysisContext c, this.summaryData, this.options,
-      this._extensionTypes, this.errors)
-      : context = c,
-        rules = StrongTypeSystemImpl(c.typeProvider),
-        types = c.typeProvider,
-        _asyncStreamIterator = getClass(c, 'dart:async', 'StreamIterator').type,
-        _coreIdentical = _getLibrary(c, 'dart:core')
+  final DeclaredVariables declaredVariables;
+
+  CodeGenerator(LinkedAnalysisDriver driver, this.types, this.summaryData,
+      this.options, this._extensionTypes, this.errors)
+      : rules = StrongTypeSystemImpl(types),
+        declaredVariables = driver.declaredVariables,
+        _asyncStreamIterator =
+            driver.getClass('dart:async', 'StreamIterator').type,
+        _coreIdentical = driver
+            .getLibrary('dart:core')
             .publicNamespace
             .get('identical') as FunctionElement,
-        _jsArray = getClass(c, 'dart:_interceptors', 'JSArray'),
-        interceptorClass = getClass(c, 'dart:_interceptors', 'Interceptor'),
-        coreLibrary = _getLibrary(c, 'dart:core'),
-        boolClass = getClass(c, 'dart:core', 'bool'),
-        intClass = getClass(c, 'dart:core', 'int'),
-        doubleClass = getClass(c, 'dart:core', 'double'),
-        numClass = getClass(c, 'dart:core', 'num'),
-        nullClass = getClass(c, 'dart:core', 'Null'),
-        objectClass = getClass(c, 'dart:core', 'Object'),
-        stringClass = getClass(c, 'dart:core', 'String'),
-        functionClass = getClass(c, 'dart:core', 'Function'),
-        privateSymbolClass = getClass(c, 'dart:_js_helper', 'PrivateSymbol'),
+        _jsArray = driver.getClass('dart:_interceptors', 'JSArray'),
+        interceptorClass = driver.getClass('dart:_interceptors', 'Interceptor'),
+        coreLibrary = driver.getLibrary('dart:core'),
+        boolClass = driver.getClass('dart:core', 'bool'),
+        intClass = driver.getClass('dart:core', 'int'),
+        doubleClass = driver.getClass('dart:core', 'double'),
+        numClass = driver.getClass('dart:core', 'num'),
+        nullClass = driver.getClass('dart:core', 'Null'),
+        objectClass = driver.getClass('dart:core', 'Object'),
+        stringClass = driver.getClass('dart:core', 'String'),
+        functionClass = driver.getClass('dart:core', 'Function'),
+        privateSymbolClass =
+            driver.getClass('dart:_js_helper', 'PrivateSymbol'),
         linkedHashMapImplType =
-            getClass(c, 'dart:_js_helper', 'LinkedMap').type,
+            driver.getClass('dart:_js_helper', 'LinkedMap').type,
         identityHashMapImplType =
-            getClass(c, 'dart:_js_helper', 'IdentityMap').type,
-        linkedHashSetImplType = getClass(c, 'dart:collection', '_HashSet').type,
+            driver.getClass('dart:_js_helper', 'IdentityMap').type,
+        linkedHashSetImplType =
+            driver.getClass('dart:collection', '_HashSet').type,
         identityHashSetImplType =
-            getClass(c, 'dart:collection', '_IdentityHashSet').type,
-        syncIterableType = getClass(c, 'dart:_js_helper', 'SyncIterable').type,
-        asyncStarImplType = getClass(c, 'dart:async', '_AsyncStarImpl').type,
-        dartJSLibrary = _getLibrary(c, 'dart:js') {
-    jsTypeRep = JSTypeRep(rules, c);
+            driver.getClass('dart:collection', '_IdentityHashSet').type,
+        syncIterableType =
+            driver.getClass('dart:_js_helper', 'SyncIterable').type,
+        asyncStarImplType =
+            driver.getClass('dart:async', '_AsyncStarImpl').type,
+        dartJSLibrary = driver.getLibrary('dart:js') {
+    jsTypeRep = JSTypeRep(rules, driver);
   }
 
   LibraryElement get currentLibrary => _currentElement.library;
@@ -248,92 +248,12 @@ class CodeGenerator extends Object
   ///
   /// Takes the metadata for the build unit, as well as resolved trees and
   /// errors, and computes the output module code and optionally the source map.
-  JSModuleFile compile(List<CompilationUnit> compilationUnits) {
+  JS.Program compile(List<CompilationUnit> compilationUnits) {
     _libraryRoot = options.libraryRoot;
     if (!_libraryRoot.endsWith(path.separator)) {
       _libraryRoot += path.separator;
     }
 
-    var name = options.moduleName;
-    invalidModule() =>
-        JSModuleFile.invalid(name, formatErrors(context, errors), options);
-
-    if (!options.unsafeForceCompile && errors.any(_isFatalError)) {
-      return invalidModule();
-    }
-
-    try {
-      var module = _emitModule(compilationUnits, name);
-      if (!options.unsafeForceCompile && errors.any(_isFatalError)) {
-        return invalidModule();
-      }
-
-      var dartApiSummary = _summarizeModule(compilationUnits);
-      return JSModuleFile(
-          name, formatErrors(context, errors), options, module, dartApiSummary);
-    } catch (e) {
-      if (errors.any(_isFatalError)) {
-        // Force compilation failed.  Suppress the exception and report
-        // the static errors instead.
-        assert(options.unsafeForceCompile);
-        return invalidModule();
-      }
-      rethrow;
-    }
-  }
-
-  bool _isFatalError(AnalysisError e) {
-    if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
-
-    // These errors are not fatal in the REPL compile mode as we
-    // allow access to private members across library boundaries
-    // and those accesses will show up as undefined members unless
-    // additional analyzer changes are made to support them.
-    // TODO(jacobr): consider checking that the identifier name
-    // referenced by the error is private.
-    return !options.replCompile ||
-        (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
-            e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
-            e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
-  }
-
-  List<int> _summarizeModule(List<CompilationUnit> units) {
-    if (!options.summarizeApi) return null;
-
-    if (!units.any((u) => u.declaredElement.source.isInSystemLibrary)) {
-      var sdk = context.sourceFactory.dartSdk;
-      summaryData.addBundle(
-          null,
-          sdk is SummaryBasedDartSdk
-              ? sdk.bundle
-              : (sdk as FolderBasedDartSdk).getSummarySdkBundle());
-    }
-
-    var assembler = PackageBundleAssembler();
-
-    var uriToUnit = Map<String, UnlinkedUnit>.fromIterables(
-        units.map((u) => u.declaredElement.source.uri.toString()),
-        units.map((unit) {
-      var unlinked = serializeAstUnlinked(unit);
-      assembler.addUnlinkedUnit(unit.declaredElement.source, unlinked);
-      return unlinked;
-    }));
-
-    summary_link
-        .link(
-            uriToUnit.keys.toSet(),
-            (uri) => summaryData.linkedMap[uri],
-            (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
-            context.declaredVariables.get)
-        .forEach(assembler.addLinkedLibrary);
-
-    var bundle = assembler.assemble();
-    // Preserve only API-level information in the summary.
-    bundle.flushInformative();
-    return bundle.toBuffer();
-  }
-
-  JS.Program _emitModule(List<CompilationUnit> compilationUnits, String name) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
@@ -388,7 +308,7 @@ class CodeGenerator extends Object
 
     // Collect all class/type Element -> Node mappings
     // in case we need to forward declare any classes.
-    _declarationNodes = HashMap<TypeDefiningElement, AstNode>.identity();
+    _declarationNodes = HashMap<TypeDefiningElement, AstNode>();
     for (var unit in compilationUnits) {
       for (var declaration in unit.declarations) {
         var element = declaration.declaredElement;
@@ -398,7 +318,7 @@ class CodeGenerator extends Object
       }
     }
     if (compilationUnits.isNotEmpty) {
-      _constants = ConstFieldVisitor(context,
+      _constants = ConstFieldVisitor(types, declaredVariables,
           dummySource: resolutionMap
               .elementDeclaredByCompilationUnit(compilationUnits.first)
               .source);
@@ -430,7 +350,7 @@ class CodeGenerator extends Object
       items.add(js.statement('const # = #;', [id, value]));
     });
 
-    _emitDebuggerExtensionInfo(name);
+    _emitDebuggerExtensionInfo(options.moduleName);
 
     // Discharge the type table cache variables and
     // hoisted definitions.
@@ -638,7 +558,7 @@ class CodeGenerator extends Object
   void _declareBeforeUse(TypeDefiningElement e) {
     if (e == null) return;
 
-    if (_topLevelClass != null && identical(_currentElement, _topLevelClass)) {
+    if (_topLevelClass != null && _currentElement == _topLevelClass) {
       // If the item is from our library, try to emit it now.
       _emitTypeDeclaration(e);
     }
@@ -2147,7 +2067,7 @@ class CodeGenerator extends Object
       var extMembers = _classProperties.extensionMethods;
       var staticMethods = <JS.Property>[];
       var instanceMethods = <JS.Property>[];
-      var classMethods = classElem.methods.where((m) => !m.isAbstract).toList();
+      var classMethods = List.of(classElem.methods.where((m) => !m.isAbstract));
       for (var m in mockMembers.values) {
         if (m is MethodElement) classMethods.add(m);
       }
@@ -2327,8 +2247,11 @@ class CodeGenerator extends Object
     if (!element.parameters.any(_isCovariant)) return element.type;
 
     var parameters = element.parameters
-        .map((p) => ParameterElementImpl.synthetic(p.name,
-            _isCovariant(p) ? objectClass.type : p.type, p.parameterKind))
+        .map((p) => ParameterElementImpl.synthetic(
+            p.name,
+            // ignore: deprecated_member_use
+            _isCovariant(p) ? objectClass.type : p.type,
+            p.parameterKind))
         .toList();
 
     var function = FunctionElementImpl("", -1)
@@ -4983,8 +4906,8 @@ class CodeGenerator extends Object
 
     variable ??= JS.TemporaryId(name);
 
-    var idElement = TemporaryVariableElement.forNode(id, variable)
-      ..enclosingElement = _currentElement;
+    var idElement =
+        TemporaryVariableElement.forNode(id, variable, _currentElement);
     id.staticElement = idElement;
     id.staticType = type;
     setIsDynamicInvoke(id, dynamicInvoke ?? type.isDynamic);
@@ -6508,16 +6431,18 @@ JS.LiteralString _propertyName(String name) => js.string(name, "'");
 class TemporaryVariableElement extends LocalVariableElementImpl {
   final JS.Expression jsVariable;
 
-  TemporaryVariableElement.forNode(Identifier name, this.jsVariable)
-      : super.forNode(name);
+  TemporaryVariableElement.forNode(
+      Identifier name, this.jsVariable, Element enclosingElement)
+      : super.forNode(name) {
+    this.enclosingElement = enclosingElement is ElementHandle
+        ? enclosingElement.actualElement
+        : enclosingElement;
+  }
 
   int get hashCode => identityHashCode(this);
 
   bool operator ==(Object other) => identical(this, other);
 }
-
-LibraryElement _getLibrary(AnalysisContext c, String uri) =>
-    c.computeLibraryElement(c.sourceFactory.forUri(uri));
 
 /// Returns `true` if [target] is a prefix for a deferred library and [name]
 /// is "loadLibrary".

@@ -32,7 +32,7 @@ const _binaryName = 'dartdevc -k';
 ///
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
-    {InitializedCompilerState compilerState}) async {
+    {fe.InitializedCompilerState compilerState}) async {
   try {
     return await _compile(args, compilerState: compilerState);
   } catch (error, stackTrace) {
@@ -60,7 +60,7 @@ String _usageMessage(ArgParser ddcArgParser) =>
     '${ddcArgParser.usage}';
 
 Future<CompilerResult> _compile(List<String> args,
-    {InitializedCompilerState compilerState}) async {
+    {fe.InitializedCompilerState compilerState}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
@@ -180,12 +180,12 @@ Future<CompilerResult> _compile(List<String> args,
   fe.DdcResult result =
       await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   if (result == null || !succeeded) {
-    return CompilerResult(1, compilerState);
+    return CompilerResult(1, kernelState: compilerState);
   }
 
   var component = result.component;
   if (!options.emitMetadata && _checkForDartMirrorsImport(component)) {
-    return CompilerResult(1, compilerState);
+    return CompilerResult(1, kernelState: compilerState);
   }
 
   var file = File(output);
@@ -239,7 +239,7 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   await Future.wait(outFiles);
-  return CompilerResult(0, compilerState);
+  return CompilerResult(0, kernelState: compilerState);
 }
 
 /// The output of compiling a JavaScript module in a particular format.

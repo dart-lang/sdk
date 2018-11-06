@@ -3,17 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 
-/// Helpers for Analyzer's Element model and corelib model.
-
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, ParameterizedType, FunctionType;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
+import 'package:analyzer/src/generated/constant.dart';
 
 class Tuple2<T0, T1> {
   final T0 e0;
@@ -381,9 +381,6 @@ bool isBuiltinAnnotation(
   var path = uri.pathSegments[0];
   return uri.scheme == 'dart' && path == libraryName;
 }
-
-ClassElement getClass(AnalysisContext c, String uri, String name) =>
-    c.computeLibraryElement(c.sourceFactory.forUri(uri)).getType(name);
 
 /// Returns the integer value for [node] as a [BigInt].
 ///
