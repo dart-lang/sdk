@@ -43,18 +43,15 @@ Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
   final statements =
       (body is BlockFunctionBody) ? body.block.statements : <Statement>[];
   return statements
-      .where((e) => e is ExpressionStatement)
-      .map((e) => (e as ExpressionStatement).expression)
-      .where((e) => e is AssignmentExpression)
-      .map((e) => e as AssignmentExpression);
+      .whereType<ExpressionStatement>()
+      .map((e) => e.expression)
+      .whereType<AssignmentExpression>();
 }
 
 Iterable<ConstructorFieldInitializer>
     _getConstructorFieldInitializersInInitializers(
             ConstructorDeclaration node) =>
-        node.initializers
-            .where((e) => e is ConstructorFieldInitializer)
-            .map((e) => (e as ConstructorFieldInitializer));
+        node.initializers.whereType<ConstructorFieldInitializer>();
 
 Element _getLeftElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(

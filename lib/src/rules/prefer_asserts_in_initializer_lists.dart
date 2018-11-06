@@ -77,9 +77,8 @@ class _AssertVisitor extends RecursiveAstVisitor {
             !element.isStatic &&
             _hasAccessor(element) &&
             !constructorElement.parameters
-                .where((p) => p is FieldFormalParameterElement)
-                .any((p) =>
-                    (p as FieldFormalParameterElement).field.getter == element);
+                .whereType<FieldFormalParameterElement>()
+                .any((p) => p.field.getter == element);
   }
 
   @override

@@ -90,8 +90,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkInitializerList(List<DefaultFormalParameter> params,
       NodeList<ConstructorInitializer> initializers) {
     final asserts = initializers
-        .where((i) => i is AssertInitializer)
-        .map((e) => (e as AssertInitializer).condition)
+        .whereType<AssertInitializer>()
+        .map((e) => e.condition)
         .toList();
     for (final param in params) {
       if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {

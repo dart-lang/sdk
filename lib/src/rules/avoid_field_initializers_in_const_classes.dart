@@ -83,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final constructorCount = constructor
         .getAncestor<ClassDeclaration>((e) => e is ClassDeclaration)
         .members
-        .where((e) => e is ConstructorDeclaration)
+        .whereType<ConstructorDeclaration>()
         .length;
     if (constructorCount > 1) return;
 

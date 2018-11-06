@@ -42,8 +42,8 @@ bool _containsNullAwareInvocationInChain(AstNode node) =>
 
 Iterable<Element> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     DartTypeUtilities.traverseNodesInDFS(node)
-        .where((e) => e is SimpleIdentifier)
-        .map((e) => (e as SimpleIdentifier).staticElement);
+        .whereType<SimpleIdentifier>()
+        .map((e) => e.staticElement);
 
 bool _isInvocationExpression(AstNode node) => node is InvocationExpression;
 
