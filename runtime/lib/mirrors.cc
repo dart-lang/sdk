@@ -1444,13 +1444,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
                       InvocationMirror::kMethod);
     UNREACHABLE();
   }
-  const Object& type_error =
-      Object::Handle(redirected_constructor.DoArgumentTypesMatch(
-          args, args_descriptor, type_arguments));
-  if (!type_error.IsNull()) {
-    Exceptions::PropagateError(Error::Cast(type_error));
-    UNREACHABLE();
-  }
 
   Instance& new_object = Instance::Handle();
   if (redirected_constructor.IsGenerativeConstructor()) {
