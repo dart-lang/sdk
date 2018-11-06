@@ -79,17 +79,13 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
   @Deprecated('This factory exists temporary until AnalysisSession migration.')
   factory ParsedLibraryResultImpl.tmp(LibraryElement library) {
-    var units = <ParsedUnitResult>[];
-
+    var libraryPath = library.source.fullName;
     var session = library.session;
     if (session != null) {
-      for (var unitElement in library.units) {
-        var path = unitElement.source.fullName;
-        var parsedUnitResult = session.getParsedUnit(path);
-        units.add(parsedUnitResult);
-      }
+      return session.getParsedLibrary(libraryPath);
     } else {
       var analysisContext = library.context;
+      var units = <ParsedUnitResult>[];
       for (var unitElement in library.units) {
         var unitSource = unitElement.source;
 
@@ -109,9 +105,9 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
             unitSource != library.source,
             unit, const []));
       }
+      return ParsedLibraryResultImpl(
+          null, libraryPath, library.source.uri, units);
     }
-    return ParsedLibraryResultImpl(
-        null, library.source.fullName, library.source.uri, units);
   }
 
   @override
@@ -193,16 +189,12 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
   @Deprecated('This method exists temporary until AnalysisSession migration.')
   static Future<ResolvedLibraryResult> tmp(LibraryElement library) async {
-    var units = <ResolvedUnitResult>[];
-
+    var libraryPath = library.source.fullName;
     var session = library.session;
     if (session != null) {
-      for (var unitElement in library.units) {
-        var path = unitElement.source.fullName;
-        var resolvedUnitResult = await session.getResolvedUnit(path);
-        units.add(resolvedUnitResult);
-      }
+      return await session.getResolvedLibrary(libraryPath);
     } else {
+      var units = <ResolvedUnitResult>[];
       var analysisContext = library.context;
       for (var unitElement in library.units) {
         var unitSource = unitElement.source;
@@ -218,9 +210,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
         units.add(ResolvedUnitResultImpl(null, path, unitSource.uri, true,
             content, lineInfo, unitSource != library.source, unit, const []));
       }
+      return ResolvedLibraryResultImpl(null, libraryPath, library.source.uri,
+          library, library.context.typeProvider, units);
     }
-    return ResolvedLibraryResultImpl(null, library.source.fullName,
-        library.source.uri, library, library.context.typeProvider, units);
   }
 }
 
