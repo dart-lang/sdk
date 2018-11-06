@@ -2091,10 +2091,19 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
   }
 
   void VisitPointers(RawObject** from, RawObject** to) {
-    for (RawObject** slot = from; slot <= to; ++slot) {
-      RawObject* value = *slot;
-      if (value->IsHeapObject()) {
-        old_obj_->CheckHeapPointerStore(value, thread_);
+    if (old_obj_->IsArray()) {
+      for (RawObject** slot = from; slot <= to; ++slot) {
+        RawObject* value = *slot;
+        if (value->IsHeapObject()) {
+          old_obj_->CheckHeapPointerStore(value, thread_);
+        }
+      }
+    } else {
+      for (RawObject** slot = from; slot <= to; ++slot) {
+        RawObject* value = *slot;
+        if (value->IsHeapObject()) {
+          old_obj_->CheckArrayPointerStore(slot, value, thread_);
+        }
       }
     }
   }
@@ -2126,6 +2135,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
           reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
           size - kHeaderSizeInBytes);
+
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
@@ -21383,7 +21393,12 @@ uint32_t Array::CanonicalizeHash() const {
 
 RawArray* Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->array_class() != Class::null());
-  return New(kClassId, len, space);
+  RawArray* result = New(kClassId, len, space);
+  if (result->Size() > Heap::kNewAllocatableSize) {
+    ASSERT(result->IsOldObject());
+    result->SetCardRememberedBitUnsynchronized();
+  }
+  return result;
 }
 
 RawArray* Array::New(intptr_t len,
@@ -21420,7 +21435,7 @@ RawArray* Array::Slice(intptr_t start,
   // allocated array with values from the given source array instead of
   // null-initializing all elements.
   Array& dest = Array::Handle(Array::New(count));
-  dest.StorePointers(dest.ObjectAddr(0), ObjectAddr(start), count);
+  dest.StoreArrayPointers(dest.ObjectAddr(0), ObjectAddr(start), count);
 
   if (with_type_argument) {
     dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));

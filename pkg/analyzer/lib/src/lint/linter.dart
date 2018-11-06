@@ -380,7 +380,7 @@ abstract class NodeLintRule {
   /// in the given [registry].
   ///
   /// The node processors may use the provided [context] to access information
-  /// that is not avaiable from the AST nodes or their associated elements.
+  /// that is not available from the AST nodes or their associated elements.
   void registerNodeProcessors(NodeLintRegistry registry, LinterContext context);
 }
 

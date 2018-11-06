@@ -1484,9 +1484,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
-  const bool directly_addressable = aligned() &&
-                                    class_id() != kTypedDataInt64ArrayCid &&
-                                    class_id() != kTypedDataUint64ArrayCid;
+  const bool directly_addressable =
+      aligned() && class_id() != kTypedDataInt64ArrayCid &&
+      class_id() != kTypedDataUint64ArrayCid && class_id() != kArrayCid;
   const intptr_t kNumInputs = 3;
   LocationSummary* locs;
 
@@ -1526,6 +1526,10 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::RegisterLocation(kWriteBarrierValueReg)
                           : Location::RegisterOrConstant(value()));
+      if (ShouldEmitStoreBarrier()) {
+        locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
+        locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
+      }
       break;
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
@@ -1563,9 +1567,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
 }
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const bool directly_addressable = aligned() &&
-                                    class_id() != kTypedDataInt64ArrayCid &&
-                                    class_id() != kTypedDataUint64ArrayCid;
+  const bool directly_addressable =
+      aligned() && class_id() != kTypedDataInt64ArrayCid &&
+      class_id() != kTypedDataUint64ArrayCid && class_id() != kArrayCid;
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
@@ -1604,14 +1608,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kArrayCid:
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObject(array, element_address, value, CanValueBeSmi(),
-                           /*lr_reserved=*/!compiler->intrinsic_mode());
+        __ StoreIntoArray(array, temp, value, CanValueBeSmi(),
+                          /*lr_reserved=*/!compiler->intrinsic_mode());
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
-        __ StoreIntoObjectNoBarrier(array, element_address, constant);
+        __ StoreIntoObjectNoBarrier(array, Address(temp), constant);
       } else {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObjectNoBarrier(array, element_address, value);
+        __ StoreIntoObjectNoBarrier(array, Address(temp), value);
       }
       break;
     case kTypedDataInt8ArrayCid:

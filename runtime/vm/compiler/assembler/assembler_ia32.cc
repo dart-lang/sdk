@@ -1909,6 +1909,48 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+// Destroys the value register.
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi) {
+  ASSERT(object != value);
+  movl(Address(slot, 0), value);
+
+  Label done;
+  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
+  // A store buffer update is required.
+  if (value != kWriteBarrierObjectReg) {
+    pushl(kWriteBarrierObjectReg);  // Preserve kWriteBarrierObjectReg.
+  }
+  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
+    pushl(kWriteBarrierSlotReg);  // Preserve kWriteBarrierSlotReg.
+  }
+  if (object != kWriteBarrierObjectReg && slot != kWriteBarrierSlotReg) {
+    if (slot == kWriteBarrierObjectReg && object == kWriteBarrierSlotReg) {
+      xchgl(slot, object);
+    } else if (slot == kWriteBarrierObjectReg) {
+      movl(kWriteBarrierSlotReg, slot);
+      movl(kWriteBarrierObjectReg, object);
+    } else {
+      movl(kWriteBarrierObjectReg, object);
+      movl(kWriteBarrierSlotReg, slot);
+    }
+  } else if (object != kWriteBarrierObjectReg) {
+    movl(kWriteBarrierObjectReg, object);
+  } else if (slot != kWriteBarrierSlotReg) {
+    movl(kWriteBarrierSlotReg, slot);
+  }
+  call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
+    popl(kWriteBarrierSlotReg);  // Restore kWriteBarrierSlotReg.
+  }
+  if (value != kWriteBarrierObjectReg) {
+    popl(kWriteBarrierObjectReg);  // Restore kWriteBarrierObjectReg.
+  }
+  Bind(&done);
+}
+
 void Assembler::UnverifiedStoreOldObject(const Address& dest,
                                          const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());

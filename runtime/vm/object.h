@@ -563,21 +563,6 @@ class Object {
     raw()->StorePointer<type, order>(addr, value);
   }
 
-  // Store a range of pointers [from, from + count) into [to, to + count).
-  // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
-  void StorePointers(RawObject* const* to,
-                     RawObject* const* from,
-                     intptr_t count) {
-    ASSERT(Contains(reinterpret_cast<uword>(to)));
-    if (raw()->IsNewObject()) {
-      memmove(const_cast<RawObject**>(to), from, count * kWordSize);
-    } else {
-      for (intptr_t i = 0; i < count; ++i) {
-        StorePointer(&to[i], from[i]);
-      }
-    }
-  }
-
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) const {
@@ -8017,7 +8002,7 @@ class Array : public Instance {
   RawObject* At(intptr_t index) const { return *ObjectAddr(index); }
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    StorePointer(ObjectAddr(index), value.raw());
+    StoreArrayPointer(ObjectAddr(index), value.raw());
   }
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
@@ -8034,7 +8019,7 @@ class Array : public Instance {
             value.IsInstantiated() /*&& value.IsCanonical()*/));
     // TODO(asiva): Values read from a message snapshot are not properly marked
     // as canonical. See for example tests/isolate/mandel_isolate_test.dart.
-    StorePointer(&raw_ptr()->type_arguments_, value.raw());
+    StoreArrayPointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
@@ -8116,6 +8101,26 @@ class Array : public Instance {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
+  template <typename type>
+  void StoreArrayPointer(type const* addr, type value) const {
+    raw()->StoreArrayPointer(addr, value);
+  }
+
+  // Store a range of pointers [from, from + count) into [to, to + count).
+  // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
+  void StoreArrayPointers(RawObject* const* to,
+                          RawObject* const* from,
+                          intptr_t count) {
+    ASSERT(Contains(reinterpret_cast<uword>(to)));
+    if (raw()->IsNewObject()) {
+      memmove(const_cast<RawObject**>(to), from, count * kWordSize);
+    } else {
+      for (intptr_t i = 0; i < count; ++i) {
+        StoreArrayPointer(&to[i], from[i]);
+      }
+    }
+  }
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
   friend class ImmutableArray;
@@ -8188,7 +8193,7 @@ class GrowableObjectArray : public Instance {
     ASSERT(index < Length());
 
     // TODO(iposva): Add storing NoSafepointScope.
-    data()->StorePointer(ObjectAddr(index), value.raw());
+    data()->StoreArrayPointer(ObjectAddr(index), value.raw());
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;

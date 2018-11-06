@@ -28,6 +28,7 @@ class SnapshotWriter;
   V(DeoptForRewind)                                                            \
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \
+  V(ArrayWriteBarrier)                                                         \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \

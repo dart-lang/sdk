@@ -125,6 +125,7 @@ const Register kStackTraceObjectReg = R1;
 // ABI for write barrier stub.
 const Register kWriteBarrierObjectReg = R1;
 const Register kWriteBarrierValueReg = R0;
+const Register kWriteBarrierSlotReg = R25;
 
 // Masks, sizes, etc.
 const int kXRegSizeInBits = 64;
