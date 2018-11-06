@@ -57,7 +57,8 @@ class DevCompilerRunner implements CompilerRunner {
       inputFile.toFilePath()
     ];
 
-    var exitCode = compile(args);
+    var result = compile(args);
+    var exitCode = result?.exitCode;
     if (exitCode != 0) {
       throw "Exit code: $exitCode from ddc when running something like "
           "$dartExecutable ${ddc.toFilePath()} "

@@ -10,16 +10,9 @@ import 'dart:math' as math;
 import 'dart:html' show HttpRequest;
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/element/element.dart'
-    show
-        LibraryElement,
-        ImportElement,
-        ShowElementCombinator,
-        HideElementCombinator;
 import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/memory_file_system.dart'
     show MemoryResourceProvider;
-import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show SummaryDataStore;
@@ -28,8 +21,9 @@ import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
 import 'package:args/command_runner.dart';
 
 import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
-import 'package:dev_compiler/src/analyzer/module_compiler.dart'
-    show CompilerOptions, JSModuleFile, ModuleCompiler;
+import 'package:dev_compiler/src/analyzer/command.dart';
+import 'package:dev_compiler/src/analyzer/driver.dart';
+import 'package:dev_compiler/src/analyzer/module_compiler.dart';
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:js/js.dart';
@@ -72,7 +66,7 @@ class WebCompileCommand extends Command {
 
   WebCompileCommand({MessageHandler messageHandler})
       : this.messageHandler = messageHandler ?? print {
-    CompilerOptions.addArguments(argParser);
+    ddcArgParser(argParser: argParser, help: false);
   }
 
   @override
@@ -158,14 +152,11 @@ class WebCompileCommand extends Command {
       summaryData.addBundle(url, PackageBundle.fromBuffer(bytes));
       compilerOptions.summaryModules[url] = moduleId;
     }
+    options.analysisRoot = '/web-compile-root';
+    options.fileResolvers = [ResourceUriResolver(resources)];
+    options.resourceProvider = resources;
 
-    var compiler = ModuleCompiler(options,
-        analysisRoot: '/web-compile-root',
-        fileResolvers: [ResourceUriResolver(resources)],
-        resourceProvider: resources,
-        summaryData: summaryData);
-
-    var context = compiler.context as AnalysisContextImpl;
+    var driver = CompilerAnalysisDriver(options, summaryData: summaryData);
 
     var resolveFn = (String url) {
       var packagePrefix = 'package:';
@@ -237,14 +228,12 @@ class WebCompileCommand extends Command {
         var dir = path.dirname(existingLibrary);
         // Need to pull in all the imports from the existing library and
         // re-export all privates as privates in this library.
-        var source = context.sourceFactory.forUri(existingLibrary);
-        if (source == null) {
-          throw "Unable to load source for library $existingLibrary";
-        }
-
-        LibraryElement libraryElement = context.computeLibraryElement(source);
-        if (libraryElement == null) {
-          throw "Unable to get library element.";
+        // Assumption: summaries are available for all libraries, including any
+        // source files that were compiled; we do not need to reconstruct any
+        // summary data here.
+        var unlinked = driver.summaryData.unlinkedMap[existingLibrary];
+        if (unlinked == null) {
+          throw "Unable to get library element for `$existingLibrary`.";
         }
         var sb = StringBuffer(imports);
         sb.write('\n');
@@ -263,9 +252,9 @@ class WebCompileCommand extends Command {
         // importing that library and all libraries it imports.
         sb.write('import ${json.encode(existingLibrary)};\n');
 
-        for (ImportElement importElement in libraryElement.imports) {
-          if (importElement.uri == null) continue;
-          var uri = importElement.uri;
+        for (var import in unlinked.imports) {
+          if (import.uri == null) continue;
+          var uri = import.uri;
           // dart: and package: uris are not relative but the path package
           // thinks they are. We have to provide absolute uris as our library
           // has a different directory than the library we are pretending to be.
@@ -275,13 +264,15 @@ class WebCompileCommand extends Command {
             uri = path.normalize(path.join(dir, uri));
           }
           sb.write('import ${json.encode(uri)}');
-          if (importElement.prefix != null)
-            sb.write(' as ${importElement.prefix.name}');
-          for (var combinator in importElement.combinators) {
-            if (combinator is ShowElementCombinator) {
-              sb.write(' show ${combinator.shownNames.join(', ')}');
-            } else if (combinator is HideElementCombinator) {
-              sb.write(' hide ${combinator.hiddenNames.join(', ')}');
+          if (import.prefixReference != 0) {
+            var prefix = unlinked.references[import.prefixReference].name;
+            sb.write(' as $prefix');
+          }
+          for (var combinator in import.combinators) {
+            if (combinator.shows.isNotEmpty) {
+              sb.write(' show ${combinator.shows.join(', ')}');
+            } else if (combinator.hides.isNotEmpty) {
+              sb.write(' hide ${combinator.hides.join(', ')}');
             } else {
               throw 'Unexpected element combinator';
             }
@@ -294,7 +285,8 @@ class WebCompileCommand extends Command {
       resources.newFile(fileName, sourceCode);
 
       compilerOptions.moduleName = path.toUri(libraryName).toString();
-      JSModuleFile module = compiler.compile([fileName], compilerOptions);
+      JSModuleFile module =
+          compileWithAnalyzer(driver, [fileName], options, compilerOptions);
 
       var moduleCode = '';
       if (module.isValid) {

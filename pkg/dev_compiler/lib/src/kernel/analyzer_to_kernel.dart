@@ -97,8 +97,9 @@ class AnalyzerToKernel {
     var summaryData = a.SummaryDataStore(summaryPaths,
         resourceProvider: a.PhysicalResourceProvider.INSTANCE,
         disallowOverlappingSummaries: false);
-    var context = _createContextForSummaries(summaryData, analyzerSdkSummary);
-    return AnalyzerToKernel._(context, summaryData);
+    var resynthesizer =
+        _createSummaryResynthesizer(summaryData, analyzerSdkSummary);
+    return AnalyzerToKernel._(resynthesizer.context, summaryData);
   }
 
   /// Converts the SDK summary to a Kernel component and returns it.
@@ -864,10 +865,17 @@ AsyncMarker _getAsyncMarker(a.ExecutableElement e) {
       : (e.isAsynchronous ? AsyncMarker.Async : AsyncMarker.Sync);
 }
 
+a.StoreBasedSummaryResynthesizer _createSummaryResynthesizer(
+    a.SummaryDataStore summaryData, String dartSdkPath) {
+  var context = _createContextForSummaries(summaryData, dartSdkPath);
+  return a.StoreBasedSummaryResynthesizer(
+      context, null, context.sourceFactory, /*strongMode*/ true, summaryData);
+}
+
 /// Creates a dummy Analyzer context so we can use summary resynthesizer.
 ///
 /// This is similar to Analyzer's `LibraryContext._createResynthesizingContext`.
-a.AnalysisContext _createContextForSummaries(
+a.AnalysisContextImpl _createContextForSummaries(
     a.SummaryDataStore summaryData, String dartSdkPath) {
   var sdk = a.SummaryBasedDartSdk(dartSdkPath, true,
       resourceProvider: a.PhysicalResourceProvider.INSTANCE);

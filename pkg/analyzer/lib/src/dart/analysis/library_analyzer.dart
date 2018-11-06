@@ -77,11 +77,14 @@ class LibraryAnalyzer {
    */
   Map<FileState, UnitAnalysisResult> analyze() {
     return PerformanceStatistics.analysis.makeCurrentWhile(() {
-      return _analyze();
+      return analyzeSync();
     });
   }
 
-  Map<FileState, UnitAnalysisResult> _analyze() {
+  /**
+   * Compute analysis results for all units of the library.
+   */
+  Map<FileState, UnitAnalysisResult> analyzeSync() {
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
