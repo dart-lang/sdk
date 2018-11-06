@@ -43,6 +43,30 @@ abstract class B extends A {
     assertSuperExpression(invocation.target);
   }
 
+  test_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
+    addTestFile('''
+class A {
+  int foo();
+  noSuchMethod(im) => 42;
+}
+
+class B extends Object with A {
+  foo() => super.foo(); // ref
+  noSuchMethod(im) => 87;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+
+    var invocation = findNode.methodInvocation('foo(); // ref');
+    assertMethodInvocation(
+      invocation,
+      findElement.method('foo', of: 'A'),
+      '() → int',
+    );
+    assertSuperExpression(invocation.target);
+  }
+
   test_error_abstractSuperMemberReference_OK_mixinHasConcrete() async {
     addTestFile('''
 class A {}
@@ -67,6 +91,30 @@ class C extends B {
       invocation,
       findElement.method('foo', of: 'M'),
       '(int) → void',
+    );
+    assertSuperExpression(invocation.target);
+  }
+
+  test_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
+    addTestFile(r'''
+class A {
+  int foo();
+  noSuchMethod(im) => 42;
+}
+
+class B extends A {
+  int foo() => super.foo(); // ref
+  noSuchMethod(im) => 87;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var invocation = findNode.methodInvocation('super.foo(); // ref');
+    assertMethodInvocation(
+      invocation,
+      findElement.method('foo', of: 'A'),
+      '() → int',
     );
     assertSuperExpression(invocation.target);
   }
