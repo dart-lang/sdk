@@ -37,7 +37,8 @@ class AnalysisSessionHelper {
   /// is synthetic.
   Future<ElementDeclarationResult> getElementDeclaration(
       Element element) async {
-    var resolvedLibrary = await _getResolvedLibrary(element.source.fullName);
+    var libraryPath = element.library.source.fullName;
+    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
     return resolvedLibrary.getElementDeclaration(element);
   }
 

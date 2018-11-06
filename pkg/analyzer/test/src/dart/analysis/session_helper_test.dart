@@ -117,6 +117,23 @@ class A {} // 2
     }
   }
 
+  test_getElementDeclaration_class_inPart() async {
+    newFile('/test/lib/a.dart', content: r'''
+part of 'test.dart';
+class A {}
+''');
+    newFile('/test/lib/test.dart', content: r'''
+part 'a.dart';
+''');
+    await resolveTestFile();
+
+    var library = this.result.unit.declaredElement.library;
+    var element = library.getType('A');
+    var result = await helper.getElementDeclaration(element);
+    ClassDeclaration node = result.node;
+    expect(node.name.name, 'A');
+  }
+
   test_getElementDeclaration_constructor() async {
     newFile('/test/lib/test.dart', content: r'''
 class A {
