@@ -68,6 +68,8 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(compilation_counter_threshold, int, 10,                                    \
     "Function's usage-counter value before interpreted function is compiled, " \
     "-1 means never")                                                          \
+  P(concurrent_mark, bool, USING_MULTICORE,                                    \
+    "Concurrent mark for old generation.")                                     \
   P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
