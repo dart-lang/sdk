@@ -174,7 +174,7 @@ class CompilerOptions extends SharedCompilerOptions {
 
   /// *deprecated* If specified, `dartdevc` will synthesize library names that
   /// are relative to this path for all libraries in the JS module.
-  final String libraryRoot;
+  String libraryRoot;
 
   CompilerOptions(
       {bool sourceMap = true,
