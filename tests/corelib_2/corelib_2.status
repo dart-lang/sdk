@@ -130,7 +130,7 @@ integer_parsed_mul_div_vm_test: Pass, Slow
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
-corelib_2/nsm_invocation_test: RuntimeError # Issue 35066
+nsm_invocation_test: RuntimeError # Issue 35066
 
 [ $builder_tag == obfuscated && $runtime == dart_precompiled ]
 apply_generic_function_test: SkipByDesign # Function.apply with named args
