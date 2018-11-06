@@ -8,6 +8,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+List<Map<String, dynamic>> parseResults(String contents) {
+  return LineSplitter.split(contents)
+      .map(jsonDecode)
+      .toList()
+      .cast<Map<String, dynamic>>();
+}
+
 Future<List<Map<String, dynamic>>> loadResults(String path) async {
   final results = <Map<String, dynamic>>[];
   final lines = new File(path)
@@ -25,6 +32,9 @@ Map<String, Map<String, dynamic>> createResultsMap(
         List<Map<String, dynamic>> results) =>
     new Map<String, Map<String, dynamic>>.fromIterable(results,
         key: (dynamic result) => (result as Map<String, dynamic>)['name']);
+
+Map<String, Map<String, dynamic>> parseResultsMap(String contents) =>
+    createResultsMap(parseResults(contents));
 
 Future<Map<String, Map<String, dynamic>>> loadResultsMap(String path) async =>
     createResultsMap(await loadResults(path));
