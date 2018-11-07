@@ -117,6 +117,7 @@ import 'package:linter/src/rules/throw_in_finally.dart';
 import 'package:linter/src/rules/type_annotate_public_apis.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
 import 'package:linter/src/rules/unawaited_futures.dart';
+import 'package:linter/src/rules/unnecessary_await_in_return.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interps.dart';
 import 'package:linter/src/rules/unnecessary_const.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
@@ -253,6 +254,7 @@ void registerLintRules() {
     ..register(new TypeAnnotatePublicApis())
     ..registerDefault(new TypeInitFormals())
     ..register(new UnawaitedFutures())
+    ..register(new UnnecessaryAwaitInReturn())
     ..registerDefault(new UnnecessaryBraceInStringInterps())
     ..register(new UnnecessaryConst())
     ..register(new UnnecessaryNew())
