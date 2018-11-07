@@ -750,6 +750,8 @@ abstract class AstVisitor<R> {
 
   R visitScriptTag(ScriptTag node);
 
+  R visitSetLiteral(SetLiteral node);
+
   R visitShowCombinator(ShowCombinator node);
 
   R visitSimpleFormalParameter(SimpleFormalParameter node);
@@ -6019,6 +6021,43 @@ abstract class ScriptTag extends AstNode {
    * Set the token representing this script tag to the given [token].
    */
   void set scriptTag(Token token);
+}
+
+/**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [Expression] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class SetLiteral extends TypedLiteral {
+  /**
+   * Return the expressions used to compute the elements of the set.
+   */
+  NodeList<Expression> get elements;
+
+  /**
+   * Return the left curly bracket.
+   */
+  Token get leftBracket;
+
+  /**
+   * Set the left curly bracket to the given [token].
+   */
+  void set leftBracket(Token token);
+
+  /**
+   * Return the right curly bracket.
+   */
+  Token get rightBracket;
+
+  /**
+   * Set the right curly bracket to the given [token].
+   */
+  void set rightBracket(Token token);
 }
 
 /**

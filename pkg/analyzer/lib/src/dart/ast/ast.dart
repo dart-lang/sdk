@@ -9459,6 +9459,78 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 }
 
 /**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [Expression] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ */
+class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
+  /**
+   * The left curly bracket.
+   */
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements in the set.
+   */
+  NodeList<Expression> _elements;
+
+  /**
+   * The right curly bracket.
+   */
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<Expression> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<Expression>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<Expression> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
+  }
+}
+
+/**
  * A combinator that restricts the names being imported to those in a given list.
  *
  *    showCombinator ::=

@@ -480,6 +480,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
   @override
+  R visitSetLiteral(SetLiteral node) => visitTypedLiteral(node);
+
+  @override
   R visitShowCombinator(ShowCombinator node) => visitCombinator(node);
 
   @override
@@ -1123,6 +1126,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitSetLiteral(SetLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitShowCombinator(ShowCombinator node) {
     node.visitChildren(this);
     return null;
@@ -1552,6 +1561,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitScriptTag(ScriptTag node) => null;
 
   @override
+  R visitSetLiteral(SetLiteral node) => null;
+
+  @override
   R visitShowCombinator(ShowCombinator node) => null;
 
   @override
@@ -1908,6 +1920,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitScriptTag(ScriptTag node) => _throw(node);
+
+  @override
+  R visitSetLiteral(SetLiteral node) => _throw(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => _throw(node);
@@ -2720,6 +2735,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitSetLiteral(SetLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSetLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitShowCombinator(ShowCombinator node) {
     stopwatch.start();
     T result = _baseVisitor.visitShowCombinator(node);
@@ -3211,6 +3234,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+
+  @override
+  R visitSetLiteral(SetLiteral node) => visitNode(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => visitNode(node);

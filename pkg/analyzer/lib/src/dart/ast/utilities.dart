@@ -845,6 +845,14 @@ class AstCloner implements AstVisitor<AstNode> {
       astFactory.scriptTag(cloneToken(node.scriptTag));
 
   @override
+  SetLiteral visitSetLiteral(SetLiteral node) => astFactory.setLiteral(
+      cloneToken(node.constKeyword),
+      cloneNode(node.typeArguments),
+      cloneToken(node.leftBracket),
+      cloneNodeList(node.elements),
+      cloneToken(node.rightBracket));
+
+  @override
   ShowCombinator visitShowCombinator(ShowCombinator node) => astFactory
       .showCombinator(cloneToken(node.keyword), cloneNodeList(node.shownNames));
 
@@ -1985,6 +1993,16 @@ class AstComparator implements AstVisitor<bool> {
   bool visitScriptTag(ScriptTag node) {
     ScriptTag other = _other as ScriptTag;
     return isEqualTokens(node.scriptTag, other.scriptTag);
+  }
+
+  @override
+  bool visitSetLiteral(SetLiteral node) {
+    SetLiteral other = _other as SetLiteral;
+    return isEqualTokens(node.constKeyword, other.constKeyword) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.elements, other.elements) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
@@ -3713,6 +3731,18 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       astFactory.scriptTag(_mapToken(node.scriptTag));
 
   @override
+  SetLiteral visitSetLiteral(SetLiteral node) {
+    SetLiteral copy = astFactory.setLiteral(
+        _mapToken(node.constKeyword),
+        _cloneNode(node.typeArguments),
+        _mapToken(node.leftBracket),
+        _cloneNodeList(node.elements),
+        _mapToken(node.rightBracket));
+    copy.staticType = node.staticType;
+    return copy;
+  }
+
+  @override
   ShowCombinator visitShowCombinator(ShowCombinator node) => astFactory
       .showCombinator(_mapToken(node.keyword), _cloneNodeList(node.shownNames));
 
@@ -5164,6 +5194,14 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
   @override
+  bool visitSetLiteral(SetLiteral node) {
+    if (_replaceInList(node.elements)) {
+      return true;
+    }
+    return visitTypedLiteral(node);
+  }
+
+  @override
   bool visitShowCombinator(ShowCombinator node) {
     if (_replaceInList(node.shownNames)) {
       return true;
@@ -6491,6 +6529,21 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool visitScriptTag(ScriptTag node) {
     ScriptTag toNode = this._toNode as ScriptTag;
     return _isEqualTokens(node.scriptTag, toNode.scriptTag);
+  }
+
+  @override
+  bool visitSetLiteral(SetLiteral node) {
+    SetLiteral toNode = this._toNode as SetLiteral;
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.elements, toNode.elements),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -7957,6 +8010,19 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
+  Object visitSetLiteral(SetLiteral node) {
+    if (node.constKeyword != null) {
+      _writer.print(node.constKeyword.lexeme);
+      _writer.print(' ');
+    }
+    _visitNodeWithSuffix(node.typeArguments, " ");
+    _writer.print("{");
+    _visitNodeListWithSeparator(node.elements, ", ");
+    _writer.print("}");
+    return null;
+  }
+
+  @override
   Object visitShowCombinator(ShowCombinator node) {
     _writer.print("show ");
     _visitNodeListWithSeparator(node.shownNames, ", ");
@@ -9283,6 +9349,19 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   @override
   Object visitScriptTag(ScriptTag node) {
     sink.write(node.scriptTag.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitSetLiteral(SetLiteral node) {
+    if (node.constKeyword != null) {
+      sink.write(node.constKeyword.lexeme);
+      sink.write(' ');
+    }
+    safelyVisitNodeWithSuffix(node.typeArguments, " ");
+    sink.write("{");
+    safelyVisitNodeListWithSeparator(node.elements, ", ");
+    sink.write("}");
     return null;
   }
 
