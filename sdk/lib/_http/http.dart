@@ -1340,7 +1340,7 @@ abstract class HttpResponse implements IOSink {
   /**
    * Gets and sets the content length of the response. If the size of
    * the response is not known in advance set the content length to
-   * -1 - which is also the default if not set.
+   * -1, which is also the default if not set.
    */
   int contentLength;
 
@@ -1622,11 +1622,10 @@ abstract class HttpClient {
    * a possible query) is specified using [path].
    * The path may also contain a URI fragment, which will be ignored.
    *
-   * The `Host` header for the request will be set to the value
-   * [host]:[port]. This can be overridden through the
-   * [HttpClientRequest] interface before the request is sent.  NOTE
-   * if [host] is an IP address this will still be set in the `Host`
-   * header.
+   * The `Host` header for the request will be set to the value [host]:[port]
+   * (if [host] is an IP address, it will still be used in the `Host` header).
+   * This can be overridden through the [HttpClientRequest] interface before
+   * the request is sent.
    *
    * For additional information on the sequence of events during an
    * HTTP transaction, and the objects returned by the futures, see
@@ -1642,10 +1641,9 @@ abstract class HttpClient {
    * [url].
    *
    * The `Host` header for the request will be set to the value
-   * [Uri.host]:[Uri.port] from [url]. This can be overridden through the
-   * [HttpClientRequest] interface before the request is sent.  NOTE
-   * if [Uri.host] is an IP address this will still be set in the `Host`
-   * header.
+   * [Uri.host]:[Uri.port] from [url] (if [url.host] is an IP address, it will
+   * still be used in the `Host` header). This can be overridden through the
+   * [HttpClientRequest] interface before the request is sent.
    *
    * For additional information on the sequence of events during an
    * HTTP transaction, and the objects returned by the futures, see
@@ -2112,16 +2110,16 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    * the response body is not known in advance.
    *
    * If the content length needs to be set, it must be set before the
-   * body is written to. Setting the reason phrase after writing to
-   * the body will throw a `StateError`.
+   * body is written to. Setting the content length after writing to the body
+   * will throw a `StateError`.
    */
   int get contentLength;
 
   /**
    * Gets the persistent connection state returned by the server.
    *
-   * if the persistent connection state needs to be set, it must be
-   * set before the body is written to. Setting the reason phrase
+   * If the persistent connection state needs to be set, it must be
+   * set before the body is written to. Setting the persistent connection state
    * after writing to the body will throw a `StateError`.
    */
   bool get persistentConnection;
