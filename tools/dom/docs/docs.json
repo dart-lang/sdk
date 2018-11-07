@@ -4212,7 +4212,7 @@
           "   * response.",
           "   *",
           "   * This value must be set before the request has been sent. See also the list",
-          "   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)",
+          "   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml).",
           "   */"
         ],
         "readyState": [

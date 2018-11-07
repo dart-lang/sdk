@@ -17096,9 +17096,6 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Creates a GET request for the specified [url].
    *
-   * The server response must be a `text/` mime type for this request to
-   * succeed.
-   *
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
    *
@@ -17109,7 +17106,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *     var name = Uri.encodeQueryComponent('John');
    *     var id = Uri.encodeQueryComponent('42');
    *     HttpRequest.getString('users.json?name=$name&id=$id')
-   *       .then((HttpRequest resp) {
+   *       .then((String resp) {
    *         // Do something with the response.
    *     });
    *
@@ -17127,8 +17124,8 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is roughly the POST equivalent of getString. This method is similar
-   * to sending a FormData object with broader browser support but limited to
+   * This is roughly the POST equivalent of [getString]. This method is similar
+   * to sending a [FormData] object with broader browser support but limited to
    * String values.
    *
    * If [data] is supplied, the key/value pairs are URI encoded with
@@ -17425,11 +17422,11 @@ class HttpRequest extends HttpRequestEventTarget {
    * Specify the desired `url`, and `method` to use in making the request.
    *
    * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
+   * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *
    * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
+   * calling [abort].
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
@@ -17659,7 +17656,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * response.
    *
    * This value must be set before the request has been sent. See also the list
-   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)
+   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml).
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
