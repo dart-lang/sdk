@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "77825446f59893bb2b20f2e9517a4567e0371193",
+  "co19_2_rev": "740cb9e9b3fc8e1da2f55e10554ffeac90461b73",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
