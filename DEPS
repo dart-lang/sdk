@@ -139,7 +139,7 @@ vars = {
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
   "utf_tag": "0.9.0+5",
-  "watcher_rev": "0.9.7+10",
+  "watcher_rev": "0.9.7+12",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
