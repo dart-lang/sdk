@@ -1134,6 +1134,30 @@ class X = A<double> with M;
     ]);
   }
 
+  test_error_mixinApplicationNotImplementedInterface_noMemberErrors() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class C {
+  noSuchMethod(_) {}
+}
+
+class X = C with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
   test_error_mixinApplicationNotImplementedInterface_OK_0() async {
     addTestFile(r'''
 mixin M {}

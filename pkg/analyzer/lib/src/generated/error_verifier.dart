@@ -1910,8 +1910,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             if (_checkForMixinSuperclassConstraints(
                 mixinNameIndex, mixinName)) {
               problemReported = true;
-            }
-            if (_checkForMixinSuperInvokedMembers(
+            } else if (_checkForMixinSuperInvokedMembers(
                 mixinTypeIndex, mixinName, mixinElement, mixinType)) {
               problemReported = true;
             }
