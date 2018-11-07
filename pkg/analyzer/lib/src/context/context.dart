@@ -316,7 +316,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       this._options.declarationCasts = options.declarationCasts;
       this._options.implicitCasts = options.implicitCasts;
       this._options.implicitDynamic = options.implicitDynamic;
-      this._options.isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {

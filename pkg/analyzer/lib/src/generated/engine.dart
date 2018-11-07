@@ -1503,12 +1503,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool implicitDynamic = true;
 
   /**
-   * Return `true` to enable mixin declarations.
-   * https://github.com/dart-lang/language/issues/12
-   */
-  bool isMixinSupportEnabled = false;
-
-  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1538,7 +1532,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
-      isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1657,6 +1650,16 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _excludePatterns = patterns;
   }
 
+  /**
+   * Return `true` to enable mixin declarations.
+   * https://github.com/dart-lang/language/issues/12
+   */
+  @deprecated
+  bool get isMixinSupportEnabled => true;
+
+  @deprecated
+  set isMixinSupportEnabled(bool value) {}
+
   @override
   List<Linter> get lintRules => _lintRules ??= const <Linter>[];
 
@@ -1687,7 +1690,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
-      buffer.addBool(isMixinSupportEnabled);
 
       // Append enabled experiments.
       buffer.addInt(enabledExperiments.length);
