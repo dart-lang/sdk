@@ -1199,6 +1199,9 @@ abstract class AnalysisOptions {
   /**
    * Return a list containing the names of the experiments that are enabled in
    * the context associated with these options.
+   *
+   * The process around these experiments is described in this
+   * [doc](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md).
    */
   List<String> get enabledExperiments;
 
