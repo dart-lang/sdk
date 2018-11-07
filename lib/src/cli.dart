@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,14 +15,9 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 
-/// Start linting from the command-line.
-Future run(List<String> args) async {
-  await runLinter(args, new LinterOptions()..previewDart2 = true);
-}
-
 const processFileFailedExitCode = 65;
-const unableToProcessExitCode = 64;
 
+const unableToProcessExitCode = 64;
 String getRoot(List<String> paths) =>
     paths.length == 1 && new Directory(paths[0]).existsSync() ? paths[0] : null;
 
@@ -41,6 +36,11 @@ ${parser.usage}
 
 For more information, see https://github.com/dart-lang/linter
 ''');
+}
+
+/// Start linting from the command-line.
+Future run(List<String> args) async {
+  await runLinter(args, new LinterOptions());
 }
 
 Future runLinter(List<String> args, LinterOptions initialLintOptions) async {

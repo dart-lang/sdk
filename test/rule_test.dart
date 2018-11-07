@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -336,7 +336,6 @@ testRule(String ruleName, File file, {bool debug = false}) {
     }
 
     LinterOptions options = new LinterOptions([rule])
-      ..previewDart2 = true
       ..mockSdk = new MockSdk(memoryResourceProvider)
       ..resourceProvider = resourceProvider
       ..packageConfigPath = packageConfigPath;
@@ -372,30 +371,6 @@ testRule(String ruleName, File file, {bool debug = false}) {
       rethrow;
     }
   });
-}
-
-class TestResourceProvider extends PhysicalResourceProvider {
-  MemoryResourceProvider memoryResourceProvider;
-
-  TestResourceProvider(this.memoryResourceProvider) : super(null);
-
-  @override
-  file_system.File getFile(String path) {
-    file_system.File file = memoryResourceProvider.getFile(path);
-    return file.exists ? file : super.getFile(path);
-  }
-
-  @override
-  file_system.Folder getFolder(String path) {
-    file_system.Folder folder = memoryResourceProvider.getFolder(path);
-    return folder.exists ? folder : super.getFolder(path);
-  }
-
-  @override
-  file_system.Resource getResource(String path) {
-    file_system.Resource resource = memoryResourceProvider.getResource(path);
-    return resource.exists ? resource : super.getResource(path);
-  }
 }
 
 class Annotation implements Comparable<Annotation> {
@@ -478,4 +453,28 @@ class NoFilter implements LintFilter {
 class ResultReporter extends DetailedReporter {
   ResultReporter(Iterable<AnalysisErrorInfo> errors)
       : super(errors, new NoFilter(), stdout);
+}
+
+class TestResourceProvider extends PhysicalResourceProvider {
+  MemoryResourceProvider memoryResourceProvider;
+
+  TestResourceProvider(this.memoryResourceProvider) : super(null);
+
+  @override
+  file_system.File getFile(String path) {
+    file_system.File file = memoryResourceProvider.getFile(path);
+    return file.exists ? file : super.getFile(path);
+  }
+
+  @override
+  file_system.Folder getFolder(String path) {
+    file_system.Folder folder = memoryResourceProvider.getFolder(path);
+    return folder.exists ? folder : super.getFolder(path);
+  }
+
+  @override
+  file_system.Resource getResource(String path) {
+    file_system.Resource resource = memoryResourceProvider.getResource(path);
+    return resource.exists ? resource : super.getResource(path);
+  }
 }

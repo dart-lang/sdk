@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -84,7 +84,7 @@ defineTests() {
         var packagesFilePath =
             new File('test/_data/p4/_packages').absolute.path;
         await cli.runLinter(['--packages', packagesFilePath, 'test/_data/p4'],
-            new LinterOptions([])..previewDart2 = true);
+            new LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
       });
@@ -501,7 +501,7 @@ defineTests() {
         await cli.runLinter([
           'test/_data/always_require_non_null_named_parameters',
           '--rules=always_require_non_null_named_parameters'
-        ], new LinterOptions()..previewDart2 = true);
+        ], new LinterOptions());
         expect(
             collectingOut.trim(),
             stringContainsInOrder(
@@ -527,7 +527,7 @@ defineTests() {
         await cli.runLinter([
           'test/_data/prefer_asserts_in_initializer_lists',
           '--rules=prefer_asserts_in_initializer_lists'
-        ], new LinterOptions()..previewDart2 = true);
+        ], new LinterOptions());
         expect(
             collectingOut.trim(),
             stringContainsInOrder(
@@ -553,7 +553,7 @@ defineTests() {
         await cli.runLinter([
           'test/_data/prefer_const_constructors_in_immutables',
           '--rules=prefer_const_constructors_in_immutables'
-        ], new LinterOptions()..previewDart2 = true);
+        ], new LinterOptions());
         expect(
             collectingOut.trim(),
             stringContainsInOrder(
@@ -581,7 +581,7 @@ defineTests() {
           '--rules=avoid_relative_lib_imports',
           '--packages',
           'test/_data/avoid_relative_lib_imports/_packages'
-        ], new LinterOptions()..previewDart2 = true);
+        ], new LinterOptions());
         expect(
             collectingOut.trim(),
             stringContainsInOrder(
@@ -726,7 +726,7 @@ defineTests() {
       test('avoid keyword to create instances', () async {
         await cli.runLinter(
             ['test/_data/unnecessary_const', '--rules=unnecessary_const'],
-            new LinterOptions()..previewDart2 = true);
+            new LinterOptions());
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
@@ -759,7 +759,7 @@ defineTests() {
       test('avoid keyword to create instances', () async {
         await cli.runLinter(
             ['test/_data/unnecessary_new', '--rules=unnecessary_new'],
-            new LinterOptions()..previewDart2 = true);
+            new LinterOptions());
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
