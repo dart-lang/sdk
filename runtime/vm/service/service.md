@@ -1988,7 +1988,7 @@ enum InstanceKind {
   // Vector instance kinds.
   Float32x4,
   Float64x2,
-  Int32x4
+  Int32x4,
 
   // An instance of the built-in VM TypedData implementations. User-defined
   // TypedDatas will be PlainInstance.
