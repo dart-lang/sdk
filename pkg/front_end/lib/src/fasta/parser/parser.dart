@@ -5062,10 +5062,12 @@ class Parser {
     // or an expression if no local variable declaration was found.
     if (token != leftParenthesis) {
       token = parseVariablesDeclarationRest(token, false);
+      listener.handleForInitializerLocalVariableDeclaration(token);
     } else if (optional(';', token.next)) {
-      listener.handleNoExpression(token.next);
+      listener.handleForInitializerEmptyStatement(token.next);
     } else {
       token = parseExpression(token);
+      listener.handleForInitializerExpressionStatement(token);
     }
 
     Token next = token.next;

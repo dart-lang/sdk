@@ -2153,6 +2153,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleForInitializerEmptyStatement(Token token) {
+    debugEvent("ForInitializerEmptyStatement");
+    push(NullValue.Expression);
+  }
+
+  @override
+  void handleForInitializerExpressionStatement(Token token) {
+    debugEvent("ForInitializerExpressionStatement");
+  }
+
+  @override
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    debugEvent("ForInitializerLocalVariableDeclaration");
+  }
+
+  @override
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement");
@@ -2161,6 +2177,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Statement conditionStatement = popStatement();
     Object variableOrExpression = pop();
 
+    // TODO(ahe): This can be simplified now that we have the events
+    // `handleForInitializer...` events.
     variableOrExpression = variableOrExpression is Generator
         ? variableOrExpression.buildForEffect()
         : variableOrExpression;
@@ -2831,12 +2849,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       push(tryStatement);
     }
-  }
-
-  @override
-  void handleNoExpression(Token token) {
-    debugEvent("NoExpression");
-    push(NullValue.Expression);
   }
 
   @override
