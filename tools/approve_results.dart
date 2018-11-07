@@ -199,10 +199,11 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options) async {
     // Construct an object for every test containing its current result,
     // what the last approved result was, and whether it's flaky.
     final tests = <Test>[];
-    for (final name in results.keys) {
-      final result = results[name];
-      final approvedResult = approvedResults[name];
-      final flakiness = flaky[name];
+    for (final key in results.keys) {
+      final result = results[key];
+      final approvedResult = approvedResults[key];
+      final flakiness = flaky[key];
+      final name = result["name"];
       final test = new Test(bot, name, result, approvedResult, flakiness);
       tests.add(test);
     }
