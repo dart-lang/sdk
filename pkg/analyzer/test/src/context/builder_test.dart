@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -232,7 +232,7 @@ linter:
 //        options: createContextBuilderOptions(argResults));
 //
 //    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-//    expected.previewDart2 = true;
+//    expected.option = true;
 //
 //    String path = resourceProvider.convertPath('/some/directory/path');
 //    String filePath =
@@ -240,7 +240,7 @@ linter:
 //    resourceProvider.newFile(filePath, '''
 //analyzer:
 //  language:
-//    enablePreviewDart2: true
+//    option: true
 //''');
 //
 //    AnalysisOptions options = builder.getAnalysisOptions(path);

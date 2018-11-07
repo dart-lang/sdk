@@ -1298,12 +1298,11 @@ main() {
   test_undefinedGetter_typeLiteral_conditionalAccess() async {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance getters of Type.
-    // TODO(brianwilkerson) We cannot verify in previewDart2 because hashCode
-    // isn't resolved.
+    // TODO(brianwilkerson) We cannot verify because hashCode isn't resolved.
     await assertErrorsInCode('''
 class A {}
 f() => A?.hashCode;
-''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: !previewDart2);
+''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
   }
 
   test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
@@ -1378,20 +1377,14 @@ main() {
   }
 
   test_undefinedMethodWithConstructor() async {
-    // TODO(brianwilkerson) We cannot verify in previewDart2 because 'C' could
-    // not be resolved.
-    await assertErrorsInCode(
-        r'''
+    // TODO(brianwilkerson) We cannot verify because 'C' could not be resolved.
+    await assertErrorsInCode(r'''
 class C {
   C.m();
 }
 f() {
   C c = C.m();
-}''',
-        previewDart2
-            ? []
-            : [StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR],
-        verify: !previewDart2);
+}''', [], verify: false);
   }
 
   test_undefinedOperator_indexBoth() async {

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -50,7 +50,6 @@ void printAndFail(String message, {int exitCode: 15}) {
 AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   analysisOptions.hint = false;
-  analysisOptions.previewDart2 = options.previewDart2;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
   analysisOptions.enableTiming = options.enableTiming;
@@ -84,9 +83,6 @@ class DriverOptions {
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
 
-  /// Whether to use Dart 2.0 features.
-  bool previewDart2 = false;
-
   /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
   DartSdk mockSdk;
 
@@ -101,6 +97,13 @@ class DriverOptions {
   void set enableAssertInitializer(bool enable) {
     // Ignored because the option is now always enabled.
   }
+
+  /// Whether to use Dart 2.0 features.
+  @deprecated
+  bool get previewDart2 => true;
+
+  @deprecated
+  void set previewDart2(bool value) {}
 }
 
 class LintDriver {

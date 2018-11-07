@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer_cli.test.options;
 
 import 'dart:io';
 
@@ -72,7 +70,6 @@ main() {
         expect(options.warningsAreFatal, isFalse);
         expect(options.strongMode, isTrue);
         expect(options.lintsAreFatal, isFalse);
-        expect(options.previewDart2, isTrue);
         expect(options.trainSnapshot, isFalse);
       });
 
@@ -229,12 +226,6 @@ main() {
         CommandLineOptions options =
             CommandLineOptions.parse(['--use-fasta-parser', 'foo.dart']);
         expect(options.useFastaParser, isTrue);
-      });
-
-      test('--preview-dart-2', () {
-        CommandLineOptions options =
-            CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
-        expect(options.previewDart2, isTrue);
       });
 
       test('--train-snapshot', () {

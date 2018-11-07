@@ -72,7 +72,7 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options.defaultPackagesDirectoryPath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.strongMode, defaultOptions.previewDart2);
+    expect(defaultOptions.strongMode, true);
     expect(defaultOptions.declarationCasts, true);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);

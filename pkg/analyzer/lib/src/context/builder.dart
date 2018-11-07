@@ -1,10 +1,12 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
 import 'dart:core';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
+import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -16,18 +18,16 @@ import 'package:analyzer/src/command_line/arguments.dart'
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
+    as api;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
-import 'package:analyzer/dart/analysis/context_locator.dart' as api;
-import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
-    as api;
-import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/package_build.dart';
@@ -151,11 +151,6 @@ class ContextBuilder {
       : builderOptions = options ?? new ContextBuilderOptions();
 
   /**
-   * Whether to enable the Dart 2.0 preview.
-   */
-  bool get previewDart2 => true;
-
-  /**
    * Return an analysis context that is configured correctly to analyze code in
    * the directory with the given [path].
    *
@@ -167,7 +162,6 @@ class ContextBuilder {
     AnalysisOptionsImpl options = getAnalysisOptions(path);
     context.contentCache = contentCache;
     context.sourceFactory = createSourceFactory(path, options);
-    options.previewDart2 = previewDart2;
     context.analysisOptions = options;
     context.name = path;
     //_processAnalysisOptions(context, optionMap);

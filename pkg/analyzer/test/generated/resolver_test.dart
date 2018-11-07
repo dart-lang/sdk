@@ -856,77 +856,6 @@ main() {
     }
   }
 
-  test_functionExpression_asInvocationArgument() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-class MyMap<K, V> {
-  forEach(f(K key, V value)) {}
-}
-f(MyMap<int, String> m) {
-  m.forEach((k, v) {
-    k;
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // k
-    SimpleIdentifier kIdentifier = EngineTestCase.findNode(
-        unit, code, "k;", (node) => node is SimpleIdentifier);
-    expect(kIdentifier.staticType, typeProvider.dynamicType);
-    // v
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
-        unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.staticType, typeProvider.dynamicType);
-  }
-
-  test_functionExpression_asInvocationArgument_functionExpressionInvocation() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-main() {
-  (f(String value)) {} ((v) {
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // v
-    FormalParameter vParameter = EngineTestCase.findNode(
-        unit, code, "v)", (node) => node is FormalParameter);
-    expect(vParameter.identifier.staticType, typeProvider.dynamicType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
-        unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.staticType, typeProvider.dynamicType);
-  }
-
-  test_functionExpression_asInvocationArgument_keepIfLessSpecific() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-class MyList {
-  forEach(f(Object value)) {}
-}
-f(MyList list) {
-  list.forEach((int v) {
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // v
-    FormalParameter vParameter = EngineTestCase.findNode(
-        unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.staticType, typeProvider.intType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
-        unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.staticType, typeProvider.intType);
-  }
-
   test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() async {
     String code = r'''
 class A {
@@ -944,50 +873,6 @@ x() {
         unit, code, "() => 0)", (node) => node is FunctionExpression);
     expect((functionExpression.staticType as FunctionType).parameters.length,
         same(0));
-  }
-
-  test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-class MyList<E> {
-  forEach(f(E value)) {}
-}
-f(MyList<String> list) {
-  list.forEach((Object v) {
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // v
-    FormalParameter vParameter = EngineTestCase.findNode(
-        unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.staticType, typeProvider.objectType);
-  }
-
-  test_initializer() async {
-    if (previewDart2) {
-      return;
-    }
-    Source source = addSource(r'''
-f() {
-  var v = 0;
-  return v;
-}''');
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    NodeList<Statement> statements = body.block.statements;
-    // Type of 'v' in declaration.
-    {
-      VariableDeclarationStatement statement =
-          statements[0] as VariableDeclarationStatement;
-      SimpleIdentifier variableName = statement.variables.variables[0].name;
-      expect(variableName.staticType, typeProvider.dynamicType);
-    }
   }
 
   test_initializer_hasStaticType() async {
@@ -1168,23 +1053,6 @@ main() {
     expect(getter.staticType, typeProvider.dynamicType);
   }
 
-  test_objectAccessInference_enabled_for_cascades() async {
-    if (previewDart2) {
-      return;
-    }
-    String name = 'hashCode';
-    String code = '''
-main() {
-  dynamic obj;
-  obj..$name..$name; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    PropertyAccess access =
-        findMarkedIdentifier(code, unit, "; // marker").parent;
-    expect(access.staticType, typeProvider.dynamicType);
-    expect(access.realTarget.staticType, typeProvider.dynamicType);
-  }
-
   test_objectMethodInference_disabled_for_library_prefix() async {
     String name = 'toString';
     addNamedSource('/helper.dart', '''
@@ -1221,38 +1089,6 @@ main() {
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
-  }
-
-  test_objectMethodInference_enabled_for_cascades() async {
-    if (previewDart2) {
-      return;
-    }
-    String name = 'toString';
-    String code = '''
-main() {
-  dynamic obj;
-  obj..$name()..$name(); // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    SimpleIdentifier methodName =
-        findMarkedIdentifier(code, unit, "(); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-
-    expect(methodInvoke.staticType, typeProvider.dynamicType);
-    expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
-  }
-
-  test_propagatedReturnType_localFunction() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-main() {
-  f() => 42;
-  var v = f();
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.dynamicType);
   }
 
   /**

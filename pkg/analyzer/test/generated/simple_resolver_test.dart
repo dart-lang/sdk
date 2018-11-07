@@ -142,7 +142,7 @@ class A {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
+    expect(rhs.staticParameterElement, isNotNull);
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
@@ -166,7 +166,7 @@ class B {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
+    expect(rhs.staticParameterElement, isNotNull);
   }
 
   test_argumentResolution_setter_static() async {
@@ -1699,15 +1699,11 @@ class _SimpleResolverTest_localVariable_types_invoked
         found[0] = true;
         // check static type
         DartType staticType = node.staticType;
-        if (test.previewDart2) {
-          expect(staticType is FunctionType, isTrue);
-          FunctionType functionType = staticType;
-          expect(
-              functionType.parameters[0].type, same(test.typeProvider.intType));
-          expect(functionType.returnType, same(test.typeProvider.stringType));
-        } else {
-          expect(staticType, same(test.typeProvider.dynamicType));
-        }
+        expect(staticType is FunctionType, isTrue);
+        FunctionType functionType = staticType;
+        expect(
+            functionType.parameters[0].type, same(test.typeProvider.intType));
+        expect(functionType.returnType, same(test.typeProvider.stringType));
       } on AnalysisException catch (e, stackTrace) {
         thrownException[0] = new CaughtException(e, stackTrace);
       }

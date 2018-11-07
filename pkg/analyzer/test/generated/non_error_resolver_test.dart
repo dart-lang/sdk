@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -301,7 +301,7 @@ process(Object x) {}''');
   }
 
   test_argumentTypeNotAssignable_optionalNew() async {
-    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+    resetWith(options: new AnalysisOptionsImpl());
     Source source = addSource(r'''
 class Widget { }
 
@@ -4464,7 +4464,7 @@ main() {
   }
 
   test_optionalNew_rewrite() async {
-    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+    resetWith(options: new AnalysisOptionsImpl());
     Source source = addSource(r'''
 import 'b.dart';
 main() {
@@ -4504,7 +4504,7 @@ class B {
   }
 
   test_optionalNew_rewrite_instantiatesToBounds() async {
-    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+    resetWith(options: new AnalysisOptionsImpl());
     Source source = addSource(r'''
 import 'b.dart';
 

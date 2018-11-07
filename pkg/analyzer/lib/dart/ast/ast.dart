@@ -4342,8 +4342,6 @@ abstract class IndexExpression extends Expression
  *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
- *
- * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 abstract class InstanceCreationExpression extends Expression
     implements ConstructorReferenceNode {
