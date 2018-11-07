@@ -285,13 +285,13 @@ class WebCompileCommand extends Command {
       }
       resources.newFile(fileName, sourceCode);
 
-      compilerOptions.moduleName = path.toUri(libraryName).toString();
+      var name = path.toUri(libraryName).toString();
+      compilerOptions.moduleName = name;
       JSModuleFile module =
           compileWithAnalyzer(driver, [fileName], options, compilerOptions);
 
       var moduleCode = '';
       if (module.isValid) {
-        var name = compilerOptions.moduleName;
         moduleCode =
             module.getCode(ModuleFormat.legacyConcat, name, name + '.map').code;
       }
