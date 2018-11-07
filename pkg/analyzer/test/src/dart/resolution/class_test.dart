@@ -1413,6 +1413,22 @@ abstract class C implements A, B {}
     ]);
   }
 
+  test_issue32815() async {
+    addTestFile(r'''
+class A<T> extends B<T> {}
+class B<T> extends A<T> {}
+class C<T> extends B<T> implements I<T> {}
+
+abstract class I<T> {}
+
+main() {
+  Iterable<I<int>> x = [new C()];
+}
+''');
+    await resolveTestFile();
+    assertHasTestErrors();
+  }
+
   test_recursiveInterfaceInheritance_extends() async {
     addTestFile(r'''
 class A extends B {}
