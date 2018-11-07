@@ -6,7 +6,8 @@ import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, CompilationUnitElement, Element;
 import 'package:analyzer/dart/element/type.dart' show DartType, InterfaceType;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/summary/resynthesize.dart';
 import 'element_helpers.dart' show getAnnotationName, isBuiltinAnnotation;
 
 /// Contains information about native JS types (those types provided by the
@@ -27,7 +28,7 @@ import 'element_helpers.dart' show getAnnotationName, isBuiltinAnnotation;
 /// This will provide the [Iterable.first] property, without needing to add
 /// `first` to the `Array.prototype`.
 class ExtensionTypeSet {
-  final AnalysisContext _context;
+  final SummaryResynthesizer _resynthesizer;
 
   // Abstract types that may be implemented by both native and non-native
   // classes.
@@ -37,7 +38,7 @@ class ExtensionTypeSet {
   final _nativeTypes = HashSet<ClassElement>();
   final _pendingLibraries = HashSet<String>();
 
-  ExtensionTypeSet(this._context) {
+  ExtensionTypeSet(TypeProvider types, this._resynthesizer) {
     // TODO(vsm): Eventually, we want to make this extensible - i.e., find
     // annotations in user code as well.  It would need to be summarized in
     // the element model - not searched this way on every compile.  To make this
@@ -46,7 +47,6 @@ class ExtensionTypeSet {
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
-    var types = _context.typeProvider;
     _extensibleTypes.add(types.objectType.element);
     _addExtensionType(types.intType, true);
     _addExtensionType(types.doubleType, true);
@@ -108,16 +108,14 @@ class ExtensionTypeSet {
   }
 
   void _addExtensionTypesForLibrary(String libraryUri, List<String> typeNames) {
-    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
-    var library = _context.computeLibraryElement(sourceFactory);
+    var library = _resynthesizer.getLibraryElement(libraryUri);
     for (var typeName in typeNames) {
       _addExtensionType(library.getType(typeName).type);
     }
   }
 
   void _addExtensionTypes(String libraryUri) {
-    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
-    var library = _context.computeLibraryElement(sourceFactory);
+    var library = _resynthesizer.getLibraryElement(libraryUri);
     _visitCompilationUnit(library.definingCompilationUnit);
     library.parts.forEach(_visitCompilationUnit);
   }

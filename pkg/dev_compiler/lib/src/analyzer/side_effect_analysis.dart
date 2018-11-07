@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/error/listener.dart'
     show AnalysisErrorListener, ErrorReporter;
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -102,10 +102,11 @@ class _AssignmentFinder extends RecursiveAstVisitor {
 class ConstFieldVisitor {
   final ConstantVisitor constantVisitor;
 
-  ConstFieldVisitor(AnalysisContext context, {Source dummySource})
+  ConstFieldVisitor(
+      TypeProvider typeProvider, DeclaredVariables declaredVariables,
+      {Source dummySource})
       : constantVisitor = ConstantVisitor(
-            ConstantEvaluationEngine(
-                context.typeProvider, context.declaredVariables),
+            ConstantEvaluationEngine(typeProvider, declaredVariables),
             ErrorReporter(AnalysisErrorListener.NULL_LISTENER, dummySource));
 
   // TODO(jmesserly): this is used to determine if the field initialization is

@@ -2362,6 +2362,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= receiver.raw();
+
     const Object& result =
         Object::Handle(zone, instance.Invoke(selector, args, arg_names));
     result.PrintJSON(js, true);
@@ -2793,7 +2794,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
   }
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    js->PrintError(kExpressionCompilationError, compilation_result.error);
+    js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
     free(compilation_result.error);
     return true;
   }
@@ -3714,7 +3715,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
 
   const char* error = NULL;
   if (!isolate->debugger()->SetResumeAction(step, frame_index, &error)) {
-    js->PrintError(kCannotResume, error);
+    js->PrintError(kCannotResume, "%s", error);
     return true;
   }
   isolate->SetResumeRequest();

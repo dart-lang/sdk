@@ -12,10 +12,8 @@ import 'package:front_end/src/api_unstable/ddc.dart'
 import 'package:path/path.dart' as path;
 import 'module_builder.dart';
 import '../analyzer/command.dart' as analyzer_compiler;
+import '../analyzer/driver.dart' show CompilerAnalysisDriver;
 import '../kernel/command.dart' as kernel_compiler;
-
-export 'package:front_end/src/api_unstable/ddc.dart'
-    show InitializedCompilerState;
 
 /// Shared code between Analyzer and Kernel CLI interfaces.
 ///
@@ -344,22 +342,24 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
 /// Returns a [CompilerResult], with a success flag indicating whether the
 /// program compiled without any fatal errors.
 ///
-/// The result may also contain a [compilerState], which can be passed back in
+/// The result may also contain a [previousResult], which can be passed back in
 /// for batch/worker executions to attempt to existing state.
 Future<CompilerResult> compile(ParsedArguments args,
-    {InitializedCompilerState compilerState}) {
-  if (compilerState != null && (!args.isBatchOrWorker || !args.isKernel)) {
-    throw ArgumentError('compilerState requires --batch or --bazel_worker mode,'
-        ' and --kernel to be set.');
+    {CompilerResult previousResult}) {
+  if (previousResult != null && !args.isBatchOrWorker) {
+    throw ArgumentError(
+        'previousResult requires --batch or --bazel_worker mode/');
   }
   if (args.isKernel) {
-    return kernel_compiler.compile(args.rest, compilerState: compilerState);
+    return kernel_compiler.compile(args.rest,
+        compilerState: previousResult?.kernelState);
   } else {
-    var exitCode = analyzer_compiler.compile(args.rest);
+    var result = analyzer_compiler.compile(args.rest,
+        compilerState: previousResult?.analyzerState);
     if (args.isBatchOrWorker) {
       AnalysisEngine.instance.clearCaches();
     }
-    return Future.value(CompilerResult(exitCode));
+    return Future.value(result);
   }
 }
 
@@ -377,12 +377,25 @@ class CompilerResult {
   /// compilation.
   ///
   /// This field is unused when using the Analyzer-backend for DDC.
-  final InitializedCompilerState compilerState;
+  final InitializedCompilerState kernelState;
+
+  /// Optionally provides the analyzer state from the previous compilation,
+  /// which can be passed to [compile] to potentially speeed up the next
+  /// compilation.
+  ///
+  /// This field is unused when using the Kernel-backend for DDC.
+  final CompilerAnalysisDriver analyzerState;
 
   /// The process exit code of the compiler.
   final int exitCode;
 
-  CompilerResult(this.exitCode, [this.compilerState]);
+  CompilerResult(this.exitCode, {this.kernelState, this.analyzerState}) {
+    assert(kernelState == null || analyzerState == null,
+        'kernel and analyzer state should not both be supplied');
+  }
+
+  /// Gets the kernel or analyzer compiler state, if any.
+  Object get compilerState => kernelState ?? analyzerState;
 
   /// Whether the program compiled without any fatal errors (equivalent to
   /// [exitCode] == 0).

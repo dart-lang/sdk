@@ -146,7 +146,7 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       default:
         H.ReportError(
             script_, TokenPosition::kNoSource,
-            "Not a constant expression: unexpected kernel tag %s (%" Pd ")",
+            "Not a constant expression: unexpected kernel tag %s (%d)",
             Reader::TagName(tag), tag);
     }
 

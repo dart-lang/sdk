@@ -2681,8 +2681,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleValuedFormalParameter(Token equals, Token token) {
     debugEvent("ValuedFormalParameter");
     Expression initializer = popForValue();
-    Identifier name = pop();
-    push(new InitializedIdentifier(name, initializer));
+    Object name = pop();
+    if (name is ParserRecovery) {
+      push(name);
+    } else {
+      push(new InitializedIdentifier(name, initializer));
+    }
   }
 
   @override

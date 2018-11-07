@@ -38,7 +38,7 @@ Future main(List<String> args, [SendPort sendPort]) async {
 class _CompilerWorker extends AsyncWorkerLoop {
   /// The original args supplied to the executable.
   final ParsedArguments _startupArgs;
-  InitializedCompilerState _compilerState;
+  CompilerResult _result;
 
   _CompilerWorker(this._startupArgs, AsyncWorkerConnection workerConnection)
       : super(connection: workerConnection);
@@ -47,14 +47,13 @@ class _CompilerWorker extends AsyncWorkerLoop {
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var args = _startupArgs.merge(request.arguments);
     var output = StringBuffer();
-    var result = await runZoned(
-        () => compile(args, compilerState: _compilerState), zoneSpecification:
+    _result = await runZoned(() => compile(args, previousResult: _result),
+        zoneSpecification:
             ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());
     }));
-    _compilerState = result.compilerState;
     return WorkResponse()
-      ..exitCode = result.success ? 0 : 1
+      ..exitCode = _result.success ? 0 : 1
       ..output = output.toString();
   }
 }
@@ -68,7 +67,7 @@ Future runBatch(ParsedArguments batchArgs) async {
   print('>>> BATCH START');
 
   String line;
-  InitializedCompilerState compilerState;
+  CompilerResult result;
 
   while ((line = stdin.readLineSync(encoding: utf8))?.isNotEmpty == true) {
     totalTests++;
@@ -76,8 +75,7 @@ Future runBatch(ParsedArguments batchArgs) async {
 
     String outcome;
     try {
-      var result = await compile(args, compilerState: compilerState);
-      compilerState = result.compilerState;
+      result = await compile(args, previousResult: result);
       outcome = result.success ? 'PASS' : (result.crashed ? 'CRASH' : 'FAIL');
     } catch (e, s) {
       outcome = 'CRASH';

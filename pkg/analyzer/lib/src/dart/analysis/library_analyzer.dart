@@ -81,11 +81,14 @@ class LibraryAnalyzer {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     return PerformanceStatistics.analysis.makeCurrentWhileAsync(() async {
-      return _analyze();
+      return analyzeSync();
     });
   }
 
-  Map<FileState, UnitAnalysisResult> _analyze() {
+  /**
+   * Compute analysis results for all units of the library.
+   */
+  Map<FileState, UnitAnalysisResult> analyzeSync() {
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.

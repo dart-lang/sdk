@@ -1,3 +1,25 @@
+## 2.1.0-dev.9.2
+
+Cherry-pick 2cf0ca381ce33d1e6597c778eb1a915eecdac109 to dev
+
+Cherry-pick c7e6cdf81ca2f6113cc132d85d5f73a9441d3643 to dev
+
+Cherry-pick a6518386520af63764ad40dde3b53e5e160b9bff to dev
+
+Cherry-pick 2085277771bb91d488edb6e6e55552ba7116dd72 to dev
+
+Cherry-pick 0fd4a51e2c805aec79d4d0e42f446f5395c6113a to dev
+
+Cherry-pick be815e1a867d302ad2fbc8db8d7467cfe85319d2 to dev
+
+Cherry-pick 61df5fdec81be4f8f04c18a774147856931ebbb9 to dev
+
+Cherry-pick d8d68358498c83127e26ad1796359146772decad to dev
+
+Cherry-pick 9c95624a6307f09f1cdc49054bdd08125acb6f53 to dev
+
+Cherry-pick cde479301a81f9fbaec3fb007457a4ec8e5a65a7 to dev
+
 ## 2.1.0-dev.9.1
 
 Cherry-pick commit 0fe448a99643e149acb2e7e32d7a30eba7dd646d to update the analysis server edit.dartfix protocol.
