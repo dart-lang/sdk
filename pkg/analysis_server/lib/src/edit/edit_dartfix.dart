@@ -10,12 +10,15 @@ import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -260,7 +263,7 @@ class EditDartFix {
       if (identical(cu, unitElement)) {
         allUnits.add(currentUnit);
       } else {
-        var result = await session.getResolvedAst(cu.source.fullName);
+        var result = await session.getResolvedUnit(cu.source.fullName);
         allUnits.add(LinterContextUnit(result.content, result.unit));
       }
     }
