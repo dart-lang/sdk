@@ -1793,9 +1793,9 @@ static void UnboxPhi(PhiInstr* phi) {
       break;
   }
 
-  if ((unboxed == kTagged) && phi->Type()->IsInt() &&
+  if ((kSmiBits < 32) && (unboxed == kTagged) && phi->Type()->IsInt() &&
       RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
-    // Conservatively unbox phis that:
+    // On 32-bit platforms conservatively unbox phis that:
     //   - are proven to be of type Int;
     //   - fit into 64bits range;
     //   - have either constants or Box() operations as inputs;

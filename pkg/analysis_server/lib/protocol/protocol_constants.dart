@@ -6,6 +6,8 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
+const String PROTOCOL_VERSION = '1.21.1';
+
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
 const String ANALYSIS_NOTIFICATION_CLOSING_LABELS = 'analysis.closingLabels';

@@ -301,6 +301,24 @@ class Listener implements UnescapeErrorListener {
     logEvent("Fields");
   }
 
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was an empty statement.
+  void handleForInitializerEmptyStatement(Token token) {
+    logEvent("ForInitializerEmptyStatement");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was an expression statement.
+  void handleForInitializerExpressionStatement(Token token) {
+    logEvent("ForInitializerExpressionStatement");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was a `localVariableDeclaration`.
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    logEvent("ForInitializerLocalVariableDeclaration");
+  }
+
   /// Marks the start of a for statement which is ended by either
   /// [endForStatement] or [endForIn].
   void beginForStatement(Token token) {}
@@ -1143,10 +1161,6 @@ class Listener implements UnescapeErrorListener {
 
   void handleNoArguments(Token token) {
     logEvent("NoArguments");
-  }
-
-  void handleNoExpression(Token token) {
-    logEvent("NoExpression");
   }
 
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {

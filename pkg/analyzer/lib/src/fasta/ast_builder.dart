@@ -767,6 +767,23 @@ class AstBuilder extends StackListener {
     pop(); // block
   }
 
+  @override
+  void handleForInitializerEmptyStatement(Token token) {
+    debugEvent("ForInitializerEmptyStatement");
+    push(NullValue.Expression);
+  }
+
+  @override
+  void handleForInitializerExpressionStatement(Token token) {
+    debugEvent("ForInitializerExpressionStatement");
+  }
+
+  @override
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    debugEvent("ForInitializerLocalVariableDeclaration");
+  }
+
+  @override
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     assert(optional('for', forKeyword));
@@ -1438,12 +1455,6 @@ class AstBuilder extends StackListener {
 
     SimpleIdentifier name = pop();
     push(ast.label(name, colon));
-  }
-
-  void handleNoExpression(Token token) {
-    debugEvent("NoExpression");
-
-    push(NullValue.Expression);
   }
 
   void handleIndexedExpression(Token leftBracket, Token rightBracket) {

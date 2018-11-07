@@ -250,6 +250,29 @@ function installTearOff(
   }
 }
 
+function installStaticTearOff(
+    container, getterName,
+    requiredParameterCount, optionalParameterDefaultValues,
+    callNames, funsOrNames, funType, applyIndex) {
+  // TODO(sra): Specialize installTearOff for static methods. It might be
+  // possible to handle some very common simple cases directly.
+  return installTearOff(
+      container, getterName, true, false,
+      requiredParameterCount, optionalParameterDefaultValues,
+      callNames, funsOrNames, funType, applyIndex);
+}
+
+function installInstanceTearOff(
+    container, getterName, isIntercepted,
+    requiredParameterCount, optionalParameterDefaultValues,
+    callNames, funsOrNames, funType, applyIndex) {
+  // TODO(sra): Specialize installTearOff for instance methods.
+  return installTearOff(
+      container, getterName, false, isIntercepted,
+      requiredParameterCount, optionalParameterDefaultValues,
+      callNames, funsOrNames, funType, applyIndex);
+}
+
 // Instead of setting the interceptor tags directly we use this update
 // function. This makes it easier for deferred fragments to contribute to the
 // embedded global.
@@ -292,6 +315,12 @@ function updateHolder(holder, newHolder) {
   return holder;
 }
 
+// TODO(sra): Minify properties of 'hunkHelpers'.
+var #hunkHelpers = {
+  installStaticTearOff: installStaticTearOff,
+  installInstanceTearOff: installInstanceTearOff,
+};
+
 // Every deferred hunk (i.e. fragment) is a function that we can invoke to
 // initialize it. At this moment it contributes its data to the main hunk.
 function initializeDeferredHunk(hunk) {
@@ -299,7 +328,8 @@ function initializeDeferredHunk(hunk) {
   typesOffset = #embeddedTypes.length;
 
   // TODO(floitsch): extend natives.
-  hunk(inherit, inheritMany, mixin, lazy, makeConstList, convertToFastObject, installTearOff,
+  hunk(inherit, inheritMany, mixin, lazy, makeConstList, convertToFastObject,
+       hunkHelpers,
        setFunctionNamesIfNecessary, updateHolder, updateTypes,
        setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
        #embeddedGlobalsObject, holders, #staticState);
@@ -326,7 +356,7 @@ if (#hasSoftDeferredClasses) {
     #deferredGlobal[#softId](
         holders, #embeddedGlobalsObject, #staticState,
         inherit, inheritMany, mixin,
-        installTearOff);
+        hunkHelpers);
     if (o != null) {
       // TODO(29574): should we do something different for Firefox?
       // If we recommend that the program triggers the load by itself before
@@ -425,7 +455,7 @@ const String directAccessTestExpression = r'''
 /// This template is used for Dart 2.
 const String deferredBoilerplateDart2 = '''
 function(inherit, inheritMany, mixin, lazy, makeConstList, convertToFastObject,
-         installTearOff, setFunctionNamesIfNecessary, updateHolder, updateTypes,
+         hunkHelpers, setFunctionNamesIfNecessary, updateHolder, updateTypes,
          setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
          #embeddedGlobalsObject, holdersList, #staticState) {
 
@@ -476,7 +506,7 @@ const String softDeferredBoilerplate = '''
 #deferredGlobal[#softId] =
   function(holdersList, #embeddedGlobalsObject, #staticState,
            inherit, inheritMany, mixin,
-           installTearOff) {
+           hunkHelpers) {
 
 // Installs the holders as local variables.
 #installHoldersAsLocals;
@@ -532,6 +562,8 @@ class FragmentEmitter {
         emitHolders(program.holders, fragment, initializeEmptyHolders: true);
 
     js.Statement mainCode = js.js.statement(mainBoilerplate, {
+      // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
+      'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
       'directAccessTestExpression': js.js(directAccessTestExpression),
       'cyclicThrow': backend.emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
@@ -1204,75 +1236,6 @@ class FragmentEmitter {
     }
   }
 
-  /// Emits the statement that installs a tear off for a method.
-  ///
-  /// Tear-offs might be passed to `Function.apply` which means that all
-  /// calling-conventions (with or without optional positional/named arguments)
-  /// are possible. As such, the tear-off needs enough information to fill in
-  /// missing parameters.
-  js.Statement emitInstallTearOff(js.Expression container, DartMethod method) {
-    List<js.Name> callNames = [];
-    List<js.Expression> funsOrNames = [];
-
-    /// Adds the stub-method's code or name to the [funsOrNames] array.
-    ///
-    /// Static methods don't need stub-methods except for tear-offs. As such,
-    /// they are not emitted in the prototype, but directly passed here.
-    ///
-    /// Instance-methods install the stub-methods in their prototype, and we
-    /// use string-based redirections to find them there.
-    void addFunOrName(StubMethod stubMethod) {
-      if (method.isStatic) {
-        funsOrNames.add(stubMethod.code);
-      } else {
-        funsOrNames.add(js.quoteName(stubMethod.name));
-      }
-    }
-
-    callNames.add(method.callName);
-    // The first entry in the funsOrNames-array must be a string.
-    funsOrNames.add(js.quoteName(method.name));
-    for (ParameterStubMethod stubMethod in method.parameterStubs) {
-      callNames.add(stubMethod.callName);
-      addFunOrName(stubMethod);
-    }
-
-    js.ArrayInitializer callNameArray =
-        new js.ArrayInitializer(callNames.map(js.quoteName).toList());
-    js.ArrayInitializer funsOrNamesArray = new js.ArrayInitializer(funsOrNames);
-
-    bool isIntercepted = false;
-    if (method is InstanceMethod) {
-      isIntercepted = method.isIntercepted;
-    }
-    int requiredParameterCount = 0;
-    js.Expression optionalParameterDefaultValues = new js.LiteralNull();
-    if (method.canBeApplied) {
-      requiredParameterCount = method.requiredParameterCount;
-      optionalParameterDefaultValues =
-          _encodeOptionalParameterDefaultValues(method);
-    }
-
-    var applyIndex = js.number(method.applyIndex);
-
-    return js.js.statement('''
-        installTearOff(#container, #getterName, #isStatic, #isIntercepted,
-                       #requiredParameterCount, #optionalParameterDefaultValues,
-                       #callNames, #funsOrNames, #funType, #applyIndex)''', {
-      "container": container,
-      "getterName": js.quoteName(method.tearOffName),
-      // 'Truthy' values are ok for `isStatic` and `isIntercepted`.
-      "isStatic": js.number(method.isStatic ? 1 : 0),
-      "isIntercepted": js.number(isIntercepted ? 1 : 0),
-      "requiredParameterCount": js.number(requiredParameterCount),
-      "optionalParameterDefaultValues": optionalParameterDefaultValues,
-      "callNames": callNameArray,
-      "funsOrNames": funsOrNamesArray,
-      "funType": method.functionType,
-      "applyIndex": applyIndex,
-    });
-  }
-
   /// Wraps the statement in a named function to that it shows up as a unit in
   /// profiles.
   // TODO(sra): Should this be conditional?
@@ -1292,6 +1255,100 @@ class FragmentEmitter {
   /// Emits the section that installs tear-off getters.
   js.Statement emitInstallTearOffs(Fragment fragment,
       {bool softDeferred = false}) {
+    var aliasForInstallStaticTearOff;
+    var aliasForInstallInstanceTearOff;
+
+    /// Emits the statement that installs a tear off for a method.
+    ///
+    /// Tear-offs might be passed to `Function.apply` which means that all
+    /// calling-conventions (with or without optional positional/named
+    /// arguments) are possible. As such, the tear-off needs enough information
+    /// to fill in missing parameters.
+    js.Statement emitInstallTearOff(
+        js.Expression container, DartMethod method) {
+      List<js.Name> callNames = [];
+      List<js.Expression> funsOrNames = [];
+
+      /// Adds the stub-method's code or name to the [funsOrNames] array.
+      ///
+      /// Static methods don't need stub-methods except for tear-offs. As such,
+      /// they are not emitted in the prototype, but directly passed here.
+      ///
+      /// Instance-methods install the stub-methods in their prototype, and we
+      /// use string-based redirections to find them there.
+      void addFunOrName(StubMethod stubMethod) {
+        if (method.isStatic) {
+          funsOrNames.add(stubMethod.code);
+        } else {
+          funsOrNames.add(js.quoteName(stubMethod.name));
+        }
+      }
+
+      callNames.add(method.callName);
+      // The first entry in the funsOrNames-array must be a string.
+      funsOrNames.add(js.quoteName(method.name));
+      for (ParameterStubMethod stubMethod in method.parameterStubs) {
+        callNames.add(stubMethod.callName);
+        addFunOrName(stubMethod);
+      }
+
+      js.ArrayInitializer callNameArray =
+          new js.ArrayInitializer(callNames.map(js.quoteName).toList());
+      js.ArrayInitializer funsOrNamesArray =
+          new js.ArrayInitializer(funsOrNames);
+
+      bool isIntercepted = false;
+      if (method is InstanceMethod) {
+        isIntercepted = method.isIntercepted;
+      }
+
+      int requiredParameterCount = 0;
+      js.Expression optionalParameterDefaultValues = new js.LiteralNull();
+      if (method.canBeApplied) {
+        requiredParameterCount = method.requiredParameterCount;
+        optionalParameterDefaultValues =
+            _encodeOptionalParameterDefaultValues(method);
+      }
+
+      var applyIndex = js.number(method.applyIndex);
+
+      if (method.isStatic) {
+        aliasForInstallStaticTearOff ??= '_static';
+        return js.js.statement('''
+            #install(#container, #getterName,
+                     #requiredParameterCount, #optionalParameterDefaultValues,
+                     #callNames, #funsOrNames, #funType, #applyIndex)''', {
+          "install": aliasForInstallStaticTearOff,
+          "container": container,
+          "getterName": js.quoteName(method.tearOffName),
+          "requiredParameterCount": js.number(requiredParameterCount),
+          "optionalParameterDefaultValues": optionalParameterDefaultValues,
+          "callNames": callNameArray,
+          "funsOrNames": funsOrNamesArray,
+          "funType": method.functionType,
+          "applyIndex": applyIndex,
+        });
+      } else {
+        aliasForInstallInstanceTearOff ??= '_instance';
+        return js.js.statement('''
+            #install(#container, #getterName, #isIntercepted,
+                     #requiredParameterCount, #optionalParameterDefaultValues,
+                     #callNames, #funsOrNames, #funType, #applyIndex)''', {
+          "install": aliasForInstallInstanceTearOff,
+          "container": container,
+          "getterName": js.quoteName(method.tearOffName),
+          // 'Truthy' values are ok for `isIntercepted`.
+          "isIntercepted": js.number(isIntercepted ? 1 : 0),
+          "requiredParameterCount": js.number(requiredParameterCount),
+          "optionalParameterDefaultValues": optionalParameterDefaultValues,
+          "callNames": callNameArray,
+          "funsOrNames": funsOrNamesArray,
+          "funType": method.functionType,
+          "applyIndex": applyIndex,
+        });
+      }
+    }
+
     List<js.Statement> inits = [];
     js.Expression temp;
 
@@ -1325,6 +1382,23 @@ class FragmentEmitter {
         }
       }
     }
+
+    List<js.VariableInitialization> locals = [];
+    if (aliasForInstallStaticTearOff != null) {
+      locals.add(js.VariableInitialization(
+          js.VariableDeclaration(aliasForInstallStaticTearOff),
+          js.js('hunkHelpers.installStaticTearOff')));
+    }
+    if (aliasForInstallInstanceTearOff != null) {
+      locals.add(js.VariableInitialization(
+          js.VariableDeclaration(aliasForInstallInstanceTearOff),
+          js.js('hunkHelpers.installInstanceTearOff')));
+    }
+    if (locals.isNotEmpty) {
+      inits.insert(
+          0, js.ExpressionStatement(js.VariableDeclarationList(locals)));
+    }
+
     return wrapPhase('installTearOffs', inits);
   }
 

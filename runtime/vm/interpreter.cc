@@ -1034,6 +1034,8 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
   if (!InvokeRuntime(thread, this, DRT_CompileFunction, native_args)) {
     return false;
   }
+  // Reload objects after the call which may trigger GC.
+  function = Function::RawCast(call_top[2]);
   if (Function::HasCode(function)) {
     *invoked = true;
     return InvokeCompiled(thread, function, call_base, call_top, pc, FP, SP);

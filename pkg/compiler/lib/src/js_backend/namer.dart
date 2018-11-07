@@ -447,8 +447,6 @@ class Namer {
   final String superPrefix = r'super$';
   final String metadataField = '@';
   final String callPrefix = 'call';
-  // Note: We can't shorten 'call*' in the minified namers because the catch-all
-  // formula `name + "*"` is used by mirrors.
   String get callCatchAllName => r'call*';
   final String callNameField = r'$callName';
   final String stubNameField = r'$stubName';
