@@ -1147,10 +1147,10 @@ abstract class AnalysisOptions {
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /**
-   * DEPRECATED: Return the maximum number of sources for which AST structures should be
+   * Return the maximum number of sources for which AST structures should be
    * kept in the cache.
    *
-   * This setting no longer has any effect.
+   * DEPRECATED: This setting no longer has any effect.
    */
   @deprecated
   int get cacheSize;
@@ -1195,6 +1195,12 @@ abstract class AnalysisOptions {
    */
   @deprecated
   bool get enableConditionalDirectives;
+
+  /**
+   * Return a list containing the names of the experiments that are enabled in
+   * the context associated with these options.
+   */
+  List<String> get enabledExperiments;
 
   /**
    * Return a list of the names of the packages for which, if they define a
@@ -1338,6 +1344,7 @@ abstract class AnalysisOptions {
    * Set the values of the cross-context options to match those in the given set
    * of [options].
    */
+  @deprecated
   void setCrossContextOptionsFrom(AnalysisOptions options);
 
   /**
@@ -1408,6 +1415,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool dart2jsHint = false;
+
+  @override
+  List<String> enabledExperiments = const <String>[];
 
   @override
   List<String> enabledPluginNames = const <String>[];
@@ -1489,7 +1499,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool implicitDynamic = true;
 
-  // A no-op setter.
   /**
    * Return `true` to enable mixin declarations.
    * https://github.com/dart-lang/language/issues/12
@@ -1677,6 +1686,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(useFastaParser);
       buffer.addBool(isMixinSupportEnabled);
 
+      // Append enabled experiments.
+      buffer.addInt(enabledExperiments.length);
+      for (String experimentName in enabledExperiments) {
+        buffer.addString(experimentName);
+      }
+
       // Append error processors.
       buffer.addInt(errorProcessors.length);
       for (ErrorProcessor processor in errorProcessors) {
@@ -1734,6 +1749,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     declarationCasts = true;
     dart2jsHint = false;
     disableCacheFlushing = false;
+    enabledExperiments = const <String>[];
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
     enableTiming = false;
@@ -1750,9 +1766,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = true;
     strongModeHints = false;
     trackCacheDependencies = true;
-    useFastaParser = false;
+    useFastaParser = true;
   }
 
+  @deprecated
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
