@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: Pass, Fail # https://github.com/dart-lang/co19/issues/186
 LibTest/io/Stdin/readLineSync_A03_t02: Pass, Fail # https://github.com/dart-lang/co19/issues/184
 
 [ $compiler == dartkp ]
