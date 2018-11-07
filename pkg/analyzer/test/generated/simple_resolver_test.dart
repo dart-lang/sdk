@@ -376,42 +376,6 @@ class C {}''');
     verify([source]);
   }
 
-  test_commentReference_class() async {
-    Source source = addSource(r'''
-f() {}
-/** [A] [new A] [A.n] [new A.n] [m] [f] */
-class A {
-  A() {}
-  A.n() {}
-  m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_commentReference_parameter() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-  A.n() {}
-  /** [e] [f] */
-  m(e, f()) {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_commentReference_singleLine() async {
-    Source source = addSource(r'''
-/// [A]
-class A {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_continueTarget_labeled() async {
     // Verify that the target of the label is correctly found and is recorded
     // as the unlabeled portion of the statement.

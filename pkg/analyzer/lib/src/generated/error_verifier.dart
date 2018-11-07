@@ -6053,7 +6053,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return identical(parent.constructorName, identifier);
     }
     if (parent is CommentReference) {
-      return parent.newKeyword != null;
+      return true;
     }
     if (parent is ConstructorName) {
       return identical(parent.name, identifier);

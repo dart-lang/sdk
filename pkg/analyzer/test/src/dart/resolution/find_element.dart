@@ -116,6 +116,13 @@ class FindElement {
   }
 
   PropertyAccessorElement getter(String name, {String of}) {
+    for (var enum_ in unitElement.enums) {
+      for (var accessor in enum_.accessors) {
+        if (accessor.isGetter && accessor.displayName == name) {
+          return accessor;
+        }
+      }
+    }
     for (var class_ in unitElement.types) {
       if (of != null && class_.name != of) {
         continue;
@@ -337,6 +344,9 @@ class FindElement {
 
     for (var type in unitElement.functionTypeAliases) {
       type.typeParameters.forEach(consider);
+      if (type is GenericTypeAliasElement) {
+        type.function.typeParameters.forEach(consider);
+      }
     }
     for (var type in unitElement.types) {
       type.typeParameters.forEach(consider);
