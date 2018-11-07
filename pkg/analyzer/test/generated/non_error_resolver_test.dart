@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
