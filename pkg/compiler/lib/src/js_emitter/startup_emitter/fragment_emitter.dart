@@ -979,15 +979,14 @@ class FragmentEmitter {
     if (cls.superclass == null) {
       // TODO(sra): What is this doing? Document or remove.
       properties
-          .add(new js.Property(js.string("constructor"), classReference(cls)));
-      properties
-          .add(new js.Property(namer.operatorIs(cls.element), js.number(1)));
+          .add(js.Property(js.string("constructor"), classReference(cls)));
+      properties.add(js.Property(namer.operatorIs(cls.element), js.number(1)));
     }
 
     allMethods.forEach((Method method) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
-        var prop = new js.Property(name, code);
+        var prop = js.Property(name, code);
         compiler.dumpInfoTask.registerEntityAst(method.element, prop);
         properties.add(prop);
       });
@@ -997,8 +996,16 @@ class FragmentEmitter {
       // Closures extend a common base class, so we can put properties on the
       // prototype for common values.
 
+      // Closures taking exactly one argument are common.
+      properties.add(js.Property(
+          js.string(namer.callCatchAllName),
+          js.quoteName(
+              namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX1))));
+      properties.add(
+          js.Property(js.string(namer.requiredParameterField), js.number(1)));
+
       // Most closures have no optional arguments.
-      properties.add(new js.Property(
+      properties.add(js.Property(
           js.string(namer.defaultValuesField), new js.LiteralNull()));
     }
 
@@ -1081,12 +1088,22 @@ class FragmentEmitter {
         // complex cases. [forceAdd] might be true when this is fixed.
         bool forceAdd = !method.isClosureCallMethod;
 
-        properties[js.string(namer.callCatchAllName)] = js.quoteName(
-            method.applyIndex == 0
-                ? method.name
-                : method.parameterStubs[method.applyIndex - 1].name);
-        properties[js.string(namer.requiredParameterField)] =
-            js.number(method.requiredParameterCount);
+        // Common case of "call*": "call$1" is stored on the Closure class.
+        if (method.applyIndex != 0 ||
+            method.parameterStubs.isNotEmpty ||
+            method.requiredParameterCount != 1 ||
+            forceAdd) {
+          js.Name applyName = method.applyIndex == 0
+              ? method.name
+              : method.parameterStubs[method.applyIndex - 1].name;
+          properties[js.string(namer.callCatchAllName)] =
+              js.quoteName(applyName);
+        }
+        // Common case of '1' is stored on the Closure class.
+        if (method.requiredParameterCount != 1 || forceAdd) {
+          properties[js.string(namer.requiredParameterField)] =
+              js.number(method.requiredParameterCount);
+        }
 
         js.Expression defaultValues =
             _encodeOptionalParameterDefaultValues(method);
