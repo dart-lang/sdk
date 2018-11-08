@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server_client/protocol.dart';
 import 'package:path/path.dart';
 
 /// Type of callbacks used to process notifications.
@@ -119,6 +120,29 @@ class Server {
       logMessage('ERR: ', trimmedLine);
       logBadDataFromServer('Message received on stderr', silent: true);
     });
+  }
+
+  /// Deal with bad data received from the server.
+  void logBadDataFromServer(String details, {bool silent: false}) {
+    if (!silent) {
+      logMessage('BAD DATA FROM SERVER: ', details);
+    }
+    if (_receivedBadDataFromServer) {
+      // We're already dealing with it.
+      return;
+    }
+    _receivedBadDataFromServer = true;
+    // Give the server 1 second to continue outputting bad data
+    // such as outputting a stacktrace.
+    new Future.delayed(new Duration(seconds: 1), () {
+      throw 'Bad data received from server: $details';
+    });
+  }
+
+  /// Log a message that was exchanged with the server.
+  /// Subclasses may override as needed.
+  void logMessage(String prefix, String details) {
+    // no-op
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
@@ -248,27 +272,22 @@ class Server {
     });
   }
 
-  /// Deal with bad data received from the server.
-  void logBadDataFromServer(String details, {bool silent: false}) {
-    if (!silent) {
-      logMessage('BAD DATA FROM SERVER: ', details);
+  /// Attempt to gracefully shutdown the server.
+  /// If that fails, then kill the process.
+  Future<void> stop() async {
+    if (_process != null) {
+      final future = send(SERVER_REQUEST_SHUTDOWN, null);
+      final exitCode = _process.exitCode;
+      _process = null;
+      await future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => null, // fall through to wait for exit
+      );
+      await exitCode.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => kill('server failed to exit'),
+      );
     }
-    if (_receivedBadDataFromServer) {
-      // We're already dealing with it.
-      return;
-    }
-    _receivedBadDataFromServer = true;
-    // Give the server 1 second to continue outputting bad data
-    // such as outputting a stacktrace.
-    new Future.delayed(new Duration(seconds: 1), () {
-      throw 'Bad data received from server: $details';
-    });
-  }
-
-  /// Log a message that was exchanged with the server.
-  /// Subclasses may override as needed.
-  void logMessage(String prefix, String details) {
-    // no-op
   }
 }
 

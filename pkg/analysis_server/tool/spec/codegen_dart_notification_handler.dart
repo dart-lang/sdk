@@ -2,22 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:analyzer/src/codegen/tools.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
 import 'codegen_protocol_constants.dart' show generateConstName;
 import 'from_html.dart';
-import 'implied_types.dart';
-import 'to_html.dart';
 
 GeneratedFile clientTarget() {
   return new GeneratedFile(
-      '../analysis_server_client/lib/notification_handler.dart',
+      '../analysis_server_client/lib/handler/notification_handler.dart',
       (String pkgPath) async {
     CodegenNotificationHandlerVisitor visitor =
         new CodegenNotificationHandlerVisitor(readApi(pkgPath));
@@ -45,7 +39,7 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
     notifications.sort((n1, n2) => n1.constName.compareTo(n2.constName));
 
     writeln('''
-class NotificationHandler {
+mixin NotificationHandler {
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
   void handleEvent(String event, params) {

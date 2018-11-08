@@ -86,11 +86,6 @@ typedef void OptionUpdater(AnalysisOptionsImpl options);
  */
 class AnalysisServer {
   /**
-   * The version of the analysis server.
-   */
-  static final String VERSION = PROTOCOL_VERSION;
-
-  /**
    * The options of this server instance.
    */
   AnalysisServerOptions options;
@@ -363,7 +358,8 @@ class AnalysisServer {
       });
     });
     searchEngine = new SearchEngineImpl(driverMap.values);
-    Notification notification = new ServerConnectedParams(VERSION, io.pid,
+    Notification notification = new ServerConnectedParams(
+            PROTOCOL_VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
     channel.sendNotification(notification);

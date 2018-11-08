@@ -8,7 +8,7 @@
 
 import 'package:analysis_server_client/protocol.dart';
 
-class NotificationHandler {
+mixin NotificationHandler {
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
   void handleEvent(String event, params) {

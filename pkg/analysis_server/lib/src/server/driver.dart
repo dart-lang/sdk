@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analysis_server/protocol/protocol_constants.dart'
+    show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
@@ -436,7 +438,7 @@ class Driver implements ServerStarter {
             : _readUuid(instrumentationService),
         analysisServerOptions.clientId,
         analysisServerOptions.clientVersion,
-        AnalysisServer.VERSION,
+        PROTOCOL_VERSION,
         defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
