@@ -6,11 +6,18 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+// ignore_for_file: deprecated_member_use
 // ignore_for_file: unnecessary_brace_in_string_interps
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
+import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart'
+    show listEqual;
+import 'package:analyzer/src/generated/utilities_general.dart';
+
+const jsonEncoder = const JsonEncoder.withIndent('    ');
 
 class ApplyWorkspaceEditParams implements ToJsonable {
   ApplyWorkspaceEditParams(this.label, this.edit) {
@@ -46,6 +53,25 @@ class ApplyWorkspaceEditParams implements ToJsonable {
         obj.containsKey('edit') &&
         WorkspaceEdit.canParse(obj['edit']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ApplyWorkspaceEditParams) {
+      return label == other.label && edit == other.edit && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ApplyWorkspaceEditResponse implements ToJsonable {
@@ -74,6 +100,24 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
         obj.containsKey('applied') &&
         obj['applied'] is bool;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ApplyWorkspaceEditResponse) {
+      return applied == other.applied && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, applied.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CancelParams implements ToJsonable {
@@ -105,6 +149,24 @@ class CancelParams implements ToJsonable {
         obj.containsKey('id') &&
         (obj['id'] is num || obj['id'] is String);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CancelParams) {
+      return id == other.id && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ClientCapabilities implements ToJsonable {
@@ -146,6 +208,29 @@ class ClientCapabilities implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ClientCapabilities) {
+      return workspace == other.workspace &&
+          textDocument == other.textDocument &&
+          experimental == other.experimental &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, workspace.hashCode);
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, experimental.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// A code action represents a change that can be performed in code, e.g. to fix
@@ -215,6 +300,34 @@ class CodeAction implements ToJsonable {
         obj.containsKey('title') &&
         obj['title'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeAction) {
+      return title == other.title &&
+          kind == other.kind &&
+          listEqual(diagnostics, other.diagnostics,
+              (Diagnostic a, Diagnostic b) => a == b) &&
+          edit == other.edit &&
+          command == other.command &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, title.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
+    hash = JenkinsSmiHash.combine(hash, command.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Contains additional diagnostic information about the context in which a code
@@ -263,6 +376,29 @@ class CodeActionContext implements ToJsonable {
             (obj['diagnostics'].length == 0 ||
                 obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeActionContext) {
+      return listEqual(diagnostics, other.diagnostics,
+              (Diagnostic a, Diagnostic b) => a == b) &&
+          listEqual(only, other.only,
+              (CodeActionKind a, CodeActionKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
+    hash = JenkinsSmiHash.combine(hash, only.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// A set of predefined code action kinds
@@ -363,6 +499,26 @@ class CodeActionOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeActionOptions) {
+      return listEqual(codeActionKinds, other.codeActionKinds,
+              (CodeActionKind a, CodeActionKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Params for the CodeActionRequest
@@ -417,6 +573,29 @@ class CodeActionParams implements ToJsonable {
         obj.containsKey('context') &&
         CodeActionContext.canParse(obj['context']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeActionParams) {
+      return textDocument == other.textDocument &&
+          range == other.range &&
+          context == other.context &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, context.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CodeActionRegistrationOptions
@@ -461,6 +640,28 @@ class CodeActionRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeActionRegistrationOptions) {
+      return documentSelector == other.documentSelector &&
+          listEqual(codeActionKinds, other.codeActionKinds,
+              (CodeActionKind a, CodeActionKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// A code lens represents a command that should be shown along with source
@@ -511,6 +712,29 @@ class CodeLens implements ToJsonable {
         obj.containsKey('range') &&
         Range.canParse(obj['range']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeLens) {
+      return range == other.range &&
+          command == other.command &&
+          data == other.data &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, command.hashCode);
+    hash = JenkinsSmiHash.combine(hash, data.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Code Lens options.
@@ -535,6 +759,24 @@ class CodeLensOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeLensOptions) {
+      return resolveProvider == other.resolveProvider && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CodeLensParams implements ToJsonable {
@@ -565,6 +807,24 @@ class CodeLensParams implements ToJsonable {
         obj.containsKey('textDocument') &&
         TextDocumentIdentifier.canParse(obj['textDocument']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeLensParams) {
+      return textDocument == other.textDocument && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CodeLensRegistrationOptions
@@ -603,6 +863,27 @@ class CodeLensRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CodeLensRegistrationOptions) {
+      return resolveProvider == other.resolveProvider &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents a color in RGBA space.
@@ -661,6 +942,31 @@ class Color implements ToJsonable {
         obj.containsKey('alpha') &&
         obj['alpha'] is num;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Color) {
+      return red == other.red &&
+          green == other.green &&
+          blue == other.blue &&
+          alpha == other.alpha &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, red.hashCode);
+    hash = JenkinsSmiHash.combine(hash, green.hashCode);
+    hash = JenkinsSmiHash.combine(hash, blue.hashCode);
+    hash = JenkinsSmiHash.combine(hash, alpha.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ColorInformation implements ToJsonable {
@@ -698,6 +1004,25 @@ class ColorInformation implements ToJsonable {
         obj.containsKey('color') &&
         Color.canParse(obj['color']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ColorInformation) {
+      return range == other.range && color == other.color && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, color.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ColorPresentation implements ToJsonable {
@@ -749,6 +1074,30 @@ class ColorPresentation implements ToJsonable {
         obj.containsKey('label') &&
         obj['label'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ColorPresentation) {
+      return label == other.label &&
+          textEdit == other.textEdit &&
+          listEqual(additionalTextEdits, other.additionalTextEdits,
+              (TextEdit a, TextEdit b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
+    hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ColorPresentationParams implements ToJsonable {
@@ -799,6 +1148,29 @@ class ColorPresentationParams implements ToJsonable {
         obj.containsKey('range') &&
         Range.canParse(obj['range']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ColorPresentationParams) {
+      return textDocument == other.textDocument &&
+          color == other.color &&
+          range == other.range &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, color.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Color provider options.
@@ -815,6 +1187,23 @@ class ColorProviderOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ColorProviderOptions) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class Command implements ToJsonable {
@@ -861,6 +1250,30 @@ class Command implements ToJsonable {
         obj.containsKey('command') &&
         obj['command'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Command) {
+      return title == other.title &&
+          command == other.command &&
+          listEqual(
+              arguments, other.arguments, (dynamic a, dynamic b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, title.hashCode);
+    hash = JenkinsSmiHash.combine(hash, command.hashCode);
+    hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Contains additional information about the context in which a completion
@@ -901,6 +1314,27 @@ class CompletionContext implements ToJsonable {
         obj.containsKey('triggerKind') &&
         true;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionContext) {
+      return triggerKind == other.triggerKind &&
+          triggerCharacter == other.triggerCharacter &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, triggerKind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, triggerCharacter.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CompletionItem implements ToJsonable {
@@ -1079,9 +1513,7 @@ class CompletionItem implements ToJsonable {
     if (filterText != null) {
       __result['filterText'] = filterText;
     }
-    // ignore: deprecated_member_use
     if (insertText != null) {
-      // ignore: deprecated_member_use
       __result['insertText'] = insertText;
     }
     if (insertTextFormat != null) {
@@ -1110,6 +1542,55 @@ class CompletionItem implements ToJsonable {
         obj.containsKey('label') &&
         obj['label'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionItem) {
+      return label == other.label &&
+          kind == other.kind &&
+          detail == other.detail &&
+          documentation == other.documentation &&
+          deprecated == other.deprecated &&
+          preselect == other.preselect &&
+          sortText == other.sortText &&
+          filterText == other.filterText &&
+          insertText == other.insertText &&
+          insertTextFormat == other.insertTextFormat &&
+          textEdit == other.textEdit &&
+          listEqual(additionalTextEdits, other.additionalTextEdits,
+              (TextEdit a, TextEdit b) => a == b) &&
+          listEqual(commitCharacters, other.commitCharacters,
+              (String a, String b) => a == b) &&
+          command == other.command &&
+          data == other.data &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, detail.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
+    hash = JenkinsSmiHash.combine(hash, deprecated.hashCode);
+    hash = JenkinsSmiHash.combine(hash, preselect.hashCode);
+    hash = JenkinsSmiHash.combine(hash, sortText.hashCode);
+    hash = JenkinsSmiHash.combine(hash, filterText.hashCode);
+    hash = JenkinsSmiHash.combine(hash, insertText.hashCode);
+    hash = JenkinsSmiHash.combine(hash, insertTextFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
+    hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, commitCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, command.hashCode);
+    hash = JenkinsSmiHash.combine(hash, data.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// The kind of a completion entry.
@@ -1232,6 +1713,28 @@ class CompletionList implements ToJsonable {
             (obj['items'].length == 0 ||
                 obj['items'].every((item) => CompletionItem.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionList) {
+      return isIncomplete == other.isIncomplete &&
+          listEqual(items, other.items,
+              (CompletionItem a, CompletionItem b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, isIncomplete.hashCode);
+    hash = JenkinsSmiHash.combine(hash, items.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Completion options.
@@ -1267,6 +1770,28 @@ class CompletionOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionOptions) {
+      return resolveProvider == other.resolveProvider &&
+          listEqual(triggerCharacters, other.triggerCharacters,
+              (String a, String b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CompletionParams implements TextDocumentPositionParams, ToJsonable {
@@ -1320,6 +1845,29 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
         obj.containsKey('position') &&
         Position.canParse(obj['position']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionParams) {
+      return context == other.context &&
+          textDocument == other.textDocument &&
+          position == other.position &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, context.hashCode);
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, position.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CompletionRegistrationOptions
@@ -1380,6 +1928,30 @@ class CompletionRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionRegistrationOptions) {
+      return listEqual(triggerCharacters, other.triggerCharacters,
+              (String a, String b) => a == b) &&
+          resolveProvider == other.resolveProvider &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// How a completion was triggered
@@ -1450,6 +2022,25 @@ class ConfigurationItem implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ConfigurationItem) {
+      return scopeUri == other.scopeUri && section == other.section && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, scopeUri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, section.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ConfigurationParams implements ToJsonable {
@@ -1482,6 +2073,26 @@ class ConfigurationParams implements ToJsonable {
                 obj['items']
                     .every((item) => ConfigurationItem.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ConfigurationParams) {
+      return listEqual(items, other.items,
+              (ConfigurationItem a, ConfigurationItem b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, items.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Create file operation
@@ -1529,6 +2140,29 @@ class CreateFile implements ToJsonable {
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CreateFile) {
+      return kind == other.kind &&
+          uri == other.uri &&
+          options == other.options &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Options to create a file.
@@ -1560,6 +2194,27 @@ class CreateFileOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is CreateFileOptions) {
+      return overwrite == other.overwrite &&
+          ignoreIfExists == other.ignoreIfExists &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, overwrite.hashCode);
+    hash = JenkinsSmiHash.combine(hash, ignoreIfExists.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Delete file operation
@@ -1607,6 +2262,29 @@ class DeleteFile implements ToJsonable {
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DeleteFile) {
+      return kind == other.kind &&
+          uri == other.uri &&
+          options == other.options &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Delete file options
@@ -1638,6 +2316,27 @@ class DeleteFileOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DeleteFileOptions) {
+      return recursive == other.recursive &&
+          ignoreIfNotExists == other.ignoreIfNotExists &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, recursive.hashCode);
+    hash = JenkinsSmiHash.combine(hash, ignoreIfNotExists.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class Diagnostic implements ToJsonable {
@@ -1719,6 +2418,40 @@ class Diagnostic implements ToJsonable {
         obj.containsKey('message') &&
         obj['message'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Diagnostic) {
+      return range == other.range &&
+          severity == other.severity &&
+          code == other.code &&
+          source == other.source &&
+          message == other.message &&
+          listEqual(
+              relatedInformation,
+              other.relatedInformation,
+              (DiagnosticRelatedInformation a,
+                      DiagnosticRelatedInformation b) =>
+                  a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, severity.hashCode);
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, source.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, relatedInformation.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents a related message and source code location for a diagnostic. This
@@ -1762,6 +2495,25 @@ class DiagnosticRelatedInformation implements ToJsonable {
         obj.containsKey('message') &&
         obj['message'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DiagnosticRelatedInformation) {
+      return location == other.location && message == other.message && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DiagnosticSeverity {
@@ -1828,6 +2580,24 @@ class DidChangeConfigurationParams implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> && obj.containsKey('settings') && true;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidChangeConfigurationParams) {
+      return settings == other.settings && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, settings.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DidChangeTextDocumentParams implements ToJsonable {
@@ -1879,6 +2649,32 @@ class DidChangeTextDocumentParams implements ToJsonable {
                 obj['contentChanges'].every(
                     (item) => TextDocumentContentChangeEvent.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidChangeTextDocumentParams) {
+      return textDocument == other.textDocument &&
+          listEqual(
+              contentChanges,
+              other.contentChanges,
+              (TextDocumentContentChangeEvent a,
+                      TextDocumentContentChangeEvent b) =>
+                  a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contentChanges.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DidChangeWatchedFilesParams implements ToJsonable {
@@ -1912,6 +2708,26 @@ class DidChangeWatchedFilesParams implements ToJsonable {
             (obj['changes'].length == 0 ||
                 obj['changes'].every((item) => FileEvent.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidChangeWatchedFilesParams) {
+      return listEqual(
+              changes, other.changes, (FileEvent a, FileEvent b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, changes.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Describe options to be used when registering for text document change
@@ -1949,6 +2765,26 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
                 obj['watchers']
                     .every((item) => FileSystemWatcher.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidChangeWatchedFilesRegistrationOptions) {
+      return listEqual(watchers, other.watchers,
+              (FileSystemWatcher a, FileSystemWatcher b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, watchers.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DidChangeWorkspaceFoldersParams implements ToJsonable {
@@ -1978,6 +2814,24 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
         obj.containsKey('event') &&
         WorkspaceFoldersChangeEvent.canParse(obj['event']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidChangeWorkspaceFoldersParams) {
+      return event == other.event && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, event.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DidCloseTextDocumentParams implements ToJsonable {
@@ -2008,6 +2862,24 @@ class DidCloseTextDocumentParams implements ToJsonable {
         obj.containsKey('textDocument') &&
         TextDocumentIdentifier.canParse(obj['textDocument']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidCloseTextDocumentParams) {
+      return textDocument == other.textDocument && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DidOpenTextDocumentParams implements ToJsonable {
@@ -2038,6 +2910,24 @@ class DidOpenTextDocumentParams implements ToJsonable {
         obj.containsKey('textDocument') &&
         TextDocumentItem.canParse(obj['textDocument']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidOpenTextDocumentParams) {
+      return textDocument == other.textDocument && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DidSaveTextDocumentParams implements ToJsonable {
@@ -2076,6 +2966,25 @@ class DidSaveTextDocumentParams implements ToJsonable {
         obj.containsKey('textDocument') &&
         TextDocumentIdentifier.canParse(obj['textDocument']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DidSaveTextDocumentParams) {
+      return textDocument == other.textDocument && text == other.text && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, text.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentFilter implements ToJsonable {
@@ -2113,6 +3022,29 @@ class DocumentFilter implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentFilter) {
+      return language == other.language &&
+          scheme == other.scheme &&
+          pattern == other.pattern &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, language.hashCode);
+    hash = JenkinsSmiHash.combine(hash, scheme.hashCode);
+    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentFormattingParams implements ToJsonable {
@@ -2156,6 +3088,27 @@ class DocumentFormattingParams implements ToJsonable {
         obj.containsKey('options') &&
         FormattingOptions.canParse(obj['options']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentFormattingParams) {
+      return textDocument == other.textDocument &&
+          options == other.options &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// A document highlight is a range inside a text document which deserves
@@ -2195,6 +3148,25 @@ class DocumentHighlight implements ToJsonable {
         obj.containsKey('range') &&
         Range.canParse(obj['range']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentHighlight) {
+      return range == other.range && kind == other.kind && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// A document highlight kind.
@@ -2276,6 +3248,29 @@ class DocumentLink implements ToJsonable {
         obj.containsKey('range') &&
         Range.canParse(obj['range']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentLink) {
+      return range == other.range &&
+          target == other.target &&
+          data == other.data &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, target.hashCode);
+    hash = JenkinsSmiHash.combine(hash, data.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Document link options.
@@ -2300,6 +3295,24 @@ class DocumentLinkOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentLinkOptions) {
+      return resolveProvider == other.resolveProvider && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentLinkParams implements ToJsonable {
@@ -2330,6 +3343,24 @@ class DocumentLinkParams implements ToJsonable {
         obj.containsKey('textDocument') &&
         TextDocumentIdentifier.canParse(obj['textDocument']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentLinkParams) {
+      return textDocument == other.textDocument && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentLinkRegistrationOptions
@@ -2369,6 +3400,27 @@ class DocumentLinkRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentLinkRegistrationOptions) {
+      return resolveProvider == other.resolveProvider &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Format document on type options.
@@ -2410,6 +3462,28 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
         obj.containsKey('firstTriggerCharacter') &&
         obj['firstTriggerCharacter'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentOnTypeFormattingOptions) {
+      return firstTriggerCharacter == other.firstTriggerCharacter &&
+          listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
+              (String a, String b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentOnTypeFormattingParams implements ToJsonable {
@@ -2477,6 +3551,31 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
         obj.containsKey('options') &&
         FormattingOptions.canParse(obj['options']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentOnTypeFormattingParams) {
+      return textDocument == other.textDocument &&
+          position == other.position &&
+          ch == other.ch &&
+          options == other.options &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, position.hashCode);
+    hash = JenkinsSmiHash.combine(hash, ch.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentOnTypeFormattingRegistrationOptions
@@ -2533,6 +3632,30 @@ class DocumentOnTypeFormattingRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentOnTypeFormattingRegistrationOptions) {
+      return firstTriggerCharacter == other.firstTriggerCharacter &&
+          listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
+              (String a, String b) => a == b) &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentRangeFormattingParams implements ToJsonable {
@@ -2586,6 +3709,29 @@ class DocumentRangeFormattingParams implements ToJsonable {
         obj.containsKey('options') &&
         FormattingOptions.canParse(obj['options']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentRangeFormattingParams) {
+      return textDocument == other.textDocument &&
+          range == other.range &&
+          options == other.options &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents programming constructs like variables, classes, interfaces etc.
@@ -2681,6 +3827,38 @@ class DocumentSymbol implements ToJsonable {
         obj.containsKey('selectionRange') &&
         Range.canParse(obj['selectionRange']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentSymbol) {
+      return name == other.name &&
+          detail == other.detail &&
+          kind == other.kind &&
+          deprecated == other.deprecated &&
+          range == other.range &&
+          selectionRange == other.selectionRange &&
+          listEqual(children, other.children,
+              (DocumentSymbol a, DocumentSymbol b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, detail.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, deprecated.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionRange.hashCode);
+    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentSymbolParams implements ToJsonable {
@@ -2711,6 +3889,24 @@ class DocumentSymbolParams implements ToJsonable {
         obj.containsKey('textDocument') &&
         TextDocumentIdentifier.canParse(obj['textDocument']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is DocumentSymbolParams) {
+      return textDocument == other.textDocument && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ErrorCodes {
@@ -2778,6 +3974,26 @@ class ExecuteCommandOptions implements ToJsonable {
             (obj['commands'].length == 0 ||
                 obj['commands'].every((item) => item is String)));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ExecuteCommandOptions) {
+      return listEqual(
+              commands, other.commands, (String a, String b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, commands.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ExecuteCommandParams implements ToJsonable {
@@ -2814,6 +4030,28 @@ class ExecuteCommandParams implements ToJsonable {
         obj.containsKey('command') &&
         obj['command'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ExecuteCommandParams) {
+      return command == other.command &&
+          listEqual(
+              arguments, other.arguments, (dynamic a, dynamic b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, command.hashCode);
+    hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Execute command registration options.
@@ -2846,6 +4084,26 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
             (obj['commands'].length == 0 ||
                 obj['commands'].every((item) => item is String)));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ExecuteCommandRegistrationOptions) {
+      return listEqual(
+              commands, other.commands, (String a, String b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, commands.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class FailureHandlingKind {
@@ -2968,6 +4226,25 @@ class FileEvent implements ToJsonable {
         obj.containsKey('type') &&
         obj['type'] is num;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is FileEvent) {
+      return uri == other.uri && type == other.type && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class FileSystemWatcher implements ToJsonable {
@@ -3004,6 +4281,25 @@ class FileSystemWatcher implements ToJsonable {
         obj.containsKey('globPattern') &&
         obj['globPattern'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is FileSystemWatcher) {
+      return globPattern == other.globPattern && kind == other.kind && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, globPattern.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents a folding range.
@@ -3073,6 +4369,33 @@ class FoldingRange implements ToJsonable {
         obj.containsKey('endLine') &&
         obj['endLine'] is num;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is FoldingRange) {
+      return startLine == other.startLine &&
+          startCharacter == other.startCharacter &&
+          endLine == other.endLine &&
+          endCharacter == other.endCharacter &&
+          kind == other.kind &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startCharacter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, endLine.hashCode);
+    hash = JenkinsSmiHash.combine(hash, endCharacter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Enum of known range kinds
@@ -3140,6 +4463,24 @@ class FoldingRangeParams implements ToJsonable {
         obj.containsKey('textDocument') &&
         TextDocumentIdentifier.canParse(obj['textDocument']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is FoldingRangeParams) {
+      return textDocument == other.textDocument && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Folding range provider options.
@@ -3156,6 +4497,23 @@ class FoldingRangeProviderOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is FoldingRangeProviderOptions) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Value-object describing what options formatting should use.
@@ -3196,6 +4554,27 @@ class FormattingOptions implements ToJsonable {
         obj.containsKey('insertSpaces') &&
         obj['insertSpaces'] is bool;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is FormattingOptions) {
+      return tabSize == other.tabSize &&
+          insertSpaces == other.insertSpaces &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, tabSize.hashCode);
+    hash = JenkinsSmiHash.combine(hash, insertSpaces.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// The result of a hover request.
@@ -3235,6 +4614,25 @@ class Hover implements ToJsonable {
         obj.containsKey('contents') &&
         MarkupContent.canParse(obj['contents']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Hover) {
+      return contents == other.contents && range == other.range && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, contents.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class InitializeParams implements ToJsonable {
@@ -3302,9 +4700,7 @@ class InitializeParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['processId'] = processId;
-    // ignore: deprecated_member_use
     if (rootPath != null) {
-      // ignore: deprecated_member_use
       __result['rootPath'] = rootPath;
     }
     __result['rootUri'] = rootUri;
@@ -3331,6 +4727,38 @@ class InitializeParams implements ToJsonable {
         obj.containsKey('capabilities') &&
         ClientCapabilities.canParse(obj['capabilities']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is InitializeParams) {
+      return processId == other.processId &&
+          rootPath == other.rootPath &&
+          rootUri == other.rootUri &&
+          initializationOptions == other.initializationOptions &&
+          capabilities == other.capabilities &&
+          trace == other.trace &&
+          listEqual(workspaceFolders, other.workspaceFolders,
+              (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, processId.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rootPath.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rootUri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, initializationOptions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, capabilities.hashCode);
+    hash = JenkinsSmiHash.combine(hash, trace.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workspaceFolders.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class InitializeResult implements ToJsonable {
@@ -3361,6 +4789,24 @@ class InitializeResult implements ToJsonable {
         obj.containsKey('capabilities') &&
         ServerCapabilities.canParse(obj['capabilities']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is InitializeResult) {
+      return capabilities == other.capabilities && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, capabilities.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class InitializedParams implements ToJsonable {
@@ -3376,6 +4822,23 @@ class InitializedParams implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is InitializedParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Defines whether the insert text in a completion item should be interpreted
@@ -3449,6 +4912,25 @@ class Location implements ToJsonable {
         obj.containsKey('range') &&
         Range.canParse(obj['range']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Location) {
+      return uri == other.uri && range == other.range && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class LogMessageParams implements ToJsonable {
@@ -3488,6 +4970,25 @@ class LogMessageParams implements ToJsonable {
         obj.containsKey('message') &&
         obj['message'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is LogMessageParams) {
+      return type == other.type && message == other.message && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// A `MarkupContent` literal represents a string value which content is
@@ -3548,6 +5049,25 @@ class MarkupContent implements ToJsonable {
         obj.containsKey('value') &&
         obj['value'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is MarkupContent) {
+      return kind == other.kind && value == other.value && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, value.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Describes the content type that a client supports in various result literals
@@ -3612,6 +5132,24 @@ class Message implements ToJsonable {
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Message) {
+      return jsonrpc == other.jsonrpc && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class MessageActionItem implements ToJsonable {
@@ -3639,6 +5177,24 @@ class MessageActionItem implements ToJsonable {
         obj.containsKey('title') &&
         obj['title'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is MessageActionItem) {
+      return title == other.title && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, title.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class MessageType {
@@ -3728,6 +5284,29 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is NotificationMessage) {
+      return method == other.method &&
+          params == other.params &&
+          jsonrpc == other.jsonrpc &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, method.hashCode);
+    hash = JenkinsSmiHash.combine(hash, params.hashCode);
+    hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents a parameter of a callable-signature. A parameter can have a label
@@ -3772,6 +5351,27 @@ class ParameterInformation implements ToJsonable {
         obj.containsKey('label') &&
         obj['label'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ParameterInformation) {
+      return label == other.label &&
+          documentation == other.documentation &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class Position implements ToJsonable {
@@ -3815,6 +5415,25 @@ class Position implements ToJsonable {
         obj.containsKey('character') &&
         obj['character'] is num;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Position) {
+      return line == other.line && character == other.character && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, line.hashCode);
+    hash = JenkinsSmiHash.combine(hash, character.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class PublishDiagnosticsParams implements ToJsonable {
@@ -3858,6 +5477,28 @@ class PublishDiagnosticsParams implements ToJsonable {
             (obj['diagnostics'].length == 0 ||
                 obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is PublishDiagnosticsParams) {
+      return uri == other.uri &&
+          listEqual(diagnostics, other.diagnostics,
+              (Diagnostic a, Diagnostic b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class Range implements ToJsonable {
@@ -3896,6 +5537,25 @@ class Range implements ToJsonable {
         obj.containsKey('end') &&
         Position.canParse(obj['end']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Range) {
+      return start == other.start && end == other.end && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, start.hashCode);
+    hash = JenkinsSmiHash.combine(hash, end.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ReferenceContext implements ToJsonable {
@@ -3924,6 +5584,24 @@ class ReferenceContext implements ToJsonable {
         obj.containsKey('includeDeclaration') &&
         obj['includeDeclaration'] is bool;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ReferenceContext) {
+      return includeDeclaration == other.includeDeclaration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, includeDeclaration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
@@ -3978,6 +5656,29 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
         obj.containsKey('position') &&
         Position.canParse(obj['position']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ReferenceParams) {
+      return context == other.context &&
+          textDocument == other.textDocument &&
+          position == other.position &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, context.hashCode);
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, position.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// General parameters to register for a capability.
@@ -4024,6 +5725,29 @@ class Registration implements ToJsonable {
         obj.containsKey('method') &&
         obj['method'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Registration) {
+      return id == other.id &&
+          method == other.method &&
+          registerOptions == other.registerOptions &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, method.hashCode);
+    hash = JenkinsSmiHash.combine(hash, registerOptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class RegistrationParams implements ToJsonable {
@@ -4057,6 +5781,26 @@ class RegistrationParams implements ToJsonable {
                 obj['registrations']
                     .every((item) => Registration.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is RegistrationParams) {
+      return listEqual(registrations, other.registrations,
+              (Registration a, Registration b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, registrations.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Rename file operation
@@ -4114,6 +5858,31 @@ class RenameFile implements ToJsonable {
         obj.containsKey('newUri') &&
         obj['newUri'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is RenameFile) {
+      return kind == other.kind &&
+          oldUri == other.oldUri &&
+          newUri == other.newUri &&
+          options == other.options &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, oldUri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, newUri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Rename file options
@@ -4145,6 +5914,27 @@ class RenameFileOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is RenameFileOptions) {
+      return overwrite == other.overwrite &&
+          ignoreIfExists == other.ignoreIfExists &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, overwrite.hashCode);
+    hash = JenkinsSmiHash.combine(hash, ignoreIfExists.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Rename options
@@ -4169,6 +5959,24 @@ class RenameOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is RenameOptions) {
+      return prepareProvider == other.prepareProvider && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class RenameParams implements ToJsonable {
@@ -4223,6 +6031,29 @@ class RenameParams implements ToJsonable {
         obj.containsKey('newName') &&
         obj['newName'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is RenameParams) {
+      return textDocument == other.textDocument &&
+          position == other.position &&
+          newName == other.newName &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, position.hashCode);
+    hash = JenkinsSmiHash.combine(hash, newName.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class RenameRegistrationOptions
@@ -4261,6 +6092,27 @@ class RenameRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is RenameRegistrationOptions) {
+      return prepareProvider == other.prepareProvider &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class RequestMessage implements Message, IncomingMessage, ToJsonable {
@@ -4323,6 +6175,31 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is RequestMessage) {
+      return id == other.id &&
+          method == other.method &&
+          params == other.params &&
+          jsonrpc == other.jsonrpc &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, method.hashCode);
+    hash = JenkinsSmiHash.combine(hash, params.hashCode);
+    hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ResourceOperationKind {
@@ -4406,6 +6283,29 @@ class ResponseError<D> implements ToJsonable {
         obj.containsKey('message') &&
         obj['message'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ResponseError) {
+      return code == other.code &&
+          message == other.message &&
+          data == other.data &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, data.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ResponseMessage implements Message, ToJsonable {
@@ -4459,6 +6359,31 @@ class ResponseMessage implements Message, ToJsonable {
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ResponseMessage) {
+      return id == other.id &&
+          result == other.result &&
+          error == other.error &&
+          jsonrpc == other.jsonrpc &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, result.hashCode);
+    hash = JenkinsSmiHash.combine(hash, error.hashCode);
+    hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Save options.
@@ -4483,6 +6408,24 @@ class SaveOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is SaveOptions) {
+      return includeText == other.includeText && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ServerCapabilities implements ToJsonable {
@@ -4784,6 +6727,73 @@ class ServerCapabilities implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCapabilities) {
+      return textDocumentSync == other.textDocumentSync &&
+          hoverProvider == other.hoverProvider &&
+          completionProvider == other.completionProvider &&
+          signatureHelpProvider == other.signatureHelpProvider &&
+          definitionProvider == other.definitionProvider &&
+          typeDefinitionProvider == other.typeDefinitionProvider &&
+          implementationProvider == other.implementationProvider &&
+          referencesProvider == other.referencesProvider &&
+          documentHighlightProvider == other.documentHighlightProvider &&
+          documentSymbolProvider == other.documentSymbolProvider &&
+          workspaceSymbolProvider == other.workspaceSymbolProvider &&
+          codeActionProvider == other.codeActionProvider &&
+          codeLensProvider == other.codeLensProvider &&
+          documentFormattingProvider == other.documentFormattingProvider &&
+          documentRangeFormattingProvider ==
+              other.documentRangeFormattingProvider &&
+          documentOnTypeFormattingProvider ==
+              other.documentOnTypeFormattingProvider &&
+          renameProvider == other.renameProvider &&
+          documentLinkProvider == other.documentLinkProvider &&
+          colorProvider == other.colorProvider &&
+          foldingRangeProvider == other.foldingRangeProvider &&
+          executeCommandProvider == other.executeCommandProvider &&
+          workspace == other.workspace &&
+          experimental == other.experimental &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocumentSync.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hoverProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, completionProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, signatureHelpProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, definitionProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, typeDefinitionProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, implementationProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, referencesProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentHighlightProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSymbolProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workspaceSymbolProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeActionProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLensProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentFormattingProvider.hashCode);
+    hash =
+        JenkinsSmiHash.combine(hash, documentRangeFormattingProvider.hashCode);
+    hash =
+        JenkinsSmiHash.combine(hash, documentOnTypeFormattingProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, renameProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentLinkProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, colorProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, foldingRangeProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, executeCommandProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workspace.hashCode);
+    hash = JenkinsSmiHash.combine(hash, experimental.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ShowMessageParams implements ToJsonable {
@@ -4823,6 +6833,25 @@ class ShowMessageParams implements ToJsonable {
         obj.containsKey('message') &&
         obj['message'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ShowMessageParams) {
+      return type == other.type && message == other.message && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class ShowMessageRequestParams implements ToJsonable {
@@ -4872,6 +6901,30 @@ class ShowMessageRequestParams implements ToJsonable {
         obj.containsKey('message') &&
         obj['message'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is ShowMessageRequestParams) {
+      return type == other.type &&
+          message == other.message &&
+          listEqual(actions, other.actions,
+              (MessageActionItem a, MessageActionItem b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, actions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Signature help represents the signature of something callable. There can be
@@ -4933,6 +6986,30 @@ class SignatureHelp implements ToJsonable {
                 obj['signatures']
                     .every((item) => SignatureInformation.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is SignatureHelp) {
+      return listEqual(signatures, other.signatures,
+              (SignatureInformation a, SignatureInformation b) => a == b) &&
+          activeSignature == other.activeSignature &&
+          activeParameter == other.activeParameter &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, signatures.hashCode);
+    hash = JenkinsSmiHash.combine(hash, activeSignature.hashCode);
+    hash = JenkinsSmiHash.combine(hash, activeParameter.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Signature help options.
@@ -4960,6 +7037,26 @@ class SignatureHelpOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is SignatureHelpOptions) {
+      return listEqual(triggerCharacters, other.triggerCharacters,
+              (String a, String b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class SignatureHelpRegistrationOptions
@@ -5003,6 +7100,28 @@ class SignatureHelpRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is SignatureHelpRegistrationOptions) {
+      return listEqual(triggerCharacters, other.triggerCharacters,
+              (String a, String b) => a == b) &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents the signature of something callable. A signature can have a
@@ -5058,6 +7177,30 @@ class SignatureInformation implements ToJsonable {
         obj.containsKey('label') &&
         obj['label'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is SignatureInformation) {
+      return label == other.label &&
+          documentation == other.documentation &&
+          listEqual(parameters, other.parameters,
+              (ParameterInformation a, ParameterInformation b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Static registration options to be returned in the initialize request.
@@ -5083,6 +7226,24 @@ class StaticRegistrationOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is StaticRegistrationOptions) {
+      return id == other.id && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents information about programming constructs like variables, classes,
@@ -5161,6 +7322,33 @@ class SymbolInformation implements ToJsonable {
         obj.containsKey('location') &&
         Location.canParse(obj['location']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is SymbolInformation) {
+      return name == other.name &&
+          kind == other.kind &&
+          deprecated == other.deprecated &&
+          location == other.location &&
+          containerName == other.containerName &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, deprecated.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, containerName.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// A symbol kind.
@@ -5287,6 +7475,27 @@ class TextDocumentChangeRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentChangeRegistrationOptions) {
+      return syncKind == other.syncKind &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, syncKind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Text document specific client capabilities.
@@ -5491,6 +7700,63 @@ class TextDocumentClientCapabilities implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilities) {
+      return synchronization == other.synchronization &&
+          completion == other.completion &&
+          hover == other.hover &&
+          signatureHelp == other.signatureHelp &&
+          references == other.references &&
+          documentHighlight == other.documentHighlight &&
+          documentSymbol == other.documentSymbol &&
+          formatting == other.formatting &&
+          rangeFormatting == other.rangeFormatting &&
+          onTypeFormatting == other.onTypeFormatting &&
+          definition == other.definition &&
+          typeDefinition == other.typeDefinition &&
+          implementation == other.implementation &&
+          codeAction == other.codeAction &&
+          codeLens == other.codeLens &&
+          documentLink == other.documentLink &&
+          colorProvider == other.colorProvider &&
+          rename == other.rename &&
+          publishDiagnostics == other.publishDiagnostics &&
+          foldingRange == other.foldingRange &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, synchronization.hashCode);
+    hash = JenkinsSmiHash.combine(hash, completion.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hover.hashCode);
+    hash = JenkinsSmiHash.combine(hash, signatureHelp.hashCode);
+    hash = JenkinsSmiHash.combine(hash, references.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentHighlight.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSymbol.hashCode);
+    hash = JenkinsSmiHash.combine(hash, formatting.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rangeFormatting.hashCode);
+    hash = JenkinsSmiHash.combine(hash, onTypeFormatting.hashCode);
+    hash = JenkinsSmiHash.combine(hash, definition.hashCode);
+    hash = JenkinsSmiHash.combine(hash, typeDefinition.hashCode);
+    hash = JenkinsSmiHash.combine(hash, implementation.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeAction.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLens.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentLink.hashCode);
+    hash = JenkinsSmiHash.combine(hash, colorProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rename.hashCode);
+    hash = JenkinsSmiHash.combine(hash, publishDiagnostics.hashCode);
+    hash = JenkinsSmiHash.combine(hash, foldingRange.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// An event describing a change to a text document. If range and rangeLength
@@ -5535,6 +7801,29 @@ class TextDocumentContentChangeEvent implements ToJsonable {
         obj.containsKey('text') &&
         obj['text'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentContentChangeEvent) {
+      return range == other.range &&
+          rangeLength == other.rangeLength &&
+          text == other.text &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rangeLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, text.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class TextDocumentEdit implements ToJsonable {
@@ -5580,6 +7869,27 @@ class TextDocumentEdit implements ToJsonable {
             (obj['edits'].length == 0 ||
                 obj['edits'].every((item) => TextEdit.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentEdit) {
+      return textDocument == other.textDocument &&
+          listEqual(edits, other.edits, (TextEdit a, TextEdit b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class TextDocumentIdentifier implements ToJsonable {
@@ -5607,6 +7917,24 @@ class TextDocumentIdentifier implements ToJsonable {
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentIdentifier) {
+      return uri == other.uri && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class TextDocumentItem implements ToJsonable {
@@ -5667,6 +7995,31 @@ class TextDocumentItem implements ToJsonable {
         obj.containsKey('text') &&
         obj['text'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentItem) {
+      return uri == other.uri &&
+          languageId == other.languageId &&
+          version == other.version &&
+          text == other.text &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, languageId.hashCode);
+    hash = JenkinsSmiHash.combine(hash, version.hashCode);
+    hash = JenkinsSmiHash.combine(hash, text.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class TextDocumentPositionParams implements ToJsonable {
@@ -5709,6 +8062,27 @@ class TextDocumentPositionParams implements ToJsonable {
         obj.containsKey('position') &&
         Position.canParse(obj['position']);
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentPositionParams) {
+      return textDocument == other.textDocument &&
+          position == other.position &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, position.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class TextDocumentRegistrationOptions implements ToJsonable {
@@ -5739,6 +8113,24 @@ class TextDocumentRegistrationOptions implements ToJsonable {
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentRegistrationOptions) {
+      return documentSelector == other.documentSelector && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents reasons why a text document is saved.
@@ -5817,6 +8209,27 @@ class TextDocumentSaveRegistrationOptions
                 obj['documentSelector']
                     .every((item) => DocumentFilter.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentSaveRegistrationOptions) {
+      return includeText == other.includeText &&
+          documentSelector == other.documentSelector &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Defines how the host (editor) should sync document changes to the language
@@ -5915,6 +8328,33 @@ class TextDocumentSyncOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentSyncOptions) {
+      return openClose == other.openClose &&
+          change == other.change &&
+          willSave == other.willSave &&
+          willSaveWaitUntil == other.willSaveWaitUntil &&
+          save == other.save &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, openClose.hashCode);
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
+    hash = JenkinsSmiHash.combine(hash, willSave.hashCode);
+    hash = JenkinsSmiHash.combine(hash, willSaveWaitUntil.hashCode);
+    hash = JenkinsSmiHash.combine(hash, save.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class TextEdit implements ToJsonable {
@@ -5954,6 +8394,25 @@ class TextEdit implements ToJsonable {
         obj.containsKey('newText') &&
         obj['newText'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextEdit) {
+      return range == other.range && newText == other.newText && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, newText.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// General parameters to unregister a capability.
@@ -5993,6 +8452,25 @@ class Unregistration implements ToJsonable {
         obj.containsKey('method') &&
         obj['method'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is Unregistration) {
+      return id == other.id && method == other.method && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, method.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class UnregistrationParams implements ToJsonable {
@@ -6026,6 +8504,26 @@ class UnregistrationParams implements ToJsonable {
                 obj['unregisterations']
                     .every((item) => Unregistration.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is UnregistrationParams) {
+      return listEqual(unregisterations, other.unregisterations,
+              (Unregistration a, Unregistration b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, unregisterations.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class VersionedTextDocumentIdentifier
@@ -6068,6 +8566,25 @@ class VersionedTextDocumentIdentifier
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is VersionedTextDocumentIdentifier) {
+      return version == other.version && uri == other.uri && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, version.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class WatchKind {
@@ -6145,6 +8662,27 @@ class WillSaveTextDocumentParams implements ToJsonable {
         obj.containsKey('reason') &&
         obj['reason'] is num;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is WillSaveTextDocumentParams) {
+      return textDocument == other.textDocument &&
+          reason == other.reason &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
+    hash = JenkinsSmiHash.combine(hash, reason.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Workspace specific client capabilities.
@@ -6241,6 +8779,39 @@ class WorkspaceClientCapabilities implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceClientCapabilities) {
+      return applyEdit == other.applyEdit &&
+          workspaceEdit == other.workspaceEdit &&
+          didChangeConfiguration == other.didChangeConfiguration &&
+          didChangeWatchedFiles == other.didChangeWatchedFiles &&
+          symbol == other.symbol &&
+          executeCommand == other.executeCommand &&
+          workspaceFolders == other.workspaceFolders &&
+          configuration == other.configuration &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, applyEdit.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workspaceEdit.hashCode);
+    hash = JenkinsSmiHash.combine(hash, didChangeConfiguration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, didChangeWatchedFiles.hashCode);
+    hash = JenkinsSmiHash.combine(hash, symbol.hashCode);
+    hash = JenkinsSmiHash.combine(hash, executeCommand.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workspaceFolders.hashCode);
+    hash = JenkinsSmiHash.combine(hash, configuration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class WorkspaceEdit implements ToJsonable {
@@ -6302,6 +8873,27 @@ class WorkspaceEdit implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic>;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceEdit) {
+      return changes == other.changes &&
+          documentChanges == other.documentChanges &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, changes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class WorkspaceFolder implements ToJsonable {
@@ -6339,6 +8931,25 @@ class WorkspaceFolder implements ToJsonable {
         obj.containsKey('name') &&
         obj['name'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceFolder) {
+      return uri == other.uri && name == other.name && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// The workspace folder change event.
@@ -6390,6 +9001,29 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
                 obj['removed']
                     .every((item) => WorkspaceFolder.canParse(item))));
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceFoldersChangeEvent) {
+      return listEqual(added, other.added,
+              (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
+          listEqual(removed, other.removed,
+              (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, added.hashCode);
+    hash = JenkinsSmiHash.combine(hash, removed.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// The parameters of a Workspace Symbol Request.
@@ -6418,4 +9052,22 @@ class WorkspaceSymbolParams implements ToJsonable {
         obj.containsKey('query') &&
         obj['query'] is String;
   }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceSymbolParams) {
+      return query == other.query && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, query.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }

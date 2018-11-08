@@ -44,7 +44,7 @@ class LspAnalysisServer {
   InitializationState state = InitializationState.Uninitialized;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  ClientCapabilities _clientCapabilities;
+  ClientCapabilities _clientCapabilities; // ignore: unused_field
 
   /**
    * The options of this server instance.

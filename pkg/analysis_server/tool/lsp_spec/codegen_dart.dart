@@ -272,6 +272,34 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeln();
 }
 
+void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
+  buffer
+    ..writeIndentedln('@override')
+    ..writeIndentedln('bool operator ==(other) {')
+    ..indent()
+    ..writeIndentedln('if (other is ${interface.name}) {')
+    ..indent()
+    ..writeIndented('return ');
+  for (var field in _getAllFields(interface)) {
+    final type = field.type;
+    if (type is ArrayType) {
+      final elementType = type.elementType;
+      final elementDartType = elementType.dartTypeWithTypeArgs;
+      buffer.write(
+          'listEqual(${field.name}, other.${field.name}, ($elementDartType a, $elementDartType b) => a == b) && ');
+    } else {
+      buffer.write('${field.name} == other.${field.name} && ');
+    }
+  }
+  buffer
+    ..writeln('true;')
+    ..outdent()
+    ..writeIndentedln('}')
+    ..writeIndentedln('return false;')
+    ..outdent()
+    ..writeIndentedln('}');
+}
+
 void _writeField(IndentableStringBuffer buffer, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
   buffer
@@ -362,6 +390,22 @@ void _writeFromJsonConstructor(
     ..writeIndented('}');
 }
 
+void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
+  buffer
+    ..writeIndentedln('@override')
+    ..writeIndentedln('int get hashCode {')
+    ..indent()
+    ..writeIndented('int hash = 0;');
+  for (var field in _getAllFields(interface)) {
+    buffer
+        .write('hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
+  }
+  buffer
+    ..writeln('return JenkinsSmiHash.finish(hash);')
+    ..outdent()
+    ..writeIndentedln('}');
+}
+
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   _writeDocCommentsAndAnnotations(buffer, interface);
 
@@ -389,6 +433,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   buffer.writeln();
   _writeToJsonMethod(buffer, interface);
   _writeCanParseMethod(buffer, interface);
+  _writeEquals(buffer, interface);
+  _writeHashCode(buffer, interface);
+  _writeToString(buffer, interface);
   buffer
     ..outdent()
     ..writeIndentedln('}')
@@ -401,14 +448,10 @@ void _writeJsonMapAssignment(
   // undefined and never explicitly null), we'll only add the value if set.
   if (field.allowsUndefined) {
     buffer
-      ..writeIndentedlnIf(
-          field.isDeprecated, '// ignore: deprecated_member_use')
       ..writeIndentedln('if (${field.name} != null) {')
       ..indent();
   }
-  buffer
-    ..writeIndentedlnIf(field.isDeprecated, '// ignore: deprecated_member_use')
-    ..writeIndented('''$mapName['${field.name}'] = ${field.name}''');
+  buffer..writeIndented('''$mapName['${field.name}'] = ${field.name}''');
   if (!field.allowsUndefined && !field.allowsNull) {
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }
@@ -448,6 +491,12 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('return __result;')
     ..outdent()
     ..writeIndentedln('}');
+}
+
+void _writeToString(IndentableStringBuffer buffer, Interface interface) {
+  buffer
+    ..writeIndentedln('@override')
+    ..writeIndentedln('String toString() => jsonEncoder.convert(toJson());');
 }
 
 void _writeType(IndentableStringBuffer buffer, AstNode type) {
@@ -520,11 +569,5 @@ class IndentableStringBuffer extends StringBuffer {
   void writeIndentedln(Object obj) {
     write(_indentString);
     writeln(obj);
-  }
-
-  void writeIndentedlnIf(bool condition, Object obj) {
-    if (condition) {
-      writeIndentedln(obj);
-    }
   }
 }

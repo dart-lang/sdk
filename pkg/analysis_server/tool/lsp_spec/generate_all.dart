@@ -42,11 +42,17 @@ const _generatedFileHeader = '''
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+// ignore_for_file: deprecated_member_use
 // ignore_for_file: unnecessary_brace_in_string_interps
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
+import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart' show listEqual;
+import 'package:analyzer/src/generated/utilities_general.dart';
+
+const jsonEncoder = const JsonEncoder.withIndent('    ');
 
 ''';
 
