@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -26,7 +26,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  */
 SourceRange _getLocalsConflictingRange(AstNode node) {
   // maybe Block
-  Block block = node.getAncestor((node) => node is Block);
+  Block block = node.thisOrAncestorOfType<Block>();
   if (block != null) {
     return range.startEnd(node, block);
   }
@@ -445,7 +445,7 @@ class _ReferenceProcessor {
 
     // prepare node and environment
     _node = _refUtils.findNode(reference.sourceRange.offset);
-    Statement refStatement = _node.getAncestor((node) => node is Statement);
+    Statement refStatement = _node.thisOrAncestorOfType<Statement>();
     if (refStatement != null) {
       _refLineRange = _refUtils.getLinesRangeStatements([refStatement]);
       _refPrefix = _refUtils.getNodePrefix(refStatement);
@@ -564,7 +564,7 @@ class _ReferenceProcessor {
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
     if (ref._methodElement.isAsynchronous) {
-      FunctionBody body = _node.getAncestor((n) => n is FunctionBody);
+      FunctionBody body = _node.thisOrAncestorOfType<FunctionBody>();
       if (body != null) {
         if (body.isSynchronous) {
           if (body.isGenerator) {
@@ -623,7 +623,7 @@ class _ReferenceProcessor {
         List<Expression> arguments = [];
         if (_node.inSetterContext()) {
           AssignmentExpression assignment =
-              _node.getAncestor((node) => node is AssignmentExpression);
+              _node.thisOrAncestorOfType<AssignmentExpression>();
           arguments.add(assignment.rightHandSide);
         }
         // inline body

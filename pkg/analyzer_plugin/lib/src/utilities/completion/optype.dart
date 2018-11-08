@@ -132,17 +132,17 @@ class OpType {
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
     var methodDeclaration =
-        target.containingNode.getAncestor((node) => node is MethodDeclaration);
+        target.containingNode.thisOrAncestorOfType<MethodDeclaration>();
     optype.inMethodBody = methodDeclaration != null;
     optype.inStaticMethodBody =
         methodDeclaration is MethodDeclaration && methodDeclaration.isStatic;
 
-    var functionDeclaration = target.containingNode
-        .getAncestor((node) => node is FunctionDeclaration);
+    var functionDeclaration =
+        target.containingNode.thisOrAncestorOfType<FunctionDeclaration>();
     optype.inFunctionBody = functionDeclaration != null;
 
-    var constructorDeclaration = target.containingNode
-        .getAncestor((node) => node is ConstructorDeclaration);
+    var constructorDeclaration =
+        target.containingNode.thisOrAncestorOfType<ConstructorDeclaration>();
     optype.inConstructorBody = constructorDeclaration != null;
 
     // If a value should be suggested, suggest also constructors.

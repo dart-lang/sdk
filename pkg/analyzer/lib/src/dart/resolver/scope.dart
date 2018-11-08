@@ -1014,8 +1014,7 @@ abstract class Scope {
    * not be determined.
    */
   Source getSource(AstNode identifier) {
-    CompilationUnit unit =
-        identifier.getAncestor((node) => node is CompilationUnit);
+    CompilationUnit unit = identifier.thisOrAncestorOfType<CompilationUnit>();
     if (unit != null) {
       CompilationUnitElement unitElement = unit.declaredElement;
       if (unitElement != null) {

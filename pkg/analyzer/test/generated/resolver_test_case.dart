@@ -882,7 +882,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   void expectInitializerType(String name, type) {
     SimpleIdentifier identifier = findIdentifier(name);
     VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
+        identifier.thisOrAncestorOfType<VariableDeclaration>();
     Expression initializer = declaration.initializer;
     _expectType(initializer.staticType, type);
   }

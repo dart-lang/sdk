@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -136,8 +136,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   String get refactoringName {
     AstNode node =
         new NodeLocator(selectionOffset).searchWithin(resolveResult.unit);
-    if (node != null &&
-        node.getAncestor((node) => node is ClassDeclaration) != null) {
+    if (node != null && node.thisOrAncestorOfType<ClassDeclaration>() != null) {
       return 'Extract Method';
     }
     return 'Extract Function';
@@ -581,7 +580,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // Check for the parameter list of a FunctionExpression.
     {
       FunctionExpression function =
-          node?.getAncestor((n) => n is FunctionExpression);
+          node?.thisOrAncestorOfType<FunctionExpression>();
       if (function != null &&
           function.parameters != null &&
           range.node(function.parameters).contains(offset)) {
@@ -650,7 +649,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // change indentation
     if (_selectionFunctionExpression != null) {
       AstNode baseNode =
-          _selectionFunctionExpression.getAncestor((node) => node is Statement);
+          _selectionFunctionExpression.thisOrAncestorOfType<Statement>();
       if (baseNode != null) {
         String baseIndent = utils.getNodePrefix(baseNode);
         String targetIndent = utils.getNodePrefix(_parentMember);

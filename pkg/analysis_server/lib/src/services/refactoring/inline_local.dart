@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -121,8 +121,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     SourceChange change = new SourceChange(refactoringName);
     // remove declaration
     {
-      Statement declarationStatement = _variableNode
-          .getAncestor((node) => node is VariableDeclarationStatement);
+      Statement declarationStatement =
+          _variableNode.thisOrAncestorOfType<VariableDeclarationStatement>();
       SourceRange range = utils.getLinesRangeStatements([declarationStatement]);
       doSourceChange_addElementEdit(change, resolveResult.unit.declaredElement,
           newSourceEdit_range(range, ''));

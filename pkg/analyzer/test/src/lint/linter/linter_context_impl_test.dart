@@ -33,7 +33,7 @@ class LinterContextImplTest extends ResolverTestCase {
     expect(index >= 0, isTrue);
     NodeLocator visitor = new NodeLocator(index);
     AstNodeImpl node = visitor.searchWithin(testUnit);
-    node = node.getAncestor((node) => node is InstanceCreationExpressionImpl);
+    node = node.thisOrAncestorOfType<InstanceCreationExpressionImpl>();
     expect(node, isNotNull);
     expect(context.canBeConst(node as InstanceCreationExpressionImpl),
         expectedResult ? isTrue : isFalse);

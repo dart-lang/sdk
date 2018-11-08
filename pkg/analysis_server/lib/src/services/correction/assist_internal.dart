@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -150,28 +150,27 @@ class AssistProcessor {
     // isn't just "return node.getAncestor((node) => node is FunctionBody);"
     {
       FunctionExpression function =
-          node.getAncestor((node) => node is FunctionExpression);
+          node.thisOrAncestorOfType<FunctionExpression>();
       if (function != null) {
         return function.body;
       }
     }
     {
       FunctionDeclaration function =
-          node.getAncestor((node) => node is FunctionDeclaration);
+          node.thisOrAncestorOfType<FunctionDeclaration>();
       if (function != null) {
         return function.functionExpression.body;
       }
     }
     {
       ConstructorDeclaration constructor =
-          node.getAncestor((node) => node is ConstructorDeclaration);
+          node.thisOrAncestorOfType<ConstructorDeclaration>();
       if (constructor != null) {
         return constructor.body;
       }
     }
     {
-      MethodDeclaration method =
-          node.getAncestor((node) => node is MethodDeclaration);
+      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
       if (method != null) {
         return method.body;
       }
@@ -195,9 +194,9 @@ class AssistProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     DeclaredIdentifier declaredIdentifier =
-        node.getAncestor((n) => n is DeclaredIdentifier);
+        node.thisOrAncestorOfType<DeclaredIdentifier>();
     if (declaredIdentifier == null) {
-      ForEachStatement forEach = node.getAncestor((n) => n is ForEachStatement);
+      ForEachStatement forEach = node.thisOrAncestorOfType<ForEachStatement>();
       int offset = node.offset;
       if (forEach != null &&
           forEach.iterable != null &&
@@ -290,7 +289,7 @@ class AssistProcessor {
     AstNode node = this.node;
     // prepare VariableDeclarationList
     VariableDeclarationList declarationList =
-        node.getAncestor((node) => node is VariableDeclarationList);
+        node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declarationList == null) {
       _coverageMarker();
       return;
@@ -404,7 +403,7 @@ class AssistProcessor {
 
   Future<void> _addProposal_convertClassToMixin() async {
     ClassDeclaration classDeclaration =
-        node.getAncestor((n) => n is ClassDeclaration);
+        node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null) {
       return;
     }
@@ -459,7 +458,7 @@ class AssistProcessor {
   Future<void> _addProposal_convertDocumentationIntoBlock() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Comment comment = node.getAncestor((n) => n is Comment);
+    Comment comment = node.thisOrAncestorOfType<Comment>();
     if (comment == null || !comment.isDocumentation) {
       return;
     }
@@ -492,7 +491,7 @@ class AssistProcessor {
   Future<void> _addProposal_convertDocumentationIntoLine() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Comment comment = node.getAncestor((n) => n is Comment);
+    Comment comment = node.thisOrAncestorOfType<Comment>();
     if (comment == null ||
         !comment.isDocumentation ||
         comment.tokens.length != 1) {
@@ -679,8 +678,7 @@ class AssistProcessor {
   Future<void> _addProposal_convertPartOfToUri() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    PartOfDirective directive =
-        node.getAncestor((node) => node is PartOfDirective);
+    PartOfDirective directive = node.thisOrAncestorOfType<PartOfDirective>();
     if (directive == null || directive.libraryName == null) {
       return;
     }
@@ -841,7 +839,7 @@ class AssistProcessor {
     }
     // prepare ConstructorDeclaration
     ConstructorDeclaration constructor =
-        node.getAncestor((node) => node is ConstructorDeclaration);
+        node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructor == null) {
       return;
     }
@@ -932,7 +930,7 @@ class AssistProcessor {
     await null;
     // find enclosing ForEachStatement
     ForEachStatement forEachStatement =
-        node.getAncestor((n) => n is ForEachStatement);
+        node.thisOrAncestorOfType<ForEachStatement>();
     if (forEachStatement == null) {
       _coverageMarker();
       return;
@@ -1276,7 +1274,7 @@ class AssistProcessor {
     await null;
     // find FieldDeclaration
     FieldDeclaration fieldDeclaration =
-        node.getAncestor((x) => x is FieldDeclaration);
+        node.thisOrAncestorOfType<FieldDeclaration>();
     if (fieldDeclaration == null) {
       _coverageMarker();
       return;
@@ -1462,7 +1460,7 @@ class AssistProcessor {
 
   Future<void> _addProposal_flutterConvertToStatefulWidget() async {
     ClassDeclaration widgetClass =
-        node.getAncestor((n) => n is ClassDeclaration);
+        node.thisOrAncestorOfType<ClassDeclaration>();
     TypeName superclass = widgetClass?.extendsClause?.superclass;
     if (widgetClass == null || superclass == null) {
       _coverageMarker();
@@ -2116,7 +2114,7 @@ class AssistProcessor {
     await null;
     // prepare ImportDirective
     ImportDirective importDirective =
-        node.getAncestor((node) => node is ImportDirective);
+        node.thisOrAncestorOfType<ImportDirective>();
     if (importDirective == null) {
       _coverageMarker();
       return;
@@ -2178,7 +2176,7 @@ class AssistProcessor {
     String prefix;
     Block targetBlock;
     {
-      Statement statement = node.getAncestor((n) => n is Statement);
+      Statement statement = node.thisOrAncestorOfType<Statement>();
       if (statement is IfStatement && statement.thenStatement is Block) {
         targetBlock = statement.thenStatement;
       } else if (statement is WhileStatement && statement.body is Block) {
@@ -2468,7 +2466,7 @@ class AssistProcessor {
     await null;
     // prepare enclosing VariableDeclarationList
     VariableDeclarationList declList =
-        node.getAncestor((node) => node is VariableDeclarationList);
+        node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declList != null && declList.variables.length == 1) {
     } else {
       _coverageMarker();
@@ -2537,7 +2535,7 @@ class AssistProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     VariableDeclarationList declarationList =
-        node.getAncestor((n) => n is VariableDeclarationList);
+        node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declarationList == null) {
       _coverageMarker();
       return;
@@ -2633,7 +2631,7 @@ class AssistProcessor {
     await null;
     ConditionalExpression conditional = null;
     // may be on Statement with Conditional
-    Statement statement = node.getAncestor((node) => node is Statement);
+    Statement statement = node.thisOrAncestorOfType<Statement>();
     if (statement == null) {
       _coverageMarker();
       return;
@@ -2823,7 +2821,7 @@ class AssistProcessor {
       return;
     }
     // prepare "if"
-    Statement statement = node.getAncestor((node) => node is Statement);
+    Statement statement = node.thisOrAncestorOfType<Statement>();
     if (statement is! IfStatement) {
       _coverageMarker();
       return;
@@ -2900,7 +2898,7 @@ class AssistProcessor {
     await null;
     // prepare DartVariableStatement, should be part of Block
     VariableDeclarationStatement statement =
-        node.getAncestor((node) => node is VariableDeclarationStatement);
+        node.thisOrAncestorOfType<VariableDeclarationStatement>();
     if (statement != null && statement.parent is Block) {
     } else {
       _coverageMarker();
@@ -3172,7 +3170,7 @@ class AssistProcessor {
     utils.targetClassElement = null;
     if (target is AstNode) {
       ClassDeclaration targetClassDeclaration =
-          target.getAncestor((node) => node is ClassDeclaration);
+          target.thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassDeclaration != null) {
         utils.targetClassElement = targetClassDeclaration.declaredElement;
       }

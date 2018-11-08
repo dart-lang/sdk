@@ -934,6 +934,15 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
+  T thisOrAncestorOfType<T extends AstNode>() {
+    AstNode node = this;
+    while (node != null && node is! T) {
+      node = node.parent;
+    }
+    return node as T;
+  }
+
+  @override
   String toSource() {
     StringBuffer buffer = new StringBuffer();
     accept(new ToSourceVisitor2(buffer));

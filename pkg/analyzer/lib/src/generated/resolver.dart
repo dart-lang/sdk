@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -614,8 +614,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     bool isLocalParameter(Element element, AstNode node) {
       if (element is ParameterElement) {
         ExecutableElement definingFunction = element.enclosingElement;
-        FunctionBody body =
-            node.getAncestor((ancestor) => ancestor is FunctionBody);
+        FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
         while (body != null) {
           ExecutableElement enclosingFunction;
           AstNode parent = body.parent;
@@ -629,7 +628,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           if (enclosingFunction == definingFunction) {
             return true;
           }
-          body = parent?.getAncestor((ancestor) => ancestor is FunctionBody);
+          body = parent?.thisOrAncestorOfType<FunctionBody>();
         }
       }
       return false;
@@ -8429,7 +8428,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     super.visitConstructorDeclaration(node);
     if (node.declaredElement == null) {
       ClassDeclaration classNode =
-          node.getAncestor((node) => node is ClassDeclaration);
+          node.thisOrAncestorOfType<ClassDeclaration>();
       StringBuffer buffer = new StringBuffer();
       buffer.write("The element for the constructor ");
       buffer.write(node.name == null ? "<unnamed>" : node.name.name);
@@ -8552,7 +8551,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         node.declaredElement as ExecutableElementImpl;
     if (element == null) {
       ClassDeclaration classNode =
-          node.getAncestor((node) => node is ClassDeclaration);
+          node.thisOrAncestorOfType<ClassDeclaration>();
       StringBuffer buffer = new StringBuffer();
       buffer.write("The element for the method ");
       buffer.write(node.name.name);

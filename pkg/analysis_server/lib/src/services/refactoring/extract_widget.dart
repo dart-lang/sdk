@@ -178,7 +178,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     // Find the enclosing class.
-    _enclosingClassNode = node?.getAncestor((n) => n is ClassDeclaration);
+    _enclosingClassNode = node?.thisOrAncestorOfType<ClassDeclaration>();
     _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
     // new MyWidget(...)

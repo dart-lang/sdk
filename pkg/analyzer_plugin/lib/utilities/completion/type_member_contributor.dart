@@ -151,7 +151,7 @@ class TypeMemberContributor implements CompletionContributor {
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
       MethodDeclaration containingMethod =
-          expression.getAncestor((p) => p is MethodDeclaration);
+          expression.thisOrAncestorOfType<MethodDeclaration>();
       if (containingMethod != null) {
         SimpleIdentifier id = containingMethod.name;
         if (id != null) {

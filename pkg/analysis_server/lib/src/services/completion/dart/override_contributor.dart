@@ -34,7 +34,7 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
     ClassDeclaration classDecl =
-        targetId.getAncestor((p) => p is ClassDeclaration);
+        targetId.thisOrAncestorOfType<ClassDeclaration>();
     if (classDecl == null) {
       return const <CompletionSuggestion>[];
     }

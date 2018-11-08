@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,7 +28,7 @@ class FieldFormalContributor extends DartCompletionContributor {
     // If this is a constructor declaration
     // then compute fields already referenced
     ConstructorDeclaration constructorDecl =
-        node.getAncestor((p) => p is ConstructorDeclaration);
+        node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDecl == null) {
       return const <CompletionSuggestion>[];
     }
@@ -53,7 +53,7 @@ class FieldFormalContributor extends DartCompletionContributor {
 
     // Add suggestions for fields that are not already referenced
     ClassDeclaration classDecl =
-        constructorDecl.getAncestor((p) => p is ClassDeclaration);
+        constructorDecl.thisOrAncestorOfType<ClassDeclaration>();
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (ClassMember member in classDecl.members) {
       if (member is FieldDeclaration && !member.isStatic) {

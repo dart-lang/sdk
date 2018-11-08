@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -878,7 +878,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // TODO(brianwilkerson) Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     ClassDeclaration declaration =
-        node.getAncestor((AstNode node) => node is ClassDeclaration);
+        node.thisOrAncestorOfType<ClassDeclaration>();
     Identifier superclassName = declaration.extendsClause?.superclass?.name;
     if (superclassName != null &&
         _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {

@@ -838,7 +838,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   void _checkReturnOrYield(Expression expression, AstNode node,
       {bool yieldStar: false}) {
-    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
     var type = _getExpectedReturnType(body, yieldStar: yieldStar);
     if (type == null) {
       // We have a type mismatch: the async/async*/sync* modifier does

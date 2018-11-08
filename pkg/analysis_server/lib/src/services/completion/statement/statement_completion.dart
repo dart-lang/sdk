@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -275,7 +275,7 @@ class StatementCompletionProcessor {
         return null;
       }
       AstNode expr = _selectedNode();
-      return (expr.getAncestor((n) => n is StringInterpolation) == null)
+      return (expr.thisOrAncestorOfType<StringInterpolation>() == null)
           ? expr
           : null;
     }
@@ -312,7 +312,7 @@ class StatementCompletionProcessor {
     expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'") ??
         errorMatching(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
     if (expr != null) {
-      expr = expr.getAncestor((n) => n is ListLiteral);
+      expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr != null) {
         ListLiteral lit = expr;
         if (lit.rightBracket.isSynthetic) {
@@ -854,11 +854,11 @@ class StatementCompletionProcessor {
     if (parenError == null) {
       return false;
     }
-    AstNode argList = _selectedNode(at: selectionOffset)
-        .getAncestor((n) => n is ArgumentList);
+    AstNode argList =
+        _selectedNode(at: selectionOffset).thisOrAncestorOfType<ArgumentList>();
     if (argList == null) {
       argList = _selectedNode(at: parenError.offset)
-          .getAncestor((n) => n is ArgumentList);
+          .thisOrAncestorOfType<ArgumentList>();
     }
     if (argList?.getAncestor((n) => n == node) == null) {
       return false;

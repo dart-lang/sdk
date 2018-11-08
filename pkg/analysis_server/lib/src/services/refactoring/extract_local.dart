@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -319,7 +319,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // into this block.  If it has an expression body, we can convert it into
     // the block body first.
     if (coveringNode == null ||
-        coveringNode.getAncestor((node) => node is FunctionBody) == null) {
+        coveringNode.thisOrAncestorOfType<FunctionBody>() == null) {
       return new RefactoringStatus.fatal(
           'An expression inside a function must be selected '
           'to activate this refactoring.');
@@ -414,7 +414,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return expressionBody;
     }
     // single Statement
-    AstNode target = commonParent.getAncestor((node) => node is Statement);
+    AstNode target = commonParent.thisOrAncestorOfType<Statement>();
     while (target.parent is! Block) {
       target = target.parent;
     }

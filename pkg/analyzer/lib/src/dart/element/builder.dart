@@ -539,7 +539,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     } catch (exception, stackTrace) {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode =
-            node.getAncestor((node) => node is ClassDeclaration);
+            node.thisOrAncestorOfType<ClassDeclaration>();
         StringBuffer buffer = new StringBuffer();
         buffer.write("The element for the method ");
         buffer.write(node.name);
@@ -557,7 +557,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     } finally {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode =
-            node.getAncestor((node) => node is ClassDeclaration);
+            node.thisOrAncestorOfType<ClassDeclaration>();
         StringBuffer buffer = new StringBuffer();
         buffer.write("The element for the method ");
         buffer.write(node.name);
@@ -1262,7 +1262,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     }
 
     {
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
+      Block enclosingBlock = node.thisOrAncestorOfType<Block>();
       if (enclosingBlock != null) {
         element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
       }
@@ -1307,7 +1307,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     }
 
     {
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
+      Block enclosingBlock = node.thisOrAncestorOfType<Block>();
       if (enclosingBlock != null) {
         element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
       }
@@ -1381,7 +1381,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     if (parent2 is ForStatement) {
       scopeNode = parent2;
     } else {
-      scopeNode = node.getAncestor((node) => node is Block);
+      scopeNode = node.thisOrAncestorOfType<Block>();
     }
     element.setVisibleRange(scopeNode.offset, scopeNode.length);
   }

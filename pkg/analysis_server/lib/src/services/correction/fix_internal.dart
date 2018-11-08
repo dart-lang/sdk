@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -564,7 +564,7 @@ class FixProcessor {
   Future<void> _addFix_addAsync() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
     if (body != null && body.keyword == null) {
       TypeProvider typeProvider = this.typeProvider;
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -824,7 +824,7 @@ class FixProcessor {
         argumentList = invocation.argumentList;
       } else {
         creation =
-            invocation.getAncestor((p) => p is InstanceCreationExpression);
+            invocation.thisOrAncestorOfType<InstanceCreationExpression>();
         if (creation != null) {
           targetElement = creation.staticElement;
           argumentList = creation.argumentList;
@@ -882,7 +882,7 @@ class FixProcessor {
   Future<void> _addFix_addOverrideAnnotation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ClassMember member = node.getAncestor((n) => n is ClassMember);
+    ClassMember member = node.thisOrAncestorOfType<ClassMember>();
     if (member == null) {
       return;
     }
@@ -920,7 +920,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     FieldDeclaration declaration =
-        node.getAncestor((n) => n is FieldDeclaration);
+        node.thisOrAncestorOfType<FieldDeclaration>();
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleInsertion(declaration.offset, 'static ');
@@ -1246,7 +1246,7 @@ class FixProcessor {
     }
 
     ClassDeclaration classDeclaration =
-        node.getAncestor((node) => node is ClassDeclaration);
+        node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null) {
       return;
     }
@@ -1496,7 +1496,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassDeclaration targetClassNode =
-        node.getAncestor((parent) => parent is ClassDeclaration);
+        node.thisOrAncestorOfType<ClassDeclaration>();
     ClassElement targetClassElement = targetClassNode.declaredElement;
     InterfaceType superType = targetClassElement.supertype;
     String targetClassName = targetClassElement.name;
@@ -1648,12 +1648,12 @@ class FixProcessor {
     // Ensure that we are in an initializing formal parameter.
     //
     FieldFormalParameter parameter =
-        node.getAncestor((node) => node is FieldFormalParameter);
+        node.thisOrAncestorOfType<FieldFormalParameter>();
     if (parameter == null) {
       return;
     }
     ClassDeclaration targetClassNode =
-        parameter.getAncestor((node) => node is ClassDeclaration);
+        parameter.thisOrAncestorOfType<ClassDeclaration>();
     if (targetClassNode == null) {
       return;
     }
@@ -1697,7 +1697,7 @@ class FixProcessor {
           }
         } else {
           ClassOrMixinDeclaration enclosingClass =
-              node.getAncestor((node) => node is ClassOrMixinDeclaration);
+              node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
           targetElement = enclosingClass?.declaredElement;
           argument = nameNode;
         }
@@ -1855,7 +1855,7 @@ class FixProcessor {
       }
     }
     // prepare target Statement
-    Statement target = node.getAncestor((x) => x is Statement);
+    Statement target = node.thisOrAncestorOfType<Statement>();
     if (target == null) {
       return;
     }
@@ -2104,7 +2104,7 @@ class FixProcessor {
 
   Future<void> _addFix_extendClassForMixin() async {
     ClassDeclaration declaration =
-        node.getAncestor((n) => n is ClassDeclaration);
+        node.thisOrAncestorOfType<ClassDeclaration>();
     if (declaration != null && declaration.extendsClause == null) {
       String message = error.message;
       int startIndex = message.indexOf("'", message.indexOf("'") + 1) + 1;
@@ -2125,7 +2125,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // prepare the existing type
-    TypeAnnotation typeName = node.getAncestor((n) => n is TypeAnnotation);
+    TypeAnnotation typeName = node.thisOrAncestorOfType<TypeAnnotation>();
     TypeProvider typeProvider = this.typeProvider;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2373,7 +2373,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassDeclaration enclosingClass =
-        node.getAncestor((node) => node is ClassDeclaration);
+        node.thisOrAncestorOfType<ClassDeclaration>();
     if (enclosingClass == null) {
       return;
     }
@@ -2610,7 +2610,7 @@ class FixProcessor {
     await null;
     // Retrieve the linted node.
     VariableDeclaration ancestor =
-        node.getAncestor((a) => a is VariableDeclaration);
+        node.thisOrAncestorOfType<VariableDeclaration>();
     if (ancestor == null) {
       return;
     }
@@ -2644,7 +2644,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     MethodDeclaration declaration =
-        node.getAncestor((node) => node is MethodDeclaration);
+        node.thisOrAncestorOfType<MethodDeclaration>();
     if (declaration != null) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2702,7 +2702,7 @@ class FixProcessor {
     await null;
     final thisExpression = node is ThisExpression
         ? node
-        : node.getAncestor((node) => node is ThisExpression);
+        : node.thisOrAncestorOfType<ThisExpression>();
     final parent = thisExpression?.parent;
     if (parent is PropertyAccess) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -2722,8 +2722,7 @@ class FixProcessor {
   Future<void> _addFix_removeTypeAnnotation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    final TypeAnnotation type =
-        node.getAncestor((node) => node is TypeAnnotation);
+    final TypeAnnotation type = node.thisOrAncestorOfType<TypeAnnotation>();
     if (type != null) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2804,7 +2803,7 @@ class FixProcessor {
     await null;
     // prepare ImportDirective
     ImportDirective importDirective =
-        node.getAncestor((node) => node is ImportDirective);
+        node.thisOrAncestorOfType<ImportDirective>();
     if (importDirective == null) {
       return;
     }
@@ -2835,7 +2834,7 @@ class FixProcessor {
     List<SimpleIdentifier> references;
     Element element = identifier.staticElement;
     if (element is LocalVariableElement) {
-      AstNode root = node.getAncestor((node) => node is Block);
+      AstNode root = node.thisOrAncestorOfType<Block>();
       references = findLocalElementReferences(root, element);
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
@@ -2886,9 +2885,8 @@ class FixProcessor {
   Future<void> _addFix_replaceWithConditionalAssignment() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    IfStatement ifStatement = node is IfStatement
-        ? node
-        : node.getAncestor((node) => node is IfStatement);
+    IfStatement ifStatement =
+        node is IfStatement ? node : node.thisOrAncestorOfType<IfStatement>();
     if (ifStatement == null) {
       return;
     }
@@ -2943,7 +2941,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     final FunctionTypedFormalParameter functionTyped =
-        node.getAncestor((node) => node is FunctionTypedFormalParameter);
+        node.thisOrAncestorOfType<FunctionTypedFormalParameter>();
     if (functionTyped != null) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2960,7 +2958,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     final InstanceCreationExpression instanceCreation =
-        node.getAncestor((node) => node is InstanceCreationExpression);
+        node.thisOrAncestorOfType<InstanceCreationExpression>();
     final InterfaceType type = instanceCreation.staticType;
     final generics = instanceCreation.constructorName.type.typeArguments;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -2984,7 +2982,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     FunctionExpression ancestor =
-        node.getAncestor((a) => a is FunctionExpression);
+        node.thisOrAncestorOfType<FunctionExpression>();
     if (ancestor == null) {
       return;
     }
@@ -3111,8 +3109,7 @@ class FixProcessor {
           new _ClosestElementFinder(name, predicate, MAX_LEVENSHTEIN_DISTANCE);
       // unqualified invocation
       if (target == null) {
-        ClassDeclaration clazz =
-            node.getAncestor((node) => node is ClassDeclaration);
+        ClassDeclaration clazz = node.thisOrAncestorOfType<ClassDeclaration>();
         if (clazz != null) {
           ClassElement classElement = clazz.declaredElement;
           _updateFinderWithClassMembers(finder, classElement);
@@ -3156,7 +3153,7 @@ class FixProcessor {
     int insertOffset;
     String sourcePrefix;
     AstNode enclosingMember =
-        node.getAncestor((node) => node is CompilationUnitMember);
+        node.thisOrAncestorOfType<CompilationUnitMember>();
     insertOffset = enclosingMember.end;
     sourcePrefix = '$eol$eol';
     utils.targetClassElement = null;
@@ -3249,8 +3246,7 @@ class FixProcessor {
       CorrectionUtils utils = this.utils;
       if (target == null) {
         targetElement = unit.declaredElement;
-        ClassMember enclosingMember =
-            node.getAncestor((node) => node is ClassMember);
+        ClassMember enclosingMember = node.thisOrAncestorOfType<ClassMember>();
         if (enclosingMember == null) {
           // If the undefined identifier isn't inside a class member, then it
           // doesn't make sense to create a method.
@@ -3814,17 +3810,15 @@ class FixProcessor {
    */
   bool _inStaticContext() {
     // constructor initializer cannot reference "this"
-    if (node.getAncestor((node) => node is ConstructorInitializer) != null) {
+    if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
       return true;
     }
     // field initializer cannot reference "this"
-    if (node.getAncestor((node) => node is FieldDeclaration) != null) {
+    if (node.thisOrAncestorOfType<FieldDeclaration>() != null) {
       return true;
     }
     // static method
-    MethodDeclaration method = node.getAncestor((node) {
-      return node is MethodDeclaration;
-    });
+    MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
     return method != null && method.isStatic;
   }
 

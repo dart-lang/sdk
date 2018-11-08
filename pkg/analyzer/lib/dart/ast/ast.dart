@@ -547,6 +547,12 @@ abstract class AstNode implements SyntacticEntity {
   void setProperty(String name, Object value);
 
   /**
+   * Return either this node or the most immediate ancestor of this node that
+   * has the given type, or `null` if there is no such ancestor.
+   */
+  T thisOrAncestorOfType<T extends AstNode>();
+
+  /**
    * Return a textual description of this node in a form approximating valid
    * source. The returned string will not be valid source primarily in the case
    * where the node itself is not well-formed.
