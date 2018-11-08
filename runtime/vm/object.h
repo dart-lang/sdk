@@ -90,9 +90,6 @@ class Symbols;
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
-  static object& CheckedHandle(RawObject* raw_ptr) {                           \
-    return CheckedHandle(Thread::Current()->zone(), raw_ptr);                  \
-  }                                                                            \
   static object& ZoneHandle(Zone* zone, Raw##object* raw_ptr) {                \
     object* obj =                                                              \
         reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \

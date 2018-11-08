@@ -229,7 +229,7 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 //   Arg0: function object.
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   Object& result = Object::Handle(zone);
 
   if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
@@ -937,8 +937,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     if (Compiler::IsBackgroundCompilation()) {
       ASSERT(function.is_background_optimizable());
-      if (isolate->IsTopLevelParsing() ||
-          (loading_invalidation_gen_at_start !=
+      if ((loading_invalidation_gen_at_start !=
            isolate->loading_invalidation_gen())) {
         // Loading occured while parsing. We need to abort here because state
         // changed while compiling.
@@ -1658,7 +1657,7 @@ void BackgroundCompiler::Run() {
         MonitorLocker ml(queue_monitor_);
         function = function_queue()->PeekFunction();
       }
-      while (running_ && !function.IsNull() && !isolate_->IsTopLevelParsing()) {
+      while (running_ && !function.IsNull()) {
         // This is false if we are compiling bytecode -> unoptimized code.
         const bool optimizing = function.ShouldCompilerOptimize();
         ASSERT(FLAG_enable_interpreter || optimizing);
@@ -1699,8 +1698,7 @@ void BackgroundCompiler::Run() {
     {
       // Wait to be notified when the work queue is not empty.
       MonitorLocker ml(queue_monitor_);
-      while ((function_queue()->IsEmpty() || isolate_->IsTopLevelParsing()) &&
-             running_) {
+      while (function_queue()->IsEmpty() && running_) {
         ml.Wait();
       }
     }
@@ -1825,7 +1823,7 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 }
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
          function.ToLibNamePrefixedQualifiedCString(),
          function.token_pos().value(),

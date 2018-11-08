@@ -69,16 +69,13 @@ function copyProperties(from, to) {
 // copying properties) on platforms where we know it works well (Chrome / d8).
 var supportsDirectProtoAccess = #directAccessTestExpression;
 
-var functionsHaveName = (function() {
-  function t() {};
-  return (typeof t.name == 'string')
-})();
-
 // Sets the name property of functions, if the JS engine doesn't set the name
 // itself.
 // As of 2018 only IE11 doesn't set the name.
 function setFunctionNamesIfNecessary(holders) {
-  if (functionsHaveName) return;
+  function t(){};
+  if (typeof t.name == "string") return;
+
   for (var i = 0; i < holders.length; i++) {
     var holder = holders[i];
     var keys = Object.keys(holder);
@@ -317,8 +314,19 @@ function updateHolder(holder, newHolder) {
 
 // TODO(sra): Minify properties of 'hunkHelpers'.
 var #hunkHelpers = {
+  inherit: inherit,
+  inheritMany: inheritMany,
+  mixin: mixin,
   installStaticTearOff: installStaticTearOff,
   installInstanceTearOff: installInstanceTearOff,
+  makeConstList: makeConstList,
+  lazy: lazy,
+  updateHolder: updateHolder,
+  convertToFastObject: convertToFastObject,
+  setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
+  updateTypes: updateTypes,
+  setOrUpdateInterceptorsByTag: setOrUpdateInterceptorsByTag,
+  setOrUpdateLeafTags: setOrUpdateLeafTags,
 };
 
 // Every deferred hunk (i.e. fragment) is a function that we can invoke to
@@ -328,11 +336,7 @@ function initializeDeferredHunk(hunk) {
   typesOffset = #embeddedTypes.length;
 
   // TODO(floitsch): extend natives.
-  hunk(inherit, inheritMany, mixin, lazy, makeConstList, convertToFastObject,
-       hunkHelpers,
-       setFunctionNamesIfNecessary, updateHolder, updateTypes,
-       setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
-       #embeddedGlobalsObject, holders, #staticState);
+  hunk(hunkHelpers, #embeddedGlobalsObject, holders, #staticState);
 }
 
 // Returns the global with the given [name].
@@ -355,7 +359,6 @@ if (#hasSoftDeferredClasses) {
     softDef = function(o) {};  // Replace ourselves.
     #deferredGlobal[#softId](
         holders, #embeddedGlobalsObject, #staticState,
-        inherit, inheritMany, mixin,
         hunkHelpers);
     if (o != null) {
       // TODO(29574): should we do something different for Firefox?
@@ -375,7 +378,7 @@ if (#isTrackingAllocations) {
 #holders;
 
 // If the name is not set on the functions, do it now.
-setFunctionNamesIfNecessary(holders);
+hunkHelpers.setFunctionNamesIfNecessary(holders);
 
 // TODO(floitsch): we should build this object as a literal.
 var #staticStateDeclaration = {};
@@ -454,16 +457,13 @@ const String directAccessTestExpression = r'''
 ///
 /// This template is used for Dart 2.
 const String deferredBoilerplateDart2 = '''
-function(inherit, inheritMany, mixin, lazy, makeConstList, convertToFastObject,
-         hunkHelpers, setFunctionNamesIfNecessary, updateHolder, updateTypes,
-         setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
-         #embeddedGlobalsObject, holdersList, #staticState) {
+function(hunkHelpers, #embeddedGlobalsObject, holdersList, #staticState) {
 
 // Builds the holders. They only contain the data for new holders.
 #holders;
 
 // If the name is not set on the functions, do it now.
-setFunctionNamesIfNecessary(#deferredHoldersList);
+hunkHelpers.setFunctionNamesIfNecessary(#deferredHoldersList);
 
 // Updates the holders of the main-fragment. Uses the provided holdersList to
 // access the main holders.
@@ -476,7 +476,7 @@ setFunctionNamesIfNecessary(#deferredHoldersList);
 // These can only refer to regular classes and in Dart 2 only closures have
 // function types so the `typesOffset` has been safely computed before it's
 // referred in the signatures of the `closures` below.
-var #typesOffset = updateTypes(#types);
+var #typesOffset = hunkHelpers.updateTypes(#types);
 #closures;
 // Sets aliases of methods (on the prototypes of classes).
 #aliases;
@@ -505,7 +505,6 @@ var #typesOffset = updateTypes(#types);
 const String softDeferredBoilerplate = '''
 #deferredGlobal[#softId] =
   function(holdersList, #embeddedGlobalsObject, #staticState,
-           inherit, inheritMany, mixin,
            hunkHelpers) {
 
 // Installs the holders as local variables.
@@ -651,10 +650,11 @@ class FragmentEmitter {
       Holder holder = nonStaticStateHolders[i];
       if (holderCode.activeHolders.contains(holder)) {
         updateHolderAssignments.add(js.js.statement(
-            '#holder = updateHolder(holdersList[#index], #holder)', {
-          'index': js.number(i),
-          'holder': new js.VariableUse(holder.name)
-        }));
+            '#holder = hunkHelpers.updateHolder(holdersList[#index], #holder)',
+            {
+              'index': js.number(i),
+              'holder': new js.VariableUse(holder.name)
+            }));
       } else {
         // TODO(sra): Change declaration followed by assignments to declarations
         // with initialization.
@@ -1139,7 +1139,7 @@ class FragmentEmitter {
         collect(cls);
 
         if (cls.mixinClass != null) {
-          locals['_mixin'] ??= js.js('mixin');
+          locals['_mixin'] ??= js.js('hunkHelpers.mixin');
           mixinCalls.add(js.js.statement('_mixin(#, #)',
               [classReference(cls), classReference(cls.mixinClass)]));
         }
@@ -1152,11 +1152,11 @@ class FragmentEmitter {
           ? new js.LiteralNull()
           : classReference(superclass);
       if (list.length == 1) {
-        locals['_inherit'] ??= js.js('inherit');
+        locals['_inherit'] ??= js.js('hunkHelpers.inherit');
         inheritCalls.add(js.js.statement('_inherit(#, #)',
             [classReference(list.single), superclassReference]));
       } else {
-        locals['_inheritMany'] ??= js.js('inheritMany');
+        locals['_inheritMany'] ??= js.js('hunkHelpers.inheritMany');
         var listElements = list.map(classReference).toList();
         inheritCalls.add(js.js.statement('_inheritMany(#, #)',
             [superclassReference, js.ArrayInitializer(listElements)]));
@@ -1165,17 +1165,20 @@ class FragmentEmitter {
 
     List<js.Statement> statements = [];
     if (locals.isNotEmpty) {
-      List<js.VariableInitialization> initializations = [];
-      locals.forEach((local, value) {
-        initializations.add(
-            js.VariableInitialization(js.VariableDeclaration(local), value));
-      });
-      statements.add(
-          js.ExpressionStatement(js.VariableDeclarationList(initializations)));
+      statements.add(localAliasInitializations(locals));
     }
     statements.addAll(inheritCalls);
     statements.addAll(mixinCalls);
     return wrapPhase('inheritance', statements);
+  }
+
+  js.Statement localAliasInitializations(Map<String, js.Expression> locals) {
+    List<js.VariableInitialization> initializations = [];
+    locals.forEach((local, value) {
+      initializations
+          .add(js.VariableInitialization(js.VariableDeclaration(local), value));
+    });
+    return js.ExpressionStatement(js.VariableDeclarationList(initializations));
   }
 
   /// Emits the setup of method aliases.
@@ -1405,11 +1408,10 @@ class FragmentEmitter {
   /// Emits the constants section.
   js.Statement emitConstants(Fragment fragment) {
     List<js.Statement> assignments = [];
+    bool hasList = false;
     for (Constant constant in fragment.constants) {
-      // TODO(floitsch): instead of just updating the constant holder, we should
-      // find the constants that don't have any dependency on other constants
-      // and create an object-literal with them (and assign it to the
-      // constant-holder variable).
+      // TODO(25230): We only need to name constants that are used from function
+      // bodies or from other constants in a different part.
       var assignment = js.js.statement('#.# = #', [
         constant.holder.name,
         constant.name,
@@ -1417,6 +1419,11 @@ class FragmentEmitter {
       ]);
       compiler.dumpInfoTask.registerConstantAst(constant.value, assignment);
       assignments.add(assignment);
+      if (constant.value.isList) hasList = true;
+    }
+    if (hasList) {
+      assignments.insert(
+          0, js.js.statement('var makeConstList = hunkHelpers.makeConstList;'));
     }
     return wrapPhase('constants', assignments);
   }
@@ -1427,11 +1434,12 @@ class FragmentEmitter {
   /// an initializer.
   js.Statement emitStaticNonFinalFields(Fragment fragment) {
     List<StaticField> fields = fragment.staticNonFinalFields;
-    // TODO(floitsch): instead of assigning the fields one-by-one we should
-    // create a literal and assign it to the static-state holder.
-    // TODO(floitsch): if we don't make a literal we should at least initialize
-    // statics that have the same initial value in the same expression:
-    //    `$.x = $.y = $.z = null;`.
+    // TODO(sra): Chain assignments that have the same value, i.e.
+    //
+    //    $.x = null; $.y = null; $.z = null;
+    // -->
+    //    $.z = $.y = $.x = null;
+    //
     Iterable<js.Statement> statements = fields.map((StaticField field) {
       assert(field.holder.isStaticStateHolder);
       return js.js
@@ -1446,17 +1454,24 @@ class FragmentEmitter {
   /// require an initializer.
   js.Statement emitLazilyInitializedStatics(Fragment fragment) {
     List<StaticField> fields = fragment.staticLazilyInitializedFields;
-    Iterable<js.Statement> statements = fields.map((StaticField field) {
+    List<js.Statement> statements = [];
+    Map<String, js.Expression> locals = {};
+    for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
-      return js.js.statement("lazy(#, #, #, #);", [
+      locals['_lazy'] ??= js.js('hunkHelpers.lazy');
+      statements.add(js.js.statement("_lazy(#, #, #, #);", [
         field.holder.name,
         js.quoteName(field.name),
         js.quoteName(namer.deriveLazyInitializerName(field.name)),
         field.code
-      ]);
-    });
+      ]));
+    }
 
-    return wrapPhase('lazyInitializers', statements.toList());
+    if (locals.isNotEmpty) {
+      statements.insert(0, localAliasInitializations(locals));
+    }
+
+    return wrapPhase('lazyInitializers', statements);
   }
 
   /// Emits the embedded globals that are needed for deferred loading.
@@ -1673,10 +1688,11 @@ class FragmentEmitter {
           _closedWorld.backendUsage, generateEmbeddedGlobalAccess, js.js("""
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
+        // TODO(sra): Use Symbol on non-IE11 browsers.
         function (s) {
           var o = {};
           o[s] = 1;
-          return Object.keys(convertToFastObject(o))[0];
+          return Object.keys(hunkHelpers.convertToFastObject(o))[0];
         }""", [])));
     }
 
@@ -1714,12 +1730,13 @@ class FragmentEmitter {
     }
 
     if (interceptorsByTag.isNotEmpty) {
-      statements.add(js.js.statement("setOrUpdateInterceptorsByTag(#);",
+      statements.add(js.js.statement(
+          "hunkHelpers.setOrUpdateInterceptorsByTag(#);",
           js.objectLiteral(interceptorsByTag)));
     }
     if (leafTags.isNotEmpty) {
-      statements.add(js.js
-          .statement("setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
+      statements.add(js.js.statement(
+          "hunkHelpers.setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
     }
     statements.addAll(subclassAssignments);
 

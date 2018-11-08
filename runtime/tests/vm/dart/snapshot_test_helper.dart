@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as p;
@@ -63,6 +64,8 @@ Future<Null> checkDeterministicSnapshot(
   final snapshot2Path = p.join(temp.path, 'snapshot2');
 
   try {
+    print("Version ${Platform.version}");
+
     final generate1Result = await runDartBinary('GENERATE SNAPSHOT 1', [
       '--deterministic',
       '--snapshot=$snapshot1Path',
@@ -84,12 +87,13 @@ Future<Null> checkDeterministicSnapshot(
     var snapshot1Bytes = await new File(snapshot1Path).readAsBytes();
     var snapshot2Bytes = await new File(snapshot2Path).readAsBytes();
 
-    Expect.equals(snapshot1Bytes.length, snapshot2Bytes.length);
-    for (var i = 0; i < snapshot1Bytes.length; i++) {
+    var minLength = min(snapshot1Bytes.length, snapshot2Bytes.length);
+    for (var i = 0; i < minLength; i++) {
       if (snapshot1Bytes[i] != snapshot2Bytes[i]) {
-        Expect.fail("Snapshots are not bitwise equal!");
+        Expect.fail("Snapshots differ at byte $i");
       }
     }
+    Expect.equals(snapshot1Bytes.length, snapshot2Bytes.length);
   } finally {
     await temp.delete(recursive: true);
   }

@@ -1117,6 +1117,7 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   FunctionType getFunctionType(ir.FunctionNode node);
   MemberEntity getMember(ir.Member node);
   Entity getClosure(ir.FunctionDeclaration node);
+  Local getLocalFunction(ir.TreeNode node);
 
   Iterable<LibraryEntity> get libraryListInternal {
     if (env.length != libraryMap.length) {
@@ -1221,6 +1222,11 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
                   getMethodInternal(procedure), node.name, index),
               new KTypeVariableData(node));
         }
+      } else if (func.parent is ir.FunctionDeclaration ||
+          func.parent is ir.FunctionExpression) {
+        // Ensure that local function type variables have been created.
+        getLocalFunction(func.parent);
+        return typeVariableMap[node];
       } else {
         throw new UnsupportedError('Unsupported function type parameter parent '
             'node ${func.parent}.');

@@ -933,7 +933,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       reloaded_kernel_blobs_(GrowableObjectArray::null()),
       next_(NULL),
       loading_invalidation_gen_(kInvalidGen),
-      top_level_parsing_count_(0),
       field_list_mutex_(
           new Mutex(NOT_IN_PRODUCT("Isolate::field_list_mutex_"))),
       boxed_field_list_(GrowableObjectArray::null()),

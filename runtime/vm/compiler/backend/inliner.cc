@@ -972,8 +972,7 @@ class CallSiteInliner : public ValueObject {
             isolate->loading_invalidation_gen();
 
         if (Compiler::IsBackgroundCompilation()) {
-          if (isolate->IsTopLevelParsing() ||
-              (loading_invalidation_gen_at_start !=
+          if ((loading_invalidation_gen_at_start !=
                isolate->loading_invalidation_gen())) {
             // Loading occured while parsing. We need to abort here because
             // state changed while compiling.

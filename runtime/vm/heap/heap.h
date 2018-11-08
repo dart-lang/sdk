@@ -380,6 +380,7 @@ class Heap {
   friend class Precompiler;  // VisitObjects
   friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;
+  friend class Scavenger;             // VerifyGC
   friend class PageSpace;             // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
