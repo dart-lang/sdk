@@ -238,6 +238,8 @@ class Server {
   Future _requestHandler(HttpRequest request) async {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.write("forbidden origin");
       request.response.close();
       return;
     }
@@ -293,6 +295,8 @@ class Server {
     }
     if (request.method != 'GET') {
       // Not a GET request. Do nothing.
+      request.response.statusCode = HttpStatus.methodNotAllowed;
+      request.response.write("method not allowed");
       request.response.close();
       return;
     }
