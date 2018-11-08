@@ -56,11 +56,6 @@ DEFINE_FLAG(int,
             80,
             "Do not inline callees larger than threshold");
 DEFINE_FLAG(int,
-            set_outer_weight_size_threshold,
-            20,
-            "Do not set outer weight when calling code "
-            " is larger than threshold");
-DEFINE_FLAG(int,
             inlining_caller_size_threshold,
             50000,
             "Stop inlining once caller reaches the threshold.");
@@ -334,14 +329,16 @@ class CallSites : public ValueObject {
   // Heuristic that maps the loop nesting depth to a static estimate of number
   // of times code at that depth is executed (code at each higher nesting
   // depth is assumed to execute 10x more often up to depth 3).
-  static intptr_t AotCallCountApproximation(intptr_t nesting_depth,
-                                            intptr_t outer_weight) {
+  static intptr_t AotCallCountApproximation(intptr_t nesting_depth) {
     switch (nesting_depth) {
       case 0:
-        // The outer weight (either 0 or 1) must be chosen carefully,
-        // since any nonzero value results in inlining  *all* call
-        // sites in methods without loops.
-        return outer_weight;
+        // Note that we use value 0, and not 1, i.e. any straightline code
+        // outside a loop is assumed to be very cold. With value 1, inlining
+        // inside loops is still favored over inlining inside straightline
+        // code, but for a method without loops, *all* call sites are inlined
+        // (potentially more performance, at the expense of larger code size).
+        // TODO(ajcbik): use 1 and fine tune other heuristics
+        return 0;
       case 1:
         return 10;
       case 2:
@@ -351,22 +348,12 @@ class CallSites : public ValueObject {
     }
   }
 
-  // If the caller is very small, set the outer weight to 1 (AOT),
-  // since calling overhead dominates small code without loops.
-  static intptr_t OuterWeight(FlowGraph* graph) {
-    return (graph->function().optimized_instruction_count() >
-            FLAG_set_outer_weight_size_threshold)
-               ? 0
-               : 1;
-  }
-
   // Computes the ratio for each call site in a method, defined as the
   // number of times a call site is executed over the maximum number of
   // times any call site is executed in the method. JIT uses actual call
   // counts whereas AOT uses a static estimate based on nesting depth.
   void ComputeCallSiteRatio(intptr_t static_call_start_ix,
-                            intptr_t instance_call_start_ix,
-                            intptr_t outer_weight) {
+                            intptr_t instance_call_start_ix) {
     const intptr_t num_static_calls =
         static_calls_.length() - static_call_start_ix;
     const intptr_t num_instance_calls =
@@ -378,9 +365,8 @@ class CallSites : public ValueObject {
       const InstanceCallInfo& info =
           instance_calls_[i + instance_call_start_ix];
       intptr_t aggregate_count =
-          FLAG_precompiled_mode
-              ? AotCallCountApproximation(info.nesting_depth, outer_weight)
-              : info.call->CallCount();
+          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
+                                : info.call->CallCount();
       instance_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -389,9 +375,8 @@ class CallSites : public ValueObject {
     for (intptr_t i = 0; i < num_static_calls; ++i) {
       const StaticCallInfo& info = static_calls_[i + static_call_start_ix];
       intptr_t aggregate_count =
-          FLAG_precompiled_mode
-              ? AotCallCountApproximation(info.nesting_depth, outer_weight)
-              : info.call->CallCount();
+          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
+                                : info.call->CallCount();
       static_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -515,8 +500,7 @@ class CallSites : public ValueObject {
         }
       }
     }
-    ComputeCallSiteRatio(static_call_start_ix, instance_call_start_ix,
-                         OuterWeight(graph));
+    ComputeCallSiteRatio(static_call_start_ix, instance_call_start_ix);
   }
 
  private:
@@ -1235,8 +1219,7 @@ class CallSiteInliner : public ValueObject {
           return false;
         }
 
-        // Collect all call sites in the just now inlined callee graph.
-        // Force inlining dispatcher methods regardless of the current depth.
+        // Inline dispatcher methods regardless of the current depth.
         const intptr_t depth =
             function.IsDispatcherOrImplicitAccessor() ? 0 : inlining_depth_;
         collected_call_sites_->FindCallSites(callee_graph, depth,
@@ -3584,6 +3567,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
   const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
 
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
+
   switch (kind) {
     // Recognized [] operators.
     case MethodRecognizer::kImmutableArrayGetIndexed:
