@@ -29,7 +29,7 @@ main() {
   });
 }
 
-class Visitor extends StaticTypeTraversalVisitor {
+class Visitor extends StaticTypeVisitor {
   Visitor(ir.Component component)
       : super(new ir.TypeEnvironment(
             new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
