@@ -77,6 +77,15 @@ import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
+const List<String> analyzableFilePatterns = <String>[
+  '**/*.${AnalysisEngine.SUFFIX_DART}',
+  '**/*.${AnalysisEngine.SUFFIX_HTML}',
+  '**/*.${AnalysisEngine.SUFFIX_HTM}',
+  '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
+  '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
+  '**/${AnalysisEngine.PUBSPEC_YAML_FILE}'
+];
+
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
 /// Instances of the class [AnalysisServer] implement a server that listens on a
@@ -253,7 +262,7 @@ class AnalysisServer {
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);
     }
-    byteStore = _createByteStore();
+    byteStore = createByteStore(resourceProvider);
     analysisDriverScheduler = new nd.AnalysisDriverScheduler(
         _analysisPerformanceLogger,
         driverWatcher: pluginWatcher);
@@ -309,15 +318,7 @@ class AnalysisServer {
   List<Glob> get analyzedFilesGlobs {
     if (_analyzedFilesGlobs == null) {
       _analyzedFilesGlobs = <Glob>[];
-      List<String> patterns = <String>[
-        '**/*.${AnalysisEngine.SUFFIX_DART}',
-        '**/*.${AnalysisEngine.SUFFIX_HTML}',
-        '**/*.${AnalysisEngine.SUFFIX_HTM}',
-        '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
-        '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-        '**/${AnalysisEngine.PUBSPEC_YAML_FILE}'
-      ];
-      for (String pattern in patterns) {
+      for (String pattern in analyzableFilePatterns) {
         try {
           _analyzedFilesGlobs
               .add(new Glob(resourceProvider.pathContext.separator, pattern));
@@ -840,26 +841,6 @@ class AnalysisServer {
 //    });
   }
 
-  /// If the state location can be accessed, return the file byte store,
-  /// otherwise return the memory byte store.
-  ByteStore _createByteStore() {
-    const int M = 1024 * 1024 /*1 MiB*/;
-    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
-
-    const int memoryCacheSize = 128 * M;
-
-    if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
-      if (stateLocation != null) {
-        return new MemoryCachingByteStore(
-            new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
-      }
-    }
-
-    return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
-  }
-
   /// Return the path to the location of the byte store on disk, or `null` if
   /// there is no on-disk byte store.
   String _getByteStorePath() {
@@ -1291,4 +1272,24 @@ class ServerPerformanceStatistics {
 
   /// The [PerformanceTag] for time spent in server request handlers.
   static final PerformanceTag serverRequests = server.createChild('requests');
+}
+
+/// If the state location can be accessed, return the file byte store,
+/// otherwise return the memory byte store.
+ByteStore createByteStore(ResourceProvider resourceProvider) {
+  const int M = 1024 * 1024 /*1 MiB*/;
+  const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+
+  const int memoryCacheSize = 128 * M;
+
+  if (resourceProvider is PhysicalResourceProvider) {
+    Folder stateLocation =
+        resourceProvider.getStateLocation('.analysis-driver');
+    if (stateLocation != null) {
+      return new MemoryCachingByteStore(
+          new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
+    }
+  }
+
+  return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
 }

@@ -52,16 +52,25 @@ Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
 class MockLspServerChannel implements LspServerCommunicationChannel {
   // TODO(dantup): Support server-to-client requests. We'll probably need to
   // change IncomingMessage to just Message for both directions?
-  final StreamController<lsp.IncomingMessage> clientToServer =
-      new StreamController<lsp.IncomingMessage>();
-  final StreamController<lsp.Message> serverToClient =
+  final StreamController<lsp.IncomingMessage> _clientToServer =
+      new StreamController<lsp.IncomingMessage>.broadcast();
+  final StreamController<lsp.Message> _serverToClient =
       new StreamController<lsp.Message>.broadcast();
+
+  Stream<lsp.Message> get serverToClient => _serverToClient.stream;
 
   bool _closed = false;
 
   String name;
 
-  MockLspServerChannel();
+  MockLspServerChannel(bool _printMessages) {
+    if (_printMessages) {
+      _serverToClient.stream
+          .listen((message) => print('<== ' + jsonEncode(message)));
+      _clientToServer.stream
+          .listen((message) => print('==> ' + jsonEncode(message)));
+    }
+  }
 
   @override
   void close() {
@@ -71,7 +80,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   @override
   void listen(void Function(lsp.IncomingMessage message) onMessage,
       {Function onError, void Function() onDone}) {
-    clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
+    _clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
   }
 
   @override
@@ -80,7 +89,16 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (_closed) {
       return;
     }
-    serverToClient.add(notification);
+    _serverToClient.add(notification);
+  }
+
+  void sendNotificationToServer(lsp.NotificationMessage notification) {
+    // Don't deliver notifications after the connection is closed.
+    if (_closed) {
+      return;
+    }
+    notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
+    _clientToServer.add(notification);
   }
 
   /**
@@ -95,7 +113,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     }
     request = _convertJson(request, lsp.RequestMessage.fromJson);
     // Wrap send request in future to simulate WebSocket.
-    new Future(() => clientToServer.add(request));
+    new Future(() => _clientToServer.add(request));
     return waitForResponse(request);
   }
 
@@ -106,7 +124,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
       return;
     }
     // Wrap send response in future to simulate WebSocket.
-    new Future(() => serverToClient.add(response));
+    new Future(() => _serverToClient.add(response));
   }
 
   /**
@@ -122,7 +140,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
       lsp.RequestMessage request) async {
     // TODO(dantup): Make this throw if an error notifications comes in (as
     // described above).
-    final response = await serverToClient.stream.firstWhere((response) =>
+    final response = await _serverToClient.stream.firstWhere((response) =>
         response is lsp.ResponseMessage && response.id == request.id);
     return response;
   }
@@ -132,7 +150,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
    * been received.
    */
   Future<lsp.NotificationMessage> waitForNotificationFromServer() async {
-    final notification = await serverToClient.stream
+    final notification = await _serverToClient.stream
         .firstWhere((m) => m is lsp.NotificationMessage);
     return notification;
   }

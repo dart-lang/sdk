@@ -373,10 +373,44 @@ class Driver implements ServerStarter {
       return null;
     }
 
+    final defaultSdkPath = _getSdkPath(results);
+    final dartSdkManager = new DartSdkManager(defaultSdkPath, true);
+
+    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
+    // cannot be re-used, but the SDK is needed to create a package map provider
+    // in the case where we need to run `pub` in order to get the package map.
+    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, true);
+    //
+    // Initialize the instrumentation service.
+    //
+    String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    if (logFilePath != null) {
+      _rollLogFiles(logFilePath, 5);
+      FileInstrumentationServer fileBasedServer =
+          new FileInstrumentationServer(logFilePath);
+      instrumentationServer = instrumentationServer != null
+          ? new MulticastInstrumentationServer(
+              [instrumentationServer, fileBasedServer])
+          : fileBasedServer;
+    }
+    InstrumentationService instrumentationService =
+        new InstrumentationService(instrumentationServer);
+    instrumentationService.logVersion(
+        results[TRAIN_USING] != null
+            ? 'training-0'
+            : _readUuid(instrumentationService),
+        analysisServerOptions.clientId,
+        analysisServerOptions.clientVersion,
+        AnalysisServer.VERSION,
+        defaultSdk.sdkVersion);
+    AnalysisEngine.instance.instrumentationService = instrumentationService;
+
     if (analysisServerOptions.useLanguageServerProtocol) {
-      startLspServer(results, analysisServerOptions);
+      startLspServer(results, analysisServerOptions, dartSdkManager,
+          instrumentationService);
     } else {
-      startAnalysisServer(results, analysisServerOptions, parser, analytics);
+      startAnalysisServer(results, analysisServerOptions, parser,
+          dartSdkManager, instrumentationService, analytics);
     }
   }
 
@@ -384,6 +418,8 @@ class Driver implements ServerStarter {
       ArgResults results,
       AnalysisServerOptions analysisServerOptions,
       CommandLineParser parser,
+      DartSdkManager dartSdkManager,
+      InstrumentationService instrumentationService,
       telemetry.Analytics analytics) {
     String trainDirectory = results[TRAIN_USING];
     if (trainDirectory != null) {
@@ -416,37 +452,6 @@ class Driver implements ServerStarter {
     manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     linter.registerLintRules();
 
-    final defaultSdkPath = _getSdkPath(results);
-
-    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
-    // cannot be re-used, but the SDK is needed to create a package map provider
-    // in the case where we need to run `pub` in order to get the package map.
-    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, true);
-    //
-    // Initialize the instrumentation service.
-    //
-    String logFilePath = results[INSTRUMENTATION_LOG_FILE];
-    if (logFilePath != null) {
-      _rollLogFiles(logFilePath, 5);
-      FileInstrumentationServer fileBasedServer =
-          new FileInstrumentationServer(logFilePath);
-      instrumentationServer = instrumentationServer != null
-          ? new MulticastInstrumentationServer(
-              [instrumentationServer, fileBasedServer])
-          : fileBasedServer;
-    }
-    InstrumentationService instrumentationService =
-        new InstrumentationService(instrumentationServer);
-    instrumentationService.logVersion(
-        trainDirectory != null
-            ? 'training-0'
-            : _readUuid(instrumentationService),
-        analysisServerOptions.clientId,
-        analysisServerOptions.clientVersion,
-        AnalysisServer.VERSION,
-        defaultSdk.sdkVersion);
-    AnalysisEngine.instance.instrumentationService = instrumentationService;
-
     _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
 
     // Ping analytics with our initial call.
@@ -457,7 +462,7 @@ class Driver implements ServerStarter {
     //
     final socketServer = new SocketServer(
         analysisServerOptions,
-        new DartSdkManager(defaultSdkPath, true),
+        dartSdkManager,
         instrumentationService,
         diagnosticServer,
         fileResolverProvider,
@@ -528,13 +533,18 @@ class Driver implements ServerStarter {
   }
 
   void startLspServer(
-      ArgResults args, AnalysisServerOptions analysisServerOptions) {
-    final defaultSdkPath = _getSdkPath(args);
-    final dartSdkManager = new DartSdkManager(defaultSdkPath, true);
-    final socketServer =
-        new LspSocketServer(analysisServerOptions, dartSdkManager);
+    ArgResults args,
+    AnalysisServerOptions analysisServerOptions,
+    DartSdkManager dartSdkManager,
+    InstrumentationService instrumentationService,
+  ) {
+    final socketServer = new LspSocketServer(
+      analysisServerOptions,
+      dartSdkManager,
+      instrumentationService,
+    );
 
-    _captureLspExceptions(socketServer, () {
+    _captureLspExceptions(socketServer, instrumentationService, () {
       LspStdioAnalysisServer stdioServer =
           new LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
@@ -556,8 +566,7 @@ class Driver implements ServerStarter {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
-      AnalysisServer analysisServer = socketServer.analysisServer;
-      analysisServer.sendServerErrorNotification(
+      socketServer.analysisServer.sendServerErrorNotification(
           'Captured exception', exception, stackTrace);
       throw exception;
     }
@@ -585,11 +594,11 @@ class Driver implements ServerStarter {
       // We should either factor these out, or if we end up with an LspDriver, put
       // this there.
       LspSocketServer socketServer,
+      InstrumentationService service,
       dynamic callback()) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
-      // TODO(dantup): LSP doesn't currently an instrumentation service set up.
-      //service.logPriorityException(exception, stackTrace);
+      service.logPriorityException(exception, stackTrace);
       LspAnalysisServer analysisServer = socketServer.analysisServer;
       analysisServer.sendServerErrorNotification(
           'Captured exception', exception, stackTrace);

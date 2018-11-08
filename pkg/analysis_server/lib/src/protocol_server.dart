@@ -35,7 +35,21 @@ List<AnalysisError> doAnalysisError_listFromEngine(
     engine.AnalysisOptions analysisOptions,
     engine.LineInfo lineInfo,
     List<engine.AnalysisError> errors) {
-  List<AnalysisError> serverErrors = <AnalysisError>[];
+  return mapEngineErrors(
+      analysisOptions, lineInfo, errors, newAnalysisError_fromEngine);
+}
+
+/**
+ * Translates engine errors through the ErrorProcessor.
+ */
+List<T> mapEngineErrors<T>(
+    engine.AnalysisOptions analysisOptions,
+    engine.LineInfo lineInfo,
+    List<engine.AnalysisError> errors,
+    T Function(engine.LineInfo lineInfo, engine.AnalysisError error,
+            [engine.ErrorSeverity errorSeverity])
+        constructor) {
+  List<T> serverErrors = <T>[];
   for (engine.AnalysisError error in errors) {
     ErrorProcessor processor =
         ErrorProcessor.getProcessor(analysisOptions, error);
@@ -44,11 +58,10 @@ List<AnalysisError> doAnalysisError_listFromEngine(
       // Errors with null severity are filtered out.
       if (severity != null) {
         // Specified severities override.
-        serverErrors
-            .add(newAnalysisError_fromEngine(lineInfo, error, severity));
+        serverErrors.add(constructor(lineInfo, error, severity));
       }
     } else {
-      serverErrors.add(newAnalysisError_fromEngine(lineInfo, error));
+      serverErrors.add(constructor(lineInfo, error));
     }
   }
   return serverErrors;

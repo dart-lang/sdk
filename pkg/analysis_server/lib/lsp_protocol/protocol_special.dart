@@ -162,4 +162,5 @@ abstract class ServerErrorCodes {
   // JSON-RPC reserves -32000 to -32099 for implementation-defined server-errors.
   static const ServerAlreadyStarted = -32000;
   static const UnhandledError = -32001;
+  static const ServerAlreadyInitialized = -32002;
 }
