@@ -11,6 +11,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
+import 'package:analysis_server/src/lsp/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handler_initialization.dart';
 import 'package:analysis_server/src/lsp/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -18,6 +19,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -178,6 +180,7 @@ class LspAnalysisServer {
 
     _registerHandler(new InitializationHandler(this));
     _registerHandler(new TextDocumentChangeHandler(this));
+    _registerHandler(new HoverHandler(this));
     channel.listen(handleMessage, onDone: done, onError: error);
   }
 
@@ -223,6 +226,49 @@ class LspAnalysisServer {
     print(stack);
   }
 
+  /// Return an analysis driver to which the file with the given [path] is
+  /// added if one exists, otherwise a driver in which the file was analyzed if
+  /// one exists, otherwise the first driver, otherwise `null`.
+  nd.AnalysisDriver getAnalysisDriver(String path) {
+    // TODO(dantup): This is copy/pasted from AnalysisServer.
+    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
+    if (drivers.isNotEmpty) {
+      // Sort the drivers so that more deeply nested contexts will be checked
+      // before enclosing contexts.
+      drivers.sort((first, second) =>
+          second.contextRoot.root.length - first.contextRoot.root.length);
+      nd.AnalysisDriver driver = drivers.firstWhere(
+          (driver) => driver.contextRoot.containsFile(path),
+          orElse: () => null);
+      driver ??= drivers.firstWhere(
+          (driver) => driver.knownFiles.contains(path),
+          orElse: () => null);
+      driver ??= drivers.first;
+      return driver;
+    }
+    return null;
+  }
+
+  /// Return the resolved unit for the file with the given [path]. The file is
+  /// analyzed in one of the analysis drivers to which the file was added,
+  /// otherwise in the first driver, otherwise `null` is returned.
+  Future<ResolvedUnitResult> getResolvedUnit(String path,
+      {bool sendCachedToStream: false}) {
+    // TODO(dantup): This is copy/pasted from AnalysisServer.
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return new Future.value();
+    }
+
+    return driver
+        .getResult(path, sendCachedToStream: sendCachedToStream)
+        .catchError((_) => null);
+  }
+
   /**
    * Handle a [request] that was read from the communication channel.
    */
@@ -230,7 +276,7 @@ class LspAnalysisServer {
     // TODO(dantup): Put in all the things this server is missing, like:
     //     _performance.logRequest(request);
     runZoned(() {
-      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
+      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
         // No requests are allowed before the initialize request/response.
         if ((state == InitializationState.Uninitialized &&
                 message.method != 'initialize') ||
@@ -247,7 +293,7 @@ class LspAnalysisServer {
         }
 
         try {
-          final result = handler.handleMessage(message);
+          final result = await handler.handleMessage(message);
           if (message is RequestMessage) {
             channel.sendResponse(
                 new ResponseMessage(message.id, result, null, "2.0"));
@@ -397,8 +443,9 @@ class LspAnalysisServer {
   }
 }
 
-// TODO(dantup): Lots of copy/paste from the Analysis Server one here.
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
+  // TODO(dantup): Lots of copy/paste from the Analysis Server one here.
+
   final LspAnalysisServer analysisServer;
 
   /**
@@ -537,7 +584,7 @@ abstract class MessageHandler {
    * return value will be sent back in a [ResponseMessage].
    * [NotificationMessage]s are not expected to return results.
    */
-  Object handleMessage(IncomingMessage message);
+  FutureOr<Object> handleMessage(IncomingMessage message);
 
   T convertParams<T>(
       IncomingMessage message, T Function(Map<String, dynamic>) constructor) {

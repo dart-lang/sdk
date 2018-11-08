@@ -8,7 +8,9 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -24,6 +26,12 @@ const debugPrintCommunication = false;
 
 abstract class AbstractLspAnalysisServerTest extends Object
     with ResourceProviderMixin {
+  static const positionMarker = '^';
+  static const rangeMarkerStart = '[[';
+  static const rangeMarkerEnd = ']]';
+  static const allMarkers = [positionMarker, rangeMarkerStart, rangeMarkerEnd];
+  static final allMarkersPattern =
+      new RegExp(allMarkers.map(RegExp.escape).join('|'));
   MockLspServerChannel channel;
   LspAnalysisServer server;
 
@@ -50,6 +58,26 @@ abstract class AbstractLspAnalysisServerTest extends Object
     );
     channel.sendNotificationToServer(notification);
     await pumpEventQueue();
+  }
+
+  Future<Hover> getHover(Uri uri, Position pos) async {
+    var request = makeRequest(
+      'textDocument/hover', // TODO(dantup): Code-gen constants for all these from the spec to avoid mistakes.
+      new TextDocumentPositionParams(
+          new TextDocumentIdentifier(uri.toString()), pos),
+    );
+    return expectSuccessfulResponseTo<Hover>(request);
+  }
+
+  /// Sends a request to the server and unwraps the result. Throws if the
+  /// response was not successful or returned an error.
+  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
+    final resp = await channel.sendRequestToServer(request);
+    if (resp.error != null) {
+      throw resp.error.message;
+    } else {
+      return resp.result as T;
+    }
   }
 
   /// A helper that initializes the server with common values, since the server
@@ -117,6 +145,27 @@ abstract class AbstractLspAnalysisServerTest extends Object
     mainFileUri = Uri.file(mainFilePath);
   }
 
+  Position positionFromMarker(String contents) =>
+      positionFromOffset(contents.indexOf('^'), contents);
+
+  Position positionFromOffset(int offset, String contents) {
+    final lineInfo = LineInfo.fromContent(contents);
+    return toPosition(lineInfo.getLocation(offset));
+  }
+
+  /// Returns the range surrounded by `[[markers]]` in the provided string,
+  /// excluding the markers themselves (as well as position markers `^` from
+  /// the offsets).
+  Range rangeFromMarkers(String contents) {
+    contents = contents.replaceAll(positionMarker, '');
+    final start = contents.indexOf(rangeMarkerStart);
+    final end = contents.indexOf(rangeMarkerEnd) - rangeMarkerStart.length;
+    return new Range(
+      positionFromOffset(start, contents),
+      positionFromOffset(end, contents),
+    );
+  }
+
   Future tearDown() async {
     channel.close();
     await server.shutdown();
@@ -142,4 +191,9 @@ abstract class AbstractLspAnalysisServerTest extends Object
     });
     return diagnosticParams.diagnostics;
   }
+
+  /// Removes markers like `[[` and `]]` and `^` that are used for marking
+  /// positions/ranges in strings to avoid hard-coding positions in tests.
+  String withoutMarkers(String contents) =>
+      contents.replaceAll(allMarkersPattern, '');
 }

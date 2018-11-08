@@ -12,7 +12,7 @@ class InitializationHandler extends MessageHandler {
    */
   final LspAnalysisServer server;
 
-  final List<String> openWorkspacePaths = [];
+  final List<String> _openWorkspacePaths = [];
 
   /**
    * The messages that this handler can handle.
@@ -45,7 +45,7 @@ class InitializationHandler extends MessageHandler {
     }
 
     server.state = InitializationState.Initialized;
-    server.setAnalysisRoots(openWorkspacePaths, [], {});
+    server.setAnalysisRoots(_openWorkspacePaths, [], {});
   }
 
   InitializeResult handleInitialize(InitializeParams params) {
@@ -56,14 +56,14 @@ class InitializationHandler extends MessageHandler {
 
     if (params.workspaceFolders != null) {
       params.workspaceFolders.forEach((wf) {
-        openWorkspacePaths.add(Uri.parse(wf.uri).toFilePath());
+        _openWorkspacePaths.add(Uri.parse(wf.uri).toFilePath());
       });
     }
     if (params.rootUri != null) {
-      openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
+      _openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
       // ignore: deprecated_member_use
     } else if (params.rootPath != null) {
-      openWorkspacePaths.add(params.rootUri);
+      _openWorkspacePaths.add(params.rootUri);
     }
 
     server.setClientCapabilities(params.capabilities);
