@@ -19,18 +19,16 @@ serverListen(RawSocket serverSide) {
 IPv4ToIPv6FailureTest() async {
   server = await RawServerSocket.bind(InternetAddress.loopbackIPv6, 0);
   server.listen(serverListen);
-  bool testFailure = false;
   try {
     client = await RawSocket.connect(InternetAddress.loopbackIPv4, server.port);
     await client.close();
-    testFailure = true;
+    Expect.fail('Unexpected connection to IPv6 server!');
   } on SocketException catch (e) {
     // We shouldn't be able to connect to the IPv6 loopback adapter using the
     // IPv4 loopback address.
   } catch (e) {
-    testFailure = true;
+    Expect.fail('Unexpected exception: $e');
   } finally {
-    Expect.equals(testFailure, false);
     await server.close();
   }
 }
@@ -38,18 +36,16 @@ IPv4ToIPv6FailureTest() async {
 IPv6ToIPv4FailureTest() async {
   server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen(serverListen);
-  bool testFailure = false;
   try {
     client = await RawSocket.connect(InternetAddress.loopbackIPv6, server.port);
     await client.close();
-    testFailure = true;
+    Expect.fail('Unexpected connection to IPv4 server!');
   } on SocketException catch (e) {
     // We shouldn't be able to connect to the IPv4 loopback adapter using the
     // IPv6 loopback address.
   } catch (e) {
-    testFailure = true;
+    Expect.fail('Unexpected exception: $e');
   } finally {
-    Expect.equals(testFailure, false);
     await server.close();
   }
 }
