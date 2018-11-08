@@ -238,6 +238,26 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test usi
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+generic_function_dcall_test/01: SkipByDesign # Prints type names
+invocation_mirror_test: RuntimeError # Issue 34911
+many_named_arguments_test: SkipByDesign # Checks names of arguments
+mixin_generic_test: SkipByDesign # Prints type names
+mixin_mixin3_test: SkipByDesign # Prints type names
+mixin_mixin5_test: SkipByDesign # Prints type names
+mixin_mixin6_test: SkipByDesign # Prints type names
+mixin_mixin_bound2_test: SkipByDesign # Prints type names
+no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "foobar" in noSuchMethod
+recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
+symbol_literal_test/02: SkipByDesign # We don't obfuscate const Symbol constructor
+tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
+type_literal_test: SkipByDesign # Uses lots of strings with type names in them
+vm/bool_check_stack_traces_test: SkipByDesign # Looks for filenames in stacktrace output
+vm/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
+vm/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
+vm/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated name in error message
+vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
+
 [ $compiler == app_jitk && $mode == product ]
 vm/causal_async_exception_stack2_test: RuntimeError
 vm/causal_async_exception_stack_test: RuntimeError
@@ -629,11 +649,6 @@ vm/type_vm_test/32: MissingRuntimeError
 
 [ $compiler == dartkp && $system == windows ]
 disassemble_test: Pass, Slow
-
-[ $compiler == dartkp && $minified ]
-no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "foobar" in noSuchMethod
-recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
-tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
 
 [ $compiler == fasta && $strong ]
 compile_time_constant_static4_test/02: MissingCompileTimeError

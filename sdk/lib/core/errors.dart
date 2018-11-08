@@ -493,6 +493,7 @@ class NoSuchMethodError extends Error {
  * This [Error] is thrown when an instance cannot implement one of the methods
  * in its signature.
  */
+@pragma("vm:entry-point")
 class UnsupportedError extends Error {
   final String message;
   @pragma("vm:entry-point")

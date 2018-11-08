@@ -15,11 +15,16 @@ that listing entry points is not optional: as long as program defines native
 methods which call into Dart, the entry points are required for the correctness
 of compilation.
 
+In addition, when obfuscation is enabled, the precompiler needs to know which
+symbols need to be preserved to ensure they can be resolved from native code.
+
 # Pragma annotation
 
 The annotation `@pragma("vm:entry-point", ...)` can be placed on a class or
-member to indicate that it may be allocated or invoked directly from native or
-VM code. The allowed uses of the annotation are as follows.
+member to indicate that it may be resolved, allocated or invoked directly from
+native or VM code.
+
+The allowed uses of the annotation are as follows.
 
 ## Classes
 
@@ -34,6 +39,10 @@ class C { ... }
 
 If the second parameter is missing, `null` or `true`, the class will be
 available for allocation directly from native or VM code.
+
+Note that `@pragma("vm:entry-point")` may be added to abstract classes -- in
+this case, their name will survive obfuscation, but they won't have any
+allocation stubs.
 
 ## Procedures
 

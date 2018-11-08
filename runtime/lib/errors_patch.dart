@@ -148,6 +148,7 @@ class _InternalError {
 }
 
 @patch
+@pragma("vm:entry-point")
 class UnsupportedError {
   static _throwNew(String msg) {
     throw new UnsupportedError(msg);
@@ -205,6 +206,7 @@ class NoSuchMethodError {
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.
+  @pragma("vm:entry-point")
   static void _throwNew(Object receiver, String memberName, int invocation_type,
       Object typeArguments, List arguments, List argumentNames) {
     throw new NoSuchMethodError._withType(receiver, memberName, invocation_type,

@@ -7,6 +7,7 @@
 
 import "package:expect/expect.dart";
 
+@pragma("vm:entry-point") // Prevent obfuscation
 abstract class A {}
 
 class B<T> {

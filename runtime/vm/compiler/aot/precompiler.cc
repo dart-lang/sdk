@@ -2565,10 +2565,6 @@ Obfuscator::~Obfuscator() {
 }
 
 void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
-  // Prevent renaming of classes and method names mentioned in the
-  // entry points lists.
-  PreventRenaming(isolate->embedder_entry_points());
-
 // Prevent renaming of all pseudo-keywords and operators.
 // Note: not all pseudo-keywords are mentioned in DART_KEYWORD_LIST
 // (for example 'hide', 'show' and async related keywords are omitted).
@@ -2672,25 +2668,6 @@ RawString* Obfuscator::ObfuscationState::RenameImpl(const String& name,
     renames_.UpdateOrInsert(name, renamed_);
   }
   return renamed_.raw();
-}
-
-void Obfuscator::PreventRenaming(Dart_QualifiedFunctionName entry_points[]) {
-  for (intptr_t i = 0; entry_points[i].function_name != NULL; i++) {
-    const char* class_name = entry_points[i].class_name;
-    const char* function_name = entry_points[i].function_name;
-
-    const size_t class_name_len = strlen(class_name);
-    if (strncmp(function_name, class_name, class_name_len) == 0 &&
-        function_name[class_name_len] == '.') {
-      const char* ctor_name = function_name + class_name_len + 1;
-      if (ctor_name[0] != '\0') {
-        PreventRenaming(ctor_name);
-      }
-    } else {
-      PreventRenaming(function_name);
-    }
-    PreventRenaming(class_name);
-  }
 }
 
 static const char* const kGetterPrefix = "get:";

@@ -203,6 +203,11 @@ KernelLoader::KernelLoader(Program* program)
   InitializeFields();
 }
 
+void KernelLoader::ReadObfuscationProhibitions() {
+  ObfuscationProhibitionsMetadataHelper helper(&helper_);
+  helper.ReadProhibitions();
+}
+
 Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
   Thread* thread = Thread::Current();
