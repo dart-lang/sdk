@@ -34,7 +34,6 @@ io/http_server_response_test: RuntimeError
 io/platform_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
-io/socket_upgrade_to_secure_test: RuntimeError
 io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
