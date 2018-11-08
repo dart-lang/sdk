@@ -232,7 +232,7 @@ class LspAnalysisServerTest extends Object with ResourceProviderMixin {
     final request = _makeRequest(
         'initialize',
         new InitializeParams(null, null, rootUri, null,
-            new ClientCapabilities(null, null, null), null));
+            new ClientCapabilities(null, null, null), null, null));
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
 

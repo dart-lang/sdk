@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+
 Object id(Object obj) => obj;
 
 Object specToJson(Object obj) {
@@ -145,8 +147,6 @@ class Either4<T1, T2, T3, T4> {
       map((t) => t == o, (t) => t == o, (t) => t == o, (t) => t == o);
 }
 
-class FileOperation {}
-
 abstract class ToJsonable {
   Object toJson();
 }
@@ -160,7 +160,7 @@ abstract class IncomingMessage {
 
 abstract class ServerErrorCodes {
   // JSON-RPC reserves -32000 to -32099 for implementation-defined server-errors.
-  static const ServerAlreadyStarted = -32000;
-  static const UnhandledError = -32001;
-  static const ServerAlreadyInitialized = -32002;
+  static const ServerAlreadyStarted = const ErrorCodes(-32000);
+  static const UnhandledError = const ErrorCodes(-32001);
+  static const ServerAlreadyInitialized = const ErrorCodes(-32002);
 }

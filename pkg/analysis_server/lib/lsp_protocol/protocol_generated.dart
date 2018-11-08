@@ -6,6 +6,8 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+// ignore_for_file: unnecessary_brace_in_string_interps
+
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -85,7 +87,7 @@ class CancelParams implements ToJsonable {
         ? new Either2<num, String>.t1(json['id'])
         : (json['id'] is String
             ? new Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (number, string)'''));
+            : (throw '''${json['id']} was not one of (num, String)'''));
     return new CancelParams(id);
   }
 
@@ -159,7 +161,8 @@ class CodeAction implements ToJsonable {
   }
   static CodeAction fromJson(Map<String, dynamic> json) {
     final title = json['title'];
-    final kind = json['kind'];
+    final kind =
+        json['kind'] != null ? CodeActionKind.fromJson(json['kind']) : null;
     final diagnostics = json['diagnostics']
         ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
@@ -184,7 +187,7 @@ class CodeAction implements ToJsonable {
   /// The kind of the code action.
   ///
   /// Used to filter code actions.
-  final String kind;
+  final CodeActionKind kind;
 
   /// A short, human-readable, title for this code action.
   final String title;
@@ -227,7 +230,10 @@ class CodeActionContext implements ToJsonable {
         ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
-    final only = json['only']?.map((item) => item)?.cast<String>()?.toList();
+    final only = json['only']
+        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
+        ?.cast<CodeActionKind>()
+        ?.toList();
     return new CodeActionContext(diagnostics, only);
   }
 
@@ -238,7 +244,7 @@ class CodeActionContext implements ToJsonable {
   ///
   /// Actions not of this kind are filtered out by the client before being
   /// shown. So servers can omit computing them.
-  final List<String> only;
+  final List<CodeActionKind> only;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -260,12 +266,21 @@ class CodeActionContext implements ToJsonable {
 }
 
 /// A set of predefined code action kinds
-abstract class CodeActionKind {
+class CodeActionKind {
+  const CodeActionKind(this._value);
+  const CodeActionKind.fromJson(this._value);
+
+  final Object _value;
+
+  static bool canParse(Object obj) {
+    return obj is String;
+  }
+
   /// Base kind for quickfix actions: 'quickfix'
-  static const QuickFix = 'quickfix';
+  static const QuickFix = const CodeActionKind('quickfix');
 
   /// Base kind for refactoring actions: 'refactor'
-  static const Refactor = 'refactor';
+  static const Refactor = const CodeActionKind('refactor');
 
   /// Base kind for refactoring extraction actions: 'refactor.extract'
   ///
@@ -276,7 +291,7 @@ abstract class CodeActionKind {
   /// - Extract variable
   /// - Extract interface from class
   /// - ...
-  static const RefactorExtract = 'refactor.extract';
+  static const RefactorExtract = const CodeActionKind('refactor.extract');
 
   /// Base kind for refactoring inline actions: 'refactor.inline'
   ///
@@ -286,7 +301,7 @@ abstract class CodeActionKind {
   /// - Inline variable
   /// - Inline constant
   /// - ...
-  static const RefactorInline = 'refactor.inline';
+  static const RefactorInline = const CodeActionKind('refactor.inline');
 
   /// Base kind for refactoring rewrite actions: 'refactor.rewrite'
   ///
@@ -298,23 +313,36 @@ abstract class CodeActionKind {
   /// - Make method static
   /// - Move method to base class
   /// - ...
-  static const RefactorRewrite = 'refactor.rewrite';
+  static const RefactorRewrite = const CodeActionKind('refactor.rewrite');
 
   /// Base kind for source actions: `source`
   ///
   /// Source code actions apply to the entire file.
-  static const Source = 'source';
+  static const Source = const CodeActionKind('source');
 
   /// Base kind for an organize imports source action: `source.organizeImports`
-  static const SourceOrganizeImports = 'source.organizeImports';
+  static const SourceOrganizeImports =
+      const CodeActionKind('source.organizeImports');
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is CodeActionKind && o._value == _value;
 }
 
 /// Code Action options.
 class CodeActionOptions implements ToJsonable {
   CodeActionOptions(this.codeActionKinds);
   static CodeActionOptions fromJson(Map<String, dynamic> json) {
-    final codeActionKinds =
-        json['codeActionKinds']?.map((item) => item)?.cast<String>()?.toList();
+    final codeActionKinds = json['codeActionKinds']
+        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
+        ?.cast<CodeActionKind>()
+        ?.toList();
     return new CodeActionOptions(codeActionKinds);
   }
 
@@ -322,7 +350,7 @@ class CodeActionOptions implements ToJsonable {
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
-  final List<String> codeActionKinds;
+  final List<CodeActionKind> codeActionKinds;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -399,8 +427,10 @@ class CodeActionRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    final codeActionKinds =
-        json['codeActionKinds']?.map((item) => item)?.cast<String>()?.toList();
+    final codeActionKinds = json['codeActionKinds']
+        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
+        ?.cast<CodeActionKind>()
+        ?.toList();
     return new CodeActionRegistrationOptions(documentSelector, codeActionKinds);
   }
 
@@ -408,7 +438,7 @@ class CodeActionRegistrationOptions
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
-  final List<String> codeActionKinds;
+  final List<CodeActionKind> codeActionKinds;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
@@ -599,9 +629,16 @@ class Color implements ToJsonable {
     return new Color(red, green, blue, alpha);
   }
 
+  /// The alpha component of this color in the range [0-1].
   final num alpha;
+
+  /// The blue component of this color in the range [0-1].
   final num blue;
+
+  /// The green component of this color in the range [0-1].
   final num green;
+
+  /// The red component of this color in the range [0-1].
   final num red;
 
   Map<String, dynamic> toJson() {
@@ -766,6 +803,10 @@ class ColorPresentationParams implements ToJsonable {
 
 /// Color provider options.
 class ColorProviderOptions implements ToJsonable {
+  static ColorProviderOptions fromJson(Map<String, dynamic> json) {
+    return new ColorProviderOptions();
+  }
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -858,7 +899,7 @@ class CompletionContext implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('triggerKind') &&
-        CompletionTriggerKind.canParse(obj['triggerKind']);
+        true;
   }
 }
 
@@ -895,7 +936,7 @@ class CompletionItem implements ToJsonable {
                 json['documentation'] != null
                     ? MarkupContent.fromJson(json['documentation'])
                     : null)
-            : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
+            : (throw '''${json['documentation']} was not one of (String, MarkupContent)'''));
     final deprecated = json['deprecated'];
     final preselect = json['preselect'];
     final sortText = json['sortText'];
@@ -1249,9 +1290,9 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
     return new CompletionParams(context, textDocument, position);
   }
 
-  /// The completion context. This is only available if the client specifies
-  /// to send this using
-  /// `ClientCapabilities.textDocument.completion.contextSupport === true`
+  /// The completion context. This is only available if the client specifies to
+  /// send this using `ClientCapabilities.textDocument.completion.contextSupport
+  /// === true`
   final CompletionContext context;
 
   /// The position inside the text document.
@@ -1308,11 +1349,11 @@ class CompletionRegistrationOptions
   final bool resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
-  /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically
-  /// they do so when the user starts to type an identifier. For example if
-  /// the user types `c` in a JavaScript file code complete will automatically
-  /// pop up present `console` besides others as a completion item. Characters
-  /// that make up identifiers don't need to be listed here.
+  /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
+  /// do so when the user starts to type an identifier. For example if the user
+  /// types `c` in a JavaScript file code complete will automatically pop up
+  /// present `console` besides others as a completion item. Characters that
+  /// make up identifiers don't need to be listed here.
   ///
   /// If code complete should automatically be trigger on characters not being
   /// valid inside an identifier (for example `.` in JavaScript) list them in
@@ -1366,8 +1407,7 @@ class CompletionTriggerKind {
   /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
   static const TriggerCharacter = const CompletionTriggerKind._(2);
 
-  /// Completion was re-triggered as the current completion list is
-  /// incomplete.
+  /// Completion was re-triggered as the current completion list is incomplete.
   static const TriggerForIncompleteCompletions =
       const CompletionTriggerKind._(3);
 
@@ -1445,19 +1485,26 @@ class ConfigurationParams implements ToJsonable {
 }
 
 /// Create file operation
-class CreateFile implements FileOperation, ToJsonable {
-  CreateFile(this.uri, this.options) {
+class CreateFile implements ToJsonable {
+  CreateFile(this.kind, this.uri, this.options) {
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
   }
   static CreateFile fromJson(Map<String, dynamic> json) {
+    final kind = json['kind'];
     final uri = json['uri'];
     final options = json['options'] != null
         ? CreateFileOptions.fromJson(json['options'])
         : null;
-    return new CreateFile(uri, options);
+    return new CreateFile(kind, uri, options);
   }
+
+  /// A create
+  final dynamic kind;
 
   /// Additional options
   final CreateFileOptions options;
@@ -1467,6 +1514,7 @@ class CreateFile implements FileOperation, ToJsonable {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
       __result['options'] = options;
@@ -1476,6 +1524,8 @@ class CreateFile implements FileOperation, ToJsonable {
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        obj.containsKey('kind') &&
+        true &&
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
@@ -1513,19 +1563,26 @@ class CreateFileOptions implements ToJsonable {
 }
 
 /// Delete file operation
-class DeleteFile implements FileOperation, ToJsonable {
-  DeleteFile(this.uri, this.options) {
+class DeleteFile implements ToJsonable {
+  DeleteFile(this.kind, this.uri, this.options) {
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
   }
   static DeleteFile fromJson(Map<String, dynamic> json) {
+    final kind = json['kind'];
     final uri = json['uri'];
     final options = json['options'] != null
         ? DeleteFileOptions.fromJson(json['options'])
         : null;
-    return new DeleteFile(uri, options);
+    return new DeleteFile(kind, uri, options);
   }
+
+  /// A delete
+  final dynamic kind;
 
   /// Delete options.
   final DeleteFileOptions options;
@@ -1535,6 +1592,7 @@ class DeleteFile implements FileOperation, ToJsonable {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
       __result['options'] = options;
@@ -1544,6 +1602,8 @@ class DeleteFile implements FileOperation, ToJsonable {
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        obj.containsKey('kind') &&
+        true &&
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
@@ -1599,7 +1659,7 @@ class Diagnostic implements ToJsonable {
         ? new Either2<num, String>.t1(json['code'])
         : (json['code'] is String
             ? new Either2<num, String>.t2(json['code'])
-            : (throw '''${json['code']} was not one of (number, string)'''));
+            : (throw '''${json['code']} was not one of (num, String)'''));
     final source = json['source'];
     final message = json['message'];
     final relatedInformation = json['relatedInformation']
@@ -1620,9 +1680,8 @@ class Diagnostic implements ToJsonable {
   /// The range at which the message applies.
   final Range range;
 
-  /// An array of related diagnostic information, e.g. when symbol-names
-  /// within a scope collide all definitions can be marked via this
-  /// property.
+  /// An array of related diagnostic information, e.g. when symbol-names within
+  /// a scope collide all definitions can be marked via this property.
   final List<DiagnosticRelatedInformation> relatedInformation;
 
   /// The diagnostic's severity. Can be omitted. If omitted it is up to the
@@ -1662,9 +1721,9 @@ class Diagnostic implements ToJsonable {
   }
 }
 
-/// Represents a related message and source code location for a diagnostic.
-/// This should be used to point to code locations that cause or related to
-/// a diagnostics, e.g when duplicating a symbol in a scope.
+/// Represents a related message and source code location for a diagnostic. This
+/// should be used to point to code locations that cause or related to a
+/// diagnostics, e.g when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation implements ToJsonable {
   DiagnosticRelatedInformation(this.location, this.message) {
     if (location == null) {
@@ -1792,14 +1851,13 @@ class DidChangeTextDocumentParams implements ToJsonable {
     return new DidChangeTextDocumentParams(textDocument, contentChanges);
   }
 
-  /// The actual content changes. The content changes describe single
-  /// state changes to the document. So if there are two content changes
-  /// c1 and c2 for a document in state S then c1 move the document to S'
-  /// and c2 to S''.
+  /// The actual content changes. The content changes describe single state
+  /// changes to the document. So if there are two content changes c1 and c2 for
+  /// a document in state S then c1 move the document to S' and c2 to S''.
   final List<TextDocumentContentChangeEvent> contentChanges;
 
-  /// The document that did change. The version number points to the
-  /// version after all provided content changes have been applied.
+  /// The document that did change. The version number points to the version
+  /// after all provided content changes have been applied.
   final VersionedTextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
@@ -1996,8 +2054,8 @@ class DidSaveTextDocumentParams implements ToJsonable {
     return new DidSaveTextDocumentParams(textDocument, text);
   }
 
-  /// Optional the content when saved. Depends on the includeText value
-  /// when the save notification was requested.
+  /// Optional the content when saved. Depends on the includeText value when the
+  /// save notification was requested.
   final String text;
 
   /// The document that was saved.
@@ -2101,8 +2159,8 @@ class DocumentFormattingParams implements ToJsonable {
 }
 
 /// A document highlight is a range inside a text document which deserves
-/// special attention. Usually a document highlight is visualized by
-/// changing the background color of its range.
+/// special attention. Usually a document highlight is visualized by changing
+/// the background color of its range.
 class DocumentHighlight implements ToJsonable {
   DocumentHighlight(this.range, this.kind) {
     if (range == null) {
@@ -2176,9 +2234,8 @@ class DocumentHighlightKind {
   bool operator ==(o) => o is DocumentHighlightKind && o._value == _value;
 }
 
-/// A document link is a range in a text document that links to an
-/// internal or external resource, like another text document or a web
-/// site.
+/// A document link is a range in a text document that links to an internal or
+/// external resource, like another text document or a web site.
 class DocumentLink implements ToJsonable {
   DocumentLink(this.range, this.target, this.data) {
     if (range == null) {
@@ -2199,8 +2256,7 @@ class DocumentLink implements ToJsonable {
   /// The range this link applies to.
   final Range range;
 
-  /// The uri this link points to. If missing a resolve request is sent
-  /// later.
+  /// The uri this link points to. If missing a resolve request is sent later.
   final String target;
 
   Map<String, dynamic> toJson() {
@@ -2289,9 +2345,8 @@ class DocumentLinkRegistrationOptions
         resolveProvider, documentSelector);
   }
 
-  /// A document selector to identify the scope of the registration. If
-  /// set to null the document selector provided on the client side will
-  /// be used.
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// Document links have a resolve provider as well.
@@ -2447,9 +2502,8 @@ class DocumentOnTypeFormattingRegistrationOptions
         firstTriggerCharacter, moreTriggerCharacter, documentSelector);
   }
 
-  /// A document selector to identify the scope of the registration. If
-  /// set to null the document selector provided on the client side will
-  /// be used.
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// A character on which formatting should be triggered, like `}`.
@@ -2534,11 +2588,10 @@ class DocumentRangeFormattingParams implements ToJsonable {
   }
 }
 
-/// Represents programming constructs like variables, classes,
-/// interfaces etc. that appear in a document. Document symbols can be
-/// hierarchical and they have two ranges: one that encloses its
-/// definition and one that points to its most interesting range, e.g.
-/// the range of an identifier.
+/// Represents programming constructs like variables, classes, interfaces etc.
+/// that appear in a document. Document symbols can be hierarchical and they
+/// have two ranges: one that encloses its definition and one that points to its
+/// most interesting range, e.g. the range of an identifier.
 class DocumentSymbol implements ToJsonable {
   DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
       this.selectionRange, this.children) {
@@ -2588,15 +2641,14 @@ class DocumentSymbol implements ToJsonable {
   /// The name of this symbol.
   final String name;
 
-  /// The range enclosing this symbol not including leading/trailing
-  /// whitespace but everything else like comments. This information is
-  /// typically used to determine if the clients cursor is inside the
-  /// symbol to reveal in the symbol in the UI.
+  /// The range enclosing this symbol not including leading/trailing whitespace
+  /// but everything else like comments. This information is typically used to
+  /// determine if the clients cursor is inside the symbol to reveal in the
+  /// symbol in the UI.
   final Range range;
 
-  /// The range that should be selected and revealed when this symbol is
-  /// being picked, e.g the name of a function. Must be contained by the
-  /// `range`.
+  /// The range that should be selected and revealed when this symbol is being
+  /// picked, e.g the name of a function. Must be contained by the `range`.
   final Range selectionRange;
 
   Map<String, dynamic> toJson() {
@@ -2661,17 +2713,39 @@ class DocumentSymbolParams implements ToJsonable {
   }
 }
 
-abstract class ErrorCodes {
-  static const InternalError = -32603;
-  static const InvalidParams = -32602;
-  static const InvalidRequest = -32600;
-  static const MethodNotFound = -32601;
-  static const ParseError = -32700;
-  static const RequestCancelled = -32800;
-  static const ServerNotInitialized = -32002;
-  static const UnknownErrorCode = -32001;
-  static const serverErrorEnd = -32000;
-  static const serverErrorStart = -32099;
+class ErrorCodes {
+  const ErrorCodes(this._value);
+  const ErrorCodes.fromJson(this._value);
+
+  final Object _value;
+
+  static bool canParse(Object obj) {
+    return obj is num;
+  }
+
+  /// Defined by JSON RPC
+  static const ParseError = const ErrorCodes(-32700);
+  static const InvalidRequest = const ErrorCodes(-32600);
+  static const MethodNotFound = const ErrorCodes(-32601);
+  static const InvalidParams = const ErrorCodes(-32602);
+  static const InternalError = const ErrorCodes(-32603);
+  static const serverErrorStart = const ErrorCodes(-32099);
+  static const serverErrorEnd = const ErrorCodes(-32000);
+  static const ServerNotInitialized = const ErrorCodes(-32002);
+  static const UnknownErrorCode = const ErrorCodes(-32001);
+
+  /// Defined by the protocol.
+  static const RequestCancelled = const ErrorCodes(-32800);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is ErrorCodes && o._value == _value;
 }
 
 /// Execute command options.
@@ -2791,25 +2865,23 @@ class FailureHandlingKind {
     return false;
   }
 
-  /// Applying the workspace change is simply aborted if one of the
-  /// changes provided fails. All operations executed before the
-  /// failing operation stay executed.
+  /// Applying the workspace change is simply aborted if one of the changes
+  /// provided fails. All operations executed before the failing operation stay
+  /// executed.
   static const Abort = const FailureHandlingKind._('abort');
 
-  /// All operations are executed transactional. That means they
-  /// either all succeed or no changes at all are applied to the
-  /// workspace.
+  /// All operations are executed transactional. That means they either all
+  /// succeed or no changes at all are applied to the workspace.
   static const Transactional = const FailureHandlingKind._('transactional');
 
-  /// If the workspace edit contains only textual file changes they
-  /// are executed transactional. If resource changes (create, rename
-  /// or delete file) are part of the change the failure handling
-  /// startegy is abort.
+  /// If the workspace edit contains only textual file changes they are executed
+  /// transactional. If resource changes (create, rename or delete file) are
+  /// part of the change the failure handling startegy is abort.
   static const TextOnlyTransactional =
       const FailureHandlingKind._('textOnlyTransactional');
 
-  /// The client tries to undo the operations already executed. But
-  /// there is no guaruntee that this is succeeding.
+  /// The client tries to undo the operations already executed. But there is no
+  /// guaruntee that this is succeeding.
   static const Undo = const FailureHandlingKind._('undo');
 
   Object toJson() => _value;
@@ -2913,9 +2985,8 @@ class FileSystemWatcher implements ToJsonable {
   /// The  glob pattern to watch
   final String globPattern;
 
-  /// The kind of events of interest. If omitted it defaults to
-  /// WatchKind.Create | WatchKind.Change | WatchKind.Delete which
-  /// is 7.
+  /// The kind of events of interest. If omitted it defaults to WatchKind.Create
+  /// | WatchKind.Change | WatchKind.Delete which is 7.
   final WatchKind kind;
 
   Map<String, dynamic> toJson() {
@@ -2957,22 +3028,21 @@ class FoldingRange implements ToJsonable {
         startLine, startCharacter, endLine, endCharacter, kind);
   }
 
-  /// The zero-based character offset before the folded range ends.
-  /// If not defined, defaults to the length of the end line.
+  /// The zero-based character offset before the folded range ends. If not
+  /// defined, defaults to the length of the end line.
   final num endCharacter;
 
   /// The zero-based line number where the folded range ends.
   final num endLine;
 
-  /// Describes the kind of the folding range such as `comment' or
-  /// 'region'. The kind is used to categorize folding ranges and
-  /// used by commands like 'Fold all comments'. See
-  /// [FoldingRangeKind] for an enumeration of standardized kinds.
+  /// Describes the kind of the folding range such as `comment' or 'region'. The
+  /// kind is used to categorize folding ranges and used by commands like 'Fold
+  /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
+  /// kinds.
   final FoldingRangeKind kind;
 
-  /// The zero-based character offset from where the folded range
-  /// starts. If not defined, defaults to the length of the start
-  /// line.
+  /// The zero-based character offset from where the folded range starts. If not
+  /// defined, defaults to the length of the start line.
   final num startCharacter;
 
   /// The zero-based line number from where the folded range starts.
@@ -3074,6 +3144,10 @@ class FoldingRangeParams implements ToJsonable {
 
 /// Folding range provider options.
 class FoldingRangeProviderOptions implements ToJsonable {
+  static FoldingRangeProviderOptions fromJson(Map<String, dynamic> json) {
+    return new FoldingRangeProviderOptions();
+  }
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -3132,36 +3206,18 @@ class Hover implements ToJsonable {
     }
   }
   static Hover fromJson(Map<String, dynamic> json) {
-    final contents = MarkedString.canParse(json['contents'])
-        ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t1(
-            json['contents'] != null
-                ? MarkedString.fromJson(json['contents'])
-                : null)
-        : ((json['contents'] is List &&
-                (json['contents'].length == 0 ||
-                    json['contents']
-                        .every((item) => MarkedString.canParse(item))))
-            ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t2(json['contents']
-                ?.map(
-                    (item) => item != null ? MarkedString.fromJson(item) : null)
-                ?.cast<MarkedString>()
-                ?.toList())
-            : (MarkupContent.canParse(json['contents'])
-                ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t3(
-                    json['contents'] != null
-                        ? MarkupContent.fromJson(json['contents'])
-                        : null)
-                : (throw '''${json['contents']} was not one of (MarkedString, MarkedString[], MarkupContent)''')));
+    final contents = json['contents'] != null
+        ? MarkupContent.fromJson(json['contents'])
+        : null;
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     return new Hover(contents, range);
   }
 
   /// The hover's content
-  final Either3<MarkedString, List<MarkedString>, MarkupContent> contents;
+  final MarkupContent contents;
 
-  /// An optional range is a range inside a text document that is
-  /// used to visualize a hover, e.g. by changing the background
-  /// color.
+  /// An optional range is a range inside a text document that is used to
+  /// visualize a hover, e.g. by changing the background color.
   final Range range;
 
   Map<String, dynamic> toJson() {
@@ -3177,18 +3233,19 @@ class Hover implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('contents') &&
-        (MarkedString.canParse(obj['contents']) ||
-            (obj['contents'] is List &&
-                (obj['contents'].length == 0 ||
-                    obj['contents']
-                        .every((item) => MarkedString.canParse(item)))) ||
-            MarkupContent.canParse(obj['contents']));
+        MarkupContent.canParse(obj['contents']);
   }
 }
 
 class InitializeParams implements ToJsonable {
-  InitializeParams(this.processId, this.rootPath, this.rootUri,
-      this.initializationOptions, this.capabilities, this.workspaceFolders) {
+  InitializeParams(
+      this.processId,
+      this.rootPath,
+      this.rootUri,
+      this.initializationOptions,
+      this.capabilities,
+      this.trace,
+      this.workspaceFolders) {
     if (capabilities == null) {
       throw 'capabilities is required but was not provided';
     }
@@ -3201,12 +3258,13 @@ class InitializeParams implements ToJsonable {
     final capabilities = json['capabilities'] != null
         ? ClientCapabilities.fromJson(json['capabilities'])
         : null;
+    final trace = json['trace'];
     final workspaceFolders = json['workspaceFolders']
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
     return new InitializeParams(processId, rootPath, rootUri,
-        initializationOptions, capabilities, workspaceFolders);
+        initializationOptions, capabilities, trace, workspaceFolders);
   }
 
   /// The capabilities provided by the client (editor or tool)
@@ -3215,10 +3273,10 @@ class InitializeParams implements ToJsonable {
   /// User provided initialization options.
   final dynamic initializationOptions;
 
-  /// The process Id of the parent process that started the
-  /// server. Is null if the process has not been started by
-  /// another process. If the parent process is not alive then the
-  /// server should exit (see exit notification) its process.
+  /// The process Id of the parent process that started the server. Is null if
+  /// the process has not been started by another process. If the parent process
+  /// is not alive then the server should exit (see exit notification) its
+  /// process.
   final num processId;
 
   /// The rootPath of the workspace. Is null if no folder is open.
@@ -3226,14 +3284,17 @@ class InitializeParams implements ToJsonable {
   @core.deprecated
   final String rootPath;
 
-  /// The rootUri of the workspace. Is null if no folder is open.
-  /// If both `rootPath` and `rootUri` are set `rootUri` wins.
+  /// The rootUri of the workspace. Is null if no folder is open. If both
+  /// `rootPath` and `rootUri` are set `rootUri` wins.
   final String rootUri;
 
-  /// The workspace folders configured in the client when the
-  /// server starts. This property is only available if the client
-  /// supports workspace folders. It can be `null` if the client
-  /// supports workspace folders but none are configured.
+  /// The initial trace setting. If omitted trace is disabled ('off').
+  final dynamic trace;
+
+  /// The workspace folders configured in the client when the server starts.
+  /// This property is only available if the client supports workspace folders.
+  /// It can be `null` if the client supports workspace folders but none are
+  /// configured.
   ///
   /// Since 3.6.0
   final List<WorkspaceFolder> workspaceFolders;
@@ -3252,6 +3313,9 @@ class InitializeParams implements ToJsonable {
     }
     __result['capabilities'] =
         capabilities ?? (throw 'capabilities is required but was not set');
+    if (trace != null) {
+      __result['trace'] = trace;
+    }
     if (workspaceFolders != null) {
       __result['workspaceFolders'] = workspaceFolders;
     }
@@ -3300,6 +3364,10 @@ class InitializeResult implements ToJsonable {
 }
 
 class InitializedParams implements ToJsonable {
+  static InitializedParams fromJson(Map<String, dynamic> json) {
+    return new InitializedParams();
+  }
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -3310,8 +3378,8 @@ class InitializedParams implements ToJsonable {
   }
 }
 
-/// Defines whether the insert text in a completion item should be
-/// interpreted as plain text or a snippet.
+/// Defines whether the insert text in a completion item should be interpreted
+/// as plain text or a snippet.
 class InsertTextFormat {
   const InsertTextFormat._(this._value);
   const InsertTextFormat.fromJson(this._value);
@@ -3327,17 +3395,15 @@ class InsertTextFormat {
     return false;
   }
 
-  /// The primary text to be inserted is treated as a plain
-  /// string.
+  /// The primary text to be inserted is treated as a plain string.
   static const PlainText = const InsertTextFormat._(1);
 
   /// The primary text to be inserted is treated as a snippet.
   ///
-  /// A snippet can define tab stops and placeholders with `$1`,
-  /// `$2` and `${3:foo}`. `$0` defines the final tab stop, it
-  /// defaults to the end of the snippet. Placeholders with
-  /// equal identifiers are linked, that is typing in one will
-  /// update others too.
+  /// A snippet can define tab stops and placeholders with `$1`, `$2` and
+  /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
+  /// snippet. Placeholders with equal identifiers are linked, that is typing in
+  /// one will update others too.
   static const Snippet = const InsertTextFormat._(2);
 
   Object toJson() => _value;
@@ -3424,53 +3490,16 @@ class LogMessageParams implements ToJsonable {
   }
 }
 
-class MarkedString implements ToJsonable {
-  MarkedString(this.language, this.value) {
-    if (language == null) {
-      throw 'language is required but was not provided';
-    }
-    if (value == null) {
-      throw 'value is required but was not provided';
-    }
-  }
-  static MarkedString fromJson(Map<String, dynamic> json) {
-    final language = json['language'];
-    final value = json['value'];
-    return new MarkedString(language, value);
-  }
-
-  final String language;
-  final String value;
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
-    __result['language'] =
-        language ?? (throw 'language is required but was not set');
-    __result['value'] = value ?? (throw 'value is required but was not set');
-    return __result;
-  }
-
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('language') &&
-        obj['language'] is String &&
-        obj.containsKey('value') &&
-        obj['value'] is String;
-  }
-}
-
-/// A `MarkupContent` literal represents a string value which
-/// content is interpreted base on its kind flag. Currently the
-/// protocol supports `plaintext` and `markdown` as markup
-/// kinds.
+/// A `MarkupContent` literal represents a string value which content is
+/// interpreted base on its kind flag. Currently the protocol supports
+/// `plaintext` and `markdown` as markup kinds.
 ///
-/// If the kind is `markdown` then the value can contain fenced
-/// code blocks like in GitHub issues. See
+/// If the kind is `markdown` then the value can contain fenced code blocks like
+/// in GitHub issues. See
 /// https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
 ///
-/// Here is an example how such a string can be constructed
-/// using JavaScript / TypeScript: ```ts let markdown:
-/// MarkdownContent = {
+/// Here is an example how such a string can be constructed using JavaScript /
+/// TypeScript: ```ts let markdown: MarkdownContent = {
 ///
 /// kind: MarkupKind.Markdown,
 /// 	value: [
@@ -3481,9 +3510,8 @@ class MarkedString implements ToJsonable {
 /// 		'```'
 /// 	].join('\n') }; ```
 ///
-/// *Please Note* that clients might sanitize the return
-/// markdown. A client could decide to remove HTML from the
-/// markdown to avoid script execution.
+/// *Please Note* that clients might sanitize the return markdown. A client
+/// could decide to remove HTML from the markdown to avoid script execution.
 class MarkupContent implements ToJsonable {
   MarkupContent(this.kind, this.value) {
     if (kind == null) {
@@ -3516,18 +3544,17 @@ class MarkupContent implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('kind') &&
-        MarkupKind.canParse(obj['kind']) &&
+        true &&
         obj.containsKey('value') &&
         obj['value'] is String;
   }
 }
 
-/// Describes the content type that a client supports in various
-/// result literals like `Hover`, `ParameterInfo` or
-/// `CompletionItem`.
+/// Describes the content type that a client supports in various result literals
+/// like `Hover`, `ParameterInfo` or `CompletionItem`.
 ///
-/// Please note that `MarkupKinds` must not start with a `$`.
-/// This kinds are reserved for internal usage.
+/// Please note that `MarkupKinds` must not start with a `$`. This kinds are
+/// reserved for internal usage.
 class MarkupKind {
   const MarkupKind._(this._value);
   const MarkupKind.fromJson(this._value);
@@ -3703,8 +3730,8 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   }
 }
 
-/// Represents a parameter of a callable-signature. A
-/// parameter can have a label and a doc-comment.
+/// Represents a parameter of a callable-signature. A parameter can have a label
+/// and a doc-comment.
 class ParameterInformation implements ToJsonable {
   ParameterInformation(this.label, this.documentation) {
     if (label == null) {
@@ -3720,12 +3747,12 @@ class ParameterInformation implements ToJsonable {
                 json['documentation'] != null
                     ? MarkupContent.fromJson(json['documentation'])
                     : null)
-            : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
+            : (throw '''${json['documentation']} was not one of (String, MarkupContent)'''));
     return new ParameterInformation(label, documentation);
   }
 
-  /// The human-readable doc-comment of this parameter. Will
-  /// be shown in the UI but can be omitted.
+  /// The human-readable doc-comment of this parameter. Will be shown in the UI
+  /// but can be omitted.
   final Either2<String, MarkupContent> documentation;
 
   /// The label of this parameter. Will be shown in the UI.
@@ -3762,13 +3789,12 @@ class Position implements ToJsonable {
     return new Position(line, character);
   }
 
-  /// Character offset on a line in a document (zero-based).
-  /// Assuming that the line is represented as a string, the
-  /// `character` value represents the gap between the
-  /// `character` and `character + 1`.
+  /// Character offset on a line in a document (zero-based). Assuming that the
+  /// line is represented as a string, the `character` value represents the gap
+  /// between the `character` and `character + 1`.
   ///
-  /// If the character value is greater than the line length
-  /// it defaults back to the line length.
+  /// If the character value is greater than the line length it defaults back to
+  /// the line length.
   final num character;
 
   /// Line position in a document (zero-based).
@@ -3971,8 +3997,8 @@ class Registration implements ToJsonable {
     return new Registration(id, method, registerOptions);
   }
 
-  /// The id used to register the request. The id can be
-  /// used to deregister the request again.
+  /// The id used to register the request. The id can be used to deregister the
+  /// request again.
   final String id;
 
   /// The method / capability to register for.
@@ -4034,8 +4060,11 @@ class RegistrationParams implements ToJsonable {
 }
 
 /// Rename file operation
-class RenameFile implements FileOperation, ToJsonable {
-  RenameFile(this.oldUri, this.newUri, this.options) {
+class RenameFile implements ToJsonable {
+  RenameFile(this.kind, this.oldUri, this.newUri, this.options) {
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
     if (oldUri == null) {
       throw 'oldUri is required but was not provided';
     }
@@ -4044,13 +4073,17 @@ class RenameFile implements FileOperation, ToJsonable {
     }
   }
   static RenameFile fromJson(Map<String, dynamic> json) {
+    final kind = json['kind'];
     final oldUri = json['oldUri'];
     final newUri = json['newUri'];
     final options = json['options'] != null
         ? RenameFileOptions.fromJson(json['options'])
         : null;
-    return new RenameFile(oldUri, newUri, options);
+    return new RenameFile(kind, oldUri, newUri, options);
   }
+
+  /// A rename
+  final dynamic kind;
 
   /// The new location.
   final String newUri;
@@ -4063,6 +4096,7 @@ class RenameFile implements FileOperation, ToJsonable {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['oldUri'] = oldUri ?? (throw 'oldUri is required but was not set');
     __result['newUri'] = newUri ?? (throw 'newUri is required but was not set');
     if (options != null) {
@@ -4073,6 +4107,8 @@ class RenameFile implements FileOperation, ToJsonable {
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        obj.containsKey('kind') &&
+        true &&
         obj.containsKey('oldUri') &&
         obj['oldUri'] is String &&
         obj.containsKey('newUri') &&
@@ -4092,8 +4128,7 @@ class RenameFileOptions implements ToJsonable {
   /// Ignores if target exists.
   final bool ignoreIfExists;
 
-  /// Overwrite target if existing. Overwrite wins over
-  /// `ignoreIfExists`
+  /// Overwrite target if existing. Overwrite wins over `ignoreIfExists`
   final bool overwrite;
 
   Map<String, dynamic> toJson() {
@@ -4120,8 +4155,7 @@ class RenameOptions implements ToJsonable {
     return new RenameOptions(prepareProvider);
   }
 
-  /// Renames should be checked and tested before being
-  /// executed.
+  /// Renames should be checked and tested before being executed.
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
@@ -4159,9 +4193,8 @@ class RenameParams implements ToJsonable {
     return new RenameParams(textDocument, position, newName);
   }
 
-  /// The new name of the symbol. If the given name is not
-  /// valid the request must return a [ResponseError] with
-  /// an appropriate message set.
+  /// The new name of the symbol. If the given name is not valid the request
+  /// must return a [ResponseError] with an appropriate message set.
   final String newName;
 
   /// The position at which this request was sent.
@@ -4204,13 +4237,11 @@ class RenameRegistrationOptions
     return new RenameRegistrationOptions(prepareProvider, documentSelector);
   }
 
-  /// A document selector to identify the scope of the
-  /// registration. If set to null the document selector
-  /// provided on the client side will be used.
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
-  /// Renames should be checked and tested for validity
-  /// before being executed.
+  /// Renames should be checked and tested for validity before being executed.
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
@@ -4249,7 +4280,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
         ? new Either2<num, String>.t1(json['id'])
         : (json['id'] is String
             ? new Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (number, string)'''));
+            : (throw '''${json['id']} was not one of (num, String)'''));
     final method = json['method'];
     final params = (json['params'] is List &&
             (json['params'].length == 0 ||
@@ -4340,18 +4371,18 @@ class ResponseError<D> implements ToJsonable {
     }
   }
   static ResponseError<D> fromJson<D>(Map<String, dynamic> json) {
-    final code = json['code'];
+    final code =
+        json['code'] != null ? ErrorCodes.fromJson(json['code']) : null;
     final message = json['message'];
     final data = json['data'];
     return new ResponseError<D>(code, message, data);
   }
 
   /// A number indicating the error type that occurred.
-  final num code;
+  final ErrorCodes code;
 
-  /// A Primitive or Structured value that contains
-  /// additional information about the error. Can be
-  /// omitted.
+  /// A Primitive or Structured value that contains additional information about
+  /// the error. Can be omitted.
   final D data;
 
   /// A string providing a short description of the error.
@@ -4371,7 +4402,7 @@ class ResponseError<D> implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('code') &&
-        obj['code'] is num &&
+        ErrorCodes.canParse(obj['code']) &&
         obj.containsKey('message') &&
         obj['message'] is String;
   }
@@ -4388,9 +4419,11 @@ class ResponseMessage implements Message, ToJsonable {
         ? new Either2<num, String>.t1(json['id'])
         : (json['id'] is String
             ? new Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (number, string)'''));
+            : (throw '''${json['id']} was not one of (num, String)'''));
     final result = json['result'];
-    final error = json['error'];
+    final error = json['error'] != null
+        ? ResponseError.fromJson<dynamic>(json['error'])
+        : null;
     final jsonrpc = json['jsonrpc'];
     return new ResponseMessage(id, result, error, jsonrpc);
   }
@@ -4402,8 +4435,7 @@ class ResponseMessage implements Message, ToJsonable {
   final Either2<num, String> id;
   final String jsonrpc;
 
-  /// The result of a request. This can be omitted in the
-  /// case of an error.
+  /// The result of a request. This can be omitted in the case of an error.
   final dynamic result;
 
   Map<String, dynamic> toJson() {
@@ -4437,8 +4469,7 @@ class SaveOptions implements ToJsonable {
     return new SaveOptions(includeText);
   }
 
-  /// The client is supposed to include the content on
-  /// save.
+  /// The client is supposed to include the content on save.
   final bool includeText;
 
   Map<String, dynamic> toJson() {
@@ -4461,6 +4492,8 @@ class ServerCapabilities implements ToJsonable {
       this.completionProvider,
       this.signatureHelpProvider,
       this.definitionProvider,
+      this.typeDefinitionProvider,
+      this.implementationProvider,
       this.referencesProvider,
       this.documentHighlightProvider,
       this.documentSymbolProvider,
@@ -4472,9 +4505,11 @@ class ServerCapabilities implements ToJsonable {
       this.documentOnTypeFormattingProvider,
       this.renameProvider,
       this.documentLinkProvider,
+      this.colorProvider,
+      this.foldingRangeProvider,
       this.executeCommandProvider,
-      this.supported,
-      this.changeNotifications);
+      this.workspace,
+      this.experimental);
   static ServerCapabilities fromJson(Map<String, dynamic> json) {
     final textDocumentSync = TextDocumentSyncOptions.canParse(
             json['textDocumentSync'])
@@ -4485,7 +4520,7 @@ class ServerCapabilities implements ToJsonable {
         : (json['textDocumentSync'] is num
             ? new Either2<TextDocumentSyncOptions, num>.t2(
                 json['textDocumentSync'])
-            : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, number)'''));
+            : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, num)'''));
     final hoverProvider = json['hoverProvider'];
     final completionProvider = json['completionProvider'] != null
         ? CompletionOptions.fromJson(json['completionProvider'])
@@ -4494,6 +4529,12 @@ class ServerCapabilities implements ToJsonable {
         ? SignatureHelpOptions.fromJson(json['signatureHelpProvider'])
         : null;
     final definitionProvider = json['definitionProvider'];
+    final typeDefinitionProvider = json['typeDefinitionProvider'] is bool
+        ? new Either2<bool, dynamic>.t1(json['typeDefinitionProvider'])
+        : (new Either2<bool, dynamic>.t2(json['typeDefinitionProvider']));
+    final implementationProvider = json['implementationProvider'] is bool
+        ? new Either2<bool, dynamic>.t1(json['implementationProvider'])
+        : (new Either2<bool, dynamic>.t2(json['implementationProvider']));
     final referencesProvider = json['referencesProvider'];
     final documentHighlightProvider = json['documentHighlightProvider'];
     final documentSymbolProvider = json['documentSymbolProvider'];
@@ -4505,7 +4546,7 @@ class ServerCapabilities implements ToJsonable {
                 json['codeActionProvider'] != null
                     ? CodeActionOptions.fromJson(json['codeActionProvider'])
                     : null)
-            : (throw '''${json['codeActionProvider']} was not one of (boolean, CodeActionOptions)'''));
+            : (throw '''${json['codeActionProvider']} was not one of (bool, CodeActionOptions)'''));
     final codeLensProvider = json['codeLensProvider'] != null
         ? CodeLensOptions.fromJson(json['codeLensProvider'])
         : null;
@@ -4523,25 +4564,44 @@ class ServerCapabilities implements ToJsonable {
             ? new Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
                 ? RenameOptions.fromJson(json['renameProvider'])
                 : null)
-            : (throw '''${json['renameProvider']} was not one of (boolean, RenameOptions)'''));
+            : (throw '''${json['renameProvider']} was not one of (bool, RenameOptions)'''));
     final documentLinkProvider = json['documentLinkProvider'] != null
         ? DocumentLinkOptions.fromJson(json['documentLinkProvider'])
         : null;
+    final colorProvider = json['colorProvider'] is bool
+        ? new Either3<bool, ColorProviderOptions, dynamic>.t1(
+            json['colorProvider'])
+        : (ColorProviderOptions.canParse(json['colorProvider'])
+            ? new Either3<bool, ColorProviderOptions, dynamic>.t2(
+                json['colorProvider'] != null
+                    ? ColorProviderOptions.fromJson(json['colorProvider'])
+                    : null)
+            : (new Either3<bool, ColorProviderOptions, dynamic>.t3(
+                json['colorProvider'])));
+    final foldingRangeProvider = json['foldingRangeProvider'] is bool
+        ? new Either3<bool, FoldingRangeProviderOptions, dynamic>.t1(
+            json['foldingRangeProvider'])
+        : (FoldingRangeProviderOptions.canParse(json['foldingRangeProvider'])
+            ? new Either3<bool, FoldingRangeProviderOptions, dynamic>.t2(
+                json['foldingRangeProvider'] != null
+                    ? FoldingRangeProviderOptions.fromJson(
+                        json['foldingRangeProvider'])
+                    : null)
+            : (new Either3<bool, FoldingRangeProviderOptions, dynamic>.t3(
+                json['foldingRangeProvider'])));
     final executeCommandProvider = json['executeCommandProvider'] != null
         ? ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
         : null;
-    final supported = json['supported'];
-    final changeNotifications = json['changeNotifications'] is String
-        ? new Either2<String, bool>.t1(json['changeNotifications'])
-        : (json['changeNotifications'] is bool
-            ? new Either2<String, bool>.t2(json['changeNotifications'])
-            : (throw '''${json['changeNotifications']} was not one of (string, boolean)'''));
+    final workspace = json['workspace'];
+    final experimental = json['experimental'];
     return new ServerCapabilities(
         textDocumentSync,
         hoverProvider,
         completionProvider,
         signatureHelpProvider,
         definitionProvider,
+        typeDefinitionProvider,
+        implementationProvider,
         referencesProvider,
         documentHighlightProvider,
         documentSymbolProvider,
@@ -4553,30 +4613,25 @@ class ServerCapabilities implements ToJsonable {
         documentOnTypeFormattingProvider,
         renameProvider,
         documentLinkProvider,
+        colorProvider,
+        foldingRangeProvider,
         executeCommandProvider,
-        supported,
-        changeNotifications);
+        workspace,
+        experimental);
   }
 
-  /// Whether the server wants to receive workspace folder
-  /// change notifications.
-  ///
-  /// If a strings is provided the string is treated as a
-  /// ID under which the notification is registered on the
-  /// client side. The ID can be used to unregister for
-  /// these events using the `client/unregisterCapability`
-  /// request.
-  final Either2<String, bool> changeNotifications;
-
-  /// The server provides code actions. The
-  /// `CodeActionOptions` return type is only valid if the
-  /// client signals code action literal support via the
-  /// property
-  /// `textDocument.codeAction.codeActionLiteralSupport`.
+  /// The server provides code actions. The `CodeActionOptions` return type is
+  /// only valid if the client signals code action literal support via the
+  /// property `textDocument.codeAction.codeActionLiteralSupport`.
   final Either2<bool, CodeActionOptions> codeActionProvider;
 
   /// The server provides code lens.
   final CodeLensOptions codeLensProvider;
+
+  /// The server provides color provider support.
+  ///
+  /// Since 3.6.0
+  final Either3<bool, ColorProviderOptions, dynamic> colorProvider;
 
   /// The server provides completion support.
   final CompletionOptions completionProvider;
@@ -4605,30 +4660,47 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides execute command support.
   final ExecuteCommandOptions executeCommandProvider;
 
+  /// Experimental server capabilities.
+  final dynamic experimental;
+
+  /// The server provides folding provider support.
+  ///
+  /// Since 3.10.0
+  final Either3<bool, FoldingRangeProviderOptions, dynamic>
+      foldingRangeProvider;
+
   /// The server provides hover support.
   final bool hoverProvider;
+
+  /// The server provides Goto Implementation support.
+  ///
+  /// Since 3.6.0
+  final Either2<bool, dynamic> implementationProvider;
 
   /// The server provides find references support.
   final bool referencesProvider;
 
-  /// The server provides rename support. RenameOptions
-  /// may only be specified if the client states that it
-  /// supports `prepareSupport` in its initial
+  /// The server provides rename support. RenameOptions may only be specified if
+  /// the client states that it supports `prepareSupport` in its initial
   /// `initialize` request.
   final Either2<bool, RenameOptions> renameProvider;
 
   /// The server provides signature help support.
   final SignatureHelpOptions signatureHelpProvider;
 
-  /// The server has support for workspace folders
-  final bool supported;
-
-  /// Defines how text documents are synced. Is either a
-  /// detailed structure defining each notification or for
-  /// backwards compatibility the TextDocumentSyncKind
-  /// number. If omitted it defaults to
+  /// Defines how text documents are synced. Is either a detailed structure
+  /// defining each notification or for backwards compatibility the
+  /// TextDocumentSyncKind number. If omitted it defaults to
   /// `TextDocumentSyncKind.None`.
   final Either2<TextDocumentSyncOptions, num> textDocumentSync;
+
+  /// The server provides Goto Type Definition support.
+  ///
+  /// Since 3.6.0
+  final Either2<bool, dynamic> typeDefinitionProvider;
+
+  /// Workspace specific server capabilities
+  final dynamic workspace;
 
   /// The server provides workspace symbol support.
   final bool workspaceSymbolProvider;
@@ -4649,6 +4721,12 @@ class ServerCapabilities implements ToJsonable {
     }
     if (definitionProvider != null) {
       __result['definitionProvider'] = definitionProvider;
+    }
+    if (typeDefinitionProvider != null) {
+      __result['typeDefinitionProvider'] = typeDefinitionProvider;
+    }
+    if (implementationProvider != null) {
+      __result['implementationProvider'] = implementationProvider;
     }
     if (referencesProvider != null) {
       __result['referencesProvider'] = referencesProvider;
@@ -4685,14 +4763,20 @@ class ServerCapabilities implements ToJsonable {
     if (documentLinkProvider != null) {
       __result['documentLinkProvider'] = documentLinkProvider;
     }
+    if (colorProvider != null) {
+      __result['colorProvider'] = colorProvider;
+    }
+    if (foldingRangeProvider != null) {
+      __result['foldingRangeProvider'] = foldingRangeProvider;
+    }
     if (executeCommandProvider != null) {
       __result['executeCommandProvider'] = executeCommandProvider;
     }
-    if (supported != null) {
-      __result['supported'] = supported;
+    if (workspace != null) {
+      __result['workspace'] = workspace;
     }
-    if (changeNotifications != null) {
-      __result['changeNotifications'] = changeNotifications;
+    if (experimental != null) {
+      __result['experimental'] = experimental;
     }
     return __result;
   }
@@ -4790,9 +4874,8 @@ class ShowMessageRequestParams implements ToJsonable {
   }
 }
 
-/// Signature help represents the signature of something
-/// callable. There can be multiple signature but only one
-/// active and only one active parameter.
+/// Signature help represents the signature of something callable. There can be
+/// multiple signature but only one active and only one active parameter.
 class SignatureHelp implements ToJsonable {
   SignatureHelp(this.signatures, this.activeSignature, this.activeParameter) {
     if (signatures == null) {
@@ -4810,24 +4893,20 @@ class SignatureHelp implements ToJsonable {
     return new SignatureHelp(signatures, activeSignature, activeParameter);
   }
 
-  /// The active parameter of the active signature. If
-  /// omitted or the value lies outside the range of
-  /// `signatures[activeSignature].parameters` defaults to
-  /// 0 if the active signature has parameters. If the
-  /// active signature has no parameters it is ignored. In
-  /// future version of the protocol this property might
-  /// become mandatory to better express the active
-  /// parameter if the active signature does have any.
+  /// The active parameter of the active signature. If omitted or the value lies
+  /// outside the range of `signatures[activeSignature].parameters` defaults to
+  /// 0 if the active signature has parameters. If the active signature has no
+  /// parameters it is ignored. In future version of the protocol this property
+  /// might become mandatory to better express the active parameter if the
+  /// active signature does have any.
   final num activeParameter;
 
-  /// The active signature. If omitted or the value lies
-  /// outside the range of `signatures` the value defaults
-  /// to zero or is ignored if `signatures.length === 0`.
-  /// Whenever possible implementors should make an active
-  /// decision about the active signature and shouldn't
-  /// rely on a default value. In future version of the
-  /// protocol this property might become mandatory to
-  /// better express this.
+  /// The active signature. If omitted or the value lies outside the range of
+  /// `signatures` the value defaults to zero or is ignored if
+  /// `signatures.length === 0`. Whenever possible implementors should make an
+  /// active decision about the active signature and shouldn't rely on a default
+  /// value. In future version of the protocol this property might become
+  /// mandatory to better express this.
   final num activeSignature;
 
   /// One or more signatures.
@@ -4867,8 +4946,7 @@ class SignatureHelpOptions implements ToJsonable {
     return new SignatureHelpOptions(triggerCharacters);
   }
 
-  /// The characters that trigger signature help
-  /// automatically.
+  /// The characters that trigger signature help automatically.
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
@@ -4901,13 +4979,11 @@ class SignatureHelpRegistrationOptions
         triggerCharacters, documentSelector);
   }
 
-  /// A document selector to identify the scope of the
-  /// registration. If set to null the document selector
-  /// provided on the client side will be used.
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
-  /// The characters that trigger signature help
-  /// automatically.
+  /// The characters that trigger signature help automatically.
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
@@ -4929,9 +5005,8 @@ class SignatureHelpRegistrationOptions
   }
 }
 
-/// Represents the signature of something callable. A
-/// signature can have a label, like a function-name, a
-/// doc-comment, and a set of parameters.
+/// Represents the signature of something callable. A signature can have a
+/// label, like a function-name, a doc-comment, and a set of parameters.
 class SignatureInformation implements ToJsonable {
   SignatureInformation(this.label, this.documentation, this.parameters) {
     if (label == null) {
@@ -4947,7 +5022,7 @@ class SignatureInformation implements ToJsonable {
                 json['documentation'] != null
                     ? MarkupContent.fromJson(json['documentation'])
                     : null)
-            : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
+            : (throw '''${json['documentation']} was not one of (String, MarkupContent)'''));
     final parameters = json['parameters']
         ?.map(
             (item) => item != null ? ParameterInformation.fromJson(item) : null)
@@ -4956,12 +5031,11 @@ class SignatureInformation implements ToJsonable {
     return new SignatureInformation(label, documentation, parameters);
   }
 
-  /// The human-readable doc-comment of this signature.
-  /// Will be shown in the UI but can be omitted.
+  /// The human-readable doc-comment of this signature. Will be shown in the UI
+  /// but can be omitted.
   final Either2<String, MarkupContent> documentation;
 
-  /// The label of this signature. Will be shown in the
-  /// UI.
+  /// The label of this signature. Will be shown in the UI.
   final String label;
 
   /// The parameters of this signature.
@@ -4986,8 +5060,7 @@ class SignatureInformation implements ToJsonable {
   }
 }
 
-/// Static registration options to be returned in the
-/// initialize request.
+/// Static registration options to be returned in the initialize request.
 class StaticRegistrationOptions implements ToJsonable {
   StaticRegistrationOptions(this.id);
   static StaticRegistrationOptions fromJson(Map<String, dynamic> json) {
@@ -4995,9 +5068,8 @@ class StaticRegistrationOptions implements ToJsonable {
     return new StaticRegistrationOptions(id);
   }
 
-  /// The id used to register the request. The id can be
-  /// used to deregister the request again. See also
-  /// Registration#id.
+  /// The id used to register the request. The id can be used to deregister the
+  /// request again. See also Registration#id.
   final String id;
 
   Map<String, dynamic> toJson() {
@@ -5013,8 +5085,8 @@ class StaticRegistrationOptions implements ToJsonable {
   }
 }
 
-/// Represents information about programming constructs
-/// like variables, classes, interfaces etc.
+/// Represents information about programming constructs like variables, classes,
+/// interfaces etc.
 class SymbolInformation implements ToJsonable {
   SymbolInformation(this.name, this.kind, this.deprecated, this.location,
       this.containerName) {
@@ -5039,11 +5111,10 @@ class SymbolInformation implements ToJsonable {
         name, kind, deprecated, location, containerName);
   }
 
-  /// The name of the symbol containing this symbol. This
-  /// information is for user interface purposes (e.g. to
-  /// render a qualifier in the user interface if
-  /// necessary). It can't be used to re-infer a hierarchy
-  /// for the document symbols.
+  /// The name of the symbol containing this symbol. This information is for
+  /// user interface purposes (e.g. to render a qualifier in the user interface
+  /// if necessary). It can't be used to re-infer a hierarchy for the document
+  /// symbols.
   final String containerName;
 
   /// Indicates if this symbol is deprecated.
@@ -5052,18 +5123,15 @@ class SymbolInformation implements ToJsonable {
   /// The kind of this symbol.
   final num kind;
 
-  /// The location of this symbol. The location's range is
-  /// used by a tool to reveal the location in the editor.
-  /// If the symbol is selected in the tool the range's
-  /// start information is used to position the cursor. So
-  /// the range usually spans more then the actual
-  /// symbol's name and does normally include things like
-  /// visibility modifiers.
+  /// The location of this symbol. The location's range is used by a tool to
+  /// reveal the location in the editor. If the symbol is selected in the tool
+  /// the range's start information is used to position the cursor. So the range
+  /// usually spans more then the actual symbol's name and does normally include
+  /// things like visibility modifiers.
   ///
-  /// The range doesn't have to denote a node range in the
-  /// sense of a abstract syntax tree. It can therefore
-  /// not be used to re-construct a hierarchy of the
-  /// symbols.
+  /// The range doesn't have to denote a node range in the sense of a abstract
+  /// syntax tree. It can therefore not be used to re-construct a hierarchy of
+  /// the symbols.
   final Location location;
 
   /// The name of this symbol.
@@ -5173,8 +5241,8 @@ class SymbolKind {
   bool operator ==(o) => o is SymbolKind && o._value == _value;
 }
 
-/// Describe options to be used when registering for
-/// text document change events.
+/// Describe options to be used when registering for text document change
+/// events.
 class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   TextDocumentChangeRegistrationOptions(this.syncKind, this.documentSelector) {
@@ -5193,13 +5261,11 @@ class TextDocumentChangeRegistrationOptions
         syncKind, documentSelector);
   }
 
-  /// A document selector to identify the scope of the
-  /// registration. If set to null the document selector
-  /// provided on the client side will be used.
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
-  /// How documents are synced to the server. See
-  /// TextDocumentSyncKind.Full and
+  /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
   final num syncKind;
 
@@ -5225,47 +5291,199 @@ class TextDocumentChangeRegistrationOptions
 
 /// Text document specific client capabilities.
 class TextDocumentClientCapabilities implements ToJsonable {
-  TextDocumentClientCapabilities(this.dynamicRegistration, this.willSave,
-      this.willSaveWaitUntil, this.didSave);
+  TextDocumentClientCapabilities(
+      this.synchronization,
+      this.completion,
+      this.hover,
+      this.signatureHelp,
+      this.references,
+      this.documentHighlight,
+      this.documentSymbol,
+      this.formatting,
+      this.rangeFormatting,
+      this.onTypeFormatting,
+      this.definition,
+      this.typeDefinition,
+      this.implementation,
+      this.codeAction,
+      this.codeLens,
+      this.documentLink,
+      this.colorProvider,
+      this.rename,
+      this.publishDiagnostics,
+      this.foldingRange);
   static TextDocumentClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final willSave = json['willSave'];
-    final willSaveWaitUntil = json['willSaveWaitUntil'];
-    final didSave = json['didSave'];
+    final synchronization = json['synchronization'];
+    final completion = json['completion'];
+    final hover = json['hover'];
+    final signatureHelp = json['signatureHelp'];
+    final references = json['references'];
+    final documentHighlight = json['documentHighlight'];
+    final documentSymbol = json['documentSymbol'];
+    final formatting = json['formatting'];
+    final rangeFormatting = json['rangeFormatting'];
+    final onTypeFormatting = json['onTypeFormatting'];
+    final definition = json['definition'];
+    final typeDefinition = json['typeDefinition'];
+    final implementation = json['implementation'];
+    final codeAction = json['codeAction'];
+    final codeLens = json['codeLens'];
+    final documentLink = json['documentLink'];
+    final colorProvider = json['colorProvider'];
+    final rename = json['rename'];
+    final publishDiagnostics = json['publishDiagnostics'];
+    final foldingRange = json['foldingRange'];
     return new TextDocumentClientCapabilities(
-        dynamicRegistration, willSave, willSaveWaitUntil, didSave);
+        synchronization,
+        completion,
+        hover,
+        signatureHelp,
+        references,
+        documentHighlight,
+        documentSymbol,
+        formatting,
+        rangeFormatting,
+        onTypeFormatting,
+        definition,
+        typeDefinition,
+        implementation,
+        codeAction,
+        codeLens,
+        documentLink,
+        colorProvider,
+        rename,
+        publishDiagnostics,
+        foldingRange);
   }
 
-  /// The client supports did save notifications.
-  final bool didSave;
+  /// Capabilities specific to the `textDocument/codeAction`
+  final dynamic codeAction;
 
-  /// Whether text document synchronization supports
-  /// dynamic registration.
-  final bool dynamicRegistration;
+  /// Capabilities specific to the `textDocument/codeLens`
+  final dynamic codeLens;
 
-  /// The client supports sending will save
-  /// notifications.
-  final bool willSave;
+  /// Capabilities specific to the `textDocument/documentColor` and the
+  /// `textDocument/colorPresentation` request.
+  ///
+  /// Since 3.6.0
+  final dynamic colorProvider;
 
-  /// The client supports sending a will save request
-  /// and waits for a response providing text edits
-  /// which will be applied to the document before it is
-  /// saved.
-  final bool willSaveWaitUntil;
+  /// Capabilities specific to the `textDocument/completion`
+  final dynamic completion;
+
+  /// Capabilities specific to the `textDocument/definition`
+  final dynamic definition;
+
+  /// Capabilities specific to the `textDocument/documentHighlight`
+  final dynamic documentHighlight;
+
+  /// Capabilities specific to the `textDocument/documentLink`
+  final dynamic documentLink;
+
+  /// Capabilities specific to the `textDocument/documentSymbol`
+  final dynamic documentSymbol;
+
+  /// Capabilities specific to `textDocument/foldingRange` requests.
+  ///
+  /// Since 3.10.0
+  final dynamic foldingRange;
+
+  /// Capabilities specific to the `textDocument/formatting`
+  final dynamic formatting;
+
+  /// Capabilities specific to the `textDocument/hover`
+  final dynamic hover;
+
+  /// Capabilities specific to the `textDocument/implementation`.
+  ///
+  /// Since 3.6.0
+  final dynamic implementation;
+
+  /// Capabilities specific to the `textDocument/onTypeFormatting`
+  final dynamic onTypeFormatting;
+
+  /// Capabilities specific to `textDocument/publishDiagnostics`.
+  final dynamic publishDiagnostics;
+
+  /// Capabilities specific to the `textDocument/rangeFormatting`
+  final dynamic rangeFormatting;
+
+  /// Capabilities specific to the `textDocument/references`
+  final dynamic references;
+
+  /// Capabilities specific to the `textDocument/rename`
+  final dynamic rename;
+
+  /// Capabilities specific to the `textDocument/signatureHelp`
+  final dynamic signatureHelp;
+  final dynamic synchronization;
+
+  /// Capabilities specific to the `textDocument/typeDefinition`
+  ///
+  /// Since 3.6.0
+  final dynamic typeDefinition;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+    if (synchronization != null) {
+      __result['synchronization'] = synchronization;
     }
-    if (willSave != null) {
-      __result['willSave'] = willSave;
+    if (completion != null) {
+      __result['completion'] = completion;
     }
-    if (willSaveWaitUntil != null) {
-      __result['willSaveWaitUntil'] = willSaveWaitUntil;
+    if (hover != null) {
+      __result['hover'] = hover;
     }
-    if (didSave != null) {
-      __result['didSave'] = didSave;
+    if (signatureHelp != null) {
+      __result['signatureHelp'] = signatureHelp;
+    }
+    if (references != null) {
+      __result['references'] = references;
+    }
+    if (documentHighlight != null) {
+      __result['documentHighlight'] = documentHighlight;
+    }
+    if (documentSymbol != null) {
+      __result['documentSymbol'] = documentSymbol;
+    }
+    if (formatting != null) {
+      __result['formatting'] = formatting;
+    }
+    if (rangeFormatting != null) {
+      __result['rangeFormatting'] = rangeFormatting;
+    }
+    if (onTypeFormatting != null) {
+      __result['onTypeFormatting'] = onTypeFormatting;
+    }
+    if (definition != null) {
+      __result['definition'] = definition;
+    }
+    if (typeDefinition != null) {
+      __result['typeDefinition'] = typeDefinition;
+    }
+    if (implementation != null) {
+      __result['implementation'] = implementation;
+    }
+    if (codeAction != null) {
+      __result['codeAction'] = codeAction;
+    }
+    if (codeLens != null) {
+      __result['codeLens'] = codeLens;
+    }
+    if (documentLink != null) {
+      __result['documentLink'] = documentLink;
+    }
+    if (colorProvider != null) {
+      __result['colorProvider'] = colorProvider;
+    }
+    if (rename != null) {
+      __result['rename'] = rename;
+    }
+    if (publishDiagnostics != null) {
+      __result['publishDiagnostics'] = publishDiagnostics;
+    }
+    if (foldingRange != null) {
+      __result['foldingRange'] = foldingRange;
     }
     return __result;
   }
@@ -5275,9 +5493,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 }
 
-/// An event describing a change to a text document. If
-/// range and rangeLength are omitted the new text is
-/// considered to be the full content of the document.
+/// An event describing a change to a text document. If range and rangeLength
+/// are omitted the new text is considered to be the full content of the
+/// document.
 class TextDocumentContentChangeEvent implements ToJsonable {
   TextDocumentContentChangeEvent(this.range, this.rangeLength, this.text) {
     if (text == null) {
@@ -5319,7 +5537,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
   }
 }
 
-class TextDocumentEdit implements FileOperation, ToJsonable {
+class TextDocumentEdit implements ToJsonable {
   TextDocumentEdit(this.textDocument, this.edits) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -5423,8 +5641,8 @@ class TextDocumentItem implements ToJsonable {
   /// The text document's URI.
   final String uri;
 
-  /// The version number of this document (it will
-  /// increase after each change, including undo/redo).
+  /// The version number of this document (it will increase after each change,
+  /// including undo/redo).
   final num version;
 
   Map<String, dynamic> toJson() {
@@ -5503,9 +5721,8 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     return new TextDocumentRegistrationOptions(documentSelector);
   }
 
-  /// A document selector to identify the scope of the
-  /// registration. If set to null the document selector
-  /// provided on the client side will be used.
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
@@ -5541,8 +5758,8 @@ class TextDocumentSaveReason {
     return false;
   }
 
-  /// Manually triggered, e.g. by the user pressing
-  /// save, by starting debugging, or by an API call.
+  /// Manually triggered, e.g. by the user pressing save, by starting debugging,
+  /// or by an API call.
   static const Manual = const TextDocumentSaveReason._(1);
 
   /// Automatic after a delay.
@@ -5576,14 +5793,11 @@ class TextDocumentSaveRegistrationOptions
         includeText, documentSelector);
   }
 
-  /// A document selector to identify the scope of the
-  /// registration. If set to null the document
-  /// selector provided on the client side will be
-  /// used.
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
-  /// The client is supposed to include the content on
-  /// save.
+  /// The client is supposed to include the content on save.
   final bool includeText;
 
   Map<String, dynamic> toJson() {
@@ -5605,8 +5819,8 @@ class TextDocumentSaveRegistrationOptions
   }
 }
 
-/// Defines how the host (editor) should sync document
-/// changes to the language server.
+/// Defines how the host (editor) should sync document changes to the language
+/// server.
 class TextDocumentSyncKind {
   const TextDocumentSyncKind._(this._value);
   const TextDocumentSyncKind.fromJson(this._value);
@@ -5626,13 +5840,11 @@ class TextDocumentSyncKind {
   /// Documents should not be synced at all.
   static const None = const TextDocumentSyncKind._(0);
 
-  /// Documents are synced by always sending the
-  /// full content of the document.
+  /// Documents are synced by always sending the full content of the document.
   static const Full = const TextDocumentSyncKind._(1);
 
-  /// Documents are synced by sending the full
-  /// content on open. After that only incremental
-  /// updates to the document are send.
+  /// Documents are synced by sending the full content on open. After that only
+  /// incremental updates to the document are send.
   static const Incremental = const TextDocumentSyncKind._(2);
 
   Object toJson() => _value;
@@ -5662,26 +5874,22 @@ class TextDocumentSyncOptions implements ToJsonable {
         openClose, change, willSave, willSaveWaitUntil, save);
   }
 
-  /// Change notifications are sent to the server.
-  /// See TextDocumentSyncKind.None,
-  /// TextDocumentSyncKind.Full and
-  /// TextDocumentSyncKind.Incremental. If omitted
-  /// it defaults to TextDocumentSyncKind.None.
+  /// Change notifications are sent to the server. See
+  /// TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
+  /// TextDocumentSyncKind.Incremental. If omitted it defaults to
+  /// TextDocumentSyncKind.None.
   final TextDocumentSyncKind change;
 
-  /// Open and close notifications are sent to the
-  /// server.
+  /// Open and close notifications are sent to the server.
   final bool openClose;
 
   /// Save notifications are sent to the server.
   final SaveOptions save;
 
-  /// Will save notifications are sent to the
-  /// server.
+  /// Will save notifications are sent to the server.
   final bool willSave;
 
-  /// Will save wait until requests are sent to the
-  /// server.
+  /// Will save wait until requests are sent to the server.
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
@@ -5724,13 +5932,11 @@ class TextEdit implements ToJsonable {
     return new TextEdit(range, newText);
   }
 
-  /// The string to be inserted. For delete
-  /// operations use an empty string.
+  /// The string to be inserted. For delete operations use an empty string.
   final String newText;
 
-  /// The range of the text document to be
-  /// manipulated. To insert text into a document
-  /// create a range where start === end.
+  /// The range of the text document to be manipulated. To insert text into a
+  /// document create a range where start === end.
   final Range range;
 
   Map<String, dynamic> toJson() {
@@ -5766,9 +5972,8 @@ class Unregistration implements ToJsonable {
     return new Unregistration(id, method);
   }
 
-  /// The id used to unregister the request or
-  /// notification. Usually an id provided during
-  /// the register request.
+  /// The id used to unregister the request or notification. Usually an id
+  /// provided during the register request.
   final String id;
 
   /// The method / capability to unregister for.
@@ -5839,19 +6044,14 @@ class VersionedTextDocumentIdentifier
   /// The text document's URI.
   final String uri;
 
-  /// The version number of this document. If a
-  /// versioned text document identifier is sent
-  /// from the server to the client and the file is
-  /// not open in the editor (the server has not
-  /// received an open notification before) the
-  /// server can send `null` to indicate that the
-  /// version is known and the content on disk is
-  /// the truth (as speced with document content
-  /// ownership).
+  /// The version number of this document. If a versioned text document
+  /// identifier is sent from the server to the client and the file is not open
+  /// in the editor (the server has not received an open notification before)
+  /// the server can send `null` to indicate that the version is known and the
+  /// content on disk is the truth (as speced with document content ownership).
   ///
-  /// The version number of a document will increase
-  /// after each change, including undo/redo. The
-  /// number doesn't need to be consecutive.
+  /// The version number of a document will increase after each change,
+  /// including undo/redo. The number doesn't need to be consecutive.
   final num version;
 
   Map<String, dynamic> toJson() {
@@ -5906,8 +6106,7 @@ class WatchKind {
   bool operator ==(o) => o is WatchKind && o._value == _value;
 }
 
-/// The parameters send in a will save text
-/// document notification.
+/// The parameters send in a will save text document notification.
 class WillSaveTextDocumentParams implements ToJsonable {
   WillSaveTextDocumentParams(this.textDocument, this.reason) {
     if (textDocument == null) {
@@ -5950,54 +6149,91 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
 /// Workspace specific client capabilities.
 class WorkspaceClientCapabilities implements ToJsonable {
-  WorkspaceClientCapabilities(this.applyEdit, this.documentChanges,
-      this.resourceOperations, this.failureHandling);
+  WorkspaceClientCapabilities(
+      this.applyEdit,
+      this.workspaceEdit,
+      this.didChangeConfiguration,
+      this.didChangeWatchedFiles,
+      this.symbol,
+      this.executeCommand,
+      this.workspaceFolders,
+      this.configuration);
   static WorkspaceClientCapabilities fromJson(Map<String, dynamic> json) {
     final applyEdit = json['applyEdit'];
-    final documentChanges = json['documentChanges'];
-    final resourceOperations = json['resourceOperations']
-        ?.map((item) =>
-            item != null ? ResourceOperationKind.fromJson(item) : null)
-        ?.cast<ResourceOperationKind>()
-        ?.toList();
-    final failureHandling = json['failureHandling'] != null
-        ? FailureHandlingKind.fromJson(json['failureHandling'])
-        : null;
+    final workspaceEdit = json['workspaceEdit'];
+    final didChangeConfiguration = json['didChangeConfiguration'];
+    final didChangeWatchedFiles = json['didChangeWatchedFiles'];
+    final symbol = json['symbol'];
+    final executeCommand = json['executeCommand'];
+    final workspaceFolders = json['workspaceFolders'];
+    final configuration = json['configuration'];
     return new WorkspaceClientCapabilities(
-        applyEdit, documentChanges, resourceOperations, failureHandling);
+        applyEdit,
+        workspaceEdit,
+        didChangeConfiguration,
+        didChangeWatchedFiles,
+        symbol,
+        executeCommand,
+        workspaceFolders,
+        configuration);
   }
 
-  /// The client supports applying batch edits to
-  /// the workspace by supporting the request
-  /// 'workspace/applyEdit'
+  /// The client supports applying batch edits to the workspace by supporting
+  /// the request 'workspace/applyEdit'
   final bool applyEdit;
 
-  /// The client supports versioned document
-  /// changes in `WorkspaceEdit`s
-  final bool documentChanges;
+  /// The client supports `workspace/configuration` requests.
+  ///
+  /// Since 3.6.0
+  final bool configuration;
 
-  /// The failure handling strategy of a client if
-  /// applying the workspace edit failes.
-  final FailureHandlingKind failureHandling;
+  /// Capabilities specific to the `workspace/didChangeConfiguration`
+  /// notification.
+  final dynamic didChangeConfiguration;
 
-  /// The resource operations the client supports.
-  /// Clients should at least support 'create',
-  /// 'rename' and 'delete' files and folders.
-  final List<ResourceOperationKind> resourceOperations;
+  /// Capabilities specific to the `workspace/didChangeWatchedFiles`
+  /// notification.
+  final dynamic didChangeWatchedFiles;
+
+  /// Capabilities specific to the `workspace/executeCommand` request.
+  final dynamic executeCommand;
+
+  /// Capabilities specific to the `workspace/symbol` request.
+  final dynamic symbol;
+
+  /// Capabilities specific to `WorkspaceEdit`s
+  final dynamic workspaceEdit;
+
+  /// The client has support for workspace folders.
+  ///
+  /// Since 3.6.0
+  final bool workspaceFolders;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (applyEdit != null) {
       __result['applyEdit'] = applyEdit;
     }
-    if (documentChanges != null) {
-      __result['documentChanges'] = documentChanges;
+    if (workspaceEdit != null) {
+      __result['workspaceEdit'] = workspaceEdit;
     }
-    if (resourceOperations != null) {
-      __result['resourceOperations'] = resourceOperations;
+    if (didChangeConfiguration != null) {
+      __result['didChangeConfiguration'] = didChangeConfiguration;
     }
-    if (failureHandling != null) {
-      __result['failureHandling'] = failureHandling;
+    if (didChangeWatchedFiles != null) {
+      __result['didChangeWatchedFiles'] = didChangeWatchedFiles;
+    }
+    if (symbol != null) {
+      __result['symbol'] = symbol;
+    }
+    if (executeCommand != null) {
+      __result['executeCommand'] = executeCommand;
+    }
+    if (workspaceFolders != null) {
+      __result['workspaceFolders'] = workspaceFolders;
+    }
+    if (configuration != null) {
+      __result['configuration'] = configuration;
     }
     return __result;
   }
@@ -6011,37 +6247,46 @@ class WorkspaceEdit implements ToJsonable {
   WorkspaceEdit(this.changes, this.documentChanges);
   static WorkspaceEdit fromJson(Map<String, dynamic> json) {
     final changes = json['changes'];
-    final documentChanges = json['documentChanges']
-        ?.map((item) => item)
-        ?.cast<FileOperation>()
-        ?.toList();
+    final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].length == 0 || json['documentChanges'].every((item) => TextDocumentEdit.canParse(item))))
+        ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(json['documentChanges']
+            ?.map(
+                (item) => item != null ? TextDocumentEdit.fromJson(item) : null)
+            ?.cast<TextDocumentEdit>()
+            ?.toList())
+        : ((json['documentChanges'] is List && (json['documentChanges'].length == 0 || json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item) || CreateFile.canParse(item) || RenameFile.canParse(item) || DeleteFile.canParse(item)))))
+            ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
+                ?.map((item) => TextDocumentEdit.canParse(item)
+                    ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(
+                        item != null ? TextDocumentEdit.fromJson(item) : null)
+                    : (CreateFile.canParse(item)
+                        ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(
+                            item != null ? CreateFile.fromJson(item) : null)
+                        : (RenameFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)''')))))
+                ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
+                ?.toList())
+            : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)'''));
     return new WorkspaceEdit(changes, documentChanges);
   }
 
   /// Holds changes to existing resources.
-  final Map<String, List<TextEdit>> changes;
+  final dynamic changes;
 
   /// Depending on the client capability
-  /// `workspace.workspaceEdit.resourceOperations`
-  /// document changes are either an array of
-  /// `TextDocumentEdit`s to express changes to n
-  /// different text documents where each text
-  /// document edit addresses a specific version
-  /// of a text document. Or it can contain above
-  /// `TextDocumentEdit`s mixed with create,
-  /// rename and delete file / folder operations.
+  /// `workspace.workspaceEdit.resourceOperations` document changes are either
+  /// an array of `TextDocumentEdit`s to express changes to n different text
+  /// documents where each text document edit addresses a specific version of a
+  /// text document. Or it can contain above `TextDocumentEdit`s mixed with
+  /// create, rename and delete file / folder operations.
   ///
-  /// Whether a client supports versioned document
-  /// edits is expressed via
-  /// `workspace.workspaceEdit.documentChanges`
-  /// client capability.
+  /// Whether a client supports versioned document edits is expressed via
+  /// `workspace.workspaceEdit.documentChanges` client capability.
   ///
-  /// If a client neither supports
-  /// `documentChanges` nor
-  /// `workspace.workspaceEdit.resourceOperations`
-  /// then only plain `TextEdit`s using the
-  /// `changes` property are supported.
-  final List<FileOperation> documentChanges;
+  /// If a client neither supports `documentChanges` nor
+  /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
+  /// using the `changes` property are supported.
+  final Either2<List<TextDocumentEdit>,
+          List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+      documentChanges;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -6074,12 +6319,10 @@ class WorkspaceFolder implements ToJsonable {
     return new WorkspaceFolder(uri, name);
   }
 
-  /// The name of the workspace folder. Defaults
-  /// to the uri's basename.
+  /// The name of the workspace folder. Defaults to the uri's basename.
   final String name;
 
-  /// The associated URI for this workspace
-  /// folder.
+  /// The associated URI for this workspace folder.
   final String uri;
 
   Map<String, dynamic> toJson() {

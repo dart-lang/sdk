@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 import 'codegen_dart.dart';
 import 'markdown.dart';
 import 'typescript.dart';
+import 'typescript_parser.dart';
 
 main() async {
   final String script = Platform.script.toFilePath();
@@ -20,8 +21,12 @@ main() async {
   new Directory(outFolder).createSync();
 
   final String spec = await fetchSpec();
-  final List<ApiItem> types = extractAllTypes(extractTypeScriptBlocks(spec));
-  types.addAll(_getSpecialCaseTypes());
+  final List<AstNode> types = extractTypeScriptBlocks(spec)
+      .where(shouldIncludeScriptBlock)
+      .map(parseFile)
+      .expand((f) => f)
+      .where(shouldIncludeNode)
+      .toList();
   final String output = generateDartForTypes(types);
 
   new File(path.join(outFolder, 'protocol_generated.dart'))
@@ -37,6 +42,8 @@ const _generatedFileHeader = '''
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+// ignore_for_file: unnecessary_brace_in_string_interps
+
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -51,16 +58,18 @@ Future<String> fetchSpec() async {
   return resp.body;
 }
 
-/// Fabricates types for things that don't parse well from the TS spec,
-/// such as anonymous types:
-///     type MarkedString = string | { language: string; value: string };
-List<ApiItem> _getSpecialCaseTypes() {
-  return [
-    // For MarkedString, we drop the string-only version since we can always
-    // supply a language and it makes the type a little simpler.
-    new Interface('MarkedString', null, [], [
-      new Field('language', null, ['string'], false, false),
-      new Field('value', null, ['string'], false, false)
-    ])
-  ];
+/// Returns whether a script block should be parsed or not.
+bool shouldIncludeScriptBlock(String input) {
+  // We can't parse literal arrays, but this script block is just an example
+  // and not actually referenced anywhere.
+  if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];") {
+    return false;
+  }
+
+  // There are some code blocks that just have example JSON in them.
+  if (input.startsWith('{') && input.endsWith('}')) {
+    return false;
+  }
+
+  return true;
 }

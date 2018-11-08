@@ -97,6 +97,10 @@ class InitializationHandler extends MessageHandler {
         null,
         null,
         null,
+        null,
+        null,
+        null,
+        null,
         null));
   }
 }
