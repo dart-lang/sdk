@@ -20,11 +20,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            trace_natives,
-            false,
-            "Trace invocation of natives (debug mode only)");
-
 void DartNativeThrowArgumentException(const Instance& instance) {
   const Array& __args__ = Array::Handle(Array::New(1));
   __args__.SetAt(0, instance);

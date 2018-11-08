@@ -38,10 +38,13 @@ ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
 #define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
 
 void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
-  TransitionNativeToVM transition(Thread::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
+  TransitionNativeToVM transition(arguments->thread());
+  Zone* zone = arguments->thread()->zone();
+  const Instance& expected =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& actual =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
   if (!expected.OperatorEquals(actual)) {
     OS::PrintErr("expected: '%s' actual: '%s'\n", expected.ToCString(),
                  actual.ToCString());
@@ -50,16 +53,16 @@ void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
-  TransitionNativeToVM transition(Thread::Current());
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   int count = 0;
   StackFrameIterator frames(ValidationPolicy::kValidateFrames,
-                            Thread::Current(),
+                            arguments->thread(),
                             StackFrameIterator::kNoCrossThreadIteration);
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the frame.
   }
   VerifyPointersVisitor::VerifyPointers();
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
 
@@ -84,13 +87,13 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
   Dart_Handle name = Dart_GetNativeArgument(args, 1);
 
   TransitionNativeToVM transition(thread);
-  const Smi& frame_index_smi = Smi::CheckedHandle(Api::UnwrapHandle(index));
+  const Smi& frame_index_smi =
+      Smi::CheckedHandle(zone, Api::UnwrapHandle(index));
   const char* expected_name =
-      String::CheckedHandle(Api::UnwrapHandle(name)).ToCString();
+      String::CheckedHandle(zone, Api::UnwrapHandle(name)).ToCString();
   int frame_index = frame_index_smi.Value();
   int count = 0;
-  DartFrameIterator frames(Thread::Current(),
-                           StackFrameIterator::kNoCrossThreadIteration);
+  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   while (frame != NULL) {
     if (count == frame_index) {

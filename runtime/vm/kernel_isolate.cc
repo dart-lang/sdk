@@ -375,7 +375,8 @@ class KernelCompilationRequest : public ValueObject {
       char const* library_uri,
       char const* klass,
       bool is_static) {
-    TransitionNativeToVM transition(Thread::Current());
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
     Dart_CObject tag;
     tag.type = Dart_CObject_kInt32;
     tag.value.as_int32 = KernelIsolate::kCompileExpressionTag;
@@ -399,7 +400,7 @@ class KernelCompilationRequest : public ValueObject {
       definitions_array[i] = new Dart_CObject;
       definitions_array[i]->type = Dart_CObject_kString;
       definitions_array[i]->value.as_string = const_cast<char*>(
-          String::CheckedHandle(definitions.At(i)).ToCString());
+          String::CheckedHandle(thread->zone(), definitions.At(i)).ToCString());
     }
     definitions_object.value.as_array.values = definitions_array;
 
@@ -414,7 +415,8 @@ class KernelCompilationRequest : public ValueObject {
       type_definitions_array[i] = new Dart_CObject;
       type_definitions_array[i]->type = Dart_CObject_kString;
       type_definitions_array[i]->value.as_string = const_cast<char*>(
-          String::CheckedHandle(type_definitions.At(i)).ToCString());
+          String::CheckedHandle(thread->zone(), type_definitions.At(i))
+              .ToCString());
     }
     type_definitions_object.value.as_array.values = type_definitions_array;
 

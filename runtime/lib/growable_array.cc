@@ -13,7 +13,7 @@ namespace dart {
 
 DEFINE_NATIVE_ENTRY(GrowableList_allocate, 2) {
   const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments->NativeArgAt(0));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   if (data.Length() < 0) {
     Exceptions::ThrowRangeError("length",
@@ -29,18 +29,18 @@ DEFINE_NATIVE_ENTRY(GrowableList_allocate, 2) {
 
 DEFINE_NATIVE_ENTRY(GrowableList_getIndexed, 2) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
   }
-  const Instance& obj = Instance::CheckedHandle(array.At(index.Value()));
+  const Instance& obj = Instance::CheckedHandle(zone, array.At(index.Value()));
   return obj.raw();
 }
 
 DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 3) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
@@ -52,19 +52,19 @@ DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(GrowableList_getLength, 1) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
 DEFINE_NATIVE_ENTRY(GrowableList_getCapacity, 1) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(array.Capacity());
 }
 
 DEFINE_NATIVE_ENTRY(GrowableList_setLength, 2) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
   ASSERT((length.Value() >= 0) && (length.Value() <= array.Capacity()));
   array.SetLength(length.Value());
@@ -73,7 +73,7 @@ DEFINE_NATIVE_ENTRY(GrowableList_setLength, 2) {
 
 DEFINE_NATIVE_ENTRY(GrowableList_setData, 2) {
   const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
+      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   ASSERT(data.Length() >= 0);
   array.SetData(data);

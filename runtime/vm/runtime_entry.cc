@@ -50,18 +50,6 @@ DEFINE_FLAG(bool,
             trace_deoptimization_verbose,
             false,
             "Trace deoptimization verbose");
-DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
-DEFINE_FLAG(bool,
-            trace_ic_miss_in_optimized,
-            false,
-            "Trace IC miss in optimized code");
-DEFINE_FLAG(bool,
-            trace_optimized_ic_calls,
-            false,
-            "Trace IC calls in optimized code.");
-DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
-DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
-DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
@@ -88,14 +76,6 @@ DEFINE_FLAG(charp,
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
 DECLARE_FLAG(bool, reload_every_back_off);
-
-#ifdef DEBUG
-DEFINE_FLAG(charp,
-            gc_at_instance_allocation,
-            NULL,
-            "Perform a GC before allocation of instances of "
-            "the specified class");
-#endif
 
 #if defined(TESTING) || defined(DEBUG)
 void VerifyOnTransition() {
@@ -127,49 +107,33 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   return function;
 }
 
-DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  const String& function_name = String::Handle(function.name());
-  const String& class_name =
-      String::Handle(Class::Handle(function.Owner()).Name());
-  OS::PrintErr("> Entering '%s.%s'\n", class_name.ToCString(),
-               function_name.ToCString());
-}
-
-DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  const String& function_name = String::Handle(function.name());
-  const String& class_name =
-      String::Handle(Class::Handle(function.Owner()).Name());
-  OS::PrintErr("< Exiting '%s.%s'\n", class_name.ToCString(),
-               function_name.ToCString());
-}
-
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
-  const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& index = Instance::CheckedHandle(arguments.ArgAt(1));
+  const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));
   if (!length.IsInteger()) {
     // Throw: new ArgumentError.value(length, "length", "is not an integer");
-    const Array& args = Array::Handle(Array::New(3));
+    const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, length);
     args.SetAt(1, Symbols::Length());
-    args.SetAt(2, String::Handle(String::New("is not an integer")));
+    args.SetAt(2, String::Handle(zone, String::New("is not an integer")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
   if (!index.IsInteger()) {
     // Throw: new ArgumentError.value(index, "index", "is not an integer");
-    const Array& args = Array::Handle(Array::New(3));
+    const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, index);
     args.SetAt(1, Symbols::Index());
-    args.SetAt(2, String::Handle(String::New("is not an integer")));
+    args.SetAt(2, String::Handle(zone, String::New("is not an integer")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
   // Throw: new RangeError.range(index, 0, length - 1, "length");
-  const Array& args = Array::Handle(Array::New(4));
+  const Array& args = Array::Handle(zone, Array::New(4));
   args.SetAt(0, index);
-  args.SetAt(1, Integer::Handle(Integer::New(0)));
-  args.SetAt(2, Integer::Handle(Integer::Cast(length).ArithmeticOp(
-                    Token::kSUB, Integer::Handle(Integer::New(1)))));
+  args.SetAt(1, Integer::Handle(zone, Integer::New(0)));
+  args.SetAt(
+      2, Integer::Handle(
+             zone, Integer::Cast(length).ArithmeticOp(
+                       Token::kSUB, Integer::Handle(zone, Integer::New(1)))));
   args.SetAt(3, Symbols::Length());
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
@@ -225,12 +189,12 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
-  const String& selector = String::CheckedHandle(arguments.ArgAt(0));
+  const String& selector = String::CheckedHandle(zone, arguments.ArgAt(0));
   NullErrorHelper(zone, selector);
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentError, 1) {
-  const Instance& value = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::ThrowArgumentError(value);
 }
 
@@ -242,7 +206,7 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
-  const Array& args = Array::Handle(Array::New(0));
+  const Array& args = Array::Handle(zone, Array::New(0));
   Exceptions::ThrowByType(Exceptions::kIntegerDivisionByZeroException, args);
 }
 
@@ -266,22 +230,22 @@ static void EnsureNewOrRemembered(Isolate* isolate,
 // Arg1: array type arguments, i.e. vector of 1 type, the element type.
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
-  const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   if (!length.IsInteger()) {
     // Throw: new ArgumentError.value(length, "length", "is not an integer");
-    const Array& args = Array::Handle(Array::New(3));
+    const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, length);
     args.SetAt(1, Symbols::Length());
-    args.SetAt(2, String::Handle(String::New("is not an integer")));
+    args.SetAt(2, String::Handle(zone, String::New("is not an integer")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
   if (length.IsSmi()) {
     const intptr_t len = Smi::Cast(length).Value();
     if ((len >= 0) && (len <= Array::kMaxElements)) {
-      const Array& array = Array::Handle(Array::New(len, Heap::kNew));
+      const Array& array = Array::Handle(zone, Array::New(len, Heap::kNew));
       arguments.SetReturn(array);
       TypeArguments& element_type =
-          TypeArguments::CheckedHandle(arguments.ArgAt(1));
+          TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
       // An Array is raw or takes one type argument. However, its type argument
       // vector may be longer than 1 due to a type optimization reusing the type
       // argument vector of the instantiator.
@@ -295,10 +259,10 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     }
   }
   // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
-  const Array& args = Array::Handle(Array::New(4));
+  const Array& args = Array::Handle(zone, Array::New(4));
   args.SetAt(0, length);
-  args.SetAt(1, Integer::Handle(Integer::New(0)));
-  args.SetAt(2, Integer::Handle(Integer::New(Array::kMaxElements)));
+  args.SetAt(1, Integer::Handle(zone, Integer::New(0)));
+  args.SetAt(2, Integer::Handle(zone, Integer::New(Array::kMaxElements)));
   args.SetAt(3, Symbols::Length());
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
@@ -317,29 +281,18 @@ static TokenPosition GetCallerLocation() {
 // Arg1: type arguments of the object that needs to be allocated.
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
-  const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
-
-#ifdef DEBUG
-  if (FLAG_gc_at_instance_allocation != NULL) {
-    const String& name = String::Handle(cls.Name());
-    if (String::EqualsIgnoringPrivateKey(
-            name,
-            String::Handle(String::New(FLAG_gc_at_instance_allocation)))) {
-      Isolate::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
-    }
-  }
-#endif
-  Heap::Space space = Heap::kNew;
-  const Instance& instance = Instance::Handle(Instance::New(cls, space));
+  const Class& cls = Class::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& instance =
+      Instance::Handle(zone, Instance::New(cls, Heap::kNew));
 
   arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {
     // No type arguments required for a non-parameterized type.
-    ASSERT(Instance::CheckedHandle(arguments.ArgAt(1)).IsNull());
+    ASSERT(Instance::CheckedHandle(zone, arguments.ArgAt(1)).IsNull());
     return;
   }
   TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(1));
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
   // Unless null (for a raw type), the type argument vector may be longer than
   // necessary due to a type optimization reusing the type argument vector of
   // the instantiator.
@@ -485,7 +438,8 @@ DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Smi& num_variables = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  const Context& context = Context::Handle(Context::New(num_variables.Value()));
+  const Context& context =
+      Context::Handle(zone, Context::New(num_variables.Value()));
   arguments.SetReturn(context);
   if (Heap::IsAllocatableInNewSpace(
           Context::InstanceSize(num_variables.Value()))) {
@@ -501,7 +455,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   const Context& ctx = Context::CheckedHandle(zone, arguments.ArgAt(0));
   Context& cloned_ctx =
       Context::Handle(zone, Context::New(ctx.num_variables()));
-  cloned_ctx.set_parent(Context::Handle(ctx.parent()));
+  cloned_ctx.set_parent(Context::Handle(zone, ctx.parent()));
   Object& inst = Object::Handle(zone);
   for (int i = 0; i < ctx.num_variables(); i++) {
     inst = ctx.At(i);
@@ -1284,8 +1238,8 @@ static RawFunction* InlineCacheMissHandler(
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(1));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
@@ -1300,9 +1254,9 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& other = Instance::CheckedHandle(arguments.ArgAt(1));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& other = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(2));
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);
@@ -1316,8 +1270,8 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
 // Arg0: argument.
 // Arg1: IC data object.
 DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
-  const Instance& arg = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Instance& arg = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(1));
   // IC data for static call is prepopulated with the statically known target.
   ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
@@ -1341,9 +1295,9 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
 // Arg1: argument 1.
 // Arg2: IC data object.
 DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
-  const Instance& arg0 = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
+  const Instance& arg0 = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& arg1 = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(2));
   // IC data for static call is prepopulated with the statically known target.
   ASSERT(!ic_data.NumberOfChecksIs(0));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
@@ -1860,9 +1814,10 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 // Arg1: arguments descriptor array.
 // Arg2: arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
-  const Closure& receiver = Closure::CheckedHandle(arguments.ArgAt(0));
-  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(1));
-  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(2));
+  const Closure& receiver = Closure::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(2));
 
   // For closure the function name is always 'call'. Replace it with the
   // name of the closurized function so that exception contains more
@@ -2142,8 +2097,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(0));
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(1));
+  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(0));
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(1));
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -2628,7 +2583,7 @@ double DartModulo(double left, double right) {
 //   Arg1: Value that is being stored.
 DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& value = Object::Handle(arguments.ArgAt(1));
   field.RecordStore(value);
 #else
@@ -2637,7 +2592,7 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
 }
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
-  const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   field.EvaluateInitializer();
 }
 

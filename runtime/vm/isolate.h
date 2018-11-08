@@ -625,20 +625,6 @@ class Isolate : public BaseIsolate {
     isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
   }
 
-  // True during top level parsing.
-  bool IsTopLevelParsing() {
-    const intptr_t value =
-        AtomicOperations::LoadRelaxed(&top_level_parsing_count_);
-    ASSERT(value >= 0);
-    return value > 0;
-  }
-  void IncrTopLevelParsingCount() {
-    AtomicOperations::IncrementBy(&top_level_parsing_count_, 1);
-  }
-  void DecrTopLevelParsingCount() {
-    AtomicOperations::DecrementBy(&top_level_parsing_count_, 1);
-  }
-
   static const intptr_t kInvalidGen = 0;
 
   void IncrLoadingInvalidationGen() {
@@ -1002,7 +988,6 @@ class Isolate : public BaseIsolate {
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
   intptr_t loading_invalidation_gen_;
-  intptr_t top_level_parsing_count_;
 
   // Protect access to boxed_field_list_.
   Mutex* field_list_mutex_;
