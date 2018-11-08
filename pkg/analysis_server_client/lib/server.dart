@@ -30,6 +30,14 @@ class Server {
   /// True if we've received bad data from the server.
   bool _receivedBadDataFromServer = false;
 
+  /// The stderr subscription or `null` if either
+  /// [listenToOutput] has not been called or [stop] has been called.
+  StreamSubscription<String> stderrSubscription;
+
+  /// The stdout subscription or `null` if either
+  /// [listenToOutput] has not been called or [stop] has been called.
+  StreamSubscription<String> stdoutSubscription;
+
   /// Stopwatch that we use to generate timing information for debug output.
   Stopwatch _time = new Stopwatch();
 
@@ -59,7 +67,7 @@ class Server {
   /// Start listening to output from the server,
   /// and deliver notifications to [notificationProcessor].
   void listenToOutput({NotificationProcessor notificationProcessor}) {
-    _process.stdout
+    stdoutSubscription = _process.stdout
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
@@ -111,8 +119,7 @@ class Server {
         }
       }
     });
-
-    _process.stderr
+    stderrSubscription = _process.stderr
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
@@ -266,7 +273,8 @@ class Server {
         'Starting analysis server: ', '$dartBinary ${arguments.join(' ')}');
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
-      if (code != 0) {
+      if (code != 0 && _process != null) {
+        // Report an error if server abruptly terminated
         logBadDataFromServer('server terminated with exit code $code');
       }
     });
@@ -274,20 +282,27 @@ class Server {
 
   /// Attempt to gracefully shutdown the server.
   /// If that fails, then kill the process.
-  Future<void> stop() async {
-    if (_process != null) {
-      final future = send(SERVER_REQUEST_SHUTDOWN, null);
-      final exitCode = _process.exitCode;
-      _process = null;
-      await future.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => null, // fall through to wait for exit
-      );
-      await exitCode.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => kill('server failed to exit'),
-      );
+  Future<int> stop() async {
+    if (_process == null) {
+      // Process already exited
+      return -1;
     }
+    final future = send(SERVER_REQUEST_SHUTDOWN, null);
+    final exitCode = _process.exitCode;
+    _process = null;
+    await future
+        // fall through to wait for exit
+        .timeout(const Duration(seconds: 5), onTimeout: () => null)
+        .whenComplete(() async {
+      await stderrSubscription?.cancel();
+      stderrSubscription = null;
+      await stdoutSubscription?.cancel();
+      stdoutSubscription = null;
+    });
+    return await exitCode.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => kill('server failed to exit'),
+    );
   }
 }
 
