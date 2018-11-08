@@ -149,9 +149,12 @@ class SharedCompilerOptions {
           : (outPaths as List<String>)
               .firstWhere((_) => true, orElse: () => null);
 
+      // TODO(jmesserly): fix the debugger console so it's not passing invalid
+      // options.
+      if (outPath == null) return null;
       if (moduleRoot != null) {
-        // TODO(jmesserly): remove this legacy support after a deprecation period.
-        // (Mainly this is to give time for migrating build rules.)
+        // TODO(jmesserly): remove this legacy support after a deprecation
+        // period. (Mainly this is to give time for migrating build rules.)
         moduleName =
             path.withoutExtension(path.relative(outPath, from: moduleRoot));
       } else {
