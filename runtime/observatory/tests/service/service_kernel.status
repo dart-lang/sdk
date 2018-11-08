@@ -136,7 +136,7 @@ get_object_rpc_test: Pass, RuntimeError # Please triage / issue #27806
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 eval_regression_flutter20255_test: SkipSlow # Timeout
-get_vm_timeline_rpc_test: Pass, Timeout # Issue 35022
+get_vm_timeline_rpc_test: Slow
 rewind_optimized_out_test: SkipSlow # Timeout
 
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
