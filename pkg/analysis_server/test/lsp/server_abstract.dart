@@ -39,6 +39,35 @@ abstract class AbstractLspAnalysisServerTest extends Object
   String projectFolderPath, mainFilePath;
   Uri mainFileUri;
 
+  String applyEdits(String oldContent, List<TextEdit> changes) {
+    String newContent = oldContent;
+    // Complex text manipulations are described with an array of TextEdit's,
+    // representing a single change to the document.
+    //
+    //  All text edits ranges refer to positions in the original document. Text
+    // edits ranges must never overlap, that means no part of the original
+    // document must be manipulated by more than one edit. However, it is possible
+    // that multiple edits have the same start position: multiple inserts, or any
+    // number of inserts followed by a single remove or replace edit. If multiple
+    // inserts have the same position, the order in the array defines the order in
+    // which the inserted strings appear in the resulting text.
+    if (changes.length > 1) {
+      // TODO(dantup): Implement multi-edit edits.
+      throw 'Test helper applyEdits does not support applying multiple edits';
+    } else if (changes.length == 1) {
+      final change = changes.single;
+      final startPos = change.range.start;
+      final endPos = change.range.end;
+      final lineInfo = LineInfo.fromContent(newContent);
+      final start =
+          lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
+      final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
+      newContent = newContent.replaceRange(start, end, change.newText);
+    }
+
+    return newContent;
+  }
+
   Future changeFile(
       Uri uri, List<TextDocumentContentChangeEvent> changes) async {
     var notification = makeNotification(
@@ -60,6 +89,28 @@ abstract class AbstractLspAnalysisServerTest extends Object
     await pumpEventQueue();
   }
 
+  /// Sends a request to the server and unwraps the result. Throws if the
+  /// response was not successful or returned an error.
+  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
+    final resp = await channel.sendRequestToServer(request);
+    if (resp.error != null) {
+      throw resp.error;
+    } else {
+      return resp.result as T;
+    }
+  }
+
+  Future<List<TextEdit>> formatDocument(Uri uri) async {
+    var request = makeRequest(
+      'textDocument/formatting',
+      new DocumentFormattingParams(
+        new TextDocumentIdentifier(uri.toString()),
+        new FormattingOptions(2, true), // These currently don't do anything
+      ),
+    );
+    return expectSuccessfulResponseTo(request);
+  }
+
   Future<Hover> getHover(Uri uri, Position pos) async {
     var request = makeRequest(
       'textDocument/hover', // TODO(dantup): Code-gen constants for all these from the spec to avoid mistakes.
@@ -67,17 +118,6 @@ abstract class AbstractLspAnalysisServerTest extends Object
           new TextDocumentIdentifier(uri.toString()), pos),
     );
     return expectSuccessfulResponseTo<Hover>(request);
-  }
-
-  /// Sends a request to the server and unwraps the result. Throws if the
-  /// response was not successful or returned an error.
-  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
-    final resp = await channel.sendRequestToServer(request);
-    if (resp.error != null) {
-      throw resp.error.message;
-    } else {
-      return resp.result as T;
-    }
   }
 
   /// A helper that initializes the server with common values, since the server
@@ -120,6 +160,27 @@ abstract class AbstractLspAnalysisServerTest extends Object
     await pumpEventQueue();
   }
 
+  Position positionFromMarker(String contents) =>
+      positionFromOffset(contents.indexOf('^'), contents);
+
+  Position positionFromOffset(int offset, String contents) {
+    final lineInfo = LineInfo.fromContent(contents);
+    return toPosition(lineInfo.getLocation(offset));
+  }
+
+  /// Returns the range surrounded by `[[markers]]` in the provided string,
+  /// excluding the markers themselves (as well as position markers `^` from
+  /// the offsets).
+  Range rangeFromMarkers(String contents) {
+    contents = contents.replaceAll(positionMarker, '');
+    final start = contents.indexOf(rangeMarkerStart);
+    final end = contents.indexOf(rangeMarkerEnd) - rangeMarkerStart.length;
+    return new Range(
+      positionFromOffset(start, contents),
+      positionFromOffset(end, contents),
+    );
+  }
+
   Future replaceFile(Uri uri, String content) async {
     await changeFile(
       uri,
@@ -143,27 +204,6 @@ abstract class AbstractLspAnalysisServerTest extends Object
     newFolder(join(projectFolderPath, 'lib'));
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
-  }
-
-  Position positionFromMarker(String contents) =>
-      positionFromOffset(contents.indexOf('^'), contents);
-
-  Position positionFromOffset(int offset, String contents) {
-    final lineInfo = LineInfo.fromContent(contents);
-    return toPosition(lineInfo.getLocation(offset));
-  }
-
-  /// Returns the range surrounded by `[[markers]]` in the provided string,
-  /// excluding the markers themselves (as well as position markers `^` from
-  /// the offsets).
-  Range rangeFromMarkers(String contents) {
-    contents = contents.replaceAll(positionMarker, '');
-    final start = contents.indexOf(rangeMarkerStart);
-    final end = contents.indexOf(rangeMarkerEnd) - rangeMarkerStart.length;
-    return new Range(
-      positionFromOffset(start, contents),
-      positionFromOffset(end, contents),
-    );
   }
 
   Future tearDown() async {

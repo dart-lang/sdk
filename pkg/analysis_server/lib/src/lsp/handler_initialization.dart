@@ -80,7 +80,7 @@ class InitializationHandler extends MessageHandler {
           false,
           null,
         )),
-        false,
+        true, // hoverProvider
         null,
         null,
         null,
@@ -92,7 +92,7 @@ class InitializationHandler extends MessageHandler {
         null,
         null,
         null,
-        null,
+        true, // documentFormattingProvider
         null,
         null,
         null,

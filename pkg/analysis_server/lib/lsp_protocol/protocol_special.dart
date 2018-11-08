@@ -163,4 +163,5 @@ abstract class ServerErrorCodes {
   static const ServerAlreadyStarted = const ErrorCodes(-32000);
   static const UnhandledError = const ErrorCodes(-32001);
   static const ServerAlreadyInitialized = const ErrorCodes(-32002);
+  static const InvalidFilePath = const ErrorCodes(-32003);
 }

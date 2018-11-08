@@ -11,6 +11,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
+import 'package:analysis_server/src/lsp/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handler_initialization.dart';
 import 'package:analysis_server/src/lsp/handler_text_document_changes.dart';
@@ -181,6 +182,7 @@ class LspAnalysisServer {
     _registerHandler(new InitializationHandler(this));
     _registerHandler(new TextDocumentChangeHandler(this));
     _registerHandler(new HoverHandler(this));
+    _registerHandler(new FormattingHandler(this));
     channel.listen(handleMessage, onDone: done, onError: error);
   }
 
