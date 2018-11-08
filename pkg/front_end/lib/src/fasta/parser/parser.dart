@@ -2985,8 +2985,10 @@ class Parser {
       token = parseOperatorName(token);
     } else {
       token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
-      token = parseQualifiedRestOpt(
-          token, IdentifierContext.methodDeclarationContinuation);
+      if (getOrSet == null) {
+        token = parseQualifiedRestOpt(
+            token, IdentifierContext.methodDeclarationContinuation);
+      }
     }
 
     bool isGetter = false;

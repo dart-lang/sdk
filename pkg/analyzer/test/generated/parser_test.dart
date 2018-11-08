@@ -11135,6 +11135,84 @@ class C {
     }
   }
 
+  void test_issue_34610_get() {
+    final unit = parseCompilationUnit('class C { get C.named => null; }',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 16, 5),
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.STATIC_GETTER_WITHOUT_BODY, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 22, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 22, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 25, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 25, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 1),
+              ]);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+    expect(method.name.name, 'C');
+    expect(method.isGetter, isTrue);
+  }
+
+  void test_issue_34610_initializers() {
+    final unit = parseCompilationUnit('class C { C.named : super(); }',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 19),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 19),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 18, 19),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 20, 25),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 20, 25),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 25, 26),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 25, 26),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 26, 27),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 26, 27),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 27, 28),
+              ]);
+    ClassDeclaration declaration = unit.declarations[0];
+    if (usingFastaParser) {
+      ConstructorDeclaration constructor = declaration.members[0];
+      expect(constructor.name.name, 'named');
+      expect(constructor.parameters, isNotNull);
+      expect(constructor.parameters.parameters, hasLength(0));
+    } else {
+      FieldDeclaration field = declaration.members[0];
+      expect(field.fields.type.toSource(), 'C.named');
+    }
+  }
+
+  void test_issue_34610_missing_param() {
+    final unit = parseCompilationUnit('class C { C.named => null; }',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 18, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 21, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 25, 1),
+              ]);
+    ClassDeclaration declaration = unit.declarations[0];
+    if (usingFastaParser) {
+      ConstructorDeclaration constructor = declaration.members[0];
+      expect(constructor.name.name, 'named');
+      expect(constructor.parameters, isNotNull);
+      expect(constructor.parameters.parameters, hasLength(0));
+    } else {
+      FieldDeclaration field = declaration.members[0];
+      expect(field.fields.type.toSource(), 'C.named');
+    }
+  }
+
   void test_keywordInPlaceOfIdentifier() {
     // TODO(brianwilkerson) We could do better with this.
     parseCompilationUnit("do() {}",
