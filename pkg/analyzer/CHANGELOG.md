@@ -1,3 +1,6 @@
+## 0.33.3
+* Backport Parsed/ResolvedLibraryResultImpl and ElementDeclarationResult.
+
 ## 0.33.2
 * Protect against self-referencing classes in InheritanceManager2. (#34333)
 * Introduce API so that the linter can be migrated away from Element.context.
