@@ -377,7 +377,6 @@ class _AsyncStarImpl<T> {
       iterResult = JS('', '#.next(#)', jsIterator, awaitValue);
     } catch (e, s) {
       addError(e, s);
-      close();
       return null;
     }
 
@@ -466,18 +465,17 @@ class _AsyncStarImpl<T> {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
       cancellationCompleter.completeError(error, stackTrace);
-      return;
+    } else if (controller.hasListener) {
+      controller.addError(error, stackTrace);
     }
-    // If stream is cancelled, tell caller to exit the async generator.
-    if (!controller.hasListener) return;
-    controller.addError(error, stackTrace);
     // No need to schedule the generator body here. This code is only
     // called from the catch clause of the implicit try-catch-finally
     // around the generator body. That is, we are on the error path out
     // of the generator and do not need to run the generator again.
+    close();
   }
 
-  close() {
+  void close() {
     if (cancellationCompleter != null && !cancellationCompleter.isCompleted) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
