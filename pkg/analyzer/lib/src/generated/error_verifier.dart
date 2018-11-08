@@ -4145,6 +4145,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
 
+    ClassElementImpl nominalSuperClass =
+        AbstractClassElementImpl.getImpl(_enclosingClass.supertype?.element);
+    bool nominalSuperClassHasNoSuchMethodForwarders =
+        nominalSuperClass != null && !nominalSuperClass.isAbstract;
+
     InterfaceTypeImpl enclosingType = _enclosingClass.type;
     Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
@@ -4155,6 +4160,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMemberType == null) {
+        if (nominalSuperClassHasNoSuchMethodForwarders) {
+          continue;
+        }
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,

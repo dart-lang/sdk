@@ -1004,6 +1004,28 @@ abstract class X extends A with M {}
     ]);
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_hasNSM() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class C implements A {
+  noSuchMethod(_) {}
+}
+
+class X extends C with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inPreviousMixin() async {
     addTestFile(r'''
 abstract class A {
