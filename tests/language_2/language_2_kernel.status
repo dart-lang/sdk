@@ -245,9 +245,6 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test usi
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 
-[ $arch == simarm64 && $compiler == dartkp && $system == windows ]
-vm/mult_int_test: RuntimeError # http://dartbug.com/35091
-
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic_function_dcall_test/01: SkipByDesign # Prints type names
 invocation_mirror_test: RuntimeError # Issue 34911
