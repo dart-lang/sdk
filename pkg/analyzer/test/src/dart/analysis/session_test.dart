@@ -148,6 +148,21 @@ int foo = 0;
     expect(parsedLibrary.getElementDeclaration(fooElement.setter), isNull);
   }
 
+  test_getParsedLibrary_invalidPartUri() async {
+    newFile(testPath, content: r'''
+part 'a.dart';
+part ':[invalid uri].dart';
+part 'c.dart';
+''');
+
+    var parsedLibrary = session.getParsedLibrary(testPath);
+
+    expect(parsedLibrary.units, hasLength(3));
+    expect(parsedLibrary.units[0].path, '/home/test/lib/test.dart');
+    expect(parsedLibrary.units[1].path, '/home/test/lib/a.dart');
+    expect(parsedLibrary.units[2].path, '/home/test/lib/c.dart');
+  }
+
   test_getParsedLibrary_notLibrary() async {
     newFile(testPath, content: 'part of "a.dart";');
 
@@ -354,6 +369,21 @@ int foo = 0;
     // Synthetic elements don't have nodes.
     expect(resolvedLibrary.getElementDeclaration(fooElement.getter), isNull);
     expect(resolvedLibrary.getElementDeclaration(fooElement.setter), isNull);
+  }
+
+  test_getResolvedLibrary_invalidPartUri() async {
+    newFile(testPath, content: r'''
+part 'a.dart';
+part ':[invalid uri].dart';
+part 'c.dart';
+''');
+
+    var resolvedLibrary = await session.getResolvedLibrary(testPath);
+
+    expect(resolvedLibrary.units, hasLength(3));
+    expect(resolvedLibrary.units[0].path, '/home/test/lib/test.dart');
+    expect(resolvedLibrary.units[1].path, '/home/test/lib/a.dart');
+    expect(resolvedLibrary.units[2].path, '/home/test/lib/c.dart');
   }
 
   test_getResolvedLibrary_notLibrary() async {

@@ -755,8 +755,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var units = <ParsedUnitResult>[];
     for (var unitFile in file.libraryFiles) {
-      var unitResult = parseFileSync(unitFile.path);
-      units.add(unitResult);
+      var unitPath = unitFile.path;
+      if (unitPath != null) {
+        var unitResult = parseFileSync(unitPath);
+        units.add(unitResult);
+      }
     }
 
     return ParsedLibraryResultImpl(currentSession, path, file.uri, units);
@@ -1394,23 +1397,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var resolvedUnits = <ResolvedUnitResult>[];
 
       for (var unitFile in unitResults.keys) {
-        var unitResult = unitResults[unitFile];
-        resolvedUnits.add(
-          new AnalysisResult(
-            currentSession,
-            _sourceFactory,
-            unitFile.path,
-            unitFile.uri,
-            unitFile.exists,
-            unitFile.content,
-            unitFile.lineInfo,
-            unitFile.isPart,
-            null,
-            unitResult.unit,
-            unitResult.errors,
-            null,
-          ),
-        );
+        if (unitFile.path != null) {
+          var unitResult = unitResults[unitFile];
+          resolvedUnits.add(
+            new AnalysisResult(
+              currentSession,
+              _sourceFactory,
+              unitFile.path,
+              unitFile.uri,
+              unitFile.exists,
+              unitFile.content,
+              unitFile.lineInfo,
+              unitFile.isPart,
+              null,
+              unitResult.unit,
+              unitResult.errors,
+              null,
+            ),
+          );
+        }
       }
 
       return new ResolvedLibraryResultImpl(
