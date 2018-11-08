@@ -44,6 +44,7 @@ class AnalyzerOptions {
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String enablePreviewDart2 = 'enablePreviewDart2';
 
+  static const String enableExperiment = 'enable-experiment';
   static const String errors = 'errors';
   static const String exclude = 'exclude';
   static const String include = 'include';
@@ -71,6 +72,7 @@ class AnalyzerOptions {
 
   /// Supported top-level `analyzer` options.
   static const List<String> topLevel = const [
+    enableExperiment,
     errors,
     exclude,
     language,
@@ -87,6 +89,9 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language options.
   static const List<String> languageOptions = const [];
+
+  /// The experiments that are currently supported.
+  static const List<String> currentExperiments = const [];
 }
 
 /// Validates `analyzer` options.
@@ -96,6 +101,7 @@ class AnalyzerOptionsValidator extends CompositeValidator {
           new TopLevelAnalyzerOptionsValidator(),
           new StrongModeOptionValueValidator(),
           new ErrorFilterOptionValidator(),
+          new EnabledExperimentsValidator(),
           new LanguageOptionValidator()
         ]);
 }
@@ -109,6 +115,37 @@ class CompositeValidator extends OptionsValidator {
   @override
   void validate(ErrorReporter reporter, YamlMap options) =>
       validators.forEach((v) => v.validate(reporter, options));
+}
+
+/// Validates `analyzer` language configuration options.
+class EnabledExperimentsValidator extends OptionsValidator {
+  ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.languageOptions);
+  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    if (analyzer is YamlMap) {
+      var experimentNames =
+          getValue(analyzer, AnalyzerOptions.enableExperiment);
+      if (experimentNames is YamlList) {
+        for (var node in experimentNames.nodes) {
+          String experimentName = node.toString();
+          if (!AnalyzerOptions.currentExperiments.contains(experimentName)) {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+                node.span,
+                [experimentName, AnalyzerOptions.enableExperiment]);
+          }
+        }
+      } else if (experimentNames != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            experimentNames.span,
+            [AnalyzerOptions.enableExperiment]);
+      }
+    }
+  }
 }
 
 /// Builds error reports with value proposals.
@@ -580,9 +617,23 @@ class _OptionsProcessor {
       var strongMode = getValue(analyzer, AnalyzerOptions.strong_mode);
       _applyStrongOptions(options, strongMode);
 
-      // Set filters.
+      // Process filters.
       var filters = getValue(analyzer, AnalyzerOptions.errors);
       _applyProcessors(options, filters);
+
+      // Process enabled experiments.
+      var experimentNames =
+          getValue(analyzer, AnalyzerOptions.enableExperiment);
+      if (experimentNames is YamlList) {
+        List<String> enabledExperiments = <String>[];
+        for (var element in experimentNames.nodes) {
+          String experimentName = _toString(element);
+          if (experimentName != null) {
+            enabledExperiments.add(experimentName);
+          }
+        }
+        options.enabledExperiments = enabledExperiments;
+      }
 
       // Process language options.
       var language = getValue(analyzer, AnalyzerOptions.language);

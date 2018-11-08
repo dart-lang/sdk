@@ -489,6 +489,22 @@ class OptionsFileValidatorTest {
       new OptionsFileValidator(new TestSource());
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
+  test_analyzer_enableExperiment_badValue() {
+    validate('''
+analyzer:
+  enable-experiment:
+    - not-an-experiment
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+  }
+
+  test_analyzer_enableExperiment_notAList() {
+    validate('''
+analyzer:
+  enable-experiment:
+    experiment: true
+    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
   test_analyzer_error_code_supported() {
     validate('''
 analyzer:
