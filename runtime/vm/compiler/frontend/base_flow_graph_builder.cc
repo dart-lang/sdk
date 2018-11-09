@@ -439,6 +439,14 @@ Fragment BaseFlowGraphBuilder::LoadStaticField() {
   return Fragment(load);
 }
 
+Fragment BaseFlowGraphBuilder::RedefinitionWithType(const AbstractType& type) {
+  auto redefinition = new (Z) RedefinitionInstr(Pop());
+  redefinition->set_constrained_type(
+      new (Z) CompileType(CompileType::FromAbstractType(type)));
+  Push(redefinition);
+  return Fragment(redefinition);
+}
+
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                 const Field& field) {
   return Fragment(

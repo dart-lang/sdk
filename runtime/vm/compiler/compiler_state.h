@@ -102,6 +102,24 @@ class DeoptIdScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(DeoptIdScope);
 };
 
+/// Ensures that there were no deopt id allocations during the lifetime of this
+/// object.
+class AssertNoDeoptIdsAllocatedScope : public StackResource {
+ public:
+  explicit AssertNoDeoptIdsAllocatedScope(Thread* thread)
+      : StackResource(thread),
+        prev_deopt_id_(thread->compiler_state().deopt_id()) {}
+
+  ~AssertNoDeoptIdsAllocatedScope() {
+    ASSERT(thread()->compiler_state().deopt_id() == prev_deopt_id_);
+  }
+
+ private:
+  const intptr_t prev_deopt_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(AssertNoDeoptIdsAllocatedScope);
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_COMPILER_STATE_H_

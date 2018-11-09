@@ -530,7 +530,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // static methods they forward to don't do it themselves.
       AlternativeReadingScope _(&reader_);
       BuildArgumentTypeChecks(kCheckAllTypeParameterBounds,
-                              &explicit_checks_unused, &implicit_checks);
+                              &explicit_checks_unused, &implicit_checks,
+                              nullptr);
     } else {
       // Check if parent function was annotated with no-dynamic-invocations.
       const ProcedureAttributesMetadata attrs =
@@ -541,7 +542,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
         // tear-off.
         AlternativeReadingScope _(&reader_);
         BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds,
-                                &explicit_checks_unused, &implicit_checks);
+                                &explicit_checks_unused, &implicit_checks,
+                                nullptr);
       }
     }
   }
@@ -633,6 +635,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       extra_entry = BuildSharedUncheckedEntryPoint(
           /*shared_prologue_linked_in=*/shared_prologue,
           /*skippable_checks=*/default_type_handling + implicit_checks,
+          /*redefinitions_if_skipped=*/Fragment(),
           /*body=*/body);
     }
     RecordUncheckedEntryPoint(extra_entry);
@@ -699,7 +702,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   if (function.NeedsArgumentTypeChecks(I)) {
     AlternativeReadingScope _(&reader_);
-    BuildArgumentTypeChecks(kCheckAllTypeParameterBounds, &body, &body);
+    BuildArgumentTypeChecks(kCheckAllTypeParameterBounds, &body, &body,
+                            nullptr);
   }
 
   function_node_helper.ReadUntilExcluding(
@@ -949,7 +953,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     TypeChecksToBuild mode,
     Fragment* explicit_checks,
-    Fragment* implicit_checks) {
+    Fragment* implicit_checks,
+    Fragment* implicit_redefinitions) {
   if (!I->should_emit_strong_mode_checks()) return;
 
   FunctionNodeHelper function_node_helper(this);
@@ -1071,6 +1076,18 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     *checks += LoadLocal(param);
     *checks += CheckArgumentType(param, *target_type);
     *checks += Drop();
+
+    if (!helper.IsCovariant() && implicit_redefinitions != nullptr &&
+        B->optimizing_) {
+      // We generate slightly different code in optimized vs. un-optimized code,
+      // which is ok since we don't allocate any deopt ids.
+      AssertNoDeoptIdsAllocatedScope no_deopt_allocation(H.thread());
+
+      *implicit_redefinitions += LoadLocal(param);
+      *implicit_redefinitions += RedefinitionWithType(*target_type);
+      *implicit_redefinitions += StoreLocal(TokenPosition::kNoSource, param);
+      *implicit_redefinitions += Drop();
+    }
   }
 
   // Named.
@@ -1100,6 +1117,18 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     *checks += LoadLocal(param);
     *checks += CheckArgumentType(param, *target_type);
     *checks += Drop();
+
+    if (!helper.IsCovariant() && implicit_redefinitions != nullptr &&
+        B->optimizing_) {
+      // We generate slightly different code in optimized vs. un-optimized code,
+      // which is ok since we don't allocate any deopt ids.
+      AssertNoDeoptIdsAllocatedScope no_deopt_allocation(H.thread());
+
+      *implicit_redefinitions += LoadLocal(param);
+      *implicit_redefinitions += RedefinitionWithType(*target_type);
+      *implicit_redefinitions += StoreLocal(TokenPosition::kNoSource, param);
+      *implicit_redefinitions += Drop();
+    }
   }
 }
 
@@ -1222,8 +1251,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
   {
     AlternativeReadingScope alt(&reader_);
     SetOffset(type_parameters_offset);
-    BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds, &body,
-                            &body);
+    BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds, &body, &body,
+                            nullptr);
   }
 
   // Push all arguments and invoke the original method.
@@ -1498,7 +1527,8 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
     const Function& dart_function,
     intptr_t type_parameters_offset,
     Fragment* explicit_checks,
-    Fragment* implicit_checks) {
+    Fragment* implicit_checks,
+    Fragment* implicit_redefinitions) {
   if (!dart_function.NeedsArgumentTypeChecks(I)) return;
 
   // Check if parent function was annotated with no-dynamic-invocations.
@@ -1512,7 +1542,7 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
       MethodCanSkipTypeChecksForNonCovariantArguments(dart_function, attrs)
           ? kCheckCovariantTypeParameterBounds
           : kCheckAllTypeParameterBounds,
-      explicit_checks, implicit_checks);
+      explicit_checks, implicit_checks, implicit_redefinitions);
 }
 
 Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
@@ -1657,6 +1687,7 @@ Fragment StreamingFlowGraphBuilder::BuildEntryPointsIntrospection() {
 FunctionEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
     Fragment shared_prologue_linked_in,
     Fragment skippable_checks,
+    Fragment redefinitions_if_skipped,
     Fragment body) {
   ASSERT(shared_prologue_linked_in.entry == B->graph_entry_->normal_entry());
   ASSERT(parsed_function()->has_entry_points_temp_var());
@@ -1695,7 +1726,7 @@ FunctionEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
   JoinEntryInstr* rest_entry = B->BuildJoinEntry();
 
   Fragment(do_checks) + skippable_checks + Goto(rest_entry);
-  Fragment(skip_checks) + Goto(rest_entry);
+  Fragment(skip_checks) + redefinitions_if_skipped + Goto(rest_entry);
   Fragment(rest_entry) + body;
 
   return extra_target_entry;
@@ -1815,8 +1846,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
 
   Fragment explicit_type_checks;
   Fragment implicit_type_checks;
+  Fragment implicit_redefinitions;
   CheckArgumentTypesAsNecessary(dart_function, type_parameters_offset,
-                                &explicit_type_checks, &implicit_type_checks);
+                                &explicit_type_checks, &implicit_type_checks,
+                                &implicit_redefinitions);
 
   const Fragment body =
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
@@ -1860,6 +1893,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
         extra_entry = BuildSharedUncheckedEntryPoint(
             /*shared_prologue_linked_in=*/prologue,
             /*skippable_checks=*/implicit_type_checks,
+            /*redefinitions_if_skipped=*/implicit_redefinitions,
             /*body=*/body);
         break;
       }
@@ -2416,6 +2450,11 @@ Fragment StreamingFlowGraphBuilder::IntConstant(int64_t value) {
 
 Fragment StreamingFlowGraphBuilder::LoadStaticField() {
   return flow_graph_builder_->LoadStaticField();
+}
+
+Fragment StreamingFlowGraphBuilder::RedefinitionWithType(
+    const AbstractType& type) {
+  return flow_graph_builder_->RedefinitionWithType(type);
 }
 
 Fragment StreamingFlowGraphBuilder::CheckNull(
