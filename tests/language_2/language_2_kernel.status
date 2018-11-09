@@ -1989,6 +1989,7 @@ async_star_test/03: Skip # Timeout
 async_star_test/04: Skip # Timeout
 async_star_test/05: Skip # Timeout
 async_star_test/none: Skip # Timeout
+type_constants_test/none: Skip # Deferred libraries and hot reload.
 
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
