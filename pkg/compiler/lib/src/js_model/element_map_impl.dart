@@ -47,7 +47,6 @@ import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../universe/world_builder.dart';
 
 import 'closure.dart';
 import 'elements.dart';

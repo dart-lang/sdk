@@ -15,6 +15,7 @@ import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
 import 'ssa/ssa.dart';
 import 'types/types.dart';
+import 'universe/codegen_world_builder.dart';
 import 'universe/world_builder.dart';
 import 'world.dart';
 

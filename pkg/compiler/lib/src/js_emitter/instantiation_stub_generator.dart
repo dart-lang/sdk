@@ -12,9 +12,9 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../universe/world_builder.dart' show SelectorConstraints;
 import '../world.dart' show JClosedWorld;
 
 import 'model.dart';

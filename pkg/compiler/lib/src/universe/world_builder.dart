@@ -4,48 +4,13 @@
 
 library world_builder;
 
-import 'dart:collection';
-
-import '../common.dart';
-import '../common/names.dart' show Identifiers, Names;
 import '../common_elements.dart';
-import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
-import '../js_backend/backend_usage.dart'
-    show BackendUsage, BackendUsageBuilder;
-import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
-import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
-import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
-import '../js_model/locals.dart';
-import '../js_model/element_map_impl.dart';
-import '../js_model/elements.dart' show JSignatureMethod;
-import '../kernel/element_map_impl.dart';
-import '../kernel/kelements.dart';
-import '../kernel/kernel_world.dart';
-import '../native/enqueue.dart' show NativeResolutionEnqueuer;
-import '../options.dart';
-import '../universe/class_set.dart';
-import '../util/enumset.dart';
-import '../util/util.dart';
-import '../world.dart' show World, JClosedWorld, KClosedWorld, OpenWorld;
-import 'class_hierarchy.dart' show ClassHierarchyBuilder, ClassQueries;
+import '../js_backend/native_data.dart' show NativeBasicData;
+import '../world.dart' show World, JClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
-import 'use.dart'
-    show
-        ConstantUse,
-        ConstantUseKind,
-        DynamicUse,
-        DynamicUseKind,
-        StaticUse,
-        StaticUseKind;
-
-part 'codegen_world_builder.dart';
-part 'member_usage.dart';
-part 'resolution_world_builder.dart';
+import 'use.dart' show DynamicUse, StaticUse;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.

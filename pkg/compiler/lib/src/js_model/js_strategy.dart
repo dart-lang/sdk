@@ -31,6 +31,7 @@ import '../ssa/ssa.dart';
 import '../ssa/types.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';

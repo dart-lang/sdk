@@ -9,8 +9,8 @@ import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../universe/codegen_world_builder.dart';
+import '../universe/world_builder.dart' show SelectorConstraints;
 import 'namer.dart';
 import 'native_data.dart';
 

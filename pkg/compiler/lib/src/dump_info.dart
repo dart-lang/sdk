@@ -23,7 +23,7 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'types/abstract_value_domain.dart';
 import 'types/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
-import 'universe/world_builder.dart' show CodegenWorldBuilder;
+import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'world.dart' show JClosedWorld;

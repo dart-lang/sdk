@@ -42,8 +42,8 @@ import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'types/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
-import 'universe/world_builder.dart'
-    show ResolutionWorldBuilder, CodegenWorldBuilder;
+import 'universe/codegen_world_builder.dart';
+import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld, KClosedWorld;

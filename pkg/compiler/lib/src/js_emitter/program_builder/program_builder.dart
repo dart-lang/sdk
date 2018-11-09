@@ -33,9 +33,9 @@ import '../../js_backend/runtime_types.dart'
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
+import '../../universe/codegen_world_builder.dart';
 import '../../universe/selector.dart' show Selector;
-import '../../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../../universe/world_builder.dart' show SelectorConstraints;
 import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart'
     show
