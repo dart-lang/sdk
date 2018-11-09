@@ -100,6 +100,7 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 void TranslationHelper::SetMetadataPayloads(
     const ExternalTypedData& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
+  ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
   metadata_payloads_ = metadata_payloads.raw();
 }
 

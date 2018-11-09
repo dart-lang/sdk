@@ -411,6 +411,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void _writeMetadataSection(Component component) {
+    // Make sure metadata payloads section is 8-byte aligned,
+    // so certain kinds of metadata can contain aligned data.
+    const int metadataPayloadsAlignment = 8;
+    int padding = ((getBufferOffset() + metadataPayloadsAlignment - 1) &
+            -metadataPayloadsAlignment) -
+        getBufferOffset();
+    for (int i = 0; i < padding; ++i) {
+      writeByte(0);
+    }
+
     _binaryOffsetForMetadataPayloads = getBufferOffset();
 
     if (_metadataSubsections == null) {

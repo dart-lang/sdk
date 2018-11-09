@@ -80,6 +80,12 @@ class ReadStream : public ValueObject {
     current_ = buffer_ + value;
   }
 
+  void Align(intptr_t alignment) {
+    intptr_t position_before = Position();
+    intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    Advance(position_after - position_before);
+  }
+
   const uint8_t* AddressOfCurrentPosition() const { return current_; }
 
   void Advance(intptr_t value) {

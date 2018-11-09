@@ -134,11 +134,15 @@ class BinaryBuilder {
     return _doubleBuffer[0];
   }
 
-  List<int> readByteList() {
-    List<int> bytes = new Uint8List(readUInt());
+  List<int> readBytes(int length) {
+    List<int> bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
     return bytes;
+  }
+
+  List<int> readByteList() {
+    return readBytes(readUInt());
   }
 
   String readStringEntry(int numBytes) {

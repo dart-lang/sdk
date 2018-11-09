@@ -8589,6 +8589,10 @@ class TypedData : public Instance {
 
 class ExternalTypedData : public Instance {
  public:
+  // Alignment of data when serializing ExternalTypedData in a clustered
+  // snapshot. Should be independent of word size.
+  static const int kDataSerializationAlignment = 8;
+
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
