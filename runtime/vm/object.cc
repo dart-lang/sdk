@@ -9726,6 +9726,24 @@ intptr_t Script::GetTokenLineUsingLineStarts(
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static bool IsLetter(int32_t c) {
+  return (('A' <= c) && (c <= 'Z')) || (('a' <= c) && (c <= 'z'));
+}
+
+static bool IsDecimalDigit(int32_t c) {
+  return '0' <= c && c <= '9';
+}
+
+static bool IsIdentStartChar(int32_t c) {
+  return IsLetter(c) || (c == '_') || (c == '$');
+}
+
+static bool IsIdentChar(int32_t c) {
+  return IsLetter(c) || IsDecimalDigit(c) || (c == '_') || (c == '$');
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 void Script::GetTokenLocation(TokenPosition token_pos,
                               intptr_t* line,
                               intptr_t* column,
@@ -9756,11 +9774,9 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       const String& source = String::Handle(zone, Source());
       intptr_t offset = token_pos.value();
       *token_len = 1;
-      if (offset < source.Length() &&
-          Scanner::IsIdentStartChar(source.CharAt(offset))) {
+      if (offset < source.Length() && IsIdentStartChar(source.CharAt(offset))) {
         for (intptr_t i = offset + 1;
-             i < source.Length() && Scanner::IsIdentChar(source.CharAt(i));
-             ++i) {
+             i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
           ++*token_len;
         }
       }
@@ -19328,6 +19344,9 @@ const char* Integer::ToCString() const {
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
+  if (str.IsNull() || (str.Length() == 0)) {
+    return Integer::null();
+  }
   int64_t value = 0;
   const char* cstr = str.ToCString();
   if (!OS::StringToInt64(cstr, &value)) {
@@ -19981,22 +20000,6 @@ uint16_t String::CharAt(intptr_t index) const {
   return ExternalTwoByteString::CharAt(*this, index);
 }
 
-Scanner::CharAtFunc String::CharAtFunc() const {
-  intptr_t class_id = raw()->GetClassId();
-  ASSERT(RawObject::IsStringClassId(class_id));
-  if (class_id == kOneByteStringCid) {
-    return &OneByteString::CharAt;
-  }
-  if (class_id == kTwoByteStringCid) {
-    return &TwoByteString::CharAt;
-  }
-  if (class_id == kExternalOneByteStringCid) {
-    return &ExternalOneByteString::CharAt;
-  }
-  ASSERT(class_id == kExternalTwoByteStringCid);
-  return &ExternalTwoByteString::CharAt;
-}
-
 intptr_t String::CharSize() const {
   intptr_t class_id = raw()->GetClassId();
   if (class_id == kOneByteStringCid || class_id == kExternalOneByteStringCid) {
@@ -20041,10 +20044,8 @@ bool String::Equals(const String& str,
     return false;  // Lengths don't match.
   }
 
-  Scanner::CharAtFunc this_char_at_func = this->CharAtFunc();
-  Scanner::CharAtFunc str_char_at_func = str.CharAtFunc();
   for (intptr_t i = 0; i < len; i++) {
-    if (this_char_at_func(*this, i) != str_char_at_func(str, begin_index + i)) {
+    if (CharAt(i) != str.CharAt(begin_index + i)) {
       return false;
     }
   }
@@ -20720,9 +20721,8 @@ bool String::ParseDouble(const String& str,
     startChar = ExternalOneByteString::CharAddr(str, start);
   } else {
     uint8_t* chars = Thread::Current()->zone()->Alloc<uint8_t>(length);
-    const Scanner::CharAtFunc char_at = str.CharAtFunc();
     for (intptr_t i = 0; i < length; i++) {
-      int32_t ch = char_at(str, start + i);
+      int32_t ch = str.CharAt(start + i);
       if (ch < 128) {
         chars[i] = ch;
       } else {

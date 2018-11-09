@@ -23,7 +23,6 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
-#include "vm/scanner.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/token_position.h"
@@ -7283,8 +7282,6 @@ class String : public Instance {
   virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
   uint16_t CharAt(intptr_t index) const;
-
-  Scanner::CharAtFunc CharAtFunc() const;
 
   intptr_t CharSize() const;
 

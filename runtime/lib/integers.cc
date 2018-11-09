@@ -176,18 +176,7 @@ static RawInteger* ParseInteger(const String& value) {
     }
   }
 
-  const String* int_string;
-  bool is_positive;
-  if (Scanner::IsValidInteger(value, &is_positive, &int_string)) {
-    if (is_positive) {
-      return Integer::New(*int_string);
-    }
-    String& temp = String::Handle();
-    temp = String::Concat(Symbols::Dash(), *int_string);
-    return Integer::New(temp);
-  }
-
-  return Integer::null();
+  return Integer::New(value);
 }
 
 DEFINE_NATIVE_ENTRY(Integer_parse, 1) {

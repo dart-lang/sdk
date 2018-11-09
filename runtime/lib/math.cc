@@ -9,7 +9,6 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/scanner.h"
 #include "vm/symbols.h"
 
 namespace dart {
