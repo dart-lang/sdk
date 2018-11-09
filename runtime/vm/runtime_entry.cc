@@ -2019,7 +2019,7 @@ static void HandleOSRRequest(Thread* thread) {
   // Since the code is referenced from the frame and the ZoneHandle,
   // it cannot have been removed from the function.
   const Object& result = Object::Handle(
-      Compiler::CompileOptimizedFunctionInForeground(thread, function, osr_id));
+      Compiler::CompileOptimizedFunction(thread, function, osr_id));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }
@@ -2172,7 +2172,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       }
     }
     const Object& result = Object::Handle(
-        zone, Compiler::CompileOptimizedFunctionInForeground(thread, function));
+        zone, Compiler::CompileOptimizedFunction(thread, function));
     if (result.IsError()) {
       Exceptions::PropagateError(Error::Cast(result));
     }
