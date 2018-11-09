@@ -33,13 +33,20 @@ class MethodInvocationResolver {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement _definingLibrary;
 
+  /// The URI of [_definingLibrary].
+  final Uri _definingLibraryUri;
+
   /// The object keeping track of which elements have had their types promoted.
-  TypePromotionManager _promoteManager;
+  final TypePromotionManager _promoteManager;
+
+  /// The [Name] object of the invocation being resolved by [resolve].
+  Name _currentName;
 
   MethodInvocationResolver(this._resolver)
       : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
+        _definingLibraryUri = _resolver.definingLibrary.source.uri,
         _promoteManager = _resolver.promoteManager;
 
   /// The scope used to resolve identifiers.
@@ -48,6 +55,7 @@ class MethodInvocationResolver {
   void resolve(MethodInvocation node) {
     SimpleIdentifier nameNode = node.methodName;
     String name = nameNode.name;
+    _currentName = Name(_definingLibraryUri, name);
 
     //
     // Synthetic identifiers have been already reported during parsing.
@@ -172,25 +180,6 @@ class MethodInvocationResolver {
   ExecutableElement _lookUpClassMember(ClassElement element, String name) {
     // TODO(scheglov) Use class hierarchy.
     return element.lookUpMethod(name, _definingLibrary);
-  }
-
-  /// Return a signature of a member of a superinterface of [type].
-  /// It might be abstract.
-  /// TODO(scheglov) Replace this with class hierarchy.
-  FunctionType _lookUpInheritedMember(InterfaceType type, Name name) {
-    for (var mixin in type.mixins.reversed) {
-      var result = _inheritance.getMember(mixin, name);
-      if (result != null) return result;
-    }
-    {
-      var result = _inheritance.getMember(type.superclass, name);
-      if (result != null) return result;
-    }
-    for (var interface in type.interfaces) {
-      var result = _inheritance.getMember(interface, name);
-      if (result != null) return result;
-    }
-    return null;
   }
 
   void _reportInvocationOfNonFunction(MethodInvocation node) {
@@ -337,12 +326,7 @@ class MethodInvocationResolver {
       return;
     }
 
-    // TODO(scheglov) It is wasteful: get library URI multiple times.
-    // TODO(scheglov) It is wasteful: create names multiple times.
-    var targetType = _inheritance.getMember(
-      receiverType,
-      new Name(_definingLibrary.source.uri, name),
-    );
+    var targetType = _inheritance.getMember(receiverType, _currentName);
     if (targetType != null) {
       var calleeType = _getCalleeType(targetType);
 
@@ -417,10 +401,7 @@ class MethodInvocationResolver {
     }
 
     var receiverType = enclosingClass.type;
-    var targetType = _inheritance.getMember(
-      receiverType,
-      new Name(_definingLibrary.source.uri, name),
-    );
+    var targetType = _inheritance.getMember(receiverType, _currentName);
 
     if (targetType != null) {
       nameNode.staticElement = targetType.element;
@@ -489,7 +470,7 @@ class MethodInvocationResolver {
     var receiverType = _resolver.enclosingClass.type;
     var targetType = _inheritance.getMember(
       receiverType,
-      new Name(_definingLibrary.source.uri, name),
+      _currentName,
       forSuper: true,
     );
 
@@ -504,10 +485,7 @@ class MethodInvocationResolver {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    targetType = _lookUpInheritedMember(
-      receiverType,
-      new Name(_definingLibrary.source.uri, name),
-    );
+    targetType = _inheritance.getInherited(receiverType, _currentName);
     if (targetType != null) {
       nameNode.staticElement = targetType.element;
       var calleeType = _getCalleeType(targetType);
