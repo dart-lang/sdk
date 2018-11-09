@@ -318,6 +318,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.platformBinaries, setPlatformBinaries),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
+    new OptionHandler(Flags.progress, passThrough),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler(Flags.readData, setReadData),
@@ -519,17 +520,15 @@ Future<api.CompilationResult> compile(List<String> argv,
             .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
                 'JavaScript in '
                 '${relativize(currentDirectory, out, Platform.isWindows)}');
-        if (diagnosticHandler.verbose) {
-          String input = uriPathToNative(scriptName);
-          print('Dart file ($input) compiled to JavaScript.');
-          print('Wrote the following files:');
-          for (String filename in outputProvider.allOutputFiles) {
-            print("  $filename");
-          }
-        } else if (outputSpecified) {
+        if (outputSpecified || diagnosticHandler.verbose) {
           String input = uriPathToNative(scriptName);
           String output = relativize(currentDirectory, out, Platform.isWindows);
           print('Dart file ($input) compiled to JavaScript: $output');
+          if (diagnosticHandler.verbose) {
+            var files = outputProvider.allOutputFiles;
+            int jsCount = files.where((f) => f.endsWith('.js')).length;
+            print('Emitted file $jsCount JavaScript files.');
+          }
         }
         break;
       case CompilationStrategy.toData:
@@ -546,12 +545,6 @@ Future<api.CompilationResult> compile(List<String> argv,
             relativize(currentDirectory, writeDataUri, Platform.isWindows);
         print('Dart file ($input) serialized to '
             '${dillOutput} and ${dataOutput}.');
-        if (diagnosticHandler.verbose) {
-          print('Wrote the following files:');
-          for (String filename in outputProvider.allOutputFiles) {
-            print("  $filename");
-          }
-        }
         break;
       case CompilationStrategy.fromData:
         int dataCharactersRead = inputProvider.dartCharactersRead;
@@ -568,17 +561,15 @@ Future<api.CompilationResult> compile(List<String> argv,
             .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
                 'JavaScript in '
                 '${relativize(currentDirectory, out, Platform.isWindows)}');
-        if (diagnosticHandler.verbose) {
-          String input = uriPathToNative(scriptName);
-          print('Dart file ($input) compiled to JavaScript.');
-          print('Wrote the following files:');
-          for (String filename in outputProvider.allOutputFiles) {
-            print("  $filename");
-          }
-        } else if (outputSpecified) {
+        if (outputSpecified || diagnosticHandler.verbose) {
           String input = uriPathToNative(scriptName);
           String output = relativize(currentDirectory, out, Platform.isWindows);
           print('Dart file ($input) compiled to JavaScript: $output');
+          if (diagnosticHandler.verbose) {
+            var files = outputProvider.allOutputFiles;
+            int jsCount = files.where((f) => f.endsWith('.js')).length;
+            print('Emitted file $jsCount JavaScript files.');
+          }
         }
         break;
     }

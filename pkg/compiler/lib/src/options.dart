@@ -234,9 +234,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// emitter might still be used if the program uses dart:mirrors.
   bool useStartupEmitter = false;
 
-  /// Enable verbose printing during compilation. Includes progress messages
-  /// during each phase and a time-breakdown between phases at the end.
+  /// Enable verbose printing during compilation. Includes a time-breakdown
+  /// between phases at the end.
   bool verbose = false;
+
+  /// On top of --verbose, enable more verbose printing, like progress messages
+  /// during each phase of compilation.
+  bool showInternalProgress = false;
 
   /// Track allocations in the JS output.
   ///
@@ -328,6 +332,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
       ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
       ..verbose = _hasOption(options, Flags.verbose)
+      ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=');
   }

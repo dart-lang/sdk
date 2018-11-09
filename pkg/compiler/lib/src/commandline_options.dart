@@ -62,6 +62,7 @@ class Flags {
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
+  static const String progress = '--show-internal-progress';
   static const String version = '--version';
 
   static const String readData = '--read-data';

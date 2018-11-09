@@ -160,7 +160,7 @@ abstract class Compiler {
     _impactCache = <Entity, WorldImpact>{};
     _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
 
-    if (options.verbose) {
+    if (options.showInternalProgress) {
       progress = new ProgressImpl(_reporter);
     }
 
@@ -328,7 +328,7 @@ abstract class Compiler {
 
     phase = PHASE_RESOLVING;
     resolutionEnqueuer.applyImpact(mainImpact);
-    reporter.log('Resolving...');
+    if (options.showInternalProgress) reporter.log('Resolving...');
 
     processQueue(
         frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
@@ -361,7 +361,7 @@ abstract class Compiler {
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
-    reporter.log('Inferring types...');
+    if (options.showInternalProgress) reporter.log('Inferring types...');
     InferredDataBuilder inferredDataBuilder =
         new InferredDataBuilderImpl(closedWorld.annotationsData);
     return globalInference.runGlobalTypeInference(
@@ -373,7 +373,7 @@ abstract class Compiler {
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
     backendStrategy.registerJClosedWorld(closedWorld);
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
-    reporter.log('Compiling...');
+    if (options.showInternalProgress) reporter.log('Compiling...');
     phase = PHASE_COMPILING;
 
     Enqueuer codegenEnqueuer =
