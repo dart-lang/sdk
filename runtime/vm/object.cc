@@ -1788,33 +1788,33 @@ RawError* Object::Init(Isolate* isolate,
     type_args = TypeArguments::New(1);
     type = object_store->int_type();
     type_args.SetTypeAt(0, type);
-    type_args.Canonicalize();
+    type_args = type_args.Canonicalize();
     object_store->set_type_argument_int(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->double_type();
     type_args.SetTypeAt(0, type);
-    type_args.Canonicalize();
+    type_args = type_args.Canonicalize();
     object_store->set_type_argument_double(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
-    type_args.Canonicalize();
+    type_args = type_args.Canonicalize();
     object_store->set_type_argument_string(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, Object::dynamic_type());
-    type_args.Canonicalize();
+    type_args = type_args.Canonicalize();
     object_store->set_type_argument_string_dynamic(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, type);
-    type_args.Canonicalize();
+    type_args = type_args.Canonicalize();
     object_store->set_type_argument_string_string(type_args);
 
     // Finish the initialization by compiling the bootstrap scripts containing
