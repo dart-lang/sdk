@@ -161,7 +161,7 @@ abstract class Compiler {
     _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
 
     if (options.showInternalProgress) {
-      progress = new ProgressImpl(_reporter);
+      progress = new InteractiveProgress();
     }
 
     backend = createBackend();
@@ -1003,5 +1003,35 @@ class ProgressImpl implements Progress {
 
   void startPhase() {
     _stopwatch.reset();
+  }
+}
+
+/// Progress implementations that prints progress to the [DiagnosticReporter]
+/// with 500ms intervals using escape sequences to keep the progress data on a
+/// single line.
+class InteractiveProgress implements Progress {
+  final Stopwatch _stopwatchPhase = new Stopwatch()..start();
+  final Stopwatch _stopwatchInterval = new Stopwatch()..start();
+  void startPhase() {
+    print('');
+    _stopwatchPhase.reset();
+    _stopwatchInterval.reset();
+  }
+
+  void showProgress(String prefix, int count, String suffix) {
+    if (_stopwatchInterval.elapsedMilliseconds > 500) {
+      var time = _stopwatchPhase.elapsedMilliseconds / 1000;
+      var rate = count / _stopwatchPhase.elapsedMilliseconds;
+      var s = new StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
+        ..write('\x1b[48;5;40m\x1b[30m==>\x1b[0m $prefix')
+        ..write(count)
+        ..write('$suffix Elapsed time: ')
+        ..write(time.toStringAsFixed(2))
+        ..write(' s. Rate: ')
+        ..write(rate.toStringAsFixed(2))
+        ..write(' units/ms');
+      print('$s');
+      _stopwatchInterval.reset();
+    }
   }
 }

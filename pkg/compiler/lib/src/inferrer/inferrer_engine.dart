@@ -473,10 +473,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void runOverAllElements() {
-    progress.startPhase();
-
     analyzeAllElements();
-
     TypeGraphDump dump =
         debug.PRINT_GRAPH ? new TypeGraphDump(_compilerOutput, this) : null;
 
@@ -648,6 +645,7 @@ class InferrerEngineImpl extends InferrerEngine {
     Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
         .where((MemberEntity member) => !member.isAbstract);
 
+    progress.startPhase();
     processedMembers.forEach((MemberEntity member) {
       progress.showProgress(
           'Added ', addedInGraph, ' elements in inferencing graph.');
@@ -847,6 +845,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void refine() {
+    progress.startPhase();
     while (!workQueue.isEmpty) {
       progress.showProgress('Inferred ', overallRefineCount, ' types.');
       TypeInformation info = workQueue.remove();
