@@ -678,6 +678,11 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
     function.set_unoptimized_code(code);
     function.AttachCode(code);
     function.SetWasCompiled(true);
+    if (function.IsOptimizable() && (function.usage_counter() < 0)) {
+      // While doing compilation in background, usage counter is set
+      // to INT_MIN. Reset counter so that function can be optimized further.
+      function.SetUsageCounter(0);
+    }
   }
   if (parsed_function()->HasDeferredPrefixes()) {
     ASSERT(!FLAG_load_deferred_eagerly);

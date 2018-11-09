@@ -150,7 +150,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif  // defined(TARGET_OS_WINDOWS)
 
     FLAG_use_field_guards = false;
-    FLAG_optimization_counter_threshold = -1;
   }
 
   FrameLayout::Init();
