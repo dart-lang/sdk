@@ -3736,7 +3736,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_register(FP, static_cast<int32_t>(fp));
   set_register(THR, reinterpret_cast<uword>(thread));
   // Set the tag.
-  thread->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartCompiledTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
   // Restore pool pointer.

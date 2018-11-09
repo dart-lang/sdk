@@ -781,6 +781,8 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   ASSERT(thread->sticky_error() == Error::null());
   ASSERT(Thread::Current()->IsMutatorThread());
 
+  VMTagScope tagScope(thread, VMTag::kLoadBytecodeTagId);
+
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     StackZone stack_zone(thread);

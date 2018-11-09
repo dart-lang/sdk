@@ -637,11 +637,11 @@ bool Thread::CanCollectGarbage() const {
 }
 
 bool Thread::IsExecutingDartCode() const {
-  return (top_exit_frame_info() == 0) && (vm_tag() == VMTag::kDartTagId);
+  return (top_exit_frame_info() == 0) && VMTag::IsDartTag(vm_tag());
 }
 
 bool Thread::HasExitedDartCode() const {
-  return (top_exit_frame_info() != 0) && (vm_tag() != VMTag::kDartTagId);
+  return (top_exit_frame_info() != 0) && !VMTag::IsDartTag(vm_tag());
 }
 
 template <class C>

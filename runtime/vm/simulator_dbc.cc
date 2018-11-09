@@ -957,7 +957,7 @@ DART_NOINLINE static bool InvokeRuntime(Thread* thread,
   if (!setjmp(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
-    thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_vm_tag(VMTag::kDartCompiledTagId);
     thread->set_top_exit_frame_info(0);
     return true;
   } else {
@@ -974,7 +974,7 @@ DART_NOINLINE static bool InvokeNative(Thread* thread,
   if (!setjmp(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(function));
     wrapper(args, function);
-    thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_vm_tag(VMTag::kDartCompiledTagId);
     thread->set_top_exit_frame_info(0);
     return true;
   } else {
@@ -1227,7 +1227,7 @@ RawObject* Simulator::Call(const Code& code,
 
   // Save current VM tag and mark thread as executing Dart code.
   const uword vm_tag = thread->vm_tag();
-  thread->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartCompiledTagId);
 
   // Save current top stack resource and reset the list.
   StackResource* top_resource = thread->top_resource();
@@ -3967,7 +3967,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   StackResource::Unwind(thread);
 
   // Set the tag.
-  thread->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartCompiledTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
 
