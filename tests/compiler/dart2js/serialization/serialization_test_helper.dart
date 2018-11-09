@@ -15,7 +15,7 @@ runTest(
     {Uri entryPoint,
     Map<String, String> memorySourceFiles: const <String, String>{},
     Uri packageConfig,
-    Uri libraryRoot,
+    Uri librariesSpecificationUri,
     List<String> options,
     SerializationStrategy strategy: const BytesInMemorySerializationStrategy(),
     bool useDataKinds: false}) async {
@@ -24,7 +24,7 @@ runTest(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       packageConfig: packageConfig,
-      libraryRoot: libraryRoot,
+      librariesSpecificationUri: librariesSpecificationUri,
       options: options,
       outputProvider: collector1,
       beforeRun: (Compiler compiler) {
@@ -37,7 +37,7 @@ runTest(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       packageConfig: packageConfig,
-      libraryRoot: libraryRoot,
+      librariesSpecificationUri: librariesSpecificationUri,
       options: options,
       outputProvider: collector2,
       beforeRun: (Compiler compiler) {

@@ -26,13 +26,13 @@ main(List<String> args) {
 
     Uri entryPoint = getEntryPoint(argResults) ??
         Uri.base.resolve('samples-dev/swarm/swarm.dart');
-    Uri libraryRoot = getLibraryRoot(argResults);
+    Uri librariesSpecificationUri = getLibrariesSpec(argResults);
     Uri packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);
     await runTest(
         entryPoint: entryPoint,
         packageConfig: packageConfig,
-        libraryRoot: libraryRoot,
+        librariesSpecificationUri: librariesSpecificationUri,
         options: options,
         strategy: strategy,
         useDataKinds: useDataKinds);

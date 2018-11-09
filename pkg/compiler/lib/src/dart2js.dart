@@ -21,7 +21,7 @@ import 'util/command_line.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 
-const String LIBRARY_ROOT = '../../../../sdk';
+const String _defaultSpecificationUri = '../../../../sdk/lib/libraries.json';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
 
 /**
@@ -110,7 +110,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     {fe.InitializedCompilerState kernelInitializedCompilerState}) {
   Stopwatch wallclock = new Stopwatch()..start();
   stackTraceFilePrefix = '$currentDirectory';
-  Uri libraryRoot = currentDirectory;
+  Uri librariesSpecificationUri =
+      currentDirectory.resolve('lib/libraries.json');
   bool outputSpecified = false;
   Uri out;
   Uri sourceMapOut;
@@ -144,8 +145,9 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough("--build-id=$BUILD_ID");
   }
 
-  void setLibraryRoot(String argument) {
-    libraryRoot = currentDirectory.resolve(extractPath(argument));
+  void setLibrarySpecificationUri(String argument) {
+    librariesSpecificationUri =
+        currentDirectory.resolve(extractPath(argument, isDirectory: false));
   }
 
   void setPackageRoot(String argument) {
@@ -234,17 +236,16 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setCategories(String argument) {
     List<String> categories = extractParameter(argument).split(',');
-    if (categories.contains('all')) {
-      categories = ["Client", "Server"];
+    bool isServerMode = categories.length == 1 && categories.single == "Server";
+    if (isServerMode) {
+      hints.add("The --categories flag is deprecated and will be deleted in a "
+          "future release, please use '${Flags.serverMode}' instead of "
+          "'--categories=Server'.");
+      passThrough(Flags.serverMode);
     } else {
-      for (String category in categories) {
-        if (!["Client", "Server"].contains(category)) {
-          fail('Unsupported library category "$category", '
-              'supported categories are: Client, Server, all');
-        }
-      }
+      hints.add(
+          "The --categories flag is deprecated, see the usage for details.");
     }
-    passThrough('--categories=${categories.join(",")}');
   }
 
   void setPlatformBinaries(String argument) {
@@ -329,7 +330,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.progress, passThrough),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
-    new OptionHandler('--library-root=.+', setLibraryRoot),
+    new OptionHandler('--library-root=.+', ignoreOption),
+    new OptionHandler('--libraries-spec=.+', setLibrarySpecificationUri),
     new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
@@ -364,6 +366,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.resolveOnly, ignoreOption),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
+    new OptionHandler(Flags.serverMode, passThrough),
     new OptionHandler(Flags.disableInlining, passThrough),
     new OptionHandler(Flags.disableProgramSplit, passThrough),
     new OptionHandler(Flags.disableTypeInference, passThrough),
@@ -590,7 +593,8 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      libraryRoot: libraryRoot, platformBinaries: platformBinaries)
+      librariesSpecificationUri: librariesSpecificationUri,
+      platformBinaries: platformBinaries)
     ..entryPoint = script
     ..packageRoot = packageRoot
     ..packageConfig = packageConfig
@@ -652,13 +656,15 @@ void fail(String message) {
 
 Future<api.CompilationResult> compilerMain(List<String> arguments,
     {fe.InitializedCompilerState kernelInitializedCompilerState}) async {
-  Uri script = Platform.script;
-  if (script.isScheme("package")) {
-    script = await Isolate.resolvePackageUri(script);
+  if (!arguments.any((a) => a.startsWith('--libraries-spec='))) {
+    Uri script = Platform.script;
+    if (script.isScheme("package")) {
+      script = await Isolate.resolvePackageUri(script);
+    }
+    Uri librariesJson = script.resolve(_defaultSpecificationUri);
+    arguments = <String>['--libraries-spec=${librariesJson.toFilePath()}']
+      ..addAll(arguments);
   }
-  Uri libraryRoot = script.resolve(LIBRARY_ROOT);
-  arguments = <String>['--library-root=${libraryRoot.toFilePath()}']
-    ..addAll(arguments);
   return compile(arguments,
       kernelInitializedCompilerState: kernelInitializedCompilerState);
 }
@@ -830,8 +836,8 @@ be removed in a future version:
   --throw-on-error
     Throw an exception if a compile-time error is detected.
 
-  --library-root=<directory>
-    Where to find the Dart platform libraries.
+  --libraries-spec=<file>
+    A .json file containing the libraries specification for dart2js.
 
   --allow-mock-compilation
     Do not generate a call to main if either of the following
@@ -841,11 +847,14 @@ be removed in a future version:
     Disable the optimization that removes unused native types from dart:html
     and related libraries.
 
+  --server-mode
+    Compile with server support. The compiler will use a library specification
+    that disables dart:html but supports dart:js in conditional imports.
+
   --categories=<categories>
-    A comma separated list of allowed library categories.  The default
-    is "Client".  Possible categories can be seen by providing an
-    unsupported category, for example, --categories=help.  To enable
-    all categories, use --categories=all.
+    (deprecated)
+    Use '--server-mode' instead of '--categories=Server'. All other category
+    values have no effect on the compiler behavior.
 
   --deferred-map=<file>
     Generates a json file with a mapping from each deferred import to a list of

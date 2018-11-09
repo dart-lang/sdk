@@ -19,7 +19,7 @@ void main() {
         var result = entry.internalMain([
           file,
           '-o${tmpDir.path}/out.js',
-          '--library-root=sdk',
+          '--libraries-spec=sdk/lib/libraries.json',
         ]);
         return result.then((CompilationResult result) {
           CompilerImpl compiler = result.compiler;
