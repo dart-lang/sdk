@@ -109,18 +109,25 @@ class Compiler : public AllStatic {
   static RawError* EnsureUnoptimizedCode(Thread* thread,
                                          const Function& function);
 
-  // Generates optimized code for function.
-  // If interpreter is used and function was not compiled yet, then
-  // generates unoptimized code (it's basically the first round of
-  // optimization).
+  // Generates optimized code for function in foreground (mutator thread).
   //
   // Returns the code object if compilation succeeds.  Returns an Error if
   // there is a compilation error.  If optimization fails, but there is no
   // error, returns null.  Any generated code is installed unless we are in
   // OSR mode.
-  static RawObject* CompileOptimizedFunction(Thread* thread,
-                                             const Function& function,
-                                             intptr_t osr_id = kNoOSRDeoptId);
+  static RawObject* CompileOptimizedFunctionInForeground(
+      Thread* thread,
+      const Function& function,
+      intptr_t osr_id = kNoOSRDeoptId);
+
+  // Generates code for function in background.
+  //
+  // Returns the code object if compilation succeeds.  Returns an Error if
+  // there is a compilation error.  If optimization fails, but there is no
+  // error, returns null. Any generated code is installed.
+  static RawObject* CompileFunctionInBackground(Thread* thread,
+                                                const Function& function,
+                                                bool optimizing);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.

@@ -1194,38 +1194,54 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   return Error::null();
 }
 
-RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
-                                              const Function& function,
-                                              intptr_t osr_id) {
+RawObject* Compiler::CompileOptimizedFunctionInForeground(
+    Thread* thread,
+    const Function& function,
+    intptr_t osr_id) {
+  ASSERT(!IsBackgroundCompilation());
+
 #if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
   const char* event_name;
   if (osr_id != kNoOSRDeoptId) {
     event_name = "CompileFunctionOptimizedOSR";
-  } else if (IsBackgroundCompilation()) {
-    event_name = "CompileFunctionOptimizedBackground";
   } else {
     event_name = "CompileFunctionOptimized";
   }
-  // TODO(alexmarkov): Consider adding a separate event for unoptimized
-  // compilation triggered from interpreter
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 #endif  // !defined(PRODUCT)
-
-  // If running with interpreter, do the unoptimized compilation first.
-  const bool optimized = function.ShouldCompilerOptimize();
-  ASSERT(FLAG_enable_interpreter || optimized);
 
   // If we are in the optimizing in the mutator/Dart thread, then
   // this is either an OSR compilation or background compilation is
   // not currently allowed.
-  ASSERT(!thread->IsMutatorThread() || (osr_id != kNoOSRDeoptId) ||
-         !FLAG_background_compilation ||
+  ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
          BackgroundCompiler::IsDisabled(Isolate::Current()) ||
          !function.is_background_optimizable());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
-  return CompileFunctionHelper(pipeline, function, optimized, osr_id);
+  return CompileFunctionHelper(pipeline, function, /* optimized = */ true,
+                               osr_id);
+}
+
+RawObject* Compiler::CompileFunctionInBackground(Thread* thread,
+                                                 const Function& function,
+                                                 bool optimizing) {
+  ASSERT(IsBackgroundCompilation());
+
+#if !defined(PRODUCT)
+  VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
+  const char* event_name;
+  if (optimizing) {
+    event_name = "CompileFunctionOptimizedInBackground";
+  } else {
+    event_name = "CompileFunctionUnoptimizedInBackground";
+  }
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
+#endif  // !defined(PRODUCT)
+
+  CompilationPipeline* pipeline =
+      CompilationPipeline::New(thread->zone(), function);
+  return CompileFunctionHelper(pipeline, function, optimizing, kNoOSRDeoptId);
 }
 
 // This is only used from unit tests.
@@ -1663,8 +1679,7 @@ void BackgroundCompiler::Run() {
         ASSERT(FLAG_enable_interpreter || optimizing);
 
         // Check that we have aggregated and cleared the stats.
-        Compiler::CompileOptimizedFunction(thread, function,
-                                           Compiler::kNoOSRDeoptId);
+        Compiler::CompileFunctionInBackground(thread, function, optimizing);
 
         QueueElement* qelem = NULL;
         {
@@ -1865,9 +1880,17 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   return Error::null();
 }
 
-RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
-                                              const Function& function,
-                                              intptr_t osr_id) {
+RawObject* Compiler::CompileOptimizedFunctionInForeground(
+    Thread* thread,
+    const Function& function,
+    intptr_t osr_id) {
+  FATAL1("Attempt to compile function %s", function.ToCString());
+  return Error::null();
+}
+
+RawObject* Compiler::CompileFunctionInBackground(Thread* thread,
+                                                 const Function& function,
+                                                 bool optimizing) {
   FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
