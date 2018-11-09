@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
@@ -92,6 +93,9 @@ class CommandLineOptions {
 
   /// Whether to display version information
   final bool displayVersion;
+
+  /// A list of the names of the experiments that are to be enabled.
+  final List<String> enabledExperiments;
 
   /// Whether to ignore unrecognized flags
   final bool ignoreUnrecognizedFlags;
@@ -182,6 +186,8 @@ class CommandLineOptions {
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
+        enabledExperiments =
+            cast(args['enable-experiment'] ?? const <String>[]),
         ignoreUnrecognizedFlags = cast(args['ignore-unrecognized-flags']),
         lints = cast(args[lintsFlag]),
         log = cast(args['log']),
@@ -333,6 +339,11 @@ class CommandLineOptions {
           help: 'Print the analyzer version.',
           defaultsTo: false,
           negatable: false)
+      ..addMultiOption('enable-experiment',
+          help:
+              'Enable one or more experimental features. If multiple features '
+              'are being added, they should be comma separated.',
+          splitCommas: true)
       ..addFlag('no-hints',
           help: 'Do not show hint results.',
           defaultsTo: false,
@@ -586,6 +597,22 @@ class CommandLineOptions {
         errorSink.writeln(
             'Note: the --strong flag is deprecated and will be removed in an '
             'future release.\n');
+      }
+      if (results.wasParsed('enable-experiment')) {
+        List<String> names = cast(results['enable-experiment']).toList();
+        for (String knownName in AnalyzerOptions.currentExperiments) {
+          names.remove(knownName);
+        }
+        if (names.isNotEmpty) {
+          StringBuffer buffer = new StringBuffer();
+          for (String invalidName in names) {
+            if (buffer.length > 0) {
+              buffer.write(', ');
+            }
+            buffer.write(invalidName);
+          }
+          errorSink.writeln('Unknown experiments: $buffer');
+        }
       }
 
       return new CommandLineOptions._fromArgs(results);

@@ -92,6 +92,7 @@ class ContextCacheEntry {
 
     contextOptions.trackCacheDependencies = false;
     contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;
+    contextOptions.enabledExperiments = clOptions.enabledExperiments;
     contextOptions.hint = !clOptions.disableHints;
     contextOptions.generateImplicitErrors = clOptions.showPackageWarnings;
     contextOptions.generateSdkErrors = clOptions.showSdkWarnings;
