@@ -276,7 +276,6 @@ static int Main(int argc, const char** argv) {
     dart_argv = &argv[1];
   }
 
-  bin::Thread::InitOnce();
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 

@@ -323,8 +323,6 @@ void OS::Init() {
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
   ThreadLocalData::Init();
-  MonitorWaitData::monitor_wait_data_key_ = OSThread::CreateThreadLocal();
-  MonitorData::GetMonitorWaitDataForThread();
   LARGE_INTEGER ticks_per_sec;
   if (!QueryPerformanceFrequency(&ticks_per_sec)) {
     qpc_ticks_per_second = 0;
