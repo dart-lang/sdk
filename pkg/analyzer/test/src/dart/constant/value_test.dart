@@ -418,6 +418,20 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_nullValue().isNull, isTrue);
   }
 
+  void test_getValue_set_empty() {
+    Object result = _setValue().toSetValue();
+    _assertInstanceOfObjectArray(result);
+    Set<Object> set = result as Set<Object>;
+    expect(set, hasLength(0));
+  }
+
+  void test_getValue_set_valid() {
+    Object result = _setValue(new Set.from([_intValue(23)])).toSetValue();
+    _assertInstanceOfObjectArray(result);
+    Set<Object> set = result as Set<Object>;
+    expect(set, hasLength(1));
+  }
+
   void test_getValue_string_known() {
     String value = "twenty-three";
     expect(_stringValue(value).toStringValue(), value);
@@ -1973,6 +1987,11 @@ class DartObjectImplTest extends EngineTestCase {
 
   DartObjectImpl _numValue() {
     return new DartObjectImpl(_typeProvider.nullType, NumState.UNKNOWN_VALUE);
+  }
+
+  DartObjectImpl _setValue([Set<DartObjectImpl> elements]) {
+    return new DartObjectImpl(_typeProvider.setType,
+        new SetState(elements ?? new Set<DartObjectImpl>()));
   }
 
   DartObjectImpl _stringValue(String value) {

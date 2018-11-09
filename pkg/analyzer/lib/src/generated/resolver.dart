@@ -7871,6 +7871,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Object'.
   InterfaceType get objectType;
 
+  /// Return the type representing the built-in type 'Set'.
+  InterfaceType get setType;
+
   /// Return the type representing the built-in type 'StackTrace'.
   InterfaceType get stackTraceType;
 
@@ -7991,6 +7994,9 @@ class TypeProviderImpl extends TypeProviderBase {
   /// An shared object representing the value 'null'.
   DartObjectImpl _nullObject;
 
+  /// The type representing the type 'Set'.
+  InterfaceType _setType;
+
   /// The type representing the type 'Null'.
   InterfaceType _nullType;
 
@@ -8104,6 +8110,9 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get objectType => _objectType;
 
   @override
+  InterfaceType get setType => _setType;
+
+  @override
   InterfaceType get stackTraceType => _stackTraceType;
 
   @override
@@ -8158,6 +8167,7 @@ class TypeProviderImpl extends TypeProviderBase {
     _nullType = _getType(coreNamespace, "Null");
     _numType = _getType(coreNamespace, "num");
     _objectType = _getType(coreNamespace, "Object");
+    _setType = _getType(coreNamespace, "Set");
     _stackTraceType = _getType(coreNamespace, "StackTrace");
     _streamType = _getType(asyncNamespace, "Stream");
     _stringType = _getType(coreNamespace, "String");

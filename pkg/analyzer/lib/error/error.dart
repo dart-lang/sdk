@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -178,6 +178,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
   CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
   CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
+  CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL,
   CompileTimeErrorCode.MISSING_DART_LIBRARY,
   CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
   CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,

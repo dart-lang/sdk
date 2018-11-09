@@ -730,6 +730,15 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
+  Set<DartObject> toSetValue() {
+    InstanceState state = _state;
+    if (state is SetState) {
+      return state._elements;
+    }
+    return null;
+  }
+
+  @override
   String toString() => "${type.displayName} ($_state)";
 
   @override
@@ -2681,6 +2690,89 @@ class NumState extends InstanceState {
 
   @override
   String toString() => "-unknown-";
+}
+
+/**
+ * The state of an object representing a set.
+ */
+class SetState extends InstanceState {
+  /**
+   * The elements of the set.
+   */
+  final Set<DartObjectImpl> _elements;
+
+  /**
+   * Initialize a newly created state to represent a set with the given
+   * [elements].
+   */
+  SetState(this._elements);
+
+  @override
+  int get hashCode {
+    int value = 0;
+    for (DartObjectImpl element in _elements) {
+      value = (value << 3) ^ element.hashCode;
+    }
+    return value;
+  }
+
+  @override
+  String get typeName => "Set";
+
+  @override
+  bool operator ==(Object object) {
+    if (object is SetState) {
+      List<DartObjectImpl> elements = _elements.toList();
+      List<DartObjectImpl> otherElements = object._elements.toList();
+      int count = elements.length;
+      if (otherElements.length != count) {
+        return false;
+      } else if (count == 0) {
+        return true;
+      }
+      for (int i = 0; i < count; i++) {
+        if (elements[i] != otherElements[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  @override
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(this == rightOperand);
+  }
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('{');
+    bool first = true;
+    _elements.forEach((DartObjectImpl element) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(', ');
+      }
+      buffer.write(element);
+    });
+    buffer.write('}');
+    return buffer.toString();
+  }
 }
 
 /**

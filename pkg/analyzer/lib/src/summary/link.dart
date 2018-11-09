@@ -5331,6 +5331,7 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
+  InterfaceType _setType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -5419,6 +5420,10 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get objectType =>
       _objectType ??= _buildInterfaceType(_linker.coreLibrary, 'Object');
+
+  @override
+  InterfaceType get setType =>
+      _setType ??= _buildInterfaceType(_linker.coreLibrary, 'Set');
 
   @override
   InterfaceType get stackTraceType => _stackTraceType ??=

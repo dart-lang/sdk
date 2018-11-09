@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1666,6 +1666,16 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MISSING_CONST_IN_MAP_LITERAL',
           "Map literals must be prefixed with 'const' when used as a constant "
+          "expression.",
+          correction: "Try adding the keyword 'const' before the literal.");
+
+  /**
+   * 12.1 Constants: A constant expression is ... a constant set literal.
+   */
+  static const CompileTimeErrorCode MISSING_CONST_IN_SET_LITERAL =
+      const CompileTimeErrorCode(
+          'MISSING_CONST_IN_SET_LITERAL',
+          "Set literals must be prefixed with 'const' when used as a constant "
           "expression.",
           correction: "Try adding the keyword 'const' before the literal.");
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1418,6 +1418,35 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     return _getConstantValue(node, node.propertyName.staticElement);
+  }
+
+  @override
+  DartObjectImpl visitSetLiteral(SetLiteral node) {
+    if (!node.isConst) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
+      return null;
+    }
+    bool errorOccurred = false;
+    Set<DartObjectImpl> elements = new Set<DartObjectImpl>();
+    for (Expression element in node.elements) {
+      DartObjectImpl elementResult = element.accept(this);
+      if (elementResult == null) {
+        errorOccurred = true;
+      } else {
+        elements.add(elementResult);
+      }
+    }
+    if (errorOccurred) {
+      return null;
+    }
+    DartType nodeType = node.staticType;
+    DartType elementType =
+        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+            ? nodeType.typeArguments[0]
+            : _typeProvider.dynamicType;
+    InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
+    return new DartObjectImpl(setType, new SetState(elements));
   }
 
   @override

@@ -135,6 +135,7 @@ class SummaryTypeProvider extends TypeProviderBase {
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
+  InterfaceType _setType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -280,6 +281,12 @@ class SummaryTypeProvider extends TypeProviderBase {
     assert(_coreLibrary != null);
     _objectType ??= _getType(_coreLibrary, "Object");
     return _objectType;
+  }
+
+  @override
+  InterfaceType get setType {
+    assert(_coreLibrary != null);
+    return _setType ??= _getType(_coreLibrary, "Set");
   }
 
   @override

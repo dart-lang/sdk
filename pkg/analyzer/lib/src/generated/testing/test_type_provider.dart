@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -127,6 +127,11 @@ class TestTypeProvider extends TypeProviderBase {
    * The type representing the built-in type 'Object'.
    */
   InterfaceType _objectType;
+
+  /**
+   * The type representing the built-in type 'Set'.
+   */
+  InterfaceType _setType;
 
   /**
    * The type representing the built-in type 'StackTrace'.
@@ -468,6 +473,15 @@ class TestTypeProvider extends TypeProviderBase {
       ]);
     }
     return _objectType;
+  }
+
+  @override
+  InterfaceType get setType {
+    if (_setType == null) {
+      ClassElementImpl setElement = ElementFactory.classElement2("Set");
+      _setType = setElement.type;
+    }
+    return _setType;
   }
 
   @override
