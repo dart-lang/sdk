@@ -1122,18 +1122,23 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 #endif
 
   Isolate* isolate = thread->isolate();
-
-#if !defined(PRODUCT)
-  VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
-#endif  // !defined(PRODUCT)
-
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%s, %s)\n",
            function.ToLibNamePrefixedQualifiedCString(),
            function.token_pos().ToCString(),
            Function::KindToCString(function.kind()));
   }
+
+#if !defined(PRODUCT)
+  VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+  const char* event_name;
+  if (IsBackgroundCompilation()) {
+    event_name = "CompileFunctionUnoptimizedBackground";
+  } else {
+    event_name = "CompileFunction";
+  }
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
+#endif  // !defined(PRODUCT)
 
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
@@ -1207,14 +1212,10 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
   } else {
     event_name = "CompileFunctionOptimized";
   }
-  // TODO(alexmarkov): Consider adding a separate event for unoptimized
-  // compilation triggered from interpreter
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 #endif  // !defined(PRODUCT)
 
-  // If running with interpreter, do the unoptimized compilation first.
-  const bool optimized = function.ShouldCompilerOptimize();
-  ASSERT(FLAG_enable_interpreter || optimized);
+  ASSERT(function.ShouldCompilerOptimize());
 
   // If we are in the optimizing in the mutator/Dart thread, then
   // this is either an OSR compilation or background compilation is
@@ -1225,7 +1226,8 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
          !function.is_background_optimizable());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
-  return CompileFunctionHelper(pipeline, function, optimized, osr_id);
+  return CompileFunctionHelper(pipeline, function, /* optimized = */ true,
+                               osr_id);
 }
 
 // This is only used from unit tests.
@@ -1662,9 +1664,12 @@ void BackgroundCompiler::Run() {
         const bool optimizing = function.ShouldCompilerOptimize();
         ASSERT(FLAG_enable_interpreter || optimizing);
 
-        // Check that we have aggregated and cleared the stats.
-        Compiler::CompileOptimizedFunction(thread, function,
-                                           Compiler::kNoOSRDeoptId);
+        if (optimizing) {
+          Compiler::CompileOptimizedFunction(thread, function,
+                                             Compiler::kNoOSRDeoptId);
+        } else {
+          Compiler::CompileFunction(thread, function);
+        }
 
         QueueElement* qelem = NULL;
         {

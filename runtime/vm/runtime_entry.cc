@@ -2118,13 +2118,11 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(!function.IsNull());
 
   // If running with interpreter, do the unoptimized compilation first.
-  const bool unoptimized_compilation =
-      FLAG_enable_interpreter &&
-      (function.unoptimized_code() == Object::null());
+  const bool optimizing_compilation = function.ShouldCompilerOptimize();
+  ASSERT(FLAG_enable_interpreter || optimizing_compilation);
+  ASSERT((!optimizing_compilation) || function.HasCode());
 
-  ASSERT(unoptimized_compilation || function.HasCode());
-
-  if (unoptimized_compilation ||
+  if ((!optimizing_compilation) ||
       Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
@@ -2171,8 +2169,12 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
                   function.ToFullyQualifiedCString());
       }
     }
-    const Object& result = Object::Handle(
-        zone, Compiler::CompileOptimizedFunction(thread, function));
+    Object& result = Object::Handle(zone);
+    if (optimizing_compilation) {
+      result = Compiler::CompileOptimizedFunction(thread, function);
+    } else {
+      result = Compiler::CompileFunction(thread, function);
+    }
     if (result.IsError()) {
       Exceptions::PropagateError(Error::Cast(result));
     }
