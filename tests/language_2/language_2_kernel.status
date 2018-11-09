@@ -241,6 +241,7 @@ syntax_test/32: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/33: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/60: MissingCompileTimeError # Issue 30470
 syntax_test/61: MissingCompileTimeError # Issue 30470
+type_constants_test/04: MissingCompileTimeError # Issue 32557
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -322,6 +323,9 @@ super_call4_test/01: MissingCompileTimeError
 
 [ $compiler != dart2js && $compiler != dartdevk && $fasta ]
 const_native_factory_test: MissingCompileTimeError # Issue 29763
+
+[ $compiler != dart2js && $fasta ]
+type_constants_test/01: MissingCompileTimeError # Issue 32557
 
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
