@@ -158,9 +158,18 @@ part 'c.dart';
     var parsedLibrary = session.getParsedLibrary(testPath);
 
     expect(parsedLibrary.units, hasLength(3));
-    expect(parsedLibrary.units[0].path, '/home/test/lib/test.dart');
-    expect(parsedLibrary.units[1].path, '/home/test/lib/a.dart');
-    expect(parsedLibrary.units[2].path, '/home/test/lib/c.dart');
+    expect(
+      parsedLibrary.units[0].path,
+      convertPath('/home/test/lib/test.dart'),
+    );
+    expect(
+      parsedLibrary.units[1].path,
+      convertPath('/home/test/lib/a.dart'),
+    );
+    expect(
+      parsedLibrary.units[2].path,
+      convertPath('/home/test/lib/c.dart'),
+    );
   }
 
   test_getParsedLibrary_notLibrary() async {
@@ -381,9 +390,18 @@ part 'c.dart';
     var resolvedLibrary = await session.getResolvedLibrary(testPath);
 
     expect(resolvedLibrary.units, hasLength(3));
-    expect(resolvedLibrary.units[0].path, '/home/test/lib/test.dart');
-    expect(resolvedLibrary.units[1].path, '/home/test/lib/a.dart');
-    expect(resolvedLibrary.units[2].path, '/home/test/lib/c.dart');
+    expect(
+      resolvedLibrary.units[0].path,
+      convertPath('/home/test/lib/test.dart'),
+    );
+    expect(
+      resolvedLibrary.units[1].path,
+      convertPath('/home/test/lib/a.dart'),
+    );
+    expect(
+      resolvedLibrary.units[2].path,
+      convertPath('/home/test/lib/c.dart'),
+    );
   }
 
   test_getResolvedLibrary_notLibrary() async {
