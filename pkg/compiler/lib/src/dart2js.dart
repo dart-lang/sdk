@@ -114,6 +114,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool outputSpecified = false;
   Uri out;
   Uri sourceMapOut;
+  Uri readDataUri;
   Uri writeDataUri;
   List<String> bazelPaths;
   Uri packageConfig = null;
@@ -255,12 +256,20 @@ Future<api.CompilationResult> compile(List<String> argv,
     if (compilationStrategy == CompilationStrategy.toData) {
       fail("Cannot read and write serialized simultaneously.");
     }
+    if (argument != Flags.readData) {
+      readDataUri = currentDirectory
+          .resolve(nativeToUriPath(extractPath(argument, isDirectory: false)));
+    }
     compilationStrategy = CompilationStrategy.fromData;
   }
 
   void setWriteData(String argument) {
     if (compilationStrategy == CompilationStrategy.fromData) {
       fail("Cannot read and write serialized simultaneously.");
+    }
+    if (argument != Flags.writeData) {
+      writeDataUri = currentDirectory
+          .resolve(nativeToUriPath(extractPath(argument, isDirectory: false)));
     }
     compilationStrategy = CompilationStrategy.toData;
   }
@@ -321,8 +330,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.progress, passThrough),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
-    new OptionHandler(Flags.readData, setReadData),
-    new OptionHandler(Flags.writeData, setWriteData),
+    new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
+    new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('-O.*', setOptimizationLevel),
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
@@ -481,13 +490,13 @@ Future<api.CompilationResult> compile(List<String> argv,
       break;
     case CompilationStrategy.toData:
       out ??= currentDirectory.resolve('out.dill');
-      writeDataUri = currentDirectory.resolve('$out.data');
+      writeDataUri ??= currentDirectory.resolve('$out.data');
       options.add('${Flags.writeData}=${writeDataUri}');
       break;
     case CompilationStrategy.fromData:
       out ??= currentDirectory.resolve('out.js');
-      options.add(
-          '${Flags.readData}=${currentDirectory.resolve('$scriptName.data')}');
+      readDataUri ??= currentDirectory.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
       break;
   }
   options.add('--out=$out');
