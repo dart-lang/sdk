@@ -32,7 +32,7 @@ class _IOWebSocket implements CommonWebSocket {
   }
 
   bool get isOpen =>
-      (_webSocket != null) && (_webSocket.readyState == WebSocket.OPEN);
+      (_webSocket != null) && (_webSocket.readyState == WebSocket.open);
 
   void send(dynamic data) {
     _webSocket.add(data);
