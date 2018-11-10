@@ -1322,10 +1322,9 @@ class FragmentEmitter {
         isIntercepted = method.isIntercepted;
       }
 
-      int requiredParameterCount = 0;
+      int requiredParameterCount = method.requiredParameterCount;
       js.Expression optionalParameterDefaultValues = new js.LiteralNull();
       if (method.canBeApplied) {
-        requiredParameterCount = method.requiredParameterCount;
         optionalParameterDefaultValues =
             _encodeOptionalParameterDefaultValues(method);
       }

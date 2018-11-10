@@ -912,16 +912,13 @@ class ProgramBuilder {
       functionType = _generateFunctionType(memberType, outputUnit);
     }
 
-    int requiredParameterCount;
+    FunctionEntity method = element;
+    ParameterStructure parameterStructure = method.parameterStructure;
+    int requiredParameterCount = parameterStructure.requiredParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
-      // TODO(redemption): Handle function entities.
-      FunctionEntity method = element;
-      ParameterStructure parameterStructure = method.parameterStructure;
-      requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
-
       if (element.parameterStructure.typeParameters > 0) {
         applyIndex = 1;
       }
@@ -1141,14 +1138,12 @@ class ProgramBuilder {
       functionType = _generateFunctionType(type, outputUnit);
     }
 
-    int requiredParameterCount;
+    FunctionEntity method = element;
+    ParameterStructure parameterStructure = method.parameterStructure;
+    int requiredParameterCount = parameterStructure.requiredParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
-      // TODO(redemption): Support entities;
-      FunctionEntity method = element;
-      ParameterStructure parameterStructure = method.parameterStructure;
-      requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
       if (parameterStructure.typeParameters > 0) {
         applyIndex = 1;
