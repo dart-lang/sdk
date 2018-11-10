@@ -12,10 +12,11 @@ import 'package:path/path.dart';
 /// Type of callbacks used to process notifications.
 typedef void NotificationProcessor(String event, Map<String, dynamic> params);
 
-/// Instances of the class [Server] manage a connection to a server process,
+/// Instances of the class [Server] manage a server process,
 /// and facilitate communication to and from the server.
 class Server {
-  /// Server process object, or `null` if server hasn't been started yet.
+  /// Server process object, or `null` if server hasn't been started yet
+  /// or if the server has already been stopped.
   Process _process;
 
   /// Commands that have been sent to the server but not yet acknowledged,
@@ -59,9 +60,11 @@ class Server {
 
   /// Force kill the server. Returns exit code future.
   Future<int> kill([String reason = 'none']) {
-    logMessage('FORCIBLY TERMINATING PROCESS: ', reason);
-    _process.kill();
-    return _process.exitCode;
+    logMessage('FORCIBLY TERMINATING SERVER: ', reason);
+    final process = _process;
+    _process = null;
+    process.kill();
+    return process.exitCode;
   }
 
   /// Start listening to output from the server,
@@ -177,16 +180,14 @@ class Server {
     return completer.future;
   }
 
-  /**
-   * Start the server.
-   *
-   * If [profileServer] is `true`, the server will be started
-   * with "--observe" and "--pause-isolates-on-exit", allowing the observatory
-   * to be used.
-   *
-   * If [serverPath] is specified, then that analysis server will be launched,
-   * otherwise the analysis server snapshot in the SDK will be launched.
-   */
+  /// Start the server.
+  ///
+  /// If [profileServer] is `true`, the server will be started
+  /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
+  /// to be used.
+  ///
+  /// If [serverPath] is specified, then that analysis server will be launched,
+  /// otherwise the analysis server snapshot in the SDK will be launched.
   Future start({
     String clientId,
     String clientVersion,
@@ -282,26 +283,32 @@ class Server {
 
   /// Attempt to gracefully shutdown the server.
   /// If that fails, then kill the process.
-  Future<int> stop() async {
+  Future<int> stop({Duration timeLimit}) async {
+    timeLimit ??= const Duration(seconds: 5);
     if (_process == null) {
       // Process already exited
       return -1;
     }
     final future = send(SERVER_REQUEST_SHUTDOWN, null);
-    final exitCode = _process.exitCode;
+    final process = _process;
     _process = null;
     await future
         // fall through to wait for exit
-        .timeout(const Duration(seconds: 5), onTimeout: () => null)
-        .whenComplete(() async {
+        .timeout(timeLimit, onTimeout: () {
+      return null;
+    }).whenComplete(() async {
       await stderrSubscription?.cancel();
       stderrSubscription = null;
       await stdoutSubscription?.cancel();
       stdoutSubscription = null;
     });
-    return await exitCode.timeout(
-      const Duration(seconds: 5),
-      onTimeout: () => kill('server failed to exit'),
+    return await process.exitCode.timeout(
+      timeLimit,
+      onTimeout: () {
+        logMessage('FORCIBLY TERMINATING SERVER: ', 'server failed to exit');
+        process.kill();
+        return process.exitCode;
+      },
     );
   }
 }

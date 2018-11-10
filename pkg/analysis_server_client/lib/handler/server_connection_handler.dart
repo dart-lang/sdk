@@ -46,6 +46,7 @@ mixin ServerConnectionHandler on NotificationHandler {
     }
   }
 
+  @override
   void onServerError(ServerErrorParams params) {
     handleServerError(params.message, params.stackTrace);
     server.stop();
