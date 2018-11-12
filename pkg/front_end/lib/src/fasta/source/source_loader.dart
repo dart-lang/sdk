@@ -836,7 +836,10 @@ class SourceLoader<L> extends Loader<L> {
 
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        library.checkBoundsInOutline(typeInferenceEngine.typeSchemaEnvironment);
+        if (library.loader == this) {
+          library
+              .checkBoundsInOutline(typeInferenceEngine.typeSchemaEnvironment);
+        }
       }
     });
     ticker.logMs("Checked type arguments of supers against the bounds");
