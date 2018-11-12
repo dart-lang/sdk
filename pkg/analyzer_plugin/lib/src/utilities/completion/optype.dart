@@ -129,21 +129,26 @@ class OpType {
       return optype;
     }
 
-    target.containingNode
-        .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
-    var methodDeclaration =
-        target.containingNode.thisOrAncestorOfType<MethodDeclaration>();
-    optype.inMethodBody = methodDeclaration != null;
-    optype.inStaticMethodBody =
-        methodDeclaration is MethodDeclaration && methodDeclaration.isStatic;
+    var targetNode = target.containingNode;
+    targetNode.accept(new _OpTypeAstVisitor(optype, target.entity, offset));
 
-    var functionDeclaration =
-        target.containingNode.thisOrAncestorOfType<FunctionDeclaration>();
-    optype.inFunctionBody = functionDeclaration != null;
+    var functionBody = targetNode.thisOrAncestorOfType<FunctionBody>();
+    if (functionBody != null) {
+      var parent = functionBody.parent;
 
-    var constructorDeclaration =
-        target.containingNode.thisOrAncestorOfType<ConstructorDeclaration>();
-    optype.inConstructorBody = constructorDeclaration != null;
+      if (parent is ConstructorDeclaration) {
+        optype.inConstructorBody = true;
+      }
+
+      if (parent is FunctionExpression) {
+        optype.inFunctionBody = true;
+      }
+
+      if (parent is MethodDeclaration) {
+        optype.inMethodBody = true;
+        optype.inStaticMethodBody = parent.isStatic;
+      }
+    }
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {

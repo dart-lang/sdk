@@ -107,11 +107,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
 
   test_AssertInitializer() async {
     addTestSource('class C { C() : assert(^); }');
-    await assertOpType(
-        constructors: true,
-        returnValue: true,
-        typeNames: true,
-        constructorBody: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AssignmentExpression_RHS() async {
@@ -557,7 +553,6 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         returnValue: true,
         typeNames: true,
         voidReturn: true,
-        methodBody: true,
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
 
@@ -619,7 +614,7 @@ class C {
   C() : ^
 }
 ''');
-    await assertOpType(constructorBody: true);
+    await assertOpType();
   }
 
   test_ConstructorFieldInitializer_value() async {
@@ -631,7 +626,6 @@ class C {
 }
 ''');
     await assertOpType(
-      constructorBody: true, // TODO(scheglov) Not really, fix it.
       constructors: true,
       returnValue: true,
       typeNames: true,
@@ -642,10 +636,10 @@ class C {
     // DefaultFormalParameter FormalParameterList MethodDeclaration
     addTestSource('class A {a(blat: ^) { }}');
     await assertOpType(
-        constructors: true,
-        returnValue: true,
-        typeNames: true,
-        methodBody: true);
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+    );
   }
 
   test_DoStatement() async {
@@ -725,33 +719,33 @@ class C {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^ f) { }}');
     await assertOpType(
-        constructors: true,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true,
-        methodBody: true);
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+      prefixed: true,
+    );
   }
 
   test_FormalParameter_partialType2() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.z^ f) { }}');
     await assertOpType(
-        constructors: true,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true,
-        methodBody: true);
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+      prefixed: true,
+    );
   }
 
   test_FormalParameter_partialType3() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^) { }}');
     await assertOpType(
-        constructors: true,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true,
-        methodBody: true);
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+      prefixed: true,
+    );
   }
 
   test_ForStatement_condition() async {
@@ -1631,7 +1625,7 @@ main() {new core.String.from^CharCodes([]);}
   test_FormalParameterList() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(^) { }}');
-    await assertOpType(typeNames: true, methodBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_ForStatement_initializer() async {
@@ -1707,7 +1701,7 @@ main() {new core.String.from^CharCodes([]);}
     addTestSource('''
       /// some dartdoc ^
       zoo(z) { } String name;''');
-    await assertOpType(functionBody: true);
+    await assertOpType();
   }
 
   test_FunctionDeclaration_inLineDocComment2() async {
@@ -1715,7 +1709,7 @@ main() {new core.String.from^CharCodes([]);}
     addTestSource('''
       /// some ^dartdoc
       zoo(z) { } String name;''');
-    await assertOpType(functionBody: true);
+    await assertOpType();
   }
 
   test_FunctionDeclaration_inStarComment() async {
@@ -1733,13 +1727,13 @@ main() {new core.String.from^CharCodes([]);}
   test_FunctionDeclaration_inStarDocComment() async {
     // Comment  FunctionDeclaration  CompilationUnit
     addTestSource('/** ^ */ zoo(z) { } String name; ');
-    await assertOpType(functionBody: true);
+    await assertOpType();
   }
 
   test_FunctionDeclaration_inStarDocComment2() async {
     // Comment  FunctionDeclaration  CompilationUnit
     addTestSource('/**  *^/ zoo(z) { } String name;');
-    await assertOpType(functionBody: true);
+    await assertOpType();
   }
 
   test_FunctionDeclaration_returnType() async {
@@ -1770,7 +1764,7 @@ main() {new core.String.from^CharCodes([]);}
     addTestSource('''
       /// some dartdoc
       ^ zoo(z) { } String name;''');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_FunctionDeclaration_returnType_afterLineDocComment2() async {
@@ -1778,7 +1772,7 @@ main() {new core.String.from^CharCodes([]);}
     addTestSource('''
 /// some dartdoc
 ^ zoo(z) { } String name;''');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_FunctionDeclaration_returnType_afterStarComment() async {
@@ -1796,19 +1790,19 @@ main() {new core.String.from^CharCodes([]);}
   test_FunctionDeclaration_returnType_afterStarDocComment() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('/** */ ^ zoo(z) { } String name;');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_FunctionDeclaration_returnType_afterStarDocComment2() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('/** */^ zoo(z) { } String name;');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_FunctionExpression() async {
     // BlockFunctionBody  FunctionExpression  FunctionDeclaration
     addTestSource('main()^ { int b = 2; b++; b. }');
-    await assertOpType(functionBody: true);
+    await assertOpType();
   }
 
   test_FunctionExpressionInvocation() async {
@@ -1925,7 +1919,7 @@ main() {new core.String.from^CharCodes([]);}
       class C2 {
         /// some dartdoc ^
         zoo(z) { } String name; }''');
-    await assertOpType(methodBody: true);
+    await assertOpType();
   }
 
   test_MethodDeclaration_inLineDocComment2() async {
@@ -1934,7 +1928,7 @@ main() {new core.String.from^CharCodes([]);}
       class C2 {
         /// some ^dartdoc
         zoo(z) { } String name; }''');
-    await assertOpType(methodBody: true);
+    await assertOpType();
   }
 
   test_MethodDeclaration_inStarComment() async {
@@ -1952,13 +1946,13 @@ main() {new core.String.from^CharCodes([]);}
   test_MethodDeclaration_inStarDocComment() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** ^ */ zoo(z) { } String name; }');
-    await assertOpType(methodBody: true);
+    await assertOpType();
   }
 
   test_MethodDeclaration_inStarDocComment2() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/**  *^/ zoo(z) { } String name; }');
-    await assertOpType(methodBody: true);
+    await assertOpType();
   }
 
   test_MethodDeclaration_returnType() async {
@@ -1992,7 +1986,7 @@ class C2 {
       class C2 {
         /// some dartdoc
         ^ zoo(z) { } String name; }''');
-    await assertOpType(typeNames: true, methodBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_MethodDeclaration_returnType_afterLineDocComment2() async {
@@ -2001,7 +1995,7 @@ class C2 {
 class C2 {
   /// some dartdoc
 ^ zoo(z) { } String name; }''');
-    await assertOpType(typeNames: true, methodBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_MethodDeclaration_returnType_afterStarComment() async {
@@ -2019,13 +2013,13 @@ class C2 {
   test_MethodDeclaration_returnType_afterStarDocComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */ ^ zoo(z) { } String name; }');
-    await assertOpType(typeNames: true, methodBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_MethodDeclaration_returnType_afterStarDocComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */^ zoo(z) { } String name; }');
-    await assertOpType(typeNames: true, methodBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_NamedExpression() async {
@@ -2070,49 +2064,49 @@ void f(int a, {int b}) {}
   test_SimpleFormalParameter_name1() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(String na^) {}');
-    await assertOpType(typeNames: false, functionBody: true);
+    await assertOpType(typeNames: false);
   }
 
   test_SimpleFormalParameter_name2() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(int first, String na^) {}');
-    await assertOpType(typeNames: false, functionBody: true);
+    await assertOpType(typeNames: false);
   }
 
   test_SimpleFormalParameter_type_optionalNamed() async {
     // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
     addTestSource('m({Str^}) {}');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_SimpleFormalParameter_type_optionalPositional() async {
     // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
     addTestSource('m([Str^]) {}');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_SimpleFormalParameter_type_withName() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(Str^ name) {}');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_SimpleFormalParameter_type_withoutName1() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(Str^) {}');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_SimpleFormalParameter_type_withoutName2() async {
     // FormalParameterList
     addTestSource('m(^) {}');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_SimpleFormalParameter_type_withoutName3() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(int first, Str^) {}');
-    await assertOpType(typeNames: true, functionBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_SwitchCase_before() async {
@@ -2139,7 +2133,7 @@ void f(int a, {int b}) {}
       class A implements I {
         A(this.^) {}
       }''');
-    await assertOpType(prefixed: true, constructorBody: true);
+    await assertOpType(prefixed: true);
   }
 
   test_ThisExpression_constructor_param2() async {
@@ -2148,7 +2142,7 @@ void f(int a, {int b}) {}
       class A implements I {
         A(this.f^) {}
       }''');
-    await assertOpType(prefixed: true, constructorBody: true);
+    await assertOpType(prefixed: true);
   }
 
   test_ThisExpression_constructor_param3() async {
@@ -2157,7 +2151,7 @@ void f(int a, {int b}) {}
       class A implements I {
         A(this.^f) {}
       }''');
-    await assertOpType(prefixed: true, constructorBody: true);
+    await assertOpType(prefixed: true);
   }
 
   test_ThisExpression_constructor_param4() async {
@@ -2166,7 +2160,7 @@ void f(int a, {int b}) {}
       class A implements I {
         A(Str^ this.foo) {}
       }''');
-    await assertOpType(typeNames: true, constructorBody: true);
+    await assertOpType(typeNames: true);
   }
 
   test_TopLevelVariableDeclaration_typed_name() async {
