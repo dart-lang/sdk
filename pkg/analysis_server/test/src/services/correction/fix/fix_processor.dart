@@ -8,12 +8,35 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
+
+/// A base class defining support for writing fix processor tests that are
+/// specific to fixes associated with lints that use the FixKind.
+abstract class FixProcessorLintTest extends FixProcessorTest {
+  /// Return the lint code being tested.
+  String get lintCode;
+
+  /// Find the error that is to be fixed by computing the errors in the file,
+  /// using the [errorFilter] to filter out errors that should be ignored, and
+  /// expecting that there is a single remaining error. The error filter should
+  /// return `true` if the error should not be ignored.
+  Future<AnalysisError> _findErrorToFix(
+      bool Function(AnalysisError) errorFilter,
+      {int length}) async {
+    int index = testCode.indexOf('/*LINT*/');
+    if (index < 0) {
+      fail('Missing "/*LINT*/" marker');
+    }
+    return new AnalysisError(testSource, index + '/*LINT*/'.length, length ?? 0,
+        new LintCode(lintCode, '<ignored>'));
+  }
+}
 
 /// A base class defining support for writing fix processor tests.
 abstract class FixProcessorTest extends AbstractSingleUnitTest {
@@ -32,8 +55,10 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   FixKind get kind;
 
   Future<void> assertHasFix(String expected,
-      {bool Function(AnalysisError) errorFilter, String target}) async {
-    AnalysisError error = await _findErrorToFix(errorFilter);
+      {bool Function(AnalysisError) errorFilter,
+      int length,
+      String target}) async {
+    AnalysisError error = await _findErrorToFix(errorFilter, length: length);
     Fix fix = await _assertHasFix(error);
     change = fix.change;
 
@@ -192,7 +217,8 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// expecting that there is a single remaining error. The error filter should
   /// return `true` if the error should not be ignored.
   Future<AnalysisError> _findErrorToFix(
-      bool Function(AnalysisError) errorFilter) async {
+      bool Function(AnalysisError) errorFilter,
+      {int length}) async {
     List<AnalysisError> errors = await _computeErrors();
     if (errorFilter != null) {
       if (errors.length == 1) {

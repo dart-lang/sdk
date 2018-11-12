@@ -15,6 +15,8 @@ import 'add_missing_parameter_required_test.dart'
 import 'add_missing_required_argument_test.dart'
     as add_missing_required_argument;
 import 'add_ne_null_test.dart' as add_ne_null;
+import 'add_override_test.dart' as add_override;
+import 'add_required_test.dart' as add_required;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
@@ -49,25 +51,46 @@ import 'import_library_show_test.dart' as import_library_show;
 import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_field_not_final_test.dart' as make_field_not_final;
+import 'make_final_test.dart' as make_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
+import 'remove_await_test.dart' as remove_await;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_empty_catch_test.dart' as remove_empty_catch;
+import 'remove_empty_constructor_body_test.dart'
+    as remove_empty_constructor_body;
+import 'remove_empty_else_test.dart' as remove_empty_else;
+import 'remove_empty_statement_test.dart' as remove_empty_statement;
+import 'remove_initializer_test.dart' as remove_initializer;
+import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
+import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_parameters_in_getter_declaration_test.dart'
     as remove_parameters_in_getter_declaration;
 import 'remove_parentheses_in_getter_invocation_test.dart'
     as remove_parentheses_in_getter_invocation;
+import 'remove_this_expression_test.dart' as remove_this_expression;
+import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
 import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_import_test.dart' as remove_unused_import;
+import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
+import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
+import 'replace_with_brackets_test.dart' as replace_with_brackets;
+import 'replace_with_conditional_assignment_test.dart'
+    as replace_with_conditional_assignment;
+import 'replace_with_identifier_test.dart' as replace_with_identifier;
+import 'replace_with_literal_test.dart' as replace_with_literal;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
+import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'use_const_test.dart' as use_const;
 import 'use_effective_integer_division_test.dart'
     as use_effective_integer_division;
 import 'use_eq_eq_null_test.dart' as use_eq_eq_null;
+import 'use_is_not_empty_test.dart' as use_is_not_empty;
 import 'use_not_eq_null_test.dart' as use_not_eq_null;
 
 main() {
@@ -80,6 +103,8 @@ main() {
     add_missing_parameter_required.main();
     add_missing_required_argument.main();
     add_ne_null.main();
+    add_override.main();
+    add_required.main();
     add_static.main();
     add_super_constructor_invocation.main();
     change_to.main();
@@ -111,22 +136,41 @@ main() {
     insert_semicolon.main();
     make_class_abstract.main();
     make_field_not_final.main();
+    make_final.main();
     move_type_arguments_to_class.main();
+    remove_await.main();
     remove_dead_code.main();
+    remove_empty_catch.main();
+    remove_empty_constructor_body.main();
+    remove_empty_else.main();
+    remove_empty_statement.main();
+    remove_initializer.main();
+    remove_interpolation_braces.main();
+    remove_method_declaration.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
+    remove_this_expression.main();
+    remove_type_annotation.main();
     remove_type_arguments.main();
     remove_unnecessary_cast.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_import.main();
+    rename_to_camel_case.main();
     replace_boolean_with_bool.main();
+    replace_final_with_const.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();
+    replace_with_brackets.main();
+    replace_with_conditional_assignment.main();
+    replace_with_literal.main();
+    replace_with_identifier.main();
     replace_with_null_aware.main();
+    replace_with_tear_off.main();
     use_const.main();
     use_effective_integer_division.main();
     use_eq_eq_null.main();
+    use_is_not_empty.main();
     use_not_eq_null.main();
   }, name: 'fix');
 }

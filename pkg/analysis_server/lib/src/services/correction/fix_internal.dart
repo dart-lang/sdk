@@ -903,7 +903,7 @@ class FixProcessor {
           range.startLength(token, 0), '@override$eol$indent');
     });
     changeBuilder.setSelection(exitPosition);
-    _addFixFromBuilder(changeBuilder, DartFixKind.LINT_ADD_OVERRIDE);
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_OVERRIDE);
   }
 
   Future<void> _addFix_addRequiredAnnotation() async {
@@ -913,7 +913,7 @@ class FixProcessor {
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleInsertion(node.parent.offset, '@required ');
     });
-    _addFixFromBuilder(changeBuilder, DartFixKind.LINT_ADD_REQUIRED);
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_REQUIRED);
   }
 
   Future<void> _addFix_addStatic() async {
@@ -2635,7 +2635,7 @@ class FixProcessor {
           builder.addDeletion(range.token(right));
         });
         _addFixFromBuilder(
-            changeBuilder, DartFixKind.LINT_REMOVE_INTERPOLATION_BRACES);
+            changeBuilder, DartFixKind.REMOVE_INTERPOLATION_BRACES);
       } else {}
     }
   }
@@ -2728,7 +2728,7 @@ class FixProcessor {
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(type, type.endToken.next));
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_TYPE_NAME);
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_TYPE_ANNOTATION);
     }
   }
 

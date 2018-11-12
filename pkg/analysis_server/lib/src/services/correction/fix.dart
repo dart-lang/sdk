@@ -123,6 +123,10 @@ class DartFixKind {
       'ADD_MISSING_REQUIRED_ARGUMENT', 70, "Add required argument '{0}'");
   static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null",
       appliedTogetherMessage: "Add != null everywhere in file");
+  static const ADD_OVERRIDE =
+      const FixKind('ADD_OVERRIDE', 50, "Add '@override' annotation");
+  static const ADD_REQUIRED =
+      const FixKind('ADD_REQUIRED', 50, "Add '@required' annotation");
   static const ADD_STATIC =
       const FixKind('ADD_STATIC', 50, "Add 'static' modifier");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(
@@ -190,14 +194,6 @@ class DartFixKind {
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const INVOKE_CONSTRUCTOR_USING_NEW = const FixKind(
       'INVOKE_CONSTRUCTOR_USING_NEW', 50, "Invoke constructor using 'new'");
-  static const LINT_ADD_OVERRIDE =
-      const FixKind('LINT_ADD_OVERRIDE', 50, "Add '@override' annotation");
-  static const LINT_ADD_REQUIRED =
-      const FixKind('LINT_ADD_REQUIRED', 50, "Add '@required' annotation");
-  static const LINT_REMOVE_INTERPOLATION_BRACES = const FixKind(
-      'LINT_REMOVE_INTERPOLATION_BRACES',
-      50,
-      "Remove unnecessary interpolation braces");
   static const MAKE_CLASS_ABSTRACT =
       const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = const FixKind(
@@ -220,6 +216,10 @@ class DartFixKind {
       const FixKind('REMOVE_EMPTY_STATEMENT', 50, "Remove empty statement");
   static const REMOVE_INITIALIZER =
       const FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
+  static const REMOVE_INTERPOLATION_BRACES = const FixKind(
+      'REMOVE_INTERPOLATION_BRACES',
+      50,
+      "Remove unnecessary interpolation braces");
   static const REMOVE_METHOD_DECLARATION = const FixKind(
       'REMOVE_METHOD_DECLARATION', 50, "Remove method declaration");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
@@ -232,10 +232,10 @@ class DartFixKind {
       "Remove parentheses in getter invocation");
   static const REMOVE_THIS_EXPRESSION =
       const FixKind('REMOVE_THIS_EXPRESSION', 50, "Remove this expression");
+  static const REMOVE_TYPE_ANNOTATION =
+      const FixKind('REMOVE_TYPE_ANNOTATION', 50, "Remove type annotation");
   static const REMOVE_TYPE_ARGUMENTS =
       const FixKind('REMOVE_TYPE_ARGUMENTS', 49, "Remove type arguments");
-  static const REMOVE_TYPE_NAME =
-      const FixKind('REMOVE_TYPE_NAME', 50, "Remove type name");
   static const REMOVE_UNNECESSARY_CAST = const FixKind(
       'REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast",
       appliedTogetherMessage: "Remove all unnecessary casts in file");
