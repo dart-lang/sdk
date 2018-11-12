@@ -164,7 +164,7 @@ const c = 3 | false;
         experiments: [Experiments.constantUpdate2018Name]);
   }
 
-  test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
+  test_visitBinaryExpression_questionQuestion_eager_notNull_notNull() async {
     Expression left = AstTestFactory.string2('a');
     Expression right = AstTestFactory.string2('b');
     Expression expression = AstTestFactory.binaryExpression(
@@ -180,7 +180,7 @@ const c = 3 | false;
     errorListener.assertNoErrors();
   }
 
-  test_visitBinaryExpression_questionQuestion_null_notNull() async {
+  test_visitBinaryExpression_questionQuestion_eager_null_notNull() async {
     Expression left = AstTestFactory.nullLiteral();
     Expression right = AstTestFactory.string2('b');
     Expression expression = AstTestFactory.binaryExpression(
@@ -196,7 +196,7 @@ const c = 3 | false;
     errorListener.assertNoErrors();
   }
 
-  test_visitBinaryExpression_questionQuestion_null_null() async {
+  test_visitBinaryExpression_questionQuestion_eager_null_null() async {
     Expression left = AstTestFactory.nullLiteral();
     Expression right = AstTestFactory.nullLiteral();
     Expression expression = AstTestFactory.binaryExpression(
@@ -209,6 +209,56 @@ const c = 3 | false;
     expect(result, isNotNull);
     expect(result.isNull, isTrue);
     errorListener.assertNoErrors();
+  }
+
+  test_visitBinaryExpression_questionQuestion_lazy_notNull_invalid() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 'a' ?? new C();
+class C {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.stringType);
+    expect(result.toStringValue(), 'a');
+  }
+
+  test_visitBinaryExpression_questionQuestion_lazy_notNull_notNull() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 'a' ?? 'b';
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.stringType);
+    expect(result.toStringValue(), 'a');
+  }
+
+  test_visitBinaryExpression_questionQuestion_lazy_null_invalid() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = null ?? new C();
+class C {}
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
+        experiments: [Experiments.constantUpdate2018Name]);
+  }
+
+  test_visitBinaryExpression_questionQuestion_lazy_null_notNull() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = null ?? 'b';
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.stringType);
+    expect(result.toStringValue(), 'b');
+  }
+
+  test_visitBinaryExpression_questionQuestion_lazy_null_null() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = null ?? null;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.isNull, isTrue);
   }
 
   test_visitBinaryExpression_xor_bool() async {
@@ -238,7 +288,7 @@ const c = 3 ^ false;
         experiments: [Experiments.constantUpdate2018Name]);
   }
 
-  test_visitConditionalExpression_false() async {
+  test_visitConditionalExpression_eager_false_int_int() async {
     Expression thenExpression = AstTestFactory.integer(1);
     Expression elseExpression = AstTestFactory.integer(0);
     ConditionalExpression expression = AstTestFactory.conditionalExpression(
@@ -250,7 +300,7 @@ const c = 3 ^ false;
     errorListener.assertNoErrors();
   }
 
-  test_visitConditionalExpression_nonBooleanCondition() async {
+  test_visitConditionalExpression_eager_invalid_int_int() async {
     Expression thenExpression = AstTestFactory.integer(1);
     Expression elseExpression = AstTestFactory.integer(0);
     NullLiteral conditionExpression = AstTestFactory.nullLiteral();
@@ -265,7 +315,19 @@ const c = 3 ^ false;
         .assertErrorsWithCodes([CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
   }
 
-  test_visitConditionalExpression_nonConstantElse() async {
+  test_visitConditionalExpression_eager_true_int_int() async {
+    Expression thenExpression = AstTestFactory.integer(1);
+    Expression elseExpression = AstTestFactory.integer(0);
+    ConditionalExpression expression = AstTestFactory.conditionalExpression(
+        AstTestFactory.booleanLiteral(true), thenExpression, elseExpression);
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter =
+        new ErrorReporter(errorListener, _dummySource());
+    _assertValue(1, _evaluate(expression, errorReporter));
+    errorListener.assertNoErrors();
+  }
+
+  test_visitConditionalExpression_eager_true_int_invalid() async {
     Expression thenExpression = AstTestFactory.integer(1);
     Expression elseExpression = AstTestFactory.identifier3("x");
     ConditionalExpression expression = AstTestFactory.conditionalExpression(
@@ -279,7 +341,7 @@ const c = 3 ^ false;
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
-  test_visitConditionalExpression_nonConstantThen() async {
+  test_visitConditionalExpression_eager_true_invalid_int() async {
     Expression thenExpression = AstTestFactory.identifier3("x");
     Expression elseExpression = AstTestFactory.integer(0);
     ConditionalExpression expression = AstTestFactory.conditionalExpression(
@@ -293,16 +355,73 @@ const c = 3 ^ false;
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
-  test_visitConditionalExpression_true() async {
-    Expression thenExpression = AstTestFactory.integer(1);
-    Expression elseExpression = AstTestFactory.integer(0);
-    ConditionalExpression expression = AstTestFactory.conditionalExpression(
-        AstTestFactory.booleanLiteral(true), thenExpression, elseExpression);
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ErrorReporter errorReporter =
-        new ErrorReporter(errorListener, _dummySource());
-    _assertValue(1, _evaluate(expression, errorReporter));
-    errorListener.assertNoErrors();
+  test_visitConditionalExpression_lazy_false_int_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = false ? 1 : 0;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitConditionalExpression_lazy_false_int_invalid() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = false ? 1 : new C();
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
+        experiments: [Experiments.constantUpdate2018Name]);
+  }
+
+  test_visitConditionalExpression_lazy_false_invalid_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = false ? new C() : 0;
+class C {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitConditionalExpression_lazy_invalid_int_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 3 ? 1 : 0;
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL],
+        experiments: [Experiments.constantUpdate2018Name]);
+  }
+
+  test_visitConditionalExpression_lazy_true_int_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = true ? 1 : 0;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 1);
+  }
+
+  test_visitConditionalExpression_lazy_true_int_invalid() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = true ? 1 : new C();
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 1);
+  }
+
+  test_visitConditionalExpression_lazy_true_invalid_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = true ? new C() : 0;
+class C {}
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
+        experiments: [Experiments.constantUpdate2018Name]);
   }
 
   test_visitIsExpression_is_instanceOfSameClass() async {

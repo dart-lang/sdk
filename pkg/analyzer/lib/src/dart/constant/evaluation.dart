@@ -1157,6 +1157,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (operatorType == TokenType.BAR_BAR) {
       return _dartObjectComputer.lazyOr(
           node, leftResult, () => node.rightOperand.accept(this));
+    } else if (operatorType == TokenType.QUESTION_QUESTION) {
+      if (experiments.constantUpdate2018) {
+        return _dartObjectComputer.lazyQuestionQuestion(
+            node, leftResult, () => node.rightOperand.accept(this));
+      } else {
+        return _dartObjectComputer.eagerQuestionQuestion(
+            node, leftResult, node.rightOperand.accept(this));
+      }
     }
     // evaluate eager operators
     DartObjectImpl rightResult = node.rightOperand.accept(this);
@@ -1198,9 +1206,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return _dartObjectComputer.divide(node, leftResult, rightResult);
     } else if (operatorType == TokenType.TILDE_SLASH) {
       return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
-    } else if (operatorType == TokenType.QUESTION_QUESTION) {
-      return _dartObjectComputer.questionQuestion(
-          node, leftResult, rightResult);
     } else {
       // TODO(brianwilkerson) Figure out which error to report.
       _error(node, null);
@@ -1216,6 +1221,30 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
     DartObjectImpl conditionResult = condition.accept(this);
+    if (experiments.constantUpdate2018) {
+      if (conditionResult == null) {
+        return conditionResult;
+      } else if (!conditionResult.isBool) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
+        return null;
+      }
+      conditionResult = _dartObjectComputer.applyBooleanConversion(
+          condition, conditionResult);
+      if (conditionResult == null) {
+        return conditionResult;
+      }
+      if (conditionResult.toBoolValue() == true) {
+        return node.thenExpression.accept(this);
+      } else if (conditionResult.toBoolValue() == false) {
+        return node.elseExpression.accept(this);
+      }
+      // We used to return an object with a known type and an unknown value, but
+      // we can't do that without evaluating both the 'then' and 'else'
+      // expressions, and we're not suppose to do that under lazy semantics. I'm
+      // not sure which failure mode is worse.
+      return null;
+    }
     DartObjectImpl thenResult = node.thenExpression.accept(this);
     DartObjectImpl elseResult = node.elseExpression.accept(this);
     if (conditionResult == null) {
@@ -1755,6 +1784,17 @@ class DartObjectComputer {
     return null;
   }
 
+  DartObjectImpl eagerQuestionQuestion(Expression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperand;
+      }
+      return leftOperand;
+    }
+    return null;
+  }
+
   DartObjectImpl eagerXor(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand, bool allowBool) {
     if (leftOperand != null && rightOperand != null) {
@@ -1851,6 +1891,17 @@ class DartObjectComputer {
     return null;
   }
 
+  DartObjectImpl lazyQuestionQuestion(Expression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperandComputer();
+      }
+      return leftOperand;
+    }
+    return null;
+  }
+
   DartObjectImpl lessThan(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
@@ -1929,17 +1980,6 @@ class DartObjectComputer {
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
-    }
-    return null;
-  }
-
-  DartObjectImpl questionQuestion(Expression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      if (leftOperand.isNull) {
-        return rightOperand;
-      }
-      return leftOperand;
     }
     return null;
   }
