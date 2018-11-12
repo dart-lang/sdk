@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show jsonDecode;
+
+import 'dart:io' show File, IOSink;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -24,12 +28,28 @@ import 'package:front_end/src/fasta/source/type_promotion_look_ahead_listener.da
         TypePromotionState,
         UnspecifiedDeclaration;
 
+import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+    show openWrite, runDiff;
+
 import 'package:front_end/src/fasta/testing/scanner_chain.dart'
     show Read, Scan, ScannedFile;
 
 import 'package:kernel/ast.dart' show Source;
 
 import 'package:testing/testing.dart';
+
+const String EXPECTATIONS = '''
+[
+  {
+    "name": "ExpectationFileMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "ExpectationFileMissing",
+    "group": "Fail"
+  }
+]
+''';
 
 Future<ChainContext> createContext(
     Chain suite, Map<String, String> environment) async {
@@ -40,45 +60,68 @@ Future<ChainContext> createContext(
               new Future<CompilerContext>.value(context),
           errorOnMissingInput: false);
   context.disableColors();
-  return new TypePromotionLookAheadContext(context);
+  return new TypePromotionLookAheadContext(
+      context, environment["updateExpectations"] == "true");
 }
 
 class TypePromotionLookAheadContext extends ChainContext {
   final CompilerContext context;
+
   final List<Step> steps = const <Step>[
     const Read(),
     const Scan(),
-    const TypePromotionLookAheadStep()
+    const TypePromotionLookAheadStep(),
+    const CheckTypePromotionResult(),
   ];
 
-  TypePromotionLookAheadContext(this.context);
+  final bool updateExpectations;
+
+  final ExpectationSet expectationSet =
+      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+  TypePromotionLookAheadContext(this.context, this.updateExpectations);
+
+  Expectation get expectationFileMismatch =>
+      expectationSet["ExpectationFileMismatch"];
+
+  Expectation get expectationFileMissing =>
+      expectationSet["ExpectationFileMissing"];
 }
 
-class TypePromotionLookAheadStep
-    extends Step<ScannedFile, Null, TypePromotionLookAheadContext> {
+class TypePromotionLookAheadStep extends Step<ScannedFile, TypePromotionResult,
+    TypePromotionLookAheadContext> {
   const TypePromotionLookAheadStep();
 
   String get name => "Type Promotion Look Ahead";
 
-  Future<Result<Null>> run(
+  Future<Result<TypePromotionResult>> run(
       ScannedFile file, TypePromotionLookAheadContext context) async {
     return context.context
-        .runInContext<Result<Null>>((CompilerContext c) async {
-      c.uriToSource[file.file.uri] =
-          new Source(file.result.lineStarts, file.file.bytes);
-      Parser parser = new Parser(new TestListener(file.file.uri));
+        .runInContext<Result<TypePromotionResult>>((CompilerContext c) async {
+      Uri uri = file.file.uri;
+      c.uriToSource[uri] = new Source(file.result.lineStarts, file.file.bytes);
+      StringBuffer buffer = new StringBuffer();
+      Parser parser = new Parser(new TestListener(uri, buffer));
       try {
         parser.parseUnit(file.result.tokens);
       } finally {
-        c.uriToSource.remove(file.file.uri);
+        c.uriToSource.remove(uri);
       }
-      return pass(null);
+      return pass(new TypePromotionResult(uri, "$buffer"));
     });
   }
 }
 
 class TestState extends TypePromotionState {
-  TestState(Uri uri) : super(uri);
+  final StringBuffer buffer;
+
+  TestState(Uri uri, this.buffer) : super(uri);
+
+  void note(String message, Token token) {
+    buffer.writeln(CompilerContext.current.format(
+        debugMessage(message, uri, token.charOffset, token.lexeme.length),
+        Severity.context));
+  }
 
   @override
   void checkEmpty(Token token) {
@@ -103,13 +146,16 @@ class TestState extends TypePromotionState {
 
   @override
   void registerWrite(UnspecifiedDeclaration declaration, Token token) {
-    trace("Write to ${declaration.name}", token);
+    // TODO(ahe): Call `note` instead to create expectations.
+    trace("Write to ${declaration.name}@${declaration.charOffset}", token);
   }
 
   @override
   void registerPromotionCandidate(
       UnspecifiedDeclaration declaration, Token token) {
-    trace("Possible promotion of ${declaration.name}", token);
+    // TODO(ahe): Call `note` instead to create expectations.
+    trace("Possible promotion of ${declaration.name}@${declaration.charOffset}",
+        token);
   }
 
   @override
@@ -142,7 +188,8 @@ LocatedMessage debugMessage(String text, Uri uri, int offset, int length) {
 }
 
 class TestListener extends TypePromotionLookAheadListener {
-  TestListener(Uri uri) : super(new TestState(uri));
+  TestListener(Uri uri, StringBuffer buffer)
+      : super(new TestState(uri, buffer));
 
   @override
   void debugEvent(String name, Token token) {
@@ -166,6 +213,66 @@ class DebugDeclaration extends Declaration {
   String get fullNameForErrors => name;
 
   String toString() => "<<$name@$charOffset>>";
+}
+
+class TypePromotionResult {
+  final Uri uri;
+
+  final String trace;
+
+  const TypePromotionResult(this.uri, this.trace);
+}
+
+class CheckTypePromotionResult
+    extends Step<TypePromotionResult, Null, TypePromotionLookAheadContext> {
+  const CheckTypePromotionResult();
+
+  String get name => "Check Type Promotion Result";
+
+  Future<Result<Null>> run(
+      TypePromotionResult result, TypePromotionLookAheadContext context) async {
+    Uri uri = result.uri;
+    String actual = result.trace.trim();
+    if (actual.isNotEmpty) {
+      actual += "\n";
+    }
+    File expectedFile = new File("${uri.toFilePath()}.type_promotion.expect");
+    if (await expectedFile.exists()) {
+      String expected = await expectedFile.readAsString();
+      if (expected != actual) {
+        if (context.updateExpectations) {
+          return updateExpectationFile(expectedFile.uri, actual);
+        }
+        String diff = await runDiff(expectedFile.uri, actual);
+        return new Result<Null>(null, context.expectationFileMismatch,
+            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
+      }
+      return pass(null);
+    } else {
+      if (actual.isEmpty) return pass(null);
+      if (context.updateExpectations) {
+        return updateExpectationFile(expectedFile.uri, actual);
+      }
+      return new Result<Null>(
+          null,
+          context.expectationFileMissing,
+          """
+Please create file ${expectedFile.path} with this content:
+$actual""",
+          null);
+    }
+  }
+
+  Future<Result<Null>> updateExpectationFile(Uri uri, String actual) async {
+    if (actual.isEmpty) {
+      await new File.fromUri(uri).delete();
+    } else {
+      await openWrite(uri, (IOSink sink) {
+        sink.write(actual);
+      });
+    }
+    return pass(null);
+  }
 }
 
 main([List<String> arguments = const []]) =>
