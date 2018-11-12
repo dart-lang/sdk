@@ -995,6 +995,9 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType(CompileType::kNonNullable, cid, &type);
   }
 
+  const bool is_unchecked_entry_param =
+      graph_entry->unchecked_entry() == block_;
+
   if (Isolate::Current()->can_use_strong_mode_types()) {
     LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
     // Note: in catch-blocks we have ParameterInstr for each local variable
@@ -1014,7 +1017,9 @@ CompileType ParameterInstr::ComputeType() const {
       }
       // If parameter type was checked by caller, then use Dart type annotation,
       // plus non-nullability from inferred type if known.
-      if (param->was_type_checked_by_caller()) {
+      if (param->was_type_checked_by_caller() ||
+          (is_unchecked_entry_param &&
+           !param->is_explicit_covariant_parameter())) {
         const bool is_nullable =
             (inferred_type == NULL) || inferred_type->is_nullable();
         TraceStrongModeType(this, param->type());

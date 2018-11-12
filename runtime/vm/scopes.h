@@ -88,6 +88,7 @@ class LocalVariable : public ZoneAllocated {
         is_invisible_(false),
         is_captured_parameter_(false),
         is_forced_stack_(false),
+        is_explicit_covariant_parameter_(false),
         type_check_mode_(kDoTypeCheck),
         index_() {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
@@ -120,6 +121,13 @@ class LocalVariable : public ZoneAllocated {
   // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
+
+  bool is_explicit_covariant_parameter() const {
+    return is_explicit_covariant_parameter_;
+  }
+  void set_is_explicit_covariant_parameter() {
+    is_explicit_covariant_parameter_ = true;
+  }
 
   enum TypeCheckMode {
     kDoTypeCheck,
@@ -197,6 +205,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_invisible_;
   bool is_captured_parameter_;
   bool is_forced_stack_;
+  bool is_explicit_covariant_parameter_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;
 
