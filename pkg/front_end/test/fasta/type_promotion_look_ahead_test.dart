@@ -146,15 +146,13 @@ class TestState extends TypePromotionState {
 
   @override
   void registerWrite(UnspecifiedDeclaration declaration, Token token) {
-    // TODO(ahe): Call `note` instead to create expectations.
-    trace("Write to ${declaration.name}@${declaration.charOffset}", token);
+    note("Write to ${declaration.name}@${declaration.charOffset}", token);
   }
 
   @override
   void registerPromotionCandidate(
       UnspecifiedDeclaration declaration, Token token) {
-    // TODO(ahe): Call `note` instead to create expectations.
-    trace("Possible promotion of ${declaration.name}@${declaration.charOffset}",
+    note("Possible promotion of ${declaration.name}@${declaration.charOffset}",
         token);
   }
 

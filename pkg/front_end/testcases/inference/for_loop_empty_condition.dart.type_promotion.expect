@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/for_loop_empty_condition.dart:9:21: Context: Write to x@287
+  for (num x = 0;; x++) {
+                    ^^
+pkg/front_end/testcases/inference/for_loop_empty_condition.dart:11:11: Context: Possible promotion of x@287
+    if (x is int) {
+          ^^

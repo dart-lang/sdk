@@ -1,0 +1,15 @@
+pkg/front_end/testcases/regress/issue_33452.dart:11:5: Context: Write to x@296
+  x = new ExistingClass();
+    ^
+pkg/front_end/testcases/regress/issue_33452.dart:12:5: Context: Write to x@296
+  x = new ExistingClass<String>();
+    ^
+pkg/front_end/testcases/regress/issue_33452.dart:13:5: Context: Write to x@296
+  x = new ExistingClass<String>.nonExistingConstructor();
+    ^
+pkg/front_end/testcases/regress/issue_33452.dart:14:5: Context: Write to x@296
+  x = new ExistingClass<String, String>.nonExistingConstructor();
+    ^
+pkg/front_end/testcases/regress/issue_33452.dart:15:5: Context: Write to x@296
+  x = new NonExistingClass();
+    ^

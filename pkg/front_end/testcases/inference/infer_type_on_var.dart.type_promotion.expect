@@ -1,0 +1,3 @@
+pkg/front_end/testcases/inference/infer_type_on_var.dart:10:5: Context: Write to x@278
+  x = /*error:INVALID_ASSIGNMENT*/ "hi";
+    ^

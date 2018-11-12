@@ -1,0 +1,18 @@
+pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:33:21: Context: Write to result@1329
+    case 1:  result = 1;
+                    ^
+pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:35:21: Context: Write to result@1329
+    case 2:  result = 2; /// static warning - case fall-through, see "Switch"
+                    ^
+pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:36:21: Context: Write to result@1329
+    case 3:  result = 3; /// static warning - case fall-through, see "Switch"
+                    ^
+pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:37:21: Context: Write to result@1329
+    default: result = 4;
+                    ^
+pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:47:20: Context: Write to result@1636
+    case 2: result = 1; /// static warning - case fall-through, see "Switch"
+                   ^
+pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:49:20: Context: Write to result@1636
+    case 4: result = 2;
+                   ^
