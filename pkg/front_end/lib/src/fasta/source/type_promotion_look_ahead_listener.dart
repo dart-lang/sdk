@@ -19,6 +19,8 @@ import '../scope.dart' show Scope;
 
 import '../severity.dart' show Severity;
 
+final NoArguments noArgumentsSentinel = new NoArguments();
+
 abstract class TypePromotionState {
   final Uri uri;
 
@@ -61,6 +63,10 @@ abstract class TypePromotionState {
 
   Declaration pop() => stack.removeLast();
 
+  void push(Declaration declaration) {
+    stack.add(declaration);
+  }
+
   Declaration popPushNull(String name, Token token) {
     int last = stack.length - 1;
     Declaration declaration = stack[last];
@@ -97,11 +103,33 @@ class UnspecifiedDeclaration extends Declaration {
 
   UnspecifiedDeclaration(this.name, this.fileUri, this.charOffset);
 
+  @override
   Declaration get parent => null;
 
+  @override
   String get fullNameForErrors => name;
 
+  @override
   String toString() => "UnspecifiedDeclaration($name)";
+}
+
+class NoArguments extends Declaration {
+  NoArguments();
+
+  @override
+  Uri get fileUri => null;
+
+  @override
+  int get charOffset => -1;
+
+  @override
+  Declaration get parent => null;
+
+  @override
+  String get fullNameForErrors => "<<no arguments>>";
+
+  @override
+  String toString() => fullNameForErrors;
 }
 
 class TypePromotionLookAheadListener extends Listener {
@@ -119,11 +147,13 @@ class TypePromotionLookAheadListener extends Listener {
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments", beginToken);
     state.discard(count);
+    state.pushNull("%Arguments%", endToken);
   }
 
   @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments", token);
+    state.push(noArgumentsSentinel);
   }
 
   @override
@@ -343,7 +373,12 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endConstExpression(Token token) {
     debugEvent("ConstExpression", token);
-    state.popPushNull(token.lexeme, token);
+    doConstuctorInvocation(token, true);
+  }
+
+  void doConstuctorInvocation(Token token, bool isConst) {
+    state.pop(); // Arguments.
+    state.popPushNull(token.lexeme, token); // Constructor reference.
   }
 
   @override
@@ -637,8 +672,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endImplicitCreationExpression(Token token) {
     debugEvent("ImplicitCreationExpression", token);
-    state.popPushNull(
-        "%ImplicitCreationExpression%", token); // Constructor name.
+    doConstuctorInvocation(token, false);
   }
 
   @override
@@ -748,7 +782,6 @@ class TypePromotionLookAheadListener extends Listener {
     debugEvent("IsOperator", isOperator);
     Declaration lhs = state.popPushNull(isOperator.lexeme, isOperator);
     if (lhs is UnspecifiedDeclaration) {
-      // TODO(ahe): This doesn't work, always a send.
       state.registerPromotionCandidate(lhs, isOperator);
     }
   }
@@ -852,6 +885,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata", beginToken);
+    state.pop(); // Arguments.
     if (periodBeforeName != null) {
       state.pop(); // Suffix.
     }
@@ -955,7 +989,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endNewExpression(Token token) {
     debugEvent("NewExpression", token);
-    state.popPushNull(token.lexeme, token);
+    doConstuctorInvocation(token, false);
   }
 
   @override
@@ -1062,7 +1096,12 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send", beginToken);
-    state.popPushNull("%send%", beginToken);
+    Declaration arguments = state.pop();
+    if (identical(arguments, noArgumentsSentinel)) {
+      // Leave the receiver on the stack.
+    } else {
+      state.popPushNull("%send%", beginToken);
+    }
   }
 
   @override
@@ -1219,7 +1258,6 @@ class TypePromotionLookAheadListener extends Listener {
     debugEvent("UnaryPostfixAssignmentExpression", token);
     Declaration expr = state.popPushNull(token.lexeme, token);
     if (expr is UnspecifiedDeclaration) {
-      // TODO(ahe): This doesn't work, expr is a "send".
       state.registerWrite(expr, token);
     }
   }
@@ -1229,7 +1267,6 @@ class TypePromotionLookAheadListener extends Listener {
     debugEvent("UnaryPrefixAssignmentExpression", token);
     Declaration expr = state.popPushNull(token.lexeme, token);
     if (expr is UnspecifiedDeclaration) {
-      // TODO(ahe): This doesn't work, expr is a "send".
       state.registerWrite(expr, token);
     }
   }
