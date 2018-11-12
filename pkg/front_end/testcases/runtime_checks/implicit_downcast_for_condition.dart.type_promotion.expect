@@ -1,0 +1,3 @@
+pkg/front_end/testcases/runtime_checks/implicit_downcast_for_condition.dart:11:25: Context: Write to i@310
+    for (int i = 0; o; i++) {}
+                        ^^

@@ -5546,6 +5546,8 @@ abstract class MetadataRepository<T> {
 }
 
 abstract class BinarySink {
+  int getBufferOffset();
+
   void writeByte(int byte);
   void writeBytes(List<int> bytes);
   void writeUInt32(int value);
@@ -5575,6 +5577,7 @@ abstract class BinarySource {
   List<int> get bytes;
 
   int readByte();
+  List<int> readBytes(int length);
   int readUInt();
   int readUint32();
 

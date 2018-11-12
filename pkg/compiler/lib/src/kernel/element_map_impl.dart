@@ -57,7 +57,9 @@ import 'kernel_impact.dart';
 part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
 
-abstract class KernelToElementMapBase implements IrToElementMap {
+/// Implementation of [KernelToElementMap] that only supports world
+/// impact computation.
+class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   final CompilerOptions options;
   final DiagnosticReporter reporter;
   CommonElementsImpl _commonElements;
@@ -81,7 +83,32 @@ abstract class KernelToElementMapBase implements IrToElementMap {
   final EntityDataMap<IndexedTypedef, KTypedefData> typedefs =
       new EntityDataMap<IndexedTypedef, KTypedefData>();
 
-  KernelToElementMapBase(this.options, this.reporter, Environment environment) {
+  /// Set to `true` before creating the J-World from the K-World to assert that
+  /// no entities are created late.
+  bool envIsClosed = false;
+
+  final Map<ir.Library, IndexedLibrary> libraryMap = {};
+  final Map<ir.Class, IndexedClass> classMap = {};
+  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
+
+  /// Map from [ir.TypeParameter] nodes to the corresponding
+  /// [TypeVariableEntity].
+  ///
+  /// Normally the type variables are [IndexedTypeVariable]s, but for type
+  /// parameters on local function (in the frontend) these are _not_ since
+  /// their type declaration is neither a class nor a member. In the backend,
+  /// these type parameters belong to the call-method and are therefore indexed.
+  final Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap = {};
+  final Map<ir.Member, IndexedConstructor> constructorMap = {};
+  final Map<ir.Procedure, IndexedFunction> methodMap = {};
+  final Map<ir.Field, IndexedField> fieldMap = {};
+  final Map<ir.TreeNode, Local> localFunctionMap = {};
+
+  native.BehaviorBuilder _nativeBehaviorBuilder;
+  FrontendStrategy _frontendStrategy;
+
+  KernelToElementMapImpl(this.reporter, Environment environment,
+      this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this, environment);
@@ -89,17 +116,12 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     _types = new KernelDartTypes(this);
   }
 
-  bool checkFamily(Entity entity);
-
   DartTypes get types => _types;
 
   KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
   CommonElementsImpl get commonElements => _commonElements;
-
-  /// NativeBasicData is need for computation of the default super class.
-  NativeBasicData get nativeBasicData;
 
   FunctionEntity get _mainFunction {
     return env.mainMethod != null ? getMethodInternal(env.mainMethod) : null;
@@ -110,8 +132,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
         ? getLibraryInternal(env.mainMethod.enclosingLibrary)
         : null;
   }
-
-  Iterable<LibraryEntity> get libraryListInternal;
 
   SourceSpan getSourceSpan(Spannable spannable, Entity currentElement) {
     SourceSpan fromSpannable(Spannable spannable) {
@@ -216,12 +236,8 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   LibraryEntity getLibrary(ir.Library node) => getLibraryInternal(node);
 
-  LibraryEntity getLibraryInternal(ir.Library node, [KLibraryEnv libraryEnv]);
-
   @override
   ClassEntity getClass(ir.Class node) => getClassInternal(node);
-
-  ClassEntity getClassInternal(ir.Class node, [KClassEnv classEnv]);
 
   InterfaceType getSuperType(IndexedClass cls) {
     assert(checkFamily(cls));
@@ -255,8 +271,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       getTypeVariableInternal(node);
-
-  TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node);
 
   void _ensureSupertypes(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
@@ -339,8 +353,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     return typedefs.getData(typedef).rawType;
   }
 
-  TypedefEntity getTypedefInternal(ir.Typedef node);
-
   @override
   MemberEntity getMember(ir.Member node) {
     if (node is ir.Field) {
@@ -386,8 +398,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
-  ConstructorEntity getConstructorInternal(ir.Member node);
-
   ConstructorEntity getSuperConstructor(
       ir.Constructor sourceNode, ir.Member targetNode) {
     ConstructorEntity source = getConstructor(sourceNode);
@@ -409,12 +419,8 @@ abstract class KernelToElementMapBase implements IrToElementMap {
   @override
   FunctionEntity getMethod(ir.Procedure node) => getMethodInternal(node);
 
-  FunctionEntity getMethodInternal(ir.Procedure node);
-
   @override
   FieldEntity getField(ir.Field node) => getFieldInternal(node);
-
-  FieldEntity getFieldInternal(ir.Field node);
 
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
@@ -565,12 +571,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     return data.getBound(this);
   }
 
-  DartType _getTypeVariableDefaultType(IndexedTypeVariable typeVariable) {
-    assert(checkFamily(typeVariable));
-    KTypeVariableData data = typeVariables.getData(typeVariable);
-    return data.getDefaultType(this);
-  }
-
   ClassEntity getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -615,15 +615,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     KClassEnv env = classes.getEnv(cls);
     env.forEachConstructor(this, f);
   }
-
-  void forEachConstructorBody(
-      IndexedClass cls, void f(ConstructorBodyEntity member)) {
-    throw new UnsupportedError(
-        'KernelToElementMapBase._forEachConstructorBody');
-  }
-
-  void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure));
 
   void _forEachLocalClassMember(IndexedClass cls, void f(MemberEntity member)) {
     assert(checkFamily(cls));
@@ -1082,42 +1073,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
         failedAt(cls, "No super noSuchMethod found for class $cls."));
     return function;
   }
-}
-
-/// Mixin that implements the abstract methods in [KernelToElementMapBase].
-abstract class ElementCreatorMixin implements KernelToElementMapBase {
-  /// Set to `true` before creating the J-World from the K-World to assert that
-  /// no entities are created late.
-  bool envIsClosed = false;
-  KProgramEnv get env;
-  EntityDataEnvMap<IndexedLibrary, KLibraryData, KLibraryEnv> get libraries;
-  EntityDataEnvMap<IndexedClass, KClassData, KClassEnv> get classes;
-  EntityDataMap<IndexedMember, KMemberData> get members;
-  EntityDataMap<IndexedTypeVariable, KTypeVariableData> get typeVariables;
-  EntityDataMap<IndexedTypedef, KTypedefData> get typedefs;
-
-  final Map<ir.Library, IndexedLibrary> libraryMap = {};
-  final Map<ir.Class, IndexedClass> classMap = {};
-  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
-
-  /// Map from [ir.TypeParameter] nodes to the corresponding
-  /// [TypeVariableEntity].
-  ///
-  /// Normally the type variables are [IndexedTypeVariable]s, but for type
-  /// parameters on local function (in the frontend) these are _not_ since
-  /// their type declaration is neither a class nor a member. In the backend,
-  /// these type parameters belong to the call-method and are therefore indexed.
-  final Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap = {};
-  final Map<ir.Member, IndexedConstructor> constructorMap = {};
-  final Map<ir.Procedure, IndexedFunction> methodMap = {};
-  final Map<ir.Field, IndexedField> fieldMap = {};
-  final Map<ir.TreeNode, Local> localFunctionMap = {};
-
-  Name getName(ir.Name node);
-  FunctionType getFunctionType(ir.FunctionNode node);
-  MemberEntity getMember(ir.Member node);
-  Entity getClosure(ir.FunctionDeclaration node);
-  Local getLocalFunction(ir.TreeNode node);
 
   Iterable<LibraryEntity> get libraryListInternal {
     if (env.length != libraryMap.length) {
@@ -1356,60 +1311,6 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
         field, new KFieldDataImpl(node));
   }
 
-  IndexedLibrary createLibrary(String name, Uri canonicalUri);
-
-  IndexedClass createClass(LibraryEntity library, String name,
-      {bool isAbstract});
-
-  IndexedTypedef createTypedef(LibraryEntity library, String name);
-
-  TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index);
-
-  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst});
-
-  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor});
-
-  IndexedFunction createGetter(LibraryEntity library,
-      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, bool isAbstract});
-
-  IndexedFunction createMethod(
-      LibraryEntity library,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      AsyncMarker asyncMarker,
-      {bool isStatic,
-      bool isExternal,
-      bool isAbstract});
-
-  IndexedFunction createSetter(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isExternal, bool isAbstract});
-
-  IndexedField createField(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isAssignable, bool isConst});
-}
-
-/// Implementation of [KernelToElementMap] that only supports world
-/// impact computation.
-class KernelToElementMapImpl extends KernelToElementMapBase
-    with ElementCreatorMixin
-    implements KernelToElementMap {
-  native.BehaviorBuilder _nativeBehaviorBuilder;
-  FrontendStrategy _frontendStrategy;
-
-  KernelToElementMapImpl(DiagnosticReporter reporter, Environment environment,
-      this._frontendStrategy, CompilerOptions options)
-      : super(options, reporter, environment);
-
-  @override
   bool checkFamily(Entity entity) {
     assert(
         '$entity'.startsWith(kElementPrefix),
@@ -1418,24 +1319,7 @@ class KernelToElementMapImpl extends KernelToElementMapBase
     return true;
   }
 
-  DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
-    if (typeVariable is KLocalTypeVariable) return typeVariable.bound;
-    return super.getTypeVariableBound(typeVariable);
-  }
-
-  DartType _getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
-    if (typeVariable is KLocalTypeVariable) return typeVariable.defaultType;
-    return super._getTypeVariableDefaultType(typeVariable);
-  }
-
-  @override
-  void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure)) {
-    throw new UnsupportedError(
-        "KernelToElementMapForImpactImpl._forEachNestedClosure");
-  }
-
-  @override
+  /// NativeBasicData is need for computation of the default super class.
   NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
   /// Adds libraries in [component] to the set of libraries.
@@ -1468,11 +1352,6 @@ class KernelToElementMapImpl extends KernelToElementMapBase
   @override
   ir.Library getLibraryNode(LibraryEntity library) {
     return libraries.getData(library).library;
-  }
-
-  @override
-  Entity getClosure(ir.FunctionDeclaration node) {
-    return getLocalFunction(node);
   }
 
   @override
@@ -1659,7 +1538,6 @@ class KernelToElementMapImpl extends KernelToElementMapBase
     return new KClass(library, name, isAbstract: isAbstract);
   }
 
-  @override
   IndexedTypedef createTypedef(LibraryEntity library, String name) {
     return new KTypedef(library, name);
   }
@@ -1723,7 +1601,7 @@ class KernelToElementMapImpl extends KernelToElementMapBase
 
 class KernelElementEnvironment extends ElementEnvironment
     implements KElementEnvironment {
-  final KernelToElementMapBase elementMap;
+  final KernelToElementMapImpl elementMap;
 
   KernelElementEnvironment(this.elementMap);
 
@@ -1771,6 +1649,7 @@ class KernelElementEnvironment extends ElementEnvironment
 
   @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
+    if (typeVariable is KLocalTypeVariable) return typeVariable.bound;
     return elementMap.getTypeVariableBound(typeVariable);
   }
 
@@ -2021,7 +1900,7 @@ class KernelBehaviorBuilder extends native.BehaviorBuilder {
 /// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
 /// [_EvaluationEnvironment] for the evaluation.
 class KernelConstantEnvironment implements ConstantEnvironment {
-  final KernelToElementMapBase _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final Environment _environment;
 
   Map<ConstantExpression, ConstantValue> _valueMap =
@@ -2047,7 +1926,7 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 /// Evaluation environment used for computing [ConstantValue]s for
 /// kernel based [ConstantExpression]s.
 class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
-  final KernelToElementMapBase _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final Environment _environment;
   final bool checkCasts;
 

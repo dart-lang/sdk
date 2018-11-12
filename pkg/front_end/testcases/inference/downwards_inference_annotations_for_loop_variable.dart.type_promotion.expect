@@ -1,0 +1,3 @@
+pkg/front_end/testcases/inference/downwards_inference_annotations_for_loop_variable.dart:14:34: Context: Write to i@367
+       i /*@target=num::<*/< 1; i++) {}
+                                 ^^

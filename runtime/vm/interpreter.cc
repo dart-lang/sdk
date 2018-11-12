@@ -675,7 +675,7 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
   if (!setjmp(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
-    thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_vm_tag(VMTag::kDartInterpretedTagId);
     thread->set_top_exit_frame_info(0);
     return true;
   } else {
@@ -692,7 +692,7 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
   if (!setjmp(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(function));
     wrapper(args, function);
-    thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_vm_tag(VMTag::kDartInterpretedTagId);
     thread->set_top_exit_frame_info(0);
     return true;
   } else {
@@ -733,7 +733,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     if (!setjmp(buffer.buffer_)) {
       thread->set_vm_tag(reinterpret_cast<uword>(entrypoint));
       result = entrypoint(code, argdesc_, call_base, thread);
-      thread->set_vm_tag(VMTag::kDartTagId);
+      thread->set_vm_tag(VMTag::kDartInterpretedTagId);
       thread->set_top_exit_frame_info(0);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
     } else {
@@ -1044,7 +1044,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
   // Bytecode was loaded in the above compilation step.
   // The caller will dispatch to the function's bytecode.
   *invoked = false;
-  ASSERT(thread->vm_tag() == VMTag::kDartTagId);
+  ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
   ASSERT(thread->top_exit_frame_info() == 0);
   return true;
 }
@@ -1633,7 +1633,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   // Save current VM tag and mark thread as executing Dart code.
   const uword vm_tag = thread->vm_tag();
-  thread->set_vm_tag(VMTag::kDartTagId);  // TODO(regis): kDartBytecodeTagId?
+  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
 
   // Save current top stack resource and reset the list.
   StackResource* top_resource = thread->top_resource();
@@ -3015,7 +3015,7 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   StackResource::Unwind(thread);
 
   // Set the tag.
-  thread->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
 

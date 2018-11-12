@@ -33,19 +33,19 @@ main(List<String> args) {
   if (entryPoint == null) {
     throw new ArgumentError("Missing entry point.");
   }
-  Uri libraryRoot = getLibraryRoot(argResults);
+  Uri librariesSpecificationUri = getLibrariesSpec(argResults);
   Uri packageConfig = getPackages(argResults);
   List<String> options = getOptions(argResults);
   run(entryPoint, null,
       analyzedUrisFilter: (Uri uri) => uri.scheme != 'dart',
-      libraryRoot: libraryRoot,
+      librariesSpecificationUri: librariesSpecificationUri,
       packageConfig: packageConfig,
       options: options);
 }
 
 run(Uri entryPoint, String allowedListPath,
     {Map<String, String> memorySourceFiles = const {},
-    Uri libraryRoot,
+    Uri librariesSpecificationUri,
     Uri packageConfig,
     bool verbose = false,
     bool generate = false,
@@ -54,7 +54,7 @@ run(Uri entryPoint, String allowedListPath,
   asyncTest(() async {
     Compiler compiler = await compilerFor(
         memorySourceFiles: memorySourceFiles,
-        libraryRoot: libraryRoot,
+        librariesSpecificationUri: librariesSpecificationUri,
         packageConfig: packageConfig,
         options: options);
     LoadedLibraries loadedLibraries =

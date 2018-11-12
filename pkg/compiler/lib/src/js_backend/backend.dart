@@ -34,6 +34,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_builder.dart';

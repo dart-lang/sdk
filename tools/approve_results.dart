@@ -23,6 +23,10 @@ const gsutil = "gsutil.py";
 /// Cloud storage location containing results.
 const testResultsStoragePath = "gs://dart-test-results/builders";
 
+/// Cloud storage location containing approved results.
+const approvedResultsStoragePath =
+    "gs://dart-test-results-approved-results/builders";
+
 /// Runs gsutil with the provided [arguments] and returns the standard output.
 /// Returns null if the requested URL didn't exist.
 Future<String> runGsutil(List<String> arguments) async {
@@ -170,8 +174,9 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options) async {
     // results.
     await Future.wait([
       cpRecursiveGsutil(buildCloudPath(bot, build), tmpdir.path),
-      cpRecursiveGsutil(fileCloudPath(bot, "approved_results.json"),
-          "${tmpdir.path}/approved_results.json")
+      cpRecursiveGsutil(
+          "$approvedResultsStoragePath/$bot/approved_results.json",
+          "${tmpdir.path}/approved_results.json"),
     ]);
 
     // Check the build was properly downloaded.
@@ -499,7 +504,8 @@ ${parser.usage}""");
       final localPath = "${outDirectory.path}/$bot.json";
       await new File(localPath).writeAsString(
           testsList.map((test) => jsonEncode(test.resultData) + "\n").join(""));
-      final remotePath = fileCloudPath(bot, "approved_results.json");
+      final remotePath =
+          "$approvedResultsStoragePath/$bot/approved_results.json";
       futures.add(cpGsutil(localPath, remotePath)
           .then((_) => print("Uploaded approved results for $bot")));
     }

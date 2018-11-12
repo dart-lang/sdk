@@ -299,9 +299,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FieldHelper field_helper(&helper_);
           field_helper.ReadUntilIncluding(FieldHelper::kFlags);
 
-          if (!field_helper.IsCovariant() &&
-              (!field_helper.IsGenericCovariantImpl() ||
-               (!attrs.has_non_this_uses && !attrs.has_tearoff_uses))) {
+          if (field_helper.IsCovariant()) {
+            result_->setter_value->set_is_explicit_covariant_parameter();
+          } else if (!field_helper.IsGenericCovariantImpl() ||
+                     (!attrs.has_non_this_uses && !attrs.has_tearoff_uses)) {
             result_->setter_value->set_type_check_mode(
                 LocalVariable::kTypeCheckedByCaller);
           }
@@ -1427,6 +1428,9 @@ void ScopeBuilder::AddVariableDeclarationParameter(
                                          name, type, &parameter_type);
   if (helper.IsFinal()) {
     variable->set_is_final();
+  }
+  if (helper.IsCovariant()) {
+    variable->set_is_explicit_covariant_parameter();
   }
   if (variable->name().raw() == Symbols::IteratorParameter().raw()) {
     variable->set_is_forced_stack();

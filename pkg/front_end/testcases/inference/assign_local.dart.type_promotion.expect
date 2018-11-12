@@ -1,0 +1,12 @@
+pkg/front_end/testcases/inference/assign_local.dart:14:29: Context: Write to x@320
+  var /*@type=int*/ x1 = (x = 1);
+                            ^
+pkg/front_end/testcases/inference/assign_local.dart:15:32: Context: Write to x@320
+  var /*@type=double*/ x2 = (x = 1.0);
+                               ^
+pkg/front_end/testcases/inference/assign_local.dart:18:32: Context: Write to y@406
+  var /*@type=A<int>*/ y1 = (y = new /*@typeArgs=int*/ A());
+                               ^
+pkg/front_end/testcases/inference/assign_local.dart:19:32: Context: Write to y@406
+  var /*@type=B<int>*/ y2 = (y = new /*@typeArgs=int*/ B());
+                               ^

@@ -105,20 +105,24 @@ class CompilationResult {
  * as the compiler may create multiple files to support lazy loading
  * of libraries.
  */
-Future<CompilationResult> compile(Uri script, Uri libraryRoot, Uri packageRoot,
-    CompilerInputProvider inputProvider, DiagnosticHandler handler,
+Future<CompilationResult> compile(
+    Uri script,
+    Uri librariesSpecificationUri,
+    Uri packageRoot,
+    CompilerInputProvider inputProvider,
+    DiagnosticHandler handler,
     [List<String> options = const [],
     CompilerOutputProvider outputProvider,
     Map<String, String> environment = const {},
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider]) {
-  CompilerOptions compilerOptions =
-      CompilerOptions.parse(options, libraryRoot: libraryRoot)
-        ..entryPoint = script
-        ..packageRoot = packageRoot
-        ..packageConfig = packageConfig
-        ..packagesDiscoveryProvider = packagesDiscoveryProvider
-        ..environment = environment;
+  CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      librariesSpecificationUri: librariesSpecificationUri)
+    ..entryPoint = script
+    ..packageRoot = packageRoot
+    ..packageConfig = packageConfig
+    ..packagesDiscoveryProvider = packagesDiscoveryProvider
+    ..environment = environment;
 
   new_api.CompilerInput compilerInput = new LegacyCompilerInput(inputProvider);
   new_api.CompilerDiagnostics compilerDiagnostics =

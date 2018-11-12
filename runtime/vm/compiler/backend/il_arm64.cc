@@ -320,8 +320,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
   if (destination.IsRegister()) {
     if (representation() == kUnboxedInt32 ||
         representation() == kUnboxedInt64) {
-      const int64_t value = value_.IsSmi() ? Smi::Cast(value_).Value()
-                                           : Mint::Cast(value_).value();
+      const int64_t value = Integer::Cast(value_).AsInt64Value();
       __ LoadImmediate(destination.reg(), value);
     } else {
       ASSERT(representation() == kTagged);
@@ -346,9 +345,12 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
-    if (value_.IsSmi() && representation() == kUnboxedInt32) {
-      __ LoadImmediate(tmp, static_cast<int32_t>(Smi::Cast(value_).Value()));
+    if (representation() == kUnboxedInt32 ||
+        representation() == kUnboxedInt64) {
+      const int64_t value = Integer::Cast(value_).AsInt64Value();
+      __ LoadImmediate(tmp, value);
     } else {
+      ASSERT(representation() == kTagged);
       __ LoadObject(tmp, value_);
     }
     __ StoreToOffset(tmp, destination.base_reg(), dest_offset);

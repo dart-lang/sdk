@@ -18,48 +18,87 @@ void main() {
     server = new Server(process);
   });
 
-  test('test_listenToOutput_good', () async {
-    process.stdout = _goodMessage();
-    process.stderr = _noMessage();
+  group('listenToOutput', () {
+    test('good', () async {
+      process.stdout = _goodMessage();
+      process.stderr = _noMessage();
 
-    final future = server.send('blahMethod', null);
-    server.listenToOutput();
+      final future = server.send('blahMethod', null);
+      server.listenToOutput();
 
-    final response = await future;
-    expect(response['foo'], 'bar');
-  });
-
-  test('test_listenToOutput_error', () async {
-    process.stdout = _badMessage();
-    process.stderr = _noMessage();
-
-    final future = server.send('blahMethod', null);
-    future.catchError((e) {
-      expect(e, const TypeMatcher<ServerErrorMessage>());
-      final error = e as ServerErrorMessage;
-      expect(error.errorCode, 'someErrorCode');
-      expect(error.errorMessage, 'something went wrong');
-      expect(error.stackTrace, 'some long stack trace');
+      final response = await future;
+      expect(response['foo'], 'bar');
     });
-    server.listenToOutput();
+
+    test('error', () async {
+      process.stdout = _badMessage();
+      process.stderr = _noMessage();
+
+      final future = server.send('blahMethod', null);
+      future.catchError((e) {
+        expect(e, const TypeMatcher<ServerErrorMessage>());
+        final error = e as ServerErrorMessage;
+        expect(error.errorCode, 'someErrorCode');
+        expect(error.errorMessage, 'something went wrong');
+        expect(error.stackTrace, 'some long stack trace');
+      });
+      server.listenToOutput();
+    });
+
+    test('event', () async {
+      process.stdout = _eventMessage();
+      process.stderr = _noMessage();
+
+      final completer = new Completer();
+      void eventHandler(String event, Map<String, Object> params) {
+        expect(event, 'fooEvent');
+        expect(params.length, 2);
+        expect(params['foo'] as String, 'bar');
+        expect(params['baz'] as String, 'bang');
+        completer.complete();
+      }
+
+      server.send('blahMethod', null);
+      server.listenToOutput(notificationProcessor: eventHandler);
+      await completer.future;
+    });
   });
 
-  test('test_listenToOutput_event', () async {
-    process.stdout = _eventMessage();
-    process.stderr = _noMessage();
+  group('stop', () {
+    test('ok', () async {
+      final mockout = new StreamController<List<int>>();
+      process.stdout = mockout.stream;
+      process.stderr = _noMessage();
+      process.mockin.controller.stream.first.then((_) {
+        String encoded = json.encode({'id': '0'});
+        mockout.add(utf8.encoder.convert('$encoded\n'));
+      });
+      process.exitCode = new Future.value(0);
 
-    final completer = new Completer();
-    void eventHandler(String event, Map<String, Object> params) {
-      expect(event, 'fooEvent');
-      expect(params.length, 2);
-      expect(params['foo'] as String, 'bar');
-      expect(params['baz'] as String, 'bang');
-      completer.complete();
-    }
+      server.listenToOutput();
+      await server.stop(timeLimit: const Duration(milliseconds: 1));
+      expect(process.killed, isFalse);
+    });
+    test('stopped', () async {
+      final mockout = new StreamController<List<int>>();
+      process.stdout = mockout.stream;
+      process.stderr = _noMessage();
+      process.exitCode = new Future.value(0);
 
-    server.send('blahMethod', null);
-    server.listenToOutput(notificationProcessor: eventHandler);
-    await completer.future;
+      server.listenToOutput();
+      await server.stop(timeLimit: const Duration(milliseconds: 1));
+      expect(process.killed, isFalse);
+    });
+    test('kill', () async {
+      final mockout = new StreamController<List<int>>();
+      process.stdout = mockout.stream;
+      process.stderr = _noMessage();
+      process.exitCode = new Future.delayed(const Duration(milliseconds: 20));
+
+      server.listenToOutput();
+      await server.stop(timeLimit: const Duration(milliseconds: 1));
+      expect(process.killed, isTrue);
+    });
   });
 }
 
@@ -71,7 +110,10 @@ final _badErrorMessage = {
 
 Stream<List<int>> _badMessage() async* {
   yield utf8.encoder.convert('Observatory listening on foo bar\n');
-  final sampleJson = {'id': '0', 'error': _badErrorMessage};
+  final sampleJson = {
+    'id': '0',
+    'error': _badErrorMessage,
+  };
   yield utf8.encoder.convert(json.encode(sampleJson));
 }
 
@@ -98,26 +140,36 @@ Stream<List<int>> _noMessage() async* {
 }
 
 class MockProcess implements Process {
+  MockStdin mockin = new MockStdin();
+
+  bool killed = false;
+
   @override
   Stream<List<int>> stderr;
 
   @override
-  IOSink stdin = new MockStdin();
+  IOSink get stdin => mockin;
 
   @override
   Stream<List<int>> stdout;
 
   @override
-  Future<int> get exitCode => null;
+  Future<int> exitCode;
 
   @override
   int get pid => null;
 
   @override
-  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => null;
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
+    bool wasKilled = killed;
+    killed = true;
+    return !wasKilled;
+  }
 }
 
 class MockStdin implements IOSink {
+  final controller = new StreamController<String>();
+
   @override
   Encoding encoding;
 
@@ -125,7 +177,9 @@ class MockStdin implements IOSink {
   Future get done => null;
 
   @override
-  void add(List<int> data) {}
+  void add(List<int> data) {
+    controller.add(utf8.decode(data));
+  }
 
   @override
   void addError(Object error, [StackTrace stackTrace]) {}

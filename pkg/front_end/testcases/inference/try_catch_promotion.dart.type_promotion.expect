@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/try_catch_promotion.dart:20:11: Context: Possible promotion of x@382
+    if (x is D) {
+          ^^
+pkg/front_end/testcases/inference/try_catch_promotion.dart:23:11: Context: Possible promotion of y@385
+    if (y is E) {
+          ^^

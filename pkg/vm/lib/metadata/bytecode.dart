@@ -20,7 +20,11 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 ///   UInt flags (HasExceptionsTable, HasNullableFields, HasClosures)
 ///
 ///   ConstantPool constantPool
-///   List<Byte> bytecodes
+///
+///   UInt bytecodeSizeInBytes
+///   Byte paddingSizeInBytes
+///   Byte[paddingSizeInBytes] padding
+///   Byte[bytecodeSizeInBytes] bytecodes
 ///
 ///   (optional, present if HasExceptionsTable)
 ///   ExceptionsTable exceptionsTable
@@ -34,7 +38,12 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 ///
 /// type ClosureBytecode {
 ///   ConstantIndex closureFunction
-///   List<Byte> bytecodes
+///
+///   UInt bytecodeSizeInBytes
+///   Byte paddingSizeInBytes
+///   Byte[paddingSizeInBytes] padding
+///   Byte[bytecodeSizeInBytes] bytecodes
+///
 ///   ExceptionsTable exceptionsTable
 /// }
 ///
@@ -94,13 +103,13 @@ class ClosureBytecode {
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(closureFunctionConstantIndex);
-    sink.writeByteList(bytecodes);
+    _writeBytecodeInstructions(sink, bytecodes);
     exceptionsTable.writeToBinary(sink);
   }
 
   factory ClosureBytecode.readFromBinary(BinarySource source) {
     final closureFunctionConstantIndex = source.readUInt();
-    final List<int> bytecodes = source.readByteList();
+    final List<int> bytecodes = _readBytecodeInstructions(source);
     final exceptionsTable = new ExceptionsTable.readFromBinary(source);
     return new ClosureBytecode(
         closureFunctionConstantIndex, bytecodes, exceptionsTable);
@@ -131,7 +140,7 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
     sink.writeUInt30(metadata.version);
     sink.writeUInt30(metadata.flags);
     metadata.constantPool.writeToBinary(node, sink);
-    sink.writeByteList(metadata.bytecodes);
+    _writeBytecodeInstructions(sink, metadata.bytecodes);
     if (metadata.hasExceptionsTable) {
       metadata.exceptionsTable.writeToBinary(sink);
     }
@@ -156,7 +165,8 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
     int flags = source.readUInt();
     final ConstantPool constantPool =
         new ConstantPool.readFromBinary(node, source);
-    final List<int> bytecodes = source.readByteList();
+    _readBytecodePadding(source);
+    final List<int> bytecodes = _readBytecodeInstructions(source);
     final exceptionsTable =
         ((flags & BytecodeMetadata.hasExceptionsTableFlag) != 0)
             ? new ExceptionsTable.readFromBinary(source)
@@ -173,5 +183,35 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
             : const <ClosureBytecode>[];
     return new BytecodeMetadata(version, constantPool, bytecodes,
         exceptionsTable, nullableFields, closures);
+  }
+}
+
+void _writeBytecodeInstructions(BinarySink sink, List<int> bytecodes) {
+  sink.writeUInt30(bytecodes.length);
+  _writeBytecodePadding(sink);
+  sink.writeBytes(bytecodes);
+}
+
+List<int> _readBytecodeInstructions(BinarySource source) {
+  int len = source.readUInt();
+  _readBytecodePadding(source);
+  return source.readBytes(len);
+}
+
+void _writeBytecodePadding(BinarySink sink) {
+  const int bytecodeAlignment = 4;
+  int offset = sink.getBufferOffset() + 1; // +1 is for the length.
+  int len = ((offset + bytecodeAlignment - 1) & -bytecodeAlignment) - offset;
+  sink.writeByte(len);
+  for (int i = 0; i < len; ++i) {
+    sink.writeByte(0);
+  }
+  assert((sink.getBufferOffset() & (bytecodeAlignment - 1)) == 0);
+}
+
+void _readBytecodePadding(BinarySource source) {
+  int len = source.readByte();
+  for (int i = 0; i < len; ++i) {
+    source.readByte();
   }
 }

@@ -42,9 +42,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
   Uri entryPoint;
 
-  /// Root location where SDK libraries are found.
-  Uri libraryRoot;
-
   /// Package root location.
   ///
   /// If not null then [packageConfig] should be null.
@@ -168,10 +165,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// URI of the main output if the compiler is generating source maps.
   Uri outputUri;
 
-  /// Location of the platform configuration file.
-  // TODO(sigmund): deprecate and remove, use only [librariesSpecificationUri]
-  Uri platformConfigUri;
-
   /// Location of the libraries specification file.
   Uri librariesSpecificationUri;
 
@@ -234,9 +227,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// emitter might still be used if the program uses dart:mirrors.
   bool useStartupEmitter = false;
 
-  /// Enable verbose printing during compilation. Includes progress messages
-  /// during each phase and a time-breakdown between phases at the end.
+  /// Enable verbose printing during compilation. Includes a time-breakdown
+  /// between phases at the end.
   bool verbose = false;
+
+  /// On top of --verbose, enable more verbose printing, like progress messages
+  /// during each phase of compilation.
+  bool showInternalProgress = false;
 
   /// Track allocations in the JS output.
   ///
@@ -267,15 +264,15 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
-      {Uri libraryRoot, Uri platformBinaries}) {
+      {Uri librariesSpecificationUri, Uri platformBinaries}) {
     return new CompilerOptions()
-      ..libraryRoot = libraryRoot
+      ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =
           _hasOption(options, Flags.benchmarkingProduction)
       ..buildId =
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
-      ..compileForServer = _resolveCompileForServerFromOptions(options)
+      ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
@@ -305,9 +302,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
-      ..platformConfigUri =
-          _resolvePlatformConfigFromOptions(libraryRoot, options)
-      ..librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot)
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
@@ -328,6 +322,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
       ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
       ..verbose = _hasOption(options, Flags.verbose)
+      ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=');
   }
@@ -336,11 +331,12 @@ class CompilerOptions implements DiagnosticOptions {
     // TODO(sigmund): should entrypoint be here? should we validate it is not
     // null? In unittests we use the same compiler to analyze or build multiple
     // entrypoints.
-    if (libraryRoot == null) {
-      throw new ArgumentError("[libraryRoot] is null.");
+    if (librariesSpecificationUri == null) {
+      throw new ArgumentError("[librariesSpecificationUri] is null.");
     }
-    if (!libraryRoot.path.endsWith("/")) {
-      throw new ArgumentError("[libraryRoot] must end with a /");
+    if (librariesSpecificationUri.path.endsWith('/')) {
+      throw new ArgumentError(
+          "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
     if (packageRoot != null && packageConfig != null) {
       throw new ArgumentError("Only one of [packageRoot] or [packageConfig] "
@@ -381,10 +377,6 @@ class CompilerOptions implements DiagnosticOptions {
 
     // TODO(johnniwinther): Should we support this in the future?
     generateCodeWithCompileTimeErrors = false;
-    if (platformConfigUri == null) {
-      platformConfigUri = _resolvePlatformConfig(libraryRoot, null, const []);
-    }
-    librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot);
 
     // Strong mode always trusts type annotations (inferred or explicit), so
     // assignments checks should be trusted.
@@ -459,16 +451,6 @@ Uri _extractUriOption(List<String> options, String prefix) {
   return (option == null) ? null : Uri.parse(option);
 }
 
-// CSV: Comma separated values.
-List<String> _extractCsvOption(List<String> options, String prefix) {
-  for (String option in options) {
-    if (option.startsWith(prefix)) {
-      return option.substring(prefix.length).split(',');
-    }
-  }
-  return const <String>[];
-}
-
 bool _hasOption(List<String> options, String option) {
   return options.indexOf(option) >= 0;
 }
@@ -488,45 +470,5 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
   }
   return null;
 }
-
-Uri _resolvePlatformConfig(
-    Uri libraryRoot, String platformConfigPath, Iterable<String> categories) {
-  if (platformConfigPath != null) {
-    return libraryRoot.resolve(platformConfigPath);
-  } else {
-    if (categories.length == 0) {
-      return libraryRoot.resolve(_clientPlatform);
-    }
-    assert(categories.length <= 2);
-    if (categories.contains("Client")) {
-      if (categories.contains("Server")) {
-        return libraryRoot.resolve(_sharedPlatform);
-      }
-      return libraryRoot.resolve(_clientPlatform);
-    }
-    assert(categories.contains("Server"));
-    return libraryRoot.resolve(_serverPlatform);
-  }
-}
-
-bool _resolveCompileForServerFromOptions(List<String> options) {
-  var categories = _extractCsvOption(options, '--categories=');
-  return categories.length == 1 && categories.single == 'Server';
-}
-
-Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {
-  return _resolvePlatformConfig(
-      libraryRoot,
-      _extractStringOption(options, "--platform-config=", null),
-      _extractCsvOption(options, '--categories='));
-}
-
-Uri _resolveLibrariesSpecification(Uri libraryRoot) =>
-    libraryRoot.resolve('lib/libraries.json');
-
-/// Locations of the platform descriptor files relative to the library root.
-const String _clientPlatform = "lib/dart_client.platform";
-const String _serverPlatform = "lib/dart_server.platform";
-const String _sharedPlatform = "lib/dart_shared.platform";
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

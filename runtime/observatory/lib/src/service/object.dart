@@ -1990,8 +1990,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'address': address,
       'ref': ref,
     };
-    return invokeRpc('_getObjectByAddress', params)
-        .then((result) => result as ServiceObject);
+    return invokeRpc('_getObjectByAddress', params);
   }
 
   final Map<String, ServiceMetric> dartMetrics = <String, ServiceMetric>{};

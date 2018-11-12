@@ -13,7 +13,7 @@ import '../js_backend/runtime_types.dart'
         RuntimeTypesChecksBuilder,
         RuntimeTypesSubstitutions;
 import '../options.dart';
-import '../universe/world_builder.dart';
+import '../universe/codegen_world_builder.dart';
 
 class TypeTestRegistry {
   final ElementEnvironment _elementEnvironment;

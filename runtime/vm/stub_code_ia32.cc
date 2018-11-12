@@ -55,7 +55,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -83,7 +83,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -160,7 +160,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -191,7 +191,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
   __ call(wrapper);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -237,7 +237,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -265,7 +265,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
   __ call(ECX);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -757,7 +757,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushl(ECX);
 
   // Mark that the thread is executing Dart code.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Save top resource and top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
@@ -2011,7 +2011,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
   // Set tag.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   __ jmp(EBX);  // Jump to the exception handler code.

@@ -3836,6 +3836,7 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
       intptr_t length = Smi::Value(data->ptr()->length_);
       s->WriteUnsigned(length);
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data_);
+      s->Align(ExternalTypedData::kDataSerializationAlignment);
       s->WriteBytes(cdata, length * element_size);
     }
   }
@@ -3873,6 +3874,7 @@ class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(
           data, cid_, ExternalTypedData::InstanceSize(), is_vm_object);
       data->ptr()->length_ = Smi::New(length);
+      d->Align(ExternalTypedData::kDataSerializationAlignment);
       data->ptr()->data_ = const_cast<uint8_t*>(d->CurrentBufferAddress());
       d->Advance(length * element_size);
       // No finalizer / external size 0.
@@ -5724,7 +5726,7 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
                                        Thread* thread)
     : kind_(snapshot->kind()),
       thread_(thread),
-      buffer_(snapshot->content()),
+      buffer_(snapshot->Addr()),
       size_(snapshot->length()),
       data_image_(snapshot->DataImage()),
       instructions_image_(instructions_buffer) {
@@ -5741,6 +5743,8 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
 RawApiError* FullSnapshotReader::ReadVMSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, NULL, NULL);
+
+  deserializer.SkipHeader();
 
   RawApiError* error = deserializer.VerifyVersionAndFeatures(/*isolate=*/NULL);
   if (error != ApiError::null()) {
@@ -5765,6 +5769,8 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, shared_data_image_,
                             shared_instructions_image_);
+
+  deserializer.SkipHeader();
 
   RawApiError* error =
       deserializer.VerifyVersionAndFeatures(thread_->isolate());

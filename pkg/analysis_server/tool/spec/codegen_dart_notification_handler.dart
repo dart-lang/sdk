@@ -2,22 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:analyzer/src/codegen/tools.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:path/path.dart' as path;
+import 'package:html/dom.dart';
 
 import 'api.dart';
 import 'codegen_dart.dart';
 import 'codegen_protocol_constants.dart' show generateConstName;
 import 'from_html.dart';
-import 'implied_types.dart';
-import 'to_html.dart';
 
 GeneratedFile clientTarget() {
   return new GeneratedFile(
-      '../analysis_server_client/lib/notification_handler.dart',
+      '../analysis_server_client/lib/handler/notification_handler.dart',
       (String pkgPath) async {
     CodegenNotificationHandlerVisitor visitor =
         new CodegenNotificationHandlerVisitor(readApi(pkgPath));
@@ -45,9 +40,11 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
     notifications.sort((n1, n2) => n1.constName.compareTo(n2.constName));
 
     writeln('''
-class NotificationHandler {
-  /// Dispatch the notification named [event], and containing parameters
-  /// [params], to the appropriate stream.
+/// [NotificationHandler] processes analysis server notifications
+/// and dispatches those notifications to different methods based upon
+/// the type of notification. Clients may override
+/// any of the "on<EventName>" methods that are of interest.
+mixin NotificationHandler {
   void handleEvent(String event, params) {
     ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
@@ -66,13 +63,30 @@ class NotificationHandler {
     writeln('  }');
     for (_Notification notification in notifications) {
       writeln();
+      emitDartdoc(notification.dartdoc);
       writeln('  void ${notification.methodName}(');
       writeln('    ${notification.paramsTypeName} params) {');
       writeln('  }');
     }
     writeln();
+    writeln('  /// Reports a notification that is not processed');
+    writeln('  /// by any other notification handlers.');
     writeln('  void onUnknownNotification(String event, params) {}');
     writeln('}');
+  }
+
+  void emitDartdoc(List<String> dartdoc) {
+    bool first = true;
+    for (String paragraph in dartdoc) {
+      if (first) {
+        first = false;
+      } else {
+        writeln('  ///');
+      }
+      for (String line in paragraph.split(new RegExp('\r?\n'))) {
+        writeln('  /// ${line.trim()}');
+      }
+    }
   }
 
   @override
@@ -88,8 +102,10 @@ class _Notification {
   final String constName;
   final String methodName;
   final String paramsTypeName;
+  final List<String> dartdoc;
 
-  _Notification(this.constName, this.methodName, this.paramsTypeName);
+  _Notification(
+      this.constName, this.methodName, this.paramsTypeName, this.dartdoc);
 }
 
 class _NotificationVisitor extends HierarchicalApiVisitor {
@@ -104,9 +120,15 @@ class _NotificationVisitor extends HierarchicalApiVisitor {
             notification.domainName, 'notification', notification.event),
         _generateNotificationMethodName(
             notification.domainName, notification.event),
-        _generateParamTypeName(notification.domainName, notification.event)));
+        _generateParamTypeName(notification.domainName, notification.event),
+        _generateDartDoc(notification.html)));
   }
 }
+
+List<String> _generateDartDoc(Element html) => html.children
+    .where((Element elem) => elem.localName == 'p')
+    .map<String>((Element elem) => elem.text.trim())
+    .toList();
 
 String _generateNotificationMethodName(String domainName, String event) =>
     'on${_capitalize(domainName)}${_capitalize(event)}';

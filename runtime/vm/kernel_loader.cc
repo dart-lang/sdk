@@ -321,6 +321,7 @@ void KernelLoader::InitializeFields() {
   const ExternalTypedData& metadata_payloads = ExternalTypedData::Handle(
       Z, reader.ExternalDataFromTo(program_->metadata_payloads_offset(),
                                    program_->metadata_mappings_offset()));
+  ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
 
   // Create view of metadata mappings.
   const ExternalTypedData& metadata_mappings = ExternalTypedData::Handle(

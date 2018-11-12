@@ -31,7 +31,6 @@
 #include "vm/os.h"
 #include "vm/regexp_assembler.h"
 #include "vm/resolver.h"
-#include "vm/scanner.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"

@@ -23,7 +23,6 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
-#include "vm/scanner.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/token_position.h"
@@ -7284,8 +7283,6 @@ class String : public Instance {
 
   uint16_t CharAt(intptr_t index) const;
 
-  Scanner::CharAtFunc CharAtFunc() const;
-
   intptr_t CharSize() const;
 
   inline bool Equals(const String& str) const;
@@ -8592,6 +8589,10 @@ class TypedData : public Instance {
 
 class ExternalTypedData : public Instance {
  public:
+  // Alignment of data when serializing ExternalTypedData in a clustered
+  // snapshot. Should be independent of word size.
+  static const int kDataSerializationAlignment = 8;
+
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);

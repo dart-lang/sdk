@@ -633,10 +633,12 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadBytecode");
 #endif  // !defined(PRODUCT)
-
-  intptr_t size = helper_->reader_.ReadUInt();
+  intptr_t size = helper_->ReadUInt();
+  helper_->SkipBytes(helper_->ReadByte());
   intptr_t offset = helper_->reader_.offset();
+  ASSERT(Utils::IsAligned(offset, sizeof(KBCInstr)));
   const uint8_t* data = helper_->reader_.BufferAt(offset);
+  ASSERT(Utils::IsAligned(data, sizeof(KBCInstr)));
   helper_->reader_.set_offset(offset + size);
 
   // Create and return code object.
@@ -780,6 +782,8 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   ASSERT(!function.HasBytecode());
   ASSERT(thread->sticky_error() == Error::null());
   ASSERT(Thread::Current()->IsMutatorThread());
+
+  VMTagScope tagScope(thread, VMTag::kLoadBytecodeTagId);
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {

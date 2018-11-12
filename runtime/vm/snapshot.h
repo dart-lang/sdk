@@ -177,9 +177,6 @@ class Snapshot {
   }
   Kind kind() const { return static_cast<Kind>(Read<int64_t>(kKindOffset)); }
   void set_kind(Kind value) { return Write<int64_t>(kKindOffset, value); }
-  const uint8_t* content() const {
-    return reinterpret_cast<const uint8_t*>(this) + kHeaderSize;
-  }
 
   static bool IsFull(Kind kind) {
     return (kind == kFull) || (kind == kFullJIT) || (kind == kFullAOT);

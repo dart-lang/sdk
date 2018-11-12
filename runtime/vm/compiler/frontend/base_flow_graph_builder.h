@@ -158,6 +158,7 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);
   Fragment LoadStaticField();
+  Fragment RedefinitionWithType(const AbstractType& type);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreIndexed(intptr_t class_id);
 

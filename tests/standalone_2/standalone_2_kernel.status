@@ -34,7 +34,6 @@ io/http_server_response_test: RuntimeError
 io/platform_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
-io/socket_upgrade_to_secure_test: RuntimeError
 io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
@@ -76,6 +75,7 @@ dart_developer_disabled_env_test: RuntimeError
 [ $compiler == dartkb && $strong ]
 io/code_collection_test: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/dart_std_io_pipe_test: Pass, Timeout # Please triage
+io/file_lock_test: Skip # Times out, issue 35128
 io/platform_resolved_executable_test/00: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/platform_resolved_executable_test/01: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/platform_resolved_executable_test/02: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.

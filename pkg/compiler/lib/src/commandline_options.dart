@@ -62,10 +62,13 @@ class Flags {
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
+  static const String progress = '--show-internal-progress';
   static const String version = '--version';
 
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+
+  static const String serverMode = '--server-mode';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';

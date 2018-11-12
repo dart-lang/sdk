@@ -1774,7 +1774,7 @@
             "8",
             "--no-show-stats",
             "--repeat",
-            "125"
+            "80"
           ],
           "shards": 10,
           "fileset": "fuzzer"

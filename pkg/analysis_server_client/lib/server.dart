@@ -6,15 +6,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server_client/protocol.dart';
 import 'package:path/path.dart';
 
 /// Type of callbacks used to process notifications.
 typedef void NotificationProcessor(String event, Map<String, dynamic> params);
 
-/// Instances of the class [Server] manage a connection to a server process,
+/// Instances of the class [Server] manage a server process,
 /// and facilitate communication to and from the server.
 class Server {
-  /// Server process object, or `null` if server hasn't been started yet.
+  /// Server process object, or `null` if server hasn't been started yet
+  /// or if the server has already been stopped.
   Process _process;
 
   /// Commands that have been sent to the server but not yet acknowledged,
@@ -28,6 +30,14 @@ class Server {
 
   /// True if we've received bad data from the server.
   bool _receivedBadDataFromServer = false;
+
+  /// The stderr subscription or `null` if either
+  /// [listenToOutput] has not been called or [stop] has been called.
+  StreamSubscription<String> stderrSubscription;
+
+  /// The stdout subscription or `null` if either
+  /// [listenToOutput] has not been called or [stop] has been called.
+  StreamSubscription<String> stdoutSubscription;
 
   /// Stopwatch that we use to generate timing information for debug output.
   Stopwatch _time = new Stopwatch();
@@ -50,15 +60,17 @@ class Server {
 
   /// Force kill the server. Returns exit code future.
   Future<int> kill([String reason = 'none']) {
-    logMessage('FORCIBLY TERMINATING PROCESS: ', reason);
-    _process.kill();
-    return _process.exitCode;
+    logMessage('FORCIBLY TERMINATING SERVER: ', reason);
+    final process = _process;
+    _process = null;
+    process.kill();
+    return process.exitCode;
   }
 
   /// Start listening to output from the server,
   /// and deliver notifications to [notificationProcessor].
   void listenToOutput({NotificationProcessor notificationProcessor}) {
-    _process.stdout
+    stdoutSubscription = _process.stdout
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
@@ -110,8 +122,7 @@ class Server {
         }
       }
     });
-
-    _process.stderr
+    stderrSubscription = _process.stderr
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
@@ -119,6 +130,29 @@ class Server {
       logMessage('ERR: ', trimmedLine);
       logBadDataFromServer('Message received on stderr', silent: true);
     });
+  }
+
+  /// Deal with bad data received from the server.
+  void logBadDataFromServer(String details, {bool silent: false}) {
+    if (!silent) {
+      logMessage('BAD DATA FROM SERVER: ', details);
+    }
+    if (_receivedBadDataFromServer) {
+      // We're already dealing with it.
+      return;
+    }
+    _receivedBadDataFromServer = true;
+    // Give the server 1 second to continue outputting bad data
+    // such as outputting a stacktrace.
+    new Future.delayed(new Duration(seconds: 1), () {
+      throw 'Bad data received from server: $details';
+    });
+  }
+
+  /// Log a message that was exchanged with the server.
+  /// Subclasses may override as needed.
+  void logMessage(String prefix, String details) {
+    // no-op
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
@@ -146,16 +180,14 @@ class Server {
     return completer.future;
   }
 
-  /**
-   * Start the server.
-   *
-   * If [profileServer] is `true`, the server will be started
-   * with "--observe" and "--pause-isolates-on-exit", allowing the observatory
-   * to be used.
-   *
-   * If [serverPath] is specified, then that analysis server will be launched,
-   * otherwise the analysis server snapshot in the SDK will be launched.
-   */
+  /// Start the server.
+  ///
+  /// If [profileServer] is `true`, the server will be started
+  /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
+  /// to be used.
+  ///
+  /// If [serverPath] is specified, then that analysis server will be launched,
+  /// otherwise the analysis server snapshot in the SDK will be launched.
   Future start({
     String clientId,
     String clientVersion,
@@ -242,33 +274,42 @@ class Server {
         'Starting analysis server: ', '$dartBinary ${arguments.join(' ')}');
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
-      if (code != 0) {
+      if (code != 0 && _process != null) {
+        // Report an error if server abruptly terminated
         logBadDataFromServer('server terminated with exit code $code');
       }
     });
   }
 
-  /// Deal with bad data received from the server.
-  void logBadDataFromServer(String details, {bool silent: false}) {
-    if (!silent) {
-      logMessage('BAD DATA FROM SERVER: ', details);
+  /// Attempt to gracefully shutdown the server.
+  /// If that fails, then kill the process.
+  Future<int> stop({Duration timeLimit}) async {
+    timeLimit ??= const Duration(seconds: 5);
+    if (_process == null) {
+      // Process already exited
+      return -1;
     }
-    if (_receivedBadDataFromServer) {
-      // We're already dealing with it.
-      return;
-    }
-    _receivedBadDataFromServer = true;
-    // Give the server 1 second to continue outputting bad data
-    // such as outputting a stacktrace.
-    new Future.delayed(new Duration(seconds: 1), () {
-      throw 'Bad data received from server: $details';
+    final future = send(SERVER_REQUEST_SHUTDOWN, null);
+    final process = _process;
+    _process = null;
+    await future
+        // fall through to wait for exit
+        .timeout(timeLimit, onTimeout: () {
+      return null;
+    }).whenComplete(() async {
+      await stderrSubscription?.cancel();
+      stderrSubscription = null;
+      await stdoutSubscription?.cancel();
+      stdoutSubscription = null;
     });
-  }
-
-  /// Log a message that was exchanged with the server.
-  /// Subclasses may override as needed.
-  void logMessage(String prefix, String details) {
-    // no-op
+    return await process.exitCode.timeout(
+      timeLimit,
+      onTimeout: () {
+        logMessage('FORCIBLY TERMINATING SERVER: ', 'server failed to exit');
+        process.kill();
+        return process.exitCode;
+      },
+    );
   }
 }
 

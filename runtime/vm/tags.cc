@@ -36,7 +36,7 @@ bool VMTag::IsNativeEntryTag(uword tag) {
 }
 
 bool VMTag::IsDartTag(uword id) {
-  return id == kDartTagId;
+  return (id == kDartCompiledTagId) || (id == kDartInterpretedTagId);
 }
 
 bool VMTag::IsExitFrameTag(uword id) {

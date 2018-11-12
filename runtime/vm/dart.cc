@@ -150,7 +150,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif  // defined(TARGET_OS_WINDOWS)
 
     FLAG_use_field_guards = false;
-    FLAG_optimization_counter_threshold = -1;
   }
 
   FrameLayout::Init();
@@ -298,7 +297,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We need to initialize the constants here for the vm isolate thread due to
     // bootstrapping issues.
     T->InitVMConstants();
-    Scanner::Init();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {

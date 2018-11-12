@@ -55,7 +55,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
     Label ok;
     // Check that we are always entering from Dart code.
     __ LoadFromOffset(kWord, R8, THR, Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartTagId);
+    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -94,7 +94,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ blx(R9);
 
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartTagId);
+  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
@@ -311,7 +311,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     Label ok;
     // Check that we are always entering from Dart code.
     __ LoadFromOffset(kWord, R8, THR, Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartTagId);
+    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -358,7 +358,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ blx(LR);
 
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartTagId);
+  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
@@ -404,7 +404,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
     Label ok;
     // Check that we are always entering from Dart code.
     __ LoadFromOffset(kWord, R8, THR, Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartTagId);
+    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -448,7 +448,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ blx(R9);
 
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartTagId);
+  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
@@ -968,7 +968,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Push(R9);
 
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R9, VMTag::kDartTagId);
+  __ LoadImmediate(R9, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R9, THR, Thread::vm_tag_offset());
 
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
@@ -2458,7 +2458,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(FP, Operand(R2));   // Frame_pointer.
   __ mov(SP, Operand(IP));   // Set Stack pointer.
   // Set the tag.
-  __ LoadImmediate(R2, VMTag::kDartTagId);
+  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, Thread::vm_tag_offset());
   // Clear top exit frame.
   __ LoadImmediate(R2, 0);

@@ -2,7 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of world_builder;
+import '../common.dart';
+import '../common/names.dart' show Identifiers, Names;
+import '../common_elements.dart';
+import '../constants/values.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
+import '../js_backend/annotations.dart';
+import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
+import '../js_backend/backend_usage.dart'
+    show BackendUsage, BackendUsageBuilder;
+import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
+import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
+import '../js_backend/no_such_method_registry.dart';
+import '../js_backend/runtime_types.dart';
+import '../kernel/element_map_impl.dart';
+import '../kernel/kelements.dart';
+import '../kernel/kernel_world.dart';
+import '../native/enqueue.dart' show NativeResolutionEnqueuer;
+import '../options.dart';
+import '../universe/class_set.dart';
+import '../util/enumset.dart';
+import '../util/util.dart';
+import '../world.dart' show KClosedWorld, OpenWorld;
+import 'class_hierarchy.dart' show ClassHierarchyBuilder, ClassQueries;
+import 'member_usage.dart';
+import 'selector.dart' show Selector;
+import 'use.dart'
+    show ConstantUse, DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
+import 'world_builder.dart';
 
 abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// Calls [f] for all local functions in the program together with the member
@@ -296,18 +324,18 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
       <String, Map<Selector, SelectorConstraints>>{};
 
-  final Map<ClassEntity, _ClassUsage> _processedClasses =
-      <ClassEntity, _ClassUsage>{};
+  final Map<ClassEntity, ClassUsage> _processedClasses =
+      <ClassEntity, ClassUsage>{};
 
-  Map<ClassEntity, _ClassUsage> get classUsageForTesting => _processedClasses;
+  Map<ClassEntity, ClassUsage> get classUsageForTesting => _processedClasses;
 
   /// Map of registered usage of static members of live classes.
-  final Map<MemberEntity, _MemberUsage> _memberUsage =
-      <MemberEntity, _MemberUsage>{};
+  final Map<MemberEntity, MemberUsage> _memberUsage =
+      <MemberEntity, MemberUsage>{};
 
-  Map<MemberEntity, _MemberUsage> get staticMemberUsageForTesting {
-    Map<MemberEntity, _MemberUsage> map = <MemberEntity, _MemberUsage>{};
-    _memberUsage.forEach((MemberEntity member, _MemberUsage usage) {
+  Map<MemberEntity, MemberUsage> get staticMemberUsageForTesting {
+    Map<MemberEntity, MemberUsage> map = <MemberEntity, MemberUsage>{};
+    _memberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (!member.isInstanceMember) {
         map[member] = usage;
       }
@@ -315,9 +343,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     return map;
   }
 
-  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting {
-    Map<MemberEntity, _MemberUsage> map = <MemberEntity, _MemberUsage>{};
-    _memberUsage.forEach((MemberEntity member, _MemberUsage usage) {
+  Map<MemberEntity, MemberUsage> get instanceMemberUsageForTesting {
+    Map<MemberEntity, MemberUsage> map = <MemberEntity, MemberUsage>{};
+    _memberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member.isInstanceMember) {
         map[member] = usage;
       }
@@ -327,13 +355,13 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   /// Map containing instance members of live classes that are not yet live
   /// themselves.
-  final Map<String, Set<_MemberUsage>> _instanceMembersByName =
-      <String, Set<_MemberUsage>>{};
+  final Map<String, Set<MemberUsage>> _instanceMembersByName =
+      <String, Set<MemberUsage>>{};
 
   /// Map containing instance methods of live classes that are not yet
   /// closurized.
-  final Map<String, Set<_MemberUsage>> _instanceFunctionsByName =
-      <String, Set<_MemberUsage>>{};
+  final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
+      <String, Set<MemberUsage>>{};
 
   /// Fields set.
   final Set<FieldEntity> fieldSetters = new Set<FieldEntity>();
@@ -589,9 +617,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
 
-    void _process(Map<String, Set<_MemberUsage>> memberMap,
-        EnumSet<MemberUse> action(_MemberUsage usage)) {
-      _processSet(memberMap, methodName, (_MemberUsage usage) {
+    void _process(Map<String, Set<MemberUsage>> memberMap,
+        EnumSet<MemberUse> action(MemberUsage usage)) {
+      _processSet(memberMap, methodName, (MemberUsage usage) {
         if (_selectorConstraintsStrategy.appliedUnnamed(
             dynamicUse, usage.entity, this)) {
           memberUsed(usage.entity, action(usage));
@@ -669,8 +697,8 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
     MemberEntity element = staticUse.element;
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-    _MemberUsage usage = _memberUsage.putIfAbsent(element, () {
-      _MemberUsage usage = new _MemberUsage(element);
+    MemberUsage usage = _memberUsage.putIfAbsent(element, () {
+      MemberUsage usage = new MemberUsage(element);
       useSet.addAll(usage.appliedUse);
       return usage;
     });
@@ -738,14 +766,14 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
   }
 
-  /// Called to create a [_ClassUsage] for [cls].
+  /// Called to create a [ClassUsage] for [cls].
   ///
   /// Subclasses override this to ensure needed invariants on [cls].
-  _ClassUsage _createClassUsage(covariant ClassEntity cls) =>
-      new _ClassUsage(cls);
+  ClassUsage _createClassUsage(covariant ClassEntity cls) =>
+      new ClassUsage(cls);
 
-  /// Return the canonical [_ClassUsage] for [cls].
-  _ClassUsage _getClassUsage(ClassEntity cls) {
+  /// Return the canonical [ClassUsage] for [cls].
+  ClassUsage _getClassUsage(ClassEntity cls) {
     return _processedClasses.putIfAbsent(cls, () {
       return _createClassUsage(cls);
     });
@@ -757,7 +785,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     // already instantiated and we therefore have to process its superclass as
     // well.
     bool processClass(ClassEntity superclass) {
-      _ClassUsage usage = _getClassUsage(superclass);
+      ClassUsage usage = _getClassUsage(superclass);
       if (!usage.isInstantiated) {
         classUsed(usage.cls, usage.instantiate());
         return true;
@@ -779,19 +807,19 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     });
   }
 
-  /// Call [updateUsage] on all [_MemberUsage]s in the set in [map] for
+  /// Call [updateUsage] on all [MemberUsage]s in the set in [map] for
   /// [memberName]. If [updateUsage] returns `true` the usage is removed from
   /// the set.
-  void _processSet(Map<String, Set<_MemberUsage>> map, String memberName,
-      bool updateUsage(_MemberUsage e)) {
-    Set<_MemberUsage> members = map[memberName];
+  void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
+      bool updateUsage(MemberUsage e)) {
+    Set<MemberUsage> members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below
     // so we create a new list for [: map[memberName] :] and prepend the
     // [remaining] members after the loop.
-    map[memberName] = new Set<_MemberUsage>();
-    Set<_MemberUsage> remaining = new Set<_MemberUsage>();
-    for (_MemberUsage usage in members) {
+    map[memberName] = new Set<MemberUsage>();
+    Set<MemberUsage> remaining = new Set<MemberUsage>();
+    for (MemberUsage usage in members) {
       if (!updateUsage(usage)) remaining.add(usage);
     }
     map[memberName].addAll(remaining);
@@ -809,11 +837,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
     bool newUsage = false;
-    _MemberUsage usage = _memberUsage.putIfAbsent(member, () {
+    MemberUsage usage = _memberUsage.putIfAbsent(member, () {
       newUsage = true;
       bool isNative = _nativeBasicData.isNativeClass(cls);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-      _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
+      MemberUsage usage = new MemberUsage(member, isNative: isNative);
       useSet.addAll(usage.appliedUse);
       if (member.isField && isNative) {
         registerUsedElement(member);
@@ -838,14 +866,14 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         // The element is not yet used. Add it to the list of instance
         // members to still be processed.
         _instanceMembersByName
-            .putIfAbsent(memberName, () => new Set<_MemberUsage>())
+            .putIfAbsent(memberName, () => new Set<MemberUsage>())
             .add(usage);
       }
       if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
-            .putIfAbsent(memberName, () => new Set<_MemberUsage>())
+            .putIfAbsent(memberName, () => new Set<MemberUsage>())
             .add(usage);
       }
       memberUsed(usage.entity, useSet);

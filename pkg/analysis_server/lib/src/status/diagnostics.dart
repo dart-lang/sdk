@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:analysis_server/protocol/protocol_constants.dart'
+    show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
@@ -1314,7 +1316,7 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Versions');
-    buf.writeln(writeOption('Analysis server version', AnalysisServer.VERSION));
+    buf.writeln(writeOption('Analysis server version', PROTOCOL_VERSION));
     buf.writeln(writeOption('Dart SDK', Platform.version));
     buf.writeln('</div>');
 

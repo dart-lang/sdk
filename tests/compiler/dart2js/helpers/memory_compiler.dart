@@ -77,7 +77,7 @@ Future<CompilationResult> runCompiler(
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
-    Uri libraryRoot,
+    Uri librariesSpecificationUri,
     Uri packageRoot,
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider,
@@ -92,7 +92,7 @@ Future<CompilationResult> runCompiler(
       outputProvider: outputProvider,
       options: options,
       showDiagnostics: showDiagnostics,
-      libraryRoot: libraryRoot,
+      librariesSpecificationUri: librariesSpecificationUri,
       packageRoot: packageRoot,
       packageConfig: packageConfig,
       packagesDiscoveryProvider: packagesDiscoveryProvider);
@@ -113,12 +113,12 @@ CompilerImpl compilerFor(
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
-    Uri libraryRoot,
+    Uri librariesSpecificationUri,
     Uri packageRoot,
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   retainDataForTesting = true;
-  libraryRoot ??= Uri.base.resolve('sdk/');
+  librariesSpecificationUri ??= Uri.base.resolve('sdk/lib/libraries.json');
   Uri platformBinaries = computePlatformBinariesLocation();
 
   if (packageRoot == null &&
@@ -146,7 +146,8 @@ CompilerImpl compilerFor(
   }
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      libraryRoot: libraryRoot, platformBinaries: platformBinaries)
+      librariesSpecificationUri: librariesSpecificationUri,
+      platformBinaries: platformBinaries)
     ..entryPoint = entryPoint
     ..packageRoot = packageRoot
     ..environment = {}

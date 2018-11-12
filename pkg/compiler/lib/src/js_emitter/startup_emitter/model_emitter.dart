@@ -18,6 +18,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
+        JsGetName,
         LEAF_TAGS,
         MANGLED_GLOBAL_NAMES,
         MANGLED_NAMES,

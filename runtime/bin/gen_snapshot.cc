@@ -980,7 +980,6 @@ int main(int argc, char** argv) {
     return kErrorExitCode;
   }
   Console::SaveConfig();
-  Thread::InitOnce();
   Loader::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
   // Start event handler.

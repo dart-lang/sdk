@@ -17,7 +17,7 @@ import '../js_backend/runtime_types.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
-import '../universe/world_builder.dart';
+import '../universe/resolution_world_builder.dart';
 import '../world.dart';
 
 import 'element_map_impl.dart';

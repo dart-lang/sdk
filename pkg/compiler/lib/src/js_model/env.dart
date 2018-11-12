@@ -570,7 +570,7 @@ abstract class FunctionDataMixin implements FunctionData {
   List<TypeVariableType> _typeVariables;
 
   List<TypeVariableType> getFunctionTypeVariables(
-      covariant JsToElementMapBase elementMap) {
+      covariant JsKernelToElementMap elementMap) {
     if (_typeVariables == null) {
       if (functionNode.typeParameters.isEmpty) {
         _typeVariables = const <TypeVariableType>[];
@@ -633,7 +633,7 @@ class FunctionDataImpl extends JMemberDataImpl
     sink.end(tag);
   }
 
-  FunctionType getFunctionType(covariant JsToElementMapBase elementMap) {
+  FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
@@ -705,7 +705,7 @@ class SignatureFunctionData implements FunctionData {
     sink.end(tag);
   }
 
-  FunctionType getFunctionType(covariant JsToElementMapBase elementMap) {
+  FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {
     throw new UnsupportedError("SignatureFunctionData.getFunctionType");
   }
 
@@ -731,7 +731,7 @@ abstract class DelegatedFunctionData implements FunctionData {
 
   DelegatedFunctionData(this.baseData);
 
-  FunctionType getFunctionType(covariant JsToElementMapBase elementMap) {
+  FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {
     return baseData.getFunctionType(elementMap);
   }
 
@@ -783,7 +783,7 @@ class GeneratorBodyFunctionData extends DelegatedFunctionData {
 
 abstract class JConstructorData extends FunctionData {
   ConstantConstructor getConstructorConstant(
-      JsToElementMapBase elementMap, ConstructorEntity constructor);
+      JsKernelToElementMap elementMap, ConstructorEntity constructor);
 }
 
 class JConstructorDataImpl extends FunctionDataImpl
@@ -827,7 +827,7 @@ class JConstructorDataImpl extends FunctionDataImpl
   }
 
   ConstantConstructor getConstructorConstant(
-      JsToElementMapBase elementMap, ConstructorEntity constructor) {
+      JsKernelToElementMap elementMap, ConstructorEntity constructor) {
     if (_constantConstructor == null) {
       if (node is ir.Constructor && constructor.isConst) {
         _constantConstructor =
@@ -892,15 +892,16 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
 abstract class JFieldData extends JMemberData {
   DartType getFieldType(IrToElementMap elementMap);
 
-  ConstantExpression getFieldConstantExpression(JsToElementMapBase elementMap);
+  ConstantExpression getFieldConstantExpression(
+      JsKernelToElementMap elementMap);
 
   /// Return the [ConstantValue] the initial value of [field] or `null` if
   /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(JsToElementMapBase elementMap);
+  ConstantValue getFieldConstantValue(JsKernelToElementMap elementMap);
 
-  bool hasConstantFieldInitializer(JsToElementMapBase elementMap);
+  bool hasConstantFieldInitializer(JsKernelToElementMap elementMap);
 
-  ConstantValue getConstantFieldInitializer(JsToElementMapBase elementMap);
+  ConstantValue getConstantFieldInitializer(JsKernelToElementMap elementMap);
 }
 
 class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
@@ -935,11 +936,12 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
 
   ir.Field get node => super.node;
 
-  DartType getFieldType(covariant JsToElementMapBase elementMap) {
+  DartType getFieldType(covariant JsKernelToElementMap elementMap) {
     return _type ??= elementMap.getDartType(node.type);
   }
 
-  ConstantExpression getFieldConstantExpression(JsToElementMapBase elementMap) {
+  ConstantExpression getFieldConstantExpression(
+      JsKernelToElementMap elementMap) {
     if (_constantExpression == null) {
       if (node.isConst) {
         _constantExpression =
@@ -955,7 +957,7 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   }
 
   @override
-  ConstantValue getFieldConstantValue(JsToElementMapBase elementMap) {
+  ConstantValue getFieldConstantValue(JsKernelToElementMap elementMap) {
     if (!_isConstantComputed) {
       _constantValue = elementMap.getConstantValue(node.initializer,
           requireConstant: node.isConst, implicitNull: !node.isConst);
@@ -965,12 +967,12 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   }
 
   @override
-  bool hasConstantFieldInitializer(JsToElementMapBase elementMap) {
+  bool hasConstantFieldInitializer(JsKernelToElementMap elementMap) {
     return getFieldConstantValue(elementMap) != null;
   }
 
   @override
-  ConstantValue getConstantFieldInitializer(JsToElementMapBase elementMap) {
+  ConstantValue getConstantFieldInitializer(JsKernelToElementMap elementMap) {
     ConstantValue value = getFieldConstantValue(elementMap);
     assert(
         value != null,
