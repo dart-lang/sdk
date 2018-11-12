@@ -6,7 +6,7 @@ import "dart:core" as core;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                3
-  CheckStack
+  CheckStack           0
   Allocate             CP#19
   StoreLocal           r2
   Push                 r2
@@ -70,7 +70,7 @@ Closure CP#9 {
   LoadConstant         r2, CP#10
   LoadConstant         r3, CP#10
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#1
   PopLocal             r4
@@ -155,7 +155,7 @@ L1:
 
 Closure CP#0 {
   EntryFixed           2, 4
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -275,7 +275,7 @@ Closure CP#0 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                7
-  CheckStack
+  CheckStack           0
   AllocateContext      4
   PopLocal             r0
   Push                 r0
@@ -375,7 +375,7 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
@@ -456,7 +456,7 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
   AllocateContext      11
   PopLocal             r0
   Push                 r0
@@ -581,7 +581,7 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
@@ -736,7 +736,7 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
   AllocateContext      11
   PopLocal             r0
   Push                 r0
@@ -866,7 +866,7 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                7
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
@@ -898,7 +898,7 @@ Try #0 start:
   PushInt              0
   StoreContextVar      0
 L6:
-  CheckStack
+  CheckStack           1
   Push                 r4
   LoadContextVar       0
   PushInt              10
@@ -915,7 +915,7 @@ L6:
   Push                 r8
   StoreContextVar      1
 L5:
-  CheckStack
+  CheckStack           2
   Push                 r4
   LoadContextVar       1
   StoreLocal           r8
@@ -1034,7 +1034,7 @@ L2:
   PushInt              0
   PopLocal             r8
 L8:
-  CheckStack
+  CheckStack           1
   Push                 r8
   PushInt              10
   CompareIntLt
@@ -1149,7 +1149,7 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
   AllocateContext      16
   PopLocal             r0
   Push                 r0
@@ -1302,7 +1302,7 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                10
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
@@ -1783,7 +1783,7 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
   AllocateContext      2
   PopLocal             r0
   Push                 r0
@@ -1857,7 +1857,7 @@ Closure CP#6 {
   LoadConstant         r2, CP#7
   LoadConstant         r3, CP#7
   Frame                8
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#1
   PopLocal             r4
@@ -2014,7 +2014,7 @@ L1:
 
 Closure CP#0 {
   EntryFixed           1, 4
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -2145,7 +2145,7 @@ Closure CP#0 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
   AllocateContext      9
   PopLocal             r0
   Push                 r0
@@ -2264,7 +2264,7 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
@@ -2398,7 +2398,7 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

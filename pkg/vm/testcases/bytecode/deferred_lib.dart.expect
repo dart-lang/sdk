@@ -5,7 +5,7 @@ import "./hello.dart" as hel;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushNull
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -25,7 +25,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -40,7 +40,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

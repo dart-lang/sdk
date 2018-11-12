@@ -187,9 +187,10 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   return instructions.closed();
 }
 
-Fragment BaseFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
+Fragment BaseFlowGraphBuilder::CheckStackOverflow(TokenPosition position,
+                                                  intptr_t loop_depth) {
   return Fragment(
-      new (Z) CheckStackOverflowInstr(position, loop_depth_, GetNextDeoptId()));
+      new (Z) CheckStackOverflowInstr(position, loop_depth, GetNextDeoptId()));
 }
 
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {

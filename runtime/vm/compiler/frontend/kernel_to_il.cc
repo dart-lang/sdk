@@ -50,6 +50,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       optimizing_(optimizing),
       ic_data_array_(*ic_data_array),
       next_function_id_(0),
+      loop_depth_(0),
       try_depth_(0),
       catch_depth_(0),
       for_in_depth_(0),
@@ -325,10 +326,10 @@ Fragment FlowGraphBuilder::CheckStackOverflowInPrologue(
   if (IsInlining()) {
     // If we are inlining don't actually attach the stack check.  We must still
     // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow(position);
+    CheckStackOverflow(position, loop_depth_);
     return Fragment();
   }
-  return CheckStackOverflow(position);
+  return CheckStackOverflow(position, loop_depth_);
 }
 
 Fragment FlowGraphBuilder::CloneContext(intptr_t num_context_variables) {

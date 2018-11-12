@@ -137,10 +137,11 @@ namespace dart {
 //    Check for a passed-in type argument vector of length A and
 //    store it at FP[D].
 //
-//  - CheckStack
+//  - CheckStack A
 //
 //    Compare SP against isolate stack limit and call StackOverflow handler if
-//    necessary.
+//    necessary. Should be used in prologue (A = 0), or at the beginning of
+//    a loop with depth A.
 //
 //  - Allocate D
 //
@@ -397,7 +398,7 @@ namespace dart {
   V(LoadConstant,                        A_D, reg, lit, ___)                   \
   V(Frame,                                 D, num, ___, ___)                   \
   V(CheckFunctionTypeArgs,               A_D, num, reg, ___)                   \
-  V(CheckStack,                            0, ___, ___, ___)                   \
+  V(CheckStack,                            A, num, ___, ___)                   \
   V(Allocate,                              D, lit, ___, ___)                   \
   V(AllocateT,                             0, ___, ___, ___)                   \
   V(CreateArrayTOS,                        0, ___, ___, ___)                   \

@@ -6,7 +6,7 @@ class Base1 extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -24,7 +24,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   CheckFunctionTypeArgs 1, r0
   PushNull
   ReturnTOS
@@ -35,7 +35,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushInt              42
   ReturnTOS
 }
@@ -46,7 +46,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }
@@ -58,7 +58,7 @@ class A extends self::Base1 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -76,7 +76,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   Push                 FP[-6]
   PushConstant         CP#1
@@ -96,7 +96,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -111,7 +111,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -126,7 +126,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   Push                 FP[-5]
   PushConstant         CP#2
@@ -148,7 +148,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushInt              3
   PushConstant         CP#1
@@ -169,7 +169,7 @@ abstract class Base2 extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -192,7 +192,7 @@ abstract class B extends self::Base2 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -210,7 +210,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   PushConstant         CP#0
   PushConstant         CP#1
@@ -262,7 +262,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#0
   PushConstant         CP#1
@@ -295,7 +295,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#0
   PushConstant         CP#1
@@ -328,7 +328,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   Push                 FP[-5]
   PushConstant         CP#1
@@ -368,7 +368,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#0
   PushConstant         CP#1
@@ -408,7 +408,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

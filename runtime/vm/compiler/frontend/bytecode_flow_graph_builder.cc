@@ -624,8 +624,10 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
 }
 
 void BytecodeFlowGraphBuilder::BuildCheckStack() {
-  // TODO(alexmarkov): update B->loop_depth_
-  code_ += B->CheckStackOverflow(position_);
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+  code_ += B->CheckStackOverflow(position_, DecodeOperandA().value());
   ASSERT(B->stack_ == nullptr);
 }
 
