@@ -83,11 +83,10 @@ class TestState extends TypePromotionState {
   @override
   void checkEmpty(Token token) {
     if (stack.isNotEmpty) {
-      // TODO(ahe): Throw instead of calling report.
-      report(
+      throw CompilerContext.current.format(
           debugMessage("Stack not empty", uri, token?.charOffset ?? -1,
               token?.length ?? 1),
-          Severity.error);
+          Severity.internalProblem);
     }
   }
 
@@ -166,7 +165,7 @@ class DebugDeclaration extends Declaration {
 
   String get fullNameForErrors => name;
 
-  String toString() => "<<$name>>";
+  String toString() => "<<$name@$charOffset>>";
 }
 
 main([List<String> arguments = const []]) =>

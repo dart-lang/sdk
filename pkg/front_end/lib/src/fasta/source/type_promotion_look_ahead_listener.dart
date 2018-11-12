@@ -45,6 +45,7 @@ abstract class TypePromotionState {
     if (error != null) {
       report(error, Severity.error);
     }
+    pushNull(token.lexeme, token);
   }
 
   void registerWrite(UnspecifiedDeclaration declaration, Token token) {}
@@ -212,7 +213,6 @@ class TypePromotionLookAheadListener extends Listener {
     if (hasTarget) {
       state.pop(); // Target.
     }
-    state.checkEmpty(breakKeyword);
   }
 
   @override
@@ -235,13 +235,11 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     debugEvent("CatchBlock", catchKeyword);
-    state.checkEmpty(catchKeyword);
   }
 
   @override
   void endCatchClause(Token token) {
     debugEvent("CatchClause", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -253,19 +251,18 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleClassExtends(Token extendsKeyword) {
     debugEvent("ClassExtends", extendsKeyword);
-    state.checkEmpty(extendsKeyword);
   }
 
   @override
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
     debugEvent("ClassHeader", begin);
+    state.pop(); // Class name.
     state.checkEmpty(classKeyword);
   }
 
   @override
   void handleClassNoWithClause() {
     debugEvent("ClassNoWithClause", null);
-    state.checkEmpty(null);
   }
 
   @override
@@ -278,13 +275,11 @@ class TypePromotionLookAheadListener extends Listener {
   void handleClassOrMixinImplements(
       Token implementsKeyword, int interfacesCount) {
     debugEvent("ClassOrMixinImplements", implementsKeyword);
-    state.checkEmpty(implementsKeyword);
   }
 
   @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause", withKeyword);
-    state.checkEmpty(withKeyword);
   }
 
   @override
@@ -348,7 +343,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endConstExpression(Token token) {
     debugEvent("ConstExpression", token);
-    state.popPushNull("%ConstExpression%", token);
+    state.popPushNull(token.lexeme, token);
   }
 
   @override
@@ -361,7 +356,10 @@ class TypePromotionLookAheadListener extends Listener {
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference", start);
-    // TODO(ahe): The stack isn't left correct.
+    if (periodBeforeName != null) {
+      state.pop(); // Prefix.
+    }
+    state.popPushNull("%ConstructorReference%", start);
   }
 
   @override
@@ -376,7 +374,6 @@ class TypePromotionLookAheadListener extends Listener {
     if (hasTarget) {
       state.pop(); // Target.
     }
-    state.checkEmpty(continueKeyword);
   }
 
   @override
@@ -389,13 +386,12 @@ class TypePromotionLookAheadListener extends Listener {
   void endDoWhileStatement(
       Token doKeyword, Token whileKeyword, Token endToken) {
     debugEvent("DoWhileStatement", doKeyword);
-    state.checkEmpty(doKeyword);
+    state.pop(); // Condition.
   }
 
   @override
   void endDoWhileStatementBody(Token token) {
     debugEvent("DoWhileStatementBody", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -407,24 +403,29 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endElseStatement(Token token) {
     debugEvent("ElseStatement", token);
-    state.checkEmpty(token);
   }
 
   @override
   void handleEmptyFunctionBody(Token semicolon) {
     debugEvent("EmptyFunctionBody", semicolon);
-    state.checkEmpty(semicolon);
   }
 
   @override
   void handleEmptyStatement(Token token) {
     debugEvent("EmptyStatement", token);
-    state.checkEmpty(token);
+  }
+
+  @override
+  void beginEnum(Token enumKeyword) {
+    debugEvent("beginEnum", enumKeyword);
+    state.checkEmpty(enumKeyword);
   }
 
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    debugEvent("Enum", enumKeyword);
+    debugEvent("endEnum", enumKeyword);
+    state.discard(count); // Enum values.
+    state.pop(); // Enum name.
     state.checkEmpty(enumKeyword);
   }
 
@@ -439,14 +440,12 @@ class TypePromotionLookAheadListener extends Listener {
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     debugEvent("ExpressionFunctionBody", arrowToken);
     state.pop();
-    state.checkEmpty(endToken);
   }
 
   @override
   void endExpressionStatement(Token token) {
     debugEvent("ExpressionStatement", token);
     state.pop();
-    state.checkEmpty(token);
   }
 
   @override
@@ -459,6 +458,7 @@ class TypePromotionLookAheadListener extends Listener {
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("FactoryMethod", beginToken);
+    state.pop(); // Name.
     state.checkEmpty(endToken);
   }
 
@@ -466,85 +466,87 @@ class TypePromotionLookAheadListener extends Listener {
   void endFieldInitializer(Token assignment, Token token) {
     debugEvent("FieldInitializer", assignment);
     state.pop(); // Initializer.
-    state.checkEmpty(token);
   }
 
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer", token);
-    state.checkEmpty(token);
   }
 
   @override
   void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
       int count, Token beginToken, Token endToken) {
     debugEvent("Fields", staticToken);
+    state.discard(count); // Field names.
     state.checkEmpty(endToken);
   }
 
   @override
   void handleFinallyBlock(Token finallyKeyword) {
     debugEvent("FinallyBlock", finallyKeyword);
-    state.checkEmpty(finallyKeyword);
   }
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
       Token inKeyword, Token endToken) {
     debugEvent("ForIn", awaitToken);
-    state.checkEmpty(endToken);
   }
 
   @override
   void endForInBody(Token token) {
     debugEvent("ForInBody", token);
-    state.checkEmpty(token);
   }
 
   @override
   void endForInExpression(Token token) {
     debugEvent("ForInExpression", token);
     state.pop(); // Expression.
-    state.checkEmpty(token);
   }
 
   @override
   void handleForInitializerEmptyStatement(Token token) {
     debugEvent("ForInitializerEmptyStatement", token);
-    state.pushNull("%ForInitializerEmptyStatement%", token);
+  }
+
+  @override
+  void handleForInitializerExpressionStatement(Token token) {
+    debugEvent("ForInitializerExpressionStatement", token);
+    state.pop(); // Expression.
+  }
+
+  @override
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    debugEvent("ForInitializerLocalVariableDeclaration", token);
   }
 
   @override
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement", forKeyword);
-    state.checkEmpty(forKeyword);
+    state.discard(updateExpressionCount);
   }
 
   @override
   void endForStatementBody(Token token) {
     debugEvent("ForStatementBody", token);
-    state.checkEmpty(token);
   }
 
   @override
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter", thisKeyword);
-    state.checkEmpty(nameToken);
+    state.pop(); // Parameter name.
   }
 
   @override
   void endFormalParameterDefaultValueExpression() {
     debugEvent("FormalParameterDefaultValueExpression", null);
     state.pop();
-    state.checkEmpty(null);
   }
 
   @override
   void handleFormalParameterWithoutValue(Token token) {
     debugEvent("FormalParameterWithoutValue", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -556,7 +558,6 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -585,20 +586,19 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endFunctionType(Token functionToken) {
     debugEvent("FunctionType", functionToken);
-    state.checkEmpty(functionToken);
   }
 
   @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("FunctionTypeAlias", typedefKeyword);
+    state.pop(); // Name.
     state.checkEmpty(endToken);
   }
 
   @override
   void endFunctionTypedFormalParameter(Token nameToken) {
     debugEvent("FunctionTypedFormalParameter", nameToken);
-    state.checkEmpty(nameToken);
   }
 
   @override
@@ -609,8 +609,12 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("Identifier", token);
-    if (context.inDeclaration) {
+    if (context.inSymbol) {
+      // Do nothing.
+    } else if (context.inDeclaration) {
       state.declareIdentifier(token);
+    } else if (context.isContinuation) {
+      state.pushNull(token.lexeme, token);
     } else if (context.isScopeReference) {
       state.pushReference(token);
     } else {
@@ -627,7 +631,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endIfStatement(Token ifToken, Token elseToken) {
     debugEvent("IfStatement", ifToken);
-    state.checkEmpty(ifToken);
+    state.pop(); // Condition.
   }
 
   @override
@@ -647,6 +651,9 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
     debugEvent("ImportPrefix", deferredKeyword);
+    if (asKeyword != null) {
+      state.pop(); // Prefix name.
+    }
   }
 
   @override
@@ -660,26 +667,22 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endInitializedIdentifier(Token nameToken) {
     debugEvent("InitializedIdentifier", nameToken);
-    state.pop(); // Initializer.
   }
 
   @override
   void endInitializer(Token token) {
     debugEvent("Initializer", token);
     state.pop(); // Initializer.
-    state.checkEmpty(token);
   }
 
   @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers", beginToken);
-    state.checkEmpty(endToken);
   }
 
   @override
   void handleNoInitializers() {
     debugEvent("NoInitializers", null);
-    state.checkEmpty(null);
   }
 
   @override
@@ -698,7 +701,6 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleInvalidFunctionBody(Token token) {
     debugEvent("InvalidFunctionBody", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -716,7 +718,6 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleInvalidStatement(Token token, Message message) {
     debugEvent("InvalidStatement", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -755,18 +756,18 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleLabel(Token token) {
     debugEvent("Label", token);
-    state.checkEmpty(token);
+    state.pop(); // Label.
   }
 
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement", null);
-    state.checkEmpty(null);
   }
 
   @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("LibraryName", libraryKeyword);
+    state.pop(); // Library name.
     state.checkEmpty(semicolon);
   }
 
@@ -833,13 +834,13 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     debugEvent("LiteralSymbol", hashToken);
-    state.popPushNull(hashToken.lexeme, hashToken);
+    state.pushNull(hashToken.lexeme, hashToken);
   }
 
   @override
   void endLocalFunctionDeclaration(Token endToken) {
     debugEvent("LocalFunctionDeclaration", endToken);
-    state.checkEmpty(endToken);
+    state.pop(); // Function name.
   }
 
   @override
@@ -851,7 +852,10 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata", beginToken);
-    state.pop();
+    if (periodBeforeName != null) {
+      state.pop(); // Suffix.
+    }
+    state.pop(); // Qualifier.
   }
 
   @override
@@ -860,9 +864,17 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    debugEvent("beginMethod", name);
+    state.checkEmpty(name);
+  }
+
+  @override
   void endMethod(
       Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
-    debugEvent("Method", endToken);
+    debugEvent("endMethod", endToken);
+    state.pop(); // Method name.
     state.checkEmpty(endToken);
   }
 
@@ -875,43 +887,46 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleMixinHeader(Token mixinKeyword) {
     debugEvent("MixinHeader", mixinKeyword);
+    state.pop(); // Mixin name.
     state.checkEmpty(mixinKeyword);
   }
 
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
     debugEvent("MixinOn", onKeyword);
-    state.checkEmpty(onKeyword);
   }
 
   @override
   void handleNoName(Token token) {
     debugEvent("NoName", token);
+    state.pushNull("%NoName%", token);
   }
 
   @override
   void handleNamedArgument(Token colon) {
     debugEvent("NamedArgument", colon);
-    state.popPushNull("%NamedArgument%", colon);
+    state.pop(); // Expression.
+    state.popPushNull("%NamedArgument%", colon); // Identifier.
   }
 
   @override
   void endNamedFunctionExpression(Token endToken) {
     debugEvent("NamedFunctionExpression", endToken);
-    state.pushNull("%named function expression%", endToken);
+    state.popPushNull(
+        "%named function expression%", endToken); // Function name.
   }
 
   @override
   void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
       Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication", begin);
+    state.pop(); // Mixin application name.
     state.checkEmpty(endToken);
   }
 
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     debugEvent("NamedMixinApplicationWithClause", withKeyword);
-    state.checkEmpty(withKeyword);
   }
 
   @override
@@ -920,31 +935,27 @@ class TypePromotionLookAheadListener extends Listener {
     if (hasName) {
       state.pop(); // Name.
     }
-    state.checkEmpty(nativeToken);
   }
 
   @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBody", nativeToken);
-    state.checkEmpty(nativeToken);
   }
 
   @override
   void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodyIgnored", nativeToken);
-    state.checkEmpty(nativeToken);
   }
 
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodySkipped", nativeToken);
-    state.checkEmpty(nativeToken);
   }
 
   @override
   void endNewExpression(Token token) {
     debugEvent("NewExpression", token);
-    state.popPushNull(token.lexeme, token); // Constructor name.
+    state.popPushNull(token.lexeme, token);
   }
 
   @override
@@ -956,14 +967,13 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName", operatorKeyword);
-    state.checkEmpty(operatorKeyword);
+    state.pushNull(token.lexeme, token);
   }
 
   @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters", beginToken);
-    state.checkEmpty(endToken);
   }
 
   @override
@@ -995,7 +1005,8 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleQualified(Token period) {
     debugEvent("Qualified", period);
-    // unhandled(token);
+    state.pop(); // Suffix.
+    state.popPushNull("%Qualified%", period); // Qualifier.
   }
 
   @override
@@ -1026,13 +1037,11 @@ class TypePromotionLookAheadListener extends Listener {
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody", beginToken);
     state.pop(); // Constructor reference.
-    state.checkEmpty(endToken);
   }
 
   @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement", rethrowToken);
-    state.checkEmpty(rethrowToken);
   }
 
   @override
@@ -1042,7 +1051,6 @@ class TypePromotionLookAheadListener extends Listener {
     if (hasExpression) {
       state.pop(); // Expression.
     }
-    state.checkEmpty(beginToken);
   }
 
   @override
@@ -1102,7 +1110,6 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     debugEvent("SwitchStatement", switchKeyword);
-    state.checkEmpty(switchKeyword);
   }
 
   @override
@@ -1114,7 +1121,6 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endThenStatement(Token token) {
     debugEvent("ThenStatement", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -1139,19 +1145,26 @@ class TypePromotionLookAheadListener extends Listener {
   void endTopLevelFields(Token staticToken, Token covariantToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields", staticToken);
+    state.discard(count); // Field names.
     state.checkEmpty(endToken);
   }
 
   @override
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    debugEvent("beginTopLevelMethod", lastConsumed.next);
+    state.checkEmpty(lastConsumed.next);
+  }
+
+  @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
-    debugEvent("TopLevelMethod", beginToken);
+    debugEvent("endTopLevelMethod", beginToken);
+    state.pop(); // Method name.
     state.checkEmpty(endToken);
   }
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     debugEvent("TryStatement", tryKeyword);
-    state.checkEmpty(tryKeyword);
   }
 
   @override
@@ -1178,31 +1191,27 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList", null);
-    state.checkEmpty(null);
   }
 
   @override
   void endTypeVariable(Token token, int index, Token extendsOrSuper) {
     debugEvent("TypeVariable", token);
-    state.checkEmpty(token);
+    state.pop(); // Name.
   }
 
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables", beginToken);
-    state.checkEmpty(endToken);
   }
 
   @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables", token);
-    state.checkEmpty(token);
   }
 
   @override
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("TypeVariablesDefined", token);
-    state.checkEmpty(token);
   }
 
   @override
@@ -1241,24 +1250,23 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleValuedFormalParameter(Token equals, Token token) {
     debugEvent("ValuedFormalParameter", equals);
-    state.checkEmpty(equals);
   }
 
   @override
   void endVariableInitializer(Token assignmentOperator) {
     debugEvent("VariableInitializer", assignmentOperator);
+    state.pop(); // Initializer.
   }
 
   @override
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer", token);
-    state.pushNull("%no initializer%", token);
   }
 
   @override
   void endVariablesDeclaration(int count, Token endToken) {
     debugEvent("VariablesDeclaration", endToken);
-    state.checkEmpty(endToken);
+    state.discard(count); // Variable names.
   }
 
   @override
@@ -1269,19 +1277,18 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     debugEvent("WhileStatement", whileKeyword);
-    state.checkEmpty(whileKeyword);
+    state.pop(); // Condition.
   }
 
   @override
   void endWhileStatementBody(Token token) {
     debugEvent("WhileStatementBody", token);
-    state.checkEmpty(token);
   }
 
   @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     debugEvent("YieldStatement", yieldToken);
-    state.checkEmpty(yieldToken);
+    state.pop(); // Expression.
   }
 
   void unhandled(String event, Token token) {
