@@ -662,6 +662,17 @@ class CompileTimeErrorCode extends ErrorCode {
           "'bool'.");
 
   /**
+   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a boolean
+   * value.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL_INT',
+          "In constant expressions, operands of this operator must be of type "
+          "'bool' or 'int'.");
+
+  /**
    * 16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
    * e1 and e2 are constant expressions that evaluate to a numeric, string or
    * boolean value or to null.

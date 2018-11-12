@@ -1229,9 +1229,9 @@ class B {
   }
 
   test_constEvalTypeInt_binary() async {
-    await _check_constEvalTypeInt_withParameter_binary("p ^ ''");
-    await _check_constEvalTypeInt_withParameter_binary("p & ''");
-    await _check_constEvalTypeInt_withParameter_binary("p | ''");
+    await _check_constEvalTypeBoolOrInt_withParameter_binary("p ^ ''");
+    await _check_constEvalTypeBoolOrInt_withParameter_binary("p & ''");
+    await _check_constEvalTypeBoolOrInt_withParameter_binary("p | ''");
     await _check_constEvalTypeInt_withParameter_binary("p >> ''");
     await _check_constEvalTypeInt_withParameter_binary("p << ''");
   }
@@ -4671,7 +4671,7 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
@@ -6507,6 +6507,21 @@ class A {
     assertErrors(source, [
       CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
       StaticTypeWarningCode.NON_BOOL_OPERAND
+    ]);
+    verify([source]);
+  }
+
+  Future<Null> _check_constEvalTypeBoolOrInt_withParameter_binary(
+      String expr) async {
+    Source source = addSource('''
+class A {
+  final a;
+  const A(int p) : a = $expr;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }

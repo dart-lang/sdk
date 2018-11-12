@@ -95,6 +95,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
   CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
   CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+  CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT,
   CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,
   CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
   CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,

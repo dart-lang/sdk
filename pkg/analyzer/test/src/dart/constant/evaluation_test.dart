@@ -110,6 +110,60 @@ class A {}
     expect(result.type, typeProvider.nullType);
   }
 
+  test_visitBinaryExpression_and_bool() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = false & true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_and_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 3 & 5;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+  }
+
+  test_visitBinaryExpression_and_mixed() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 3 & false;
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT],
+        experiments: [Experiments.constantUpdate2018Name]);
+  }
+
+  test_visitBinaryExpression_or_bool() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = false | true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_or_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 3 | 5;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+  }
+
+  test_visitBinaryExpression_or_mixed() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 3 | false;
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT],
+        experiments: [Experiments.constantUpdate2018Name]);
+  }
+
   test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
     Expression left = AstTestFactory.string2('a');
     Expression right = AstTestFactory.string2('b');
@@ -155,6 +209,33 @@ class A {}
     expect(result, isNotNull);
     expect(result.isNull, isTrue);
     errorListener.assertNoErrors();
+  }
+
+  test_visitBinaryExpression_xor_bool() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = false ^ true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_xor_int() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 3 ^ 5;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+  }
+
+  test_visitBinaryExpression_xor_mixed() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 3 ^ false;
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT],
+        experiments: [Experiments.constantUpdate2018Name]);
   }
 
   test_visitConditionalExpression_false() async {
@@ -301,18 +382,6 @@ class A {}
     expect(result.toBoolValue(), false);
   }
 
-  test_visitIsExpression_is_null_object() async {
-    CompilationUnit compilationUnit = await resolveSource('''
-const a = null;
-const b = a is Object;
-class A {}
-''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
-  }
-
   test_visitIsExpression_is_null_dynamic() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const a = null;
@@ -329,6 +398,18 @@ class A {}
     CompilationUnit compilationUnit = await resolveSource('''
 const a = null;
 const b = a is Null;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_null_object() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = null;
+const b = a is Object;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',

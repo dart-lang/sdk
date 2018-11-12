@@ -1152,22 +1152,25 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     DartObjectImpl leftResult = node.leftOperand.accept(this);
     // evaluate lazy operators
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      return _dartObjectComputer.logicalAnd(
+      return _dartObjectComputer.lazyAnd(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.BAR_BAR) {
-      return _dartObjectComputer.logicalOr(
+      return _dartObjectComputer.lazyOr(
           node, leftResult, () => node.rightOperand.accept(this));
     }
     // evaluate eager operators
     DartObjectImpl rightResult = node.rightOperand.accept(this);
     if (operatorType == TokenType.AMPERSAND) {
-      return _dartObjectComputer.bitAnd(node, leftResult, rightResult);
+      return _dartObjectComputer.eagerAnd(
+          node, leftResult, rightResult, experiments.constantUpdate2018);
     } else if (operatorType == TokenType.BANG_EQ) {
       return _dartObjectComputer.notEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BAR) {
-      return _dartObjectComputer.bitOr(node, leftResult, rightResult);
+      return _dartObjectComputer.eagerOr(
+          node, leftResult, rightResult, experiments.constantUpdate2018);
     } else if (operatorType == TokenType.CARET) {
-      return _dartObjectComputer.bitXor(node, leftResult, rightResult);
+      return _dartObjectComputer.eagerXor(
+          node, leftResult, rightResult, experiments.constantUpdate2018);
     } else if (operatorType == TokenType.EQ_EQ) {
       return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT) {
@@ -1681,46 +1684,10 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl bitAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.bitAnd(_typeProvider, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
   DartObjectImpl bitNot(Expression node, DartObjectImpl evaluationResult) {
     if (evaluationResult != null) {
       try {
         return evaluationResult.bitNot(_typeProvider);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
-  DartObjectImpl bitOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.bitOr(_typeProvider, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
-  DartObjectImpl bitXor(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.bitXor(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1757,6 +1724,42 @@ class DartObjectComputer {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.divide(_typeProvider, rightOperand);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl eagerAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand, bool allowBool) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.eagerAnd(_typeProvider, rightOperand, allowBool);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl eagerOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand, bool allowBool) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.eagerOr(_typeProvider, rightOperand, allowBool);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl eagerXor(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand, bool allowBool) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.eagerXor(_typeProvider, rightOperand, allowBool);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1824,6 +1827,30 @@ class DartObjectComputer {
     return null;
   }
 
+  DartObjectImpl lazyAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
+      try {
+        return leftOperand.lazyAnd(_typeProvider, rightOperandComputer);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl lazyOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
+      try {
+        return leftOperand.lazyOr(_typeProvider, rightOperandComputer);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
   DartObjectImpl lessThan(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
@@ -1848,34 +1875,10 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl logicalAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
-    if (leftOperand != null) {
-      try {
-        return leftOperand.logicalAnd(_typeProvider, rightOperandComputer);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
   DartObjectImpl logicalNot(Expression node, DartObjectImpl evaluationResult) {
     if (evaluationResult != null) {
       try {
         return evaluationResult.logicalNot(_typeProvider);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
-  DartObjectImpl logicalOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
-    if (leftOperand != null) {
-      try {
-        return leftOperand.logicalOr(_typeProvider, rightOperandComputer);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
