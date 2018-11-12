@@ -13,7 +13,7 @@ import 'dartfuzz.dart';
 
 const debug = false;
 const sigkill = 9;
-const timeout = 30; // in seconds
+const timeout = 60; // in seconds
 
 // Exit code of running a test.
 enum ResultCode { success, timeout, error }
@@ -198,8 +198,8 @@ class TestRunnerJS implements TestRunner {
 
 /// Class to run fuzz testing.
 class DartFuzzTest {
-  DartFuzzTest(this.env, this.repeat, this.trueDivergence, this.showStats,
-      this.top, this.mode1, this.mode2);
+  DartFuzzTest(this.env, this.repeat, this.time, this.trueDivergence,
+      this.showStats, this.top, this.mode1, this.mode2);
 
   int run() {
     setup();
@@ -216,8 +216,10 @@ class DartFuzzTest {
       runTest();
       if (showStats) {
         showStatistics();
-      } else if ((i & 31) == 31) {
-        print('\n${isolate}: busy @${numTests}....');
+      }
+      // Timeout?
+      if (timeIsUp()) {
+        break;
       }
     }
 
@@ -238,11 +240,32 @@ class DartFuzzTest {
     isolate = 'Isolate (${tmpDir.path}) '
         '${runner1.description} - ${runner2.description}';
 
+    start_time = new DateTime.now().millisecondsSinceEpoch;
+    current_time = start_time;
+    report_time = start_time;
+    end_time = start_time + max(0, time - timeout) * 1000;
+
     numTests = 0;
     numSuccess = 0;
     numNotRun = 0;
     numTimeOut = 0;
     numDivergences = 0;
+  }
+
+  bool timeIsUp() {
+    if (time > 0) {
+      current_time = new DateTime.now().millisecondsSinceEpoch;
+      if (current_time > end_time) {
+        return true;
+      }
+      // Report every 10 minutes.
+      if ((current_time - report_time) > (10 * 60 * 1000)) {
+        print(
+            '\n${isolate}: busy @${numTests} ${current_time - start_time} seconds....');
+        report_time = current_time;
+      }
+    }
+    return false;
   }
 
   void cleanup() {
@@ -315,6 +338,7 @@ class DartFuzzTest {
   // Context.
   final Map<String, String> env;
   final int repeat;
+  final int time;
   final bool trueDivergence;
   final bool showStats;
   final String top;
@@ -330,6 +354,12 @@ class DartFuzzTest {
   String isolate;
   int seed;
 
+  // Timing
+  int start_time;
+  int current_time;
+  int report_time;
+  int end_time;
+
   // Stats.
   int numTests;
   int numSuccess;
@@ -340,8 +370,8 @@ class DartFuzzTest {
 
 /// Class to start fuzz testing session.
 class DartFuzzTestSession {
-  DartFuzzTestSession(this.isolates, this.repeat, this.trueDivergence,
-      this.showStats, String tp, this.mode1, this.mode2)
+  DartFuzzTestSession(this.isolates, this.repeat, this.time,
+      this.trueDivergence, this.showStats, String tp, this.mode1, this.mode2)
       : top = getTop(tp) {}
 
   start() async {
@@ -349,6 +379,11 @@ class DartFuzzTestSession {
     print('Fuzz Version    : ${version}');
     print('Isolates        : ${isolates}');
     print('Tests           : ${repeat}');
+    if (time > 0) {
+      print('Time            : ${time} seconds');
+    } else {
+      print('Time            : unlimited');
+    }
     print('True Divergence : ${trueDivergence}');
     print('Show Stats      : ${showStats}');
     print('Dart Dev        : ${top}');
@@ -379,8 +414,15 @@ class DartFuzzTestSession {
     try {
       final m1 = getMode(session.mode1, null);
       final m2 = getMode(session.mode2, m1);
-      final fuzz = new DartFuzzTest(Platform.environment, session.repeat,
-          session.trueDivergence, session.showStats, session.top, m1, m2);
+      final fuzz = new DartFuzzTest(
+          Platform.environment,
+          session.repeat,
+          session.time,
+          session.trueDivergence,
+          session.showStats,
+          session.top,
+          m1,
+          m2);
       divergences = fuzz.run();
     } catch (e) {
       print('Isolate: $e');
@@ -420,6 +462,7 @@ class DartFuzzTestSession {
   // Context.
   final int isolates;
   final int repeat;
+  final int time;
   final bool trueDivergence;
   final bool showStats;
   final String top;
@@ -466,6 +509,7 @@ main(List<String> arguments) {
   final parser = new ArgParser()
     ..addOption('isolates', help: 'number of isolates to use', defaultsTo: '1')
     ..addOption('repeat', help: 'number of tests to run', defaultsTo: '1000')
+    ..addOption('time', help: 'time limit in seconds', defaultsTo: '0')
     ..addFlag('true-divergence',
         negatable: true, help: 'only report true divergences', defaultsTo: true)
     ..addFlag('show-stats',
@@ -491,6 +535,7 @@ main(List<String> arguments) {
     new DartFuzzTestSession(
             int.parse(results['isolates']),
             int.parse(results['repeat']),
+            int.parse(results['time']),
             results['true-divergence'],
             results['show-stats'],
             results['dart-top'],
