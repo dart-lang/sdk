@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
@@ -600,7 +600,7 @@ class CommandLineOptions {
       }
       if (results.wasParsed('enable-experiment')) {
         List<String> names = cast(results['enable-experiment']).toList();
-        for (String knownName in AnalyzerOptions.currentExperiments) {
+        for (String knownName in Experiments.activeExperimentNames) {
           names.remove(knownName);
         }
         if (names.isNotEmpty) {

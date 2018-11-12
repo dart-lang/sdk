@@ -9,6 +9,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -89,9 +90,6 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language options.
   static const List<String> languageOptions = const [];
-
-  /// The experiments that are currently supported.
-  static const List<String> currentExperiments = const [];
 }
 
 /// Validates `analyzer` options.
@@ -131,7 +129,7 @@ class EnabledExperimentsValidator extends OptionsValidator {
       if (experimentNames is YamlList) {
         for (var node in experimentNames.nodes) {
           String experimentName = node.toString();
-          if (!AnalyzerOptions.currentExperiments.contains(experimentName)) {
+          if (!Experiments.activeExperimentNames.contains(experimentName)) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
                 node.span,
