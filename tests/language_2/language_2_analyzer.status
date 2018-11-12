@@ -98,8 +98,6 @@ setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-la
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
-super_no_such_method2_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
-super_no_such_method3_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
 super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError

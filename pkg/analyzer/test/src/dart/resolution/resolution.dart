@@ -275,6 +275,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(invocation, expectedType);
   }
 
+  void assertPropertyAccess(
+    PropertyAccess access,
+    Element expectedElement,
+    String expectedType,
+  ) {
+    assertElement(access.propertyName, expectedElement);
+    assertType(access, expectedType);
+  }
+
   void assertNamedParameterRef(String search, String name) {
     var ref = findNode.simple(search);
     assertElement(ref, findElement.parameter(name));

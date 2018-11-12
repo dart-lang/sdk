@@ -491,8 +491,9 @@ class MethodInvocationResolver {
       var calleeType = _getCalleeType(targetType);
       _setResolution(node, calleeType);
 
-      ClassElementImpl receiverSuperClass =
-          receiverType.element.supertype.element;
+      ClassElementImpl receiverSuperClass = AbstractClassElementImpl.getImpl(
+        receiverType.element.supertype.element,
+      );
       if (receiverSuperClass.hasNoSuchMethod) {
         return;
       }

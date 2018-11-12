@@ -1654,10 +1654,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
                 propertyName.name, _definingLibrary,
                 setter: propertyName.inSetterContext(), concrete: false);
             if (staticElement != null) {
-              _resolver.errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                  propertyName,
-                  [staticElement.kind.displayName, propertyName.name]);
+              ClassElementImpl receiverSuperClass =
+                  AbstractClassElementImpl.getImpl(
+                staticType.element.supertype.element,
+              );
+              if (!receiverSuperClass.hasNoSuchMethod) {
+                _resolver.errorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                    propertyName,
+                    [staticElement.kind.displayName, propertyName.name]);
+              }
             }
           }
         }
