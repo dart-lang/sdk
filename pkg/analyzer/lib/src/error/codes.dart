@@ -695,6 +695,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "In constant expressions, operands of this operator must be of type "
           "'num'.");
 
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_TYPE',
+          "In constant expressions, operands of this operator must be of type "
+          "'Type'.");
+
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.

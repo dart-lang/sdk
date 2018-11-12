@@ -322,6 +322,22 @@ class DartObjectImpl implements DartObject {
           typeProvider.intType, _state.bitXor(rightOperand._state));
 
   /**
+   * Return the result of casting this object to the given [castType].
+   */
+  DartObjectImpl castToType(
+      TypeProvider typeProvider, DartObjectImpl castType) {
+    _assertType(castType);
+    if (isNull) {
+      return this;
+    }
+    if (!type.isSubtypeOf((castType._state as TypeState)._type)) {
+      throw new EvaluationException(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    }
+    return this;
+  }
+
+  /**
    * Return the result of invoking the ' ' operator on this object with the
    * [rightOperand]. The [typeProvider] is the type provider used to find known
    * types.
@@ -440,6 +456,27 @@ class DartObjectImpl implements DartObject {
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(typeProvider.boolType,
           _state.greaterThanOrEqual(rightOperand._state));
+
+  /**
+   * Return the result of testing whether this object has the given [testedType].
+   */
+  DartObjectImpl hasType(TypeProvider typeProvider, DartObjectImpl testedType) {
+    _assertType(testedType);
+    DartType typeType = (testedType._state as TypeState)._type;
+    BoolState state;
+    if (isNull) {
+      if (typeType == typeProvider.objectType ||
+          typeType == typeProvider.dynamicType ||
+          typeType == typeProvider.nullType) {
+        state = BoolState.TRUE_STATE;
+      } else {
+        state = BoolState.FALSE_STATE;
+      }
+    } else {
+      state = BoolState.from(type.isSubtypeOf(typeType));
+    }
+    return new DartObjectImpl(typeProvider.boolType, state);
+  }
 
   /**
    * Return the result of invoking the '~/' operator on this object with the
@@ -766,6 +803,16 @@ class DartObjectImpl implements DartObject {
       return state._type;
     }
     return null;
+  }
+
+  /**
+   * Throw an exception if the given [object]'s state does not represent a Type
+   * value.
+   */
+  void _assertType(DartObjectImpl object) {
+    if (object._state is! TypeState) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE);
+    }
   }
 }
 
@@ -1476,6 +1523,11 @@ abstract class InstanceState {
    * 'bool', 'num', 'String', or 'Null'.
    */
   bool get isBoolNumStringOrNull => false;
+
+  /**
+   * Return `true` if this object represents the value 'null'.
+   */
+  bool get isNull => false;
 
   /**
    * Return `true` if this object represents an unknown value.
@@ -2536,6 +2588,9 @@ class NullState extends InstanceState {
 
   @override
   bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isNull => true;
 
   @override
   String get typeName => "Null";

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,9 +6,12 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -29,6 +32,84 @@ main() {
 
 @reflectiveTest
 class ConstantVisitorTest extends ResolverTestCase {
+  test_visitAsExpression_instanceOfSameClass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a as A;
+class A {
+  const A();
+}
+''');
+    DartObjectImpl resultA = _evaluateConstant(compilationUnit, 'a',
+        experiments: [Experiments.constantUpdate2018Name]);
+    DartObjectImpl resultB = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(resultB, resultA);
+  }
+
+  test_visitAsExpression_instanceOfSubclass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const B();
+const b = a as A;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    DartObjectImpl resultA = _evaluateConstant(compilationUnit, 'a',
+        experiments: [Experiments.constantUpdate2018Name]);
+    DartObjectImpl resultB = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(resultB, resultA);
+  }
+
+  test_visitAsExpression_instanceOfSuperclass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a as B;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result, isNull);
+  }
+
+  test_visitAsExpression_instanceOfUnrelatedClass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a as B;
+class A {
+  const A();
+}
+class B {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result, isNull);
+  }
+
+  test_visitAsExpression_null() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = null;
+const b = a as A;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.nullType);
+  }
+
   test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
     Expression left = AstTestFactory.string2('a');
     Expression right = AstTestFactory.string2('b');
@@ -143,12 +224,202 @@ class ConstantVisitorTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
+  test_visitIsExpression_is_instanceOfSameClass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a is A;
+class A {
+  const A();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_instanceOfSubclass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const B();
+const b = a is A;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_instanceOfSuperclass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a is B;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_is_instanceOfUnrelatedClass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a is B;
+class A {
+  const A();
+}
+class B {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_is_null() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = null;
+const b = a is A;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_is_null_object() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = null;
+const b = a is Object;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_null_dynamic() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = null;
+const b = a is dynamic;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_null_null() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = null;
+const b = a is Null;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_isNot_instanceOfSameClass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a is! A;
+class A {
+  const A();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_isNot_instanceOfSubclass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const B();
+const b = a is! A;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_isNot_instanceOfSuperclass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a is! B;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_isNot_instanceOfUnrelatedClass() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = const A();
+const b = a is! B;
+class A {
+  const A();
+}
+class B {
+  const B();
+}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_isNot_null() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = null;
+const b = a is! A;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
   test_visitSimpleIdentifier_className() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const a = C;
 class C {}
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a');
     expect(result.type, typeProvider.typeType);
     expect(result.toTypeValue().name, 'C');
   }
@@ -157,7 +428,7 @@ class C {}
     CompilationUnit compilationUnit = await resolveSource('''
 const a = dynamic;
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a');
     expect(result.type, typeProvider.typeType);
     expect(result.toTypeValue(), typeProvider.dynamicType);
   }
@@ -170,7 +441,10 @@ const b = 3;''');
     DartObjectImpl six =
         new DartObjectImpl(typeProvider.intType, new IntState(6));
     environment["b"] = six;
-    _assertValue(6, _evaluateConstant(compilationUnit, "a", environment));
+    _assertValue(
+        6,
+        _evaluateConstant(compilationUnit, "a",
+            lexicalEnvironment: environment));
   }
 
   test_visitSimpleIdentifier_notInEnvironment() async {
@@ -181,14 +455,17 @@ const b = 3;''');
     DartObjectImpl six =
         new DartObjectImpl(typeProvider.intType, new IntState(6));
     environment["c"] = six;
-    _assertValue(3, _evaluateConstant(compilationUnit, "a", environment));
+    _assertValue(
+        3,
+        _evaluateConstant(compilationUnit, "a",
+            lexicalEnvironment: environment));
   }
 
   test_visitSimpleIdentifier_withoutEnvironment() async {
     CompilationUnit compilationUnit = await resolveSource(r'''
 const a = b;
 const b = 3;''');
-    _assertValue(3, _evaluateConstant(compilationUnit, "a", null));
+    _assertValue(3, _evaluateConstant(compilationUnit, "a"));
   }
 
   void _assertValue(int expectedValue, DartObjectImpl result) {
@@ -211,19 +488,32 @@ const b = 3;''');
   }
 
   DartObjectImpl _evaluateConstant(CompilationUnit compilationUnit, String name,
-      Map<String, DartObjectImpl> lexicalEnvironment) {
+      {List<ErrorCode> errorCodes,
+      List<String> experiments,
+      Map<String, DartObjectImpl> lexicalEnvironment}) {
     Source source =
         resolutionMap.elementDeclaredByCompilationUnit(compilationUnit).source;
     Expression expression =
         findTopLevelConstantExpression(compilationUnit, name);
+
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    if (experiments != null) {
+      options..enabledExperiments = experiments;
+    }
+
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+
     DartObjectImpl result = expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
-            typeSystem: typeSystem),
+            experiments: new Experiments(options), typeSystem: typeSystem),
         errorReporter,
         lexicalEnvironment: lexicalEnvironment));
-    errorListener.assertNoErrors();
+    if (errorCodes == null) {
+      errorListener.assertNoErrors();
+    } else {
+      errorListener.assertErrorsWithCodes(errorCodes);
+    }
     return result;
   }
 }
