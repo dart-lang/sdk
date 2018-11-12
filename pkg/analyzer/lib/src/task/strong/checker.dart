@@ -163,16 +163,11 @@ class CodeChecker extends RecursiveAstVisitor {
   void checkBoolean(Expression expr) =>
       checkAssignment(expr, typeProvider.boolType);
 
-  void checkDeclarationCast(Expression expr, DartType type) {
-    checkForCast(expr, type, isDeclarationCast: true);
-  }
-
-  void checkForCast(Expression expr, DartType type,
-      {bool isDeclarationCast = false}) {
+  void checkForCast(Expression expr, DartType type) {
     if (expr is ParenthesizedExpression) {
       checkForCast(expr.expression, type);
     } else {
-      _checkImplicitCast(expr, type, isDeclarationCast: isDeclarationCast);
+      _checkImplicitCast(expr, type);
     }
   }
 
@@ -380,7 +375,7 @@ class CodeChecker extends RecursiveAstVisitor {
         // Insert a cast from the sequence's element type to the loop variable's
         // if needed.
         _checkImplicitCast(loopVariable, _getExpressionType(loopVariable),
-            from: elementType, isDeclarationCast: true);
+            from: elementType);
       }
     }
 
@@ -621,11 +616,11 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitVariableDeclarationList(VariableDeclarationList node) {
     TypeAnnotation type = node.type;
 
-    for (VariableDeclaration variable in node.variables) {
-      var initializer = variable.initializer;
-      if (initializer != null) {
-        if (type != null) {
-          checkDeclarationCast(initializer, type.type);
+    if (type != null) {
+      for (VariableDeclaration variable in node.variables) {
+        var initializer = variable.initializer;
+        if (initializer != null) {
+          checkForCast(initializer, type.type);
         }
       }
     }
@@ -744,12 +739,10 @@ class CodeChecker extends RecursiveAstVisitor {
   /// If [expr] does not require an implicit cast because it is not related to
   /// [to] or is already a subtype of it, does nothing.
   void _checkImplicitCast(Expression expr, DartType to,
-      {DartType from, bool opAssign: false, bool isDeclarationCast: false}) {
+      {DartType from, bool opAssign: false}) {
     from ??= _getExpressionType(expr);
 
-    if (_needsImplicitCast(expr, to,
-            from: from, isDeclarationCast: isDeclarationCast) ==
-        true) {
+    if (_needsImplicitCast(expr, to, from: from) == true) {
       _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
     }
   }
@@ -1003,8 +996,7 @@ class CodeChecker extends RecursiveAstVisitor {
   /// downcast implicitly).
   ///
   /// If [from] is omitted, uses the static type of [expr]
-  bool _needsImplicitCast(Expression expr, DartType to,
-      {DartType from, bool isDeclarationCast: false}) {
+  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
     from ??= _getExpressionType(expr);
 
     // Void is considered Top, but may only be *explicitly* cast.
@@ -1021,7 +1013,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to, isDeclarationCast: isDeclarationCast)) {
+    if (rules.isAssignableTo(from, to)) {
       return true;
     }
 

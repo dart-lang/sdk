@@ -720,13 +720,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   static bool _comparingTypeParameterBounds = false;
 
   /**
-   * True if declaration casts should be allowed, otherwise false.
-   *
-   * This affects the behavior of [isAssignableTo].
-   */
-  final bool declarationCasts;
-
-  /**
    * True if implicit casts should be allowed, otherwise false.
    *
    * This affects the behavior of [isAssignableTo].
@@ -735,8 +728,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   final TypeProvider typeProvider;
 
-  StrongTypeSystemImpl(this.typeProvider,
-      {this.declarationCasts: true, this.implicitCasts: true});
+  StrongTypeSystemImpl(this.typeProvider, {this.implicitCasts: true});
 
   @override
   bool get isStrong => true;
@@ -1039,8 +1031,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType,
-      {bool isDeclarationCast = false}) {
+  bool isAssignableTo(DartType fromType, DartType toType) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -1054,11 +1045,7 @@ class StrongTypeSystemImpl extends TypeSystem {
       }
     }
 
-    if (isDeclarationCast) {
-      if (!declarationCasts) {
-        return false;
-      }
-    } else if (!implicitCasts) {
+    if (!implicitCasts) {
       return false;
     }
 
@@ -1810,8 +1797,7 @@ abstract class TypeSystem {
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
    * if leftType <==> rightType).
    */
-  bool isAssignableTo(DartType leftType, DartType rightType,
-      {bool isDeclarationCast = false});
+  bool isAssignableTo(DartType leftType, DartType rightType);
 
   /**
    * Return `true` if the [leftType] is more specific than the [rightType]
@@ -2087,7 +2073,6 @@ abstract class TypeSystem {
   static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return new StrongTypeSystemImpl(context.typeProvider,
-        declarationCasts: options.declarationCasts,
         implicitCasts: options.implicitCasts);
   }
 }

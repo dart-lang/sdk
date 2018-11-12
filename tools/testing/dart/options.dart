@@ -639,7 +639,7 @@ compiler.''',
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          String modes = data["mode"] ?? compiler.defaultMode.name;
+          String modes = (data["mode"] as String) ?? compiler.defaultMode.name;
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);

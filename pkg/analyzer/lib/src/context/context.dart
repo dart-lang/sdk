@@ -283,9 +283,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             ? this._options.strongModeHints != options.strongModeHints
             : false) ||
         ((options is AnalysisOptionsImpl)
-            ? this._options.declarationCasts != options.declarationCasts
-            : false) ||
-        ((options is AnalysisOptionsImpl)
             ? this._options.implicitCasts != options.implicitCasts
             : false) ||
         ((options is AnalysisOptionsImpl)
@@ -313,7 +310,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.patchPaths = options.patchPaths;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
-      this._options.declarationCasts = options.declarationCasts;
       this._options.implicitCasts = options.implicitCasts;
       this._options.implicitDynamic = options.implicitDynamic;
     }

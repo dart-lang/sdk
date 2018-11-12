@@ -1240,8 +1240,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     SimpleIdentifier nameNode = node.name;
     Expression initializerNode = node.initializer;
     // do checks
-    _checkForInvalidAssignment(nameNode, initializerNode,
-        isDeclarationCast: true);
+    _checkForInvalidAssignment(nameNode, initializerNode);
     _checkForImplicitDynamicIdentifier(node, nameNode);
     // visit name
     nameNode.accept(this);
@@ -2216,24 +2215,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   bool _checkForAssignableExpression(
-      Expression expression, DartType expectedStaticType, ErrorCode errorCode,
-      {bool isDeclarationCast = false}) {
+      Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
     DartType actualStaticType = getStaticType(expression);
     return actualStaticType != null &&
         _checkForAssignableExpressionAtType(
-            expression, actualStaticType, expectedStaticType, errorCode,
-            isDeclarationCast: isDeclarationCast);
+            expression, actualStaticType, expectedStaticType, errorCode);
   }
 
   bool _checkForAssignableExpressionAtType(
       Expression expression,
       DartType actualStaticType,
       DartType expectedStaticType,
-      ErrorCode errorCode,
-      {bool isDeclarationCast = false}) {
+      ErrorCode errorCode) {
     if (!_expressionIsAssignableAtType(
-        expression, actualStaticType, expectedStaticType,
-        isDeclarationCast: isDeclarationCast)) {
+        expression, actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
           errorCode, expression, [actualStaticType, expectedStaticType]);
       return false;
@@ -3607,8 +3602,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
           node.iterable,
           [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType,
-        isDeclarationCast: true)) {
+    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
           node.iterable,
@@ -3687,8 +3681,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
    */
-  void _checkForInvalidAssignment(Expression lhs, Expression rhs,
-      {bool isDeclarationCast = false}) {
+  void _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
       return;
     }
@@ -3702,8 +3695,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
 
     _checkForAssignableExpression(
-        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT,
-        isDeclarationCast: isDeclarationCast);
+        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
   }
 
   /**
@@ -5741,10 +5733,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   bool _expressionIsAssignableAtType(Expression expression,
-      DartType actualStaticType, DartType expectedStaticType,
-      {isDeclarationCast: false}) {
-    return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
-        isDeclarationCast: isDeclarationCast);
+      DartType actualStaticType, DartType expectedStaticType) {
+    return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }
 
   InterfaceType _findInterfaceTypeForMixin(TypeName mixin,

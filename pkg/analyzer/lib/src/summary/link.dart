@@ -418,9 +418,6 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   AnalysisOptionsForLink(this._linker);
 
   @override
-  bool get declarationCasts => true;
-
-  @override
   bool get hint => false;
 
   @override

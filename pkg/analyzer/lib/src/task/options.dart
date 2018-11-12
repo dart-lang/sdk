@@ -712,9 +712,6 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, String feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      if (feature == AnalyzerOptions.declarationCasts) {
-        options.declarationCasts = boolValue;
-      }
       if (feature == AnalyzerOptions.implicitCasts) {
         options.implicitCasts = boolValue;
       }

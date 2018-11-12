@@ -262,7 +262,7 @@ class HumanErrorFormatter extends ErrorFormatter {
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
-    CharacterLocation location = errorToLine[error].getLocation(error.offset);
+    var location = errorToLine[error].getLocation(error.offset);
 
     ErrorSeverity severity = _severityProcessor(error);
 
@@ -323,7 +323,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
-    CharacterLocation location = errorToLine[error].getLocation(error.offset);
+    var location = errorToLine[error].getLocation(error.offset);
     int length = error.length;
 
     ErrorSeverity severity = _severityProcessor(error);

@@ -45,7 +45,6 @@ class RestrictedAnalysisContext implements AnalysisContextImpl {
   TypeSystem get typeSystem {
     return _typeSystem ??= StrongTypeSystemImpl(
       typeProvider,
-      declarationCasts: analysisOptions.declarationCasts,
       implicitCasts: analysisOptions.implicitCasts,
     );
   }

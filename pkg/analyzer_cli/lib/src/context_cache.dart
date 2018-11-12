@@ -87,8 +87,9 @@ class ContextCacheEntry {
   /// automatically.
   AnalysisOptionsImpl _getAnalysisOptions() {
     AnalysisOptionsImpl contextOptions = builder.getAnalysisOptions(
-        requestedSourceDirectory,
-        verbosePrint: clOptions.verbose ? verbosePrint : null);
+            requestedSourceDirectory,
+            verbosePrint: clOptions.verbose ? verbosePrint : null)
+        as AnalysisOptionsImpl;
 
     contextOptions.trackCacheDependencies = false;
     contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;

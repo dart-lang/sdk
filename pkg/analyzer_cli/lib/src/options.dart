@@ -36,9 +36,6 @@ typedef void ExitHandler(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
-  /// Whether declaration casts are enabled (in strong mode)
-  final bool declarationCasts;
-
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -180,9 +177,6 @@ class CommandLineOptions {
         contextBuilderOptions = createContextBuilderOptions(args),
         dartSdkPath = cast(args['dart-sdk']),
         dartSdkSummaryPath = cast(args['dart-sdk-summary']),
-        declarationCasts = args.wasParsed(declarationCastsFlag)
-            ? cast(args[declarationCastsFlag])
-            : cast(args[implicitCastsFlag]),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
@@ -599,7 +593,8 @@ class CommandLineOptions {
             'future release.\n');
       }
       if (results.wasParsed('enable-experiment')) {
-        List<String> names = cast(results['enable-experiment']).toList();
+        List<String> names =
+            (results['enable-experiment'] as List).cast<String>().toList();
         for (String knownName in Experiments.activeExperimentNames) {
           names.remove(knownName);
         }

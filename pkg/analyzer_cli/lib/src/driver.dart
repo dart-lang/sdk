@@ -479,7 +479,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       AnalysisOptions analysisOptions) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
-      file_system.Folder folder = resourceProvider.getResource('.');
+      file_system.Folder folder = resourceProvider.getFolder('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
         // TODO(brianwilkerson) This doesn't handle sdk extensions.

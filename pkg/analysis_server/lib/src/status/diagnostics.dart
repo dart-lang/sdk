@@ -387,7 +387,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
     b.write(writeOption('Implicit casts', options.implicitCasts));
-    b.write(writeOption('Declaration casts', options.declarationCasts));
 
     b.write(
         writeOption('Analyze function bodies', options.analyzeFunctionBodies));

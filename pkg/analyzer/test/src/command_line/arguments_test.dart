@@ -31,7 +31,6 @@ class ArgumentsTest with ResourceProviderMixin {
       '--dart-sdk-summary=$dartSdkSummaryPath',
       '-Dfoo=1',
       '-Dbar=2',
-      '--no-declaration-casts',
       '--no-implicit-casts',
       '--no-implicit-dynamic',
       '--options=$defaultAnalysisOptionsFilePath',
@@ -53,7 +52,6 @@ class ArgumentsTest with ResourceProviderMixin {
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.strongMode, true);
-    expect(defaultOptions.declarationCasts, false);
     expect(defaultOptions.implicitCasts, false);
     expect(defaultOptions.implicitDynamic, false);
   }
@@ -73,7 +71,6 @@ class ArgumentsTest with ResourceProviderMixin {
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.strongMode, true);
-    expect(defaultOptions.declarationCasts, true);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
   }
@@ -128,22 +125,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(manager.canUseSummaries, true);
   }
 
-  void test_declarationCast_noImplicitCast() {
-    ArgParser parser = new ArgParser();
-    defineAnalysisArguments(parser);
-    List<String> args = [
-      '--declaration-casts',
-      '--no-implicit-casts',
-    ];
-    ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
-    expect(options, isNotNull);
-    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
-    expect(defaultOptions, isNotNull);
-    expect(defaultOptions.declarationCasts, true);
-    expect(defaultOptions.implicitCasts, false);
-  }
-
   void test_defineAnalysisArguments() {
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
@@ -176,26 +157,10 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(result, orderedEquals(['--a', '--c=0', '-e=2', '-f', 'bar']));
   }
 
-  void test_noAssignmentCast() {
+  void test_implicitCast() {
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
-      '--no-declaration-casts',
-    ];
-    ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
-    expect(options, isNotNull);
-    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
-    expect(defaultOptions, isNotNull);
-    expect(defaultOptions.declarationCasts, false);
-    expect(defaultOptions.implicitCasts, true);
-  }
-
-  void test_noAssignmentCast_implicitCast() {
-    ArgParser parser = new ArgParser();
-    defineAnalysisArguments(parser);
-    List<String> args = [
-      '--no-declaration-casts',
       '--implicit-casts',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
@@ -203,7 +168,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.declarationCasts, false);
     expect(defaultOptions.implicitCasts, true);
   }
 
@@ -218,7 +182,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.declarationCasts, false);
     expect(defaultOptions.implicitCasts, false);
   }
 

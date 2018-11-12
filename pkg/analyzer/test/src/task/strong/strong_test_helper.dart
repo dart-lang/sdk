@@ -276,9 +276,7 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool declarationCasts: true,
-      bool implicitCasts: true,
-      bool implicitDynamic: true}) async {
+      {bool implicitCasts: true, bool implicitDynamic: true}) async {
     _checkCalled = true;
 
     File mainFile = getFile('/main.dart');
@@ -286,7 +284,6 @@ class AbstractStrongTest with ResourceProviderMixin {
 
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.strongModeHints = true;
-    analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
 
@@ -365,14 +362,12 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Also returns the resolved compilation unit.
   Future<CompilationUnit> checkFile(String content,
-      {bool declarationCasts: true,
-      bool implicitCasts: true,
-      bool implicitDynamic: true}) async {
+      {bool implicitCasts: true, bool implicitDynamic: true}) async {
     addFile(content);
     return await check(
-        declarationCasts: declarationCasts,
-        implicitCasts: implicitCasts,
-        implicitDynamic: implicitDynamic);
+      implicitCasts: implicitCasts,
+      implicitDynamic: implicitDynamic,
+    );
   }
 
   void setUp() {

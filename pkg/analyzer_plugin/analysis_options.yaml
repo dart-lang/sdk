@@ -1,6 +1,6 @@
 analyzer:
   strong-mode:
-    implicit-casts: false
+    implicit-casts: true
 linter:
   rules:
     - annotate_overrides
