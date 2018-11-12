@@ -5180,10 +5180,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                 ? argumentNodes[i]
                 : typeName;
         if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          _errorReporter.reportTypeErrorForNode(
-              CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT,
-              argumentNode,
-              [argType.typeFormals.join(', ')]);
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+            argumentNode,
+          );
           continue;
         }
         DartType boundType = parameterElements[i].bound;
@@ -5704,10 +5704,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         DartType argType = typeArgs[i];
 
         if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          _errorReporter.reportTypeErrorForNode(
-              CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT,
-              typeArgumentList[i],
-              [argType.typeFormals.join(', ')]);
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+            typeArgumentList[i],
+          );
           continue;
         }
 
