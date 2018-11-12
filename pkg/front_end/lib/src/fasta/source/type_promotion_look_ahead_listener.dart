@@ -781,7 +781,7 @@ class TypePromotionLookAheadListener extends Listener {
   void handleIsOperator(Token isOperator, Token not) {
     debugEvent("IsOperator", isOperator);
     Declaration lhs = state.popPushNull(isOperator.lexeme, isOperator);
-    if (lhs is UnspecifiedDeclaration) {
+    if (not == null && lhs is UnspecifiedDeclaration) {
       state.registerPromotionCandidate(lhs, isOperator);
     }
   }
