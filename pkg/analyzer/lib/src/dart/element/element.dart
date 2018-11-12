@@ -1784,6 +1784,9 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   }
 
   @override
+  bool get isConstantEvaluated => true;
+
+  @override
   void set isFinal(bool isFinal) {
     assert(false);
   }

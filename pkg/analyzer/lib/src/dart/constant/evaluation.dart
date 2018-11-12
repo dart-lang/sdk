@@ -183,15 +183,20 @@ class ConstantEvaluationEngine {
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
     if (constant is ParameterElementImpl) {
-      Expression defaultValue = constant.constantInitializer;
-      if (defaultValue != null) {
-        RecordingErrorListener errorListener = new RecordingErrorListener();
-        ErrorReporter errorReporter =
-            new ErrorReporter(errorListener, constant.source);
-        DartObjectImpl dartObject =
-            defaultValue.accept(new ConstantVisitor(this, errorReporter));
-        constant.evaluationResult =
-            new EvaluationResultImpl(dartObject, errorListener.errors);
+      if (constant.isOptional) {
+        Expression defaultValue = constant.constantInitializer;
+        if (defaultValue != null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          ErrorReporter errorReporter =
+              new ErrorReporter(errorListener, constant.source);
+          DartObjectImpl dartObject =
+              defaultValue.accept(new ConstantVisitor(this, errorReporter));
+          constant.evaluationResult =
+              new EvaluationResultImpl(dartObject, errorListener.errors);
+        } else {
+          constant.evaluationResult =
+              EvaluationResultImpl(typeProvider.nullObject);
+        }
       }
     } else if (constant is VariableElementImpl) {
       Expression constantInitializer = constant.constantInitializer;
