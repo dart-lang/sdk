@@ -643,11 +643,16 @@ class TypePromotionLookAheadListener extends Listener {
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
-    debugEvent("Identifier", token);
+    debugEvent("Identifier ${context}", token);
     if (context.inSymbol) {
       // Do nothing.
     } else if (context.inDeclaration) {
-      state.declareIdentifier(token);
+      if (identical(IdentifierContext.localVariableDeclaration, context) ||
+          identical(IdentifierContext.formalParameterDeclaration, context)) {
+        state.declareIdentifier(token);
+      } else {
+        state.pushNull(token.lexeme, token);
+      }
     } else if (context.isContinuation) {
       state.pushNull(token.lexeme, token);
     } else if (context.isScopeReference) {
