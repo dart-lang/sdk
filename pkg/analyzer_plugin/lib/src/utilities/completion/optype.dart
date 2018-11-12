@@ -482,6 +482,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   visitConstructorName(ConstructorName node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.

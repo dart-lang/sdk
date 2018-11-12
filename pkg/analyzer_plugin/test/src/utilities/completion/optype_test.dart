@@ -611,6 +611,33 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         methodBody: true);
   }
 
+  test_ConstructorFieldInitializer_name() async {
+    addTestSource(r'''
+class C {
+  final int foo;
+  
+  C() : ^
+}
+''');
+    await assertOpType(constructorBody: true);
+  }
+
+  test_ConstructorFieldInitializer_value() async {
+    addTestSource(r'''
+class C {
+  final int foo;
+  
+  C() : foo = ^
+}
+''');
+    await assertOpType(
+      constructorBody: true, // TODO(scheglov) Not really, fix it.
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+    );
+  }
+
   test_DefaultFormalParameter_named_expression() async {
     // DefaultFormalParameter FormalParameterList MethodDeclaration
     addTestSource('class A {a(blat: ^) { }}');

@@ -1909,6 +1909,40 @@ class C {foo(){var f; {var x;} return a ? T^ : c}}''');
     assertSuggestParameter('y', 'int');
   }
 
+  test_ConstructorFieldInitializer_name() async {
+    addTestSource('''
+class A {
+  final int foo;
+  A() : ^
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestField('foo', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_ConstructorFieldInitializer_value() async {
+    addTestSource('''
+var foo = 0;
+
+class A {
+  final int bar;
+  A() : bar = ^
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTopLevelVar(
+      'foo',
+      'int',
+      relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE,
+    );
+  }
+
   test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
