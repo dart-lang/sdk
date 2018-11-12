@@ -78,20 +78,27 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       return;
     }
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      String jsonEncoded = jsonEncode(json);
-      _write('Content-Length: ${jsonEncoded.length}\r\n\r\n');
-      _write(jsonEncoded);
+      final jsonEncodedBody = jsonEncode(json);
+      final utf8EncodedBody = utf8.encode(jsonEncodedBody);
+      final header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
+          'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
+      final asciiEncodedHeader = ascii.encode(header);
+
+      // Header is always ascii, body is always utf8!
+      _write(asciiEncodedHeader);
+      _write(utf8EncodedBody);
+
       // TODO(dantup): This...
       //_instrumentationService.logResponse(jsonEncoded);
     });
   }
 
   /**
-   * Send the string [s] to [_output].
+   * Send [bytes] to [_output].
    */
-  void _write(String s) {
+  void _write(List<int> bytes) {
     runZoned(
-      () => _output.write(s),
+      () => _output.add(bytes),
       onError: (e) => close(),
     );
   }

@@ -32,7 +32,8 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
               buffer.clear();
               isParsingHeaders = false;
             } else if (!isParsingHeaders && buffer.length >= contentLength) {
-              // TODO(dantup): Use the encoding specified by the header!
+              // LSP Spec: "It defaults to utf-8, which is the only encoding
+              // supported right now".
               _output.add(utf8.decode(buffer));
               buffer.clear();
               isParsingHeaders = true;
@@ -61,6 +62,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
 
   /// Decodes [buffer] into a String and returns the 'Content-Length' header value.
   static int _parseContentLength(List<int> buffer) {
+    // Headers are specified as always ASCII in LSP.
     var asString = ascii.decode(buffer);
     var headers = asString.split('\r\n');
     var lengthHeader =
