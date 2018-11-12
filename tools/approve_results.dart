@@ -260,9 +260,8 @@ ${parser.usage}""");
   }
 
   // Load the list of bots according to the test matrix.
-  final testMatrixPath = Platform.script
-      .toFilePath()
-      .replaceAll("approve_results.dart", "bots/test_matrix.json");
+  final testMatrixPath =
+      Platform.script.resolve("bots/test_matrix.json").toFilePath();
   final testMatrix = jsonDecode(await new File(testMatrixPath).readAsString());
   final builderConfigurations = testMatrix["builder_configurations"];
   final testMatrixBots = <String>[];
