@@ -34,17 +34,11 @@ class HashMap<K, V> {
             identical(identical, equals)) {
           return new _IdentityHashMap<K, V>();
         }
-        if (equals == null) {
-          equals = _defaultEquals;
-        }
+        equals ??= _defaultEquals;
       }
     } else {
-      if (hashCode == null) {
-        hashCode = _defaultHashCode;
-      }
-      if (equals == null) {
-        equals = _defaultEquals;
-      }
+      hashCode ??= _defaultHashCode;
+      equals ??= _defaultEquals;
     }
     return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
@@ -536,17 +530,11 @@ class HashSet<E> {
             identical(identical, equals)) {
           return new _IdentityHashSet<E>();
         }
-        if (equals == null) {
-          equals = _defaultEquals;
-        }
+        equals ??= _defaultEquals;
       }
     } else {
-      if (hashCode == null) {
-        hashCode = _defaultHashCode;
-      }
-      if (equals == null) {
-        equals = _defaultEquals;
-      }
+      hashCode ??= _defaultHashCode;
+      equals ??= _defaultEquals;
     }
     return new _CustomHashSet<E>(equals, hashCode, isValidKey);
   }
@@ -637,9 +625,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   }
 
   void addAll(Iterable<E> objects) {
-    int ctr = 0;
     for (E object in objects) {
-      ctr++;
       add(object);
     }
   }
@@ -879,17 +865,11 @@ class LinkedHashMap<K, V> {
             identical(identical, equals)) {
           return new _CompactLinkedIdentityHashMap<K, V>();
         }
-        if (equals == null) {
-          equals = _defaultEquals;
-        }
+        equals ??= _defaultEquals;
       }
     } else {
-      if (hashCode == null) {
-        hashCode = _defaultHashCode;
-      }
-      if (equals == null) {
-        equals = _defaultEquals;
-      }
+      hashCode ??= _defaultHashCode;
+      equals ??= _defaultEquals;
     }
     return new _CompactLinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
@@ -916,17 +896,11 @@ class LinkedHashSet<E> {
             identical(identical, equals)) {
           return new _CompactLinkedIdentityHashSet<E>();
         }
-        if (equals == null) {
-          equals = _defaultEquals;
-        }
+        equals ??= _defaultEquals;
       }
     } else {
-      if (hashCode == null) {
-        hashCode = _defaultHashCode;
-      }
-      if (equals == null) {
-        equals = _defaultEquals;
-      }
+      hashCode ??= _defaultHashCode;
+      equals ??= _defaultEquals;
     }
     return new _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }

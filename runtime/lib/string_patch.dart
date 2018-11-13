@@ -124,7 +124,6 @@ abstract class _StringBase implements String {
     if (charCodes == null) throw new ArgumentError(charCodes);
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
-    bool isOneByteString = false;
     if ((ccid != ClassID.cidArray) &&
         (ccid != ClassID.cidGrowableObjectArray) &&
         (ccid != ClassID.cidImmutableArray)) {
@@ -139,9 +138,7 @@ abstract class _StringBase implements String {
     end = RangeError.checkValidRange(start, end, codeCount);
     final len = end - start;
     if (len == 0) return "";
-    if (limit == null) {
-      limit = _scanCodeUnits(charCodes, start, end);
-    }
+    limit ??= _scanCodeUnits(charCodes, start, end);
     if (limit < 0) {
       throw new ArgumentError(charCodes);
     }
@@ -368,7 +365,7 @@ abstract class _StringBase implements String {
   }
 
   String substring(int startIndex, [int endIndex]) {
-    if (endIndex == null) endIndex = this.length;
+    endIndex ??= this.length;
 
     if ((startIndex < 0) || (startIndex > this.length)) {
       throw new RangeError.value(startIndex);
@@ -623,7 +620,6 @@ abstract class _StringBase implements String {
     int replacementLength = replacement.length;
     int startIndex = 0;
     if (replacementLength == 0) {
-      int count = 0;
       for (Match match in pattern.allMatches(this)) {
         length += _addReplaceSlice(matches, startIndex, match.start);
         startIndex = match.end;
@@ -782,8 +778,8 @@ abstract class _StringBase implements String {
     if (pattern is! Pattern) {
       throw new ArgumentError("${pattern} is not a Pattern");
     }
-    if (onMatch == null) onMatch = _matchString;
-    if (onNonMatch == null) onNonMatch = _stringIdentity;
+    onMatch ??= _matchString;
+    onNonMatch ??= _stringIdentity;
     if (pattern is String) {
       String stringPattern = pattern;
       if (stringPattern.isEmpty) {
