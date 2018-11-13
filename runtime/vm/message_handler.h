@@ -71,6 +71,10 @@ class MessageHandler {
   // handler.
   bool HasOOBMessages();
 
+  // Returns true if there are pending normal messages for this message
+  // handler.
+  bool HasMessages();
+
   // A message handler tracks how many live ports it has.
   bool HasLivePorts() const { return live_ports_ > 0; }
 

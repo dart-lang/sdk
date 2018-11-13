@@ -347,6 +347,11 @@ bool MessageHandler::HasOOBMessages() {
   return !oob_queue_->IsEmpty();
 }
 
+bool MessageHandler::HasMessages() {
+  MonitorLocker ml(&monitor_);
+  return !queue_->IsEmpty();
+}
+
 void MessageHandler::TaskCallback() {
   ASSERT(Isolate::Current() == NULL);
   MessageStatus status = kOK;
