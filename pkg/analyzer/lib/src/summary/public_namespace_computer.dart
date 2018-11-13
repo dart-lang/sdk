@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.summary.public_namespace_visitor;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -78,43 +76,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
         ReferenceKind.classOrEnum,
         node.typeParameters?.typeParameters?.length ?? 0);
     if (cls != null) {
-      for (ClassMember member in node.members) {
-        if (member is FieldDeclaration && member.isStatic) {
-          for (VariableDeclaration field in member.fields.variables) {
-            String name = field.name.name;
-            if (isPublic(name)) {
-              cls.members.add(new UnlinkedPublicNameBuilder(
-                  name: name,
-                  kind: ReferenceKind.propertyAccessor,
-                  numTypeParameters: 0));
-            }
-          }
-        }
-        if (member is MethodDeclaration &&
-            member.isStatic &&
-            !member.isSetter &&
-            !member.isOperator) {
-          String name = member.name.name;
-          if (isPublic(name)) {
-            cls.members.add(new UnlinkedPublicNameBuilder(
-                name: name,
-                kind: member.isGetter
-                    ? ReferenceKind.propertyAccessor
-                    : ReferenceKind.method,
-                numTypeParameters:
-                    member.typeParameters?.typeParameters?.length ?? 0));
-          }
-        }
-        if (member is ConstructorDeclaration && member.name != null) {
-          String name = member.name.name;
-          if (isPublic(name)) {
-            cls.members.add(new UnlinkedPublicNameBuilder(
-                name: name,
-                kind: ReferenceKind.constructor,
-                numTypeParameters: 0));
-          }
-        }
-      }
+      _addClassMembers(cls, node.members);
     }
   }
 
@@ -183,6 +145,17 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    UnlinkedPublicNameBuilder mixin = addNameIfPublic(
+        node.name.name,
+        ReferenceKind.classOrEnum,
+        node.typeParameters?.typeParameters?.length ?? 0);
+    if (mixin != null) {
+      _addClassMembers(mixin, node.members);
+    }
+  }
+
+  @override
   visitPartDirective(PartDirective node) {
     parts.add(node.uri.stringValue ?? '');
   }
@@ -193,6 +166,47 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
     addNameIfPublic(name, ReferenceKind.topLevelPropertyAccessor, 0);
     if (!node.isFinal && !node.isConst) {
       addNameIfPublic('$name=', ReferenceKind.topLevelPropertyAccessor, 0);
+    }
+  }
+
+  void _addClassMembers(
+      UnlinkedPublicNameBuilder builder, List<ClassMember> members) {
+    for (ClassMember member in members) {
+      if (member is FieldDeclaration && member.isStatic) {
+        for (VariableDeclaration field in member.fields.variables) {
+          String name = field.name.name;
+          if (isPublic(name)) {
+            builder.members.add(new UnlinkedPublicNameBuilder(
+                name: name,
+                kind: ReferenceKind.propertyAccessor,
+                numTypeParameters: 0));
+          }
+        }
+      }
+      if (member is MethodDeclaration &&
+          member.isStatic &&
+          !member.isSetter &&
+          !member.isOperator) {
+        String name = member.name.name;
+        if (isPublic(name)) {
+          builder.members.add(new UnlinkedPublicNameBuilder(
+              name: name,
+              kind: member.isGetter
+                  ? ReferenceKind.propertyAccessor
+                  : ReferenceKind.method,
+              numTypeParameters:
+                  member.typeParameters?.typeParameters?.length ?? 0));
+        }
+      }
+      if (member is ConstructorDeclaration && member.name != null) {
+        String name = member.name.name;
+        if (isPublic(name)) {
+          builder.members.add(new UnlinkedPublicNameBuilder(
+              name: name,
+              kind: ReferenceKind.constructor,
+              numTypeParameters: 0));
+        }
+      }
     }
   }
 }

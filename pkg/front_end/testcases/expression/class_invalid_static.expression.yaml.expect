@@ -1,0 +1,7 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Method not found: 'doit_with_this'.
+  doit_with_this(3)
+  ^^^^^^^^^^^^^^
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:1: Error: Method not found: 'doit_with_this'.\ndoit_with_this(3)\n^^^^^^^^^^^^^^";

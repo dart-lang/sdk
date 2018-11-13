@@ -103,7 +103,8 @@ class double {
   }
 
   @patch
-  static double parse(String source, [double onError(String source)]) {
+  static double parse(String source,
+      [@deprecated double onError(String source)]) {
     var result = _parse(source);
     if (result == null) {
       if (onError == null) throw new FormatException("Invalid double", source);
@@ -111,4 +112,7 @@ class double {
     }
     return result;
   }
+
+  @patch
+  static double tryParse(String source) => _parse(source);
 }

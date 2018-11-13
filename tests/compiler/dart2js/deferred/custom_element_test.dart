@@ -8,40 +8,37 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }
 
-runTest({bool useKernel}) async {
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES,
-      options: useKernel ? [Flags.useKernel] : []);
+runTest() async {
+  CompilationResult result =
+      await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
   Compiler compiler = result.compiler;
   var closedWorld = compiler.backendClosedWorldForTesting;
-  var outputUnitForEntity = compiler.backend.outputUnitData.outputUnitForEntity;
-  var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
+  var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
+  var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
+  var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
   var elementEnvironment = closedWorld.elementEnvironment;
   dynamic lib = elementEnvironment.lookupLibrary(Uri.parse("memory:lib.dart"));
   var customType = elementEnvironment.lookupClass(lib, "CustomType");
   var foo = elementEnvironment.lookupLibraryMember(lib, "foo");
-  Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo));
+  Expect.notEquals(mainOutputUnit, outputUnitForMember(foo));
   // Native elements are not deferred
-  Expect.equals(mainOutputUnit, outputUnitForEntity(customType));
+  Expect.equals(mainOutputUnit, outputUnitForClass(customType));
 }
 
 // The main library imports a file defining a custom element.
 // Registering this class implicitly causes the constructors to be
 // live. Check that this is handled.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "lib.dart" deferred as a;
 import 'dart:html';

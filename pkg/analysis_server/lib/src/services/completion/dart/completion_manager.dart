@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/completion/dart/local_constructor_c
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
@@ -35,8 +36,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -54,9 +56,11 @@ class DartCompletionManager implements CompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     request.checkAborted();
-    if (!AnalysisEngine.isDartFileName(request.source.shortName)) {
-      return EMPTY_LIST;
+    if (!AnalysisEngine.isDartFileName(request.result.path)) {
+      return const <CompletionSuggestion>[];
     }
 
     CompletionPerformance performance =
@@ -66,7 +70,7 @@ class DartCompletionManager implements CompletionContributor {
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     SourceRange range =
@@ -76,8 +80,8 @@ class DartCompletionManager implements CompletionContributor {
       ..replacementLength = range.length;
 
     // Request Dart specific completions from each contributor
-    Map<String, CompletionSuggestion> suggestionMap =
-        <String, CompletionSuggestion>{};
+    var suggestionMap = <String, CompletionSuggestion>{};
+    var constructorMap = <String, List<String>>{};
     List<DartCompletionContributor> contributors = <DartCompletionContributor>[
       new ArgListContributor(),
       new CombinatorContributor(),
@@ -92,9 +96,7 @@ class DartCompletionManager implements CompletionContributor {
       new LocalLibraryContributor(),
       new LocalReferenceContributor(),
       new NamedConstructorContributor(),
-      // Revisit this contributor and these tests
-      // once DartChangeBuilder API has solidified.
-      // new OverrideContributor(),
+      new OverrideContributor(),
       new StaticMemberContributor(),
       new TypeMemberContributor(),
       new UriContributor(),
@@ -110,11 +112,25 @@ class DartCompletionManager implements CompletionContributor {
       request.checkAborted();
 
       for (CompletionSuggestion newSuggestion in contributorSuggestions) {
-        var oldSuggestion = suggestionMap.putIfAbsent(
-            newSuggestion.completion, () => newSuggestion);
-        if (newSuggestion != oldSuggestion &&
-            newSuggestion.relevance > oldSuggestion.relevance) {
-          suggestionMap[newSuggestion.completion] = newSuggestion;
+        String key = newSuggestion.completion;
+
+        // Append parenthesis for constructors to disambiguate from classes.
+        if (_isConstructor(newSuggestion)) {
+          key += '()';
+          String className = _getConstructorClassName(newSuggestion);
+          _ensureList(constructorMap, className).add(key);
+        }
+
+        // Local declarations hide both the class and its constructors.
+        if (!_isClass(newSuggestion)) {
+          List<String> constructorKeys = constructorMap[key];
+          constructorKeys?.forEach(suggestionMap.remove);
+        }
+
+        CompletionSuggestion oldSuggestion = suggestionMap[key];
+        if (oldSuggestion == null ||
+            oldSuggestion.relevance < newSuggestion.relevance) {
+          suggestionMap[key] = newSuggestion;
         }
       }
     }
@@ -127,6 +143,33 @@ class DartCompletionManager implements CompletionContributor {
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
     return suggestions;
+  }
+
+  static List<String> _ensureList(Map<String, List<String>> map, String key) {
+    List<String> list = map[key];
+    if (list == null) {
+      list = <String>[];
+      map[key] = list;
+    }
+    return list;
+  }
+
+  static String _getConstructorClassName(CompletionSuggestion suggestion) {
+    String completion = suggestion.completion;
+    int dotIndex = completion.indexOf('.');
+    if (dotIndex != -1) {
+      return completion.substring(0, dotIndex);
+    } else {
+      return completion;
+    }
+  }
+
+  static bool _isClass(CompletionSuggestion suggestion) {
+    return suggestion.element?.kind == protocol.ElementKind.CLASS;
+  }
+
+  static bool _isConstructor(CompletionSuggestion suggestion) {
+    return suggestion.element?.kind == protocol.ElementKind.CONSTRUCTOR;
   }
 }
 
@@ -153,7 +196,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   Expression dotTarget;
 
   @override
-  Source librarySource;
+  final Source librarySource;
 
   @override
   CompletionTarget target;
@@ -187,7 +230,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     //TODO(danrubel) build the library element rather than all the declarations
     CompilationUnit unit = target.unit;
     if (unit != null) {
-      CompilationUnitElement elem = unit.element;
+      CompilationUnitElement elem = unit.declaredElement;
       if (elem != null) {
         return elem.library;
       }
@@ -251,6 +294,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    */
   static Future<DartCompletionRequest> from(CompletionRequest request,
       {ResultDescriptor resultDescriptor}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     request.checkAborted();
     CompletionPerformance performance =
         (request as CompletionRequestImpl).performance;
@@ -258,7 +303,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     performance.logStartTime(BUILD_REQUEST_TAG);
 
     CompilationUnit unit = request.result.unit;
-    Source libSource = unit.element.library.source;
+    Source libSource = unit.declaredElement.library.source;
     InterfaceType objectType = request.result.typeProvider.objectType;
 
     DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(

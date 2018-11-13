@@ -95,7 +95,11 @@ abstract class _StringBase implements String {
     throw new UnsupportedError("_StringBase can't be instaniated");
   }
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "String_getHashCode";
+
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  int get _identityHashCode native "String_getHashCode";
 
   bool get _isOneByte {
     // Alternatively return false and override it on one-byte string classes.
@@ -234,8 +238,10 @@ abstract class _StringBase implements String {
 
   int codeUnitAt(int index); // Implemented in the subclasses.
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "String_getLength";
 
+  @pragma("vm:exact-result-type", bool)
   bool get isEmpty {
     return this.length == 0;
   }
@@ -248,6 +254,7 @@ abstract class _StringBase implements String {
     return this;
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -283,6 +290,7 @@ abstract class _StringBase implements String {
     return 0;
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool _substringMatches(int start, String other) {
     if (other.isEmpty) return true;
     final len = other.length;
@@ -404,13 +412,12 @@ abstract class _StringBase implements String {
     return (codeUnit == 0x85) || (codeUnit == 0xA0); // NEL, NBSP.
   }
 
-  // Characters with Whitespace property (Unicode 6.2).
+  // Characters with Whitespace property (Unicode 6.3).
   // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
   // 0020          ; White_Space # Zs       SPACE
   // 0085          ; White_Space # Cc       <control-0085>
   // 00A0          ; White_Space # Zs       NO-BREAK SPACE
   // 1680          ; White_Space # Zs       OGHAM SPACE MARK
-  // 180E          ; White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
   // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
   // 2028          ; White_Space # Zl       LINE SEPARATOR
   // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
@@ -426,7 +433,7 @@ abstract class _StringBase implements String {
     if (codeUnit < 0x85) return false;
     if ((codeUnit == 0x85) || (codeUnit == 0xA0)) return true;
     return (codeUnit <= 0x200A)
-        ? ((codeUnit == 0x1680) || (codeUnit == 0x180E) || (0x2000 <= codeUnit))
+        ? ((codeUnit == 0x1680) || (0x2000 <= codeUnit))
         : ((codeUnit == 0x2028) ||
             (codeUnit == 0x2029) ||
             (codeUnit == 0x202F) ||
@@ -795,6 +802,7 @@ abstract class _StringBase implements String {
   }
 
   // Convert single object to string.
+  @pragma("vm:entry-point")
   static String _interpolateSingle(Object o) {
     if (o is String) return o;
     final s = o.toString();
@@ -809,6 +817,7 @@ abstract class _StringBase implements String {
    * into a result string.
    * Modifies the input list if it contains non-`String` values.
    */
+  @pragma("vm:entry-point")
   static String _interpolate(final List values) {
     final numValues = values.length;
     int totalLength = 0;
@@ -921,24 +930,29 @@ abstract class _StringBase implements String {
       native "String_concatRange";
 }
 
+@pragma("vm:entry-point")
 class _OneByteString extends _StringBase {
   factory _OneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_OneByteString can only be allocated by the VM");
   }
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "String_getHashCode";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     return super == other;
   }
 
+  @pragma("vm:exact-result-type", _OneByteString)
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
 
@@ -1197,6 +1211,7 @@ class _OneByteString extends _StringBase {
 
   // Allocates a string of given length, expecting its content to be
   // set using _setAt.
+  @pragma("vm:exact-result-type", _OneByteString)
   static _OneByteString _allocate(int length) native "OneByteString_allocate";
 
   static _OneByteString _allocateFromOneByteList(List<int> list, int start,
@@ -1224,6 +1239,7 @@ class _OneByteString extends _StringBase {
   }
 }
 
+@pragma("vm:entry-point")
 class _TwoByteString extends _StringBase {
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1237,13 +1253,16 @@ class _TwoByteString extends _StringBase {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
+  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     return super == other;
   }
 }
 
+@pragma("vm:entry-point")
 class _ExternalOneByteString extends _StringBase {
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1254,6 +1273,7 @@ class _ExternalOneByteString extends _StringBase {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool operator ==(Object other) {
@@ -1261,6 +1281,7 @@ class _ExternalOneByteString extends _StringBase {
   }
 }
 
+@pragma("vm:entry-point")
 class _ExternalTwoByteString extends _StringBase {
   factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1271,6 +1292,7 @@ class _ExternalTwoByteString extends _StringBase {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool operator ==(Object other) {

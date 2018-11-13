@@ -29,13 +29,6 @@ class ForceInline {
   const ForceInline();
 }
 
-// Ensures that the annotated method is represented internally using
-// IR nodes ([:value == true:]) or AST nodes ([:value == false:]).
-class IrRepresentation {
-  final bool value;
-  const IrRepresentation(this.value);
-}
-
 /// Marks a class as native and defines its JavaScript name(s).
 class Native {
   final String name;

@@ -139,7 +139,7 @@ DEFINE_NATIVE_ENTRY(StackTrace_setAsyncThreadStackTrace, 1) {
 static void AppendFrames(const GrowableObjectArray& code_list,
                          const GrowableObjectArray& pc_offset_list,
                          int skip_frames) {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();

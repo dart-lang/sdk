@@ -1,0 +1,15 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/bug31124.dart:1:22: Error: Expected a function body or '=>'.
+// Try adding {}.
+// var a = () => 'b';a();
+//                      ^
+//
+// pkg/front_end/testcases/bug31124.dart:1:19: Error: 'a' is already declared in this scope.
+// var a = () => 'b';a();
+//                   ^
+
+library;
+import self as self;
+
+static field dynamic a;

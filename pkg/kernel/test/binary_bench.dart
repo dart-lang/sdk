@@ -160,10 +160,11 @@ bool _parseArgs(List<String> args) {
   return true;
 }
 
-Program _fromBinary(List<int> bytes, {eager: true}) {
-  var program = new Program();
-  new BinaryBuilder(bytes, 'filename', eager).readSingleFileProgram(program);
-  return program;
+Component _fromBinary(List<int> bytes, {eager: true}) {
+  var component = new Component();
+  new BinaryBuilder(bytes, filename: 'filename', disableLazyReading: eager)
+      .readSingleFileComponent(component);
+  return component;
 }
 
 class SimpleSink implements Sink<List<int>> {
@@ -178,6 +179,6 @@ class SimpleSink implements Sink<List<int>> {
   void close() {}
 }
 
-void _toBinary(Program p) {
-  new BinaryPrinter(new SimpleSink()).writeProgramFile(p);
+void _toBinary(Component p) {
+  new BinaryPrinter(new SimpleSink()).writeComponentFile(p);
 }

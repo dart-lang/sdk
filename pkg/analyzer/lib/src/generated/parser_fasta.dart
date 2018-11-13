@@ -4,22 +4,6 @@
 
 part of analyzer.parser;
 
-class _Builder implements Builder {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _KernelLibraryBuilder implements KernelLibraryBuilder {
-  @override
-  final uri;
-
-  _KernelLibraryBuilder(this.uri);
-
-  @override
-  Uri get fileUri => uri;
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /**
  * Proxy implementation of the analyzer parser, implemented in terms of the
  * Fasta parser.
@@ -39,16 +23,13 @@ abstract class ParserAdapter implements Parser {
    */
   final AstBuilder astBuilder;
 
-  ParserAdapter(this.currentToken, ErrorReporter errorReporter,
-      KernelLibraryBuilder library, Builder member, Scope scope,
-      {bool allowNativeClause: false, bool enableGenericMethodComments: false})
+  ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
+      {bool allowNativeClause: false})
       : fastaParser = new fasta.Parser(null),
-        astBuilder =
-            new AstBuilder(errorReporter, library, member, scope, true) {
+        astBuilder = new AstBuilder(errorReporter, fileUri, true) {
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
-    astBuilder.parseGenericMethodComments = enableGenericMethodComments;
   }
 
   @override
@@ -57,17 +38,33 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
-  bool get parseGenericMethodComments => astBuilder.parseGenericMethodComments;
+  bool get enableOptionalNewAndConst => false;
 
   @override
-  set parseGenericMethodComments(bool value) {
-    astBuilder.parseGenericMethodComments = value;
-  }
+  void set enableOptionalNewAndConst(bool enable) {}
 
   @override
   void set parseFunctionBodies(bool parseFunctionBodies) {
-    // ignored
+    astBuilder.parseFunctionBodies = parseFunctionBodies;
   }
+
+  @override
+  set parseGenericMethods(_) {}
+
+  /// Append the given token to the end of the token stream,
+  /// and update the token's offset.
+  appendToken(Token token, Token newToken) {
+    while (!token.next.isEof) {
+      token = token.next;
+    }
+    newToken
+      ..offset = token.end
+      ..setNext(token.next);
+    token.setNext(newToken);
+  }
+
+  @override
+  Expression parseAdditiveExpression() => parseExpression2();
 
   @override
   Annotation parseAnnotation() {
@@ -75,6 +72,18 @@ abstract class ParserAdapter implements Parser {
         .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
         .next;
     return astBuilder.pop();
+  }
+
+  @override
+  Expression parseArgument() {
+    currentToken = new SimpleToken(TokenType.OPEN_PAREN, 0)
+      ..setNext(currentToken);
+    appendToken(currentToken, new SimpleToken(TokenType.CLOSE_PAREN, 0));
+    currentToken = fastaParser
+        .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    MethodInvocation invocation = astBuilder.pop();
+    return invocation.argumentList.arguments[0];
   }
 
   @override
@@ -89,9 +98,6 @@ abstract class ParserAdapter implements Parser {
   @override
   Expression parseAssignableExpression(bool primaryAllowed) =>
       parseExpression2();
-
-  @override
-  Expression parseAdditiveExpression() => parseExpression2();
 
   @override
   Expression parseBitwiseAndExpression() => parseExpression2();
@@ -119,12 +125,10 @@ abstract class ParserAdapter implements Parser {
       <ClassMember>[],
       null /* rightBracket */,
     );
-    currentToken = fastaParser
-        .parseClassMember(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
+    currentToken = fastaParser.parseClassOrMixinMember(currentToken);
     ClassDeclaration declaration = astBuilder.classDeclaration;
     astBuilder.classDeclaration = null;
-    return declaration.members[0];
+    return declaration.members.isNotEmpty ? declaration.members[0] : null;
   }
 
   @override
@@ -144,7 +148,9 @@ abstract class ParserAdapter implements Parser {
   @override
   CompilationUnit parseCompilationUnit2() {
     currentToken = fastaParser.parseUnit(currentToken);
-    return astBuilder.pop();
+    CompilationUnitImpl compilationUnit = astBuilder.pop();
+    compilationUnit.localDeclarations = astBuilder.localDeclarations;
+    return compilationUnit;
   }
 
   @override
@@ -183,6 +189,12 @@ abstract class ParserAdapter implements Parser {
 
   @override
   Expression parseEqualityExpression() => parseExpression2();
+
+  @override
+  Expression parseExpression(Token token) {
+    currentToken = token;
+    return parseExpression2();
+  }
 
   @override
   Expression parseExpression2() {
@@ -295,40 +307,50 @@ abstract class ParserAdapter implements Parser {
 
   @override
   TypeAnnotation parseTypeAnnotation(bool inExpression) {
-    currentToken = fastaParser
-        .parseType(fastaParser.syntheticPreviousToken(currentToken))
+    Token previous = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeType(previous, true, !inExpression)
+        .parseType(previous, fastaParser)
         .next;
     return astBuilder.pop();
   }
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    currentToken = fastaParser
-        .parseTypeArgumentsOpt(fastaParser.syntheticPreviousToken(currentToken))
+    Token previous = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeTypeParamOrArg(previous)
+        .parseArguments(previous, fastaParser)
         .next;
     return astBuilder.pop();
   }
 
   @override
   TypeName parseTypeName(bool inExpression) {
-    currentToken = fastaParser
-        .parseType(fastaParser.syntheticPreviousToken(currentToken))
+    Token previous = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeType(previous, true, !inExpression)
+        .parseType(previous, fastaParser)
         .next;
     return astBuilder.pop();
   }
 
   @override
   TypeParameter parseTypeParameter() {
-    currentToken = fastaParser
-        .parseTypeVariable(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
-    return astBuilder.pop();
+    currentToken = new SyntheticBeginToken(TokenType.LT, 0)
+      ..endGroup = new SyntheticToken(TokenType.GT, 0)
+      ..setNext(currentToken);
+    appendToken(currentToken, currentToken.endGroup);
+    TypeParameterList typeParams = parseTypeParameterList();
+    return typeParams.typeParameters[0];
   }
 
   @override
   TypeParameterList parseTypeParameterList() {
-    currentToken = fastaParser
-        .parseTypeVariablesOpt(fastaParser.syntheticPreviousToken(currentToken))
+    Token token = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeTypeParamOrArg(token, true)
+        .parseVariables(token, fastaParser)
         .next;
     return astBuilder.pop();
   }
@@ -349,23 +371,16 @@ class _Parser2 extends ParserAdapter {
   @override
   bool enableUriInPartOf = true;
 
-  @override
-  bool enableNnbd = false;
-
   factory _Parser2(Source source, AnalysisErrorListener errorListener,
       {bool allowNativeClause: false}) {
     var errorReporter = new ErrorReporter(errorListener, source);
-    var library = new _KernelLibraryBuilder(source.uri);
-    var member = new _Builder();
-    var scope = new Scope.top(isModifiable: true);
-    return new _Parser2._(source, errorReporter, library, member, scope,
+    return new _Parser2._(source, errorReporter, source.uri,
         allowNativeClause: allowNativeClause);
   }
 
-  _Parser2._(this._source, ErrorReporter errorReporter,
-      KernelLibraryBuilder library, Builder member, Scope scope,
+  _Parser2._(this._source, ErrorReporter errorReporter, Uri fileUri,
       {bool allowNativeClause: false})
-      : super(null, errorReporter, library, member, scope,
+      : super(null, errorReporter, fileUri,
             allowNativeClause: allowNativeClause);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

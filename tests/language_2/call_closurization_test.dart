@@ -43,7 +43,12 @@ main() {
     Expect.equals("4455", named_arg_tearOff.call(x: 44, y: 55));
   }
 
-  Expect.throws(() => bar_tearOff.call());
-  Expect.throwsNoSuchMethodError(() => opt_arg_tearOff.call(x: "p"));
-  Expect.throwsNoSuchMethodError(() => named_arg_tearOff.call("p", "q"));
+  // In order to test runtime behavior of calling with invalid arguments,
+  // we cast to dynamic to make the type system forget about the actual types.
+  dynamic bar_tearOff_d = bar_tearOff;
+  dynamic opt_arg_tearOff_d = opt_arg_tearOff;
+  dynamic named_arg_tearOff_d = named_arg_tearOff;
+  Expect.throws(() => bar_tearOff_d.call());
+  Expect.throwsNoSuchMethodError(() => opt_arg_tearOff_d.call(x: "p"));
+  Expect.throwsNoSuchMethodError(() => named_arg_tearOff_d.call("p", "q"));
 }

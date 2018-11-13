@@ -5,9 +5,9 @@
 #include "vm/stack_frame.h"
 
 #include "platform/memory_sanitizer.h"
-#include "vm/become.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/deopt_instructions.h"
+#include "vm/heap/become.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -15,12 +15,60 @@
 #include "vm/parser.h"
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
+#include "vm/scopes.h"
 #include "vm/stub_code.h"
 #include "vm/visitor.h"
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_interpreter);
+
+const FrameLayout invalid_frame_layout = {
+    /*.first_object_from_fp = */ -1,
+    /*.last_fixed_object_from_fp = */ -1,
+    /*.param_end_from_fp = */ -1,
+    /*.first_local_from_fp = */ -1,
+    /*.dart_fixed_frame_size = */ -1,
+    /*.saved_caller_pp_from_fp = */ -1,
+    /*.code_from_fp = */ -1,
+};
+
+const FrameLayout default_frame_layout = {
+    /*.first_object_from_fp = */ kFirstObjectSlotFromFp,
+    /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp,
+    /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.first_local_from_fp = */ kFirstLocalSlotFromFp,
+    /*.dart_fixed_frame_size = */ kDartFrameFixedSize,
+    /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
+    /*.code_from_fp = */ kPcMarkerSlotFromFp,
+};
+
+FrameLayout compiler_frame_layout = invalid_frame_layout;
+FrameLayout runtime_frame_layout = invalid_frame_layout;
+
+int FrameLayout::FrameSlotForVariable(const LocalVariable* variable) const {
+  ASSERT(!variable->is_captured());
+  return this->FrameSlotForVariableIndex(variable->index().value());
+}
+
+int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
+  // Variable indices are:
+  //    [1, 2, ..., M] for the M parameters.
+  //    [0, -1, -2, ... -(N-1)] for the N [LocalVariable]s
+  // See (runtime/vm/scopes.h)
+  return variable_index <= 0 ? (variable_index + first_local_from_fp)
+                             : (variable_index + param_end_from_fp);
+}
+
+void FrameLayout::Init() {
+  compiler_frame_layout = default_frame_layout;
+  runtime_frame_layout = default_frame_layout;
+}
+
 bool StackFrame::IsStubFrame() const {
+  if (is_interpreted()) {
+    return false;
+  }
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
 #if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
   // On Windows and Fuchsia, the profiler calls this from a separate thread
@@ -61,14 +109,24 @@ const char* StackFrame::ToCString() const {
 }
 
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  // Visit pc marker and saved pool pointer.
+  ASSERT(visitor != NULL);
+  // Visit pc marker and saved pool pointer, or, for interpreted frame, code
+  // object and function object.
   RawObject** last_fixed =
-      reinterpret_cast<RawObject**>(fp()) + kFirstObjectSlotFromFp;
+      reinterpret_cast<RawObject**>(fp()) +
+      (is_interpreted() ? kKBCLastFixedObjectSlotFromFp
+                        : runtime_frame_layout.first_object_from_fp);
   RawObject** first_fixed =
-      reinterpret_cast<RawObject**>(fp()) + kLastFixedObjectSlotFromFp;
+      reinterpret_cast<RawObject**>(fp()) +
+      (is_interpreted() ? kKBCFirstObjectSlotFromFp
+                        : runtime_frame_layout.last_fixed_object_from_fp);
 #if !defined(TARGET_ARCH_DBC)
-  ASSERT(first_fixed <= last_fixed);
-  visitor->VisitPointers(first_fixed, last_fixed);
+  if (first_fixed <= last_fixed) {
+    visitor->VisitPointers(first_fixed, last_fixed);
+  } else {
+    ASSERT(runtime_frame_layout.first_object_from_fp ==
+           runtime_frame_layout.first_local_from_fp);
+  }
 #else
   ASSERT(last_fixed <= first_fixed);
   visitor->VisitPointers(last_fixed, first_fixed);
@@ -76,17 +134,22 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
+  // Visit objects between SP and (FP - callee_save_area).
 #if !defined(TARGET_ARCH_DBC)
-  RawObject** first = reinterpret_cast<RawObject**>(sp());
-  RawObject** last = reinterpret_cast<RawObject**>(
-      fp() + (kExitLinkSlotFromEntryFp - 1) * kWordSize);
+  RawObject** first = is_interpreted() ? reinterpret_cast<RawObject**>(fp()) +
+                                             kKBCSavedArgDescSlotFromEntryFp
+                                       : reinterpret_cast<RawObject**>(sp());
+  RawObject** last = is_interpreted() ? reinterpret_cast<RawObject**>(sp())
+                                      : reinterpret_cast<RawObject**>(fp()) +
+                                            kExitLinkSlotFromEntryFp - 1;
+  // There may not be any pointer to visit; in this case, first > last.
   visitor->VisitPointers(first, last);
 #else
   // On DBC stack is growing upwards which implies fp() <= sp().
   RawObject** first = reinterpret_cast<RawObject**>(fp());
   RawObject** last = reinterpret_cast<RawObject**>(sp());
+  ASSERT(first <= last);
   visitor->VisitPointers(first, last);
 #endif
 }
@@ -116,9 +179,12 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     map = code.GetStackMap(pc() - start, &maps, &map);
     if (!map.IsNull()) {
 #if !defined(TARGET_ARCH_DBC)
+      if (is_interpreted()) {
+        UNIMPLEMENTED();
+      }
       RawObject** first = reinterpret_cast<RawObject**>(sp());
       RawObject** last = reinterpret_cast<RawObject**>(
-          fp() + (kFirstLocalSlotFromFp * kWordSize));
+          fp() + (runtime_frame_layout.first_local_from_fp * kWordSize));
 
       // A stack map is present in the code object, use the stack map to
       // visit frame slots which are marked as having objects.
@@ -156,17 +222,19 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
       // Now visit other slots which might be part of the calling convention.
       first = reinterpret_cast<RawObject**>(
-          fp() + ((kFirstLocalSlotFromFp + 1) * kWordSize));
+          fp() + ((runtime_frame_layout.first_local_from_fp + 1) * kWordSize));
       last = reinterpret_cast<RawObject**>(
-          fp() + (kFirstObjectSlotFromFp * kWordSize));
+          fp() + (runtime_frame_layout.first_object_from_fp * kWordSize));
       visitor->VisitPointers(first, last);
 #else
       RawObject** first = reinterpret_cast<RawObject**>(fp());
       RawObject** last = reinterpret_cast<RawObject**>(sp());
 
       // Visit fixed prefix of the frame.
-      RawObject** first_fixed = first + kFirstObjectSlotFromFp;
-      RawObject** last_fixed = first + kLastFixedObjectSlotFromFp;
+      RawObject** first_fixed =
+          first + runtime_frame_layout.first_object_from_fp;
+      RawObject** last_fixed =
+          first + (runtime_frame_layout.first_object_from_fp + 1);
       ASSERT(first_fixed <= last_fixed);
       visitor->VisitPointers(first_fixed, last_fixed);
 
@@ -204,13 +272,16 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 #if !defined(TARGET_ARCH_DBC)
   // For normal unoptimized Dart frames and Stub frames each slot
   // between the first and last included are tagged objects.
-  RawObject** first = reinterpret_cast<RawObject**>(sp());
+  RawObject** first = reinterpret_cast<RawObject**>(
+      is_interpreted() ? fp() + (kKBCFirstObjectSlotFromFp * kWordSize) : sp());
   RawObject** last = reinterpret_cast<RawObject**>(
-      fp() + (kFirstObjectSlotFromFp * kWordSize));
+      is_interpreted()
+          ? sp()
+          : fp() + (runtime_frame_layout.first_object_from_fp * kWordSize));
 #else
   // On DBC stack grows upwards: fp() <= sp().
   RawObject** first = reinterpret_cast<RawObject**>(
-      fp() + (kFirstObjectSlotFromFp * kWordSize));
+      fp() + (runtime_frame_layout.first_object_from_fp * kWordSize));
   RawObject** last = reinterpret_cast<RawObject**>(sp());
 #endif  // !defined(TARGET_ARCH_DBC)
 
@@ -250,8 +321,10 @@ RawCode* StackFrame::GetCodeObject() const {
 }
 
 RawCode* StackFrame::UncheckedGetCodeObject() const {
-  return *(
-      reinterpret_cast<RawCode**>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
+  return *(reinterpret_cast<RawCode**>(
+      fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
+                                : runtime_frame_layout.code_from_fp) *
+              kWordSize)));
 }
 
 bool StackFrame::FindExceptionHandler(Thread* thread,
@@ -288,19 +361,44 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
   descriptors = code.pc_descriptors();
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    const intptr_t current_try_index = iter.TryIndex();
-    if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
-      ExceptionHandlerInfo handler_info;
-      handlers.GetHandlerInfo(current_try_index, &handler_info);
-      *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
-      *needs_stacktrace = handler_info.needs_stacktrace;
-      *has_catch_all = handler_info.has_catch_all;
-      cache->Insert(pc(), handler_info);
-      return true;
+  intptr_t try_index = -1;
+  if (is_interpreted()) {
+    while (iter.MoveNext()) {
+      // PC descriptors for try blocks in bytecode are generated in pairs,
+      // marking start and end of a try block.
+      // See BytecodeMetadataHelper::ReadExceptionsTable for details.
+      const intptr_t current_try_index = iter.TryIndex();
+      const uword start_pc = iter.PcOffset();
+      if (pc_offset < start_pc) {
+        break;
+      }
+      const bool has_next = iter.MoveNext();
+      ASSERT(has_next);
+      const uword end_pc = iter.PcOffset();
+      if (start_pc <= pc_offset && pc_offset < end_pc) {
+        ASSERT(try_index < current_try_index);
+        try_index = current_try_index;
+      }
+    }
+  } else {
+    while (iter.MoveNext()) {
+      const intptr_t current_try_index = iter.TryIndex();
+      if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
+        try_index = current_try_index;
+        break;
+      }
     }
   }
-  return false;
+  if (try_index == -1) {
+    return false;
+  }
+  ExceptionHandlerInfo handler_info;
+  handlers.GetHandlerInfo(try_index, &handler_info);
+  *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
+  *needs_stacktrace = handler_info.needs_stacktrace;
+  *has_catch_all = handler_info.has_catch_all;
+  cache->Insert(pc(), handler_info);
+  return true;
 }
 
 TokenPosition StackFrame::GetTokenPos() const {
@@ -332,14 +430,24 @@ void StackFrameIterator::SetupLastExitFrameData() {
   ASSERT(thread_ != NULL);
   uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
+  if (FLAG_enable_interpreter) {
+    frames_.CheckIfInterpreted(exit_marker);
+  }
 }
 
 void StackFrameIterator::SetupNextExitFrameData() {
-  uword exit_address = entry_.fp() + (kExitLinkSlotFromEntryFp * kWordSize);
+  ASSERT(entry_.fp() != 0);
+  uword exit_address =
+      entry_.fp() + ((entry_.is_interpreted() ? kKBCExitLinkSlotFromEntryFp
+                                              : kExitLinkSlotFromEntryFp) *
+                     kWordSize);
   uword exit_marker = *reinterpret_cast<uword*>(exit_address);
   frames_.fp_ = exit_marker;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
+  if (FLAG_enable_interpreter) {
+    frames_.CheckIfInterpreted(exit_marker);
+  }
 }
 
 // Tell MemorySanitizer that generated code initializes part of the stack.
@@ -353,7 +461,7 @@ static void UnpoisonStack(uword fp) {
 StackFrameIterator::StackFrameIterator(ValidationPolicy validation_policy,
                                        Thread* thread,
                                        CrossThreadPolicy cross_thread_policy)
-    : validate_(validation_policy == kValidateFrames),
+    : validate_(validation_policy == ValidationPolicy::kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
@@ -368,7 +476,7 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
                                        ValidationPolicy validation_policy,
                                        Thread* thread,
                                        CrossThreadPolicy cross_thread_policy)
-    : validate_(validation_policy == kValidateFrames),
+    : validate_(validation_policy == ValidationPolicy::kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
@@ -379,6 +487,9 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
   frames_.fp_ = last_fp;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
+  if (FLAG_enable_interpreter) {
+    frames_.CheckIfInterpreted(last_fp);
+  }
 }
 
 #if !defined(TARGET_ARCH_DBC)
@@ -388,7 +499,7 @@ StackFrameIterator::StackFrameIterator(uword fp,
                                        ValidationPolicy validation_policy,
                                        Thread* thread,
                                        CrossThreadPolicy cross_thread_policy)
-    : validate_(validation_policy == kValidateFrames),
+    : validate_(validation_policy == ValidationPolicy::kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
@@ -399,6 +510,9 @@ StackFrameIterator::StackFrameIterator(uword fp,
   frames_.fp_ = fp;
   frames_.sp_ = sp;
   frames_.pc_ = pc;
+  if (FLAG_enable_interpreter) {
+    frames_.CheckIfInterpreted(fp);
+  }
 }
 #endif
 
@@ -425,8 +539,10 @@ StackFrame* StackFrameIterator::NextFrame() {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();
     } else if (*(reinterpret_cast<uword*>(
-                   frames_.fp_ + (kSavedCallerFpSlotFromFp * kWordSize))) ==
-               0) {
+                   frames_.fp_ +
+                   ((frames_.is_interpreted() ? kKBCSavedCallerFpSlotFromFp
+                                              : kSavedCallerFpSlotFromFp) *
+                    kWordSize))) == 0) {
       // Iteration starts from an entry frame given by its fp, sp, and pc.
       current_frame_ = NextEntryFrame();
     } else {
@@ -441,7 +557,7 @@ StackFrame* StackFrameIterator::NextFrame() {
 #endif  // !defined(TARGET_ARCH_DBC)
     return current_frame_;
   }
-  ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsValid());
+  ASSERT(!validate_ || current_frame_->IsValid());
   if (current_frame_->IsEntryFrame()) {
     if (HasNextFrame()) {  // We have another chained block.
       current_frame_ = NextExitFrame();
@@ -450,7 +566,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     current_frame_ = NULL;  // No more frames.
     return current_frame_;
   }
-  ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsExitFrame() ||
+  ASSERT(!validate_ || current_frame_->IsExitFrame() ||
          current_frame_->IsDartFrame(validate_) ||
          current_frame_->IsStubFrame());
 
@@ -462,6 +578,17 @@ StackFrame* StackFrameIterator::NextFrame() {
   return current_frame_;
 }
 
+void StackFrameIterator::FrameSetIterator::CheckIfInterpreted(
+    uword exit_marker) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // TODO(regis): We should rely on a new thread vm_tag to identify an
+  // interpreter frame and not need the HasFrame() method.
+  ASSERT(FLAG_enable_interpreter);
+  Interpreter* interpreter = thread_->interpreter();
+  is_interpreted_ = (interpreter != NULL) && interpreter->HasFrame(exit_marker);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   StackFrame* frame;
   ASSERT(HasNext());
@@ -469,10 +596,12 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   frame->sp_ = sp_;
   frame->fp_ = fp_;
   frame->pc_ = pc_;
+  frame->is_interpreted_ = is_interpreted_;
   sp_ = frame->GetCallerSp();
   fp_ = frame->GetCallerFp();
   pc_ = frame->GetCallerPc();
-  ASSERT((validate == kDontValidateFrames) || frame->IsValid());
+  ASSERT(is_interpreted_ == frame->is_interpreted_);
+  ASSERT(!validate || frame->IsValid());
   return frame;
 }
 
@@ -480,10 +609,12 @@ ExitFrame* StackFrameIterator::NextExitFrame() {
   exit_.sp_ = frames_.sp_;
   exit_.fp_ = frames_.fp_;
   exit_.pc_ = frames_.pc_;
+  exit_.is_interpreted_ = frames_.is_interpreted_;
   frames_.sp_ = exit_.GetCallerSp();
   frames_.fp_ = exit_.GetCallerFp();
   frames_.pc_ = exit_.GetCallerPc();
-  ASSERT((validate_ == kDontValidateFrames) || exit_.IsValid());
+  ASSERT(frames_.is_interpreted_ == exit_.is_interpreted_);
+  ASSERT(!validate_ || exit_.IsValid());
   return &exit_;
 }
 
@@ -492,8 +623,9 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
   entry_.sp_ = frames_.sp_;
   entry_.fp_ = frames_.fp_;
   entry_.pc_ = frames_.pc_;
+  entry_.is_interpreted_ = frames_.is_interpreted_;
   SetupNextExitFrameData();  // Setup data for next exit frame in chain.
-  ASSERT((validate_ == kDontValidateFrames) || entry_.IsValid());
+  ASSERT(!validate_ || entry_.IsValid());
   return &entry_;
 }
 
@@ -586,7 +718,7 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
 
 #if defined(DEBUG)
 void ValidateFrames() {
-  StackFrameIterator frames(StackFrameIterator::kValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();

@@ -16,13 +16,13 @@ namespace dart {
 #ifndef PRODUCT
 
 VM_UNIT_TEST_CASE(Metric_Simple) {
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   {
     Metric metric;
 
     // Initialize metric.
-    metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kCounter);
+    metric.InitInstance(Isolate::Current(), "a.b.c", "foobar",
+                        Metric::kCounter);
     EXPECT_EQ(0, metric.value());
     metric.increment();
     EXPECT_EQ(1, metric.value());
@@ -45,15 +45,15 @@ class MyMetric : public Metric {
 };
 
 VM_UNIT_TEST_CASE(Metric_OnDemand) {
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   {
     Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     MyMetric metric;
 
-    metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);
+    metric.InitInstance(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);
     // value is still the default value.
     EXPECT_EQ(0, metric.value());
     // Call LeakyValue to confirm that Value returns constant 99.

@@ -37,17 +37,17 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
     buffer.write("(");
     if (formals != null) {
       bool isFirst = true;
-      for (TypeBuilder t in formals) {
+      for (dynamic t in formals) {
         if (!isFirst) {
           buffer.write(", ");
         } else {
           isFirst = false;
         }
-        buffer.write(t.fullNameForErrors);
+        buffer.write(t?.fullNameForErrors);
       }
     }
     buffer.write(") -> ");
-    buffer.write(returnType.fullNameForErrors);
+    buffer.write(returnType?.fullNameForErrors);
     return buffer;
   }
 

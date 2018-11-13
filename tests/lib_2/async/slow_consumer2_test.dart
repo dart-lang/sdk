@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--old_gen_heap_size=64
+// VMOptions=--old_gen_heap_size=64 --no-background-compilation
 
 library slow_consumer2_test;
 
@@ -31,7 +31,8 @@ class SlowConsumer extends StreamConsumer {
   Future addStream(Stream stream) {
     Completer result = new Completer();
     var subscription;
-    subscription = stream.listen((List<int> data) {
+    subscription = stream.listen((Object _data) {
+      List<int> data = _data;
       receivedCount += data.length;
       usedBufferSize += data.length;
       bufferedData.add(data);

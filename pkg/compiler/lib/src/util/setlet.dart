@@ -4,9 +4,9 @@
 
 library dart2js.util.setlet;
 
-import 'dart:collection' show IterableBase;
+import 'dart:collection' show SetBase;
 
-class Setlet<E> extends IterableBase<E> implements Set<E> {
+class Setlet<E> extends SetBase<E> {
   static const _SetletMarker _MARKER = const _SetletMarker();
   static const int CAPACITY = 8;
 
@@ -27,6 +27,9 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
     addAll(elements);
   }
 
+  static Set<R> _newSet<R>() => new Setlet<R>();
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
   Iterator<E> get iterator {
     if (_extra == null) {
       return new _SetletSingleIterator<E>(_contents);
@@ -131,7 +134,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
         while (copyTo < CAPACITY) _contents[copyTo++] = null;
       } else {
         _contents = new Set<E>()
-          ..addAll(_contents)
+          ..addAll((_contents as List).cast<E>())
           ..add(element);
         _extra = _MARKER;
       }
@@ -236,7 +239,6 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
     for (E e in other) {
       if (!this.contains(e)) return false;
     }
-    ;
     return true;
   }
 

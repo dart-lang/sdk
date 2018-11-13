@@ -6,6 +6,8 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 
@@ -24,11 +26,18 @@ main(List<String> args) {
 
 _scan(File file) {
   var src = file.readAsStringSync();
+  PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var source = resourceProvider.getFile(file.path).createSource();
   var reader = new CharSequenceReader(src);
-  var scanner = new Scanner(null, reader, null);
+  var listener = new BooleanErrorListener();
+  var scanner = new Scanner(source, reader, listener);
   var token = scanner.tokenize();
   while (token.type != TokenType.EOF) {
     print(token);
     token = token.next;
+  }
+  if (listener.errorReported) {
+    print('Errors found.');
+    exit(1);
   }
 }

@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic f = new self::C::_circular(null);
+  constructor _circular(dynamic f) → self::C
+    : self::C::f = f, super core::Object::•()
+    ;
+}
+static field dynamic x = new self::C::_circular(null);
+static method main() → dynamic {}

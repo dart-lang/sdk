@@ -20,7 +20,7 @@ class N {
 get NEVER => false;
 
 main() {
-  var c = 12345;
+  dynamic c = 12345;
   if (NEVER) c = new N();
   var e;
   try {

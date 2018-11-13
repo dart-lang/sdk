@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class ActionDispatcher<P extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::ActionDispatcher<self::ActionDispatcher::P>
+    ;
+  method call([self::ActionDispatcher::P value]) → void
+    ;
+}
+class Bar extends core::Object {
+  synthetic constructor •() → self::Bar
+    ;
+}
+class FooActions extends core::Object {
+  synthetic constructor •() → self::FooActions
+    ;
+  get foo() → self::ActionDispatcher<self::Bar>
+    ;
+}
+static method main() → void
+  ;

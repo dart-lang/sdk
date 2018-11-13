@@ -59,8 +59,8 @@ void testSpawnReturnVsCurrent(bool asList) {
   };
 
   Isolate.spawn(replyCurrent, [p.sendPort, asList]).then((Isolate isolate) {
-    return response.future.then((Isolate isolate2) {
-      expectIsolateEquals(isolate, isolate2);
+    return response.future.then((isolate2) {
+      expectIsolateEquals(isolate, isolate2 as Isolate);
       asyncEnd();
     });
   });
@@ -98,8 +98,8 @@ void testSpawnReturnVsCurrent2(bool asList) {
   };
 
   Isolate.spawn(expectCurrent, [p.sendPort, asList]).then((Isolate isolate) {
-    return response.future.then((SendPort port) {
-      port.send(transform(isolate));
+    return response.future.then((port) {
+      (port as SendPort).send(transform(isolate));
     });
   });
 }

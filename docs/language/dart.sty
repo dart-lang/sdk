@@ -1,12 +1,5 @@
-\def\keyword#1{\textbf{#1}}
-\def\builtinId#1{\textbf{#1}}
-\def\code#1{\textsf{#1}}
-\def\comment#1{\textit{#1}}
-\def\capt#1{\rmfamily \caption{#1}}
-\def\lt{\ensuremath{<}}
-\def\gt{\ensuremath{>}}
-\def\<{\ensuremath{\langle}}
-\def\>{\ensuremath{\rangle}}
+\def\builtinId#1{\textsf{\textbf{#1}}}
+\def\keyword#1{\textsf{\textbf{#1}}}
 \def\metavar#1{\ensuremath{\mathit{#1}}}
 
 \def\ABSTRACT{\builtinId{abstract}}
@@ -17,10 +10,13 @@
 \def\EXPORT{\builtinId{export}}
 \def\EXTERNAL{\builtinId{external}}
 \def\FACTORY{\builtinId{factory}}
+\def\FUNCTION{\builtinId{Function}}
 \def\GET{\builtinId{get}}
 \def\IMPLEMENTS{\builtinId{implements}}
 \def\IMPORT{\builtinId{import}}
+\def\INTERFACE{\builtinId{interface}}
 \def\LIBRARY{\builtinId{library}}
+\def\MIXIN{\builtinId{mixin}}
 \def\OPERATOR{\builtinId{operator}}
 \def\PART{\builtinId{part}}
 \def\SET{\builtinId{set}}
@@ -31,7 +27,6 @@
 \def\ASYNC{\keyword{async}}
 \def\AWAIT{\keyword{await}}
 \def\BREAK{\keyword{break}}
-\def\CALL{\keyword{call}}
 \def\CASE{\keyword{case}}
 \def\CATCH{\keyword{catch}}
 \def\CLASS{\keyword{class}}
@@ -70,27 +65,61 @@
 \def\WITH{\keyword{with}}
 \def\YIELD{\keyword{yield}}
 
-% A quoted comma as used in the grammar: needs spacing fix.
-\newcommand{\gcomma}{\mbox{`,\hspace{-0.1em}'}}
+% Used for inline code snippets.
+\def\code#1{\texttt{#1}}
+
+% `call` has no special lexical status, so we just use \code{}.
+\def\CALL{\code{call}}
+
+% Define commands for `<<`, `>>`, `>>>` that avoid introducing guillemets.
+\def\ltlt{<\mbox <}
+\def\gtgt{>\mbox >}
+\def\gtgtgt{>\mbox >\mbox >}
 
 % Used as line break in the right hand side of a grammar
 % alternative, that is, when starting a "continuation line".
-\newcommand{\gnewline}{\\\mbox{}\qquad{}}
+\newcommand{\gnewline}{\leavevmode\\}
+
+% Metavariables for argument lists.
+\newcommand{\argumentList}[1]{\metavar{{#1}s}}
+\newcommand{\parameterList}[1]{\metavar{{#1}s}}
 
 \newenvironment{Q}[1]{{\bf #1}}{}
 \newenvironment{rationale}[1]{{\it #1}}{}
 \newenvironment{commentary}[1]{{\sf #1}}{}
 
-\newenvironment{dartCode}[1][!ht] {
-%  \begin{verbatim}[#1]
-  \def\@programcr{\@addfield\strut}
-  \let\\=\@programcr
-  \relax\@vobeyspaces\obeylines
+\newcommand{\flatten}[1]{\ensuremath{\mbox{\it flatten}({#1})}}
 
-  \sffamily
-}{
-  %\end{verbatim}
-}
+% Used as a mini-section marker, indicating visibly that a range of
+% text (usually just a couple of paragraphs) are concerned with one
+% specific topic in a list of similar topics (like many forms of
+% expressions of a similar nature).
+\newcommand{\Case}[1]{\textbf{Case }$\langle\hspace{0.1em}${#1}$\hspace{0.1em}\rangle$\textbf{.}}
+
+\newenvironment{dartCode}[1][!ht] {
+  \def\@programcr{\@addfield\strut}%
+  \let\\=\@programcr%
+  \relax\@vobeyspaces\obeylines%
+  \ttfamily%
+  \vspace{1em}
+}{\vspace{1em}}
+
+% Used for comments in a code context.
+\def\comment#1{\textsf{#1}}
+
+% A commonly used name for an identifier
+\newcommand{\id}{\metavar{id}}
+
+% Used for defining occurrence of phrase, with customized index entry.
+\newcommand{\IndexCustom}[2]{%
+  \leavevmode\marginpar{\ensuremath{\diamond}}\emph{#1}\index{#2}}
+
+% Used for a defining occurrence of a phrase, adding it to the index.
+\newcommand{\Index}[1]{\IndexCustom{#1}{#1}}
+
+% Same appearance, but not adding an entry to the index.
+\newcommand{\NoIndex}[1]{
+  \leavevmode\marginpar{\ensuremath{\diamond}}\emph{#1}}
 
 % ----------------------------------------------------------------------
 % Support for hash valued Location Markers
@@ -110,14 +139,14 @@
 \definecolor{LMdim}{gray}{1.0}
 
 % insert location marker showing hash value of following paragraph
-\newcommand{\LMHash}[1]{%
-  \hspace{0pt}\marginpar{\raisebox{0.5ex}{\miniscule{\color{LMdim}#1}}}}
+\newcommand{\LMHash}[1]{\leavevmode\marginpar{\quad%
+    \raisebox{0.5ex}{\miniscule{\color{LMdim}#1}}\vspace{-2\baselineskip}}}
 
 % support convenient renewcommand
 \let\OriginalLMHash\LMHash
 
 % define a label, and show the associated logical location marker
 \newcommand{\LMLabel}[1]{%
-  \vspace{-\baselineskip}\hspace{0pt}\OriginalLMHash{\raisebox{10ex}{#1}}%
+  \vspace{-\baselineskip}\leavevmode\OriginalLMHash{\raisebox{10ex}{#1}}%
   \label{#1}}
 % ----------------------------------------------------------------------

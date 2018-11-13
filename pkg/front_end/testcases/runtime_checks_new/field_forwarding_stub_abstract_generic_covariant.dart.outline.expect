@@ -2,13 +2,13 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Object> extends core::Object {
+class B<T extends core::Object = dynamic> extends core::Object {
   field self::B::T x;
-  default constructor •() → void
+  synthetic constructor •() → self::B<self::B::T>
     ;
 }
 class C extends self::B<core::num> {
-  default constructor •() → void
+  synthetic constructor •() → self::C
     ;
 }
 static method main() → void

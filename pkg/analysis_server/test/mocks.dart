@@ -9,12 +9,8 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analyzer/file_system/file_system.dart' as resource;
-import 'package:analyzer/file_system/memory_file_system.dart' as resource;
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:mockito/mockito.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
 /**
@@ -47,60 +43,6 @@ Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
 Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
 
 /**
- * Returns a [Future] that completes after pumping the event queue [times]
- * times. By default, this should pump the event queue enough times to allow
- * any code to run, as long as it's not waiting on some external event.
- */
-Future pumpEventQueue([int times = 5000]) {
-  if (times == 0) return new Future.value();
-  // We use a delayed future to allow microtask events to finish. The
-  // Future.value or Future() constructors use scheduleMicrotask themselves and
-  // would therefore not wait for microtask callbacks that are scheduled after
-  // invoking this method.
-  return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
-}
-
-/**
- * A mock [PackageMapProvider].
- */
-class MockPackageMapProvider implements PubPackageMapProvider {
-  /**
-   * Package map that will be returned by the next call to [computePackageMap].
-   */
-  Map<String, List<resource.Folder>> packageMap =
-      <String, List<resource.Folder>>{};
-
-  /**
-   * Package maps that will be returned by the next call to [computePackageMap].
-   */
-  Map<String, Map<String, List<resource.Folder>>> packageMaps = null;
-
-  /**
-   * Dependency list that will be returned by the next call to [computePackageMap].
-   */
-  Set<String> dependencies = new Set<String>();
-
-  /**
-   * Number of times [computePackageMap] has been called.
-   */
-  int computeCount = 0;
-
-  @override
-  PackageMapInfo computePackageMap(resource.Folder folder) {
-    ++computeCount;
-    if (packageMaps != null) {
-      return new PackageMapInfo(packageMaps[folder.path], dependencies);
-    }
-    return new PackageMapInfo(packageMap, dependencies);
-  }
-
-  noSuchMethod(Invocation invocation) {
-    // No other methods should be called.
-    return super.noSuchMethod(invocation);
-  }
-}
-
-/**
  * A mock [ServerCommunicationChannel] for testing [AnalysisServer].
  */
 class MockServerChannel implements ServerCommunicationChannel {
@@ -109,12 +51,16 @@ class MockServerChannel implements ServerCommunicationChannel {
       new StreamController<Response>.broadcast();
   StreamController<Notification> notificationController =
       new StreamController<Notification>(sync: true);
+  Completer<Response> errorCompleter;
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
   bool _closed = false;
 
+  String name;
+
   MockServerChannel();
+
   @override
   void close() {
     _closed = true;
@@ -139,6 +85,13 @@ class MockServerChannel implements ServerCommunicationChannel {
       return;
     }
     notificationsReceived.add(notification);
+    if (errorCompleter != null && notification.event == 'server.error') {
+      print(
+          '[server.error] test: $name message: ${notification.params['message']}');
+      errorCompleter.completeError(
+          new ServerError(notification.params['message']),
+          new StackTrace.fromString(notification.params['stackTrace']));
+    }
     // Wrap send notification in future to simulate websocket
     // TODO(scheglov) ask Dan why and decide what to do
 //    new Future(() => notificationController.add(notification));
@@ -146,16 +99,22 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 
   /**
-   * Simulate request/response pair.
+   * Send the given [request] to the server and return a future that will
+   * complete when a response associated with the [request] has been received.
+   * The value of the future will be the received response. If [throwOnError] is
+   * `true` (the default) then the returned future will throw an exception if a
+   * server error is reported before the response has been received.
    */
-  Future<Response> sendRequest(Request request) {
+  Future<Response> sendRequest(Request request, {bool throwOnError = true}) {
+    // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
+    // have the default behavior be the only behavior.
     // No further requests should be sent after the connection is closed.
     if (_closed) {
       throw new Exception('sendRequest after connection closed');
     }
     // Wrap send request in future to simulate WebSocket.
     new Future(() => requestController.add(request));
-    return waitForResponse(request);
+    return waitForResponse(request, throwOnError: throwOnError);
   }
 
   @override
@@ -169,10 +128,32 @@ class MockServerChannel implements ServerCommunicationChannel {
     new Future(() => responseController.add(response));
   }
 
-  Future<Response> waitForResponse(Request request) {
+  /**
+   * Return a future that will complete when a response associated with the
+   * given [request] has been received. The value of the future will be the
+   * received response. If [throwOnError] is `true` (the default) then the
+   * returned future will throw an exception if a server error is reported
+   * before the response has been received.
+   * 
+   * Unlike [sendRequest], this method assumes that the [request] has already
+   * been sent to the server.
+   */
+  Future<Response> waitForResponse(Request request,
+      {bool throwOnError = true}) {
+    // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
+    // have the default behavior be the only behavior.
     String id = request.id;
-    return new Future<Response>(() => responseController.stream
-        .firstWhere((response) => response.id == id) as Future<Response>);
+    Future<Response> response =
+        responseController.stream.firstWhere((response) => response.id == id);
+    if (throwOnError) {
+      errorCompleter = new Completer<Response>();
+      try {
+        return Future.any([response, errorCompleter.future]);
+      } finally {
+        errorCompleter = null;
+      }
+    }
+    return response;
   }
 }
 
@@ -216,10 +197,53 @@ class MockSocket<T> implements WebSocket {
 }
 
 class MockSource extends StringTypedMock implements Source {
+  @override
+  TimestampedData<String> contents = null;
+
+  @override
+  String encoding = null;
+
+  @override
+  String fullName = null;
+
+  @override
+  bool isInSystemLibrary = null;
+
+  @override
+  Source librarySource = null;
+
+  @override
+  int modificationStamp = null;
+
+  @override
+  String shortName = null;
+
+  @override
+  Source source = null;
+
+  @override
+  Uri uri = null;
+
+  @override
+  UriKind uriKind = null;
+
   MockSource([String name = 'mocked.dart']) : super(name);
+
+  @override
+  bool exists() => null;
 }
 
-class StringTypedMock extends Mock {
+class ServerError implements Exception {
+  final message;
+
+  ServerError(this.message);
+
+  String toString() {
+    return "Server Error: $message";
+  }
+}
+
+class StringTypedMock {
   String _toString;
 
   StringTypedMock(this._toString);

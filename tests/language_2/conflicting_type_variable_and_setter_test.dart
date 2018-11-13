@@ -4,7 +4,10 @@
 
 import "package:expect/expect.dart";
 
-class C<D> {
+class C<
+        D //# 01: compile-time error
+        E //# none: ok
+         > {
   void set D(int value) {
     field = value;
   }

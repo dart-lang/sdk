@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class B extends core::Object {
   field core::Object _x;
-  default constructor •() → void
+  synthetic constructor •() → self::B
     ;
   method f([core::num x]) → void
     ;
@@ -13,14 +13,14 @@ class B extends core::Object {
   method check(core::Object expectedValue) → void
     ;
 }
-abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class I<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T>
     ;
   abstract method f([self::I::T x]) → void;
   abstract method g({self::I::T x}) → void;
 }
 class C extends self::B implements self::I<core::num> {
-  default constructor •() → void
+  synthetic constructor •() → self::C
     ;
 }
 static method main() → dynamic

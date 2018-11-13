@@ -4695,7 +4695,7 @@ ASSEMBLER_TEST_RUN(BitTest, test) {
 
 ASSEMBLER_TEST_GENERATE(BitTestImmediate, assembler) {
   __ movl(ECX, Immediate(32));
-  __ bt(EAX, 5);
+  __ bt(ECX, 5);
   Label ok;
   __ j(CARRY, &ok);
   __ int3();
@@ -4709,7 +4709,7 @@ ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
   EXPECT_EQ(1, reinterpret_cast<BitTestImmediate>(test->entry())());
   EXPECT_DISASSEMBLY(
       "mov ecx,0x20\n"
-      "bt eax,5\n"
+      "bt ecx,5\n"
       "jc 0x........\n"
       "int3\n"
       "mov eax,1\n"

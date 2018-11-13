@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -51,7 +51,7 @@ class FoldingMixinTest {
     await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<Null> notificationReceived = new Completer<Null>();
+    Completer<void> notificationReceived = new Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
       AnalysisFoldingParams params =
@@ -74,7 +74,7 @@ class _TestFoldingContributor implements FoldingContributor {
   @override
   void computeFolding(FoldingRequest request, FoldingCollector collector) {
     for (int i = 0; i < regionCount; i++) {
-      collector.addRegion(i * 20, 10, FoldingKind.COMMENT);
+      collector.addRegion(i * 20, 10, FoldingKind.FILE_HEADER);
     }
   }
 }
@@ -93,8 +93,7 @@ class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
 
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
-    AnalysisResult result = new AnalysisResult(
-        null, null, path, null, null, null, null, null, null, null, null);
+    AnalysisResult result = new MockAnalysisResult(path: path);
     return new DartFoldingRequestImpl(resourceProvider, result);
   }
 }

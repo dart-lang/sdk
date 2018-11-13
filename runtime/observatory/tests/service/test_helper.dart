@@ -223,7 +223,7 @@ class _ServiceTesteeLauncher {
       var blank;
       var first = true;
       process.stdout
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
         const kObservatoryListening = 'Observatory listening on ';
@@ -243,7 +243,7 @@ class _ServiceTesteeLauncher {
         print('>testee>out> $line');
       });
       process.stderr
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
         print('>testee>err> $line');
@@ -334,7 +334,7 @@ class _ServiceTesterRunner {
 
         print('All service tests completed successfully.');
         testsDone = true;
-        await process.requestExit();
+        process.requestExit();
       });
     }, onError: (error, stackTrace) {
       if (testsDone) {

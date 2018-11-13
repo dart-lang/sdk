@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<X extends core::Object = dynamic> extends core::Object {
+  generic-covariant-impl field core::List<self::A::X> foo = null;
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A<core::int> {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return <dynamic>[];
+  no-such-method-forwarder get foo() → core::List<core::int>
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} core::List<core::int>;
+  no-such-method-forwarder set foo(core::List<core::int> value) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method expectTypeError(() → dynamic callback) → void {
+  try {
+    callback.call();
+    throw "Expected TypeError, did not occur";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}
+static method main() → dynamic {
+  self::B b = new self::B::•();
+  self::expectTypeError(() → core::List<core::int> => b.{self::B::foo});
+  self::expectTypeError(() → core::List<dynamic> => (b as dynamic).foo = <dynamic>[]);
+}

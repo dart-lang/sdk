@@ -8,12 +8,21 @@ import '../common.dart';
 import '../common_elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
+import '../serialization/serialization.dart';
 import '../util/util.dart';
 
 /// Basic information for native classes and js-interop libraries and classes.
 ///
 /// This information is computed during loading using [NativeBasicDataBuilder].
 abstract class NativeBasicData {
+  /// Deserializes a [NativeBasicData] object from [source].
+  factory NativeBasicData.readFromDataSource(
+          DataSource source, ElementEnvironment elementEnvironment) =
+      NativeBasicDataImpl.readFromDataSource;
+
+  /// Serializes this [NativeBasicData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [cls] corresponds to a native JavaScript class.
   ///
   /// A class is marked as native either through the `@Native(...)` annotation
@@ -48,6 +57,14 @@ abstract class NativeBasicData {
 ///
 /// This information is computed during resolution using [NativeDataBuilder].
 abstract class NativeData extends NativeBasicData {
+  /// Deserializes a [NativeData] object from [source].
+  factory NativeData.readFromDataSource(
+          DataSource source, ElementEnvironment elementEnvironment) =
+      NativeDataImpl.readFromDataSource;
+
+  /// Serializes this [NativeData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [element] corresponds to a native JavaScript member.
   ///
   /// A member is marked as native either through the native mechanism
@@ -267,6 +284,10 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
 }
 
 class NativeBasicDataImpl implements NativeBasicData {
+  /// Tag used for identifying serialized [NativeBasicData] objects in a
+  /// debugging data stream.
+  static const String tag = 'native-basic-data';
+
   final ElementEnvironment _env;
 
   /// Tag info for native JavaScript classes names. See
@@ -292,6 +313,45 @@ class NativeBasicDataImpl implements NativeBasicData {
       this.jsInteropClasses,
       this.anonymousJsInteropClasses,
       this.jsInteropMembers);
+
+  factory NativeBasicDataImpl.readFromDataSource(
+      DataSource source, ElementEnvironment elementEnvironment) {
+    source.begin(tag);
+    Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
+        source.readClassMap(() {
+      List<String> names = source.readStrings();
+      bool isNonLeaf = source.readBool();
+      return new NativeClassTag.internal(names, isNonLeaf);
+    });
+    Map<LibraryEntity, String> jsInteropLibraries =
+        source.readLibraryMap(source.readString);
+    Map<ClassEntity, String> jsInteropClasses =
+        source.readClassMap(source.readString);
+    Set<ClassEntity> anonymousJsInteropClasses = source.readClasses().toSet();
+    Map<MemberEntity, String> jsInteropMembers =
+        source.readMemberMap(source.readString);
+    source.end(tag);
+    return new NativeBasicDataImpl(
+        elementEnvironment,
+        nativeClassTagInfo,
+        jsInteropLibraries,
+        jsInteropClasses,
+        anonymousJsInteropClasses,
+        jsInteropMembers);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeClassMap(nativeClassTagInfo, (NativeClassTag tag) {
+      sink.writeStrings(tag.names);
+      sink.writeBool(tag.isNonLeaf);
+    });
+    sink.writeLibraryMap(jsInteropLibraries, sink.writeString);
+    sink.writeClassMap(jsInteropClasses, sink.writeString);
+    sink.writeClasses(anonymousJsInteropClasses);
+    sink.writeMemberMap(jsInteropMembers, sink.writeString);
+    sink.end(tag);
+  }
 
   @override
   bool isNativeClass(ClassEntity element) {
@@ -480,7 +540,13 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
       jsInteropMembers);
 }
 
+// TODO(johnniwinther): Remove fields that overlap with [NativeBasicData], like
+// [anonymousJsInteropClasses].
 class NativeDataImpl implements NativeData, NativeBasicDataImpl {
+  /// Tag used for identifying serialized [NativeData] objects in a
+  /// debugging data stream.
+  static const String tag = 'native-data';
+
   /// Prefix used to escape JS names that are not valid Dart names
   /// when using JSInterop.
   static const String _jsInteropEscapePrefix = r'JS$';
@@ -524,6 +590,63 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
       this.anonymousJsInteropClasses,
       this.jsInteropClasses,
       this.jsInteropMembers);
+
+  factory NativeDataImpl.readFromDataSource(
+      DataSource source, ElementEnvironment elementEnvironment) {
+    source.begin(tag);
+    NativeBasicData nativeBasicData =
+        new NativeBasicData.readFromDataSource(source, elementEnvironment);
+    Map<MemberEntity, String> nativeMemberName =
+        source.readMemberMap(source.readString);
+    Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = source
+        .readMemberMap(() => new NativeBehavior.readFromDataSource(source));
+    Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior = source
+        .readMemberMap(() => new NativeBehavior.readFromDataSource(source));
+    Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior = source
+        .readMemberMap(() => new NativeBehavior.readFromDataSource(source));
+    Map<LibraryEntity, String> jsInteropLibraries =
+        source.readLibraryMap(source.readString);
+    Set<ClassEntity> anonymousJsInteropClasses = source.readClasses().toSet();
+    Map<ClassEntity, String> jsInteropClasses =
+        source.readClassMap(source.readString);
+    Map<MemberEntity, String> jsInteropMembers =
+        source.readMemberMap(source.readString);
+    source.end(tag);
+    return new NativeDataImpl(
+        nativeBasicData,
+        nativeMemberName,
+        nativeMethodBehavior,
+        nativeFieldLoadBehavior,
+        nativeFieldStoreBehavior,
+        jsInteropLibraries,
+        anonymousJsInteropClasses,
+        jsInteropClasses,
+        jsInteropMembers);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    _nativeBasicData.writeToDataSink(sink);
+
+    sink.writeMemberMap(nativeMemberName, sink.writeString);
+
+    sink.writeMemberMap(nativeMethodBehavior, (NativeBehavior behavior) {
+      behavior.writeToDataSink(sink);
+    });
+
+    sink.writeMemberMap(nativeFieldLoadBehavior, (NativeBehavior behavior) {
+      behavior.writeToDataSink(sink);
+    });
+    sink.writeMemberMap(nativeFieldStoreBehavior, (NativeBehavior behavior) {
+      behavior.writeToDataSink(sink);
+    });
+
+    sink.writeLibraryMap(jsInteropLibraries, sink.writeString);
+    sink.writeClasses(anonymousJsInteropClasses);
+    sink.writeClassMap(jsInteropClasses, sink.writeString);
+    sink.writeMemberMap(jsInteropMembers, sink.writeString);
+    sink.end(tag);
+  }
 
   @override
   bool isAnonymousJsInteropClass(ClassEntity element) {

@@ -13,7 +13,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetReachableSourcesTest);
-    defineReflectiveTests(GetReachableSourcesTest_PreviewDart2);
   });
 }
 
@@ -36,6 +35,7 @@ class Bar {
     await analysisFinished;
 
     AnalysisGetReachableSourcesResult result =
+        // ignore: deprecated_member_use
         await sendAnalysisGetReachableSources(pathname);
     Map<String, List<String>> sources = result.sources;
     List<String> keys = sources.keys.toList();
@@ -47,10 +47,4 @@ class Bar {
     expect(keys, contains(url));
     expect(sources[url], contains('dart:core'));
   }
-}
-
-@reflectiveTest
-class GetReachableSourcesTest_PreviewDart2 extends GetReachableSourcesTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

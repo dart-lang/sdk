@@ -10,12 +10,14 @@
 #include <WinIoCtl.h>  // NOLINT
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
+#include <Shlwapi.h>   // NOLINT
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <sys/utime.h>  // NOLINT
 
 #include "bin/builtin.h"
+#include "bin/directory.h"
 #include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
@@ -279,6 +281,24 @@ File* File::Open(Namespace* namespc, const char* path, FileOpenMode mode) {
   return file;
 }
 
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  UriDecoder uri_decoder(uri);
+  if (uri_decoder.decoded() == NULL) {
+    SetLastError(ERROR_INVALID_NAME);
+    return NULL;
+  }
+
+  Utf8ToWideScope uri_w(uri_decoder.decoded());
+  if (!UrlIsFileUrlW(uri_w.wide())) {
+    return FileOpenW(uri_w.wide(), mode);
+  }
+  wchar_t filename_w[MAX_PATH];
+  DWORD filename_len = MAX_PATH;
+  HRESULT result = PathCreateFromUrlW(uri_w.wide(),
+      filename_w, &filename_len, /* dwFlags= */ NULL);
+  return (result == S_OK) ? FileOpenW(filename_w, mode) : NULL;
+}
+
 File* File::OpenStdio(int fd) {
   int stdio_fd = -1;
   switch (fd) {
@@ -459,6 +479,21 @@ bool File::RenameLink(Namespace* namespc,
     Utf8ToWideScope system_old_path(old_path);
     Utf8ToWideScope system_new_path(new_path);
     DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
+    // Links on Windows appear as special directories. MoveFileExW's
+    // MOVEFILE_REPLACE_EXISTING does not allow for replacement of directories,
+    // so we need to remove it before renaming a link.
+    if (Directory::Exists(namespc, new_path) == Directory::EXISTS) {
+      bool result = true;
+      if (GetType(namespc, new_path, false) == kIsLink) {
+        result = DeleteLink(namespc, new_path);
+      } else {
+        result = Delete(namespc, new_path);
+      }
+      // Bail out if the Delete calls fail.
+      if (!result) {
+        return false;
+      }
+    }
     int move_status =
         MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
     return (move_status != 0);

@@ -232,7 +232,7 @@ class B extends A {
   }
 
   test_BAD_privateByPrivate_inDifferentLib() async {
-    addFile('$testFolder/lib.dart', r'''
+    newFile(join(testFolder, 'lib.dart'), content: r'''
 class A {
   void _m() {}
 }
@@ -405,6 +405,55 @@ class C extends A implements A {
     expect(override.interfaceMembers, isNull);
   }
 
+  test_mixin_method_direct() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends Object with A {
+  m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  test_mixin_method_indirect() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends A {
+}
+class C extends Object with B {
+  m() {} // in C
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  test_mixin_method_indirect2() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends Object with A {
+}
+class C extends B {
+  m() {} // in C
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
   test_staticMembers() async {
     addTestFile('''
 class A {
@@ -547,7 +596,7 @@ class B extends A {
     assertNoInterfaceMembers();
   }
 
-  test_super_method_superTypeCycle() async {
+  Future<void> test_super_method_superTypeCycle() async {
     addTestFile('''
 class A extends B {
   m() {} // in A

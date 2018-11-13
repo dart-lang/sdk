@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -32,7 +31,7 @@ var tests = <IsolateTest>[
     });
 
     // Start listening for events first.
-    await isolate.rootLibrary.evaluate('testeeDo();');
+    await isolate.rootLibrary.evaluate('testeeDo()');
     return completer.future;
   },
 ];

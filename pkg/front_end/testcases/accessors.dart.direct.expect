@@ -1,9 +1,23 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/accessors.dart:16:13: Warning: Getter not found: 'onlySetter'.
+//       print(onlySetter);
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/accessors.dart:25:11: Warning: Getter not found: 'onlySetter'.
+//     print(onlySetter);
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/accessors.dart:40:11: Warning: Getter not found: 'onlySetter'.
+//     print(onlySetter);
+//           ^^^^^^^^^^
+
 library;
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   set onlySetter(dynamic value) → void {
@@ -25,7 +39,7 @@ class C extends core::Object {
   }
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   get onlySetter() → core::String
@@ -39,7 +53,7 @@ static set onlySetter(dynamic value) → void {
 }
 static method main() → dynamic {
   try {
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#onlySetter, 33, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{}))));
+    core::print(let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#onlySetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
     throw "No error thrown";
   }
   on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {

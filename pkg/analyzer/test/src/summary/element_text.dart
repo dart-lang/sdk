@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
 
@@ -54,10 +53,14 @@ void applyCheckElementTextReplacements() {
  * actual text with the given [expected] one.
  */
 void checkElementText(LibraryElement library, String expected,
-    {bool withOffsets: false,
+    {bool withCodeRanges: false,
+    bool withConstElements: true,
+    bool withOffsets: false,
     bool withSyntheticAccessors: false,
     bool withSyntheticFields: false}) {
   var writer = new _ElementWriter(
+      withCodeRanges: withCodeRanges,
+      withConstElements: withConstElements,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
       withSyntheticFields: withSyntheticFields);
@@ -121,6 +124,7 @@ void checkElementText(LibraryElement library, String expected,
  * Writes the canonical text presentation of elements.
  */
 class _ElementWriter {
+  final bool withCodeRanges;
   final bool withOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
@@ -128,9 +132,10 @@ class _ElementWriter {
   final StringBuffer buffer = new StringBuffer();
 
   _ElementWriter(
-      {this.withOffsets: false,
+      {this.withCodeRanges,
       this.withConstElements: true,
-      this.withSyntheticAccessors,
+      this.withOffsets: false,
+      this.withSyntheticAccessors: false,
       this.withSyntheticFields: false});
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
@@ -164,10 +169,13 @@ class _ElementWriter {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
 
-    writeIf(e.isAbstract, 'abstract ');
+    writeIf(e.isAbstract && !e.isMixin, 'abstract ');
+    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
     if (e.isEnum) {
       buffer.write('enum ');
+    } else if (e.isMixin) {
+      buffer.write('mixin ');
     } else {
       buffer.write('class ');
     }
@@ -175,12 +183,20 @@ class _ElementWriter {
     writeIf(e.isMixinApplication, 'alias ');
 
     writeName(e);
+    writeCodeRange(e);
     writeTypeParameterElements(e.typeParameters);
 
     if (e.supertype != null && e.supertype.displayName != 'Object' ||
         e.mixins.isNotEmpty) {
       buffer.write(' extends ');
       writeType(e.supertype);
+    }
+
+    if (e.isMixin) {
+      if (e.superclassConstraints.isEmpty) {
+        throw new StateError('At least Object is expected.');
+      }
+      writeList(' on ', '', e.superclassConstraints, ', ', writeType);
     }
 
     writeList(' with ', '', e.mixins, ', ', writeType);
@@ -209,6 +225,17 @@ class _ElementWriter {
     buffer.writeln('}');
   }
 
+  void writeCodeRange(Element e) {
+    if (withCodeRanges) {
+      var elementImpl = e as ElementImpl;
+      buffer.write('/*codeOffset=');
+      buffer.write(elementImpl.codeOffset);
+      buffer.write(', codeLength=');
+      buffer.write(elementImpl.codeLength);
+      buffer.write('*/');
+    }
+  }
+
   void writeConstructorElement(ConstructorElement e) {
     writeDocumentation(e, '  ');
     writeMetadata(e, '  ', '\n');
@@ -224,6 +251,9 @@ class _ElementWriter {
     if (e.name.isNotEmpty) {
       buffer.write('.');
       writeName(e);
+    }
+    if (!e.isSynthetic) {
+      writeCodeRange(e);
     }
 
     writeParameterElements(e.parameters);
@@ -253,9 +283,13 @@ class _ElementWriter {
   }
 
   void writeDocumentation(Element e, [String prefix = '']) {
-    if (e.documentationComment != null) {
+    String comment = e.documentationComment;
+    if (comment != null) {
+      if (comment.startsWith('///')) {
+        comment = comment.split('\n').join('\n$prefix');
+      }
       buffer.write(prefix);
-      buffer.writeln(e.documentationComment);
+      buffer.writeln(comment);
     }
   }
 
@@ -328,8 +362,10 @@ class _ElementWriter {
     } else if (e is DoubleLiteral) {
       buffer.write(e.value);
     } else if (e is InstanceCreationExpression) {
-      buffer.write(e.keyword.lexeme);
-      buffer.write(' ');
+      if (e.keyword != null) {
+        buffer.write(e.keyword.lexeme);
+        buffer.write(' ');
+      }
       writeExpression(e.constructorName);
       writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
           includeEmpty: true);
@@ -459,6 +495,7 @@ class _ElementWriter {
     writeType2(e.returnType);
 
     writeName(e);
+    writeCodeRange(e);
 
     writeTypeParameterElements(e.typeParameters);
     writeParameterElements(e.parameters);
@@ -471,6 +508,7 @@ class _ElementWriter {
   void writeFunctionTypeAliasElement(FunctionTypeAliasElement e) {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
+    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
     if (e is GenericTypeAliasElement) {
       buffer.write('typedef ');
@@ -582,6 +620,7 @@ class _ElementWriter {
     writeType2(e.returnType);
 
     writeName(e);
+    writeCodeRange(e);
 
     writeTypeParameterElements(e.typeParameters);
     writeParameterElements(e.parameters);
@@ -617,28 +656,20 @@ class _ElementWriter {
     String defaultValueSeparator;
     Expression defaultValue;
     String closeString;
-    ParameterKind kind = e.parameterKind;
-    if (kind == ParameterKind.REQUIRED) {
+    if (e.isNotOptional) {
       closeString = '';
-    } else if (kind == ParameterKind.POSITIONAL) {
+    } else if (e.isOptionalPositional) {
       buffer.write('[');
       defaultValueSeparator = ' = ';
       defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = ']';
-    } else if (kind == ParameterKind.NAMED) {
+    } else if (e.isNamed) {
       buffer.write('{');
       defaultValueSeparator = ': ';
       defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = '}';
     } else {
-      fail('Unknown parameter kind: $kind');
-    }
-
-    // Kernel desugars omitted default parameter values to 'null'.
-    // Analyzer does not set initializer at all.
-    // It is not an interesting distinction, so we skip NullLiteral(s).
-    if (defaultValue is NullLiteral) {
-      defaultValue = null;
+      fail('Unknown parameter kind');
     }
 
     writeMetadata(e, '', ' ');
@@ -658,6 +689,7 @@ class _ElementWriter {
     }
 
     writeName(e);
+    writeCodeRange(e);
 
     if (e.parameters.isNotEmpty) {
       writeList('(', ')', e.parameters, ', ', writeParameterElement,
@@ -801,6 +833,7 @@ class _ElementWriter {
     writeType2(type);
 
     writeName(e);
+    writeCodeRange(e);
 
     writeVariableTypeInferenceError(e);
 
@@ -837,7 +870,7 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeName(e);
-    if (e.bound != null) {
+    if (e.bound != null && !e.bound.isObject) {
       buffer.write(' extends ');
       writeType(e.bound);
     }
@@ -856,6 +889,7 @@ class _ElementWriter {
     e.functionTypeAliases.forEach(writeFunctionTypeAliasElement);
     e.enums.forEach(writeClassElement);
     e.types.forEach(writeClassElement);
+    e.mixins.forEach(writeClassElement);
     e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);

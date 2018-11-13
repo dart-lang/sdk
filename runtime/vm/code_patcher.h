@@ -64,8 +64,6 @@ class CodePatcher : public AllStatic {
                                                  const Code& code,
                                                  ICData* ic_data);
 
-  static intptr_t InstanceCallSizeInBytes();
-
   static void InsertDeoptimizationCallAt(uword start);
 
   static void PatchPoolPointerCallAt(uword return_address,
@@ -81,14 +79,47 @@ class CodePatcher : public AllStatic {
   static RawCode* GetSwitchableCallTargetAt(uword return_address,
                                             const Code& caller_code);
 
+#if defined(TARGET_ARCH_DBC)
+  static NativeFunctionWrapper GetNativeCallAt(uword return_address,
+                                               const Code& code,
+                                               NativeFunction* target);
+#else
   static RawCode* GetNativeCallAt(uword return_address,
                                   const Code& code,
                                   NativeFunction* target);
+#endif
 
+#if defined(TARGET_ARCH_DBC)
+  static void PatchNativeCallAt(uword return_address,
+                                const Code& code,
+                                NativeFunction target,
+                                NativeFunctionWrapper trampoline);
+#else
   static void PatchNativeCallAt(uword return_address,
                                 const Code& code,
                                 NativeFunction target,
                                 const Code& trampoline);
+#endif
+
+  static intptr_t GetSubtypeTestCachePoolIndex(uword return_address);
+};
+
+// Beginning from [end - size] we compare [size] bytes with [pattern]. All
+// [0..255] values in [pattern] have to match, negative values are skipped.
+//
+// Example pattern: `[0x3d, 0x8b, -1, -1]`.
+bool MatchesPattern(uword end, int16_t* pattern, intptr_t size);
+
+class KBCPatcher : public AllStatic {
+ public:
+  static NativeFunctionWrapper GetNativeCallAt(uword return_address,
+                                               const Code& bytecode,
+                                               NativeFunction* function);
+
+  static void PatchNativeCallAt(uword return_address,
+                                const Code& bytecode,
+                                NativeFunction function,
+                                NativeFunctionWrapper trampoline);
 };
 
 }  // namespace dart

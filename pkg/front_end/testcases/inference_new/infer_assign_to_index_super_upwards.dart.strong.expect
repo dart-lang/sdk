@@ -1,20 +1,57 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:55:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+//     var /*@type=int*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+//                                                              ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:58:29: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+//     var /*@type=int*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
+//                             ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:59:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+//     var /*@type=int*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+//                                                              ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:112:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:113:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:114:32: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
+//                                ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:115:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+//                                                                 ^
+
 library test;
 import self as self;
 import "dart:core" as core;
 
-abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class Base<T extends core::Object = dynamic, U extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::Base<self::Base::T, self::Base::U>
     : super core::Object::•()
     ;
   operator [](core::String s) → self::Base::T
     return this.{self::Base::getValue}(s);
-  operator []=(core::String s, generic-covariant-impl generic-covariant-interface self::Base::U v) → void
+  operator []=(core::String s, generic-covariant-impl self::Base::U v) → void
     return this.{self::Base::setValue}(s, v);
   abstract method getValue(core::String s) → self::Base::T;
-  abstract method setValue(core::String s, generic-covariant-impl generic-covariant-interface self::Base::U v) → void;
+  abstract method setValue(core::String s, generic-covariant-impl self::Base::U v) → void;
 }
 abstract class Test1 extends self::Base<core::int, core::int> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test1
     : super self::Base::•()
     ;
   method test() → void {
@@ -27,11 +64,9 @@ abstract class Test1 extends self::Base<core::int, core::int> {
     core::int v10 = let final core::String #t21 = "x" in let final core::int #t22 = super.{self::Base::[]}(#t21).{core::num::+}(1) in let final void #t23 = super.{self::Base::[]=}(#t21, #t22) in #t22;
     core::int v11 = let final core::String #t24 = "x" in let final core::int #t25 = super.{self::Base::[]}(#t24) in let final void #t26 = super.{self::Base::[]=}(#t24, #t25.{core::num::+}(1)) in #t25;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test2 extends self::Base<core::int, core::num> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test2
     : super self::Base::•()
     ;
   method test() → void {
@@ -47,11 +82,9 @@ abstract class Test2 extends self::Base<core::int, core::num> {
     core::int v10 = let final core::String #t57 = "x" in let final core::int #t58 = super.{self::Base::[]}(#t57).{core::num::+}(1) in let final void #t59 = super.{self::Base::[]=}(#t57, #t58) in #t58;
     core::int v11 = let final core::String #t60 = "x" in let final core::int #t61 = super.{self::Base::[]}(#t60) in let final void #t62 = super.{self::Base::[]=}(#t60, #t61.{core::num::+}(1)) in #t61;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::num v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test3 extends self::Base<core::int, core::double> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test3
     : super self::Base::•()
     ;
   method test() → void {
@@ -59,17 +92,24 @@ abstract class Test3 extends self::Base<core::int, core::double> {
     core::double v3 = let final core::String #t66 = "x" in let final core::double #t67 = self::getDouble() in let final void #t68 = super.{self::Base::[]=}(#t66, #t67) in #t67;
     core::num v5 = let final core::String #t69 = "x" in let final core::int #t70 = super.{self::Base::[]}(#t69) in #t70.{core::num::==}(null) ?{core::num} let final core::num #t71 = self::getNum() as{TypeError} core::double in let final void #t72 = super.{self::Base::[]=}(#t69, #t71) in #t71 : #t70;
     core::num v6 = let final core::String #t73 = "x" in let final core::int #t74 = super.{self::Base::[]}(#t73) in #t74.{core::num::==}(null) ?{core::num} let final core::double #t75 = self::getDouble() in let final void #t76 = super.{self::Base::[]=}(#t73, #t75) in #t75 : #t74;
-    core::int v7 = let final core::String #t77 = "x" in let final core::int #t78 = let final dynamic #t79 = super.{self::Base::[]}(#t77).{core::num::+}(self::getInt()) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:55:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.\n    var /*@type=int*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();\n                                                             ^")) in let final void #t80 = super.{self::Base::[]=}(#t77, #t78) in #t78;
+    core::int v7 = let final core::String #t77 = "x" in let final core::int #t78 = let final<BottomType> #t79 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:55:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+    var /*@type=int*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+                                                             ^" in super.{self::Base::[]}(#t77).{core::num::+}(self::getInt()) as{TypeError} core::double in let final void #t80 = super.{self::Base::[]=}(#t77, #t78) in #t78;
     core::num v8 = let final core::String #t81 = "x" in let final core::num #t82 = super.{self::Base::[]}(#t81).{core::num::+}(self::getNum()) as{TypeError} core::double in let final void #t83 = super.{self::Base::[]=}(#t81, #t82) in #t82;
     core::double v9 = let final core::String #t84 = "x" in let final core::double #t85 = super.{self::Base::[]}(#t84).{core::num::+}(self::getDouble()) in let final void #t86 = super.{self::Base::[]=}(#t84, #t85) in #t85;
-    core::int v10 = let final core::String #t87 = "x" in let final core::int #t88 = let final dynamic #t89 = super.{self::Base::[]}(#t87).{core::num::+}(1) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:58:29: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.\n    var /*@type=int*/ v10 = ++super /*@target=Base::[]=*/ ['x'];\n                            ^")) in let final void #t90 = super.{self::Base::[]=}(#t87, #t88) in #t88;
-    core::int v11 = let final core::String #t91 = "x" in let final core::int #t92 = super.{self::Base::[]}(#t91) in let final void #t93 = super.{self::Base::[]=}(#t91, let final dynamic #t94 = #t92.{core::num::+}(1) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:59:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.\n    var /*@type=int*/ v11 = super /*@target=Base::[]=*/ ['x']++;\n                                                             ^"))) in #t92;
+    core::int v10 = let final core::String #t87 = "x" in let final core::int #t88 = let final<BottomType> #t89 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:58:29: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+    var /*@type=int*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
+                            ^" in super.{self::Base::[]}(#t87).{core::num::+}(1) as{TypeError} core::double in let final void #t90 = super.{self::Base::[]=}(#t87, #t88) in #t88;
+    core::int v11 = let final core::String #t91 = "x" in let final core::int #t92 = super.{self::Base::[]}(#t91) in let final void #t93 = super.{self::Base::[]=}(#t91, let final<BottomType> #t94 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:59:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+    var /*@type=int*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+                                                             ^" in #t92.{core::num::+}(1) as{TypeError} core::double) in #t92;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 abstract class Test4 extends self::Base<core::num, core::int> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test4
     : super self::Base::•()
     ;
   method test() → void {
@@ -82,11 +122,9 @@ abstract class Test4 extends self::Base<core::num, core::int> {
     core::num v10 = let final core::String #t115 = "x" in let final core::num #t116 = super.{self::Base::[]}(#t115).{core::num::+}(1) as{TypeError} core::int in let final void #t117 = super.{self::Base::[]=}(#t115, #t116) in #t116;
     core::num v11 = let final core::String #t118 = "x" in let final core::num #t119 = super.{self::Base::[]}(#t118) in let final void #t120 = super.{self::Base::[]=}(#t118, #t119.{core::num::+}(1) as{TypeError} core::int) in #t119;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test5 extends self::Base<core::num, core::num> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test5
     : super self::Base::•()
     ;
   method test() → void {
@@ -102,11 +140,9 @@ abstract class Test5 extends self::Base<core::num, core::num> {
     core::num v10 = let final core::String #t151 = "x" in let final core::num #t152 = super.{self::Base::[]}(#t151).{core::num::+}(1) in let final void #t153 = super.{self::Base::[]=}(#t151, #t152) in #t152;
     core::num v11 = let final core::String #t154 = "x" in let final core::num #t155 = super.{self::Base::[]}(#t154) in let final void #t156 = super.{self::Base::[]=}(#t154, #t155.{core::num::+}(1)) in #t155;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::num v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test6 extends self::Base<core::num, core::double> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test6
     : super self::Base::•()
     ;
   method test() → void {
@@ -120,11 +156,9 @@ abstract class Test6 extends self::Base<core::num, core::double> {
     core::num v10 = let final core::String #t180 = "x" in let final core::num #t181 = super.{self::Base::[]}(#t180).{core::num::+}(1) as{TypeError} core::double in let final void #t182 = super.{self::Base::[]=}(#t180, #t181) in #t181;
     core::num v11 = let final core::String #t183 = "x" in let final core::num #t184 = super.{self::Base::[]}(#t183) in let final void #t185 = super.{self::Base::[]=}(#t183, #t184.{core::num::+}(1) as{TypeError} core::double) in #t184;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 abstract class Test7 extends self::Base<core::double, core::int> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test7
     : super self::Base::•()
     ;
   method test() → void {
@@ -132,16 +166,26 @@ abstract class Test7 extends self::Base<core::double, core::int> {
     core::num v2 = let final core::String #t189 = "x" in let final core::num #t190 = self::getNum() as{TypeError} core::int in let final void #t191 = super.{self::Base::[]=}(#t189, #t190) in #t190;
     core::num v4 = let final core::String #t192 = "x" in let final core::double #t193 = super.{self::Base::[]}(#t192) in #t193.{core::num::==}(null) ?{core::num} let final core::int #t194 = self::getInt() in let final void #t195 = super.{self::Base::[]=}(#t192, #t194) in #t194 : #t193;
     core::num v5 = let final core::String #t196 = "x" in let final core::double #t197 = super.{self::Base::[]}(#t196) in #t197.{core::num::==}(null) ?{core::num} let final core::num #t198 = self::getNum() as{TypeError} core::int in let final void #t199 = super.{self::Base::[]=}(#t196, #t198) in #t198 : #t197;
-    core::double v7 = let final core::String #t200 = "x" in let final core::double #t201 = let final dynamic #t202 = super.{self::Base::[]}(#t200).{core::double::+}(self::getInt()) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:112:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n    var /*@type=double*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();\n                                                                ^")) in let final void #t203 = super.{self::Base::[]=}(#t200, #t201) in #t201;
-    core::double v8 = let final core::String #t204 = "x" in let final core::double #t205 = let final dynamic #t206 = super.{self::Base::[]}(#t204).{core::double::+}(self::getNum()) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:113:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n    var /*@type=double*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();\n                                                                ^")) in let final void #t207 = super.{self::Base::[]=}(#t204, #t205) in #t205;
-    core::double v10 = let final core::String #t208 = "x" in let final core::double #t209 = let final dynamic #t210 = super.{self::Base::[]}(#t208).{core::double::+}(1) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:114:32: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n    var /*@type=double*/ v10 = ++super /*@target=Base::[]=*/ ['x'];\n                               ^")) in let final void #t211 = super.{self::Base::[]=}(#t208, #t209) in #t209;
-    core::double v11 = let final core::String #t212 = "x" in let final core::double #t213 = super.{self::Base::[]}(#t212) in let final void #t214 = super.{self::Base::[]=}(#t212, let final dynamic #t215 = #t213.{core::double::+}(1) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:115:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n    var /*@type=double*/ v11 = super /*@target=Base::[]=*/ ['x']++;\n                                                                ^"))) in #t213;
+    core::double v7 = let final core::String #t200 = "x" in let final core::double #t201 = let final<BottomType> #t202 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:112:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    var /*@type=double*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+                                                                ^" in super.{self::Base::[]}(#t200).{core::double::+}(self::getInt()) as{TypeError} core::int in let final void #t203 = super.{self::Base::[]=}(#t200, #t201) in #t201;
+    core::double v8 = let final core::String #t204 = "x" in let final core::double #t205 = let final<BottomType> #t206 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:113:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    var /*@type=double*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+                                                                ^" in super.{self::Base::[]}(#t204).{core::double::+}(self::getNum()) as{TypeError} core::int in let final void #t207 = super.{self::Base::[]=}(#t204, #t205) in #t205;
+    core::double v10 = let final core::String #t208 = "x" in let final core::double #t209 = let final<BottomType> #t210 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:114:32: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    var /*@type=double*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
+                               ^" in super.{self::Base::[]}(#t208).{core::double::+}(1) as{TypeError} core::int in let final void #t211 = super.{self::Base::[]=}(#t208, #t209) in #t209;
+    core::double v11 = let final core::String #t212 = "x" in let final core::double #t213 = super.{self::Base::[]}(#t212) in let final void #t214 = super.{self::Base::[]=}(#t212, let final<BottomType> #t215 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:115:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    var /*@type=double*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+                                                                ^" in #t213.{core::double::+}(1) as{TypeError} core::int) in #t213;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test8 extends self::Base<core::double, core::num> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test8
     : super self::Base::•()
     ;
   method test() → void {
@@ -157,11 +201,9 @@ abstract class Test8 extends self::Base<core::double, core::num> {
     core::double v10 = let final core::String #t246 = "x" in let final core::double #t247 = super.{self::Base::[]}(#t246).{core::double::+}(1) in let final void #t248 = super.{self::Base::[]=}(#t246, #t247) in #t247;
     core::double v11 = let final core::String #t249 = "x" in let final core::double #t250 = super.{self::Base::[]}(#t249) in let final void #t251 = super.{self::Base::[]=}(#t249, #t250.{core::double::+}(1)) in #t250;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::num v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test9 extends self::Base<core::double, core::double> {
-  default constructor •() → void
+  synthetic constructor •() → self::Test9
     : super self::Base::•()
     ;
   method test() → void {
@@ -175,8 +217,6 @@ abstract class Test9 extends self::Base<core::double, core::double> {
     core::double v10 = let final core::String #t275 = "x" in let final core::double #t276 = super.{self::Base::[]}(#t275).{core::double::+}(1) in let final void #t277 = super.{self::Base::[]=}(#t275, #t276) in #t276;
     core::double v11 = let final core::String #t278 = "x" in let final core::double #t279 = super.{self::Base::[]}(#t278) in let final void #t280 = super.{self::Base::[]=}(#t278, #t279.{core::double::+}(1)) in #t279;
   }
-  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
-  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 static method getInt() → core::int
   return 0;

@@ -105,9 +105,6 @@ cc/Profiler_SourcePositionOptimized: Skip
 cc/Profiler_BinaryOperatorSourcePosition: Skip
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
 
-[ $compiler == none && $runtime == drt ]
-dart/truncating_ints_test: Skip # Issue 14651
-
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays
@@ -129,7 +126,7 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 dart/optimized_stacktrace_line_test: StaticWarning
 dart/optimized_stacktrace_line_and_column_test: StaticWarning
 
-[ $compiler == dart2analyzer && $builder_tag == strong ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == app_jit ]
@@ -217,6 +214,7 @@ dart/spawn_shutdown_test: SkipSlow
 cc/IsolateReload_KernelIncrementalCompile: Skip
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: Skip
 cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
+cc/IsolateReload_KernelIncrementalCompileExpression: Skip
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 

@@ -4,48 +4,37 @@
 
 library fasta.prefix_builder;
 
-import 'package:kernel/ast.dart' show LibraryDependency;
+import 'builder.dart' show Declaration, LibraryBuilder, Scope;
 
-import 'builder.dart' show Builder, LibraryBuilder, Scope, LoadLibraryBuilder;
-
-class PrefixBuilder extends Builder {
+class PrefixBuilder extends Declaration {
   final String name;
 
   final Scope exportScope = new Scope.top();
 
   final LibraryBuilder parent;
 
-  final LibraryDependency dependency;
-
-  LoadLibraryBuilder loadLibraryBuilder;
-
   final bool deferred;
 
   @override
   final int charOffset;
 
-  PrefixBuilder(this.name, this.deferred, LibraryBuilder parent,
-      this.dependency, int charOffset)
-      : parent = parent,
-        charOffset = charOffset,
-        super(parent, charOffset, parent.fileUri) {
-    if (deferred) {
-      loadLibraryBuilder =
-          new LoadLibraryBuilder(parent, dependency, charOffset);
-      addToExportScope('loadLibrary', loadLibraryBuilder, charOffset);
-    }
-  }
+  final int importIndex;
 
-  Builder lookup(String name, int charOffset, Uri fileUri) {
+  PrefixBuilder(
+      this.name, this.deferred, this.parent, this.charOffset, this.importIndex);
+
+  Uri get fileUri => parent.fileUri;
+
+  Declaration lookup(String name, int charOffset, Uri fileUri) {
     return exportScope.lookup(name, charOffset, fileUri);
   }
 
-  void addToExportScope(String name, Builder member, int charOffset) {
-    Map<String, Builder> map =
+  void addToExportScope(String name, Declaration member, int charOffset) {
+    Map<String, Declaration> map =
         member.isSetter ? exportScope.setters : exportScope.local;
-    Builder existing = map[name];
+    Declaration existing = map[name];
     if (existing != null) {
-      map[name] = parent.buildAmbiguousBuilder(
+      map[name] = parent.computeAmbiguousDeclaration(
           name, existing, member, charOffset,
           isExport: true);
     } else {

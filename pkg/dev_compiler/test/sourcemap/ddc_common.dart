@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library dev_compiler.test.sourcemap.ddc_common;
+
 import 'dart:io';
+import 'dart:mirrors' show currentMirrorSystem;
 
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:path/path.dart' as path;
@@ -13,8 +16,8 @@ import 'package:testing/testing.dart';
 
 import 'common.dart';
 
-abstract class DdcRunner {
-  Future<Null> runDDC(Uri inputFile, Uri outputFile, Uri outWrapperPath);
+abstract class CompilerRunner {
+  Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperPath);
 }
 
 abstract class WithCompilerState {
@@ -22,64 +25,64 @@ abstract class WithCompilerState {
 }
 
 class Compile extends Step<Data, Data, ChainContext> {
-  final DdcRunner ddcRunner;
+  final CompilerRunner runner;
 
-  const Compile(this.ddcRunner);
+  const Compile(this.runner);
 
   String get name => "compile";
 
   Future<Result<Data>> run(Data data, ChainContext context) async {
-    var dartScriptAbsolute = new File.fromUri(data.uri).absolute;
+    var dartScriptAbsolute = File.fromUri(data.uri).absolute;
     var inputFile = dartScriptAbsolute.path;
 
     data.outDir = await Directory.systemTemp.createTemp("ddc_step_test");
-    data.code = new AnnotatedCode.fromText(
-        new File(inputFile).readAsStringSync(), commentStart, commentEnd);
+    data.code = AnnotatedCode.fromText(
+        File(inputFile).readAsStringSync(), commentStart, commentEnd);
     var outDirUri = data.outDir.uri;
     var testFile = outDirUri.resolve("test.dart");
-    new File.fromUri(testFile).writeAsStringSync(data.code.sourceCode);
+    File.fromUri(testFile).writeAsStringSync(data.code.sourceCode);
     var outputFilename = "js.js";
     var outputFile = outDirUri.resolve(outputFilename);
     var outWrapperPath = outDirUri.resolve("wrapper.js");
 
-    await ddcRunner.runDDC(testFile, outputFile, outWrapperPath);
+    await runner.run(testFile, outputFile, outWrapperPath);
 
     return pass(data);
   }
 }
 
 class TestStackTrace extends Step<Data, Data, ChainContext> {
-  final DdcRunner ddcRunner;
+  final CompilerRunner runner;
   final String marker;
   final List<String> knownMarkers;
 
-  const TestStackTrace(this.ddcRunner, this.marker, this.knownMarkers);
+  const TestStackTrace(this.runner, this.marker, this.knownMarkers);
 
   String get name => "TestStackTrace";
 
   Future<Result<Data>> run(Data data, ChainContext context) async {
     data.outDir = await Directory.systemTemp.createTemp("stacktrace-test");
-    String code = await new File.fromUri(data.uri).readAsString();
+    String code = await File.fromUri(data.uri).readAsString();
     Test test = processTestCode(code, knownMarkers);
     await testStackTrace(test, marker, _compile,
         jsPreambles: _getPreambles,
         useJsMethodNamesOnAbsence: true,
         jsNameConverter: _convertName,
-        forcedTmpDir: data.outDir);
+        forcedTmpDir: data.outDir,
+        verbose: true);
     return pass(data);
   }
 
   Future<bool> _compile(String input, String output) async {
-    var outWrapperPath = _getWrapperPathFromDirectoryFile(new Uri.file(input));
-    await ddcRunner.runDDC(
-        new Uri.file(input), new Uri.file(output), outWrapperPath);
+    var outWrapperPath = _getWrapperPathFromDirectoryFile(Uri.file(input));
+    await runner.run(Uri.file(input), Uri.file(output), outWrapperPath);
     return true;
   }
 
   List<String> _getPreambles(String input, String output) {
     return [
       '--module',
-      _getWrapperPathFromDirectoryFile(new Uri.file(input)).toFilePath(),
+      _getWrapperPathFromDirectoryFile(Uri.file(input)).toFilePath(),
       '--'
     ];
   }
@@ -105,7 +108,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
 Directory _cachedDdcDir;
 Directory getDdcDir() {
   Directory search() {
-    Directory dir = new File.fromUri(Platform.script).parent;
+    Directory dir = File.fromUri(Platform.script).parent;
     Uri dirUrl = dir.uri;
     if (dirUrl.pathSegments.contains("dev_compiler")) {
       for (int i = dirUrl.pathSegments.length - 2; i >= 0; --i) {
@@ -127,10 +130,14 @@ String getWrapperContent(
   return """
     import { dart, _isolate_helper } from '${uriPathForwardSlashed(jsSdkPath)}';
     import { $inputFileNameNoExt } from '$outputFilename';
+
+    let global = new Function('return this;')();
+    $d8Preambles
+
     let main = $inputFileNameNoExt.main;
     dart.ignoreWhitelistedErrors(false);
     try {
-      _isolate_helper.startRootIsolate(main, []);
+      dartMainRunner(main, []);
     } catch(e) {
       console.error(e.toString(), dart.stackTrace(e).toString());
     }
@@ -140,14 +147,11 @@ String getWrapperContent(
 void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
     String outputFilename, Uri outDir) {
   // For debugging via HTML, Chrome and ./tools/testing/dart/http_server.dart.
-  Directory sdkPath = sdkRoot;
-  String jsRootDart =
-      "/root_dart/${new File(path.relative(sdkJsFile.path, from: sdkPath.path))
-      .uri}";
-  new File.fromUri(outputFile.resolve("$outputFilename.html.js"))
-      .writeAsStringSync(
-          jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
-  new File.fromUri(outputFile.resolve("$outputFilename.html.html"))
+  var sdkFile = File(path.relative(sdkJsFile.path, from: sdkRoot.path));
+  String jsRootDart = "/root_dart/${sdkFile.uri}";
+  File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
+      jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
+  File.fromUri(outputFile.resolve("$outputFilename.html.html"))
       .writeAsStringSync(getWrapperHtmlContent(
           jsRootDart, "/root_build/$outputFilename.html.js"));
 
@@ -171,7 +175,6 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
     import { test } from '$outFileRootBuild';
     let main = test.main;
     dart.ignoreWhitelistedErrors(false);
-    _isolate_helper.startRootIsolate(() => {}, []);
     main();
     </script>
   </head>
@@ -181,3 +184,10 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
 </html>
 """;
 }
+
+Uri selfUri = currentMirrorSystem()
+    .findLibrary(#dev_compiler.test.sourcemap.ddc_common)
+    .uri;
+String d8Preambles = File.fromUri(
+        selfUri.resolve('../../tool/input_sdk/private/preambles/d8.js'))
+    .readAsStringSync();

@@ -32,6 +32,10 @@ const int staticMask = finalMask << 1;
 
 const int namedMixinApplicationMask = staticMask << 1;
 
+/// Not a modifier, used for mixins declared explicitly by using the `mixin`
+/// keyword.
+const int mixinDeclarationMask = namedMixinApplicationMask << 1;
+
 /// Not a real modifier, and by setting it to zero, it is automatically ignored
 /// by [Modifier.validate] below.
 const int varMask = 0;
@@ -81,5 +85,13 @@ class Modifier {
       result |= modifier.mask;
     }
     return result;
+  }
+
+  static int validateVarFinalOrConst(String lexeme) {
+    if (lexeme == null) return 0;
+    if (identical('const', lexeme)) return Const.mask;
+    if (identical('final', lexeme)) return Final.mask;
+    if (identical('var', lexeme)) return Var.mask;
+    return unhandled(lexeme, "Modifier.validateVarFinalOrConst", -1, null);
   }
 }

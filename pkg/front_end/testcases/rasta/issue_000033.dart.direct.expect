@@ -1,6 +1,13 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/rasta/issue_000033.dart:5:2: Warning: Method not found: 'JS'.
+// @JS()
+//  ^^
+
 library;
 import self as self;
-import "dart:core" as core;
 
-@const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000033.dart:5:2: Error: Method not found: 'JS'.\n@JS()\n ^"))
+@invalid-expression "pkg/front_end/testcases/rasta/issue_000033.dart:5:2: Error: Method not found: 'JS'.
+@JS()
+ ^^"
 static method main() → dynamic {}

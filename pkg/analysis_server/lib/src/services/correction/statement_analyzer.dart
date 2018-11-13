@@ -39,7 +39,7 @@ List<Token> _getTokens(String text) {
 class StatementAnalyzer extends SelectionAnalyzer {
   final CompilationUnit unit;
 
-  RefactoringStatus _status = new RefactoringStatus();
+  final RefactoringStatus _status = new RefactoringStatus();
 
   StatementAnalyzer(this.unit, SourceRange selection) : super(selection);
 
@@ -204,7 +204,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
    * Returns `true` if there are [Token]s in the given [SourceRange].
    */
   bool _hasTokens(SourceRange range) {
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     String fullText = unitElement.context.getContents(unitElement.source).data;
     String rangeText = fullText.substring(range.offset, range.end);
     return _getTokens(rangeText).isNotEmpty;

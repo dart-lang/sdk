@@ -65,17 +65,26 @@ abstract class DartType {
   ///     void Function<T>(T t)
   bool get isFunctionTypeVariable => false;
 
+  /// Is `true` if this type is a `FutureOr` type.
+  bool get isFutureOr => false;
+
   /// Is `true` if this type is a malformed type.
   bool get isMalformed => false;
 
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
 
+  /// Whether this type contains a free class type variable or function type
+  /// variable.
+  // TODO(sra): Review uses of [containsTypeVariables] for update with
+  // [containsFreeTypeVariables].
+  bool get containsFreeTypeVariables => _containsFreeTypeVariables(null);
+
   /// Is `true` if this type is the 'Object' type defined in 'dart:core'.
   bool get isObject => false;
 
-  /// Applies [f] to each occurence of a [ResolutionTypeVariableType] within
-  /// this type.
+  /// Applies [f] to each occurence of a [TypeVariableType] within this
+  /// type. This excludes function type variables, whether free or bound.
   void forEachTypeVariable(f(TypeVariableType variable)) {}
 
   /// Performs the substitution `[arguments[i]/parameters[i]]this`.
@@ -93,6 +102,8 @@ abstract class DartType {
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument);
 
   bool _equals(DartType other, _Assumptions assumptions);
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be equivalent.
@@ -102,15 +113,19 @@ class _Assumptions {
   Map<FunctionTypeVariable, Set<FunctionTypeVariable>> _assumptionMap =
       <FunctionTypeVariable, Set<FunctionTypeVariable>>{};
 
-  /// Assume that [a] and [b] are equivalent.
-  void assume(FunctionTypeVariable a, FunctionTypeVariable b) {
+  void _addAssumption(FunctionTypeVariable a, FunctionTypeVariable b) {
     _assumptionMap
         .putIfAbsent(a, () => new Set<FunctionTypeVariable>.identity())
         .add(b);
   }
 
-  /// Remove the assumption that [a] and [b] are equivalent.
-  void forget(FunctionTypeVariable a, FunctionTypeVariable b) {
+  /// Assume that [a] and [b] are equivalent.
+  void assume(FunctionTypeVariable a, FunctionTypeVariable b) {
+    _addAssumption(a, b);
+    _addAssumption(b, a);
+  }
+
+  void _removeAssumption(FunctionTypeVariable a, FunctionTypeVariable b) {
     Set<FunctionTypeVariable> set = _assumptionMap[a];
     if (set != null) {
       set.remove(b);
@@ -120,9 +135,29 @@ class _Assumptions {
     }
   }
 
+  /// Remove the assumption that [a] and [b] are equivalent.
+  void forget(FunctionTypeVariable a, FunctionTypeVariable b) {
+    _removeAssumption(a, b);
+    _removeAssumption(b, a);
+  }
+
   /// Returns `true` if [a] and [b] are assumed to be equivalent.
   bool isAssumed(FunctionTypeVariable a, FunctionTypeVariable b) {
     return _assumptionMap[a]?.contains(b) ?? false;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('_Assumptions(');
+    String comma = '';
+    _assumptionMap
+        .forEach((FunctionTypeVariable a, Set<FunctionTypeVariable> set) {
+      sb.write('$comma$a (${identityHashCode(a)})->'
+          '{${set.map((b) => '$b (${identityHashCode(b)})').join(',')}}');
+      comma = ',';
+    });
+    sb.write(')');
+    return sb.toString();
   }
 }
 
@@ -144,6 +179,11 @@ class InterfaceType extends DartType {
 
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArguments.forEach((type) => type.forEachTypeVariable(f));
+  }
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
+    return typeArguments
+        .any((type) => type._containsFreeTypeVariables(bindings));
   }
 
   InterfaceType subst(List<DartType> arguments, List<DartType> parameters) {
@@ -188,7 +228,7 @@ class InterfaceType extends DartType {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! InterfaceType) return false;
-    return _equals(other, null);
+    return _equalsInternal(other, null);
   }
 
   bool _equals(DartType other, _Assumptions assumptions) {
@@ -224,8 +264,9 @@ class InterfaceType extends DartType {
 class TypedefType extends DartType {
   final TypedefEntity element;
   final List<DartType> typeArguments;
+  final FunctionType unaliased;
 
-  TypedefType(this.element, this.typeArguments);
+  TypedefType(this.element, this.typeArguments, this.unaliased);
 
   bool get isTypedef => true;
 
@@ -235,6 +276,9 @@ class TypedefType extends DartType {
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArguments.forEach((type) => type.forEachTypeVariable(f));
   }
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) =>
+      typeArguments.any((type) => type._containsFreeTypeVariables(bindings));
 
   TypedefType subst(List<DartType> arguments, List<DartType> parameters) {
     if (typeArguments.isEmpty) {
@@ -248,9 +292,11 @@ class TypedefType extends DartType {
     }
     List<DartType> newTypeArguments =
         _substTypes(typeArguments, arguments, parameters);
-    if (!identical(typeArguments, newTypeArguments)) {
+    FunctionType newUnaliased = unaliased.subst(arguments, parameters);
+    if (!identical(typeArguments, newTypeArguments) ||
+        !identical(unaliased, newUnaliased)) {
       // Create a new type only if necessary.
-      return new TypedefType(element, newTypeArguments);
+      return new TypedefType(element, newTypeArguments, newUnaliased);
     }
     return this;
   }
@@ -323,6 +369,8 @@ class Dart1MethodTypeVariableType extends TypeVariableType {
 
   @override
   bool get isMalformed => true;
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
 }
 
 class TypeVariableType extends DartType {
@@ -337,6 +385,8 @@ class TypeVariableType extends DartType {
   void forEachTypeVariable(f(TypeVariableType variable)) {
     f(this);
   }
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => true;
 
   DartType subst(List<DartType> arguments, List<DartType> parameters) {
     assert(arguments.length == parameters.length);
@@ -389,12 +439,28 @@ class FunctionTypeVariable extends DartType {
   final int index;
 
   /// The bound of this function type variable.
-  final DartType bound;
+  DartType _bound;
 
-  FunctionTypeVariable(this.index, this.bound);
+  FunctionTypeVariable(this.index);
+
+  DartType get bound {
+    assert(_bound != null, "Bound hasn't been set.");
+    return _bound;
+  }
+
+  void set bound(DartType value) {
+    assert(_bound == null, "Bound has already been set.");
+    _bound = value;
+  }
 
   @override
   bool get isFunctionTypeVariable => true;
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
+    if (bindings == null) return true;
+    if (bindings.indexOf(this) >= 0) return false;
+    return true;
+  }
 
   DartType subst(List<DartType> arguments, List<DartType> parameters) {
     assert(arguments.length == parameters.length);
@@ -415,7 +481,7 @@ class FunctionTypeVariable extends DartType {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! FunctionTypeVariable) return false;
-    return _equals(other, null);
+    return false;
   }
 
   @override
@@ -505,20 +571,55 @@ class FunctionType extends DartType {
       this.optionalParameterTypes,
       this.namedParameters,
       this.namedParameterTypes,
-      this.typeVariables);
+      this.typeVariables) {
+    assert(returnType != null, "Invalid return type in $this.");
+    assert(!parameterTypes.contains(null), "Invalid parameter types in $this.");
+    assert(!optionalParameterTypes.contains(null),
+        "Invalid optional parameter types in $this.");
+    assert(
+        !namedParameters.contains(null), "Invalid named parameters in $this.");
+    assert(!namedParameterTypes.contains(null),
+        "Invalid named parameter types in $this.");
+    assert(!typeVariables.contains(null), "Invalid type variables in $this.");
+  }
 
   bool get containsTypeVariables {
-    return returnType.containsTypeVariables ||
+    return typeVariables.any((type) => type.bound.containsTypeVariables) ||
+        returnType.containsTypeVariables ||
         parameterTypes.any((type) => type.containsTypeVariables) ||
         optionalParameterTypes.any((type) => type.containsTypeVariables) ||
         namedParameterTypes.any((type) => type.containsTypeVariables);
   }
 
   void forEachTypeVariable(f(TypeVariableType variable)) {
+    typeVariables.forEach((type) => type.bound.forEachTypeVariable(f));
     returnType.forEachTypeVariable(f);
     parameterTypes.forEach((type) => type.forEachTypeVariable(f));
     optionalParameterTypes.forEach((type) => type.forEachTypeVariable(f));
     namedParameterTypes.forEach((type) => type.forEachTypeVariable(f));
+  }
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
+    int restore;
+    if (typeVariables.isNotEmpty) {
+      if (bindings == null) {
+        bindings = <FunctionTypeVariable>[];
+      } else {
+        restore = bindings.length;
+      }
+      bindings.addAll(typeVariables);
+    }
+
+    bool hasFree(DartType type) => type._containsFreeTypeVariables(bindings);
+
+    bool result = hasFree(returnType) ||
+        typeVariables.any((type) => hasFree(type.bound)) ||
+        parameterTypes.any(hasFree) ||
+        optionalParameterTypes.any(hasFree) ||
+        namedParameterTypes.any(hasFree);
+
+    if (restore != null) bindings.length = restore;
+    return result;
   }
 
   bool get isFunctionType => true;
@@ -616,8 +717,8 @@ class FunctionType extends DartType {
   }
 
   bool _equalsInternal(FunctionType other, _Assumptions assumptions) {
+    if (typeVariables.length != other.typeVariables.length) return false;
     if (typeVariables.isNotEmpty) {
-      if (typeVariables.length != other.typeVariables.length) return false;
       assumptions ??= new _Assumptions();
       for (int index = 0; index < typeVariables.length; index++) {
         assumptions.assume(typeVariables[index], other.typeVariables[index]);
@@ -630,7 +731,7 @@ class FunctionType extends DartType {
         }
       }
     }
-    bool result = returnType == other.returnType &&
+    bool result = returnType._equals(other.returnType, assumptions) &&
         _equalTypes(parameterTypes, other.parameterTypes, assumptions) &&
         _equalTypes(optionalParameterTypes, other.optionalParameterTypes,
             assumptions) &&
@@ -713,6 +814,61 @@ class FunctionType extends DartType {
   }
 }
 
+class FutureOrType extends DartType {
+  final DartType typeArgument;
+
+  FutureOrType(this.typeArgument);
+
+  @override
+  bool get isFutureOr => true;
+
+  @override
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    DartType newTypeArgument = typeArgument.subst(arguments, parameters);
+    if (identical(typeArgument, newTypeArgument)) return this;
+    return new FutureOrType(newTypeArgument);
+  }
+
+  bool get containsTypeVariables => typeArgument.containsTypeVariables;
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    typeArgument.forEachTypeVariable(f);
+  }
+
+  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) =>
+      typeArgument._containsFreeTypeVariables(bindings);
+
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
+      visitor.visitFutureOrType(this, argument);
+
+  int get hashCode => typeArgument.hashCode * 13;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! FutureOrType) return false;
+    return _equalsInternal(other, null);
+  }
+
+  bool _equals(DartType other, _Assumptions assumptions) {
+    if (identical(this, other)) return true;
+    if (other is! FutureOrType) return false;
+    return _equalsInternal(other, assumptions);
+  }
+
+  bool _equalsInternal(FutureOrType other, _Assumptions assumptions) {
+    return typeArgument._equals(other.typeArgument, assumptions);
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('FutureOr');
+    sb.write('<');
+    sb.write(typeArgument);
+    sb.write('>');
+    return sb.toString();
+  }
+}
+
 /// Helper method for performing substitution of a list of types.
 ///
 /// If no types are changed by the substitution, the [types] is returned
@@ -763,6 +919,8 @@ abstract class DartTypeVisitor<R, A> {
   R visitTypedefType(covariant TypedefType type, A argument) => null;
 
   R visitDynamicType(covariant DynamicType type, A argument) => null;
+
+  R visitFutureOrType(covariant FutureOrType type, A argument) => null;
 }
 
 abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
@@ -793,6 +951,10 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
 
   @override
   R visitDynamicType(covariant DynamicType type, A argument) =>
+      visitType(type, argument);
+
+  @override
+  R visitFutureOrType(covariant FutureOrType type, A argument) =>
       visitType(type, argument);
 }
 
@@ -878,27 +1040,35 @@ abstract class AbstractTypeRelation<T extends DartType>
     if (s is! FunctionType) return false;
     FunctionType tf = t;
     FunctionType sf = s;
-    if (invalidFunctionReturnTypes(tf.returnType, sf.returnType)) {
+    int typeVariablesCount = getCommonTypeVariablesCount(tf, sf);
+    if (typeVariablesCount == null) {
       return false;
     }
-
-    if (tf.typeVariables.length != sf.typeVariables.length) {
-      return false;
-    }
-    for (int i = 0; i < tf.typeVariables.length; i++) {
+    for (int i = 0; i < typeVariablesCount; i++) {
       assumptions.assume(tf.typeVariables[i], sf.typeVariables[i]);
     }
-    for (int i = 0; i < tf.typeVariables.length; i++) {
+    for (int i = 0; i < typeVariablesCount; i++) {
       if (!tf.typeVariables[i].bound
           ._equals(sf.typeVariables[i].bound, assumptions)) {
         return false;
       }
     }
+    if (invalidFunctionReturnTypes(tf.returnType, sf.returnType)) {
+      return false;
+    }
+
     bool result = visitFunctionTypeInternal(tf, sf);
-    for (int i = 0; i < tf.typeVariables.length; i++) {
+    for (int i = 0; i < typeVariablesCount; i++) {
       assumptions.forget(tf.typeVariables[i], sf.typeVariables[i]);
     }
     return result;
+  }
+
+  int getCommonTypeVariablesCount(FunctionType t, FunctionType s) {
+    if (t.typeVariables.length == s.typeVariables.length) {
+      return t.typeVariables.length;
+    }
+    return null;
   }
 
   bool visitFunctionTypeInternal(FunctionType tf, FunctionType sf) {
@@ -1025,18 +1195,17 @@ abstract class AbstractTypeRelation<T extends DartType>
 abstract class MoreSpecificVisitor<T extends DartType>
     extends AbstractTypeRelation<T> {
   bool isMoreSpecific(T t, T s) {
-    if (identical(t, s) || s.treatAsDynamic || t == commonElements.nullType) {
+    if (identical(t, s) ||
+        s.treatAsDynamic ||
+        s.isVoid ||
+        s == commonElements.objectType ||
+        t == commonElements.nullType) {
       return true;
-    }
-    if (t.isVoid || s.isVoid) {
-      return false;
     }
     if (t.treatAsDynamic) {
       return false;
     }
-    if (s == commonElements.objectType) {
-      return true;
-    }
+
     t = getUnaliased(t);
     s = getUnaliased(s);
 
@@ -1063,13 +1232,30 @@ abstract class MoreSpecificVisitor<T extends DartType>
   bool invalidCallableType(covariant DartType callType, covariant DartType s) {
     return !isMoreSpecific(callType, s);
   }
+
+  bool visitFutureOrType(FutureOrType t, covariant DartType s) {
+    return false;
+  }
 }
 
 /// Type visitor that determines the subtype relation two types.
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
-  bool isSubtype(T t, T s) {
-    return t.treatAsDynamic || isMoreSpecific(t, s);
+  bool isSubtype(DartType t, DartType s) {
+    if (s.isFutureOr) {
+      FutureOrType sFutureOr = s;
+      if (isSubtype(t, sFutureOr.typeArgument)) {
+        return true;
+      } else if (t.isInterfaceType) {
+        InterfaceType tInterface = t;
+        if (tInterface.element == commonElements.futureClass &&
+            isSubtype(
+                tInterface.typeArguments.single, sFutureOr.typeArgument)) {
+          return true;
+        }
+      }
+    }
+    return isMoreSpecific(t, s);
   }
 
   bool isAssignable(T t, T s) {
@@ -1081,11 +1267,11 @@ abstract class SubtypeVisitor<T extends DartType>
   }
 
   bool invalidFunctionReturnTypes(T t, T s) {
-    return !s.isVoid && !isAssignable(t, s);
+    return !isSubtype(t, s);
   }
 
   bool invalidFunctionParameterTypes(T t, T s) {
-    return !isAssignable(t, s);
+    return !isSubtype(s, t);
   }
 
   bool invalidTypeVariableBounds(T bound, T s) {
@@ -1095,6 +1281,14 @@ abstract class SubtypeVisitor<T extends DartType>
   bool invalidCallableType(covariant DartType callType, covariant DartType s) {
     return !isSubtype(callType, s);
   }
+
+  bool visitFutureOrType(FutureOrType t, covariant DartType s) {
+    if (s.isFutureOr) {
+      FutureOrType sFutureOr = s;
+      return isSubtype(t.typeArgument, sFutureOr.typeArgument);
+    }
+    return false;
+  }
 }
 
 /// Type visitor that determines one type could a subtype of another given the
@@ -1102,11 +1296,33 @@ abstract class SubtypeVisitor<T extends DartType>
 /// `false` only if we are sure no such substitution exists.
 abstract class PotentialSubtypeVisitor<T extends DartType>
     extends SubtypeVisitor<T> {
-  bool isSubtype(T t, T s) {
+  bool _assumeInstantiations = true;
+
+  bool isSubtype(DartType t, DartType s) {
     if (t is TypeVariableType || s is TypeVariableType) {
       return true;
     }
+    if ((t is FunctionTypeVariable || s is FunctionTypeVariable) &&
+        _assumeInstantiations) {
+      return true;
+    }
     return super.isSubtype(t, s);
+  }
+
+  int getCommonTypeVariablesCount(FunctionType t, FunctionType s) {
+    if (t.typeVariables.length == s.typeVariables.length) {
+      return t.typeVariables.length;
+    }
+    if (_assumeInstantiations && s.typeVariables.length == 0) {
+      return 0;
+    }
+    return null;
+  }
+
+  bool isPotentialSubtype(DartType t, DartType s,
+      {bool assumeInstantiations: true}) {
+    _assumeInstantiations = assumeInstantiations;
+    return isSubtype(t, s);
   }
 }
 
@@ -1123,7 +1339,11 @@ abstract class DartTypes {
 
   /// Returns `true` if [t] might be a subtype of [s] for some values of
   /// type variables in [s] and [t].
-  bool isPotentialSubtype(DartType t, DartType s);
+  ///
+  /// If [assumeInstantiations], generic function types are assumed to be
+  /// potentially instantiated.
+  bool isPotentialSubtype(DartType t, DartType s,
+      {bool assumeInstantiations: true});
 
   static const int IS_SUBTYPE = 1;
   static const int MAYBE_SUBTYPE = 0;
@@ -1161,6 +1381,8 @@ abstract class DartTypes {
   InterfaceType getSupertype(ClassEntity cls);
 
   /// Returns all supertypes of [cls].
+  // TODO(johnniwinther): This should include `Function` if [cls] declares
+  // a `call` method.
   Iterable<InterfaceType> getSupertypes(ClassEntity cls);
 
   /// Returns all types directly implemented by [cls].
@@ -1173,13 +1395,15 @@ abstract class DartTypes {
   /// Checks the type arguments of [type] against the type variable bounds
   /// declared on `type.element`. Calls [checkTypeVariableBound] on each type
   /// argument and bound.
-  void checkTypeVariableBounds(
-      InterfaceType type,
-      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+  void checkTypeVariableBounds<T>(
+      T context,
+      List<DartType> typeArguments,
+      List<DartType> typeVariables,
+      void checkTypeVariableBound(T context, DartType typeArgument,
           TypeVariableType typeVariable, DartType bound));
 
   /// Returns the [ClassEntity] which declares the type variables occurring in
-  // [type], or `null` if [type] does not contain type variables.
+  // [type], or `null` if [type] does not contain class type variables.
   static ClassEntity getClassContext(DartType type) {
     ClassEntity contextClass;
     type.forEachTypeVariable((TypeVariableType typeVariable) {

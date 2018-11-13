@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST = r"""
 foo() {
@@ -18,11 +18,9 @@ foo() {
 """;
 
 main() {
-  test({bool useKernel}) async {
-    await compile(TEST,
-        entry: 'foo',
-        enableTypeAssertions: true,
-        useKernel: useKernel, check: (String generated) {
+  test() async {
+    await compile(TEST, entry: 'foo', enableTypeAssertions: true,
+        check: (String generated) {
       Expect.isTrue(!generated.contains('eqB'));
 
       RegExp regexp = new RegExp('==');
@@ -32,9 +30,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await test(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await test(useKernel: true);
+    await test();
   });
 }

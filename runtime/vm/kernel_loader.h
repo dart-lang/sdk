@@ -6,12 +6,14 @@
 #define RUNTIME_VM_KERNEL_LOADER_H_
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#include <map>
 
-#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/bit_vector.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/hash_map.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 namespace kernel {
@@ -20,8 +22,12 @@ class KernelLoader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelLoader* loader, Thread* thread)
-      : TranslationHelper(thread), loader_(loader) {}
+  BuildingTranslationHelper(KernelLoader* loader,
+                            Thread* thread,
+                            Heap::Space space)
+      : TranslationHelper(thread, space),
+        loader_(loader),
+        library_lookup_handle_(Library::Handle(thread->zone())) {}
   virtual ~BuildingTranslationHelper() {}
 
   virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
@@ -29,6 +35,27 @@ class BuildingTranslationHelper : public TranslationHelper {
 
  private:
   KernelLoader* loader_;
+
+#if defined(DEBUG)
+  class LibraryLookupHandleScope {
+   public:
+    explicit LibraryLookupHandleScope(Library& lib) : lib_(lib) {
+      ASSERT(lib_.IsNull());
+    }
+
+    ~LibraryLookupHandleScope() { lib_ = Library::null(); }
+
+   private:
+    Library& lib_;
+
+    DISALLOW_COPY_AND_ASSIGN(LibraryLookupHandleScope);
+  };
+#endif  // defined(DEBUG)
+
+  // Preallocated handle for use in LookupClassByKernelClass().
+  Library& library_lookup_handle_;
+
+  DISALLOW_COPY_AND_ASSIGN(BuildingTranslationHelper);
 };
 
 template <typename VmType>
@@ -55,7 +82,7 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  explicit LibraryIndex(const TypedData& kernel_data);
+  explicit LibraryIndex(const ExternalTypedData& kernel_data);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -100,7 +127,7 @@ class ClassIndex {
 
   // |class_offset| is the offset of class' kernel data in |kernel_data|.
   // The size of the class' kernel data is |class_size|.
-  ClassIndex(const TypedData& kernel_data,
+  ClassIndex(const ExternalTypedData& kernel_data,
              intptr_t class_offset,
              intptr_t class_size);
 
@@ -120,35 +147,66 @@ class ClassIndex {
   DISALLOW_COPY_AND_ASSIGN(ClassIndex);
 };
 
-class KernelLoader {
+class KernelLoader : public ValueObject {
  public:
   explicit KernelLoader(Program* program);
-  static Object& LoadEntireProgram(Program* program);
+  static Object& LoadEntireProgram(Program* program,
+                                   bool process_pending_classes = true);
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  Object& LoadProgram(bool process_pending_classes = true);
+  RawObject* LoadProgram(bool process_pending_classes = true);
+
+  // Returns the function which will evaluate the expression, or a failure
+  // object if there was an error.
+  RawObject* LoadExpressionEvaluationFunction(const String& library_url,
+                                              const String& klass);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
   static void FindModifiedLibraries(Program* program,
                                     Isolate* isolate,
                                     BitVector* modified_libs,
-                                    bool force_reload);
+                                    bool force_reload,
+                                    bool* is_empty_kernel);
 
-  void LoadLibrary(intptr_t index);
+  RawLibrary* LoadLibrary(intptr_t index);
 
   static void FinishLoading(const Class& klass);
 
-  const Array& ReadConstantTable();
-  void AnnotateNativeProcedures(const Array& constant_table);
+  void ReadObfuscationProhibitions();
 
-  const String& DartSymbol(StringIndex index) {
-    return translation_helper_.DartSymbol(index);
+  const Array& ReadConstantTable();
+
+  // Check for the presence of a (possibly const) constructor for the
+  // 'ExternalName' class. If found, returns the name parameter to the
+  // constructor.
+  RawString* DetectExternalNameCtor();
+
+  // Check for the presence of a (possibly const) constructor for the 'pragma'
+  // class. Returns whether it was found (no details about the type of pragma).
+  bool DetectPragmaCtor();
+
+  bool IsClassName(NameIndex name, const String& library, const String& klass);
+
+  void AnnotateNativeProcedures(const Array& constant_table);
+  void LoadNativeExtensionLibraries(const Array& constant_table);
+  void EvaluateDelayedPragmas();
+
+  void ReadVMAnnotations(intptr_t annotation_count,
+                         String* native_name,
+                         bool* is_potential_native,
+                         bool* has_pragma_annotation);
+
+  const String& DartSymbolPlain(StringIndex index) {
+    return translation_helper_.DartSymbolPlain(index);
+  }
+  const String& DartSymbolObfuscate(StringIndex index) {
+    return translation_helper_.DartSymbolObfuscate(index);
   }
 
   const String& LibraryUri(intptr_t library_index) {
-    return translation_helper_.DartSymbol(
+    return translation_helper_.DartSymbolPlain(
         translation_helper_.CanonicalNameString(
             library_canonical_name(library_index)));
   }
@@ -177,20 +235,27 @@ class KernelLoader {
   friend class BuildingTranslationHelper;
 
   KernelLoader(const Script& script,
-               const TypedData& kernel_data,
+               const ExternalTypedData& kernel_data,
                intptr_t data_program_offset);
 
-  void initialize_fields();
+  void InitializeFields();
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
-  void walk_incremental_kernel(BitVector* modified_libs);
+  void walk_incremental_kernel(BitVector* modified_libs,
+                               bool* is_empty_program);
 
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
 
-  Class& LoadClass(const Library& library,
-                   const Class& toplevel_class,
-                   intptr_t class_end);
+  void ReadInferredType(const Field& field, intptr_t kernel_offset);
+  void CheckForInitializer(const Field& field);
+
+  void FixCoreLibraryScriptUri(const Library& library, const Script& script);
+
+  void LoadClass(const Library& library,
+                 const Class& toplevel_class,
+                 intptr_t class_end,
+                 Class* out_class);
 
   void FinishClassLoading(const Class& klass,
                           const Library& library,
@@ -223,10 +288,13 @@ class KernelLoader {
                                   const Function& function,
                                   const AbstractType& field_type);
 
-  void LoadLibraryImportsAndExports(Library* library);
+  void LoadLibraryImportsAndExports(Library* library,
+                                    const Class& toplevel_class);
 
-  Library& LookupLibrary(NameIndex library);
-  Class& LookupClass(NameIndex klass);
+  RawLibrary* LookupLibraryOrNull(NameIndex library);
+  RawLibrary* LookupLibrary(NameIndex library);
+  RawLibrary* LookupLibraryFromClass(NameIndex klass);
+  RawClass* LookupClass(const Library& library, NameIndex klass);
 
   RawFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
@@ -242,6 +310,15 @@ class KernelLoader {
     }
   }
 
+  void EnsurePragmaClassIsLookedUp() {
+    if (pragma_class_.IsNull()) {
+      const Library& internal_lib =
+          Library::Handle(zone_, dart::Library::InternalLibrary());
+      pragma_class_ = internal_lib.LookupClass(Symbols::Pragma());
+      ASSERT(!pragma_class_.IsNull());
+    }
+  }
+
   void EnsurePotentialNatives() {
     potential_natives_ = kernel_program_info_.potential_natives();
     if (potential_natives_.IsNull()) {
@@ -252,12 +329,29 @@ class KernelLoader {
     }
   }
 
+  void EnsurePotentialPragmaFunctions() {
+    potential_pragma_functions_ =
+        kernel_program_info_.potential_pragma_functions();
+    if (potential_pragma_functions_.IsNull()) {
+      // To avoid too many grows in this array, we'll set it's initial size to
+      // something close to the actual number of potential native functions.
+      potential_pragma_functions_ = GrowableObjectArray::New(100, Heap::kNew);
+      kernel_program_info_.set_potential_pragma_functions(
+          potential_pragma_functions_);
+    }
+  }
+
+  void EnsurePotentialExtensionLibraries() {
+    if (potential_extension_libraries_.IsNull()) {
+      potential_extension_libraries_ = GrowableObjectArray::New();
+    }
+  }
+
   Program* program_;
 
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
-  bool is_service_isolate_;
   Array& patch_classes_;
   ActiveClass active_class_;
   // This is the offset of the current library within
@@ -270,26 +364,62 @@ class KernelLoader {
 
   NameIndex skip_vmservice_library_;
 
-  TypedData& library_kernel_data_;
+  ExternalTypedData& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
-  StreamingFlowGraphBuilder builder_;
+  KernelReaderHelper helper_;
+  TypeTranslator type_translator_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  BytecodeMetadataHelper bytecode_metadata_helper_;
 
   Class& external_name_class_;
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
+  GrowableObjectArray& potential_pragma_functions_;
+  GrowableObjectArray& potential_extension_libraries_;
 
-  Mapping<Library> libraries_;
-  Mapping<Class> classes_;
+  Class& pragma_class_;
+
+  Smi& name_index_handle_;
+
+  // We "re-use" the normal .dill file format for encoding compiled evaluation
+  // expressions from the debugger.  This allows us to also reuse the normal
+  // a) kernel loader b) flow graph building code.  The encoding is either one
+  // of the following two options:
+  //
+  //   * Option a) The expression is evaluated inside an instance method call
+  //               context:
+  //
+  //   Program:
+  //   |> library "evaluate:source"
+  //      |> class "#DebugClass"
+  //         |> procedure ":Eval"
+  //
+  //   * Option b) The expression is evaluated outside an instance method call
+  //               context:
+  //
+  //   Program:
+  //   |> library "evaluate:source"
+  //      |> procedure ":Eval"
+  //
+  // See
+  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart:compileExpression
+  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart:serializeProcedure
+  //
+  Library& expression_evaluation_library_;
+  Function& expression_evaluation_function_;
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
+
+  DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };
 
-class ClassLoader {
- public:
-  void LoadClassMembers();
-};
+RawFunction* CreateFieldInitializerFunction(Thread* thread,
+                                            Zone* zone,
+                                            const Field& field);
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 }  // namespace kernel
 }  // namespace dart

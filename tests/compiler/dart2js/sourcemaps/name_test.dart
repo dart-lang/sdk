@@ -6,15 +6,18 @@ library source_map_name_test;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common_elements.dart' show JElementEnvironment;
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/io/source_information.dart';
-import '../memory_compiler.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/io/kernel_source_information.dart';
+import 'package:compiler/src/js_model/js_world.dart';
+import '../helpers/memory_compiler.dart';
 
 const String SOURCE = '''
 
 var toplevelField;
-void toplevelMethod() {}
+toplevelMethod() {}
 void toplevelAnonymous() {
   var foo = () {};
 }
@@ -71,30 +74,35 @@ main() {
 }
 ''';
 
-check(Element element, String expectedName) {
-  String name = computeElementNameForSourceMaps(element);
-  Expect.equals(expectedName, name,
-      "Unexpected name '$name' for $element, expected '$expectedName'.");
-}
-
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': SOURCE});
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': SOURCE},
+        options: [Flags.disableInlining]);
     Compiler compiler = result.compiler;
-    LibraryElement mainApp =
-        compiler.frontendStrategy.elementEnvironment.mainLibrary;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JElementEnvironment env = closedWorld.elementEnvironment;
+    LibraryEntity mainApp = env.mainLibrary;
 
-    Element lookup(String name) {
-      Element element;
+    check(MemberEntity element, String expectedName) {
+      String name = computeKernelElementNameForSourceMaps(
+          closedWorld.elementMap, element);
+      Expect.equals(expectedName, name,
+          "Unexpected name '$name' for $element, expected '$expectedName'.");
+    }
+
+    MemberEntity lookup(String name) {
+      MemberEntity element;
       int dotPosition = name.indexOf('.');
       if (dotPosition != -1) {
         String clsName = name.substring(0, dotPosition);
-        ClassElement cls = mainApp.find(clsName);
+        ClassEntity cls = env.lookupClass(mainApp, clsName);
         Expect.isNotNull(cls, "Class '$clsName' not found.");
-        element = cls.localLookup(name.substring(dotPosition + 1));
+        var subname = name.substring(dotPosition + 1);
+        element = env.lookupLocalClassMember(cls, subname) ??
+            env.lookupConstructor(cls, subname);
       } else {
-        element = mainApp.find(name);
+        element = env.lookupLibraryMember(mainApp, name);
       }
       Expect.isNotNull(element, "Element '$name' not found.");
       return element;
@@ -107,23 +115,22 @@ main() {
       }
       dynamic element = lookup(lookupName);
       check(element, expectedName);
-      if (element.isConstructor) {
-        var constructorBody =
-            element.enclosingClass.lookupConstructorBody(element.name);
-        Expect.isNotNull(
-            element, "Constructor body '${element.name}' not found.");
-        check(constructorBody, expectedName);
+      if (element is ConstructorEntity) {
+        env.forEachConstructorBody(element.enclosingClass, (body) {
+          if (body.name != element.name) return;
+          Expect.isNotNull(
+              body, "Constructor body '${element.name}' not found.");
+          check(body, expectedName);
+        });
       }
 
       if (expectedClosureNames != null) {
         int index = 0;
-        for (var closure in element.nestedClosures) {
+        env.forEachNestedClosure(element, (closure) {
           String expectedName = expectedClosureNames[index];
           check(closure, expectedName);
-          check(closure.expression, expectedName);
-          check(closure.enclosingClass, expectedName);
           index++;
-        }
+        });
       }
     }
 
@@ -131,7 +138,6 @@ main() {
     checkName('toplevelMethod');
     checkName('toplevelAnonymous', ['toplevelAnonymous.<anonymous function>']);
     checkName('toplevelLocal', ['toplevelLocal.localMethod']);
-    checkName('Class');
     checkName('main');
 
     checkName('Class.staticField');

@@ -29,7 +29,6 @@ f() => [a, _s_, b];
 ''');
   }
 
-  @failingTest
   void test_missingComma() {
     testRecovery('''
 f() => [a, b c];
@@ -102,15 +101,11 @@ f() => {a: _s_, b: c};
  */
 @reflectiveTest
 class MissingCodeTest extends AbstractRecoveryTest {
-  @failingTest
   void test_ampersand() {
-    // Parser crashes
     testBinaryExpression('&');
   }
 
-  @failingTest
   void test_ampersand_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('&');
   }
 
@@ -123,6 +118,24 @@ convert(x) => _s_ as T;
 ''');
   }
 
+  @failingTest
+  void test_initializerList_missingComma() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      assert(true);
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      assert(true);
+}
+''');
+  }
+
   void test_asExpression_missingRight() {
     testRecovery('''
 convert(x) => x as ;
@@ -131,15 +144,13 @@ convert(x) => x as _s_;
 ''');
   }
 
-  @failingTest
   void test_assignmentExpression() {
-    // Parser crashes
     testRecovery('''
 f() {
   var x;
   x = 
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
 f() {
   var x;
   x = _s_;
@@ -147,15 +158,11 @@ f() {
 ''');
   }
 
-  @failingTest
   void test_bar() {
-    // Parser crashes
     testBinaryExpression('|');
   }
 
-  @failingTest
   void test_bar_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('|');
   }
 
@@ -189,83 +196,59 @@ import 'bar.dart' deferred as _s_;
 ''');
   }
 
-  @failingTest
   void test_conditionalExpression_else() {
-    // Parser crashes
     testRecovery('''
 f() => x ? y : 
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
 f() => x ? y : _s_;
 ''');
   }
 
-  @failingTest
   void test_conditionalExpression_then() {
-    // Parser crashes
     testRecovery('''
 f() => x ? : z
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
 f() => x ? _s_ : z;
 ''');
   }
 
-  @failingTest
   void test_equalEqual() {
-    // Parser crashes
     testBinaryExpression('==');
   }
 
-  @failingTest
   void test_equalEqual_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('==');
   }
 
-  @failingTest
   void test_greaterThan() {
-    // Parser crashes
     testBinaryExpression('>');
   }
 
-  @failingTest
   void test_greaterThan_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('>');
   }
 
-  @failingTest
   void test_greaterThanGreaterThan() {
-    // Parser crashes
     testBinaryExpression('>>');
   }
 
-  @failingTest
   void test_greaterThanGreaterThan_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('>>');
   }
 
-  @failingTest
   void test_greaterThanOrEqual() {
-    // Parser crashes
     testBinaryExpression('>=');
   }
 
-  @failingTest
   void test_greaterThanOrEqual_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('>=');
   }
 
-  @failingTest
   void test_hat() {
-    // Parser crashes
     testBinaryExpression('^');
   }
 
-  @failingTest
   void test_hat_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('^');
   }
 
@@ -295,75 +278,84 @@ f(x) {
 ''');
   }
 
-  @failingTest
   void test_lessThan() {
-    // Parser crashes
     testBinaryExpression('<');
   }
 
-  @failingTest
   void test_lessThan_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('<');
   }
 
-  @failingTest
   void test_lessThanLessThan() {
-    // Parser crashes
     testBinaryExpression('<<');
   }
 
-  @failingTest
   void test_lessThanLessThan_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('<<');
   }
 
-  @failingTest
   void test_lessThanOrEqual() {
-    // Parser crashes
     testBinaryExpression('<=');
   }
 
-  @failingTest
   void test_lessThanOrEqual_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('<=');
   }
 
-  @failingTest
   void test_minus() {
-    // Parser crashes
     testBinaryExpression('-');
   }
 
-  @failingTest
   void test_minus_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('-');
   }
 
   @failingTest
+  void test_missingGet() {
+    testRecovery('''
+class Bar {
+  int foo => 0;
+}
+''', [ParserErrorCode.MISSING_GET], '''
+class Bar {
+  int get foo => 0;
+}
+''');
+  }
+
+  @failingTest
+  void test_parameterList_leftParen() {
+    // https://github.com/dart-lang/sdk/issues/22938
+    testRecovery('''
+int f int x, int y) {}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+int f (int x, int y) {}
+''');
+  }
+
+  @failingTest
+  void test_parentheses_aroundThrow() {
+    // https://github.com/dart-lang/sdk/issues/24892
+    testRecovery('''
+f(x) => x ?? throw 0;
+''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
+f(x) => x ?? (throw 0);
+''');
+  }
+
   void test_percent() {
-    // Parser crashes
     testBinaryExpression('%');
   }
 
-  @failingTest
   void test_percent_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('%');
   }
 
-  @failingTest
   void test_plus() {
-    // Parser crashes
     testBinaryExpression('+');
   }
 
-  @failingTest
   void test_plus_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('+');
   }
 
@@ -381,46 +373,56 @@ f() {
 ''');
   }
 
-  @failingTest
   void test_slash() {
-    // Parser crashes
     testBinaryExpression('/');
   }
 
-  @failingTest
   void test_slash_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('/');
   }
 
-  @failingTest
   void test_star() {
-    // Parser crashes
     testBinaryExpression('*');
   }
 
-  @failingTest
   void test_star_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('*');
   }
 
-  @failingTest
+  void test_stringInterpolation_unclosed() {
+    // https://github.com/dart-lang/sdk/issues/946
+    // TODO(brianwilkerson) Try to recover better. Ideally there would be a
+    // single error about an unterminated interpolation block.
+    testRecovery(r'''
+f() {
+  print("${42");
+}
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL
+    ], r'''
+f() {
+  print("${42}");
+}
+''');
+  }
+
   void test_tildeSlash() {
-    // Parser crashes
     testBinaryExpression('~/');
   }
 
-  @failingTest
   void test_tildeSlash_super() {
-    // Parser crashes
     testUserDefinableOperatorWithSuper('~/');
   }
 
   void testBinaryExpression(String operator) {
     testRecovery('''
 f() => x $operator
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
 f() => x $operator _s_;
 ''');
   }
@@ -430,7 +432,7 @@ f() => x $operator _s_;
 class C {
   int operator $operator(x) => super $operator
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
 class C {
   int operator $operator(x) => super $operator _s_;
 }
@@ -453,7 +455,6 @@ f({a, _s_}) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_named_noLast() {
     testRecovery('''
 f({a, , b}) {}
@@ -471,7 +472,6 @@ f([a, _s_]) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_positional_noLast() {
     testRecovery('''
 f([a, , b]) {}
@@ -489,7 +489,6 @@ f(a, _s_) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_required_noLast() {
     testRecovery('''
 f(a, , b) {}
@@ -554,58 +553,67 @@ class C {
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_named_none() {
     testRecovery('''
 f({a: 0) {}
-''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 f({a: 0}) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_named_positional() {
     testRecovery('''
 f({a: 0]) {}
-''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f({a: 0}) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_none_named() {
     testRecovery('''
 f(a}) {}
-''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_none_positional() {
     testRecovery('''
 f(a]) {}
-''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_positional_named() {
     testRecovery('''
 f([a = 0}) {}
-''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_positional_none() {
     // Maybe put in paired_tokens_test.dart.
     testRecovery('''
 f([a = 0) {}
-''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
+''');
+  }
+
+  void test_missingComma() {
+    // https://github.com/dart-lang/sdk/issues/22074
+    testRecovery('''
+g(a, b, c) {}
+h(v1, v2, v) {
+  g(v1 == v2 || v1 == v 3, true);
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+g(a, b, c) {}
+h(v1, v2, v) {
+  g(v1 == v2 || v1 == v, 3, true);
+}
 ''');
   }
 
@@ -641,12 +649,11 @@ f([a = _s_, b]) {}
 ''');
   }
 
-  @failingTest
   void test_multipleGroups_mixed() {
     // TODO(brianwilkerson) Figure out the best way to recover from this.
     testRecovery('''
 f([a = 0], {b: 1}) {}
-''', [ParserErrorCode.MIXED_PARAMETER_GROUPS], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }

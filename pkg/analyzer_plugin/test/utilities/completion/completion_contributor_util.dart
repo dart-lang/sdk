@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -450,13 +450,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Return a [Future] that completes with the containing library information
    * after it is accessible via [context.getLibrariesContaining].
    */
-  Future<Null> computeLibrariesContaining() {
+  Future<void> computeLibrariesContaining() {
     return driver.getResult(testFile).then((result) => null);
   }
 
   Future computeSuggestions() async {
     ResolveResult result = await driver.getResult(testFile);
-    testSource = result.unit.element.source;
+    testSource = result.unit.declaredElement.source;
     request = new DartCompletionRequestImpl(provider, completionOffset, result);
 
     CompletionTarget target =
@@ -551,7 +551,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     // would therefore not wait for microtask callbacks that are scheduled after
     // invoking this method.
     return new Future.delayed(
-        Duration.ZERO, () => performAnalysis(times - 1, completer));
+        Duration.zero, () => performAnalysis(times - 1, completer));
   }
 
   void resolveSource(String path, String content) {

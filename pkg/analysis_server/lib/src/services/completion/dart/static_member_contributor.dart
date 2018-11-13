@@ -20,15 +20,17 @@ class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Expression targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
-      Element elem = targetId.bestElement;
+      Element elem = targetId.staticElement;
       if (elem is ClassElement) {
         LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library could not be determined
         // e.g. detached part file or source change
         if (containingLibrary == null) {
-          return EMPTY_LIST;
+          return const <CompletionSuggestion>[];
         }
 
         _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
@@ -36,7 +38,7 @@ class StaticMemberContributor extends DartCompletionContributor {
         return builder.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 
@@ -60,6 +62,11 @@ class _SuggestionBuilder extends GeneralizingElementVisitor {
   @override
   visitClassElement(ClassElement element) {
     element.visitChildren(this);
+  }
+
+  @override
+  visitConstructorElement(ConstructorElement element) {
+    _addSuggestion(element);
   }
 
   @override

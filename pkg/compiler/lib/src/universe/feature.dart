@@ -8,7 +8,8 @@
 /// compilation pipeline, for example during resolution.
 library compiler.universe.feature;
 
-import '../elements/types.dart' show InterfaceType;
+import '../elements/types.dart';
+import '../util/util.dart';
 
 /// A language feature that may be seen in the program.
 // TODO(johnniwinther): Should mirror usage be part of this?
@@ -43,11 +44,14 @@ enum Feature {
   /// A field without an initializer.
   FIELD_WITHOUT_INITIALIZER,
 
+  /// A field whose initialization is not a constant.
+  LAZY_FIELD,
+
   /// A local variable without an initializer.
   LOCAL_WITHOUT_INITIALIZER,
 
-  /// A field whose initialization is not a constant.
-  LAZY_FIELD,
+  /// Access to `loadLibrary` on a deferred import.
+  LOAD_LIBRARY,
 
   /// A catch clause with a variable for the stack trace.
   STACK_TRACE_IN_CATCH,
@@ -141,5 +145,102 @@ class ListLiteralUse {
 
   String toString() {
     return 'ListLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
+  }
+}
+
+/// Enum for recognized use kinds of `Object.runtimeType`.
+enum RuntimeTypeUseKind {
+  /// Unknown use of `Object.runtimeType`. This is the fallback value if the
+  /// usage didn't match any of the recogized patterns.
+  unknown,
+
+  /// `Object.runtimeType` used in a pattern like
+  /// `a.runtimeType == b.runtimeType`.
+  equals,
+
+  /// `Object.runtimeType` used in a pattern like `'${e.runtimeType}'` or
+  /// `e.runtimeType.toString()`.
+  string,
+}
+
+/// A use of `Object.runtimeType`.
+class RuntimeTypeUse {
+  /// The use kind of `Object.runtimeType`.
+  final RuntimeTypeUseKind kind;
+
+  /// The static type of the receiver.
+  final DartType receiverType;
+
+  /// The static type of the argument if [kind] is `RuntimeTypeUseKind.equals`.
+  final DartType argumentType;
+
+  RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
+
+  int get hashCode =>
+      kind.hashCode * 13 +
+      receiverType.hashCode * 17 +
+      argumentType.hashCode * 19;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! RuntimeTypeUse) return false;
+    return kind == other.kind &&
+        receiverType == other.receiverType &&
+        argumentType == other.argumentType;
+  }
+
+  /// Short textual representation use for testing.
+  String get shortText {
+    StringBuffer sb = new StringBuffer();
+    switch (kind) {
+      case RuntimeTypeUseKind.string:
+        sb.write('string:');
+        sb.write(receiverType);
+        break;
+      case RuntimeTypeUseKind.equals:
+        sb.write('equals:');
+        sb.write(receiverType);
+        sb.write('/');
+        sb.write(argumentType);
+        break;
+      case RuntimeTypeUseKind.unknown:
+        sb.write('unknown:');
+        sb.write(receiverType);
+        break;
+    }
+    return sb.toString();
+  }
+
+  String toString() => 'RuntimeTypeUse(kind=$kind,receiver=$receiverType'
+      ',argument=$argumentType)';
+}
+
+/// A generic instantiation of an expression of type [functionType] with the
+/// given [typeArguments].
+class GenericInstantiation {
+  /// The static type of the instantiated expression.
+  final DartType functionType;
+
+  /// The type arguments of the instantiation.
+  final List<DartType> typeArguments;
+
+  GenericInstantiation(this.functionType, this.typeArguments);
+
+  /// Short textual representation use for testing.
+  String get shortText => '<${typeArguments.join(',')}>';
+
+  int get hashCode =>
+      Hashing.listHash(typeArguments, Hashing.objectHash(functionType));
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! GenericInstantiation) return false;
+    return functionType == other.functionType &&
+        equalElements(typeArguments, other.typeArguments);
+  }
+
+  String toString() {
+    return 'GenericInstantiation(functionType:$functionType,'
+        'typeArguments:$typeArguments)';
   }
 }

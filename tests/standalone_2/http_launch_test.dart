@@ -8,7 +8,8 @@
 // OtherResources=http_launch_data/http_isolate_main.dart
 // OtherResources=http_launch_data/http_launch_main.dart
 // OtherResources=http_launch_data/http_spawn_main.dart
-// OtherResources=http_launch_data/packages/simple/simple.dart
+// OtherResources=http_launch_data/the_packages/simple/simple.dart
+// OtherResources=http_launch_data/.packages
 //
 // Test:
 //   *) Launching a script fetched over HTTP.
@@ -27,7 +28,7 @@ Uri pathOfData = Platform.script.resolve('http_launch_data/');
 int port;
 
 _sendNotFound(HttpResponse response) {
-  response.statusCode = HttpStatus.NOT_FOUND;
+  response.statusCode = HttpStatus.notFound;
   response.close();
 }
 
@@ -54,7 +55,7 @@ serverRunning(HttpServer server) {
   Future<ProcessResult> http_run = Process
       .run(pathToExecutable, ['http://127.0.0.1:$port/http_launch_main.dart']);
   Future<ProcessResult> http_pkg_root_run = Process.run(pathToExecutable, [
-    '--package-root=http://127.0.0.1:$port/packages/',
+    '--package-root=http://127.0.0.1:$port/the_packages/',
     'http://127.0.0.1:$port/http_launch_main.dart'
   ]);
   Future<ProcessResult> isolate_run = Process.run(pathToExecutable,
@@ -94,5 +95,5 @@ checkResults(List<ProcessResult> results) {
 }
 
 main() {
-  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0).then(serverRunning);
+  HttpServer.bind(InternetAddress.loopbackIPv4, 0).then(serverRunning);
 }

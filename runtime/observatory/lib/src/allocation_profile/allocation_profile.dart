@@ -13,7 +13,7 @@ class AllocationProfile implements M.AllocationProfile {
   final S.HeapSpace oldSpace;
   final Iterable<M.ClassHeapStats> members;
 
-  AllocationProfile(S.ServiceMap map, {Map<String, List<String>> defaults})
+  AllocationProfile(S.ServiceMap map, {Map/*<String, List<String>>*/ defaults})
       : lastAccumulatorReset = _intString2DateTime(map[_lastAccumulatorReset]),
         lastServiceGC = _intString2DateTime(map[_lastServiceGC]),
         oldSpace = new S.HeapSpace()..update(map['heaps']['old']),
@@ -27,14 +27,15 @@ class AllocationProfile implements M.AllocationProfile {
     return new DateTime.fromMillisecondsSinceEpoch(int.parse(milliseconds));
   }
 
-  static ClassHeapStats _convertMember(S.ServiceMap map) {
+  static ClassHeapStats _convertMember(/*S.ServiceMap*/ map) {
     assert(map['type'] == 'ClassHeapStats');
     return new ClassHeapStats(map);
   }
 
-  static List<M.ClassHeapStats> _convertMembers(Iterable<S.ServiceMap> raw,
-      {Map<String, List<String>> defaults}) {
-    final List<M.ClassHeapStats> members = raw.map(_convertMember).toList();
+  static List<M.ClassHeapStats> _convertMembers(Iterable/*<S.ServiceMap>*/ raw,
+      {Map/*<String, List<String>>*/ defaults}) {
+    final List<M.ClassHeapStats> members =
+        raw.map<ClassHeapStats>(_convertMember).toList();
     if (defaults == null) {
       return members;
     }
@@ -42,12 +43,12 @@ class AllocationProfile implements M.AllocationProfile {
         new Map.fromIterable(defaults.keys, value: (_) => <ClassHeapStats>[]);
     final Map<String, List<ClassHeapStats>> accumulators =
         <String, List<ClassHeapStats>>{};
-    defaults.forEach((String key, List<String> values) {
+    defaults.forEach((/*String*/ key, /*List<String>*/ values) {
       final classes = aliases[key];
       accumulators.addAll(new Map.fromIterable(values, value: (_) => classes));
     });
     final List<M.ClassHeapStats> result = <M.ClassHeapStats>[];
-    members.forEach((ClassHeapStats member) {
+    members.forEach((M.ClassHeapStats member) {
       if (accumulators.containsKey(member.clazz.id)) {
         accumulators[member.clazz.id].add(member);
       } else {
@@ -68,7 +69,7 @@ class ClassHeapStats implements M.ClassHeapStats {
   final int promotedInstances;
   final int promotedBytes;
 
-  ClassHeapStats(S.ServiceMap map)
+  ClassHeapStats(Map map)
       : clazz = map['class'],
         oldSpace = new S.Allocations()..update(map['old']),
         newSpace = new S.Allocations()..update(map['new']),

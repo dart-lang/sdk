@@ -11,17 +11,18 @@ namespace dart {
 #ifndef PRODUCT
 
 static RawObject* ExecuteScript(const char* script) {
-  Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  return Api::UnwrapHandle(h_lib);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    lib = TestCase::LoadTestScript(script, NULL);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(lib);
 }
 
-TEST_CASE(SourceReport_Coverage_NoCalls) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
   char buffer[1024];
   const char* kScript =
       "main() {\n"
@@ -50,7 +51,7 @@ TEST_CASE(SourceReport_Coverage_NoCalls) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_SimpleCall) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -94,7 +95,7 @@ TEST_CASE(SourceReport_Coverage_SimpleCall) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_ForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -139,7 +140,7 @@ TEST_CASE(SourceReport_Coverage_ForceCompile) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -181,7 +182,7 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -224,7 +225,7 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -270,7 +271,7 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_NestedFunctions) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   char buffer[1024];
   const char* kScript =
       "helper0() {\n"
@@ -325,7 +326,7 @@ TEST_CASE(SourceReport_Coverage_NestedFunctions) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_RestrictedRange) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   char buffer[1024];
   const char* kScript =
       "helper0() {\n"
@@ -376,7 +377,7 @@ TEST_CASE(SourceReport_Coverage_RestrictedRange) {
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_AllFunctions) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions) {
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -415,7 +416,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions) {
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
 
-TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -436,10 +437,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 
   // We generate a report with all functions in the VM.
   Script& null_script = Script::Handle();
-  {
-    TransitionNativeToVM transition(Thread::Current());
-    report.PrintJSON(&js, null_script);
-  }
+  report.PrintJSON(&js, null_script);
   const char* result = js.ToCString();
 
   // Sanity check the header.
@@ -457,7 +455,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
 
-TEST_CASE(SourceReport_CallSites_SimpleCall) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -503,7 +501,7 @@ TEST_CASE(SourceReport_CallSites_SimpleCall) {
       buffer);
 }
 
-TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
   char buffer[1024];
   const char* kScript =
       "class Common {\n"
@@ -577,7 +575,7 @@ TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       buffer);
 }
 
-TEST_CASE(SourceReport_MultipleReports) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -625,7 +623,7 @@ TEST_CASE(SourceReport_MultipleReports) {
       buffer);
 }
 
-TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"

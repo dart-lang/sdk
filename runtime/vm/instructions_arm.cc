@@ -199,9 +199,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   if (IsLoadWithOffset(instr, PP, &offset, &dst)) {
     intptr_t index = ObjectPool::IndexFromOffset(offset);
     const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-    if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-      *obj = pool.ObjectAt(index);
-      return true;
+    if (!pool.IsNull()) {
+      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+        *obj = pool.ObjectAt(index);
+        return true;
+      }
     }
   } else if (IsLoadWithOffset(instr, THR, &offset, &dst)) {
     return Thread::ObjectAtOffset(offset, obj);
@@ -283,6 +285,39 @@ bool ReturnPattern::IsValid() const {
     return bx_lr->InstructionBits() == instruction;
   }
   return false;
+}
+
+bool PcRelativeCallPattern::IsValid() const {
+  // bl <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t cond_all = 0xe0;
+  const uint32_t branch_link = 0x0b;
+  return (word >> 24) == (cond_all | branch_link);
+}
+
+bool PcRelativeJumpPattern::IsValid() const {
+  // b <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t cond_all = 0xe0;
+  const uint32_t branch_nolink = 0x0a;
+  return (word >> 24) == (cond_all | branch_nolink);
+}
+
+intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
+  // Calls to the type testing stubs look like:
+  //   ldr R3, [PP+idx]
+  //   blx R9
+
+  // Ensure the caller of the type testing stub (whose return address is [pc_])
+  // branched via the `blx R9` instruction.
+  ASSERT(*reinterpret_cast<uint32_t*>(pc_ - Instr::kInstrSize) == 0xe12fff39);
+  const uword load_instr_end = pc_ - Instr::kInstrSize;
+
+  Register reg;
+  intptr_t pool_index = -1;
+  InstructionPattern::DecodeLoadWordFromPool(load_instr_end, &reg, &pool_index);
+  ASSERT(reg == R3);
+  return pool_index;
 }
 
 }  // namespace dart

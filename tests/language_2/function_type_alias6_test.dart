@@ -21,7 +21,7 @@ main() {
   var f = (List x) {};
   Expect.isTrue(f is F);
   var g = (List<F> x) {};
-  Expect.isTrue(g is F);
+  Expect.isFalse(g is F);
   var d = new D();
   Expect.isTrue(d.foo is! C);
   Expect.isTrue(d.bar is C);

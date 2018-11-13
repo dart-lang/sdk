@@ -61,6 +61,9 @@ tests() async {
   Expect.listEquals([], await makeStream(5).take(0).toList());
 
   Expect.listEquals([], await makeStream(0).take(0).toList());
+
+  // Regression for https://github.com/dart-lang/sdk/issues/30305
+  Expect.equals('result', await makeStream(5).take(0).drain('result'));
 }
 
 Future expectThrowsAsync(Future computation, String name) {

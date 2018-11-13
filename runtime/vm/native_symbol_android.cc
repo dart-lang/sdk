@@ -27,9 +27,9 @@ extern "C" char* __cxa_demangle(const char* mangled_name,
 
 namespace dart {
 
-void NativeSymbolResolver::InitOnce() {}
+void NativeSymbolResolver::Init() {}
 
-void NativeSymbolResolver::ShutdownOnce() {}
+void NativeSymbolResolver::Cleanup() {}
 
 char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   Dl_info info;

@@ -8,41 +8,56 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../kernel/test_helpers.dart';
 import 'id_equivalence_helper.dart';
 
-show(List<String> args, ComputeMemberDataFunction computeAstData,
-    ComputeMemberDataFunction computeKernelData) async {
+ArgParser createArgParser() {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
-  argParser.addFlag('use-kernel', negatable: false, defaultsTo: false);
-  ArgResults argResults = argParser.parse(args);
+  argParser.addFlag('all', negatable: false, defaultsTo: false);
+  argParser.addFlag('strong', negatable: false, defaultsTo: false);
+  argParser.addFlag('omit-implicit-checks',
+      negatable: false, defaultsTo: false);
+  argParser.addFlag('trust-type-annotations',
+      negatable: false, defaultsTo: false);
+  return argParser;
+}
+
+show(ArgResults argResults, DataComputer dataComputer,
+    {bool testFrontend: false, List<String> options: const <String>[]}) async {
+  dataComputer.setup();
+
   if (argResults.wasParsed('colors')) {
     useColors = argResults['colors'];
   }
   bool verbose = argResults['verbose'];
-  bool useKernel = argResults['use-kernel'];
+  bool omitImplicitChecks = argResults['omit-implicit-checks'];
+  bool trustTypeAnnotations = argResults['trust-type-annotations'];
 
-  InferrerEngineImpl.useSorterForTesting = true;
   String file = argResults.rest.first;
+  Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
   List<String> show;
-  if (argResults.rest.length > 1) {
+  if (argResults['all']) {
+    show = null;
+  } else if (argResults.rest.length > 1) {
     show = argResults.rest.skip(1).toList();
+  } else {
+    show = [entryPoint.pathSegments.last];
   }
 
-  Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
-  List<String> options = <String>[];
-  if (useKernel) {
-    options.add(Flags.useKernel);
+  options = new List<String>.from(options);
+  if (trustTypeAnnotations) {
+    options.add(Flags.trustTypeAnnotations);
   }
-  CompiledData data = await computeData(
-      entryPoint, const {}, useKernel ? computeKernelData : computeAstData,
+  if (omitImplicitChecks) {
+    options.add(Flags.omitImplicitChecks);
+  }
+  CompiledData data = await computeData(entryPoint, const {}, dataComputer,
       options: options,
-      forMainLibraryOnly: false,
+      testFrontend: testFrontend,
+      forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
       verbose: verbose);
@@ -51,14 +66,17 @@ show(List<String> args, ComputeMemberDataFunction computeAstData,
   } else {
     SourceFileProvider provider = data.compiler.provider;
     for (Uri uri in data.actualMaps.keys) {
-      if (show != null && !show.any((f) => '$uri'.endsWith(f))) {
+      Uri fileUri = uri;
+      if (fileUri.scheme == 'org-dartlang-sdk') {
+        fileUri = Uri.base.resolve(fileUri.path.substring(1));
+      }
+      if (show != null && !show.any((f) => '$fileUri'.endsWith(f))) {
         continue;
       }
-      uri = resolveFastaUri(uri);
-      SourceFile sourceFile = await provider.autoReadFromFile(uri);
+      SourceFile sourceFile = await provider.autoReadFromFile(fileUri);
       String sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {
-        sourceCode = new File.fromUri(uri).readAsStringSync();
+        sourceCode = new File.fromUri(fileUri).readAsStringSync();
       }
       if (sourceCode == null) {
         print('--source code missing for $uri--------------------------------');

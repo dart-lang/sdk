@@ -13,7 +13,7 @@ class AlwaysFalse {
 }
 
 main() {
-  var a = new AlwaysTrue();
+  dynamic a = new AlwaysTrue();
   Expect.isTrue(a == 2);
   Expect.isFalse(a == null);
   Expect.isFalse(a != 2);

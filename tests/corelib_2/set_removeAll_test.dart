@@ -23,6 +23,6 @@ main() {
   for (var setToTest in sets) {
     // Test that the set accepts a list that is not of the same type:
     //   Set<B>.removeAll(List<A>)
-    Expect.isNull(setToTest.removeAll(<A>[new A()]));
+    Expect.isNull(setToTest.removeAll(<A>[new A()]) as dynamic);
   }
 }

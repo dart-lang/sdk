@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
-    defineReflectiveTests(UpdateContentTest_PreviewDart2);
   });
 }
 
@@ -61,7 +60,6 @@ main() {
     expect(currentAnalysisErrors[path], isNotEmpty);
   }
 
-  @failingTest
   test_updateContent_multipleAdds() async {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, r'''
@@ -105,10 +103,4 @@ void main() {
     expect(errors2, hasLength(1));
     expect(errors2[0].location.file, equals(pathname));
   }
-}
-
-@reflectiveTest
-class UpdateContentTest_PreviewDart2 extends UpdateContentTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

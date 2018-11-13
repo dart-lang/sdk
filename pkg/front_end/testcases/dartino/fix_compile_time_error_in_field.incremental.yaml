@@ -9,8 +9,7 @@ main.dart.patch: |
   class C {
   <<<< {"messages":[],"hasCompileTimeError":1}
     int sync*;
-  ==== {"messages":[],"hasCompileTimeError":1}
-    // TODO(ahe): There's no compile-time error here
+  ==== []
     int sync;
   >>>>
   }

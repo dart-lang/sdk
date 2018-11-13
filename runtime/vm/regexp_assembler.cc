@@ -13,7 +13,7 @@ namespace dart {
 void PrintUtf16(uint16_t c) {
   const char* format =
       (0x20 <= c && c <= 0x7F) ? "%c" : (c <= 0xff) ? "\\x%02x" : "\\u%04x";
-  OS::Print(format, c);
+  OS::PrintErr(format, c);
 }
 
 
@@ -61,7 +61,8 @@ BlockLabel::BlockLabel()
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_interpret_irregexp) {
     // Only needed by the compiled IR backend.
-    block_ = new JoinEntryInstr(-1, -1, Thread::Current()->GetNextDeoptId());
+    block_ =
+        new JoinEntryInstr(-1, -1, CompilerState::Current().GetNextDeoptId());
   }
 #endif
 }

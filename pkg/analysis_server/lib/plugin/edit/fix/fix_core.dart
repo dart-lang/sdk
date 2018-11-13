@@ -18,17 +18,18 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
  */
 class Fix {
   /**
-   * An empty list of fixes.
-   */
-  static const List<Fix> EMPTY_LIST = const <Fix>[];
-
-  /**
    * A comparator that can be used to sort fixes by their relevance. The most
-   * relevant fixes will be sorted before fixes with a lower relevance.
+   * relevant fixes will be sorted before fixes with a lower relevance. Fixes
+   * with the same relevance are sorted alphabetically.
    */
-  static final Comparator<Fix> SORT_BY_RELEVANCE =
-      (Fix firstFix, Fix secondFix) =>
-          firstFix.kind.priority - secondFix.kind.priority;
+  static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix a, Fix b) {
+    if (a.kind.priority != b.kind.priority) {
+      // A higher priority indicates a higher relevance
+      // and should be sorted before a lower priority.
+      return b.kind.priority - a.kind.priority;
+    }
+    return a.change.message.compareTo(b.change.message);
+  };
 
   /**
    * A description of the fix being proposed.
@@ -44,6 +45,11 @@ class Fix {
    * Initialize a newly created fix to have the given [kind] and [change].
    */
   Fix(this.kind, this.change);
+
+  /**
+   * Returns `true` if this fix is the union of multiple fixes.
+   */
+  bool isFixAllFix() => change.message == kind.appliedTogetherMessage;
 
   @override
   String toString() {
@@ -66,6 +72,12 @@ abstract class FixContext {
    * The error to fix, should be reported by the given [analysisDriver].
    */
   AnalysisError get error;
+
+  /**
+   * All of the errors in the file. This is used to compute additional fixes
+   * such "Fix all instances in file."
+   */
+  List<AnalysisError> get errors;
 
   /**
    * The [ResourceProvider] to access files and folders.

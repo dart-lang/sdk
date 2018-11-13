@@ -96,16 +96,15 @@ main() {
     Expect.identical(s, s.trimRight());
   }
 
-  // U+200b is currently being treated as whitespace by some JS engines.
-  // string_trimlr_test/01 fails on these engines.
-  // Should be fixed in tip-of-tree V8 per 2014-02-10.
+  // U+200b is not treated as whitespace, though historically, some JS engines
+  // did.
   var s200B = new String.fromCharCode(0x200B);
-  Expect.identical(s200B, s200B.trimLeft()); //    //# 01: ok
-  Expect.identical(s200B, s200B.trimRight()); //   //# 01: ok
+  Expect.identical(s200B, s200B.trimLeft());
+  Expect.identical(s200B, s200B.trimRight());
 
   // U+180E ceased to be whitespace in Unicode version 6.3.0
-  // string_trimlr_test/02 fails on implementations using earlier versions.
+  // string_trimlr_test/unicode63 fails on implementations using earlier versions.
   var s180E = new String.fromCharCode(0x180E);
-  Expect.identical(s180E, s180E.trimLeft()); //    //# 02: ok
-  Expect.identical(s180E, s180E.trimRight()); //   //# 02: ok
+  Expect.identical(s180E, s180E.trimLeft()); //    //# unicode63: ok
+  Expect.identical(s180E, s180E.trimRight()); //   //# unicode63: ok
 }

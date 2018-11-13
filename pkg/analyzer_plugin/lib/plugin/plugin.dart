@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -209,6 +209,8 @@ abstract class ServerPlugin {
    * associated with the file is not an [AnalysisDriver].
    */
   Future<ResolveResult> getResolveResult(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AnalysisDriverGeneric driver = driverForPath(path);
     if (driver is! AnalysisDriver) {
       // Return an error from the request.
@@ -232,6 +234,8 @@ abstract class ServerPlugin {
    */
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
       AnalysisGetNavigationParams params) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return new AnalysisGetNavigationResult(
         <String>[], <NavigationTarget>[], <NavigationRegion>[]);
   }
@@ -243,6 +247,8 @@ abstract class ServerPlugin {
    */
   Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
       AnalysisHandleWatchEventsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     for (WatchEvent event in parameters.events) {
       switch (event.type) {
         case WatchEventType.ADD:
@@ -269,6 +275,8 @@ abstract class ServerPlugin {
    */
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
       AnalysisSetContextRootsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<ContextRoot> contextRoots = parameters.roots;
     List<ContextRoot> oldRoots = driverMap.keys.toList();
     for (ContextRoot contextRoot in contextRoots) {
@@ -300,6 +308,8 @@ abstract class ServerPlugin {
    */
   Future<AnalysisSetPriorityFilesResult> handleAnalysisSetPriorityFiles(
       AnalysisSetPriorityFilesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<String> files = parameters.files;
     Map<AnalysisDriverGeneric, List<String>> filesByDriver =
         <AnalysisDriverGeneric, List<String>>{};
@@ -326,6 +336,8 @@ abstract class ServerPlugin {
    */
   Future<AnalysisSetSubscriptionsResult> handleAnalysisSetSubscriptions(
       AnalysisSetSubscriptionsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Map<AnalysisService, List<String>> subscriptions = parameters.subscriptions;
     Map<String, List<AnalysisService>> newSubscriptions =
         subscriptionManager.setSubscriptions(subscriptions);
@@ -342,6 +354,8 @@ abstract class ServerPlugin {
    */
   Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
       AnalysisUpdateContentParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Map<String, Object> files = parameters.files;
     files.forEach((String filePath, Object overlay) {
       if (overlay is AddContentOverlay) {
@@ -376,9 +390,12 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
-          CompletionGetSuggestionsParams parameters) async =>
-      new CompletionGetSuggestionsResult(
-          -1, -1, const <CompletionSuggestion>[]);
+      CompletionGetSuggestionsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    return new CompletionGetSuggestionsResult(
+        -1, -1, const <CompletionSuggestion>[]);
+  }
 
   /**
    * Handle an 'edit.getAssists' request.
@@ -386,8 +403,11 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetAssistsResult> handleEditGetAssists(
-          EditGetAssistsParams parameters) async =>
-      new EditGetAssistsResult(const <PrioritizedSourceChange>[]);
+      EditGetAssistsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    return new EditGetAssistsResult(const <PrioritizedSourceChange>[]);
+  }
 
   /**
    * Handle an 'edit.getAvailableRefactorings' request. Subclasses that override
@@ -397,8 +417,11 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetAvailableRefactoringsResult> handleEditGetAvailableRefactorings(
-          EditGetAvailableRefactoringsParams parameters) async =>
-      new EditGetAvailableRefactoringsResult(const <RefactoringKind>[]);
+      EditGetAvailableRefactoringsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    return new EditGetAvailableRefactoringsResult(const <RefactoringKind>[]);
+  }
 
   /**
    * Handle an 'edit.getFixes' request.
@@ -406,8 +429,11 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetFixesResult> handleEditGetFixes(
-          EditGetFixesParams parameters) async =>
-      new EditGetFixesResult(const <AnalysisErrorFixes>[]);
+      EditGetFixesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    return new EditGetFixesResult(const <AnalysisErrorFixes>[]);
+  }
 
   /**
    * Handle an 'edit.getRefactoring' request.
@@ -415,8 +441,10 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetRefactoringResult> handleEditGetRefactoring(
-          EditGetRefactoringParams parameters) async =>
-      null;
+      EditGetRefactoringParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    return await null;
+  }
 
   /**
    * Handle a 'kythe.getKytheEntries' request.
@@ -424,8 +452,10 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
-          KytheGetKytheEntriesParams parameters) async =>
-      null;
+      KytheGetKytheEntriesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    return await null;
+  }
 
   /**
    * Handle a 'plugin.shutdown' request. Subclasses can override this method to
@@ -435,8 +465,11 @@ abstract class ServerPlugin {
    * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<PluginShutdownResult> handlePluginShutdown(
-          PluginShutdownParams parameters) async =>
-      new PluginShutdownResult();
+      PluginShutdownParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    return new PluginShutdownResult();
+  }
 
   /**
    * Handle a 'plugin.versionCheck' request.
@@ -445,6 +478,8 @@ abstract class ServerPlugin {
    */
   Future<PluginVersionCheckResult> handlePluginVersionCheck(
       PluginVersionCheckParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String byteStorePath = parameters.byteStorePath;
     String sdkPath = parameters.sdkPath;
     String versionString = parameters.version;
@@ -485,7 +520,7 @@ abstract class ServerPlugin {
    * If the plugin provides folding information, send a folding notification
    * for the file with the given [path] to the server.
    */
-  Future<Null> sendFoldingNotification(String path) {
+  Future<void> sendFoldingNotification(String path) {
     return new Future.value();
   }
 
@@ -493,7 +528,7 @@ abstract class ServerPlugin {
    * If the plugin provides highlighting information, send a highlights
    * notification for the file with the given [path] to the server.
    */
-  Future<Null> sendHighlightsNotification(String path) {
+  Future<void> sendHighlightsNotification(String path) {
     return new Future.value();
   }
 
@@ -501,7 +536,7 @@ abstract class ServerPlugin {
    * If the plugin provides navigation information, send a navigation
    * notification for the file with the given [path] to the server.
    */
-  Future<Null> sendNavigationNotification(String path) {
+  Future<void> sendNavigationNotification(String path) {
     return new Future.value();
   }
 
@@ -541,7 +576,7 @@ abstract class ServerPlugin {
    * If the plugin provides occurrences information, send an occurrences
    * notification for the file with the given [path] to the server.
    */
-  Future<Null> sendOccurrencesNotification(String path) {
+  Future<void> sendOccurrencesNotification(String path) {
     return new Future.value();
   }
 
@@ -549,7 +584,7 @@ abstract class ServerPlugin {
    * If the plugin provides outline information, send an outline notification
    * for the file with the given [path] to the server.
    */
-  Future<Null> sendOutlineNotification(String path) {
+  Future<void> sendOutlineNotification(String path) {
     return new Future.value();
   }
 
@@ -589,6 +624,8 @@ abstract class ServerPlugin {
    * `null` if the response has already been sent.
    */
   Future<Response> _getResponse(Request request, int requestTime) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResponseResult result = null;
     switch (request.method) {
       case ANALYSIS_REQUEST_GET_NAVIGATION:
@@ -662,7 +699,9 @@ abstract class ServerPlugin {
    * The method that is called when a [request] is received from the analysis
    * server.
    */
-  Future<Null> _onRequest(Request request) async {
+  Future<void> _onRequest(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     int requestTime = new DateTime.now().millisecondsSinceEpoch;
     String id = request.id;
     Response response;

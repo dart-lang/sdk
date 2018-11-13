@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object = dynamic> = () → T;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class C<T extends self::A = dynamic> extends core::Object {
+  constructor •(() → self::C::T f) → self::C<self::C::T>
+    ;
+}
+class NotA extends core::Object {
+  synthetic constructor •() → self::NotA
+    ;
+}
+static method myF() → self::NotA
+  ;
+static method main() → dynamic
+  ;

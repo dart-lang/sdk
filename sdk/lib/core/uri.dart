@@ -849,11 +849,17 @@ abstract class Uri {
     String scheme;
 
     // Derive some positions that weren't set to normalize the indices.
-    // If pathStart isn't set (it's before scheme end or host start), then
-    // the path is empty.
     if (fragmentStart < queryStart) queryStart = fragmentStart;
-    if (pathStart < hostStart || pathStart <= schemeEnd) {
+    // If pathStart isn't set (it's before scheme end or host start), then
+    // the path is empty, or there is no authority part and the path
+    // starts with a non-simple character.
+    if (pathStart < hostStart) {
+      // There is an authority, but no path. The path would start with `/`
+      // if it was there.
       pathStart = queryStart;
+    } else if (pathStart <= schemeEnd) {
+      // There is a scheme, but no authority.
+      pathStart = schemeEnd + 1;
     }
     // If there is an authority with no port, set the port position
     // to be at the end of the authority (equal to pathStart).
@@ -1011,6 +1017,23 @@ abstract class Uri {
 
     return new _Uri.notSimple(uri, start, end, schemeEnd, hostStart, portStart,
         pathStart, queryStart, fragmentStart, scheme);
+  }
+
+  /**
+   * Creates a new `Uri` object by parsing a URI string.
+   *
+   * If [start] and [end] are provided, only the substring from `start`
+   * to `end` is parsed as a URI.
+   *
+   * Returns `null` if the string is not valid as a URI or URI reference.
+   */
+  static Uri tryParse(String uri, [int start = 0, int end]) {
+    // TODO: Optimize to avoid throwing-and-recatching.
+    try {
+      return parse(uri, start, end);
+    } on FormatException {
+      return null;
+    }
   }
 
   /**
@@ -1694,7 +1717,7 @@ class _Uri implements Uri {
         if (argumentError) {
           throw new ArgumentError("Illegal character in path");
         } else {
-          throw new UnsupportedError("Illegal character in path");
+          throw new UnsupportedError("Illegal character in path: $segment");
         }
       }
     }
@@ -2091,9 +2114,10 @@ class _Uri implements Uri {
     if (path != null && pathSegments != null) {
       throw new ArgumentError('Both path and pathSegments specified');
     }
-    var result;
+    String result;
     if (path != null) {
-      result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable);
+      result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable,
+          escapeDelimiters: true);
     } else {
       result = pathSegments
           .map((s) => _uriEncode(_pathCharTable, s, utf8, false))
@@ -2126,7 +2150,8 @@ class _Uri implements Uri {
       if (queryParameters != null) {
         throw new ArgumentError('Both query and queryParameters specified');
       }
-      return _normalizeOrSubstring(query, start, end, _queryCharTable);
+      return _normalizeOrSubstring(query, start, end, _queryCharTable,
+          escapeDelimiters: true);
     }
     if (queryParameters == null) return null;
 
@@ -2158,7 +2183,8 @@ class _Uri implements Uri {
 
   static String _makeFragment(String fragment, int start, int end) {
     if (fragment == null) return null;
-    return _normalizeOrSubstring(fragment, start, end, _queryCharTable);
+    return _normalizeOrSubstring(fragment, start, end, _queryCharTable,
+        escapeDelimiters: true);
   }
 
   /**
@@ -2244,8 +2270,10 @@ class _Uri implements Uri {
    * this methods returns the substring if [component] from [start] to [end].
    */
   static String _normalizeOrSubstring(
-      String component, int start, int end, List<int> charTable) {
-    return _normalize(component, start, end, charTable) ??
+      String component, int start, int end, List<int> charTable,
+      {bool escapeDelimiters = false}) {
+    return _normalize(component, start, end, charTable,
+            escapeDelimiters: escapeDelimiters) ??
         component.substring(start, end);
   }
 
@@ -2691,30 +2719,28 @@ class _Uri implements Uri {
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is Uri) {
-      Uri uri = other;
-      return scheme == uri.scheme &&
-          hasAuthority == uri.hasAuthority &&
-          userInfo == uri.userInfo &&
-          host == uri.host &&
-          port == uri.port &&
-          path == uri.path &&
-          hasQuery == uri.hasQuery &&
-          query == uri.query &&
-          hasFragment == uri.hasFragment &&
-          fragment == uri.fragment;
-    }
-    return false;
+    return other is Uri &&
+        scheme == other.scheme &&
+        hasAuthority == other.hasAuthority &&
+        userInfo == other.userInfo &&
+        host == other.host &&
+        port == other.port &&
+        path == other.path &&
+        hasQuery == other.hasQuery &&
+        query == other.query &&
+        hasFragment == other.hasFragment &&
+        fragment == other.fragment;
   }
 
   int get hashCode {
     return _hashCodeCache ??= toString().hashCode;
   }
 
-  static List _createList() => [];
+  static List<String> _createList() => <String>[];
 
-  static Map _splitQueryStringAll(String query, {Encoding encoding: utf8}) {
-    Map result = {};
+  static Map<String, List<String>> _splitQueryStringAll(String query,
+      {Encoding encoding: utf8}) {
+    var result = <String, List<String>>{};
     int i = 0;
     int start = 0;
     int equalsIndex = -1;
@@ -3288,7 +3314,7 @@ class UriData {
       buffer.write(";charset=");
       buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, utf8, false));
     }
-    parameters?.forEach((var key, var value) {
+    parameters?.forEach((key, value) {
       if (key.isEmpty) {
         throw new ArgumentError.value("", "Parameter names must not be empty");
       }
@@ -3354,6 +3380,8 @@ class UriData {
    * content that can't be decoded successfully as a string, for example if
    * existing percent escapes represent bytes that cannot be decoded
    * by the chosen [Encoding] (see [contentAsString]).
+   *
+   * A [FormatException] is thrown if [uri] is not a valid data URI.
    */
   static UriData parse(String uri) {
     if (uri.length >= 5) {
@@ -3472,7 +3500,7 @@ class UriData {
    * percent-escaped characters and returning byte values of each unescaped
    * character. The bytes will not be, e.g., UTF-8 decoded.
    */
-  List<int> contentAsBytes() {
+  Uint8List contentAsBytes() {
     String text = _text;
     int start = _separatorIndices.last + 1;
     if (isBase64) {
@@ -4592,8 +4620,7 @@ class _SimpleUri implements Uri {
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is Uri) return _uri == other.toString();
-    return false;
+    return other is Uri && _uri == other.toString();
   }
 
   Uri _toNonSimple() {

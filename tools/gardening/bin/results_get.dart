@@ -129,7 +129,7 @@ class GetTestsWithResultAndExpectationCommand extends Command {
         statusExpectations.getTestResultsWithExpectation();
 
     var outputTable = getOutputTable(argResults)
-      ..addHeader(new Column("Test", width: 38), (TestExpectationResult item) {
+      ..addHeader(new Column("Test", width: 38), (item) {
         return item.result.name;
       })
       ..addHeader(new Column("Result", width: 18), (item) {

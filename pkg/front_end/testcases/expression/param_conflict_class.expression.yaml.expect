@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynamic A, dynamic y) → dynamic
+  return A.foo(y);

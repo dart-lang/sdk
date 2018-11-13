@@ -15,8 +15,6 @@
  *   of exactly one task.
  * - Convert this tool to use package_config to find the package map.
  */
-library analyzer.tool.task_dependency_graph.generate;
-
 import 'dart:async';
 import 'dart:io' hide File;
 import 'dart:io' as io;
@@ -24,22 +22,22 @@ import 'dart:io' as io;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
@@ -49,8 +47,8 @@ import 'package:path/path.dart';
  */
 main() async {
   String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
-  await GeneratedContent
-      .generateAll(pkgPath, <GeneratedContent>[target, htmlTarget]);
+  await GeneratedContent.generateAll(
+      pkgPath, <GeneratedContent>[target, htmlTarget]);
 }
 
 final GeneratedFile htmlTarget = new GeneratedFile(
@@ -163,10 +161,7 @@ $data
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
 
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
-    if (Platform.packageRoot != null) {
-      builderOptions.defaultPackagesDirectoryPath =
-          Uri.parse(Platform.packageRoot).toFilePath();
-    } else if (Platform.packageConfig != null) {
+    if (Platform.packageConfig != null) {
       builderOptions.defaultPackageFilePath =
           Uri.parse(Platform.packageConfig).toFilePath();
     } else {
@@ -199,8 +194,9 @@ $data
     TypeProvider typeProvider = await driver.currentSession.typeProvider;
 
     String dartDartPath = path.join(rootDir, 'lib', 'src', 'task', 'dart.dart');
-    String taskPath = path.join(rootDir, 'lib', 'plugin', 'task.dart');
-    String modelPath = path.join(rootDir, 'lib', 'task', 'model.dart');
+    String taskPath = path.join(rootDir, 'lib', 'src', 'plugin', 'task.dart');
+    String modelPath =
+        path.join(rootDir, 'lib', 'src', 'task', 'api', 'model.dart');
     String enginePluginPath =
         path.join(rootDir, 'lib', 'src', 'plugin', 'engine_plugin.dart');
 
@@ -214,19 +210,20 @@ $data
     listOfResultDescriptorType =
         typeProvider.listType.instantiate([resultDescriptorType]);
     CompilationUnit enginePluginUnit = await getUnit(enginePluginPath);
-    enginePluginClass = enginePluginUnit.element.getType('EnginePlugin');
+    enginePluginClass =
+        enginePluginUnit.declaredElement.getType('EnginePlugin');
     extensionPointIdType =
-        enginePluginUnit.element.getType('ExtensionPointId').type;
+        enginePluginUnit.declaredElement.getType('ExtensionPointId').type;
     CompilationUnit dartDartUnit = await getUnit(dartDartPath);
     CompilationUnit taskUnit = await getUnit(taskPath);
-    taskUnitElement = taskUnit.element;
+    taskUnitElement = taskUnit.declaredElement;
     Set<String> results = new Set<String>();
     Set<String> resultLists = new Set<String>();
     for (CompilationUnitMember dartUnitMember in dartDartUnit.declarations) {
       if (dartUnitMember is ClassDeclaration) {
         ClassDeclaration clazz = dartUnitMember;
         if (!clazz.isAbstract &&
-            clazz.element.type.isSubtypeOf(analysisTaskType)) {
+            clazz.declaredElement.type.isSubtypeOf(analysisTaskType)) {
           String task = clazz.name.name;
 
           MethodDeclaration buildInputsAst;

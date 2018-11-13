@@ -12,13 +12,11 @@ import 'package:analysis_server/src/services/refactoring/naming_conventions.dart
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A [Refactoring] for renaming [LocalElement]s.
@@ -27,12 +25,12 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   final AstProvider astProvider;
   final ResolvedUnitCache unitCache;
 
-  Set<LocalElement> elements = new Set<LocalElement>();
+  List<LocalElement> elements = [];
 
   RenameLocalRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, LocalElement element)
+      RefactoringWorkspace workspace, this.astProvider, LocalElement element)
       : unitCache = new ResolvedUnitCache(astProvider),
-        super(searchEngine, element);
+        super(workspace, element);
 
   @override
   LocalElement get element => super.element as LocalElement;
@@ -50,6 +48,8 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
@@ -75,10 +75,18 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
+  Future<void> fillChange() async {
+    var processor = new RenameProcessor(searchEngine, change, newName);
     for (Element element in elements) {
-      addDeclarationEdit(element);
-      await searchEngine.searchReferences(element).then(addReferenceEdits);
+      processor.addDeclarationEdit(element);
+      var references = await searchEngine.searchReferences(element);
+
+      // Exclude "implicit" references to optional positional parameters.
+      if (element is ParameterElement && element.isOptionalPositional) {
+        references.removeWhere((match) => match.sourceRange.length == 0);
+      }
+
+      processor.addReferenceEdits(references);
     }
   }
 
@@ -86,26 +94,13 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
    * Fills [elements] with [Element]s to rename.
    */
   Future _prepareElements() async {
-    Element enclosing = element.enclosingElement;
-    if (enclosing is MethodElement &&
-        element is ParameterElement &&
-        (element as ParameterElement).parameterKind == ParameterKind.NAMED) {
-      // prepare hierarchy methods
-      Set<ClassMemberElement> methods =
-          await getHierarchyMembers(searchEngine, enclosing);
-      // add named parameter from each method
-      for (ClassMemberElement method in methods) {
-        if (method is MethodElement) {
-          for (ParameterElement parameter in method.parameters) {
-            if (parameter.parameterKind == ParameterKind.NAMED &&
-                parameter.name == element.name) {
-              elements.add(parameter);
-            }
-          }
-        }
-      }
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    Element element = this.element;
+    if (element is ParameterElement && element.isNamed) {
+      elements = await getHierarchyNamedParameters(searchEngine, element);
     } else {
-      elements = new Set.from([element]);
+      elements = [element];
     }
   }
 }
@@ -120,7 +115,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    Element nodeElement = node.bestElement;
+    Element nodeElement = node.staticElement;
     if (nodeElement != null && nodeElement.name == newName) {
       // Duplicate declaration.
       if (node.inDeclarationContext() && _isVisibleWithTarget(nodeElement)) {

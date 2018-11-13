@@ -5,7 +5,6 @@
 
 // VMOptions=--optimization-counter-threshold=5
 
-import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class BadInherit
@@ -170,18 +169,6 @@ void test() {
   Expect.isTrue(compareToNull(obj));
   Expect.isFalse(compareWithNull(val));
   Expect.isTrue(compareWithNull(obj));
-
-  ClassMirror cm = reflectClass(Null);
-
-  InstanceMirror im1 = reflect(null);
-  Expect.equals(cm, im1.type);
-  Expect.isTrue(im1.invoke(const Symbol("=="), [null]).reflectee);//# mirrors: ok
-  Expect.isFalse(im1.invoke(const Symbol("=="), [42]).reflectee); //# mirrors: ok
-
-  InstanceMirror im2 = reflect(obj);
-  Expect.equals(cm, im2.type);
-  Expect.isTrue(im2.invoke(const Symbol("=="), [null]).reflectee);//# mirrors: ok
-  Expect.isFalse(im2.invoke(const Symbol("=="), [42]).reflectee); //# mirrors: ok
 
   // Method/value extraction. The runtimeType was checked above, and operator==
   // cannot be extracted.

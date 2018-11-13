@@ -6,10 +6,11 @@ library dart2js.selector;
 
 import '../common.dart';
 import '../common/names.dart' show Names;
-import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/operators.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
 
@@ -23,6 +24,7 @@ class SelectorKind {
   static const SelectorKind CALL = const SelectorKind('call', 2);
   static const SelectorKind OPERATOR = const SelectorKind('operator', 3);
   static const SelectorKind INDEX = const SelectorKind('index', 4);
+  static const SelectorKind SPECIAL = const SelectorKind('special', 5);
 
   int get index => hashCode;
 
@@ -33,11 +35,16 @@ class SelectorKind {
     SETTER,
     CALL,
     OPERATOR,
-    INDEX
+    INDEX,
+    SPECIAL
   ];
 }
 
 class Selector {
+  /// Tag used for identifying serialized [Selector] objects in a debugging
+  /// data stream.
+  static const String tag = 'selector';
+
   final SelectorKind kind;
   final Name memberName;
   final CallStructure callStructure;
@@ -47,6 +54,7 @@ class Selector {
   int get argumentCount => callStructure.argumentCount;
   int get namedArgumentCount => callStructure.namedArgumentCount;
   int get positionalArgumentCount => callStructure.positionalArgumentCount;
+  int get typeArgumentCount => callStructure.typeArgumentCount;
   List<String> get namedArguments => callStructure.namedArguments;
 
   String get name => memberName.text;
@@ -150,12 +158,12 @@ class Selector {
 
   factory Selector.unaryOperator(String name) => new Selector(
       SelectorKind.OPERATOR,
-      new PublicName(Elements.constructOperatorName(name, true)),
+      new PublicName(utils.constructOperatorName(name, true)),
       CallStructure.NO_ARGS);
 
   factory Selector.binaryOperator(String name) => new Selector(
       SelectorKind.OPERATOR,
-      new PublicName(Elements.constructOperatorName(name, false)),
+      new PublicName(utils.constructOperatorName(name, false)),
       CallStructure.ONE_ARG);
 
   factory Selector.index() =>
@@ -167,9 +175,10 @@ class Selector {
   factory Selector.call(Name name, CallStructure callStructure) =>
       new Selector(SelectorKind.CALL, name, callStructure);
 
-  factory Selector.callClosure(int arity, [List<String> namedArguments]) =>
+  factory Selector.callClosure(int arity,
+          [List<String> namedArguments, int typeArgumentCount = 0]) =>
       new Selector(SelectorKind.CALL, Names.call,
-          new CallStructure(arity, namedArguments));
+          new CallStructure(arity, namedArguments, typeArgumentCount));
 
   factory Selector.callClosureFrom(Selector selector) =>
       new Selector(SelectorKind.CALL, Names.call, selector.callStructure);
@@ -181,6 +190,36 @@ class Selector {
 
   factory Selector.callDefaultConstructor() => new Selector(
       SelectorKind.CALL, const PublicName(''), CallStructure.NO_ARGS);
+
+  // TODO(31953): Remove this if we can implement via static calls.
+  factory Selector.genericInstantiation(int typeArguments) => new Selector(
+      SelectorKind.SPECIAL,
+      Names.genericInstantiation,
+      new CallStructure(0, null, typeArguments));
+
+  /// Deserializes a [Selector] object from [source].
+  factory Selector.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    SelectorKind kind = source.readEnum(SelectorKind.values);
+    bool isSetter = source.readBool();
+    LibraryEntity library = source.readLibraryOrNull();
+    String text = source.readString();
+    CallStructure callStructure = new CallStructure.readFromDataSource(source);
+    source.end(tag);
+    return new Selector(
+        kind, new Name(text, library, isSetter: isSetter), callStructure);
+  }
+
+  /// Serializes this [Selector] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeEnum(kind);
+    sink.writeBool(memberName.isSetter);
+    sink.writeLibraryOrNull(memberName.library);
+    sink.writeString(memberName.text);
+    callStructure.writeToDataSink(sink);
+    sink.end(tag);
+  }
 
   bool get isGetter => kind == SelectorKind.GETTER;
   bool get isSetter => kind == SelectorKind.SETTER;
@@ -198,15 +237,16 @@ class Selector {
    */
   String get invocationMirrorMemberName => isSetter ? '$name=' : name;
 
+  static const int invocationMirrorMethodKind = 0;
+  static const int invocationMirrorGetterKind = 1;
+  static const int invocationMirrorSetterKind = 2;
+
   int get invocationMirrorKind {
-    const int METHOD = 0;
-    const int GETTER = 1;
-    const int SETTER = 2;
-    int kind = METHOD;
+    int kind = invocationMirrorMethodKind;
     if (isGetter) {
-      kind = GETTER;
+      kind = invocationMirrorGetterKind;
     } else if (isSetter) {
-      kind = SETTER;
+      kind = invocationMirrorSetterKind;
     }
     return kind;
   }
@@ -261,4 +301,11 @@ class Selector {
   }
 
   Selector toCallSelector() => new Selector.callClosureFrom(this);
+
+  /// Returns the non-generic [Selector] corresponding to this selector.
+  Selector toNonGeneric() {
+    return callStructure.typeArgumentCount > 0
+        ? new Selector(kind, memberName, callStructure.nonGeneric)
+        : this;
+  }
 }

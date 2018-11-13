@@ -59,7 +59,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
     assert(search != null);
     assert(isOpen != null);
     SearchBarElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SearchBarElement>(e, queue: queue);
     e._search = search;
     e._isOpen = isOpen;
     e._workspace = workspace;
@@ -128,7 +128,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
           }
         });
       _resultsArea = new SpanElement();
-      children = [
+      children = <Element>[
         _input,
         _resultsArea,
         new ButtonElement()
@@ -138,7 +138,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
           })
       ];
     }
-    _resultsArea.children = [
+    _resultsArea.nodes = [
       new ButtonElement()
         ..text = '▲'
         ..disabled = _results.isEmpty

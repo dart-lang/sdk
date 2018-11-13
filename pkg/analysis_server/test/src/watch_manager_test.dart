@@ -6,12 +6,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/watch_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
-
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -72,67 +70,66 @@ class WatchListener {
 }
 
 @reflectiveTest
-class WatchManagerTest {
-  MemoryResourceProvider provider;
+class WatchManagerTest extends Object with ResourceProviderMixin {
   WatchListener listener;
   WatchManager<Token> manager;
 
   void setUp() {
-    provider = new MemoryResourceProvider();
     listener = new WatchListener();
-    manager = new WatchManager<Token>(provider, listener.handleWatchEvent);
+    manager =
+        new WatchManager<Token>(resourceProvider, listener.handleWatchEvent);
   }
 
   Future test_addFolder_folderAndSubfolder() async {
-    Folder topFolder = provider.getFolder('/a/b');
-    Folder childFolder = provider.getFolder('/a/b/c/d');
+    Folder topFolder = getFolder('/a/b');
+    Folder childFolder = getFolder('/a/b/c/d');
     Token topToken = new Token('topToken');
     Token childToken = new Token('childToken');
     manager.addFolder(topFolder, topToken);
     manager.addFolder(childFolder, childToken);
 
-    File newFile1 = provider.newFile('/a/b/c/lib.dart', '');
+    File newFile1 = newFile('/a/b/c/lib.dart');
     await _expectEvent(ChangeType.ADD, newFile1.path, [topToken]);
 
-    File newFile2 = provider.newFile('/a/b/c/d/lib.dart', '');
+    File newFile2 = newFile('/a/b/c/d/lib.dart');
     return _expectEvent(ChangeType.ADD, newFile2.path, [topToken, childToken]);
   }
 
   Future test_addFolder_singleFolder_multipleTokens() {
-    Folder folder = provider.getFolder('/a/b');
+    Folder folder = getFolder('/a/b');
     Token token1 = new Token('token1');
     Token token2 = new Token('token2');
     manager.addFolder(folder, token1);
     manager.addFolder(folder, token2);
 
-    File newFile = provider.newFile('/a/b/lib.dart', '');
-    return _expectEvent(ChangeType.ADD, newFile.path, [token1, token2]);
+    File addedFile = newFile('/a/b/lib.dart');
+    return _expectEvent(ChangeType.ADD, addedFile.path, [token1, token2]);
   }
 
   Future test_addFolder_singleFolder_singleToken() async {
-    Folder folder = provider.getFolder('/a/b');
+    Folder folder = getFolder('/a/b');
     Token token = new Token('token');
     manager.addFolder(folder, token);
 
-    Folder newFolder = provider.newFolder('/a/b/c');
-    await _expectEvent(ChangeType.ADD, newFolder.path, [token]);
+    Folder addedFolder = newFolder('/a/b/c');
+    await _expectEvent(ChangeType.ADD, addedFolder.path, [token]);
 
-    File newFile = provider.newFile('/a/b/c/lib.dart', '');
-    return _expectEvent(ChangeType.ADD, newFile.path, [token]);
+    File addedFile = newFile('/a/b/c/lib.dart');
+    return _expectEvent(ChangeType.ADD, addedFile.path, [token]);
   }
 
   Future test_addFolder_unrelatedFolders() async {
-    Folder folder1 = provider.getFolder('/a/b');
-    Folder folder2 = provider.getFolder('/c/d');
+    Folder folder1 = getFolder('/a/b');
+    Folder folder2 = getFolder('/c/d');
     Token token1 = new Token('token1');
     Token token2 = new Token('token2');
     manager.addFolder(folder1, token1);
     manager.addFolder(folder2, token2);
 
-    File newFile1 = provider.newFile('/a/b/lib.dart', '');
+    File newFile1 = newFile('/a/b/lib.dart');
     await _expectEvent(ChangeType.ADD, newFile1.path, [token1]);
 
-    File newFile2 = provider.newFile('/c/d/lib.dart', '');
+    File newFile2 = newFile('/c/d/lib.dart');
     return _expectEvent(ChangeType.ADD, newFile2.path, [token2]);
   }
 
@@ -141,40 +138,40 @@ class WatchManagerTest {
   }
 
   Future test_removeFolder_multipleTokens() {
-    Folder folder = provider.getFolder('/a/b');
+    Folder folder = getFolder('/a/b');
     Token token1 = new Token('token1');
     Token token2 = new Token('token2');
     manager.addFolder(folder, token1);
     manager.addFolder(folder, token2);
     manager.removeFolder(folder, token2);
 
-    File newFile = provider.newFile('/a/b/lib.dart', '');
-    return _expectEvent(ChangeType.ADD, newFile.path, [token1]);
+    File addedFile = newFile('/a/b/lib.dart');
+    return _expectEvent(ChangeType.ADD, addedFile.path, [token1]);
   }
 
   Future test_removeFolder_withChildren() async {
-    Folder topFolder = provider.getFolder('/a/b');
-    Folder childFolder = provider.getFolder('/a/b/c/d');
+    Folder topFolder = getFolder('/a/b');
+    Folder childFolder = getFolder('/a/b/c/d');
     Token topToken = new Token('topToken');
     Token childToken = new Token('childToken');
     manager.addFolder(topFolder, topToken);
     manager.addFolder(childFolder, childToken);
     manager.removeFolder(topFolder, topToken);
 
-    File newFile = provider.newFile('/a/b/c/d/lib.dart', '');
-    await _expectEvent(ChangeType.ADD, newFile.path, [childToken]);
+    File addedFile = newFile('/a/b/c/d/lib.dart');
+    await _expectEvent(ChangeType.ADD, addedFile.path, [childToken]);
 
-    provider.newFile('/a/b/lib.dart', '');
+    newFile('/a/b/lib.dart');
     return _expectNoEvent();
   }
 
   Future test_removeFolder_withNoChildren() {
-    Folder folder = provider.getFolder('/a/b');
+    Folder folder = getFolder('/a/b');
     Token token = new Token('token');
     manager.addFolder(folder, token);
     manager.removeFolder(folder, token);
 
-    provider.newFile('/a/b/lib.dart', '');
+    newFile('/a/b/lib.dart');
     return _expectNoEvent();
   }
 
@@ -197,11 +194,9 @@ class WatchManagerTest {
 }
 
 @reflectiveTest
-class WatchNodeTest {
-  MemoryResourceProvider provider = new MemoryResourceProvider();
-
+class WatchNodeTest extends Object with ResourceProviderMixin {
   void test_creation_folder() {
-    Folder folder = provider.getFolder('/a/b');
+    Folder folder = getFolder('/a/b');
     WatchNode node = new WatchNode(folder);
     expect(node, isNotNull);
     expect(node.children, isEmpty);
@@ -223,9 +218,9 @@ class WatchNodeTest {
 
   void test_delete_nested_child() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
-    WatchNode childNode = new WatchNode(provider.getFolder('/a/b/c/d'));
-    WatchNode grandchildNode = new WatchNode(provider.getFolder('/a/b/c/d/e'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
+    WatchNode childNode = new WatchNode(getFolder('/a/b/c/d'));
+    WatchNode grandchildNode = new WatchNode(getFolder('/a/b/c/d/e'));
     rootNode.insert(topNode);
     rootNode.insert(childNode);
     rootNode.insert(grandchildNode);
@@ -239,8 +234,8 @@ class WatchNodeTest {
 
   void test_delete_nested_noChild() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
-    WatchNode childNode = new WatchNode(provider.getFolder('/a/b/c/d'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
+    WatchNode childNode = new WatchNode(getFolder('/a/b/c/d'));
     rootNode.insert(topNode);
     rootNode.insert(childNode);
 
@@ -252,8 +247,8 @@ class WatchNodeTest {
 
   void test_delete_top_child() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
-    WatchNode childNode = new WatchNode(provider.getFolder('/a/b/c/d'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
+    WatchNode childNode = new WatchNode(getFolder('/a/b/c/d'));
     rootNode.insert(topNode);
     rootNode.insert(childNode);
 
@@ -264,7 +259,7 @@ class WatchNodeTest {
 
   void test_delete_top_noChild() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
     rootNode.insert(topNode);
 
     topNode.delete();
@@ -273,7 +268,7 @@ class WatchNodeTest {
 
   void test_findParent_childOfLeaf() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
     rootNode.insert(topNode);
 
     expect(rootNode.findParent('/a/b/c'), topNode);
@@ -281,8 +276,8 @@ class WatchNodeTest {
 
   void test_findParent_childOfNonLeaf() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
-    WatchNode childNode = new WatchNode(provider.getFolder('/a/b/c/d'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
+    WatchNode childNode = new WatchNode(getFolder('/a/b/c/d'));
     rootNode.insert(topNode);
     rootNode.insert(childNode);
 
@@ -291,7 +286,7 @@ class WatchNodeTest {
 
   void test_findParent_noMatch() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
     rootNode.insert(topNode);
 
     expect(rootNode.findParent('/c/d'), rootNode);
@@ -299,9 +294,9 @@ class WatchNodeTest {
 
   void test_insert_intermediate_afterParentAndChild() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
-    WatchNode childNode = new WatchNode(provider.getFolder('/a/b/c/d'));
-    WatchNode intermediateNode = new WatchNode(provider.getFolder('/a/b/c'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
+    WatchNode childNode = new WatchNode(getFolder('/a/b/c/d'));
+    WatchNode intermediateNode = new WatchNode(getFolder('/a/b/c'));
 
     rootNode.insert(topNode);
     rootNode.insert(childNode);
@@ -316,8 +311,8 @@ class WatchNodeTest {
 
   void test_insert_nested_afterParent() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
-    WatchNode childNode = new WatchNode(provider.getFolder('/a/b/c/d'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
+    WatchNode childNode = new WatchNode(getFolder('/a/b/c/d'));
 
     rootNode.insert(topNode);
     rootNode.insert(childNode);
@@ -328,8 +323,8 @@ class WatchNodeTest {
 
   void test_insert_nested_beforeParent() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
-    WatchNode childNode = new WatchNode(provider.getFolder('/a/b/c/d'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
+    WatchNode childNode = new WatchNode(getFolder('/a/b/c/d'));
 
     rootNode.insert(childNode);
     rootNode.insert(topNode);
@@ -340,7 +335,7 @@ class WatchNodeTest {
 
   void test_insert_top() {
     WatchNode rootNode = new WatchNode(null);
-    WatchNode topNode = new WatchNode(provider.getFolder('/a/b'));
+    WatchNode topNode = new WatchNode(getFolder('/a/b'));
 
     rootNode.insert(topNode);
     expect(rootNode.children, equals([topNode]));

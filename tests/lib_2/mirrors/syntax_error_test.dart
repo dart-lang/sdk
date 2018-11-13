@@ -25,5 +25,5 @@ class B {
 
 main() {
   reflectClass(A).metadata;
-  reflectClass(B).newInstance(const Symbol(''), []);
+  reflectClass(B).newInstance(Symbol.empty, []);
 }

@@ -9,48 +9,121 @@ import '../transformations/constants.dart';
 import '../core_types.dart';
 
 class VmConstantsBackend implements ConstantsBackend {
+  final Map<String, String> defines;
+
   final Class immutableMapClass;
+  final Class internalSymbolClass;
+  final Class stringClass;
+  final Field symbolNameField;
 
-  VmConstantsBackend._(this.immutableMapClass);
+  VmConstantsBackend._(this.defines, this.immutableMapClass,
+      this.internalSymbolClass, this.stringClass, this.symbolNameField);
 
-  factory VmConstantsBackend(CoreTypes coreTypes) {
+  /// If [defines] is not `null` it will be used for handling
+  /// `const {bool,...}.fromEnvironment()` otherwise the current VM's values
+  /// will be used.
+  factory VmConstantsBackend(Map<String, String> defines, CoreTypes coreTypes) {
     final Library coreLibrary = coreTypes.coreLibrary;
     final Class immutableMapClass = coreLibrary.classes
         .firstWhere((Class klass) => klass.name == '_ImmutableMap');
     assert(immutableMapClass != null);
-    return new VmConstantsBackend._(immutableMapClass);
+
+    final Class internalSymbolClass = coreTypes.internalSymbolClass;
+    assert(internalSymbolClass != null);
+
+    final Class stringClass = coreTypes.stringClass;
+    assert(stringClass != null);
+
+    final Field symbolNameField =
+        internalSymbolClass.fields.where((Field field) {
+      return field.isInstanceMember && field.name.name == '_name';
+    }).single;
+
+    return new VmConstantsBackend._(defines, immutableMapClass,
+        internalSymbolClass, stringClass, symbolNameField);
   }
 
   Constant buildConstantForNative(
       String nativeName,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments) {
-    switch (nativeName) {
-      case 'Bool_fromEnvironment':
-        final String name = (positionalArguments[0] as StringConstant).value;
-        final Constant constant = namedArguments['defaultValue'];
-        final bool defaultValue =
-            constant is BoolConstant ? constant.value : false;
-        return new BoolConstant(
-            new bool.fromEnvironment(name, defaultValue: defaultValue));
-      case 'Integer_fromEnvironment':
-        final String name = (positionalArguments[0] as StringConstant).value;
-        final Constant constant = namedArguments['defaultValue'];
-        final int defaultValue =
-            constant is IntConstant ? constant.value : null;
-        final int value =
-            new int.fromEnvironment(name, defaultValue: defaultValue);
-        return value != null ? new IntConstant(value) : new NullConstant();
-      case 'String_fromEnvironment':
-        final String name = (positionalArguments[0] as StringConstant).value;
-        final Constant constant = namedArguments['defaultValue'];
-        final String defaultValue =
-            constant is StringConstant ? constant.value : null;
-        final String value =
-            new String.fromEnvironment(name, defaultValue: defaultValue);
-        return value == null ? new NullConstant() : new StringConstant(value);
+      Map<String, Constant> namedArguments,
+      List<TreeNode> context,
+      StaticInvocation node,
+      ErrorReporter errorReporter,
+      void abortEvaluation()) {
+    if ([
+      'Bool_fromEnvironment',
+      'Integer_fromEnvironment',
+      'String_fromEnvironment'
+    ].contains(nativeName)) {
+      final argument = positionalArguments[0];
+      if (argument is StringConstant) {
+        final name = argument.value;
+
+        Constant handleFromEnvironment<ValueT, ConstantT>(
+            {ValueT defaultValue,
+            ValueT parse(String v, {ValueT defaultValue}),
+            ValueT fromEnvironment(String name, {ValueT defaultValue}),
+            ConstantT makeConstant(ValueT val)}) {
+          final Constant constant = namedArguments['defaultValue'];
+          if (constant is ConstantT) {
+            defaultValue = (constant as dynamic).value;
+          } else if (constant is NullConstant) {
+            defaultValue = null;
+          }
+          ValueT value;
+          if (defines != null) {
+            value = parse(defines[name], defaultValue: defaultValue);
+          } else {
+            value = fromEnvironment(name, defaultValue: defaultValue);
+          }
+          return value != null ? makeConstant(value) : new NullConstant();
+        }
+
+        switch (nativeName) {
+          case 'Bool_fromEnvironment':
+            return handleFromEnvironment<bool, BoolConstant>(
+                defaultValue: false,
+                parse: (String v, {bool defaultValue}) {
+                  final String defineValue = defines[name];
+                  return defineValue == 'true'
+                      ? true
+                      : (defineValue == 'false' ? false : defaultValue);
+                },
+                fromEnvironment: (v, {defaultValue}) =>
+                    bool.fromEnvironment(v, defaultValue: defaultValue),
+                makeConstant: (v) => BoolConstant(v));
+          case 'Integer_fromEnvironment':
+            return handleFromEnvironment<int, IntConstant>(
+                defaultValue: null,
+                parse: (String v, {int defaultValue}) {
+                  final String defineValue = defines[name];
+                  return defineValue != null
+                      ? (int.tryParse(defineValue) ?? defaultValue)
+                      : defaultValue;
+                },
+                fromEnvironment: (v, {defaultValue}) =>
+                    int.fromEnvironment(v, defaultValue: defaultValue),
+                makeConstant: (v) => new IntConstant(v));
+          case 'String_fromEnvironment':
+            return handleFromEnvironment<String, StringConstant>(
+                defaultValue: null,
+                parse: (String v, {String defaultValue}) {
+                  final String defineValue = defines[name];
+                  return defineValue ?? defaultValue;
+                },
+                fromEnvironment: (v, {defaultValue}) =>
+                    String.fromEnvironment(v, defaultValue: defaultValue),
+                makeConstant: (v) => new StringConstant(v));
+        }
+      } else {
+        errorReporter.invalidDartType(context, node.arguments.positional.first,
+            argument, new InterfaceType(stringClass));
+        abortEvaluation();
+      }
     }
+
     throw 'No native effect registered for constant evaluation: $nativeName';
   }
 

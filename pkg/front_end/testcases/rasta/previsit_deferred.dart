@@ -4,6 +4,7 @@
 
 import 'deferred_lib.dart' deferred as lib;
 
-main() {
+main() {}
+test() {
   lib.foo();
 }

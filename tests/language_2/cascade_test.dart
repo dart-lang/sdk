@@ -40,7 +40,7 @@ class A {
     return null;
   }
 
-  int operator []=(int i, int value) {
+  operator []=(int i, int value) {
     if (i == 0) {
       x = value;
     } else if (i == 1) {

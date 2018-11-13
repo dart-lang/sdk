@@ -4,7 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
   class Token {
@@ -14,7 +14,7 @@ const String TEST_ONE = r"""
     use() { print(this); }
   }
   test() {
-    const [12,53].use();
+    (const [12,53] as dynamic).use();
     const Token('start').use();
     const Token('end').use();
     const Token('yes', 12).use();
@@ -27,9 +27,8 @@ main() {
     Expect.isTrue(generated.contains(text), text);
   }
 
-  runTests({bool useKernel}) async {
-    String generated =
-        await compile(TEST_ONE, useKernel: useKernel, entry: 'test');
+  runTests() async {
+    String generated = await compile(TEST_ONE, entry: 'test');
     check(generated, '.List_12_53.');
     check(generated, '.Token_start_null.');
     check(generated, '.Token_end_null.');
@@ -38,9 +37,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

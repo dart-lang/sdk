@@ -1,12 +1,9 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.non_hint_code_test;
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,6 +39,42 @@ class _AlwaysThrows {
     Source source = addSource('''
 import 'dart:async';
 Future<Object> f() async {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_deadCode_afterForEachWithBreakLabel() async {
+    Source source = addSource('''
+f() {
+  named: {
+    for (var x in [1]) {
+      if (x == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deadCode_afterForWithBreakLabel() async {
+    Source source = addSource('''
+f() {
+  named: {
+    for (int i = 0; i < 7; i++) {
+      if (i == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
@@ -231,6 +264,60 @@ f() {
   }
   int a = 1;
 }''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedAnnotationUse_namedParameter_inDefiningFunction() async {
+    Source source = addSource(r'''
+f({@deprecated int x}) => x;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction() async {
+    Source source = addSource(r'''
+class C {
+  m() {
+    f({@deprecated int x}) {
+      return x;
+    }
+    return f();
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedAnnotationUse_namedParameter_inDefiningMethod() async {
+    Source source = addSource(r'''
+class C {
+  m({@deprecated int x}) {
+    return x;
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction() async {
+    Source source = addSource(r'''
+class C {
+  m({@deprecated int x}) {
+    f() {
+      return x;
+    }
+    return f();
+  }
+}
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -495,6 +582,16 @@ abstract class A {
     verify([source]);
   }
 
+  test_missingReturn_futureVoidReturnType() async {
+    Source source = addSource('''
+import 'dart:async';
+Future<void> f() async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_missingReturn_noReturnType() async {
     Source source = addSource("f() {}");
     await computeAnalysisResult(source);
@@ -558,7 +655,14 @@ class B implements A {
   int c;
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_OVERRIDE],
+      );
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
@@ -578,7 +682,14 @@ class B extends A {
   int c;
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_OVERRIDE],
+      );
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
@@ -619,6 +730,26 @@ class B implements A {
   @override
   int m() => 1;
 }''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_overrideOnNonOverridingMethod_inInterfaces() async {
+    Source source = addSource(r'''
+abstract class I {
+  void foo(int _);
+}
+
+abstract class J {
+  void foo(String _);
+}
+
+class C implements I, J {
+  @override
+  void foo(Object _) {}
+}
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -767,7 +898,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedMethod_assignmentExpression_inSubtype() async {
@@ -806,7 +941,11 @@ f() {
   a.b();
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedMethod_unionType_all() async {
@@ -861,7 +1000,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_indexBoth_inSubtype() async {
@@ -876,7 +1019,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_indexGetter_inSubtype() async {
@@ -891,7 +1038,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_indexSetter_inSubtype() async {
@@ -906,7 +1057,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_postfixExpression() async {
@@ -946,12 +1101,16 @@ class B extends A {
   set b(x) {}
 }
 f(var a) {
-  if(a is A) {
+  if (a is A) {
     a.b = 0;
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_unnecessaryCast_13855_parameter_A() async {
@@ -994,6 +1153,35 @@ m(v) {
     verify([source]);
   }
 
+  test_unnecessaryCast_function() async {
+    Source source = addSource(r'''
+void main() {
+  Function(Null) f = (String x) => x;
+  (f as Function(int))(3); 
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_unnecessaryCast_function2() async {
+    Source source = addSource(r'''
+class A {}
+
+class B<T extends A> {
+  void foo() {
+    T Function(T) f;
+    A Function(A) g;
+    g = f as A Function(A);
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_unnecessaryCast_generics() async {
     // dartbug.com/18953
     Source source = addSource(r'''
@@ -1003,7 +1191,11 @@ void g(bool c) {
   (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2 && enableNewAnalysisDriver) {
+      assertErrors(source, [HintCode.UNNECESSARY_CAST]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
@@ -1245,6 +1437,33 @@ topLevelFunction() {}''');
     verify([source]);
   }
 
+  test_unusedLabel_inSwitch() async {
+    Source source = addSource(r'''
+f(x) {
+  switch (x) {
+    label: case 0:
+      break;
+    default:
+      continue label;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_unusedLabel_onWhile() async {
+    Source source = addSource(r'''
+f(condition()) {
+  label: while (condition()) {
+    break label;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_useOfVoidResult_implicitReturnValue() async {
     Source source = addSource(r'''
 f() {}
@@ -1264,23 +1483,6 @@ int f() => 1;
 g() {
   var a = f();
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_withSuperMixin() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-abstract class A {
-  void test();
-}
-class B extends A {
-  void test() {
-    super.test;
-  }
-}
-''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

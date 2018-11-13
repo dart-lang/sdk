@@ -8,19 +8,19 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#include <fdio/util.h>
+#include <lib/fdio/util.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
-#include "lib/app/cpp/environment_services.h"
-#include "lib/time_service/fidl/time_service.fidl.h"
+#include <fuchsia/timezone/cpp/fidl.h>
+
+#include "lib/component/cpp/startup_context.h"
+#include "lib/svc/cpp/services.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
-
-static constexpr char kTimeServiceName[] = "time_service::TimeService";
 
 namespace dart {
 
@@ -41,39 +41,35 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-static zx_status_t GetTimeServicePtr(
-    time_service::TimeServiceSyncPtr* time_svc) {
-  zx::channel service_root = app::subtle::CreateStaticServiceRootHandle();
-  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).PassChannel();
-  return fdio_service_connect_at(service_root.get(), kTimeServiceName,
-                                 time_svc_channel.release());
-}
+// TODO(FL-98): Change this to talk to fuchsia.dart to get timezone service to
+// directly get timezone.
+//
+// Putting this hack right now due to CP-120 as I need to remove
+// component:ConnectToEnvironmentServices and this is the only thing that is
+// blocking it and FL-98 will take time.
+static fuchsia::timezone::TimezoneSyncPtr tz;
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  time_service::TimeServiceSyncPtr time_svc;
-  zx_status_t status = GetTimeServicePtr(&time_svc);
-  if (status == ZX_OK) {
-    time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000, local_offset,
-                                       dst_offset);
-    *local_offset *= 60;
-    *dst_offset *= 60;
+  zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
+                                                    local_offset, dst_offset);
+  if (status != ZX_OK) {
+    return status;
   }
-  return status;
+  *local_offset *= 60;
+  *dst_offset *= 60;
+  return ZX_OK;
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  time_service::TimeServiceSyncPtr time_svc;
-  if (GetTimeServicePtr(&time_svc) == ZX_OK) {
-    fidl::String res;
-    time_svc->GetTimezoneId(&res);
-    char* tz_name = Thread::Current()->zone()->Alloc<char>(res.size() + 1);
-    memmove(tz_name, res.get().c_str(), res.size());
-    tz_name[res.size()] = '\0';
-    return tz_name;
-  }
-  return "";
+  // TODO(abarth): Handle time zone changes.
+  static const auto* tz_name = new std::string([] {
+    fidl::StringPtr result;
+    tz->GetTimezoneId(&result);
+    return *result;
+  }());
+  return tz_name->c_str();
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
@@ -86,7 +82,7 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   int32_t local_offset, dst_offset;
   zx_status_t status = GetLocalAndDstOffsetInSeconds(
-      zx_time_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
+      zx_clock_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset : 0;
 }
 
@@ -95,11 +91,11 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  return zx_time_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
+  return zx_clock_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
 }
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return zx_time_get(ZX_CLOCK_MONOTONIC);
+  return zx_clock_get(ZX_CLOCK_MONOTONIC);
 }
 
 int64_t OS::GetCurrentMonotonicFrequency() {
@@ -113,7 +109,7 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  return zx_time_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
+  return zx_clock_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
 }
 
 // TODO(5411554):  May need to hoist these architecture dependent code
@@ -171,17 +167,9 @@ void OS::DebugBreak() {
   UNIMPLEMENTED();
 }
 
-uintptr_t DART_NOINLINE OS::GetProgramCounter() {
+DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
-}
-
-char* OS::StrNDup(const char* s, intptr_t n) {
-  return strndup(s, n);
-}
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  return strnlen(s, n);
 }
 
 void OS::Print(const char* format, ...) {
@@ -196,22 +184,6 @@ void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   fflush(stream);
 }
 
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  int retval = vsnprintf(str, size, format, args);
-  if (retval < 0) {
-    FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-  }
-  return retval;
-}
-
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -224,7 +196,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -238,7 +210,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }
@@ -250,13 +222,15 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   int i = 0;
   if (str[0] == '-') {
     i = 1;
+  } else if (str[0] == '+') {
+    i = 1;
   }
   if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
     base = 16;
   }
   errno = 0;
-  if (FLAG_limit_ints_to_64_bits && (base == 16)) {
+  if (base == 16) {
     // Unsigned 64-bit hexadecimal integer literals are allowed but
     // immediately interpreted as signed 64-bit integers.
     *value = static_cast<int64_t>(strtoull(str, &endptr, base));
@@ -281,16 +255,14 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
-  static bool init_once_called = false;
-  ASSERT(init_once_called == false);
-  init_once_called = true;
+void OS::Init() {
+  auto environment_services = std::make_shared<component::Services>();
+  auto env_service_root = component::subtle::CreateStaticServiceRootHandle();
+  environment_services->Bind(std::move(env_service_root));
+  environment_services->ConnectToService(tz.NewRequest());
 }
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
 
 void OS::Abort() {
   abort();

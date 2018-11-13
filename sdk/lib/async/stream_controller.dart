@@ -271,8 +271,9 @@ abstract class StreamController<T> implements StreamSink<T> {
    * forwarded to the controller's stream, and the `addStream` ends
    * after this. If [cancelOnError] is false, all errors are forwarded
    * and only a done event will end the `addStream`.
+   * If [cancelOnError] is omitted, it defaults to false.
    */
-  Future addStream(Stream<T> source, {bool cancelOnError: true});
+  Future addStream(Stream<T> source, {bool cancelOnError});
 }
 
 /**
@@ -380,17 +381,20 @@ abstract class _StreamControllerLifecycle<T> {
   Future _recordCancel(StreamSubscription<T> subscription) => null;
 }
 
+// Base type for implementations of stream controllers.
+abstract class _StreamControllerBase<T>
+    implements
+        StreamController<T>,
+        _StreamControllerLifecycle<T>,
+        _EventSink<T>,
+        _EventDispatch<T> {}
+
 /**
  * Default implementation of [StreamController].
  *
  * Controls a stream that only supports a single controller.
  */
-abstract class _StreamController<T>
-    implements
-        StreamController<T>,
-        _StreamControllerLifecycle<T>,
-        _EventSink<T>,
-        _EventDispatch<T> {
+abstract class _StreamController<T> implements _StreamControllerBase<T> {
   // The states are bit-flags. More than one can be set at a time.
   //
   // The "subscription state" goes through the states:
@@ -549,12 +553,12 @@ abstract class _StreamController<T>
   }
 
   // StreamSink interface.
-  Future addStream(Stream<T> source, {bool cancelOnError: true}) {
+  Future addStream(Stream<T> source, {bool cancelOnError}) {
     if (!_mayAddEvent) throw _badEventState();
     if (_isCanceled) return new _Future.immediate(null);
     _StreamControllerAddStreamState<T> addState =
         new _StreamControllerAddStreamState<T>(
-            this, _varData, source, cancelOnError);
+            this, _varData, source, cancelOnError ?? false);
     _varData = addState;
     _state |= _STATE_ADDSTREAM;
     return addState.addStreamFuture;
@@ -823,9 +827,8 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! _ControllerStream) return false;
-    _ControllerStream otherStream = other;
-    return identical(otherStream._controller, this._controller);
+    return other is _ControllerStream &&
+        identical(other._controller, this._controller);
   }
 }
 
@@ -862,8 +865,9 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
   }
 
   Future close() => _target.close();
-  Future addStream(Stream<T> source, {bool cancelOnError: true}) =>
-      _target.addStream(source, cancelOnError: cancelOnError);
+
+  Future addStream(Stream<T> source) => _target.addStream(source);
+
   Future get done => _target.done;
 }
 

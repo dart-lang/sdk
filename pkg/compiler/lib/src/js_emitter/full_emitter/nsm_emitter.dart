@@ -9,15 +9,15 @@ import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show GetterName, SetterName;
 import '../../universe/selector.dart' show Selector;
-import 'package:front_end/src/fasta/scanner/characters.dart'
+import 'package:front_end/src/api_unstable/dart2js.dart'
     show $$, $A, $HASH, $Z, $a, $z;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
 import 'emitter.dart';
 
 class NsmEmitter extends CodeEmitterHelper {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final List<Selector> trivialNsmHandlers = <Selector>[];
 
   NsmEmitter(this.closedWorld);
@@ -51,33 +51,18 @@ class NsmEmitter extends CodeEmitterHelper {
     List<jsAst.Name> names = addedJsNames.keys.toList()..sort();
     for (jsAst.Name jsName in names) {
       Selector selector = addedJsNames[jsName];
-      String reflectionName =
-          emitter.getReflectionSelectorName(selector, jsName);
-
-      if (reflectionName != null) {
-        emitter.mangledFieldNames[jsName] = reflectionName;
-      }
-
       List<jsAst.Expression> argNames = selector.callStructure
           .getOrderedNamedArguments()
           .map((String name) => js.string(name))
           .toList();
       int type = selector.invocationMirrorKind;
       if (!haveVeryFewNoSuchMemberHandlers &&
-          isTrivialNsmHandler(type, argNames, selector, jsName) &&
-          reflectionName == null) {
+          isTrivialNsmHandler(type, argNames, selector, jsName)) {
         trivialNsmHandlers.add(selector);
       } else {
         StubMethod method =
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
-        if (reflectionName != null) {
-          bool accessible = closedWorld
-              .locateMembers(selector, null)
-              .any(backend.mirrorsData.isMemberAccessibleByReflection);
-          addProperty(
-              namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
-        }
       }
     }
   }
@@ -89,6 +74,7 @@ class NsmEmitter extends CodeEmitterHelper {
     if (!generateTrivialNsmHandlers) return false;
     // Check for named arguments.
     if (argNames.length != 0) return false;
+    if (selector.typeArgumentCount > 0) return false;
     // Check for unexpected name (this doesn't really happen).
     if (internalName is GetterName) return type == 1;
     if (internalName is SetterName) return type == 2;
@@ -261,7 +247,7 @@ class NsmEmitter extends CodeEmitterHelper {
           // Generate call to:
           //
           //     createInvocationMirror(String name, internalName, type,
-          //         arguments, argumentNames)
+          //         arguments, argumentNames, typeArgumentCount)
           //
 
           // This 'if' is either a static choice or dynamic choice depending on
@@ -276,7 +262,8 @@ class NsmEmitter extends CodeEmitterHelper {
                           // Create proper Array with all arguments except first
                           // (receiver).
                           Array.prototype.slice.call(arguments, 1),
-                          []));
+                          [],
+                          0));
                   }
                  })(#names[j], shortName, type);
           } else {
@@ -290,7 +277,8 @@ class NsmEmitter extends CodeEmitterHelper {
                       #createInvocationMirror(name, shortName, type,
                           // Create proper Array with all arguments.
                           Array.prototype.slice.call(arguments, 0),
-                          []));
+                          [],
+                          0));
                   }
                  })(#names[j], shortName, type);
           }

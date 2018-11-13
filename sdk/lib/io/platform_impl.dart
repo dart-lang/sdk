@@ -30,7 +30,7 @@ class _Platform {
    */
   external static _environment();
   external static List<String> _executableArguments();
-  external static String _packageRoot();
+  external static String _packageRoot(); // TODO(mfairhurst): remove this
   external static String _packageConfig();
   external static String _version();
   external static String _localeName();
@@ -38,9 +38,10 @@ class _Platform {
 
   static String executable = _executable();
   static String resolvedExecutable = _resolvedExecutable();
-  static String packageRoot = _packageRoot();
+  static String packageRoot = null; // TODO(mfairhurst): remove this
   static String packageConfig = _packageConfig();
 
+  @pragma("vm:entry-point")
   static String Function() _localeClosure;
   static String localeName() {
     final result = (_localeClosure == null) ? _localeName() : _localeClosure();
@@ -122,7 +123,7 @@ class _Platform {
 
 // Environment variables are case-insensitive on Windows. In order
 // to reflect that we use a case-insensitive string map on Windows.
-class _CaseInsensitiveStringMap<V> implements Map<String, V> {
+class _CaseInsensitiveStringMap<V> extends MapBase<String, V> {
   final Map<String, V> _map = new Map<String, V>();
 
   bool containsKey(Object key) =>
@@ -142,6 +143,7 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   }
 
   V remove(Object key) => key is String ? _map.remove(key.toUpperCase()) : null;
+
   void clear() {
     _map.clear();
   }
@@ -155,5 +157,22 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
+
+  Iterable<MapEntry<String, V>> get entries => _map.entries;
+
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(String key, V value)) =>
+      _map.map(transform);
+
+  V update(String key, V update(V value), {V ifAbsent()}) =>
+      _map.update(key.toUpperCase(), update, ifAbsent: ifAbsent);
+
+  void updateAll(V update(String key, V value)) {
+    _map.updateAll(update);
+  }
+
+  void removeWhere(bool test(String key, V value)) {
+    _map.removeWhere(test);
+  }
+
   String toString() => _map.toString();
 }

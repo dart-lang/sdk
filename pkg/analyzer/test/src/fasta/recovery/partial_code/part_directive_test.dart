@@ -12,22 +12,23 @@ main() {
 
 class PartDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'part_directive',
         [
           new TestDescriptor(
               'keyword',
               'part',
-              [/*ParserErrorCode.MISSING_URI,*/ ParserErrorCode.EXPECTED_TOKEN],
-              "part '';",
-              allFailing: true),
+              [
+                // TODO(danrubel): Consider an improved error message
+                // ParserErrorCode.MISSING_URI,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "part '';"),
           new TestDescriptor('emptyUri', "part ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "part '';",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "part '';"),
           new TestDescriptor('uri', "part 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';"),
         ],
         PartialCodeTest.postPartSuffixes);
   }

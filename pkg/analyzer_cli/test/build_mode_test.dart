@@ -134,11 +134,12 @@ class WorkerLoopTest {
 
   List<int> _serializeProto(GeneratedMessage message) {
     var buffer = message.writeToBuffer();
-
     var writer = new CodedBufferWriter();
     writer.writeInt32NoTag(buffer.length);
-    writer.writeRawBytes(buffer);
 
-    return writer.toBuffer();
+    List<int> result = [];
+    result.addAll(writer.toBuffer());
+    result.addAll(buffer);
+    return result;
   }
 }

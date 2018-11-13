@@ -19,13 +19,15 @@ class LibraryPrefixContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     List<ImportElement> imports = request.libraryElement.imports;
     if (imports == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];

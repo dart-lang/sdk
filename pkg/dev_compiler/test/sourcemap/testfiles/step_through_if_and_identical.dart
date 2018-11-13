@@ -5,10 +5,10 @@
 /*Debugger:stepOver*/
 
 main() {
-  if (/*bc:1*/ foo() /*bc:3*/ == /*bc:2*/ bar()) {
+  if (/*bc:1*/ foo() == /*bc:2*/ bar()) {
     print("wat?!?");
   }
-  if (identical(/*bc:4*/ foo(), /*bc:5*/ bar())) {
+  if (identical(/*bc:3*/ foo(), /*bc:4*/ bar())) {
     print("wat?!?");
   }
 }

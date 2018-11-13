@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnniwinther): Port this test to use '--use-kernel'.
-
 import "dart:async";
 import "dart:io";
 
@@ -11,8 +9,9 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
 import 'package:compiler/compiler.dart' as compiler;
+import 'package:compiler/src/filenames.dart';
 
-const SOURCES = const {
+const Map<String, String> SOURCES = const {
   "/main.dart": """
     import "foo.dart";
     main() => foo();
@@ -28,11 +27,15 @@ const SOURCES = const {
     """
 };
 
-Future<String> provideInput(Uri uri) {
-  var source = SOURCES[uri.path];
+Future provideInput(Uri uri) {
+  dynamic source = SOURCES[uri.path];
   if (source == null) {
     // Not one of our source files, so assume it's a built-in.
-    source = new File(uri.toFilePath()).readAsStringSync();
+    if (uri.path.endsWith('.dill')) {
+      source = new File(uri.toFilePath()).readAsBytesSync();
+    } else {
+      source = new File(uri.toFilePath()).readAsStringSync();
+    }
   }
 
   // Deliver the input asynchronously.
@@ -43,11 +46,17 @@ main() {
   var entrypoint = Uri.parse("file:///main.dart");
 
   // Find the path to sdk/ in the repo relative to this script.
-  Uri libraryRoot = Uri.base.resolve('sdk/');
+  Uri librariesSpec = Uri.base.resolve('sdk/lib/libraries.json');
   Uri packageRoot = Uri.base.resolve('packages/');
-
-  asyncTest(() => compiler.compile(entrypoint, libraryRoot, packageRoot,
-          provideInput, handleDiagnostic, []).then((code) {
+  var platformDir =
+      Uri.parse(nativeToUriPath(Platform.resolvedExecutable)).resolve('.');
+  asyncTest(() => compiler.compile(
+          entrypoint,
+          librariesSpec,
+          packageRoot,
+          provideInput,
+          handleDiagnostic,
+          ['--platform-binaries=${platformDir}']).then((code) {
         Expect.isNotNull(code);
       }));
 }

@@ -61,7 +61,7 @@ For example, your contributor might look something like the following:
 ```dart
 class MyCompletionContributor implements CompletionContributor {
   @override
-  Future<Null> computeSuggestions(DartCompletionRequest request,
+  Future<void> computeSuggestions(DartCompletionRequest request,
       CompletionCollector collector) async {
     // ...
   }

@@ -31,8 +31,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class X {X.c(); X._d(); z() {}}''');
     addSource('/testA.dart', '''
         library libA;
-        import "/testB.dart";
-        part "$testFile";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
+        part "${convertAbsolutePathToUri(testFile)}";
         class A { }
         var m;''');
     addTestSource('''
@@ -69,8 +69,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class B { }''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
+        part "${convertAbsolutePathToUri("/testA.dart")}";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');
@@ -105,8 +105,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         ''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
+        part "${convertAbsolutePathToUri("/testA.dart")}";
         class Local { }
         main() {
           A a;
@@ -121,13 +121,15 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     // A is suggested with a higher relevance
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    // D is sorted out
-    assertNotSuggested('D');
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    // D has the default relevance
+    assertSuggestConstructor('D', elemOffset: -1);
 
     // Suggested by ConstructorContributor
     assertNotSuggested('Local');
@@ -156,8 +158,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         ''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
+        part "${convertAbsolutePathToUri("/testA.dart")}";
         class Local { }
         main() {
           A a = new ^
@@ -170,13 +172,15 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     // A is suggested with a higher relevance
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    // D is sorted out
-    assertNotSuggested('D');
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    // D has the default relevance
+    assertSuggestConstructor('D', elemOffset: -1);
 
     // Suggested by ConstructorContributor
     assertNotSuggested('Local');
@@ -200,8 +204,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class X {X.c(); X._d(); z() {}}''');
     addSource('/testA.dart', '''
         library libA;
-        import "/testB.dart";
-        part "$testFile";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
+        part "${convertAbsolutePathToUri(testFile)}";
         class A { var a1; a2(){}}
         var m;
         typedef t1(int blue);
@@ -215,6 +219,9 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertSuggestFunction('af', 'int',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestTopLevelVar('m', null,
@@ -249,8 +256,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         var n;''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
+        part "${convertAbsolutePathToUri("/testA.dart")}";
         class A { A({String boo: 'hoo'}) { } }
         main() {^}
         var m;''');
@@ -259,6 +266,9 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    }
     assertSuggestFunction('bf', 'int',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestTopLevelVar('n', null,

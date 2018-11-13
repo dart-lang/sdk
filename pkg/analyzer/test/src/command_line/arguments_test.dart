@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.src.command_line.arguments_test;
 
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
@@ -34,15 +32,12 @@ class ArgumentsTest {
       '--dart-sdk-summary=$dartSdkSummaryPath',
       '-Dfoo=1',
       '-Dbar=2',
-      '--enable-strict-call-checks',
       '--no-declaration-casts',
       '--no-implicit-casts',
       '--no-implicit-dynamic',
       '--options=$defaultAnalysisOptionsFilePath',
       '--packages=$defaultPackageFilePath',
       '--package-root=$defaultPackagesDirectoryPath',
-      '--strong',
-      '--supermixin',
     ];
     ArgResults result = parse(provider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
@@ -58,7 +53,6 @@ class ArgumentsTest {
     expect(options.defaultPackagesDirectoryPath, defaultPackagesDirectoryPath);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.enableStrictCallChecks, true);
     expect(defaultOptions.strongMode, true);
     expect(defaultOptions.declarationCasts, false);
     expect(defaultOptions.implicitCasts, false);
@@ -80,8 +74,7 @@ class ArgumentsTest {
     expect(options.defaultPackagesDirectoryPath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.enableStrictCallChecks, false);
-    expect(defaultOptions.strongMode, false);
+    expect(defaultOptions.strongMode, defaultOptions.previewDart2);
     expect(defaultOptions.declarationCasts, true);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
@@ -157,7 +150,7 @@ class ArgumentsTest {
   void test_defineAnalysisArguments() {
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
-    expect(parser.options, hasLength(15));
+    expect(parser.options, hasLength(12));
   }
 
   void test_extractDefinedVariables() {

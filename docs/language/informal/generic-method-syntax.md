@@ -1,5 +1,11 @@
 # Feature: Generic Method Syntax
 
+**Author**: eernst@
+
+**Status**: Background material.
+The normative text on this topic is part of the language specification as of
+[`673d5f0`](https://github.com/dart-lang/sdk/commit/673d5f0a665085153d25f8c39495eacdb010ca64).
+
 **This document** is an informal specification of the support in Dart 1.x
 for generic methods and functions which includes syntax and name
 resolution, but not reification of type arguments.

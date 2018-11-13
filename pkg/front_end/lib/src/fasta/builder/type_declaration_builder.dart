@@ -5,7 +5,12 @@
 library fasta.type_declaration_builder;
 
 import 'builder.dart'
-    show Builder, LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
+    show
+        Declaration,
+        LibraryBuilder,
+        MetadataBuilder,
+        ModifierBuilder,
+        TypeBuilder;
 
 abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
@@ -15,7 +20,7 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   final String name;
 
-  Builder parent;
+  Declaration parent;
 
   TypeDeclarationBuilder(
       this.metadata, this.modifiers, this.name, this.parent, int charOffset,
@@ -26,11 +31,13 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   bool get isMixinApplication => false;
 
+  @override
+  String get fullNameForErrors => name;
+
+  int get typeVariablesCount => 0;
+
   R buildType(LibraryBuilder library, List<T> arguments);
 
   /// [arguments] have already been built.
   R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments);
-
-  @override
-  String get fullNameForErrors => name;
 }

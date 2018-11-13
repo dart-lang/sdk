@@ -62,10 +62,13 @@ main() {
     expect(result, 42);
   });
 
-  test('emulated functions should be callable in JS', () {
+  test('emulated functions should not be callable in JS', () {
     context['callable'] = new Callable();
-    var result = context.callMethod('callable');
-    expect(result, 'called');
+    expect(() => context.callMethod('callable'), throwsNoSuchMethodError);
+
+    Function f = new Callable();
+    context['callable'] = f;
+    expect(context.callMethod('callable'), 'called');
     context.deleteProperty('callable');
   });
 }

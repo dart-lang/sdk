@@ -9,7 +9,7 @@ void main() {
   var dir = Directory.systemTemp.createTempSync('dart_stdout_close');
   stdout.close().then((_) {
     var file = new File('${dir.path}/file');
-    var io = file.openSync(mode: FileMode.WRITE);
+    var io = file.openSync(mode: FileMode.write);
     print("to file");
     io.closeSync();
     var content = file.readAsStringSync();

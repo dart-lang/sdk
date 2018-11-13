@@ -107,8 +107,8 @@ class LineProcessorClient {
   void processLine(int y) {
     ReceivePort reply = new ReceivePort();
     _port.send([y, reply.sendPort]);
-    reply.first.then((List<int> message) {
-      _state.notifyProcessedLine(this, y, message);
+    reply.first.then((message) {
+      _state.notifyProcessedLine(this, y, message as List<int>);
     });
   }
 

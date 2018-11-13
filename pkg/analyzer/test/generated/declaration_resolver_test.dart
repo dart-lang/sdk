@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.declaration_resolver_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,10 +10,9 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,7 +29,7 @@ main() {
 
 CompilationUnit _cloneResolveUnit(CompilationUnit unit) {
   CompilationUnit clonedUnit = AstCloner.clone(unit);
-  new DeclarationResolver().resolve(clonedUnit, unit.element);
+  new DeclarationResolver().resolve(clonedUnit, unit.declaredElement);
   return clonedUnit;
 }
 
@@ -97,6 +94,11 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     checkMetadata('E');
   }
 
+  test_metadata_enumDeclaration_constant() async {
+    await setupCode('enum E { @a v }');
+    checkMetadata('v');
+  }
+
   test_metadata_exportDirective() async {
     addNamedSource('/foo.dart', 'class C {}');
     await setupCode('@a export "foo.dart";');
@@ -116,7 +118,7 @@ const b = null;
 ''');
     expect(unit.directives[0].metadata.single.name.name, 'a');
     expect(unit.directives[1].metadata.single.name.name, 'b');
-    var unitElement = unit.element as CompilationUnitElementImpl;
+    var unitElement = unit.declaredElement as CompilationUnitElementImpl;
     // Damage the unit element - as if "setAnnotations" were not called.
     // The ExportElement(s) still have the metadata, we should use it.
     unitElement.setAnnotations(unit.directives[0].offset, []);
@@ -125,7 +127,7 @@ const b = null;
     expect(unitElement.library.exports[1].metadata, hasLength(1));
     // DeclarationResolver on the clone should succeed.
     CompilationUnit clonedUnit = AstCloner.clone(unit);
-    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    new DeclarationResolver().resolve(clonedUnit, unit.declaredElement);
     expect(unit.directives[0].metadata.single.name.name, 'a');
     expect(unit.directives[1].metadata.single.name.name, 'b');
   }
@@ -205,7 +207,7 @@ const b = null;
 ''');
     expect(unit.directives[0].metadata.single.name.name, 'a');
     expect(unit.directives[1].metadata.single.name.name, 'b');
-    var unitElement = unit.element as CompilationUnitElementImpl;
+    var unitElement = unit.declaredElement as CompilationUnitElementImpl;
     // Damage the unit element - as if "setAnnotations" were not called.
     // The ImportElement(s) still have the metadata, we should use it.
     unitElement.setAnnotations(unit.directives[0].offset, []);
@@ -214,7 +216,7 @@ const b = null;
     expect(unitElement.library.imports[1].metadata, hasLength(1));
     // DeclarationResolver on the clone should succeed.
     CompilationUnit clonedUnit = AstCloner.clone(unit);
-    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    new DeclarationResolver().resolve(clonedUnit, unit.declaredElement);
     expect(unit.directives[0].metadata.single.name.name, 'a');
     expect(unit.directives[1].metadata.single.name.name, 'b');
   }
@@ -227,14 +229,14 @@ const b = null;
   test_metadata_libraryDirective_resynthesized() async {
     CompilationUnit unit = await resolveSource('@a library L; const a = null;');
     expect(unit.directives.single.metadata.single.name.name, 'a');
-    var unitElement = unit.element as CompilationUnitElementImpl;
+    var unitElement = unit.declaredElement as CompilationUnitElementImpl;
     // Damage the unit element - as if "setAnnotations" were not called.
     // The LibraryElement still has the metadata, we should use it.
     unitElement.setAnnotations(unit.directives.single.offset, []);
     expect(unitElement.library.metadata, hasLength(1));
     // DeclarationResolver on the clone should succeed.
     CompilationUnit clonedUnit = AstCloner.clone(unit);
-    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    new DeclarationResolver().resolve(clonedUnit, unit.declaredElement);
     expect(clonedUnit.directives.single.metadata.single.name.name, 'a');
   }
 
@@ -244,7 +246,12 @@ const b = null;
     // analyzer.  TODO(paulberry): is this a bug?
     FunctionDeclaration node = EngineTestCase.findNode(
         unit, code, 'g', (AstNode n) => n is FunctionDeclaration);
-    expect((node as FunctionDeclarationImpl).metadata, isEmpty);
+    NodeList<Annotation> metadata = (node as FunctionDeclarationImpl).metadata;
+    if (usingFastaParser) {
+      expect(metadata, hasLength(1));
+    } else {
+      expect(metadata, isEmpty);
+    }
   }
 
   test_metadata_localVariableDeclaration() async {
@@ -291,7 +298,7 @@ const b = null;
 ''');
     expect(unit.directives[1].metadata.single.name.name, 'a');
     expect(unit.directives[2].metadata.single.name.name, 'b');
-    var unitElement = unit.element as CompilationUnitElementImpl;
+    var unitElement = unit.declaredElement as CompilationUnitElementImpl;
     // Damage the unit element - as if "setAnnotations" were not called.
     // The ImportElement(s) still have the metadata, we should use it.
     unitElement.setAnnotations(unit.directives[1].offset, []);
@@ -300,7 +307,7 @@ const b = null;
     expect(unitElement.library.parts[1].metadata, hasLength(1));
     // DeclarationResolver on the clone should succeed.
     CompilationUnit clonedUnit = AstCloner.clone(unit);
-    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    new DeclarationResolver().resolve(clonedUnit, unit.declaredElement);
     expect(unit.directives[1].metadata.single.name.name, 'a');
     expect(unit.directives[2].metadata.single.name.name, 'b');
   }
@@ -353,7 +360,6 @@ const b = null;
       node = node.parent;
     }
     fail('Node not found');
-    return null;
   }
 }
 
@@ -593,7 +599,7 @@ var v = (() {
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'zzz =>');
     // Local getters are not allowed, so a FunctionElement is created.
-    expect(getterName.staticElement, new isInstanceOf<FunctionElement>());
+    expect(getterName.staticElement, new TypeMatcher<FunctionElement>());
   }
 
   test_invalid_functionDeclaration_setter_inFunction() async {
@@ -609,7 +615,7 @@ var v = (() {
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier setterName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
     // Local getters are not allowed, so a FunctionElement is created.
-    expect(setterName.staticElement, new isInstanceOf<FunctionElement>());
+    expect(setterName.staticElement, new TypeMatcher<FunctionElement>());
   }
 
   test_visitExportDirective_notExistingSource() async {
@@ -808,10 +814,12 @@ part 'foo.bar';
 class StrongModeDeclarationResolverTest extends ResolverTestCase {
   @override
   void setUp() {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    reset();
   }
 
   test_genericFunction_typeParameter() async {
+    // Fasta ignores generic type comments
+    if (usingFastaParser) return;
     String code = r'''
 /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
 ''';
@@ -824,16 +832,18 @@ class StrongModeDeclarationResolverTest extends ResolverTestCase {
     expect(tElement, isNotNull);
     expect(element.typeParameters.toString(), "[T]");
     expect(element.type.toString(), "<T>(T, T) → T");
-    expect(t.element, same(tElement));
+    expect(t.declaredElement, same(tElement));
 
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     node = _findSimpleIdentifier(unit2, code, 'max').parent;
     t = node.functionExpression.typeParameters.typeParameters[0];
-    expect(t.element, same(tElement));
+    expect(t.declaredElement, same(tElement));
   }
 
   test_genericMethod_typeParameter() async {
+    // Fasta ignores generic type comments
+    if (usingFastaParser) return;
     String code = r'''
 class C {
   /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
@@ -848,12 +858,12 @@ class C {
     expect(tElement, isNotNull);
     expect(element.typeParameters.toString(), "[T]");
     expect(element.type.toString(), "<T>(T, T) → T");
-    expect(t.element, same(tElement));
+    expect(t.declaredElement, same(tElement));
 
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     node = _findSimpleIdentifier(unit2, code, 'max').parent;
     t = node.typeParameters.typeParameters[0];
-    expect(t.element, same(tElement));
+    expect(t.declaredElement, same(tElement));
   }
 }

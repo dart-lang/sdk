@@ -125,6 +125,16 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
       "Secure Sockets unsupported on this platform"));
 }
 
+void FUNCTION_NAME(X509_Der)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(X509_Sha1)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
 void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
@@ -141,6 +151,11 @@ void FUNCTION_NAME(X509_StartValidity)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(X509_EndValidity)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(X509_Pem)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
 }

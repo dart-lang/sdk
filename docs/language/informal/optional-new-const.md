@@ -1,10 +1,11 @@
 # Optional new/const
 
-Author: Lasse R.H. Nielsen ([lrn@google.com](mailto:lrn@google.com))
+**Author**: Lasse R.H. Nielsen ([lrn@google.com](mailto:lrn@google.com))
 
-Version: 0.8 (2017-06-20)
+**Version**: 0.8 (2017-06-20)
 
-Status: Under discussion
+**Status**: This is background material for
+[implicit-creation.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/implicit-creation.md).
 
 This informal specification documents a group of four related features.
 * Optional `const`

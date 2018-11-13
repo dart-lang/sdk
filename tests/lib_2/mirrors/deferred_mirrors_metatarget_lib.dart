@@ -18,5 +18,5 @@ class A {
 
 String foo() {
   ClassMirror a = currentMirrorSystem().findLibrary(#lib).declarations[#A];
-  return a.newInstance(const Symbol(""), []).invoke(#toString, []).reflectee;
+  return a.newInstance(Symbol.empty, []).invoke(#toString, []).reflectee;
 }

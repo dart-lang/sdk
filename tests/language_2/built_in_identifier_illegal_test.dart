@@ -4,20 +4,22 @@
 // Check that we cannot use a pseudo keyword at the class level code.
 
 // Pseudo keywords are not allowed to be used as class names.
-class abstract { } //   //# 01: syntax error
-class as { } //         //# 19: syntax error
-class dynamic { } //    //# 04: compile-time error
-class export { } //     //# 17: syntax error
-class external { } //   //# 20: syntax error
-class factory { } //    //# 05: syntax error
-class get { } //        //# 06: syntax error
-class implements { } // //# 07: syntax error
-class import { } //     //# 08: syntax error
-class library { } //    //# 10: syntax error
-class operator { } //   //# 12: syntax error
-class part { } //       //# 18: syntax error
-class set { } //        //# 13: syntax error
-class static { } //     //# 15: syntax error
-class typedef { } //    //# 16: syntax error
+class abstract { } //   //# abstract: syntax error
+class as { } //         //# as: syntax error
+class dynamic { } //    //# dynamic: compile-time error
+class export { } //     //# export: syntax error
+class external { } //   //# external: syntax error
+class factory { } //    //# factory: syntax error
+class get { } //        //# get: syntax error
+class interface { } //  //# interface: syntax error
+class implements { } // //# implements: syntax error
+class import { } //     //# import: syntax error
+class mixin { } //      //# mixin: syntax error
+class library { } //    //# library: syntax error
+class operator { } //   //# operator: syntax error
+class part { } //       //# part: syntax error
+class set { } //        //# set: syntax error
+class static { } //     //# static: syntax error
+class typedef { } //    //# typedef: syntax error
 
 main() {}

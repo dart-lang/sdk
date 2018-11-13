@@ -12,27 +12,27 @@ import "dart:io";
 import "dart:isolate";
 part "testing_server.dart";
 
-const CONNECTIONS = 200;
+const connectionsCount = 200;
 
 class SocketManyConnectionsTest {
   SocketManyConnectionsTest.start()
       : _connections = 0,
-        _sockets = new List<Socket>(CONNECTIONS) {
+        _sockets = new List<Socket>(connectionsCount) {
     initialize();
   }
 
   void run() {
     void connectHandler() {
       _connections++;
-      if (_connections == CONNECTIONS) {
-        for (int i = 0; i < CONNECTIONS; i++) {
+      if (_connections == connectionsCount) {
+        for (int i = 0; i < connectionsCount; i++) {
           _sockets[i].destroy();
         }
         close();
       }
     }
 
-    for (int i = 0; i < CONNECTIONS; i++) {
+    for (int i = 0; i < connectionsCount; i++) {
       Socket.connect(TestingServer.HOST, _port).then((socket) {
         Expect.isNotNull(socket);
         _sockets[i] = socket;

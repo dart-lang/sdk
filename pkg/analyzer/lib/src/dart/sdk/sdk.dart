@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.sdk2;
 
 import 'dart:collection';
 import 'dart:convert';
@@ -163,8 +161,7 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   PackageBundle getLinkedBundle() {
     if (_useSummary) {
-      bool strongMode = _analysisOptions?.strongMode ?? false;
-      _sdkBundle ??= getSummarySdkBundle(strongMode);
+      _sdkBundle ??= getSummarySdkBundle();
       return _sdkBundle;
     }
     return null;
@@ -180,7 +177,7 @@ abstract class AbstractDartSdk implements DartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
-  PackageBundle getSummarySdkBundle(bool strongMode);
+  PackageBundle getSummarySdkBundle();
 
   Source internalMapDartUri(String dartUri) {
     // TODO(brianwilkerson) Figure out how to unify the implementations in the
@@ -299,8 +296,8 @@ class EmbedderSdk extends AbstractDartSdk {
   String getRelativePathFromFile(File file) => file.path;
 
   @override
-  PackageBundle getSummarySdkBundle(bool strongMode) {
-    String name = strongMode ? 'strong.sum' : 'spec.sum';
+  PackageBundle getSummarySdkBundle() {
+    String name = 'strong.sum';
     File file = _embedderYamlLibFolder.parent.getChildAssumingFile(name);
     try {
       if (file.exists) {
@@ -583,9 +580,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
-  PackageBundle getSummarySdkBundle(bool strongMode) {
+  PackageBundle getSummarySdkBundle() {
     String rootPath = directory.path;
-    String name = strongMode ? 'strong.sum' : 'spec.sum';
+    String name = 'strong.sum';
     String path =
         resourceProvider.pathContext.join(rootPath, 'lib', '_internal', name);
     try {
@@ -797,7 +794,7 @@ class SdkExtensionFinder {
   void _processSdkExt(String sdkExtJSON, Folder libDir) {
     var sdkExt;
     try {
-      sdkExt = JSON.decode(sdkExtJSON);
+      sdkExt = json.decode(sdkExtJSON);
     } catch (e) {
       return;
     }

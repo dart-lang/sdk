@@ -412,7 +412,7 @@ main() {
 ''');
   }
 
-  test_createChange_parameter() async {
+  test_createChange_parameter_named() async {
     await indexTestUnit('''
 myFunction({int test}) {
   test = 1;
@@ -447,7 +447,7 @@ class A {
   A({test});
 }
 ''');
-    await indexUnit('/test2.dart', '''
+    await indexUnit('/project/test2.dart', '''
 import 'test.dart';
 main() {
   new A(test: 2);
@@ -463,7 +463,7 @@ class A {
   A({newName});
 }
 ''');
-    assertFileChangeResult('/test2.dart', '''
+    assertFileChangeResult('/project/test2.dart', '''
 import 'test.dart';
 main() {
   new A(newName: 2);
@@ -472,7 +472,7 @@ main() {
   }
 
   test_createChange_parameter_named_updateHierarchy() async {
-    await indexUnit('/test2.dart', '''
+    await indexUnit('/project/test2.dart', '''
 library test2;
 class A {
   void foo({int test: 1}) {
@@ -516,7 +516,7 @@ class C extends A {
   }
 }
 ''');
-    assertFileChangeResult('/test2.dart', '''
+    assertFileChangeResult('/project/test2.dart', '''
 library test2;
 class A {
   void foo({int newName: 1}) {
@@ -527,6 +527,35 @@ class B extends A {
   void foo({int newName: 2}) {
     print(newName);
   }
+}
+''');
+  }
+
+  test_createChange_parameter_optionalPositional() async {
+    await indexTestUnit('''
+myFunction([int test]) {
+  test = 1;
+  test += 2;
+  print(test);
+}
+main() {
+  myFunction(2);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test]) {');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+myFunction([int newName]) {
+  newName = 1;
+  newName += 2;
+  print(newName);
+}
+main() {
+  myFunction(2);
 }
 ''');
   }

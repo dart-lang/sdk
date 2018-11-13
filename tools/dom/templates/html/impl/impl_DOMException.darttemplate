@@ -41,7 +41,5 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return errorName;
   }
 $!MEMBERS
-  @DomName('DOMException.toString')
-  @DocsEditable()
   String toString() => JS('String', 'String(#)', this);
 }

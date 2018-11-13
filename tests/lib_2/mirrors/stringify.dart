@@ -16,7 +16,8 @@ name(DeclarationMirror mirror) {
 stringifyMap(Map map) {
   var buffer = new StringBuffer();
   bool first = true;
-  for (String key in map.keys.map(MirrorSystem.getName).toList()..sort()) {
+  var names = map.keys.map((s) => MirrorSystem.getName(s)).toList()..sort();
+  for (String key in names) {
     if (!first) buffer.write(', ');
     first = false;
     buffer.write(key);
@@ -116,7 +117,7 @@ stringifyMethod(MethodMirror method) {
 
 stringifyDependencies(LibraryMirror l) {
   n(s) => s is Symbol ? MirrorSystem.getName(s) : s;
-  compareDep(a, b) {
+  int compareDep(a, b) {
     if (a.targetLibrary == b.targetLibrary) {
       if ((a.prefix != null) && (b.prefix != null)) {
         return n(a.prefix).compareTo(n(b.prefix));
@@ -127,8 +128,8 @@ stringifyDependencies(LibraryMirror l) {
         .compareTo(n(b.targetLibrary.simpleName));
   }
 
-  compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));
-  compareFirst(a, b) => a[0].compareTo(b[0]);
+  int compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));
+  int compareFirst(a, b) => a[0].compareTo(b[0]);
   sortBy(c, p) => new List.from(c)..sort(p);
 
   var buffer = new StringBuffer();

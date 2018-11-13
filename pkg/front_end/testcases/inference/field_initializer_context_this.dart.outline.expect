@@ -4,10 +4,10 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field core::int x;
-  constructor •() → void
+  constructor •() → self::C
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   ;
 static method main() → dynamic
   ;

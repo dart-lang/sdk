@@ -4,26 +4,40 @@
 
 library fasta.codes;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart'
+    show Constant, DartType, demangleMixinApplicationName;
 
 import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
 
+import '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
 import '../scanner/token.dart' show Token;
+
+import 'severity.dart' show Severity;
 
 import 'util/relativize.dart' as util show relativizeUri;
 
 part 'fasta_codes_generated.dart';
 
+const int noLength = 1;
+
 class Code<T> {
   final String name;
 
+  /// The unique positive integer associated with this code,
+  /// or `-1` if none. This index is used when translating
+  /// this error to its corresponding Analyzer error.
+  final int index;
+
   final Template<T> template;
 
-  final String analyzerCode;
+  final List<String> analyzerCodes;
 
-  final String dart2jsCode;
+  final Severity severity;
 
-  const Code(this.name, this.template, {this.analyzerCode, this.dart2jsCode});
+  const Code(this.name, this.template,
+      {int index, this.analyzerCodes, this.severity: Severity.error})
+      : this.index = index ?? -1;
 
   String toString() => name;
 }
@@ -39,8 +53,12 @@ class Message {
 
   const Message(this.code, {this.message, this.tip, this.arguments});
 
-  LocatedMessage withLocation(Uri uri, int charOffset) {
-    return new LocatedMessage(uri, charOffset, this);
+  LocatedMessage withLocation(Uri uri, int charOffset, int length) {
+    return new LocatedMessage(uri, charOffset, length, this);
+  }
+
+  LocatedMessage withoutLocation() {
+    return new LocatedMessage(null, -1, noLength, this);
   }
 }
 
@@ -50,15 +68,25 @@ class MessageCode extends Code<Null> implements Message {
   final String tip;
 
   const MessageCode(String name,
-      {String analyzerCode, String dart2jsCode, this.message, this.tip})
-      : super(name, null, analyzerCode: analyzerCode, dart2jsCode: dart2jsCode);
+      {int index,
+      List<String> analyzerCodes,
+      Severity severity: Severity.error,
+      this.message,
+      this.tip})
+      : super(name, null,
+            index: index, analyzerCodes: analyzerCodes, severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 
   Code get code => this;
 
-  LocatedMessage withLocation(Uri uri, int charOffset) {
-    return new LocatedMessage(uri, charOffset, this);
+  @override
+  LocatedMessage withLocation(Uri uri, int charOffset, int length) {
+    return new LocatedMessage(uri, charOffset, length, this);
+  }
+
+  LocatedMessage withoutLocation() {
+    return new LocatedMessage(null, -1, noLength, this);
   }
 }
 
@@ -77,9 +105,12 @@ class LocatedMessage implements Comparable<LocatedMessage> {
 
   final int charOffset;
 
+  final int length;
+
   final Message messageObject;
 
-  const LocatedMessage(this.uri, this.charOffset, this.messageObject);
+  const LocatedMessage(
+      this.uri, this.charOffset, this.length, this.messageObject);
 
   Code get code => messageObject.code;
 
@@ -96,6 +127,60 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     if (result != 0) return result;
     return message.compareTo(message);
   }
+
+  FormattedMessage withFormatting(String formatted, int line, int column,
+      Severity severity, List<FormattedMessage> relatedInformation) {
+    return new FormattedMessage(
+        this, formatted, line, column, severity, relatedInformation);
+  }
+}
+
+class FormattedMessage implements DiagnosticMessage {
+  final LocatedMessage locatedMessage;
+
+  final String formatted;
+
+  final int line;
+
+  final int column;
+
+  @override
+  final Severity severity;
+
+  final List<FormattedMessage> relatedInformation;
+
+  const FormattedMessage(this.locatedMessage, this.formatted, this.line,
+      this.column, this.severity, this.relatedInformation);
+
+  Code get code => locatedMessage.code;
+
+  String get message => locatedMessage.message;
+
+  String get tip => locatedMessage.tip;
+
+  Map<String, dynamic> get arguments => locatedMessage.arguments;
+
+  Uri get uri => locatedMessage.uri;
+
+  int get charOffset => locatedMessage.charOffset;
+
+  int get length => locatedMessage.length;
+
+  @override
+  Iterable<String> get ansiFormatted sync* {
+    yield formatted;
+    if (relatedInformation != null) {
+      for (FormattedMessage m in relatedInformation) {
+        yield m.formatted;
+      }
+    }
+  }
+
+  @override
+  Iterable<String> get plainTextFormatted {
+    // TODO(ahe): Implement this correctly.
+    return ansiFormatted;
+  }
 }
 
 String relativizeUri(Uri uri) {
@@ -108,5 +193,4 @@ String relativizeUri(Uri uri) {
   return util.relativizeUri(uri, base: Uri.base);
 }
 
-typedef Message SummaryTemplate(
-    int count, int count2, String string, String string2, String string3);
+typedef SummaryTemplate = Message Function(int, int, num, num, num);

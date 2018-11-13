@@ -1,17 +1,26 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/io.dart';
-import 'package:front_end/src/fasta/severity.dart' show Severity;
-import 'package:front_end/src/scanner/token.dart' as analyzer;
+import 'dart:async' show Future;
+
+import 'dart:convert' show utf8;
+
+import 'dart:io' show File;
+
+import '../../base/instrumentation.dart';
+
+import '../../scanner/token.dart' as analyzer;
+
+import '../compiler_context.dart' show CompilerContext;
+
+import '../messages.dart' show noLength, templateUnspecified;
+
+import '../scanner.dart' show ScannerResult, Token, scan;
+
+import '../scanner/io.dart' show readBytesFromFile;
+
+import '../severity.dart' show Severity;
 
 /// Implementation of [Instrumentation] which checks property/value pairs
 /// against expectations encoded in source files using "/*@...*/" comments.
@@ -30,7 +39,6 @@ class ValidatingInstrumentation implements Instrumentation {
       'target',
     ],
     'checks': const [
-      'callKind',
       'covariance',
       'checkGetterReturn',
       'checkReturn',
@@ -98,7 +106,7 @@ class ValidatingInstrumentation implements Instrumentation {
     var bytes = (await file.readAsBytes()).toList();
     int convertOffset(int offset) {
       if (offsetsCountCharacters) {
-        return UTF8.encode(UTF8.decode(bytes).substring(0, offset)).length;
+        return utf8.encode(utf8.decode(bytes).substring(0, offset)).length;
       } else {
         return offset;
       }
@@ -109,7 +117,7 @@ class ValidatingInstrumentation implements Instrumentation {
     fixes.sort((a, b) => a.offset.compareTo(b.offset));
     for (var fix in fixes.reversed) {
       bytes.replaceRange(convertOffset(fix.offset),
-          convertOffset(fix.offset + fix.length), UTF8.encode(fix.replacement));
+          convertOffset(fix.offset + fix.length), utf8.encode(fix.replacement));
     }
     await file.writeAsBytes(bytes);
   }
@@ -219,7 +227,7 @@ class ValidatingInstrumentation implements Instrumentation {
     return CompilerContext.current.format(
         templateUnspecified
             .withArguments('$desc${stackTrace == null ? '' : '\n$stackTrace'}')
-            .withLocation(uri, offset),
+            .withLocation(uri, offset, noLength),
         Severity.internalProblem);
   }
 

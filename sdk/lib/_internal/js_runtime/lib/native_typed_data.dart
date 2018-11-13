@@ -379,8 +379,9 @@ class NativeTypedData implements TypedData {
 // because passing unvalidated values to the native constructors can cause
 // conversions or create views.
 int _checkLength(length) {
-  if (length is! int) throw new ArgumentError('Invalid length $length');
-  return length;
+  return length is int
+      ? length
+      : throw new ArgumentError('Invalid length $length');
 }
 
 // Validates `.view` constructor arguments.  Checking is necessary because
@@ -450,7 +451,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  num getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
+  double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat32(byteOffset, Endian.little == endian);
 
   @JSName('getFloat32')
@@ -465,7 +466,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  num getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
+  double getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat64(byteOffset, Endian.little == endian);
 
   @JSName('getFloat64')
@@ -769,12 +770,12 @@ abstract class NativeTypedArray extends NativeTypedData
 
 abstract class NativeTypedArrayOfDouble extends NativeTypedArray
     with ListMixin<double>, FixedLengthListMixin<double> {
-  num operator [](int index) {
+  double operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('num', '#[#]', this, index);
   }
 
-  void operator []=(int index, num value) {
+  void operator []=(int index, double value) {
     _checkValidIndex(index, this, this.length);
     JS('void', '#[#] = #', this, index, value);
   }

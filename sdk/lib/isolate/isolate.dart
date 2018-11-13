@@ -11,6 +11,8 @@
  * To use this library in your code:
  *
  *     import 'dart:isolate';
+ *
+ * {@category VM}
  */
 library dart.isolate;
 
@@ -24,6 +26,7 @@ part "capability.dart";
 class IsolateSpawnException implements Exception {
   /** Error message reported by the spawn operation. */
   final String message;
+  @pragma("vm:entry-point")
   IsolateSpawnException(this.message);
   String toString() => "IsolateSpawnException: $message";
 }
@@ -68,12 +71,8 @@ class IsolateSpawnException implements Exception {
 class Isolate {
   /** Argument to `ping` and `kill`: Ask for immediate action. */
   static const int immediate = 0;
-  /** Deprecated. Use [immediate] instead. */
-  static const int IMMEDIATE = immediate;
   /** Argument to `ping` and `kill`: Ask for action before the next event. */
   static const int beforeNextEvent = 1;
-  /** Deprecated. Use [beforeNextEvent] instead. */
-  static const int BEFORE_NEXT_EVENT = beforeNextEvent;
 
   /**
    * Control port used to send control messages to the isolate.
@@ -156,17 +155,16 @@ class Isolate {
   external static Isolate get current;
 
   /**
-   * Returns the package root of the current isolate, if any.
+   * The location of the package configuration of the current isolate, if any.
    *
-   * If the isolate is using a [packageConfig] or the isolate has not been
-   * setup for package resolution, this getter returns `null`, otherwise it
-   * returns the package root - a directory that package URIs are resolved
-   * against.
+   * This getter returns `null`, as the `packages/` directory is not supported
+   * in Dart 2.
    */
+  @Deprecated('packages/ directory resolution is not supported in Dart 2.')
   external static Future<Uri> get packageRoot;
 
   /**
-   * Returns the package root of the current isolate, if any.
+   * The package root of the current isolate, if any.
    *
    * If the isolate is using a [packageRoot] or the isolate has not been
    * setup for package resolution, this getter returns `null`, otherwise it
@@ -269,10 +267,13 @@ class Isolate {
    * before those methods can complete.
    *
    * If the [checked] parameter is set to `true` or `false`,
-   * the new isolate will run code in checked mode,
-   * respectively in production mode, if possible.
-   * If the parameter is omitted, the new isolate will inherit the
-   * value from the current isolate.
+   * the new isolate will run code in checked mode (enabling asserts and type
+   * checks), respectively in production mode (disabling asserts and type
+   * checks), if possible. If the parameter is omitted, the new isolate will
+   * inherit the value from the current isolate.
+   *
+   * In Dart2 strong mode, the `checked` parameter only controls asserts, but
+   * not type checks.
    *
    * It may not always be possible to honor the `checked` parameter.
    * If the isolate code was pre-compiled, it may not be possible to change
@@ -280,16 +281,6 @@ class Isolate {
    * In that case, the `checked` parameter is ignored.
    *
    * WARNING: The [checked] parameter is not implemented on all platforms yet.
-   *
-   * If the [packageRoot] parameter is provided, it is used to find the location
-   * of package sources in the spawned isolate.
-   *
-   * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
-   * a directory. If it doesn't end in a slash, one will be added before
-   * using the URI, and any query or fragment parts are ignored.
-   * Package imports (like `"package:foo/bar.dart"`) in the new isolate are
-   * resolved against this location, as by
-   * `packageRoot.resolve("foo/bar.dart")`.
    *
    * If the [packageConfig] parameter is provided, then it is used to find the
    * location of a package resolution configuration file for the spawned
@@ -312,14 +303,17 @@ class Isolate {
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message,
+      Uri uri,
+      List<String> args,
+      var message,
       {bool paused: false,
       SendPort onExit,
       SendPort onError,
       bool errorsAreFatal,
       bool checked,
       Map<String, String> environment,
-      Uri packageRoot,
+      @Deprecated('The packages/ dir is not supported in Dart 2')
+          Uri packageRoot,
       Uri packageConfig,
       bool automaticPackageResolution: false});
 
@@ -560,8 +554,9 @@ class Isolate {
     StreamController controller;
     RawReceivePort port;
     void handleError(message) {
-      String errorDescription = message[0];
-      String stackDescription = message[1];
+      List listMessage = message;
+      String errorDescription = listMessage[0];
+      String stackDescription = listMessage[1];
       var error = new RemoteError(errorDescription, stackDescription);
       controller.addError(error, error.stackTrace);
     }

@@ -4,8 +4,9 @@
 # Sections in this file should contain "$runtime == flutter".
 # What tests does this comment apply to?  Please add it to each test's line
 # or file an issue an put it there, and add the issue to the relevant tests:
-# flutter uses --error_on_bad_type, --error_on_bad_override
-# and --await_is_keyword so the following tests fail with a Compilation Error
+# flutter uses --error_on_bad_type and --await_is_keyword so the following tests
+# fail with a Compilation Error.
+# Note that --error_on_bad_override is ignored in strong mode.
 
 [ $runtime == flutter ]
 async_await_syntax_test/a05c: CompileTimeError
@@ -84,7 +85,6 @@ factory6_test/00: CompileTimeError
 field_increment_bailout_test: CompileTimeError
 field_override_test/01: CompileTimeError
 function_malformed_result_type_test: CompileTimeError
-generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 internal_library_test/01: CompileTimeError
@@ -102,7 +102,6 @@ is_malformed_type_test/98: CompileTimeError
 is_malformed_type_test/99: CompileTimeError
 is_not_class2_test: RuntimeError
 issue21079_test: CompileTimeError
-issue_25671b_test/01: CompileTimeError
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: Pass
 list_literal_syntax_test/01: CompileTimeError
@@ -234,4 +233,3 @@ large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $compiler == none && $runtime == flutter && $checked ]
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392. The VM doesn't enforce that potentially const expressions are actually const expressions when the constructor is called with `const`.
-

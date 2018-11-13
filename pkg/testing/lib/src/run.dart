@@ -14,17 +14,22 @@ import 'dart:isolate' show Isolate, ReceivePort;
 
 import 'test_root.dart' show TestRoot;
 
-import 'test_description.dart' show TestDescription;
-
 import 'error_handling.dart' show withErrorHandling;
 
 import 'chain.dart' show CreateContext;
 
-import '../testing.dart' show Chain, ChainContext, TestDescription, listTests;
+import '../testing.dart'
+    show Chain, ChainContext, FileBasedTestDescription, listTests;
 
 import 'analyze.dart' show Analyze;
 
-import 'log.dart' show isVerbose, logMessage, logNumberedLines, splitLines;
+import 'log.dart'
+    show
+        enableVerboseOutput,
+        isVerbose,
+        logMessage,
+        logNumberedLines,
+        splitLines;
 
 import 'suite.dart' show Dart, Suite;
 
@@ -55,6 +60,7 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
     TestRoot testRoot =
         await computeTestRoot(configurationPath, Platform.script);
     CommandLine cl = CommandLine.parse(arguments);
+    if (cl.verbose) enableVerboseOutput();
     for (Chain suite in testRoot.toolChains) {
       if (Platform.script == suite.source) {
         print("Running suite ${suite.name}...");
@@ -164,7 +170,7 @@ class SuiteRunner {
     StringBuffer chain = new StringBuffer();
     bool hasRunnableTests = false;
 
-    await for (TestDescription description in listDescriptions()) {
+    await for (FileBasedTestDescription description in listDescriptions()) {
       hasRunnableTests = true;
       description.writeImportOn(imports);
       description.writeClosureOn(dart);
@@ -207,8 +213,10 @@ ${imports.toString().trim()}
 
 Future<Null> main() async {
   if ($isVerbose) enableVerboseOutput();
-  Map<String, String> environment = json.decode('${json.encode(environment)}');
-  Set<String> selectors = json.decode('${json.encode(selectors)}').toSet();
+  Map<String, String> environment =
+      new Map<String, String>.from(json.decode('${json.encode(environment)}'));
+  Set<String> selectors =
+      new Set<String>.from(json.decode('${json.encode(selectors)}'));
   await runTests(<String, Function> {
       ${splitLines(dart.toString().trim()).join('      ')}
   });
@@ -228,9 +236,9 @@ Future<Null> main() async {
     return hasAnalyzerSuites;
   }
 
-  Stream<TestDescription> listDescriptions() async* {
+  Stream<FileBasedTestDescription> listDescriptions() async* {
     for (Dart suite in suites.where((Suite suite) => suite is Dart)) {
-      await for (TestDescription description
+      await for (FileBasedTestDescription description
           in listTests(<Uri>[suite.uri], pattern: "")) {
         testUris.add(await Isolate.resolvePackageUri(description.uri));
         if (shouldRunSuite(suite)) {

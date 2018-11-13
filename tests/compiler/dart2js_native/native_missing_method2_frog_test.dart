@@ -33,8 +33,8 @@ class C {
   }
 }
 
-typedContext() {
-  A a = makeA();
+inferredContext() {
+  dynamic a = makeA();
   Expect.throws(() => a.foo(), (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo, (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo = 4, (e) => e is NoSuchMethodError);
@@ -52,6 +52,6 @@ main() {
   setup();
   confuse(new B()).foo();
   confuse(new C()).foo(1);
-  typedContext();
+  inferredContext();
   untypedContext();
 }

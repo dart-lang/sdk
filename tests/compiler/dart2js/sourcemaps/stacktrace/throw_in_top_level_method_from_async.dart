@@ -10,6 +10,7 @@ main() {
 
 @NoInline()
 test1() async {
+  await null;
   /*1:test1*/ test2();
 }
 

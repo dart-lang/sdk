@@ -1,0 +1,9 @@
+pkg/front_end/testcases/rasta/issue_000004.dart:10:7: Context: Write to f@273
+    f *= n;
+      ^^
+pkg/front_end/testcases/rasta/issue_000004.dart:18:7: Context: Write to f@359
+    f *= n;
+      ^^
+pkg/front_end/testcases/rasta/issue_000004.dart:27:7: Context: Write to f@459
+    f *= global;
+      ^^

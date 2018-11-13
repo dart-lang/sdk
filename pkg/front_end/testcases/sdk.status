@@ -2,7 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-language/bad_constructor_test/06_generated: Crash
+language/branches_test: Crash
+language/operator_test: Crash
+language/prefix5_negative_test: Crash
+language_2/branches_test: Crash
+language_2/operator_test: Crash
+language_2/prefix5_negative_test: Crash
 
 language/async_test/constructor4_generated: VerificationError
 language/const_factory_with_body_test/01_generated: VerificationError
@@ -10,7 +15,6 @@ language/const_instance_field_test/01_generated: VerificationError
 language/constructor10_test/00_generated: VerificationError
 language/constructor10_test/01_generated: VerificationError
 language/constructor10_test/02_generated: VerificationError
-language/deferred_closurize_load_library_test: VerificationError
 language/enum_syntax_test/20_generated: VerificationError
 language/enum_syntax_test/22_generated: VerificationError
 language/malformed_inheritance_test/03_generated: VerificationError
@@ -46,8 +50,6 @@ language_2/const_instance_field_test/01_generated: VerificationError
 language_2/constructor10_test/00_generated: VerificationError
 language_2/constructor10_test/01_generated: VerificationError
 language_2/constructor10_test/02_generated: VerificationError
-language_2/covariant_subtyping_test: VerificationError
-language_2/deferred_closurize_load_library_test: VerificationError
 language_2/enum_syntax_test/20_generated: VerificationError
 language_2/enum_syntax_test/22_generated: VerificationError
 language_2/malformed_inheritance_test/02_generated: VerificationError

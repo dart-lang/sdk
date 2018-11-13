@@ -648,7 +648,9 @@ class CodeLocation {
   final String name;
   final int offset;
 
-  CodeLocation(this.uri, this.name, this.offset);
+  CodeLocation(this.uri, this.name, this.offset) {
+    assert(uri != null);
+  }
 
   String toString() => '$uri:$name:$offset';
 

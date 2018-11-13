@@ -37,6 +37,8 @@ Future main(List<String> args) async {
   List<Uri> statusFiles = await findStatusFiles(testDirectory);
   Directory pkgDirectory = findTestDirectory('pkg');
   statusFiles.addAll(await findStatusFiles(pkgDirectory));
+  Directory runtimeDirectory = findTestDirectory('runtime');
+  statusFiles.addAll(await findStatusFiles(runtimeDirectory));
   Map<String, List<StatusFile>> statusMap = <String, List<StatusFile>>{};
   for (Uri uri in statusFiles) {
     Map<String, StatusFile> currentMap = <String, StatusFile>{};

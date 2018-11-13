@@ -100,7 +100,7 @@ static char* NormalizeEscapes(const char* str, intptr_t len) {
         buffer[buffer_pos] = escaped_value;
         buffer_pos++;
       } else {
-        OS::SNPrint(buffer + buffer_pos, 4, "%%%02X", escaped_value);
+        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X", escaped_value);
         buffer_pos += 3;
       }
       pos += 3;
@@ -114,7 +114,7 @@ static char* NormalizeEscapes(const char* str, intptr_t len) {
         buffer_pos++;
       } else {
         // Escape funky characters.
-        OS::SNPrint(buffer + buffer_pos, 4, "%%%02X", c);
+        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X", c);
         buffer_pos += 3;
       }
       pos++;

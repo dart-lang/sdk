@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,6 +25,8 @@ import 'package:analyzer_plugin/utilities/generator.dart';
 abstract class DartFoldingMixin implements FoldingMixin {
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(path);
     return new DartFoldingRequestImpl(resourceProvider, result);
   }
@@ -53,13 +55,15 @@ abstract class FoldingMixin implements ServerPlugin {
   Future<FoldingRequest> getFoldingRequest(String path);
 
   @override
-  Future<Null> sendFoldingNotification(String path) async {
+  Future<void> sendFoldingNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       FoldingRequest request = await getFoldingRequest(path);
       FoldingGenerator generator =
           new FoldingGenerator(getFoldingContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateFoldingNotification(request);
+          generator.generateFoldingNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

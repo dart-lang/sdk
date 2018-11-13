@@ -5,17 +5,28 @@
 library js_backend.interceptor_data;
 
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart'
+    show CommonElements, KCommonElements, KElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
-import '../types/types.dart' show TypeMask;
+import '../serialization/serialization.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'namer.dart';
 import 'native_data.dart';
 
 abstract class InterceptorData {
+  /// Deserializes a [InterceptorData] object from [source].
+  factory InterceptorData.readFromDataSource(
+      DataSource source,
+      NativeData nativeData,
+      CommonElements commonElements) = InterceptorDataImpl.readFromDataSource;
+
+  /// Serializes this [InterceptorData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [cls] is an intercepted class.
   bool isInterceptedClass(ClassEntity element);
 
@@ -25,7 +36,7 @@ abstract class InterceptorData {
   bool isInterceptedName(String name);
   bool isInterceptedSelector(Selector selector);
   bool isInterceptedMixinSelector(
-      Selector selector, TypeMask mask, ClosedWorld closedWorld);
+      Selector selector, AbstractValue mask, JClosedWorld closedWorld);
   Iterable<ClassEntity> get interceptedClasses;
   bool isMixedIntoInterceptedClass(ClassEntity element);
 
@@ -33,12 +44,12 @@ abstract class InterceptorData {
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassEntity> getInterceptedClassesOn(
-      String name, ClosedWorld closedWorld);
+      String name, JClosedWorld closedWorld);
 
   /// Whether the compiler can use the native `instanceof` check to test for
   /// instances of [type]. This is true for types that are not used as mixins or
   /// interfaces.
-  bool mayGenerateInstanceofCheck(DartType type, ClosedWorld closedWorld);
+  bool mayGenerateInstanceofCheck(DartType type, JClosedWorld closedWorld);
 }
 
 abstract class InterceptorDataBuilder {
@@ -48,6 +59,10 @@ abstract class InterceptorDataBuilder {
 }
 
 class InterceptorDataImpl implements InterceptorData {
+  /// Tag used for identifying serialized [InterceptorData] objects in a
+  /// debugging data stream.
+  static const String tag = 'interceptor-data';
+
   final NativeBasicData _nativeData;
   final CommonElements _commonElements;
 
@@ -88,6 +103,40 @@ class InterceptorDataImpl implements InterceptorData {
       this.interceptedClasses,
       this.classesMixedIntoInterceptedClasses);
 
+  factory InterceptorDataImpl.readFromDataSource(
+      DataSource source, NativeData nativeData, CommonElements commonElements) {
+    source.begin(tag);
+    int interceptedMembersCount = source.readInt();
+    Map<String, Set<MemberEntity>> interceptedMembers = {};
+    for (int i = 0; i < interceptedMembersCount; i++) {
+      String name = source.readString();
+      Set<MemberEntity> members = source.readMembers().toSet();
+      interceptedMembers[name] = members;
+    }
+    Set<ClassEntity> interceptedClasses = source.readClasses().toSet();
+    Set<ClassEntity> classesMixedIntoInterceptedClasses =
+        source.readClasses().toSet();
+    source.end(tag);
+    return new InterceptorDataImpl(
+        nativeData,
+        commonElements,
+        interceptedMembers,
+        interceptedClasses,
+        classesMixedIntoInterceptedClasses);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(interceptedMembers.length);
+    interceptedMembers.forEach((String name, Set<MemberEntity> members) {
+      sink.writeString(name);
+      sink.writeMembers(members);
+    });
+    sink.writeClasses(interceptedClasses);
+    sink.writeClasses(classesMixedIntoInterceptedClasses);
+    sink.end(tag);
+  }
+
   bool isInterceptedMethod(MemberEntity element) {
     if (!element.isInstanceMember) return false;
     // TODO(johnniwinther): Avoid this hack.
@@ -117,7 +166,7 @@ class InterceptorDataImpl implements InterceptorData {
   /// into an intercepted class.  These selectors are not eligible for the
   /// 'dummy explicit receiver' optimization.
   bool isInterceptedMixinSelector(
-      Selector selector, TypeMask mask, ClosedWorld closedWorld) {
+      Selector selector, AbstractValue mask, JClosedWorld closedWorld) {
     Set<MemberEntity> elements =
         _interceptedMixinElements.putIfAbsent(selector.name, () {
       Set<MemberEntity> elements = interceptedMembers[selector.name];
@@ -132,7 +181,8 @@ class InterceptorDataImpl implements InterceptorData {
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
-          (mask == null || mask.canHit(element, selector, closedWorld));
+          (mask == null ||
+              closedWorld.abstractValueDomain.canHit(mask, element, selector));
     });
   }
 
@@ -152,7 +202,7 @@ class InterceptorDataImpl implements InterceptorData {
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassEntity> getInterceptedClassesOn(
-      String name, ClosedWorld closedWorld) {
+      String name, JClosedWorld closedWorld) {
     Set<MemberEntity> intercepted = interceptedMembers[name];
     if (intercepted == null) return _noClasses;
     return _interceptedClassesCache.putIfAbsent(name, () {
@@ -177,11 +227,12 @@ class InterceptorDataImpl implements InterceptorData {
   }
 
   Set<ClassEntity> nativeSubclassesOfMixin(
-      ClassEntity mixin, ClosedWorld closedWorld) {
+      ClassEntity mixin, JClosedWorld closedWorld) {
     Iterable<ClassEntity> uses = closedWorld.mixinUsesOf(mixin);
     Set<ClassEntity> result = null;
     for (ClassEntity use in uses) {
-      closedWorld.forEachStrictSubclassOf(use, (ClassEntity subclass) {
+      closedWorld.classHierarchy.forEachStrictSubclassOf(use,
+          (ClassEntity subclass) {
         if (_nativeData.isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassEntity>();
           result.add(subclass);
@@ -202,22 +253,23 @@ class InterceptorDataImpl implements InterceptorData {
   bool isMixedIntoInterceptedClass(ClassEntity element) =>
       classesMixedIntoInterceptedClasses.contains(element);
 
-  bool mayGenerateInstanceofCheck(DartType type, ClosedWorld closedWorld) {
+  bool mayGenerateInstanceofCheck(DartType type, JClosedWorld closedWorld) {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.
 
     if (!type.treatAsRaw) return false;
+    if (type.isFutureOr) return false;
     InterfaceType interfaceType = type;
     ClassEntity classElement = interfaceType.element;
     if (isInterceptedClass(classElement)) return false;
-    return closedWorld.hasOnlySubclasses(classElement);
+    return closedWorld.classHierarchy.hasOnlySubclasses(classElement);
   }
 }
 
 class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final NativeBasicData _nativeData;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
+  final KElementEnvironment _elementEnvironment;
+  final KCommonElements _commonElements;
 
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to
@@ -252,8 +304,8 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
       if (member.name == Identifiers.call) return;
       // All methods on [Object] are shadowed by [Interceptor].
       if (cls == _commonElements.objectClass) return;
-      Set<MemberEntity> set = _interceptedElements.putIfAbsent(
-          member.name, () => new Set<MemberEntity>());
+      Set<MemberEntity> set =
+          _interceptedElements[member.name] ??= new Set<MemberEntity>();
       set.add(member);
     });
 
@@ -269,8 +321,8 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
           (ClassEntity cls, MemberEntity member) {
         // All methods on [Object] are shadowed by [Interceptor].
         if (cls == _commonElements.objectClass) return;
-        Set<MemberEntity> set = _interceptedElements.putIfAbsent(
-            member.name, () => new Set<MemberEntity>());
+        Set<MemberEntity> set =
+            _interceptedElements[member.name] ??= new Set<MemberEntity>();
         set.add(member);
       });
     }
@@ -310,7 +362,7 @@ class OneShotInterceptorData {
       _specializedGetInterceptors[name];
 
   jsAst.Name registerOneShotInterceptor(
-      Selector selector, Namer namer, ClosedWorld closedWorld) {
+      Selector selector, Namer namer, JClosedWorld closedWorld) {
     Set<ClassEntity> classes =
         _interceptorData.getInterceptedClassesOn(selector.name, closedWorld);
     jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);

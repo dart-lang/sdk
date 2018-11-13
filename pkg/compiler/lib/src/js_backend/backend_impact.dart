@@ -8,6 +8,7 @@ import '../common/names.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
+import '../options.dart' show CompilerOptions;
 import '../universe/selector.dart';
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
@@ -66,7 +67,7 @@ class BackendImpact {
     }
     for (Selector selector in dynamicUses) {
       assert(selector != null);
-      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector, null));
+      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector));
     }
     for (InterfaceType instantiatedType in instantiatedTypes) {
       worldImpactBuilder
@@ -88,14 +89,16 @@ class BackendImpact {
 
 /// The JavaScript backend dependencies for various features.
 class BackendImpacts {
+  final CompilerOptions _options;
   final CommonElements _commonElements;
 
-  BackendImpacts(this._commonElements);
+  BackendImpacts(this._options, this._commonElements);
 
   BackendImpact _getRuntimeTypeArgument;
 
   BackendImpact get getRuntimeTypeArgument {
     return _getRuntimeTypeArgument ??= new BackendImpact(globalUses: [
+      _commonElements.getRuntimeTypeArgumentIntercepted,
       _commonElements.getRuntimeTypeArgument,
       _commonElements.getTypeArgumentByIndex,
     ]);
@@ -125,28 +128,29 @@ class BackendImpacts {
 
   BackendImpact _asyncBody;
 
-  BackendImpact get asyncBody {
-    return _asyncBody ??= new BackendImpact(staticUses: [
-      _commonElements.asyncHelperStart,
-      _commonElements.asyncHelperAwait,
-      _commonElements.asyncHelperReturn,
-      _commonElements.asyncHelperRethrow,
-      _commonElements.syncCompleterConstructor,
-      _commonElements.streamIteratorConstructor,
-      _commonElements.wrapBody
-    ]);
-  }
+  BackendImpact get asyncBody => _asyncBody ??= () {
+        var staticUses = [
+          _commonElements.asyncHelperAwait,
+          _commonElements.asyncHelperReturn,
+          _commonElements.asyncHelperRethrow,
+          _commonElements.streamIteratorConstructor,
+          _commonElements.wrapBody
+        ];
+        if (_options.startAsyncSynchronously) {
+          staticUses.add(_commonElements.asyncHelperStartSync);
+        } else {
+          staticUses.add(_commonElements.asyncHelperStart);
+        }
+        return new BackendImpact(staticUses: staticUses);
+      }();
 
   BackendImpact _syncStarBody;
 
   BackendImpact get syncStarBody {
     return _syncStarBody ??= new BackendImpact(staticUses: [
-      _commonElements.syncStarIterableConstructor,
       _commonElements.endOfIteration,
       _commonElements.yieldStar,
-      _commonElements.syncStarUncaughtError
-    ], instantiatedClasses: [
-      _commonElements.syncStarIterable
+      _commonElements.syncStarUncaughtError,
     ]);
   }
 
@@ -158,11 +162,8 @@ class BackendImpacts {
       _commonElements.streamOfController,
       _commonElements.yieldSingle,
       _commonElements.yieldStar,
-      _commonElements.asyncStarControllerConstructor,
       _commonElements.streamIteratorConstructor,
-      _commonElements.wrapBody
-    ], instantiatedClasses: [
-      _commonElements.asyncStarController
+      _commonElements.wrapBody,
     ]);
   }
 
@@ -447,7 +448,6 @@ class BackendImpacts {
     return _typeVariableExpression ??= new BackendImpact(staticUses: [
       _commonElements.setRuntimeTypeInfo,
       _commonElements.getRuntimeTypeInfo,
-      _commonElements.runtimeTypeToString,
       _commonElements.createRuntimeType
     ], otherImpacts: [
       listValues,
@@ -460,13 +460,6 @@ class BackendImpacts {
 
   BackendImpact get typeCheck {
     return _typeCheck ??= new BackendImpact(otherImpacts: [boolValues]);
-  }
-
-  BackendImpact _checkedModeTypeCheck;
-
-  BackendImpact get checkedModeTypeCheck {
-    return _checkedModeTypeCheck ??=
-        new BackendImpact(staticUses: [_commonElements.throwRuntimeError]);
   }
 
   BackendImpact _malformedTypeCheck;
@@ -497,25 +490,11 @@ class BackendImpacts {
     return _genericIsCheck ??= new BackendImpact(otherImpacts: [intValues]);
   }
 
-  BackendImpact _genericCheckedModeTypeCheck;
-
-  BackendImpact get genericCheckedModeTypeCheck {
-    return _genericCheckedModeTypeCheck ??=
-        new BackendImpact(staticUses: [_commonElements.assertSubtype]);
-  }
-
   BackendImpact _typeVariableTypeCheck;
 
   BackendImpact get typeVariableTypeCheck {
     return _typeVariableTypeCheck ??= new BackendImpact(
         staticUses: [_commonElements.checkSubtypeOfRuntimeType]);
-  }
-
-  BackendImpact _typeVariableCheckedModeTypeCheck;
-
-  BackendImpact get typeVariableCheckedModeTypeCheck {
-    return _typeVariableCheckedModeTypeCheck ??= new BackendImpact(
-        staticUses: [_commonElements.assertSubtypeOfRuntimeType]);
   }
 
   BackendImpact _functionTypeCheck;
@@ -525,11 +504,18 @@ class BackendImpacts {
         new BackendImpact(staticUses: [/*helpers.functionTypeTestMetaHelper*/]);
   }
 
+  BackendImpact _futureOrTypeCheck;
+
+  BackendImpact get futureOrTypeCheck {
+    return _futureOrTypeCheck ??=
+        new BackendImpact(staticUses: [_commonElements.futureOrTest]);
+  }
+
   BackendImpact _nativeTypeCheck;
 
   BackendImpact get nativeTypeCheck {
     return _nativeTypeCheck ??= new BackendImpact(staticUses: [
-      // We will neeed to add the "$is" and "$as" properties on the
+      // We will need to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
       _commonElements.defineProperty
@@ -661,17 +647,6 @@ class BackendImpacts {
         globalUses: [_commonElements.isJsIndexable]);
   }
 
-  BackendImpact _enableTypeAssertions;
-
-  BackendImpact get enableTypeAssertions {
-    return _enableTypeAssertions ??= new BackendImpact(
-        // Register the helper that checks if the expression in an if/while/for
-        // is a boolean.
-        // TODO(johnniwinther): Should this be registered through a [Feature]
-        // instead?
-        globalUses: [_commonElements.boolConversionCheck]);
-  }
-
   BackendImpact _traceHelper;
 
   BackendImpact get traceHelper {
@@ -712,26 +687,11 @@ class BackendImpacts {
   BackendImpact _noSuchMethodSupport;
 
   BackendImpact get noSuchMethodSupport {
-    return _noSuchMethodSupport ??= new BackendImpact(
-        staticUses: [_commonElements.createInvocationMirror],
-        dynamicUses: [Selectors.noSuchMethod_]);
-  }
-
-  BackendImpact _isolateSupport;
-
-  /// Backend impact for isolate support.
-  BackendImpact get isolateSupport {
-    return _isolateSupport ??=
-        new BackendImpact(globalUses: [_commonElements.startRootIsolate]);
-  }
-
-  BackendImpact _isolateSupportForResolution;
-
-  /// Additional backend impact for isolate support in resolution.
-  BackendImpact get isolateSupportForResolution {
-    return _isolateSupportForResolution ??= new BackendImpact(globalUses: [
-      _commonElements.currentIsolate,
-      _commonElements.callInIsolate
+    return _noSuchMethodSupport ??= new BackendImpact(staticUses: [
+      _commonElements.createInvocationMirror,
+      _commonElements.createUnmangledInvocationMirror
+    ], dynamicUses: [
+      Selectors.noSuchMethod_
     ]);
   }
 
@@ -775,4 +735,16 @@ class BackendImpacts {
       _commonElements.typeVariableClass
     ]);
   }
+
+  Map<int, BackendImpact> _genericInstantiation = <int, BackendImpact>{};
+
+  BackendImpact getGenericInstantiation(int typeArgumentCount) =>
+      _genericInstantiation[typeArgumentCount] ??=
+          new BackendImpact(staticUses: [
+        _commonElements.getInstantiateFunction(typeArgumentCount),
+        _commonElements.instantiatedGenericFunctionType,
+        _commonElements.extractFunctionTypeObjectFromInternal,
+      ], instantiatedClasses: [
+        _commonElements.getInstantiationClass(typeArgumentCount),
+      ]);
 }

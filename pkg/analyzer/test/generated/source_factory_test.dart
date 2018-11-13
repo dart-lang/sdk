@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.test.generated.source_factory;
-
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -44,7 +43,7 @@ void runPackageMapTests() {
   ];
 
   Packages createPackageMap(Uri base, String configFileContents) {
-    List<int> bytes = UTF8.encode(configFileContents);
+    List<int> bytes = utf8.encode(configFileContents);
     Map<String, Uri> map = pkgfile.parse(bytes, base);
     return new MapPackages(map);
   }
@@ -117,7 +116,7 @@ quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
           expect(uri, isNull);
         });
         test('Non-package URI', () {
-          var testResolver = new CustomUriResolver(uriPath: 'test_uri');
+          var testResolver = new CustomUriResolver(uriPath: _p('/test.dart'));
           String uri = resolvePackageUri(config: '''
 unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
 ''', uri: 'custom:custom.dart', customResolver: testResolver);
@@ -134,7 +133,7 @@ unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
           expect(
               () => resolvePackageUri(
                   config: 'foo:<:&%>', uri: 'package:foo/bar.dart'),
-              throwsA(new isInstanceOf<FormatException>()));
+              throwsA(new TypeMatcher<FormatException>()));
         });
         test('Valid URI that cannot be further resolved', () {
           String uri = resolvePackageUri(
@@ -160,8 +159,8 @@ unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
 async:${_u('/home/somebody/.pub/cache/async-1.1.0/lib/')}
 quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
 ''',
-              source: new FileSource(resourceProvider.getFile(
-                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
+              source: new FileSource(resourceProvider.getFile(_p(
+                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'))));
           expect(uri, isNotNull);
           expect(uri.toString(), equals('package:unittest/unittest.dart'));
         });
@@ -302,8 +301,8 @@ class SourceFactoryTest {
   }
 
   void test_restoreUri() {
-    File file1 = resourceProvider.getFile("/some/file1.dart");
-    File file2 = resourceProvider.getFile("/some/file2.dart");
+    File file1 = resourceProvider.getFile(_p("/some/file1.dart"));
+    File file2 = resourceProvider.getFile(_p("/some/file2.dart"));
     Source source1 = new FileSource(file1);
     Source source2 = new FileSource(file2);
     Uri expected1 = Uri.parse("file:///my_file.dart");

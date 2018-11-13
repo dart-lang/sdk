@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.sdk.patch;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -30,7 +29,6 @@ class SdkPatcher {
    */
   void patch(
       ResourceProvider resourceProvider,
-      bool strongMode,
       Map<String, List<String>> allPatchPaths,
       AnalysisErrorListener errorListener,
       Source source,
@@ -60,7 +58,7 @@ class SdkPatcher {
             'The patch file ${patchFile.path} for $source does not exist.');
       }
       Source patchSource = patchFile.createSource();
-      CompilationUnit patchUnit = parse(patchSource, strongMode, errorListener);
+      CompilationUnit patchUnit = parse(patchSource, errorListener);
 
       // Prepare for reporting errors.
       _baseDesc = source.toString();
@@ -95,7 +93,7 @@ class SdkPatcher {
   }
 
   String _getLocationDesc3(CompilationUnit unit, int offset) {
-    LineInfo_Location location = unit.lineInfo.getLocation(offset);
+    CharacterLocation location = unit.lineInfo.getLocation(offset);
     return 'the line ${location.lineNumber}';
   }
 
@@ -408,17 +406,15 @@ class SdkPatcher {
    */
   @visibleForTesting
   static CompilationUnit parse(
-      Source source, bool strong, AnalysisErrorListener errorListener) {
+      Source source, AnalysisErrorListener errorListener) {
     String code = source.contents.data;
 
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = strong;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     Parser parser = new Parser(source, errorListener);
-    parser.parseGenericMethodComments = strong;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

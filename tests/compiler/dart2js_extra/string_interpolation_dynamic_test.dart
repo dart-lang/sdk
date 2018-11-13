@@ -18,7 +18,7 @@ int ifun() => 37;
 double dfun() => 2.71828;
 bool bfun() => true;
 String sfun() => "sfun";
-void nfun() => null;
+nfun() => null;
 
 void testEscapes() {
   // Test that escaping the '$' prevents string interpolation.
@@ -61,11 +61,15 @@ void testMultiLine() {
       "\n",
       """${''}
 """);
-  Expect.equals("\r", """${''}""");
+  Expect.equals("\n", """${''}""");
   Expect.equals(
-      "\r\n",
+      "\n",
       """${''}
 """);
+  Expect.equals(
+      "x",
+      """
+x""");
   Expect.equals("\n", """${'\n'}""");
   Expect.equals("\r", """${'\r'}""");
   Expect.equals("\r\n", """${'\r\n'}""");

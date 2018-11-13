@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListPostfixCompletionTemplatesTest);
-    defineReflectiveTests(ListPostfixCompletionTemplatesTest_PreviewDart2);
   });
 }
 
@@ -39,11 +38,4 @@ void foo() { }
     expect(result.templates.length, greaterThan(15));
     expect(result.templates[0].runtimeType, PostfixTemplateDescriptor);
   }
-}
-
-@reflectiveTest
-class ListPostfixCompletionTemplatesTest_PreviewDart2
-    extends ListPostfixCompletionTemplatesTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

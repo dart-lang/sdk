@@ -288,11 +288,11 @@ class LazyTypeEnvironment {
   final Map<String, Class> classes = <String, Class>{};
   final Map<String, TypeParameter> typeParameters = <String, TypeParameter>{};
   Library dummyLibrary;
-  final Program program = new Program();
+  final Component component = new Component();
 
   LazyTypeEnvironment() {
     dummyLibrary = new Library(Uri.parse('file://dummy.dart'));
-    program.libraries.add(dummyLibrary..parent = program);
+    component.libraries.add(dummyLibrary..parent = component);
     dummyLibrary.name = 'lib';
   }
 

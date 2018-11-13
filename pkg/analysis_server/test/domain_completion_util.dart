@@ -7,20 +7,20 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import 'analysis_abstract.dart';
+import 'constants.dart';
 
 class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   String completionId;
   int completionOffset;
   int replacementOffset;
   int replacementLength;
-  Map<String, Completer<Null>> receivedSuggestionsCompleters = {};
+  Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
@@ -43,9 +43,13 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       {int relevance: DART_RELEVANCE_DEFAULT,
       bool isDeprecated: false,
       bool isPotential: false,
-      int selectionOffset}) {
+      int selectionOffset,
+      ElementKind elementKind}) {
     var cs;
     suggestions.forEach((s) {
+      if (elementKind != null && s.element?.kind != elementKind) {
+        return;
+      }
       if (s.completion == completion) {
         if (cs == null) {
           cs = s;
@@ -56,7 +60,13 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     });
     if (cs == null) {
       var completions = suggestions.map((s) => s.completion).toList();
-      fail('expected "$completion" but found\n $completions');
+
+      String expectationText = '"$completion"';
+      if (elementKind != null) {
+        expectationText += ' ($elementKind)';
+      }
+
+      fail('expected $expectationText, but found\n $completions');
     }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
@@ -66,8 +76,10 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     expect(cs.isPotential, equals(isPotential));
   }
 
-  void assertNoResult(String completion) {
-    if (suggestions.any((cs) => cs.completion == completion)) {
+  void assertNoResult(String completion, {ElementKind elementKind}) {
+    if (suggestions.any((cs) =>
+        cs.completion == completion &&
+        (elementKind == null || cs.element?.kind == elementKind))) {
       fail('did not expect completion: $completion');
     }
   }
@@ -116,8 +128,8 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     handler = new CompletionDomainHandler(server);
   }
 
-  Completer<Null> _getResultsCompleter(String id) {
+  Completer<void> _getResultsCompleter(String id) {
     return receivedSuggestionsCompleters.putIfAbsent(
-        id, () => new Completer<Null>());
+        id, () => new Completer<void>());
   }
 }

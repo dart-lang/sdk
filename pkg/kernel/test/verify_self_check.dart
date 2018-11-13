@@ -9,6 +9,6 @@ import 'self_check_util.dart';
 
 main(List<String> args) {
   runSelfCheck(args, (String filename) {
-    verifyProgram(loadProgramFromBinary(filename));
+    verifyComponent(loadComponentFromBinary(filename));
   });
 }

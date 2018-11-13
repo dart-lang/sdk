@@ -9,7 +9,7 @@ import 'js_backend/namer.dart' show Namer;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;
 import 'util/util.dart' show Indentation;
-import 'world.dart' show ClosedWorld;
+import 'world.dart' show JClosedWorld;
 
 /**
  * If non-null, we only trace methods whose name match the regexp defined by the
@@ -27,7 +27,7 @@ String TRACE_FILTER_PATTERN_FOR_TEST;
  * readable by IR Hydra.
  */
 class Tracer extends TracerUtil {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Namer namer;
   bool traceActive = false;
   final api.OutputSink output;

@@ -1,7 +1,6 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library inbound_references_test;
 
@@ -28,8 +27,8 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
-    var field = lib.variables.where((v) => v.name == 'e').single;
+    Library lib = await isolate.rootLibrary.load();
+    Field field = lib.variables.where((v) => v.name == 'e').single;
     await field.load();
     Instance e = field.staticValue;
     ServiceMap response = await isolate.getInboundReferences(e, 100);

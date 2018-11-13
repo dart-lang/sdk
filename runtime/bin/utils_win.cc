@@ -32,13 +32,11 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
 }
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
-  set_code(GetLastError());
+  Reload();
+}
 
-  static const int kMaxMessageLength = 256;
-  wchar_t message[kMaxMessageLength];
-  FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
-  char* utf8 = StringUtilsWin::WideToUtf8(message);
-  SetMessage(utf8);
+void OSError::Reload() {
+  SetCodeAndMessage(kSystem, GetLastError());
 }
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
@@ -142,22 +140,6 @@ const wchar_t* StringUtilsWin::Utf8ToWide(const char* utf8,
                                           intptr_t* result_len) {
   return const_cast<const wchar_t*>(
       StringUtilsWin::Utf8ToWide(const_cast<char*>(utf8), len, result_len));
-}
-
-char* StringUtils::StrNDup(const char* s, intptr_t n) {
-  intptr_t len = strlen(s);
-  if ((n < 0) || (len < 0)) {
-    return NULL;
-  }
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memmove(result, s, len));
 }
 
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {

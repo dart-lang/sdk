@@ -10,7 +10,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/cpuinfo.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
@@ -82,7 +82,8 @@ DEFINE_FLAG(bool,
 #endif
 
 #if defined(USING_SIMULATOR)
-#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID)
+#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID) \
+    || defined(TARGET_OS_IOS)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the hardfp ABI.");
 #else
 DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the hardfp ABI.");
@@ -138,7 +139,7 @@ bool HostCPUFeatures::initialized_ = false;
 
 #if !defined(USING_SIMULATOR)
 #if HOST_OS_IOS
-void HostCPUFeatures::InitOnce() {
+void HostCPUFeatures::Init() {
   // TODO(24743): Actually check the CPU features and fail if we're missing
   // something assumed in a precompiled snapshot.
   hardware_ = "";
@@ -150,15 +151,15 @@ void HostCPUFeatures::InitOnce() {
   vfp_supported_ = FLAG_use_vfp;
   integer_division_supported_ = FLAG_use_integer_division;
   neon_supported_ = FLAG_use_neon;
-  hardfp_supported_ = true;
+  hardfp_supported_ = false;
 #if defined(DEBUG)
   initialized_ = true;
 #endif
 }
 #else  // HOST_OS_IOS
-void HostCPUFeatures::InitOnce() {
+void HostCPUFeatures::Init() {
   bool is_arm64 = false;
-  CpuInfo::InitOnce();
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
   // Check for ARMv5TE, ARMv6, ARMv7, or aarch64.
@@ -260,8 +261,8 @@ void HostCPUFeatures::Cleanup() {
 
 #else
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
 #if defined(TARGET_ARCH_ARM_5TE)

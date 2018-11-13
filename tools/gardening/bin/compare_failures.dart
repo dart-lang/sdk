@@ -32,6 +32,8 @@ Future main(List<String> args) async {
   ArgParser argParser = createArgParser();
   argParser.addOption("run-count",
       defaultsTo: "10", help: "How many previous runs should be fetched");
+  argParser.addFlag("force",
+      abbr: "f", defaultsTo: false, help: "Force analysis of past results");
   argParser.addOption(Flags.commit,
       help: "Fetch result start from a given commit hash.");
   ArgResults argResults = argParser.parse(args);
@@ -50,6 +52,7 @@ Future main(List<String> args) async {
       runCount: runCount,
       commit: argResults[Flags.commit],
       verbose: argResults[Flags.verbose],
-      noCache: argResults[Flags.noCache]);
+      noCache: argResults[Flags.noCache],
+      forcePastResults: argResults["force"]);
   bot.close();
 }

@@ -7,12 +7,4 @@ import("../application_snapshot.gni")
 application_snapshot("pub") {
   main_dart = "../../third_party/pkg/pub/bin/pub.dart"
   training_args = [ "--help" ]
-  deps = [
-    "../compiler:dart2js_files_stamp",
-  ]
-  dart2js_gen_dir =
-      get_label_info("../compiler:dart2js_files_stamp", "target_gen_dir")
-  inputs = [
-    "$dart2js_gen_dir/dart2js_files.stamp",
-  ]
 }

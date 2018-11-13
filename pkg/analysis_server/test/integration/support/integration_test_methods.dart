@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -153,6 +153,9 @@ abstract class IntegrationTestMixin {
    *
    *   The current status of pub execution, indicating whether we are currently
    *   running pub.
+   *
+   *   Note: this status type is deprecated, and is no longer sent by the
+   *   server.
    */
   Stream<ServerStatusParams> onServerStatus;
 
@@ -392,6 +395,7 @@ abstract class IntegrationTestMixin {
    *   reachable from a given file, clients can check for its presence in the
    *   resulting key set.
    */
+  @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
     var params = new AnalysisGetReachableSourcesParams(file).toJson();
@@ -399,6 +403,60 @@ abstract class IntegrationTestMixin {
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new AnalysisGetReachableSourcesResult.fromJson(
         decoder, 'result', result);
+  }
+
+  /**
+   * Return the signature information associated with the given location in the
+   * given file. If the signature information for the given file has not yet
+   * been computed, or the most recently computed signature information for the
+   * given file is out of date, then the response for this request will be
+   * delayed until it has been computed. If a request is made for a file which
+   * does not exist, or which is not currently subject to analysis (e.g.
+   * because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_SIGNATURE_INVALID_FILE
+   * will be generated. If the location given is not inside the argument list
+   * for a function (including method and constructor) invocation, then an
+   * error of type GET_SIGNATURE_INVALID_OFFSET will be generated. If the
+   * location is inside an argument list but the function is not defined or
+   * cannot be determined (such as a method invocation where the target has
+   * type 'dynamic') then an error of type GET_SIGNATURE_UNKNOWN_FUNCTION will
+   * be generated.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file in which signature information is being requested.
+   *
+   * offset: int
+   *
+   *   The location for which signature information is being requested.
+   *
+   * Returns
+   *
+   * name: String
+   *
+   *   The name of the function being invoked at the given offset.
+   *
+   * parameters: List<ParameterInfo>
+   *
+   *   A list of information about each of the parameters of the function being
+   *   invoked.
+   *
+   * dartdoc: String (optional)
+   *
+   *   The dartdoc associated with the function being invoked. Other than the
+   *   removal of the comment delimiters, including leading asterisks in the
+   *   case of a block comment, the dartdoc is unprocessed markdown. This data
+   *   is omitted if there is no referenced element, or if the element has no
+   *   dartdoc.
+   */
+  Future<AnalysisGetSignatureResult> sendAnalysisGetSignature(
+      String file, int offset) async {
+    var params = new AnalysisGetSignatureParams(file, offset).toJson();
+    var result = await server.send("analysis.getSignature", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetSignatureResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1197,6 +1255,47 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return top-level and class member declarations.
+   *
+   * Parameters
+   *
+   * file: FilePath (optional)
+   *
+   *   If this field is provided, return only declarations in this file. If
+   *   this field is missing, return declarations in all files.
+   *
+   * pattern: String (optional)
+   *
+   *   The regular expression used to match the names of declarations. If this
+   *   field is missing, return all declarations.
+   *
+   * maxResults: int (optional)
+   *
+   *   The maximum number of declarations to return. If this field is missing,
+   *   return all matching declarations.
+   *
+   * Returns
+   *
+   * declarations: List<ElementDeclaration>
+   *
+   *   The list of declarations.
+   *
+   * files: List<FilePath>
+   *
+   *   The list of the paths of files with declarations.
+   */
+  Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations(
+      {String file, String pattern, int maxResults}) async {
+    var params = new SearchGetElementDeclarationsParams(
+            file: file, pattern: pattern, maxResults: maxResults)
+        .toJson();
+    var result = await server.send("search.getElementDeclarations", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchGetElementDeclarationsResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Return the type hierarchy of the class declared or referenced at the given
    * location.
    *
@@ -1394,6 +1493,54 @@ abstract class IntegrationTestMixin {
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new EditGetAvailableRefactoringsResult.fromJson(
         decoder, 'result', result);
+  }
+
+  /**
+   * Analyze the specified sources for recommended changes and return a set of
+   * suggested edits for those sources. These edits may include changes to
+   * sources outside the set of specified sources if a change in a specified
+   * source requires it.
+   *
+   * Parameters
+   *
+   * included: List<FilePath>
+   *
+   *   A list of the files and directories for which edits should be suggested.
+   *
+   *   If a request is made with a path that is invalid, e.g. is not absolute
+   *   and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+   *   generated. If a request is made for a file which does not exist, or
+   *   which is not currently subject to analysis (e.g. because it is not
+   *   associated with any analysis root specified to
+   *   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
+   *   generated.
+   *
+   * Returns
+   *
+   * suggestions: List<DartFixSuggestion>
+   *
+   *   A list of recommended changes that can be automatically made by applying
+   *   the 'edits' included in this response.
+   *
+   * otherSuggestions: List<DartFixSuggestion>
+   *
+   *   A list of recommended changes that could not be automatically made.
+   *
+   * hasErrors: bool
+   *
+   *   True if the analyzed source contains errors that might impact the
+   *   correctness of the recommended changes that can be automatically
+   *   applied.
+   *
+   * edits: List<SourceFileEdit>
+   *
+   *   A list of source edits to apply the recommended changes.
+   */
+  Future<EditDartfixResult> sendEditDartfix(List<String> included) async {
+    var params = new EditDartfixParams(included).toJson();
+    var result = await server.send("edit.dartfix", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditDartfixResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1665,13 +1812,14 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * edit: SourceFileEdit
+   * edit: SourceFileEdit (optional)
    *
    *   The edits to be applied in order to make the specified elements
    *   accessible. The file to be edited will be the defining compilation unit
    *   of the library containing the file specified in the request, which can
    *   be different than the file specified in the request if the specified
-   *   file is a part file.
+   *   file is a part file. This field will be omitted if there are no edits
+   *   that need to be applied.
    */
   Future<EditImportElementsResult> sendEditImportElements(
       String file, List<ImportedElements> elements) async {
@@ -1786,6 +1934,98 @@ abstract class IntegrationTestMixin {
     var result = await server.send("execution.deleteContext", params);
     outOfTestExpect(result, isNull);
     return null;
+  }
+
+  /**
+   * Request completion suggestions for the given runtime context.
+   *
+   * It might take one or two requests of this type to get completion
+   * suggestions. The first request should have only "code", "offset", and
+   * "variables", but not "expressions". If there are sub-expressions that can
+   * have different runtime types, and are considered to be safe to evaluate at
+   * runtime (e.g. getters), so using their actual runtime types can improve
+   * completion results, the server will not include the "suggestions" field in
+   * the response, and instead will return the "expressions" field. The client
+   * will use debug API to get current runtime types for these sub-expressions
+   * and send another request, this time with "expressions". If there are no
+   * interesting sub-expressions to get runtime types for, or when the
+   * "expressions" field is provided by the client, the server will return
+   * "suggestions" in the response.
+   *
+   * Parameters
+   *
+   * code: String
+   *
+   *   The code to get suggestions in.
+   *
+   * offset: int
+   *
+   *   The offset within the code to get suggestions at.
+   *
+   * contextFile: FilePath
+   *
+   *   The path of the context file, e.g. the file of the current debugger
+   *   frame. The combination of the context file and context offset can be
+   *   used to ensure that all variables of the context are available for
+   *   completion (with their static types).
+   *
+   * contextOffset: int
+   *
+   *   The offset in the context file, e.g. the line offset in the current
+   *   debugger frame.
+   *
+   * variables: List<RuntimeCompletionVariable>
+   *
+   *   The runtime context variables that are potentially referenced in the
+   *   code.
+   *
+   * expressions: List<RuntimeCompletionExpression> (optional)
+   *
+   *   The list of sub-expressions in the code for which the client wants to
+   *   provide runtime types. It does not have to be the full list of
+   *   expressions requested by the server, for missing expressions their
+   *   static types will be used.
+   *
+   *   When this field is omitted, the server will return completion
+   *   suggestions only when there are no interesting sub-expressions in the
+   *   given code. The client may provide an empty list, in this case the
+   *   server will return completion suggestions.
+   *
+   * Returns
+   *
+   * suggestions: List<CompletionSuggestion> (optional)
+   *
+   *   The completion suggestions. In contrast to usual completion request,
+   *   suggestions for private elements also will be provided.
+   *
+   *   If there are sub-expressions that can have different runtime types, and
+   *   are considered to be safe to evaluate at runtime (e.g. getters), so
+   *   using their actual runtime types can improve completion results, the
+   *   server omits this field in the response, and instead will return the
+   *   "expressions" field.
+   *
+   * expressions: List<RuntimeCompletionExpression> (optional)
+   *
+   *   The list of sub-expressions in the code for which the server would like
+   *   to know runtime types to provide better completion suggestions.
+   *
+   *   This field is omitted the field "suggestions" is returned.
+   */
+  Future<ExecutionGetSuggestionsResult> sendExecutionGetSuggestions(
+      String code,
+      int offset,
+      String contextFile,
+      int contextOffset,
+      List<RuntimeCompletionVariable> variables,
+      {List<RuntimeCompletionExpression> expressions}) async {
+    var params = new ExecutionGetSuggestionsParams(
+            code, offset, contextFile, contextOffset, variables,
+            expressions: expressions)
+        .toJson();
+    var result = await server.send("execution.getSuggestions", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new ExecutionGetSuggestionsResult.fromJson(
+        decoder, 'result', result);
   }
 
   /**
@@ -2077,6 +2317,111 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return the change that adds the forDesignTime() constructor for the widget
+   * class at the given offset.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file containing the code of the class.
+   *
+   * offset: int
+   *
+   *   The offset of the class in the code.
+   *
+   * Returns
+   *
+   * change: SourceChange
+   *
+   *   The change that adds the forDesignTime() constructor. If the change
+   *   cannot be produced, an error is returned.
+   */
+  Future<FlutterGetChangeAddForDesignTimeConstructorResult>
+      sendFlutterGetChangeAddForDesignTimeConstructor(
+          String file, int offset) async {
+    var params =
+        new FlutterGetChangeAddForDesignTimeConstructorParams(file, offset)
+            .toJson();
+    var result = await server.send(
+        "flutter.getChangeAddForDesignTimeConstructor", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
+   * Subscribe for services that are specific to individual files. All previous
+   * subscriptions are replaced by the current set of subscriptions. If a given
+   * service is not included as a key in the map then no files will be
+   * subscribed to the service, exactly as if the service had been included in
+   * the map with an explicit empty list of files.
+   *
+   * Note that this request determines the set of requested subscriptions. The
+   * actual set of subscriptions at any given time is the intersection of this
+   * set with the set of files currently subject to analysis. The files
+   * currently subject to analysis are the set of files contained within an
+   * actual analysis root but not excluded, plus all of the files transitively
+   * reachable from those files via import, export and part directives. (See
+   * analysis.setAnalysisRoots for an explanation of how the actual analysis
+   * roots are determined.) When the actual analysis roots change, the actual
+   * set of subscriptions is automatically updated, but the set of requested
+   * subscriptions is unchanged.
+   *
+   * If a requested subscription is a directory it is ignored, but remains in
+   * the set of requested subscriptions so that if it later becomes a file it
+   * can be included in the set of actual subscriptions.
+   *
+   * It is an error if any of the keys in the map are not valid services. If
+   * there is an error, then the existing subscriptions will remain unchanged.
+   *
+   * Parameters
+   *
+   * subscriptions: Map<FlutterService, List<FilePath>>
+   *
+   *   A table mapping services to a list of the files being subscribed to the
+   *   service.
+   */
+  Future sendFlutterSetSubscriptions(
+      Map<FlutterService, List<String>> subscriptions) async {
+    var params = new FlutterSetSubscriptionsParams(subscriptions).toJson();
+    var result = await server.send("flutter.setSubscriptions", params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /**
+   * Reports the Flutter outline associated with a single file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "OUTLINE" in the list of services passed in an
+   * flutter.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file with which the outline is associated.
+   *
+   * outline: FlutterOutline
+   *
+   *   The outline associated with the file.
+   *
+   * instrumentedCode: String (optional)
+   *
+   *   If the file has Flutter widgets that can be rendered, this field has the
+   *   instrumented content of the file, that allows associating widgets with
+   *   corresponding outline nodes. If there are no widgets to render, this
+   *   field is absent.
+   */
+  Stream<FlutterOutlineParams> onFlutterOutline;
+
+  /**
+   * Stream controller for [onFlutterOutline].
+   */
+  StreamController<FlutterOutlineParams> _onFlutterOutline;
+
+  /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
    * be handled.
    */
@@ -2133,6 +2478,8 @@ abstract class IntegrationTestMixin {
     _onExecutionLaunchData =
         new StreamController<ExecutionLaunchDataParams>(sync: true);
     onExecutionLaunchData = _onExecutionLaunchData.stream.asBroadcastStream();
+    _onFlutterOutline = new StreamController<FlutterOutlineParams>(sync: true);
+    onFlutterOutline = _onFlutterOutline.stream.asBroadcastStream();
   }
 
   /**
@@ -2231,6 +2578,11 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isExecutionLaunchDataParams);
         _onExecutionLaunchData.add(
             new ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
+        break;
+      case "flutter.outline":
+        outOfTestExpect(params, isFlutterOutlineParams);
+        _onFlutterOutline
+            .add(new FlutterOutlineParams.fromJson(decoder, 'params', params));
         break;
       default:
         fail('Unexpected notification: $event');

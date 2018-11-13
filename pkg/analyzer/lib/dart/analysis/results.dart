@@ -42,16 +42,30 @@ abstract class AnalysisResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AnalysisResultWithErrors implements AnalysisResult {
+abstract class AnalysisResultWithErrors implements FileResult {
   /**
    * The analysis errors that were computed during analysis.
    */
   List<AnalysisError> get errors;
+}
 
-  /**
-   * Information about lines in the content.
-   */
-  LineInfo get lineInfo;
+/// The declaration of an [Element].
+abstract class ElementDeclarationResult {
+  /// The [Element] that this object describes.
+  Element get element;
+
+  /// The node that declares the [element]. Depending on whether it is returned
+  /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
+  /// or just parsed.
+  AstNode get node;
+
+  /// If this declaration is returned from [ParsedLibraryResult], the parsed
+  /// unit that contains the [node]. Otherwise `null`.
+  ParsedUnitResult get parsedUnit;
+
+  /// If this declaration is returned from [ResolvedLibraryResult], the
+  /// resolved unit that contains the [node]. Otherwise `null`.
+  ResolvedUnitResult get resolvedUnit;
 }
 
 /**
@@ -61,6 +75,43 @@ abstract class AnalysisResultWithErrors implements AnalysisResult {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class ErrorsResult implements AnalysisResultWithErrors {}
+
+/**
+ * The result of computing some cheap information for a single file, when full
+ * parsed file is not required, so [ParseResult] is not necessary.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class FileResult implements AnalysisResult {
+  /**
+   * Whether the file is a part.
+   */
+  bool get isPart;
+
+  /**
+   * Information about lines in the content.
+   */
+  LineInfo get lineInfo;
+}
+
+/// The result of building parsed AST(s) for the whole library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ParsedLibraryResult implements AnalysisResult {
+  /// The parsed units of the library.
+  List<ParsedUnitResult> get units;
+
+  /// Return the declaration of the [element], or `null` if the [element]
+  /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
+  /// this library.
+  ElementDeclarationResult getElementDeclaration(Element element);
+}
+
+/// The result of parsing of a single file. The errors returned include only
+/// those discovered during scanning and parsing.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ParsedUnitResult implements ParseResult {}
 
 /**
  * The result of parsing of a single file. The errors returned include only
@@ -79,6 +130,31 @@ abstract class ParseResult implements AnalysisResultWithErrors {
    */
   CompilationUnit get unit;
 }
+
+/// The result of building resolved AST(s) for the whole library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ResolvedLibraryResult implements AnalysisResult {
+  /// The element representing this library.
+  LibraryElement get element;
+
+  /// The type provider used when resolving the library.
+  TypeProvider get typeProvider;
+
+  /// The resolved units of the library.
+  List<ResolvedUnitResult> get units;
+
+  /// Return the declaration of the [element], or `null` if the [element]
+  /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
+  /// this library.
+  ElementDeclarationResult getElementDeclaration(Element element);
+}
+
+/// The result of building a resolved AST for a single file. The errors returned
+/// include both syntactic and semantic errors.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ResolvedUnitResult implements ResolveResult {}
 
 /**
  * The result of building a resolved AST for a single file. The errors returned
@@ -101,6 +177,11 @@ abstract class ResolveResult implements AnalysisResultWithErrors {
    * The type provider used when resolving the compilation [unit].
    */
   TypeProvider get typeProvider;
+
+  /**
+   * The type system used when resolving the compilation [unit].
+   */
+  TypeSystem get typeSystem;
 
   /**
    * The fully resolved compilation unit for the [content].

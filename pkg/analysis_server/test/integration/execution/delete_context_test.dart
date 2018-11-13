@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeleteContextTest);
-    defineReflectiveTests(DeleteContextTest_PreviewDart2);
   });
 }
 
@@ -41,10 +40,4 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
       expect(message.error['code'], 'INVALID_PARAMETER');
     }
   }
-}
-
-@reflectiveTest
-class DeleteContextTest_PreviewDart2 extends DeleteContextTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

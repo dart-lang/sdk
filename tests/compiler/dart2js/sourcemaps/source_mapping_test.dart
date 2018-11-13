@@ -16,6 +16,11 @@ void main() {
           // Switch continue target updates don't store the source information.
           return true;
         }
+        if (point.jsCode.startsWith('t1=[P.int]')) {
+          // TODO(johnniwinther): Ensure we have source information on type
+          // arguments.
+          return true;
+        }
         return false;
       };
     }

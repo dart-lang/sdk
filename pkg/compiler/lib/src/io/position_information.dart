@@ -8,14 +8,10 @@
 library dart2js.source_information.position;
 
 import '../common.dart';
-import '../elements/elements.dart'
-    show MemberElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
-import '../tree/tree.dart' show Node, Send;
 import 'code_output.dart' show BufferedCodeOutput;
-import 'source_file.dart';
 import 'source_information.dart';
 
 /// [SourceInformation] that consists of an offset position into the source
@@ -27,7 +23,10 @@ class PositionSourceInformation extends SourceInformation {
   @override
   final SourceLocation innerPosition;
 
-  PositionSourceInformation(this.startPosition, [this.innerPosition]);
+  final List<FrameContext> inliningContext;
+
+  PositionSourceInformation(
+      this.startPosition, this.innerPosition, this.inliningContext);
 
   @override
   List<SourceLocation> get sourceLocations {
@@ -96,8 +95,8 @@ class PositionSourceInformation extends SourceInformation {
   }
 }
 
-abstract class AbstractPositionSourceInformationStrategy<T>
-    implements JavaScriptSourceInformationStrategy<T> {
+abstract class AbstractPositionSourceInformationStrategy
+    implements JavaScriptSourceInformationStrategy {
   const AbstractPositionSourceInformationStrategy();
 
   @override
@@ -112,16 +111,6 @@ abstract class AbstractPositionSourceInformationStrategy<T>
   @override
   SourceInformation buildSourceMappedMarker() {
     return const SourceMappedMarker();
-  }
-}
-
-class PositionSourceInformationStrategy
-    extends AbstractPositionSourceInformationStrategy<Node> {
-  const PositionSourceInformationStrategy();
-
-  @override
-  SourceInformationBuilder<Node> createBuilderForContext(MemberElement member) {
-    return new PositionSourceInformationBuilder(member);
   }
 }
 
@@ -141,228 +130,6 @@ class SourceMappedMarker extends SourceInformation {
 
   @override
   SourceSpan get sourceSpan => new SourceSpan(null, null, null);
-}
-
-/// [SourceInformationBuilder] that generates [PositionSourceInformation] from
-/// AST nodes.
-class PositionSourceInformationBuilder
-    implements SourceInformationBuilder<Node> {
-  final SourceFile sourceFile;
-  final String name;
-  final ResolvedAst resolvedAst;
-
-  PositionSourceInformationBuilder(MemberElement member)
-      : this.resolvedAst = member.resolvedAst,
-        sourceFile = computeSourceFile(member.resolvedAst),
-        name = computeElementNameForSourceMaps(member.resolvedAst.element);
-
-  SourceInformation buildDeclaration(MemberElement member) {
-    ResolvedAst resolvedAst = member.resolvedAst;
-    SourceFile sourceFile = computeSourceFile(member.resolvedAst);
-    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
-      SourceSpan span = resolvedAst.element.sourcePosition;
-      return new PositionSourceInformation(
-          new OffsetSourceLocation(sourceFile, span.begin, name));
-    } else {
-      return new PositionSourceInformation(
-          new OffsetSourceLocation(
-              sourceFile, resolvedAst.node.getBeginToken().charOffset, name),
-          new OffsetSourceLocation(
-              sourceFile, resolvedAst.node.getEndToken().charOffset, name));
-    }
-  }
-
-  /// Builds a source information object pointing the start position of [node].
-  SourceInformation buildBegin(Node node) {
-    return new PositionSourceInformation(new OffsetSourceLocation(
-        sourceFile, node.getBeginToken().charOffset, name));
-  }
-
-  /// Builds a source information object pointing the end position of [node].
-  SourceInformation buildEnd(Node node) {
-    return new PositionSourceInformation(new OffsetSourceLocation(
-        sourceFile, node.getEndToken().charOffset, name));
-  }
-
-  @override
-  SourceInformation buildGeneric(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildCreate(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildListLiteral(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildReturn(Node node) {
-    SourceFile sourceFile = computeSourceFile(resolvedAst);
-    SourceLocation startPosition = new OffsetSourceLocation(
-        sourceFile, node.getBeginToken().charOffset, name);
-    SourceLocation endPosition;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      endPosition = new OffsetSourceLocation(
-          sourceFile, resolvedAst.node.getEndToken().charOffset, name);
-    }
-    return new PositionSourceInformation(startPosition, endPosition);
-  }
-
-  @override
-  SourceInformation buildImplicitReturn(MemberElement element) {
-    if (element.isSynthesized) {
-      return new PositionSourceInformation(new OffsetSourceLocation(
-          sourceFile, element.position.charOffset, name));
-    } else {
-      return new PositionSourceInformation(new OffsetSourceLocation(
-          sourceFile, element.resolvedAst.node.getEndToken().charOffset, name));
-    }
-  }
-
-  @override
-  SourceInformation buildLoop(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildGet(Node node) {
-    Node left = node;
-    Node right = node;
-    Send send = node.asSend();
-    if (send != null) {
-      right = send.selector;
-    }
-    // For a read access like `a.b` the first source locations points to the
-    // left-most part of the access, `a` in the example, and the second source
-    // location points to the 'name' of accessed property, `b` in the
-    // example. The latter is needed when both `a` and `b` are compiled into
-    // JavaScript invocations.
-    return new PositionSourceInformation(
-        new OffsetSourceLocation(
-            sourceFile, left.getBeginToken().charOffset, name),
-        new OffsetSourceLocation(
-            sourceFile, right.getBeginToken().charOffset, name));
-  }
-
-  // TODO(johnniwinther): Clean up the use of this and [buildBinary],
-  // [buildIndex], etc.
-  @override
-  SourceInformation buildCall(Node receiver, Node call) {
-    return new PositionSourceInformation(
-        new OffsetSourceLocation(
-            sourceFile, receiver.getBeginToken().charOffset, name),
-        new OffsetSourceLocation(
-            sourceFile, call.getBeginToken().charOffset, name));
-  }
-
-  @override
-  SourceInformation buildNew(Node node) {
-    return buildBegin(node);
-  }
-
-  @override
-  SourceInformation buildIf(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildThrow(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildAssignment(Node node) => buildBegin(node);
-
-  SourceInformation _buildMemberBody() {
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      Node body = resolvedAst.body;
-      if (body != null) {
-        return buildBegin(body);
-      }
-      // TODO(johnniwinther): Are there other cases?
-    }
-    return null;
-  }
-
-  SourceInformation _buildMemberExit() {
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      Node body = resolvedAst.body;
-      if (body != null) {
-        return buildEnd(body);
-      }
-      // TODO(johnniwinther): Are there other cases?
-    }
-    return null;
-  }
-
-  @override
-  SourceInformation buildVariableDeclaration() {
-    return _buildMemberBody();
-  }
-
-  @override
-  SourceInformation buildAwait(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildYield(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildAsyncBody() {
-    return _buildMemberBody();
-  }
-
-  @override
-  SourceInformation buildAsyncExit() {
-    return _buildMemberExit();
-  }
-
-  @override
-  SourceInformationBuilder forContext(MemberElement member) {
-    return new PositionSourceInformationBuilder(member);
-  }
-
-  @override
-  SourceInformation buildForeignCode(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildStringInterpolation(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInIterator(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInMoveNext(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInCurrent(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInSet(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildIndex(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildIndexSet(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildBinary(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildUnary(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildTry(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildCatch(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildIs(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildAs(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildSwitch(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildSwitchCase(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildGoto(Node node) => buildBegin(node);
 }
 
 /// The start, end and closing offsets for a [js.Node].
@@ -511,14 +278,17 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
   final SourceInformationReader reader;
   CodePositionMap codePositionMap;
   List<TraceListener> traceListeners;
+  InliningTraceListener inliningListener;
 
   PositionSourceInformationProcessor(SourceMapperProvider provider, this.reader,
       [Coverage coverage]) {
     codePositionMap = coverage != null
         ? new CodePositionCoverage(codePositionRecorder, coverage)
         : codePositionRecorder;
+    var sourceMapper = provider.createSourceMapper(id);
     traceListeners = [
-      new PositionTraceListener(provider.createSourceMapper(id), reader)
+      new PositionTraceListener(sourceMapper, reader),
+      inliningListener = new InliningTraceListener(sourceMapper, reader),
     ];
     if (coverage != null) {
       traceListeners.add(new CoverageListener(coverage, reader));
@@ -527,6 +297,7 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
 
   void process(js.Node node, BufferedCodeOutput code) {
     new JavaScriptTracer(codePositionMap, reader, traceListeners).apply(node);
+    inliningListener?.finish();
   }
 
   @override
@@ -601,6 +372,86 @@ abstract class NodeToSourceInformationMixin {
 
   SourceInformation computeSourceInformation(js.Node node) {
     return new NodeSourceInformation(reader).visit(node);
+  }
+}
+
+/// [TraceListener] that register inlining context-data with a [SourceMapper].
+class InliningTraceListener extends TraceListener
+    with NodeToSourceInformationMixin {
+  final SourceMapper sourceMapper;
+  final SourceInformationReader reader;
+  final Map<int, List<FrameContext>> _frames = {};
+
+  InliningTraceListener(this.sourceMapper, this.reader);
+
+  @override
+  void onStep(js.Node node, Offset offset, StepKind kind) {
+    SourceInformation sourceInformation = computeSourceInformation(node);
+    if (sourceInformation == null) return;
+    // TODO(sigmund): enable this assertion.
+    // assert(offset.value != null, "Expected a valid offset: $node $offset");
+    if (offset.value == null) return;
+
+    // TODO(sigmund): enable this assertion
+    //assert(_frames[offset.value] == null,
+    //     "Expect a single entry per offset: $offset $node");
+    if (_frames[offset.value] != null) return;
+
+    // During tracing we only collect information per offset because the tracer
+    // visits nodes in tree order. We'll later sort the data by offset before
+    // registering the frame data with [SourceMapper].
+    if (kind == StepKind.FUN_EXIT) {
+      _frames[offset.value] = null;
+    } else {
+      _frames[offset.value] = sourceInformation.inliningContext;
+    }
+  }
+
+  /// Converts the inlining context data collected during tracing into push/pop
+  /// stack operations that will be emitted with the source-map files.
+  void finish() {
+    List<FrameContext> lastInliningContext;
+    for (var offset in _frames.keys.toList()..sort()) {
+      var newInliningContext = _frames[offset];
+
+      // Note: this relies on the invariant that, when we built the inlining
+      // context lists during SSA, we kept lists identical whenever there were
+      // no inlining changes.
+      if (lastInliningContext == newInliningContext) continue;
+
+      bool isEmpty = false;
+      int popCount = 0;
+      List<FrameContext> pushes = const [];
+      if (newInliningContext == null) {
+        popCount = lastInliningContext.length;
+        isEmpty = true;
+      } else if (lastInliningContext == null) {
+        pushes = newInliningContext;
+      } else {
+        int min = newInliningContext.length;
+        if (min > lastInliningContext.length) min = lastInliningContext.length;
+        // Determine the total number of common frames, to produce the minimal
+        // set of pop and push operations.
+        int i = 0;
+        for (i = 0; i < min; i++) {
+          if (!identical(newInliningContext[i], lastInliningContext[i])) break;
+        }
+        isEmpty = i == 0;
+        popCount = lastInliningContext.length - i;
+        if (i < newInliningContext.length) {
+          pushes = newInliningContext.sublist(i);
+        }
+      }
+      lastInliningContext = newInliningContext;
+
+      while (popCount-- > 0) {
+        sourceMapper.registerPop(offset, isEmpty: popCount == 0 && isEmpty);
+      }
+      for (FrameContext push in pushes) {
+        sourceMapper.registerPush(offset,
+            getSourceLocation(push.callInformation), push.inlinedMethodName);
+      }
+    }
   }
 }
 
@@ -1143,7 +994,10 @@ class JavaScriptTracer extends js.BaseVisitor {
   @override
   visitNew(js.New node) {
     visit(node.target);
+    int oldPosition = offsetPosition;
+    offsetPosition = null;
     visitList(node.arguments);
+    offsetPosition = oldPosition;
     if (offsetPosition == null) {
       // Use the syntax offset if this is not the first subexpression.
       offsetPosition = getSyntaxOffset(node);

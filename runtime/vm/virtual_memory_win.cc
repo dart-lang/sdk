@@ -16,7 +16,7 @@ namespace dart {
 
 uword VirtualMemory::page_size_ = 0;
 
-void VirtualMemory::InitOnce() {
+void VirtualMemory::Init() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   page_size_ = info.dwPageSize;
@@ -62,25 +62,32 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 }
 
 VirtualMemory::~VirtualMemory() {
-  if (!vm_owns_region() || (reserved_.size() == 0)) {
+  // Note that the size of the reserved region might be set to 0 by
+  // Truncate(0, true) but that does not actually release the mapping
+  // itself. The only way to release the mapping is to invoke VirtualFree
+  // with original base pointer and MEM_RELEASE.
+  if (!vm_owns_region()) {
     return;
   }
   if (VirtualFree(reserved_.pointer(), 0, MEM_RELEASE) == 0) {
-    FATAL("VirtualFree failed");
+    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
   }
 }
 
 bool VirtualMemory::FreeSubSegment(void* address,
                                    intptr_t size) {
-  // On Windows only the entire segment returned by VirtualAlloc
-  // can be freed. Therefore we will have to waste these unused
-  // virtual memory sub-segments.
-  return false;
+  if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
+    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
+  }
+  return true;
 }
 
-bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
-  ASSERT(Thread::Current()->IsMutatorThread() ||
-         Isolate::Current()->mutator_thread()->IsAtSafepoint());
+void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT((thread == nullptr) || thread->IsMutatorThread() ||
+         thread->isolate()->mutator_thread()->IsAtSafepoint());
+#endif
   uword start_address = reinterpret_cast<uword>(address);
   uword end_address = start_address + size;
   uword page_address = Utils::RoundDown(start_address, PageSize());
@@ -103,9 +110,10 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
       break;
   }
   DWORD old_prot = 0;
-  bool result = VirtualProtect(reinterpret_cast<void*>(page_address),
-                               end_address - page_address, prot, &old_prot);
-  return result;
+  if (VirtualProtect(reinterpret_cast<void*>(page_address),
+                     end_address - page_address, prot, &old_prot) == 0) {
+    FATAL1("VirtualProtect failed %d\n", GetLastError());
+  }
 }
 
 }  // namespace dart

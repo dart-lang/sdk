@@ -30,9 +30,9 @@ main([args, port]) async {
       throw "Bad package config in child isolate: ${msg[0]}\n"
           "Expected: 'Foo'";
     }
-    if (msg[1] != "Bar2") {
+    if (msg[1] != "Bar1") {
       throw "Package path not matching: ${msg[1]}\n"
-          "Expected: 'Bar2'";
+          "Expected: 'Bar1'";
     }
     print("SUCCESS");
   };

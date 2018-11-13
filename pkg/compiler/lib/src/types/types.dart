@@ -4,19 +4,19 @@
 
 library types;
 
-import '../common.dart' show failedAt;
+import 'package:kernel/ast.dart' as ir;
+import '../common.dart' show failedAt, retainDataForTesting;
+import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../js_backend/inferred_data.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
-import '../tree/tree.dart';
+import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
-import '../util/util.dart' show Maplet;
-import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-
-import 'masks.dart';
-export 'masks.dart';
+import '../world.dart' show JClosedWorld;
+import 'abstract_value_domain.dart';
+import '../inferrer/inferrer_engine.dart';
 
 /// Results about a single element (e.g. a method, parameter, or field)
 /// produced by the global type-inference algorithm.
@@ -28,334 +28,120 @@ export 'masks.dart';
 /// implementation would return false on all boolean properties (giving no
 /// guarantees) and the `subclass of Object or null` type mask for the type
 /// based queries (the runtime value could be anything).
-abstract class GlobalTypeInferenceElementResult<T> {
-  /// Whether the method element associated with this result always throws.
-  bool get throwsAlways;
+abstract class GlobalTypeInferenceMemberResult {
+  /// Deserializes a [GlobalTypeInferenceMemberResult] object from [source].
+  factory GlobalTypeInferenceMemberResult.readFromDataSource(
+          DataSource source, AbstractValueDomain abstractValueDomain) =
+      GlobalTypeInferenceMemberResultImpl.readFromDataSource;
 
-  /// The inferred type when this result belongs to a parameter or field
-  /// element, null otherwise.
-  TypeMask get type;
+  /// Serializes this [GlobalTypeInferenceMemberResult] to [sink].
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain);
 
-  /// The inferred return type when this result belongs to a function element.
-  TypeMask get returnType;
+  /// The inferred type when this result belongs to a field, null otherwise.
+  AbstractValue get type;
 
-  /// Returns the type of a list new expression [node].
-  TypeMask typeOfNewList(T node);
-
-  /// Returns the type of a list literal [node].
-  TypeMask typeOfListLiteral(T node);
-
-  /// Returns the type of a send [node].
-  // TODO(johnniwinther): Rename this.
-  TypeMask typeOfSend(T node);
-
-  /// Returns the type of the getter in a complex send-set [node], for example,
-  /// the type of the `a.f` getter in `a.f += b`.
-  TypeMask typeOfGetter(T node);
-
-  /// Returns the type of the operator of a complex send-set [node], for
-  /// example, the type of `+` in `a += b`.
-  TypeMask typeOfOperator(T node);
-
-  /// Returns the type of the iterator in a [loop].
-  TypeMask typeOfIterator(T node);
-
-  /// Returns the type of the `moveNext` call of an iterator in a [loop].
-  TypeMask typeOfIteratorMoveNext(T node);
-
-  /// Returns the type of the `current` getter of an iterator in a [loop].
-  TypeMask typeOfIteratorCurrent(T node);
-}
-
-abstract class GlobalTypeInferenceMemberResult<T>
-    extends GlobalTypeInferenceElementResult<T> {
   /// Whether the member associated with this result is only called once in one
   /// location in the entire program.
   bool get isCalledOnce;
-}
 
-abstract class GlobalTypeInferenceParameterResult<T>
-    extends GlobalTypeInferenceElementResult<T> {}
+  /// Whether the method element associated with this result always throws.
+  bool get throwsAlways;
 
-abstract class GlobalTypeInferenceElementResultImpl<T>
-    implements GlobalTypeInferenceElementResult<T> {
-  // TODO(sigmund): split - stop using _data after inference is done.
-  final GlobalTypeInferenceElementData<T> _data;
+  /// The inferred return type when this result belongs to a function element.
+  AbstractValue get returnType;
 
-  // TODO(sigmund): store relevant data & drop reference to inference engine.
-  final TypesInferrer<T> _inferrer;
-  final bool _isJsInterop;
-  final TypeMask _dynamic;
+  /// Returns the type of a send [node].
+  // TODO(johnniwinther): Rename this.
+  AbstractValue typeOfSend(ir.TreeNode node);
 
-  GlobalTypeInferenceElementResultImpl(
-      this._data, this._inferrer, this._isJsInterop, this._dynamic);
+  /// Returns the type of the getter in a complex send-set [node], for example,
+  /// the type of the `a.f` getter in `a.f += b`.
+  AbstractValue typeOfGetter(ir.TreeNode node);
 
-  bool get throwsAlways {
-    TypeMask mask = this.returnType;
-    // Always throws if the return type was inferred to be non-null empty.
-    return mask != null && mask.isEmpty;
-  }
+  /// Returns the type of the iterator in a [loop].
+  AbstractValue typeOfIterator(ir.TreeNode node);
 
-  TypeMask typeOfNewList(T node) => _inferrer.getTypeForNewList(node);
+  /// Returns the type of the `moveNext` call of an iterator in a [loop].
+  AbstractValue typeOfIteratorMoveNext(ir.TreeNode node);
 
-  TypeMask typeOfListLiteral(T node) => _inferrer.getTypeForNewList(node);
-
-  TypeMask typeOfSend(T node) => _data?.typeOfSend(node);
-  TypeMask typeOfGetter(T node) => _data?.typeOfGetter(node);
-  TypeMask typeOfOperator(T node) => _data?.typeOfOperator(node);
-  TypeMask typeOfIterator(T node) => _data?.typeOfIterator(node);
-  TypeMask typeOfIteratorMoveNext(T node) =>
-      _data?.typeOfIteratorMoveNext(node);
-  TypeMask typeOfIteratorCurrent(T node) => _data?.typeOfIteratorCurrent(node);
-}
-
-class GlobalTypeInferenceMemberResultImpl<T>
-    extends GlobalTypeInferenceElementResultImpl<T>
-    implements GlobalTypeInferenceMemberResult<T> {
-  // TODO(sigmund): delete, store data directly here.
-  final MemberEntity _owner;
-
-  GlobalTypeInferenceMemberResultImpl(
-      this._owner,
-      GlobalTypeInferenceElementData data,
-      TypesInferrer inferrer,
-      bool isJsInterop,
-      TypeMask _dynamic)
-      : super(data, inferrer, isJsInterop, _dynamic);
-
-  bool get isCalledOnce => _inferrer.isMemberCalledOnce(_owner);
-
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfMember(_owner);
-
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfMember(_owner);
-}
-
-class GlobalTypeInferenceParameterResultImpl<T>
-    extends GlobalTypeInferenceElementResultImpl<T>
-    implements GlobalTypeInferenceParameterResult<T> {
-  // TODO(sigmund): delete, store data directly here.
-  final Local _owner;
-
-  GlobalTypeInferenceParameterResultImpl(
-      this._owner, TypesInferrer inferrer, TypeMask _dynamic)
-      : super(null, inferrer, false, _dynamic);
-
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfParameter(_owner);
-
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfParameter(_owner);
+  /// Returns the type of the `current` getter of an iterator in a [loop].
+  AbstractValue typeOfIteratorCurrent(ir.TreeNode node);
 }
 
 /// Internal data used during type-inference to store intermediate results about
 /// a single element.
-abstract class GlobalTypeInferenceElementData<T> {
+abstract class GlobalTypeInferenceElementData {
+  /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
+  factory GlobalTypeInferenceElementData.readFromDataSource(
+          DataSource source, AbstractValueDomain abstractValueDomain) =
+      KernelGlobalTypeInferenceElementData.readFromDataSource;
+
+  /// Serializes this [GlobalTypeInferenceElementData] to [sink].
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain);
+
+  /// Compresses the inner representation by removing [AbstractValue] mappings
+  /// to `null`. Returns the data object itself or `null` if the data object
+  /// was empty after compression.
+  GlobalTypeInferenceElementData compress();
+
   // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
-  TypeMask typeOfSend(T node);
-  TypeMask typeOfGetter(T node);
-  TypeMask typeOfOperator(T node);
+  AbstractValue typeOfSend(ir.TreeNode node);
+  AbstractValue typeOfGetter(ir.TreeNode node);
 
-  void setTypeMask(T node, TypeMask mask);
+  AbstractValue typeOfIterator(ir.TreeNode node);
 
-  void setGetterTypeMaskInComplexSendSet(T node, TypeMask mask);
+  AbstractValue typeOfIteratorMoveNext(ir.TreeNode node);
 
-  void setOperatorTypeMaskInComplexSendSet(T node, TypeMask mask);
-
-  TypeMask typeOfIterator(T node);
-
-  TypeMask typeOfIteratorMoveNext(T node);
-
-  TypeMask typeOfIteratorCurrent(T node);
-
-  void setIteratorTypeMask(T node, TypeMask mask);
-
-  void setMoveNextTypeMask(T node, TypeMask mask);
-
-  void setCurrentTypeMask(T node, TypeMask mask);
-}
-
-class AstGlobalTypeInferenceElementData
-    extends GlobalTypeInferenceElementData<Node> {
-  Map<Object, TypeMask> _typeMasks;
-
-  TypeMask _get(Object node) => _typeMasks != null ? _typeMasks[node] : null;
-  void _set(Object node, TypeMask mask) {
-    _typeMasks ??= new Maplet<Object, TypeMask>();
-    _typeMasks[node] = mask;
-  }
-
-  TypeMask typeOfSend(covariant Send node) => _get(node);
-  TypeMask typeOfGetter(covariant SendSet node) => _get(node.selector);
-  TypeMask typeOfOperator(covariant SendSet node) =>
-      _get(node.assignmentOperator);
-
-  void setTypeMask(covariant Send node, TypeMask mask) {
-    _set(node, mask);
-  }
-
-  void setGetterTypeMaskInComplexSendSet(
-      covariant SendSet node, TypeMask mask) {
-    _set(node.selector, mask);
-  }
-
-  void setOperatorTypeMaskInComplexSendSet(
-      covariant SendSet node, TypeMask mask) {
-    _set(node.assignmentOperator, mask);
-  }
-
-  // TODO(sigmund): clean up. We store data about 3 selectors for "for in"
-  // nodes: the iterator, move-next, and current element. Because our map keys
-  // are nodes, we need to fabricate different keys to keep these selectors
-  // separate. The current implementation does this by using
-  // children of the for-in node (these children were picked arbitrarily).
-
-  TypeMask typeOfIterator(covariant ForIn node) => _get(node);
-
-  TypeMask typeOfIteratorMoveNext(covariant ForIn node) => _get(node.forToken);
-
-  TypeMask typeOfIteratorCurrent(covariant ForIn node) => _get(node.inToken);
-
-  void setIteratorTypeMask(covariant ForIn node, TypeMask mask) {
-    _set(node, mask);
-  }
-
-  void setMoveNextTypeMask(covariant ForIn node, TypeMask mask) {
-    _set(node.forToken, mask);
-  }
-
-  void setCurrentTypeMask(covariant ForIn node, TypeMask mask) {
-    _set(node.inToken, mask);
-  }
+  AbstractValue typeOfIteratorCurrent(ir.TreeNode node);
 }
 
 /// API to interact with the global type-inference engine.
-abstract class TypesInferrer<T> {
-  void analyzeMain(FunctionEntity element);
-  TypeMask getReturnTypeOfMember(MemberEntity element);
-  TypeMask getReturnTypeOfParameter(Local element);
-  TypeMask getTypeOfMember(MemberEntity element);
-  TypeMask getTypeOfParameter(Local element);
-  TypeMask getTypeForNewList(T node);
-  TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
-  void clear();
-  bool isMemberCalledOnce(MemberEntity element);
-  bool isFixedArrayCheckedForGrowable(T node);
-  GlobalTypeInferenceResults createResults();
+abstract class TypesInferrer {
+  GlobalTypeInferenceResults analyzeMain(FunctionEntity element);
 }
 
 /// Results produced by the global type-inference algorithm.
 ///
 /// All queries in this class may contain results that assume whole-program
-/// closed-world semantics. Any [TypeMask] for an element or node that we return
-/// was inferred to be a "guaranteed type", that means, it is a type that we
-/// can prove to be correct for all executions of the program.
-abstract class GlobalTypeInferenceResults<T> {
-  // TODO(sigmund): store relevant data & drop reference to inference engine.
-  final TypeGraphInferrer<T> _inferrer;
-  final ClosedWorld closedWorld;
-  final Map<MemberEntity, GlobalTypeInferenceMemberResult<T>> _memberResults =
-      <MemberEntity, GlobalTypeInferenceMemberResult<T>>{};
-  final Map<Local, GlobalTypeInferenceParameterResult<T>> _parameterResults =
-      <Local, GlobalTypeInferenceParameterResult<T>>{};
-
-  GlobalTypeInferenceResults(this._inferrer, this.closedWorld);
-
-  /// Create the [GlobalTypeInferenceMemberResult] object for [member].
-  GlobalTypeInferenceMemberResult<T> createMemberResult(
-      TypeGraphInferrer<T> inferrer, MemberEntity member,
-      {bool isJsInterop: false});
-
-  /// Create the [GlobalTypeInferenceParameterResult] object for [parameter].
-  GlobalTypeInferenceParameterResult<T> createParameterResult(
-      TypeGraphInferrer<T> inferrer, Local parameter);
-
-  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
-  // error to query for results that don't exist.
-  GlobalTypeInferenceMemberResult<T> resultOfMember(MemberEntity member) {
-    assert(
-        member is! ConstructorBodyEntity,
-        failedAt(
-            member,
-            "unexpected input: ConstructorBodyElements are created"
-            " after global type inference, no data is avaiable for them."));
-
-    bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
-    return _memberResults.putIfAbsent(member,
-        () => createMemberResult(_inferrer, member, isJsInterop: isJsInterop));
+/// closed-world semantics. Any [AbstractValue] for an element or node that we
+/// return was inferred to be a "guaranteed type", that means, it is a type that
+/// we can prove to be correct for all executions of the program.
+abstract class GlobalTypeInferenceResults {
+  /// Deserializes a [GlobalTypeInferenceResults] object from [source].
+  factory GlobalTypeInferenceResults.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld, InferredData inferredData) {
+    bool isTrivial = source.readBool();
+    if (isTrivial) {
+      return new TrivialGlobalTypeInferenceResults(closedWorld);
+    }
+    return new GlobalTypeInferenceResultsImpl.readFromDataSource(
+        source, closedWorld, inferredData);
   }
 
-  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
-  // error to query for results that don't exist.
-  GlobalTypeInferenceElementResult<T> resultOfParameter(Local parameter) {
-    return _parameterResults.putIfAbsent(
-        parameter, () => createParameterResult(_inferrer, parameter));
-  }
+  /// Serializes this [GlobalTypeInferenceResults] to [sink].
+  void writeToDataSink(DataSink sink);
 
-  TypeMask get dynamicType => closedWorld.commonMasks.dynamicType;
+  JClosedWorld get closedWorld;
+
+  InferredData get inferredData;
+
+  GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member);
+
+  AbstractValue resultOfParameter(Local parameter);
 
   /// Returns the type of a [selector] when applied to a receiver with the given
   /// type [mask].
-  TypeMask typeOfSelector(Selector selector, TypeMask mask) =>
-      _inferrer.getTypeOfSelector(selector, mask);
+  AbstractValue typeOfSelector(Selector selector, AbstractValue mask);
 
   /// Returns whether a fixed-length constructor call goes through a growable
   /// check.
-  // TODO(sigmund): move into the result of the element containing such
-  // constructor call.
-  bool isFixedArrayCheckedForGrowable(T ctorCall) =>
-      _inferrer.isFixedArrayCheckedForGrowable(ctorCall);
-}
+  bool isFixedArrayCheckedForGrowable(ir.TreeNode node);
 
-/// Mixin that assert the types of the nodes used for querying type masks.
-abstract class AstGlobalTypeInferenceElementResultMixin
-    implements GlobalTypeInferenceElementResultImpl<Node> {
-  TypeMask typeOfNewList(covariant Send node) =>
-      _inferrer.getTypeForNewList(node);
+  /// Returns the type of a list new expression [node].
+  AbstractValue typeOfNewList(ir.TreeNode node);
 
-  TypeMask typeOfListLiteral(covariant LiteralList node) =>
-      _inferrer.getTypeForNewList(node);
-
-  TypeMask typeOfSend(covariant Send node) => _data?.typeOfSend(node);
-  TypeMask typeOfGetter(covariant SendSet node) => _data?.typeOfGetter(node);
-  TypeMask typeOfOperator(covariant SendSet node) =>
-      _data?.typeOfOperator(node);
-  TypeMask typeOfIterator(covariant ForIn node) => _data?.typeOfIterator(node);
-  TypeMask typeOfIteratorMoveNext(covariant ForIn node) =>
-      _data?.typeOfIteratorMoveNext(node);
-  TypeMask typeOfIteratorCurrent(covariant ForIn node) =>
-      _data?.typeOfIteratorCurrent(node);
-}
-
-class AstMemberResult = GlobalTypeInferenceMemberResultImpl<Node>
-    with AstGlobalTypeInferenceElementResultMixin;
-
-class AstParameterResult = GlobalTypeInferenceParameterResultImpl<Node>
-    with AstGlobalTypeInferenceElementResultMixin;
-
-class AstGlobalTypeInferenceResults extends GlobalTypeInferenceResults<Node> {
-  AstGlobalTypeInferenceResults(
-      TypesInferrer<Node> inferrer, ClosedWorld closedWorld)
-      : super(inferrer, closedWorld);
-
-  GlobalTypeInferenceMemberResult<Node> createMemberResult(
-      TypeGraphInferrer<Node> inferrer, covariant MemberElement member,
-      {bool isJsInterop: false}) {
-    return new AstMemberResult(
-        member,
-        // We store data in the context of the enclosing method, even
-        // for closure elements.
-        inferrer.inferrer.lookupDataOfMember(member.memberContext),
-        inferrer,
-        isJsInterop,
-        dynamicType);
-  }
-
-  GlobalTypeInferenceParameterResult<Node> createParameterResult(
-      TypeGraphInferrer<Node> inferrer, Local parameter) {
-    return new AstParameterResult(parameter, inferrer, dynamicType);
-  }
+  /// Returns the type of a list literal [node].
+  AbstractValue typeOfListLiteral(ir.TreeNode node);
 }
 
 /// Global analysis that infers concrete types.
@@ -369,23 +155,434 @@ class GlobalTypeInferenceTask extends CompilerTask {
   /// accessed from outside this class for testing only.
   TypeGraphInferrer typesInferrerInternal;
 
-  GlobalTypeInferenceResults results;
+  GlobalTypeInferenceResults resultsForTesting;
 
   GlobalTypeInferenceTask(Compiler compiler)
       : compiler = compiler,
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(FunctionEntity mainElement,
-      ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
-    measure(() {
-      typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
-          closedWorldRefiner,
-          disableTypeInference: compiler.disableTypeInference);
-      typesInferrerInternal.analyzeMain(mainElement);
-      typesInferrerInternal.clear();
-      results = typesInferrerInternal.createResults();
+  GlobalTypeInferenceResults runGlobalTypeInference(FunctionEntity mainElement,
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
+    return measure(() {
+      GlobalTypeInferenceResults results;
+      if (compiler.disableTypeInference) {
+        results = new TrivialGlobalTypeInferenceResults(closedWorld);
+      } else {
+        typesInferrerInternal ??= compiler.backendStrategy
+            .createTypesInferrer(closedWorld, inferredDataBuilder);
+        results = typesInferrerInternal.analyzeMain(mainElement);
+      }
       closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
+      if (retainDataForTesting) {
+        resultsForTesting = results;
+      }
+      return results;
     });
+  }
+}
+
+class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
+  /// Tag used for identifying serialized [GlobalTypeInferenceResults] objects
+  /// in a debugging data stream.
+  static const String tag = 'global-type-inference-results';
+
+  final JClosedWorld closedWorld;
+  final InferredData inferredData;
+  final GlobalTypeInferenceMemberResult _deadFieldResult;
+  final GlobalTypeInferenceMemberResult _deadMethodResult;
+  final AbstractValue _trivialParameterResult;
+
+  final Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults;
+  final Map<Local, AbstractValue> parameterResults;
+  final Set<ir.TreeNode> checkedForGrowableLists;
+  final Set<Selector> returnsListElementTypeSet;
+  final Map<ir.TreeNode, AbstractValue> _allocatedLists;
+
+  GlobalTypeInferenceResultsImpl(
+      this.closedWorld,
+      this.inferredData,
+      this.memberResults,
+      this.parameterResults,
+      this.checkedForGrowableLists,
+      this.returnsListElementTypeSet,
+      this._allocatedLists)
+      : _deadFieldResult = new DeadFieldGlobalTypeInferenceResult(
+            closedWorld.abstractValueDomain),
+        _deadMethodResult = new DeadMethodGlobalTypeInferenceResult(
+            closedWorld.abstractValueDomain),
+        _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
+
+  factory GlobalTypeInferenceResultsImpl.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld, InferredData inferredData) {
+    source.begin(tag);
+    Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
+        source.readMemberMap(() =>
+            new GlobalTypeInferenceMemberResult.readFromDataSource(
+                source, closedWorld.abstractValueDomain));
+    Map<Local, AbstractValue> parameterResults = source.readLocalMap(() =>
+        closedWorld.abstractValueDomain
+            .readAbstractValueFromDataSource(source));
+    Set<ir.TreeNode> checkedForGrowableLists = source.readTreeNodes().toSet();
+    Set<Selector> returnsListElementTypeSet =
+        source.readList(() => new Selector.readFromDataSource(source)).toSet();
+    Map<ir.TreeNode, AbstractValue> allocatedLists = source.readTreeNodeMap(
+        () => closedWorld.abstractValueDomain
+            .readAbstractValueFromDataSource(source));
+    source.end(tag);
+    return new GlobalTypeInferenceResultsImpl(
+        closedWorld,
+        inferredData,
+        memberResults,
+        parameterResults,
+        checkedForGrowableLists,
+        returnsListElementTypeSet,
+        allocatedLists);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(false); // Is _not_ trivial.
+    sink.begin(tag);
+    sink.writeMemberMap(
+        memberResults,
+        (GlobalTypeInferenceMemberResult result) =>
+            result.writeToDataSink(sink, closedWorld.abstractValueDomain));
+    sink.writeLocalMap(
+        parameterResults,
+        (AbstractValue value) => closedWorld.abstractValueDomain
+            .writeAbstractValueToDataSink(sink, value));
+    sink.writeTreeNodes(checkedForGrowableLists);
+    sink.writeList(returnsListElementTypeSet,
+        (Selector selector) => selector.writeToDataSink(sink));
+    sink.writeTreeNodeMap(
+        _allocatedLists,
+        (AbstractValue value) => closedWorld.abstractValueDomain
+            .writeAbstractValueToDataSink(sink, value));
+    sink.end(tag);
+  }
+
+  @override
+  GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member) {
+    assert(
+        member is! ConstructorBodyEntity,
+        failedAt(
+            member,
+            "unexpected input: ConstructorBodyElements are created"
+            " after global type inference, no data is avaiable for them."));
+    // TODO(sigmund,johnniwinther): Make it an error to query for results that
+    // don't exist..
+    /*assert(memberResults.containsKey(member) || member is JSignatureMethod,
+        "No inference result for member $member");*/
+    return memberResults[member] ??
+        (member is FunctionEntity ? _deadMethodResult : _deadFieldResult);
+  }
+
+  @override
+  AbstractValue resultOfParameter(Local parameter) {
+    // TODO(sigmund,johnniwinther): Make it an error to query for results that
+    // don't exist.
+    /*assert(parameterResults.containsKey(parameter),
+        "No inference result for parameter $parameter");*/
+    return parameterResults[parameter] ?? _trivialParameterResult;
+  }
+
+  /// Returns the type of a [selector] when applied to a receiver with the given
+  /// [receiver] type.
+  @override
+  AbstractValue typeOfSelector(Selector selector, AbstractValue receiver) {
+    // Bailout for closure calls. We're not tracking types of
+    // closures.
+    if (selector.isClosureCall)
+      return closedWorld.abstractValueDomain.dynamicType;
+    if (selector.isSetter || selector.isIndexSet) {
+      return closedWorld.abstractValueDomain.dynamicType;
+    }
+    if (returnsListElementType(selector, receiver)) {
+      return closedWorld.abstractValueDomain.getContainerElementType(receiver);
+    }
+    if (returnsMapValueType(selector, receiver)) {
+      return closedWorld.abstractValueDomain.getMapValueType(receiver);
+    }
+
+    if (closedWorld.includesClosureCall(selector, receiver)) {
+      return closedWorld.abstractValueDomain.dynamicType;
+    } else {
+      Iterable<MemberEntity> elements =
+          closedWorld.locateMembers(selector, receiver);
+      List<AbstractValue> types = <AbstractValue>[];
+      for (MemberEntity element in elements) {
+        AbstractValue type = typeOfMemberWithSelector(element, selector);
+        types.add(type);
+      }
+      return closedWorld.abstractValueDomain.unionOfMany(types);
+    }
+  }
+
+  bool returnsListElementType(Selector selector, AbstractValue mask) {
+    return mask != null &&
+        closedWorld.abstractValueDomain.isContainer(mask) &&
+        returnsListElementTypeSet.contains(selector);
+  }
+
+  bool returnsMapValueType(Selector selector, AbstractValue mask) {
+    return mask != null &&
+        closedWorld.abstractValueDomain.isMap(mask) &&
+        selector.isIndex;
+  }
+
+  AbstractValue typeOfMemberWithSelector(
+      MemberEntity element, Selector selector) {
+    if (element.name == Identifiers.noSuchMethod_ &&
+        selector.name != element.name) {
+      // An invocation can resolve to a [noSuchMethod], in which case
+      // we get the return type of [noSuchMethod].
+      return resultOfMember(element).returnType;
+    } else if (selector.isGetter) {
+      if (element.isFunction) {
+        // [functionType] is null if the inferrer did not run.
+        return closedWorld.abstractValueDomain.functionType;
+      } else if (element.isField) {
+        return resultOfMember(element).type;
+      } else if (element.isGetter) {
+        return resultOfMember(element).returnType;
+      } else {
+        assert(false, failedAt(element, "Unexpected member $element"));
+        return closedWorld.abstractValueDomain.dynamicType;
+      }
+    } else if (element.isGetter || element.isField) {
+      assert(selector.isCall || selector.isSetter);
+      return closedWorld.abstractValueDomain.dynamicType;
+    } else {
+      return resultOfMember(element).returnType;
+    }
+  }
+
+  /// Returns whether a fixed-length constructor call goes through a growable
+  /// check.
+  // TODO(sigmund): move into the result of the element containing such
+  // constructor call.
+  @override
+  bool isFixedArrayCheckedForGrowable(ir.Node ctorCall) =>
+      checkedForGrowableLists.contains(ctorCall);
+
+  AbstractValue typeOfNewList(ir.Node node) => _allocatedLists[node];
+
+  AbstractValue typeOfListLiteral(ir.Node node) => _allocatedLists[node];
+}
+
+class GlobalTypeInferenceMemberResultImpl
+    implements GlobalTypeInferenceMemberResult {
+  /// Tag used for identifying serialized [GlobalTypeInferenceMemberResult]
+  /// objects in a debugging data stream.
+  static const String tag = 'global-type-inference-member-result';
+
+  final GlobalTypeInferenceElementData _data;
+  final AbstractValue returnType;
+  final AbstractValue type;
+  final bool throwsAlways;
+  final bool isCalledOnce;
+
+  GlobalTypeInferenceMemberResultImpl(this._data, this.returnType, this.type,
+      {this.throwsAlways, this.isCalledOnce});
+
+  factory GlobalTypeInferenceMemberResultImpl.readFromDataSource(
+      DataSource source, AbstractValueDomain abstractValueDomain) {
+    source.begin(tag);
+    GlobalTypeInferenceElementData data = source.readValueOrNull(() {
+      return new GlobalTypeInferenceElementData.readFromDataSource(
+          source, abstractValueDomain);
+    });
+    AbstractValue returnType =
+        abstractValueDomain.readAbstractValueFromDataSource(source);
+    AbstractValue type =
+        abstractValueDomain.readAbstractValueFromDataSource(source);
+    bool throwsAlways = source.readBool();
+    bool isCalledOnce = source.readBool();
+    source.end(tag);
+    return new GlobalTypeInferenceMemberResultImpl(data, returnType, type,
+        throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
+  }
+
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+    sink.begin(tag);
+    sink.writeValueOrNull(_data, (GlobalTypeInferenceElementData data) {
+      data.writeToDataSink(sink, abstractValueDomain);
+    });
+    abstractValueDomain.writeAbstractValueToDataSink(sink, returnType);
+    abstractValueDomain.writeAbstractValueToDataSink(sink, type);
+    sink.writeBool(throwsAlways);
+    sink.writeBool(isCalledOnce);
+    sink.end(tag);
+  }
+
+  AbstractValue typeOfSend(ir.Node node) => _data?.typeOfSend(node);
+  AbstractValue typeOfGetter(ir.Node node) => _data?.typeOfGetter(node);
+  AbstractValue typeOfIterator(ir.Node node) => _data?.typeOfIterator(node);
+  AbstractValue typeOfIteratorMoveNext(ir.Node node) =>
+      _data?.typeOfIteratorMoveNext(node);
+  AbstractValue typeOfIteratorCurrent(ir.Node node) =>
+      _data?.typeOfIteratorCurrent(node);
+}
+
+class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
+  final JClosedWorld closedWorld;
+  final TrivialGlobalTypeInferenceMemberResult _trivialMemberResult;
+  final AbstractValue _trivialParameterResult;
+  final InferredData inferredData = new TrivialInferredData();
+
+  TrivialGlobalTypeInferenceResults(this.closedWorld)
+      : _trivialMemberResult = new TrivialGlobalTypeInferenceMemberResult(
+            closedWorld.abstractValueDomain.dynamicType),
+        _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(true); // Is trivial.
+  }
+
+  @override
+  bool isFixedArrayCheckedForGrowable(ir.Node node) => false;
+
+  @override
+  AbstractValue typeOfSelector(Selector selector, AbstractValue mask) {
+    return closedWorld.abstractValueDomain.dynamicType;
+  }
+
+  @override
+  AbstractValue resultOfParameter(Local parameter) {
+    return _trivialParameterResult;
+  }
+
+  @override
+  GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member) {
+    return _trivialMemberResult;
+  }
+
+  @override
+  AbstractValue typeOfListLiteral(ir.TreeNode node) => null;
+
+  @override
+  AbstractValue typeOfNewList(ir.TreeNode node) => null;
+}
+
+class TrivialGlobalTypeInferenceMemberResult
+    implements GlobalTypeInferenceMemberResult {
+  final AbstractValue dynamicType;
+
+  TrivialGlobalTypeInferenceMemberResult(this.dynamicType);
+
+  @override
+  AbstractValue get type => dynamicType;
+
+  @override
+  AbstractValue get returnType => dynamicType;
+
+  @override
+  bool get throwsAlways => false;
+
+  @override
+  AbstractValue typeOfIteratorCurrent(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfIteratorMoveNext(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfIterator(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfGetter(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfSend(ir.Node node) => null;
+
+  @override
+  bool get isCalledOnce => false;
+
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+    throw new UnsupportedError(
+        "TrivialGlobalTypeInferenceMemberResult.writeToDataSink");
+  }
+}
+
+class DeadFieldGlobalTypeInferenceResult
+    implements GlobalTypeInferenceMemberResult {
+  final AbstractValue dynamicType;
+  final AbstractValue emptyType;
+
+  DeadFieldGlobalTypeInferenceResult(AbstractValueDomain domain)
+      : this.dynamicType = domain.dynamicType,
+        this.emptyType = domain.emptyType;
+
+  @override
+  AbstractValue get type => emptyType;
+
+  @override
+  AbstractValue get returnType => dynamicType;
+
+  @override
+  bool get throwsAlways => false;
+
+  @override
+  AbstractValue typeOfIteratorCurrent(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfIteratorMoveNext(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfIterator(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfGetter(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfSend(ir.Node node) => null;
+
+  @override
+  bool get isCalledOnce => false;
+
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+    throw new UnsupportedError(
+        "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
+  }
+}
+
+class DeadMethodGlobalTypeInferenceResult
+    implements GlobalTypeInferenceMemberResult {
+  final AbstractValue emptyType;
+  final AbstractValue functionType;
+
+  DeadMethodGlobalTypeInferenceResult(AbstractValueDomain domain)
+      : this.functionType = domain.functionType,
+        this.emptyType = domain.emptyType;
+
+  @override
+  AbstractValue get type => functionType;
+
+  @override
+  AbstractValue get returnType => emptyType;
+
+  @override
+  bool get throwsAlways => false;
+
+  @override
+  AbstractValue typeOfIteratorCurrent(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfIteratorMoveNext(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfIterator(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfGetter(ir.Node node) => null;
+
+  @override
+  AbstractValue typeOfSend(ir.Node node) => null;
+
+  @override
+  bool get isCalledOnce => false;
+
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+    throw new UnsupportedError(
+        "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
   }
 }

@@ -17,13 +17,13 @@ import 'package:stack_trace/stack_trace.dart';
 StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
     {List<String> roots}) {
   if (stackTrace is Chain) {
-    return new Chain(stackTrace.traces.map((trace) {
-      return new Trace.from(mapStackTrace(sourceMap, trace, roots: roots));
+    return Chain(stackTrace.traces.map((trace) {
+      return Trace.from(mapStackTrace(sourceMap, trace, roots: roots));
     }));
   }
 
-  var trace = new Trace.from(stackTrace);
-  return new Trace(trace.frames.map((frame) {
+  var trace = Trace.from(stackTrace);
+  return Trace(trace.frames.map((frame) {
     // If there's no line information, there's no way to translate this frame.
     // We could return it as-is, but these lines are usually not useful anyways.
     if (frame.line == null) return null;
@@ -44,8 +44,8 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
     for (var root in roots) {
       if (root != null && p.url.isWithin(root, sourceUrl)) {
         var relative = p.url.relative(sourceUrl, from: root);
-        if (relative.startsWith('dart:')) {
-          sourceUrl = relative;
+        if (relative.contains('dart:')) {
+          sourceUrl = relative.substring(relative.indexOf('dart:'));
           break;
         }
         var packageRoot = '$root/packages';
@@ -56,7 +56,16 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
       }
     }
 
-    return new Frame(Uri.parse(sourceUrl), span.start.line + 1,
+    if (!sourceUrl.startsWith('dart:') &&
+        !sourceUrl.startsWith('package:') &&
+        sourceUrl.contains('dart_sdk.js')) {
+      // This compresses the long dart_sdk URLs if SDK source maps are missing.
+      // It's no longer linkable, but neither are the properly mapped ones
+      // above.
+      sourceUrl = 'dart:sdk_internal';
+    }
+
+    return Frame(Uri.parse(sourceUrl), span.start.line + 1,
         span.start.column + 1, _prettifyMember(frame.member));
   }).where((frame) => frame != null));
 }

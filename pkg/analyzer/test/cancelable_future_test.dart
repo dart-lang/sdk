@@ -1,15 +1,12 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.cancelable_future_test;
 
 import 'dart:async';
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:watcher/src/utils.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -42,7 +39,7 @@ class CancelableCompleterTests {
         .then((_) {
           fail('Expected error completion');
         }, onError: (error) {
-          expect(error, new isInstanceOf<FutureCanceledError>());
+          expect(error, new TypeMatcher<FutureCanceledError>());
           // And make sure nothing else happens.
         })
         .then((_) => pumpEventQueue())
@@ -58,7 +55,7 @@ class CancelableCompleterTests {
       fail('Expected error completion');
     }, onError: (error) {
       expect(callbackInvoked, isFalse);
-      expect(error, new isInstanceOf<FutureCanceledError>());
+      expect(error, new TypeMatcher<FutureCanceledError>());
       callbackInvoked = true;
     });
     expect(cancelCount, 0);
@@ -107,7 +104,7 @@ class CancelableCompleterTests {
       fail('Expected error completion');
     }, onError: (error) {
       expect(callbackInvoked, isFalse);
-      expect(error, new isInstanceOf<FutureCanceledError>());
+      expect(error, new TypeMatcher<FutureCanceledError>());
       callbackInvoked = true;
     });
     // The callback should be deferred to a microtask.
@@ -135,7 +132,7 @@ class CancelableCompleterTests {
         .then((_) {
           fail('Expected error completion');
         }, onError: (error) {
-          expect(error, new isInstanceOf<FutureCanceledError>());
+          expect(error, new TypeMatcher<FutureCanceledError>());
           // And make sure nothing else happens.
         })
         .then((_) => pumpEventQueue())
@@ -236,7 +233,7 @@ class CancelableCompleterTests {
         .then((_) {
           fail('Expected error completion');
         }, onError: (error) {
-          expect(error, new isInstanceOf<FutureCanceledError>());
+          expect(error, new TypeMatcher<FutureCanceledError>());
           // And make sure nothing else happens.
         })
         .then((_) => pumpEventQueue())

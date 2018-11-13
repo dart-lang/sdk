@@ -37,15 +37,19 @@ class AskForLogs extends WorkflowStep {
       return new Future.value(
           new NavigateStepWorkflowAction(new PresentFailures(), testResults));
     }
-    await getTestResult(input.split(' ')).then((testResult) {
+    await processInput(input);
+    print("Add another log or press <Enter> to continue.");
+    return new Future.value(new WaitForInputWorkflowAction());
+  }
+
+  Future<TestResult> processInput(String input) async {
+    return getTestResult(input.split(' ')).then((testResult) {
       if (testResult == null) {
         print("ERROR: The input '$input' is invalid.");
       } else {
         testResults.add(testResult);
       }
     });
-    print("Add another log or press <Enter> to continue.");
-    return new Future.value(new WaitForInputWorkflowAction());
   }
 
   @override

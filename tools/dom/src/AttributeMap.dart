@@ -4,7 +4,7 @@
 
 part of html;
 
-abstract class _AttributeMap implements Map<String, String> {
+abstract class _AttributeMap extends MapBase<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
@@ -15,6 +15,7 @@ abstract class _AttributeMap implements Map<String, String> {
     });
   }
 
+  Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
   bool containsValue(Object value) {
     for (var v in this.values) {
       if (value == v) {
@@ -162,7 +163,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap implements Map<String, String> {
+class _DataAttributeMap extends MapBase<String, String> {
   final Map<String, String> _attributes;
 
   _DataAttributeMap(this._attributes);
@@ -175,6 +176,7 @@ class _DataAttributeMap implements Map<String, String> {
     });
   }
 
+  Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object value) => values.any((v) => v == value);
 
@@ -241,7 +243,7 @@ class _DataAttributeMap implements Map<String, String> {
   /**
    * Converts a string name with hyphens into an identifier, by removing hyphens
    * and capitalizing the following letter. Optionally [startUppercase] to
-   * captialize the first letter.
+   * capitalize the first letter.
    */
   String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
     var segments = hyphenedName.split('-');

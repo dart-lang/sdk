@@ -32,28 +32,31 @@ class CommandArtifact {
 }
 
 abstract class CompilerConfiguration {
-  final Configuration _configuration;
+  final TestConfiguration _configuration;
 
   bool get _isDebug => _configuration.mode.isDebug;
+
   bool get _isChecked => _configuration.isChecked;
-  bool get _isStrong => _configuration.isStrong;
+
   bool get _isHostChecked => _configuration.isHostChecked;
+
   bool get _useSdk => _configuration.useSdk;
 
-  /// Only some subclasses support this check, but we statically allow calling
-  /// it on [CompilerConfiguration].
-  bool get useDfe {
-    throw new UnsupportedError("This compiler does not support DFE.");
-  }
+  bool get _useEnableAsserts => _configuration.useEnableAsserts;
+
+  bool get previewDart2 => !_configuration.noPreviewDart2;
 
   /// Whether to run the runtime on the compilation result of a test which
   /// expects a compile-time error and the compiler did not emit one.
   bool get runRuntimeDespiteMissingCompileTimeError => false;
 
-  factory CompilerConfiguration(Configuration configuration) {
+  factory CompilerConfiguration(TestConfiguration configuration) {
     switch (configuration.compiler) {
       case Compiler.dart2analyzer:
         return new AnalyzerCompilerConfiguration(configuration);
+
+      case Compiler.compareAnalyzerCfe:
+        return new CompareAnalyzerCfeCompilerConfiguration(configuration);
 
       case Compiler.dart2js:
         return new Dart2jsCompilerConfiguration(configuration);
@@ -62,13 +65,18 @@ abstract class CompilerConfiguration {
         return new DevCompilerConfiguration(configuration);
 
       case Compiler.dartdevk:
-        return new DevKernelCompilerConfiguration(configuration);
+        return new DevCompilerConfiguration(configuration);
 
       case Compiler.appJit:
+        return new AppJitCompilerConfiguration(configuration,
+            previewDart2: false);
+
+      case Compiler.appJitk:
         return new AppJitCompilerConfiguration(configuration);
 
       case Compiler.precompiler:
-        return new PrecompilerCompilerConfiguration(configuration);
+        return new PrecompilerCompilerConfiguration(configuration,
+            previewDart2: false);
 
       case Compiler.dartk:
         if (configuration.architecture == Architecture.simdbc64 ||
@@ -76,14 +84,19 @@ abstract class CompilerConfiguration {
             configuration.architecture == Architecture.simarm64) {
           return new VMKernelCompilerConfiguration(configuration);
         }
-        return new NoneCompilerConfiguration(configuration, useDfe: true);
+        return new NoneCompilerConfiguration(configuration);
+
+      case Compiler.dartkb:
+        return new VMKernelCompilerConfiguration(configuration);
 
       case Compiler.dartkp:
-        return new PrecompilerCompilerConfiguration(configuration,
-            useDfe: true);
+        return new PrecompilerCompilerConfiguration(configuration);
 
       case Compiler.specParser:
         return new SpecParserCompilerConfiguration(configuration);
+
+      case Compiler.fasta:
+        return new FastaCompilerConfiguration(configuration);
 
       case Compiler.none:
         return new NoneCompilerConfiguration(configuration);
@@ -118,13 +131,21 @@ abstract class CompilerConfiguration {
     throw new UnsupportedError("$this does not support createCommand().");
   }
 
-  CommandArtifact computeCompilationArtifact(String tempDir,
-      List<String> arguments, Map<String, String> environmentOverrides) {
+  CommandArtifact computeCompilationArtifact(
+
+      /// Each test has its own temporary directory to avoid name collisions.
+      String tempDir,
+      List<String> arguments,
+      Map<String, String> environmentOverrides) {
     return new CommandArtifact([], null, null);
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
     return sharedOptions.toList()..addAll(args);
   }
 
@@ -141,11 +162,7 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
-  // This boolean is used by the [VMTestSuite] for running cc tests via
-  // run_vm_tests.
-  final bool useDfe;
-
-  NoneCompilerConfiguration(Configuration configuration, {this.useDfe: false})
+  NoneCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   bool get hasCompiler => false;
@@ -157,33 +174,25 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var buildDir = _configuration.buildDirectory;
     var args = <String>[];
-    if (useDfe) {
-      // DFE+strong configuration is a Dart 2.0 configuration which uses
-      // pkg/vm/tool/dart2 wrapper script, which takes care of passing
-      // correct arguments to VM binary. No need to pass any additional
-      // arguments.
-      if (!_isStrong) {
-        args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
-        args.add('--kernel-binaries=' +
-            (_useSdk
-                ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-                : '${buildDir}'));
-      }
+    if (previewDart2) {
       if (_isDebug) {
         // Temporarily disable background compilation to avoid flaky crashes
         // (see http://dartbug.com/30016 for details).
         args.add('--no-background-compilation');
       }
+      if (_isChecked) {
+        args.add('--enable_asserts');
+      }
     } else {
-      if (_isStrong) {
-        args.add('--strong');
+      args.add('--no-preview-dart-2');
+      if (_isChecked) {
+        args.add('--enable_asserts');
+        args.add('--enable_type_checks');
       }
     }
-    if (_isChecked) {
+    if (_useEnableAsserts) {
       args.add('--enable_asserts');
-      args.add('--enable_type_checks');
     }
     if (_configuration.hotReload) {
       args.add('--hot-reload-test-mode');
@@ -199,14 +208,8 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 class VMKernelCompilerConfiguration extends CompilerConfiguration
     with VMKernelCompilerMixin {
-  VMKernelCompilerConfiguration(Configuration configuration)
+  VMKernelCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
-
-  // This boolean is used by the [VMTestSuite] for running cc tests via
-  // run_vm_tests.  We enable it here, so the cc tests continue to use the
-  // kernel-isolate.  All the remaining tests will use a separate compilation
-  // command (which this class represents).
-  bool get useDfe => true;
 
   bool get _isAot => false;
 
@@ -232,6 +235,16 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
         'application/kernel-ir-fully-linked');
   }
 
+  @override
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
+    return sharedOptions.toList()..addAll(vmOptions)..addAll(args);
+  }
+
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestInformation info,
@@ -240,21 +253,14 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (_isStrong) {
-      args.add('--strong');
-      args.add('--reify-generic-functions');
-      args.add('--limit-ints-to-64-bits');
-    }
-    if (_isChecked) {
+    if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
-      args.add('--enable_type_checks');
     }
     if (_configuration.hotReload) {
       args.add('--hot-reload-test-mode');
     } else if (_configuration.hotReloadRollback) {
       args.add('--hot-reload-rollback-test-mode');
     }
-
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
@@ -311,7 +317,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   final List<PipelineCommand> pipelineCommands;
 
   ComposedCompilerConfiguration(
-      Configuration configuration, this.pipelineCommands)
+      TestConfiguration configuration, this.pipelineCommands)
       : super._subclass(configuration);
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -341,7 +347,8 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
         allCommands, artifact.filename, artifact.mimeType);
   }
 
-  List<String> computeCompilerArguments(vmOptions, sharedOptions, args) {
+  List<String> computeCompilerArguments(
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
     return <String>[]..addAll(vmOptions)..addAll(sharedOptions)..addAll(args);
@@ -371,7 +378,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
   final String moniker;
   static Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
-  Dart2xCompilerConfiguration(this.moniker, Configuration configuration)
+  Dart2xCompilerConfiguration(this.moniker, TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
@@ -422,7 +429,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for dart2js.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
-  Dart2jsCompilerConfiguration(Configuration configuration)
+  Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super('dart2js', configuration);
 
   int get timeoutMultiplier {
@@ -431,6 +438,18 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     if (_isChecked) multiplier *= 2;
     if (_isHostChecked) multiplier *= 16;
     return multiplier;
+  }
+
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
+    return <String>[]
+      ..addAll(sharedOptions)
+      ..addAll(dart2jsOptions)
+      ..addAll(args);
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -459,10 +478,12 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   }
 }
 
-/// Configuration for dev-compiler.
+/// Configuration for `dartdevc` and `dartdevk`
 class DevCompilerConfiguration extends CompilerConfiguration {
-  DevCompilerConfiguration(Configuration configuration)
+  DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
+
+  bool get useKernel => _configuration.compiler == Compiler.dartdevk;
 
   String computeCompilerPath() {
     var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
@@ -470,9 +491,12 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
-    var result = sharedOptions.toList();
-
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
+    var result = sharedOptions.toList()..addAll(ddcOptions);
     // The file being compiled is the last argument.
     result.add(args.last);
 
@@ -481,25 +505,37 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    var moduleRoot =
-        new Path(outputFile).directoryPath.directoryPath.toNativePath();
+    // TODO(jmesserly): restore testing on this once we have everyone migrated
+    // to DDC's Kernel backend. At that point we'd like to migrate from Analyzer
+    // summaries to Kernel IL.
+    final useDillFormat = false;
 
-    var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/ddc_sdk.sum")
-        .absolute
-        .toNativePath();
-
-    var args = _useSdk
-        ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
-        : ["--dart-sdk-summary", sdkSummary];
-
+    var args = <String>[];
+    if (useKernel) {
+      args.add('--kernel');
+    }
+    if (!_useSdk) {
+      // If we're testing a built SDK, DDC will find its own summary.
+      //
+      // For local development we don't have a built SDK yet, so point directly
+      // at the built summary file location.
+      var sdkSummaryFile =
+          useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
+      var sdkSummary = new Path(_configuration.buildDirectory)
+          .append("/gen/utils/dartdevc/$sdkSummaryFile")
+          .absolute
+          .toNativePath();
+      args.addAll(["--dart-sdk-summary", sdkSummary]);
+    }
     args.addAll(sharedOptions);
+    if (!useKernel) {
+      // TODO(jmesserly): library-root needs to be removed.
+      args.addAll(
+          ["--library-root", new Path(inputFile).directoryPath.toNativePath()]);
+    }
+
     args.addAll([
       "--ignore-unrecognized-flags",
-      "--library-root",
-      new Path(inputFile).directoryPath.toNativePath(),
-      "--module-root",
-      moduleRoot,
       "--no-summarize",
       "--no-source-map",
       "-o",
@@ -509,97 +545,26 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
+    var pkgDir = useDillFormat ? 'pkg_kernel' : 'pkg';
+    var pkgExtension = useDillFormat ? 'dill' : 'sum';
     for (var package in testPackages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
-      var summary = _configuration.buildDirectory +
-          "/gen/utils/dartdevc/pkg/$package.sum";
+      var summary = new Path(_configuration.buildDirectory)
+          .append("/gen/utils/dartdevc/$pkgDir/$package.$pkgExtension")
+          .absolute
+          .toNativePath();
       args.add("$summary=$package");
     }
 
-    return Command.compilation(Compiler.dartdevc.name, outputFile,
-        bootstrapDependencies(), computeCompilerPath(), args, environment);
-  }
-
-  CommandArtifact computeCompilationArtifact(
-      String tempDir, List<String> arguments, Map<String, String> environment) {
-    // The list of arguments comes from a call to our own
-    // computeCompilerArguments(). It contains the shared options followed by
-    // the input file path.
-    // TODO(rnystrom): Jamming these into a list in order to pipe them from
-    // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
-    var sharedOptions = arguments.sublist(0, arguments.length - 1);
-    var inputFile = arguments.last;
-    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
-    var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
-
-    return new CommandArtifact(
-        [createCommand(inputFile, outputFile, sharedOptions, environment)],
-        outputFile,
-        "application/javascript");
-  }
-}
-
-/// Configuration for dev-compiler with the kernel front end.
-class DevKernelCompilerConfiguration extends CompilerConfiguration {
-  DevKernelCompilerConfiguration(Configuration configuration)
-      : super._subclass(configuration);
-
-  String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevk$executableScriptSuffix";
-  }
-
-  List<String> computeCompilerArguments(
-      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
-    var result = sharedOptions.toList();
-
-    // The file being compiled is the last argument.
-    result.add(args.last);
-    return result;
-  }
-
-  Command createCommand(String inputFile, String outputFile,
-      List<String> sharedOptions, Map<String, String> environment) {
-    var args = sharedOptions.toList();
-
-    var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/ddc_sdk.dill")
-        .absolute
-        .toNativePath();
-
-    args.addAll([
-      "--dart-sdk-summary",
-      sdkSummary,
-      "-o",
-      outputFile,
-      inputFile,
-    ]);
-
-    // Link to the summaries for the available packages, so that they don't
-    // get recompiled into the test's own module.
-    for (var package in testPackages) {
-      var summary = new Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/pkg/$package.dill")
-          .absolute
-          .toNativePath();
-      args.add("-s");
-      args.add(summary);
-    }
-
-    // Use the directory containing the test as the working directory. This
-    // ensures dartdevk creates a short module named based on the test name
-    // (like "ackermann_test") and does not include any of the parent
-    // directories in the name (like "tests__language_2__ackermann_test").
     var inputDir =
         new Path(inputFile).append("..").canonicalize().toNativePath();
-    var compiler = Repository.dir.append(computeCompilerPath()).toNativePath();
-
-    return Command.compilation(Compiler.dartdevk.name, outputFile,
-        bootstrapDependencies(), compiler, args, environment,
+    var displayName = useKernel ? 'dartdevk' : 'dartdevc';
+    return Command.compilation(displayName, outputFile, bootstrapDependencies(),
+        computeCompilerPath(), args, environment,
         workingDirectory: inputDir);
   }
 
@@ -624,18 +589,18 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
 
 class PrecompilerCompilerConfiguration extends CompilerConfiguration
     with VMKernelCompilerMixin {
-  // This boolean is used by the [VMTestSuite] for running cc tests via
-  // run_vm_tests.
-  final bool useDfe;
+  final bool previewDart2;
 
   bool get _isAndroid => _configuration.system == System.android;
+
   bool get _isArm => _configuration.architecture == Architecture.arm;
+
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
   bool get _isAot => true;
 
-  PrecompilerCompilerConfiguration(Configuration configuration,
-      {this.useDfe: false})
+  PrecompilerCompilerConfiguration(TestConfiguration configuration,
+      {this.previewDart2: true})
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -649,7 +614,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
 
-    if (useDfe) {
+    if (previewDart2) {
       commands.add(computeCompileToKernelCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -657,7 +622,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     commands.add(
         computeDartBootstrapCommand(tempDir, arguments, environmentOverrides));
 
-    if (useDfe) {
+    if (previewDart2) {
       commands.add(computeRemoveKernelFileCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -677,11 +642,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   ///
   /// Warning: this command removes temporary file and violates tracking of
   /// dependencies between commands, which may cause problems if multiple
-  /// almost identical configurations are tested simultaneosly.
+  /// almost identical configurations are tested simultaneously.
   Command computeRemoveKernelFileCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = 'rm';
-    var args = [tempKernelFile(tempDir)];
+    String exec;
+    List<String> args;
+
+    if (Platform.isWindows) {
+      exec = 'cmd.exe';
+      args = <String>['/c', 'del', tempKernelFile(tempDir)];
+    } else {
+      exec = 'rm';
+      args = <String>[tempKernelFile(tempDir)];
+    }
 
     return Command.compilation('remove_kernel_file', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,
@@ -694,21 +667,21 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     String exec;
     if (_isAndroid) {
       if (_isArm) {
-        exec = "$buildDir/clang_x86/dart_bootstrap";
+        exec = "$buildDir/clang_x86/gen_snapshot";
       } else if (_configuration.architecture == Architecture.arm64) {
-        exec = "$buildDir/clang_x64/dart_bootstrap";
+        exec = "$buildDir/clang_x64/gen_snapshot";
       }
     } else {
-      exec = "$buildDir/dart_bootstrap";
+      exec = "$buildDir/gen_snapshot";
     }
 
     final args = <String>[];
-    args.add("--snapshot-kind=app-aot");
     if (_configuration.useBlobs) {
-      args.add("--snapshot=$tempDir/out.aotsnapshot");
-      args.add("--use-blobs");
+      args.add("--snapshot-kind=app-aot-blobs");
+      args.add("--blobs_container_filename=$tempDir/out.aotsnapshot");
     } else {
-      args.add("--snapshot=$tempDir/out.S");
+      args.add("--snapshot-kind=app-aot-assembly");
+      args.add("--assembly=$tempDir/out.S");
     }
 
     if (_isAndroid && _isArm) {
@@ -719,12 +692,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--obfuscate');
     }
 
-    if (_isStrong) {
-      args.add('--strong');
-    }
-    if (useDfe) {
+    if (previewDart2) {
       args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
+      args.add('--no-preview-dart-2');
       args.addAll(arguments);
     }
 
@@ -801,7 +772,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// tests by 60%.
   /// Warning: this command removes temporary file and violates tracking of
   /// dependencies between commands, which may cause problems if multiple
-  /// almost identical configurations are tested simultaneosly.
+  /// almost identical configurations are tested simultaneously.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     var exec = 'rm';
@@ -822,7 +793,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, originalArguments) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> originalArguments) {
     List<String> args = [];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -842,12 +817,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (_isChecked) {
-      args.add('--enable_asserts');
-      args.add('--enable_type_checks');
+    if (previewDart2) {
+      if (_isChecked) {
+        args.add('--enable_asserts');
+      }
+    } else {
+      args.add('--no-preview-dart-2');
+      if (_isChecked) {
+        args.add('--enable_asserts');
+        args.add('--enable_type_checks');
+      }
     }
-    if (_isStrong) {
-      args.add('--strong');
+    if (_useEnableAsserts) {
+      args.add('--enable_asserts');
     }
     var dir = artifact.filename;
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
@@ -866,7 +848,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 }
 
 class AppJitCompilerConfiguration extends CompilerConfiguration {
-  AppJitCompilerConfiguration(Configuration configuration)
+  final bool previewDart2;
+
+  AppJitCompilerConfiguration(TestConfiguration configuration,
+      {this.previewDart2: true})
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -890,6 +875,9 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var exec = "${_configuration.buildDirectory}/dart";
     var snapshot = "$tempDir/out.jitsnapshot";
     var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
+    if (!previewDart2) {
+      args.add("--no-preview-dart-2");
+    }
     args.addAll(arguments);
 
     return Command.compilation('app_jit', tempDir, bootstrapDependencies(),
@@ -898,7 +886,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, originalArguments) {
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
     var args = <String>[];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -918,9 +906,19 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (_isChecked) {
+    if (previewDart2) {
+      if (_isChecked) {
+        args.add('--enable_asserts');
+      }
+    } else {
+      args.add("--no-preview-dart-2");
+      if (_isChecked) {
+        args.add('--enable_asserts');
+        args.add('--enable_type_checks');
+      }
+    }
+    if (_useEnableAsserts) {
       args.add('--enable_asserts');
-      args.add('--enable_type_checks');
     }
     args
       ..addAll(vmOptions)
@@ -932,7 +930,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for dartanalyzer.
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
-  AnalyzerCompilerConfiguration(Configuration configuration)
+  AnalyzerCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   int get timeoutMultiplier => 4;
@@ -958,11 +956,14 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     arguments = arguments.toList();
-    if (_isChecked || _isStrong) {
-      arguments.add('--enable_type_checks');
+    if (!previewDart2) {
+      throw new ArgumentError('--no-preview-dart-2 not supported');
     }
-    if (_isStrong) {
-      arguments.add('--strong');
+    if (_configuration.useAnalyzerCfe) {
+      arguments.add('--use-cfe');
+    }
+    if (_configuration.useAnalyzerFastaParser) {
+      arguments.add('--use-fasta-parser');
     }
 
     // Since this is not a real compilation, no artifacts are produced.
@@ -982,9 +983,49 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
+/// Configuration for compareAnalyzerCfe.
+class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
+  CompareAnalyzerCfeCompilerConfiguration(TestConfiguration configuration)
+      : super._subclass(configuration);
+
+  int get timeoutMultiplier => 4;
+
+  String computeCompilerPath() {
+    String suffix = executableScriptSuffix;
+    if (_useSdk) {
+      throw "--use-sdk cannot be used with compiler compare_analyzer_cfe";
+    }
+    return 'pkg/analyzer_fe_comparison/bin/compare_sdk_tests$suffix';
+  }
+
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    arguments = arguments.toList();
+    if (!previewDart2) {
+      throw new ArgumentError('--no-preview-dart-2 not supported');
+    }
+
+    // Since this is not a real compilation, no artifacts are produced.
+    return new CommandArtifact([
+      Command.compareAnalyzerCfe(
+          computeCompilerPath(), arguments, environmentOverrides)
+    ], null, null);
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    return <String>[];
+  }
+}
+
 /// Configuration for spec_parser.
 class SpecParserCompilerConfiguration extends CompilerConfiguration {
-  SpecParserCompilerConfiguration(Configuration configuration)
+  SpecParserCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() => 'tools/spec_parse.py';
@@ -1011,47 +1052,174 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  Configuration get _configuration;
+  static final noCausalAsyncStacksRegExp =
+      new RegExp('--no[_-]causal[_-]async[_-]stacks');
+
+  TestConfiguration get _configuration;
+
   bool get _useSdk;
-  bool get _isStrong;
+
   bool get _isAot;
+
+  bool get _isChecked;
+
+  bool get _useEnableAsserts;
+
+  String get executableScriptSuffix;
 
   List<Uri> bootstrapDependencies();
 
-  String tempKernelFile(String tempDir) => '$tempDir/out.dill';
+  String tempKernelFile(String tempDir) =>
+      new Path('$tempDir/out.dill').toNativePath();
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final genKernel =
-        Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
+    final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
+    final genKernel = '${pkgVmDir}/tool/gen_kernel${executableScriptSuffix}';
 
     final kernelBinariesFolder = _useSdk
         ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
         : '${_configuration.buildDirectory}';
 
-    final vmPlatform = _isStrong
-        ? '$kernelBinariesFolder/vm_platform_strong.dill'
-        : '$kernelBinariesFolder/vm_platform.dill';
+    // Always use strong platform as preview_dart_2 implies strong.
+    final vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
 
     final dillFile = tempKernelFile(tempDir);
 
     final args = [
       _isAot ? '--aot' : '--no-aot',
-      _isStrong ? '--strong-mode' : '--no-strong-mode',
       '--platform=$vmPlatform',
       '-o',
       dillFile,
     ];
-    args.add(arguments.where((name) => name.endsWith('.dart')).single);
 
-    if (_isStrong) {
-      // Pass environment variable to the gen_kernel script as
-      // arguments are not passed if gen_kernel runs in batch mode.
-      environmentOverrides = new Map.from(environmentOverrides);
-      environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
+    args.add(arguments.where((name) => name.endsWith('.dart')).single);
+    args.addAll(arguments.where(
+        (name) => name.startsWith('-D') || name.startsWith('--packages=')));
+
+    final bool causalAsyncStacks =
+        !arguments.any((String arg) => noCausalAsyncStacksRegExp.hasMatch(arg));
+    args.add('-Ddart.developer.causal_async_stacks=$causalAsyncStacks');
+
+    if (_isChecked || _useEnableAsserts) {
+      args.add('--enable_asserts');
+    }
+
+    if (_configuration.useKernelBytecode) {
+      args.add('--gen-bytecode');
+      args.add('--drop-ast');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);
+  }
+}
+
+class FastaCompilerConfiguration extends CompilerConfiguration {
+  static final _compilerLocation =
+      Repository.uri.resolve("pkg/front_end/tool/_fasta/compile.dart");
+
+  final Uri _platformDill;
+
+  final Uri _vmExecutable;
+
+  bool get _isLegacy => _configuration.noPreviewDart2;
+
+  factory FastaCompilerConfiguration(TestConfiguration configuration) {
+    var buildDirectory =
+        Uri.base.resolveUri(new Uri.directory(configuration.buildDirectory));
+
+    var dillDir = buildDirectory;
+    if (configuration.useSdk) {
+      dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
+    }
+
+    var suffix = !configuration.noPreviewDart2 ? "_strong" : "";
+    var platformDill = dillDir.resolve("vm_platform$suffix.dill");
+
+    var vmExecutable = buildDirectory
+        .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
+    return new FastaCompilerConfiguration._(
+        platformDill, vmExecutable, configuration);
+  }
+
+  FastaCompilerConfiguration._(
+      this._platformDill, this._vmExecutable, TestConfiguration configuration)
+      : super._subclass(configuration);
+
+  @override
+  bool get runRuntimeDespiteMissingCompileTimeError => true;
+
+  @override
+  List<Uri> bootstrapDependencies() => [_platformDill];
+
+  @override
+  Command createCommand(String inputFile, String outputFile,
+      List<String> sharedOptions, Map<String, String> environment) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    var output =
+        Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
+    var outputFileName = output.toFilePath();
+
+    var compilerArguments = <String>['--verify'];
+    if (_isLegacy) {
+      compilerArguments.add("--legacy-mode");
+    }
+
+    compilerArguments.addAll(
+        ["-o", outputFileName, "--platform", _platformDill.toFilePath()]);
+    compilerArguments.addAll(arguments);
+
+    return new CommandArtifact([
+      Command.fasta(
+          _compilerLocation,
+          output,
+          bootstrapDependencies(),
+          _vmExecutable,
+          compilerArguments,
+          environmentOverrides,
+          Repository.uri)
+    ], outputFileName, "application/x.dill");
+  }
+
+  @override
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
+    List<String> arguments = new List<String>.from(sharedOptions);
+    for (String argument in args) {
+      if (argument == "--ignore-unrecognized-flags") continue;
+      arguments.add(argument);
+      if (!argument.startsWith("-")) {
+        // Some tests pass arguments to the Dart program; that is, arguments
+        // after the name of the test file. Such arguments have nothing to do
+        // with the compiler and should be ignored.
+        break;
+      }
+    }
+    return arguments;
+  }
+
+  @override
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    if (runtimeConfiguration is! NoneRuntimeConfiguration) {
+      throw "--compiler=fasta only supports --runtime=none";
+    }
+
+    return <String>[];
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.dart_work_manager_test;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show AnalysisError;
 import 'package:analyzer/exception/exception.dart';
@@ -11,6 +9,8 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
+        AnalysisContext,
+        AnalysisErrorInfo,
         AnalysisErrorInfoImpl,
         AnalysisOptions,
         AnalysisOptionsImpl,
@@ -20,12 +20,11 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,7 +38,7 @@ main() {
 
 @reflectiveTest
 class DartWorkManagerTest {
-  InternalAnalysisContext context = new _InternalAnalysisContextMock();
+  _InternalAnalysisContextMock context = new _InternalAnalysisContextMock();
   AnalysisCache cache;
   DartWorkManager manager;
 
@@ -226,8 +225,8 @@ class DartWorkManagerTest {
   }
 
   void test_applyPriorityTargets_isLibrary_computeErrors() {
-    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
-    when(context.shouldErrorsBeAnalyzed(source3)).thenReturn(true);
+    context.setShouldErrorsBeAnalyzed(source2, true);
+    context.setShouldErrorsBeAnalyzed(source3, true);
     entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
@@ -250,8 +249,8 @@ class DartWorkManagerTest {
   }
 
   void test_applyPriorityTargets_isLibrary_computeUnit() {
-    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(false);
-    when(context.shouldErrorsBeAnalyzed(source3)).thenReturn(false);
+    context.setShouldErrorsBeAnalyzed(source2, false);
+    context.setShouldErrorsBeAnalyzed(source3, false);
     entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
@@ -276,8 +275,7 @@ class DartWorkManagerTest {
     entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     // +source2 +source3
-    when(context.getLibrariesContaining(source1))
-        .thenReturn([source2, source3]);
+    context.getLibrariesContainingMap[source1] = <Source>[source2, source3];
     manager.applyPriorityTargets([source1]);
     expect(
         manager.priorityResultQueue,
@@ -310,7 +308,7 @@ class DartWorkManagerTest {
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
-    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
+    context.getLibrariesContainingMap[source1] = <Source>[source2];
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     context
         .getCacheEntry(new LibrarySpecificUnit(source2, source1))
@@ -324,14 +322,14 @@ class DartWorkManagerTest {
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
-    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
+    context.getLibrariesContainingMap[source1] = <Source>[source2];
     entry1.setValue(DART_ERRORS, <AnalysisError>[error1, error2], []);
     List<AnalysisError> errors = manager.getErrors(source1);
     expect(errors, unorderedEquals([error1, error2]));
   }
 
   void test_getLibrariesContainingPart() {
-    when(context.aboutToComputeResult(any, any)).thenReturn(false);
+    context.aboutToComputeEverything = false;
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
     Source part3 = new TestSource('part3.dart');
@@ -356,10 +354,8 @@ class DartWorkManagerTest {
     Source library1 = new TestSource('library1.dart');
     Source library2 = new TestSource('library2.dart');
     // configure AnalysisContext mock
-    when(context.aboutToComputeResult(any, CONTAINING_LIBRARIES))
-        .thenAnswer((invocation) {
-      CacheEntry entry = invocation.positionalArguments[0];
-      ResultDescriptor result = invocation.positionalArguments[1];
+    context.aboutToComputeResultMap[CONTAINING_LIBRARIES] =
+        (CacheEntry entry, ResultDescriptor result) {
       if (entry.target == part1) {
         entry.setValue(result as ResultDescriptor<List<Source>>,
             <Source>[library1, library2], []);
@@ -371,7 +367,7 @@ class DartWorkManagerTest {
         return true;
       }
       return false;
-    });
+    };
     // getLibrariesContainingPart
     expect(manager.getLibrariesContainingPart(part1),
         unorderedEquals([library1, library2]));
@@ -381,26 +377,29 @@ class DartWorkManagerTest {
   }
 
   void test_getLibrariesContainingPart_inSDK() {
-    Source part = new _SourceMock('part.dart');
-    when(part.isInSystemLibrary).thenReturn(true);
+    _SourceMock part = new _SourceMock('part.dart');
+    part.isInSystemLibrary = true;
     // SDK work manager
-    DartWorkManager sdkDartWorkManagerMock = new _DartWorkManagerMock();
-    when(sdkDartWorkManagerMock.getLibrariesContainingPart(part))
-        .thenReturn([source2, source3]);
+    _DartWorkManagerMock sdkDartWorkManagerMock = new _DartWorkManagerMock();
+    sdkDartWorkManagerMock.librariesContainingPartMap[part] = <Source>[
+      source2,
+      source3
+    ];
     // SDK context mock
-    InternalAnalysisContext sdkContextMock = new _InternalAnalysisContextMock();
-    when(sdkContextMock.workManagers).thenReturn([sdkDartWorkManagerMock]);
+    _InternalAnalysisContextMock sdkContextMock =
+        new _InternalAnalysisContextMock();
+    sdkContextMock.workManagers = <WorkManager>[sdkDartWorkManagerMock];
     // SDK mock
-    DartSdk sdkMock = new _DartSdkMock();
-    when(sdkMock.context).thenReturn(sdkContextMock);
+    _DartSdkMock sdkMock = new _DartSdkMock();
+    sdkMock.context = sdkContextMock;
     // SourceFactory mock
-    SourceFactory sourceFactory = new _SourceFactoryMock();
-    when(sourceFactory.dartSdk).thenReturn(sdkMock);
-    when(context.sourceFactory).thenReturn(sourceFactory);
+    _SourceFactoryMock sourceFactory = new _SourceFactoryMock();
+    sourceFactory.dartSdk = sdkMock;
+    context.sourceFactory = sourceFactory;
     // SDK source mock
-    Source source = new _SourceMock('test.dart');
-    when(source.source).thenReturn(source);
-    when(source.isInSystemLibrary).thenReturn(true);
+    _SourceMock source = new _SourceMock('test.dart');
+    source.source = source;
+    source.isInSystemLibrary = true;
     // validate
     expect(manager.getLibrariesContainingPart(part),
         unorderedEquals([source2, source3]));
@@ -531,7 +530,7 @@ class DartWorkManagerTest {
   }
 
   void test_onAnalysisOptionsChanged() {
-    when(context.exists(any)).thenReturn(true);
+    context.everythingExists = true;
     // set cache values
     entry1.setValue(PARSED_UNIT, AstTestFactory.compilationUnit(), []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
@@ -575,7 +574,7 @@ class DartWorkManagerTest {
   }
 
   void test_onSourceFactoryChanged() {
-    when(context.exists(any)).thenReturn(true);
+    context.everythingExists = true;
     // set cache values
     entry1.setValue(PARSED_UNIT, AstTestFactory.compilationUnit(), []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
@@ -610,9 +609,9 @@ class DartWorkManagerTest {
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
-    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
-    when(context.getErrors(source1))
-        .thenReturn(new AnalysisErrorInfoImpl([error1, error2], lineInfo));
+    context.getLibrariesContainingMap[source1] = <Source>[source2];
+    context.errorsMap[source1] =
+        new AnalysisErrorInfoImpl([error1, error2], lineInfo);
     entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
@@ -634,9 +633,9 @@ class DartWorkManagerTest {
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
-    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
-    when(context.getErrors(source1))
-        .thenReturn(new AnalysisErrorInfoImpl([error1, error2], lineInfo));
+    context.getLibrariesContainingMap[source1] = <Source>[source2];
+    context.errorsMap[source1] =
+        new AnalysisErrorInfoImpl([error1, error2], lineInfo);
     entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     entry1.setValue(PARSE_ERRORS, <AnalysisError>[error2], []);
@@ -658,8 +657,8 @@ class DartWorkManagerTest {
     _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
     expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // configure AnalysisContext mock
-    when(context.prioritySources).thenReturn(<Source>[]);
-    when(context.shouldErrorsBeAnalyzed(any)).thenReturn(false);
+    context.prioritySources = <Source>[];
+    context.analyzeAllErrors = false;
     // library1 parts
     manager.resultsComputed(library1, <ResultDescriptor, dynamic>{
       INCLUDED_PARTS: [part1, part2],
@@ -685,25 +684,28 @@ class DartWorkManagerTest {
   }
 
   void test_resultsComputed_inSDK() {
-    DartWorkManager sdkDartWorkManagerMock = new _DartWorkManagerMock();
+    _DartWorkManagerMock sdkDartWorkManagerMock = new _DartWorkManagerMock();
     // SDK context mock
-    InternalAnalysisContext sdkContextMock = new _InternalAnalysisContextMock();
-    when(sdkContextMock.workManagers).thenReturn([sdkDartWorkManagerMock]);
+    _InternalAnalysisContextMock sdkContextMock =
+        new _InternalAnalysisContextMock();
+    sdkContextMock.workManagers = <WorkManager>[sdkDartWorkManagerMock];
     // SDK mock
-    DartSdk sdkMock = new _DartSdkMock();
-    when(sdkMock.context).thenReturn(sdkContextMock);
+    _DartSdkMock sdkMock = new _DartSdkMock();
+    sdkMock.context = sdkContextMock;
     // SourceFactory mock
-    SourceFactory sourceFactory = new _SourceFactoryMock();
-    when(sourceFactory.dartSdk).thenReturn(sdkMock);
-    when(context.sourceFactory).thenReturn(sourceFactory);
+    _SourceFactoryMock sourceFactory = new _SourceFactoryMock();
+    sourceFactory.dartSdk = sdkMock;
+    context.sourceFactory = sourceFactory;
     // SDK source mock
-    Source source = new _SourceMock('test.dart');
-    when(source.source).thenReturn(source);
-    when(source.isInSystemLibrary).thenReturn(true);
+    _SourceMock source = new _SourceMock('test.dart');
+    source.source = source;
+    source.isInSystemLibrary = true;
     // notify and validate
     Map<ResultDescriptor, dynamic> outputs = <ResultDescriptor, dynamic>{};
     manager.resultsComputed(source, outputs);
-    verify(sdkDartWorkManagerMock.resultsComputed(source, outputs)).called(1);
+    var bySourceMap = sdkDartWorkManagerMock.resultsComputedCounts[source];
+    expect(bySourceMap, isNotNull);
+    expect(bySourceMap[outputs], 1);
   }
 
   void test_resultsComputed_noSourceKind() {
@@ -722,9 +724,8 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_parsedUnit() {
     LineInfo lineInfo = new LineInfo([0]);
-    when(context.getLibrariesContaining(source1)).thenReturn([]);
-    when(context.getErrors(source1))
-        .thenReturn(new AnalysisErrorInfoImpl([], lineInfo));
+    context.getLibrariesContainingMap[source1] = <Source>[];
+    context.errorsMap[source1] = new AnalysisErrorInfoImpl([], lineInfo);
     entry1.setValue(LINE_INFO, lineInfo, []);
     CompilationUnit unit = AstTestFactory.compilationUnit();
     manager.resultsComputed(source1, {PARSED_UNIT: unit});
@@ -736,9 +737,8 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_resolvedUnit() {
     LineInfo lineInfo = new LineInfo([0]);
-    when(context.getLibrariesContaining(source2)).thenReturn([]);
-    when(context.getErrors(source2))
-        .thenReturn(new AnalysisErrorInfoImpl([], lineInfo));
+    context.getLibrariesContainingMap[source2] = <Source>[];
+    context.errorsMap[source2] = new AnalysisErrorInfoImpl([], lineInfo);
     entry2.setValue(LINE_INFO, lineInfo, []);
     CompilationUnit unit = AstTestFactory.compilationUnit();
     manager.resultsComputed(
@@ -751,8 +751,8 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_sourceKind_isLibrary() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
-    when(context.prioritySources).thenReturn(<Source>[]);
-    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
+    context.prioritySources = <Source>[];
+    context.shouldErrorsBeAnalyzedMap[source2] = true;
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
     expect_librarySourceQueue([source2]);
     expect_unknownSourceQueue([source1, source3]);
@@ -760,8 +760,8 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_sourceKind_isLibrary_isPriority_computeErrors() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
-    when(context.prioritySources).thenReturn(<Source>[source2]);
-    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
+    context.prioritySources = <Source>[source2];
+    context.shouldErrorsBeAnalyzedMap[source2] = true;
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
     expect_unknownSourceQueue([source1, source3]);
     expect(manager.priorityResultQueue,
@@ -770,8 +770,8 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_sourceKind_isLibrary_isPriority_computeUnit() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
-    when(context.prioritySources).thenReturn(<Source>[source2]);
-    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(false);
+    context.prioritySources = <Source>[source2];
+    context.shouldErrorsBeAnalyzedMap[source2] = false;
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
     expect_unknownSourceQueue([source1, source3]);
     expect(
@@ -816,17 +816,73 @@ class DartWorkManagerTest {
   }
 }
 
-class _DartSdkMock extends Mock implements DartSdk {}
+class _DartSdkMock implements DartSdk {
+  AnalysisContext context;
 
-class _DartWorkManagerMock extends Mock implements DartWorkManager {}
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
 
-class _InternalAnalysisContextMock extends Mock
-    implements InternalAnalysisContext {
+class _DartWorkManagerMock implements DartWorkManager {
+  Map<Source, List<Source>> librariesContainingPartMap =
+      <Source, List<Source>>{};
+
+  Map<Source, Map<Map<ResultDescriptor, dynamic>, int>> resultsComputedCounts =
+      <Source, Map<Map<ResultDescriptor, dynamic>, int>>{};
+
+  @override
+  List<Source> getLibrariesContainingPart(Source part) {
+    return librariesContainingPartMap[part] ?? <Source>[];
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  void resultsComputed(
+      AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
+    Map<Map<ResultDescriptor, dynamic>, int> bySourceMap =
+        resultsComputedCounts.putIfAbsent(target, () => {});
+    bySourceMap[outputs] = (bySourceMap[outputs] ?? 0) + 1;
+  }
+}
+
+class _InternalAnalysisContextMock implements InternalAnalysisContext {
   @override
   CachePartition privateAnalysisCachePartition;
 
   @override
   AnalysisCache analysisCache;
+
+  @override
+  SourceFactory sourceFactory;
+
+  bool analyzeAllErrors;
+
+  bool everythingExists = false;
+
+  bool aboutToComputeEverything;
+
+  @override
+  List<Source> prioritySources = <Source>[];
+
+  @override
+  List<WorkManager> workManagers = <WorkManager>[];
+
+  Map<Source, List<Source>> getLibrariesContainingMap =
+      <Source, List<Source>>{};
+
+  Map<Source, bool> shouldErrorsBeAnalyzedMap = <Source, bool>{};
+
+  Map<ResultDescriptor, bool Function(CacheEntry entry, ResultDescriptor)>
+      aboutToComputeResultMap =
+      <ResultDescriptor, bool Function(CacheEntry entry, ResultDescriptor)>{};
+
+  Map<Source, AnalysisErrorInfo> errorsMap = <Source, AnalysisErrorInfo>{};
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
@@ -846,6 +902,24 @@ class _InternalAnalysisContextMock extends Mock
   }
 
   @override
+  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
+    if (aboutToComputeEverything != null) {
+      return aboutToComputeEverything;
+    }
+    bool Function(CacheEntry entry, ResultDescriptor) function =
+        aboutToComputeResultMap[result];
+    if (function == null) {
+      return false;
+    }
+    return function(entry, result);
+  }
+
+  @override
+  bool exists(Source source) {
+    return everythingExists;
+  }
+
+  @override
   CacheEntry getCacheEntry(AnalysisTarget target) {
     CacheEntry entry = analysisCache.get(target);
     if (entry == null) {
@@ -856,19 +930,65 @@ class _InternalAnalysisContextMock extends Mock
   }
 
   @override
+  AnalysisErrorInfo getErrors(Source source) => errorsMap[source];
+
+  List<Source> getLibrariesContaining(Source source) {
+    return getLibrariesContainingMap[source];
+  }
+
+  @override
   ChangeNoticeImpl getNotice(Source source) {
     return _pendingNotices.putIfAbsent(
         source, () => new ChangeNoticeImpl(source));
   }
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  void setShouldErrorsBeAnalyzed(Source source, bool value) {
+    shouldErrorsBeAnalyzedMap[source] = value;
+  }
+
+  @override
+  bool shouldErrorsBeAnalyzed(Source source) {
+    if (analyzeAllErrors != null) {
+      return analyzeAllErrors;
+    }
+    return shouldErrorsBeAnalyzedMap[source];
+  }
 }
 
-class _SourceFactoryMock extends Mock implements SourceFactory {}
+class _SourceFactoryMock implements SourceFactory {
+  DartSdk dartSdk;
 
-class _SourceMock extends Mock implements Source {
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
+
+class _SourceMock implements Source {
+  @override
   final String shortName;
+
+  @override
+  bool isInSystemLibrary = false;
+
+  @override
+  Source source;
+
   _SourceMock(this.shortName);
+
   @override
   String get fullName => '/' + shortName;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
   @override
   String toString() => fullName;
 }

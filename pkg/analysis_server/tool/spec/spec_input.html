@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.18.4</version>
+  <version>1.21.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -332,12 +332,17 @@
           analyzed.
         </p>
       </field>
-      <field name="pub" optional="true">
+      <field name="pub" optional="true" deprecated="true">
         <ref>PubStatus</ref>
         <p>
           The current status of pub execution, indicating whether we are
           currently running pub.
         </p>
+
+        <p>
+          Note: this status type is deprecated, and is no longer sent by
+          the server.
+      </p>
       </field>
     </params>
   </notification>
@@ -600,7 +605,7 @@
       </field>
     </result>
   </request>
-  <request method="getReachableSources">
+  <request method="getReachableSources" deprecated="true">
     <p>
       Return the transitive closure of reachable sources for a given file.
     </p>
@@ -643,6 +648,67 @@
           To check if a specific URI is reachable from a given file, clients can
           check
           for its presence in the resulting key set.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getSignature" experimental="true">
+    <p>
+      Return the signature information associated with the given
+      location in the given file. If the signature information
+      for the given file has not yet been computed, or the most
+      recently computed signature information for the given file
+      is out of date, then the response for this request will be
+      delayed until it has been computed.
+
+      If a request is made for a file which does not exist, or
+      which is not currently subject to analysis (e.g. because it
+      is not associated with any analysis root specified to
+      analysis.setAnalysisRoots), an error of type
+      <tt>GET_SIGNATURE_INVALID_FILE</tt> will be generated.
+
+      If the location given is not inside the argument list for a
+      function (including method and constructor) invocation, then
+      an error of type <tt>GET_SIGNATURE_INVALID_OFFSET</tt> will
+      be generated. If the location is inside an argument list but
+      the function is not defined or cannot be determined (such as
+      a method invocation where the target has type 'dynamic')
+      then an error of type <tt>GET_SIGNATURE_UNKNOWN_FUNCTION</tt>
+      will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which signature information is being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The location for which signature information is being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="name">
+        <ref>String</ref>
+        <p>The name of the function being invoked at the given offset.</p>
+      </field>
+      <field name="parameters">
+        <list>
+          <ref>ParameterInfo</ref>
+        </list>
+        <p>A list of information about each of the parameters of the function being invoked.</p>
+      </field>
+      <field name="dartdoc" optional="true">
+        <ref>String</ref>
+        <p>
+          The dartdoc associated with the function being invoked. Other
+          than the removal of the comment delimiters, including leading
+          asterisks in the case of a block comment, the dartdoc is
+          unprocessed markdown. This data is omitted if there is no
+          referenced element, or if the element has no dartdoc.
         </p>
       </field>
     </result>
@@ -1574,6 +1640,52 @@
       </field>
     </result>
   </request>
+  <request method="getElementDeclarations" experimental="true">
+    <p>
+      Return top-level and class member declarations.
+    </p>
+    <params>
+      <field name="file" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          If this field is provided, return only declarations in this file.
+          If this field is missing, return declarations in all files.
+        </p>
+      </field>
+      <field name="pattern" optional="true">
+        <ref>String</ref>
+        <p>
+          The regular expression used to match the names of declarations.
+          If this field is missing, return all declarations.
+        </p>
+      </field>
+      <field name="maxResults" optional="true">
+        <ref>int</ref>
+        <p>
+          The maximum number of declarations to return.
+          If this field is missing, return all matching declarations.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="declarations">
+        <list>
+          <ref>ElementDeclaration</ref>
+        </list>
+        <p>
+          The list of declarations.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The list of the paths of files with declarations.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="getTypeHierarchy">
     <p>
       Return the type hierarchy of the class declared or
@@ -1817,6 +1929,65 @@
         <p>
           The kinds of refactorings that are valid for the given
           selection.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="dartfix" experimental="true">
+    <p>
+      Analyze the specified sources for recommended changes
+      and return a set of suggested edits for those sources.
+      These edits may include changes to sources outside the set
+      of specified sources if a change in a specified source requires it.
+    </p>
+    <params>
+      <field name="included">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the files and directories for which edits should be suggested.
+        </p>
+        <p>
+          If a request is made with a path that is invalid, e.g. is not absolute and normalized,
+          an error of type <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
+          If a request is made for a file which does not exist, or which is not currently subject to analysis
+          (e.g. because it is not associated with any analysis root specified to analysis.setAnalysisRoots),
+          an error of type <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="suggestions">
+        <list>
+          <ref>DartFixSuggestion</ref>
+        </list>
+        <p>
+          A list of recommended changes that can be automatically made
+          by applying the 'edits' included in this response.
+        </p>
+      </field>
+      <field name="otherSuggestions">
+        <list>
+          <ref>DartFixSuggestion</ref>
+        </list>
+        <p>
+          A list of recommended changes that could not be automatically made.
+        </p>
+      </field>
+      <field name="hasErrors">
+        <ref>bool</ref>
+        <p>
+          True if the analyzed source contains errors that might impact the correctness
+          of the recommended changes that can be automatically applied.
+        </p>
+      </field>
+      <field name="edits">
+        <list>
+          <ref>SourceFileEdit</ref>
+        </list>
+        <p>
+          A list of source edits to apply the recommended changes.
         </p>
       </field>
     </result>
@@ -2134,14 +2305,13 @@
       </field>
     </params>
     <result>
-      <field name="edit">
+      <field name="edit" optional="true">
         <ref>SourceFileEdit</ref>
         <p>
-          The edits to be applied in order to make the specified elements
-          accessible. The file to be edited will be the defining compilation
-          unit of the library containing the file specified in the request,
-          which can be different than the file specified in the request if the
-          specified file is a part file.
+          The edits to be applied in order to make the specified elements accessible. The file to be edited will be the
+          defining compilation unit of the library containing the file specified in the request, which can be different
+          than the file specified in the request if the specified file is a part file. This field will be omitted if
+          there are no edits that need to be applied.
         </p>
       </field>
     </result>
@@ -2260,6 +2430,111 @@
         </p>
       </field>
     </params>
+  </request>
+  <request method="getSuggestions">
+    <p>
+      Request completion suggestions for the given runtime context.
+    </p>
+    <p>
+      It might take one or two requests of this type to get completion
+      suggestions. The first request should have only "code", "offset",
+      and "variables", but not "expressions". If there are sub-expressions that
+      can have different runtime types, and are considered to be safe to
+      evaluate at runtime (e.g. getters), so using their actual runtime types
+      can improve completion results, the server will not include the
+      "suggestions" field in the response, and instead will return the
+      "expressions" field. The client will use debug API to get current runtime
+      types for these sub-expressions and send another request, this time with
+      "expressions". If there are no interesting sub-expressions to get
+      runtime types for, or when the "expressions" field is provided by the
+      client, the server will return "suggestions" in the response.
+    </p>
+    <params>
+      <field name="code">
+        <ref>String</ref>
+        <p>
+          The code to get suggestions in.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset within the code to get suggestions at.
+        </p>
+      </field>
+      <field name="contextFile">
+        <ref>FilePath</ref>
+        <p>
+          The path of the context file, e.g. the file of the current debugger
+          frame. The combination of the context file and context offset can
+          be used to ensure that all variables of the context are available
+          for completion (with their static types).
+        </p>
+      </field>
+      <field name="contextOffset">
+        <ref>int</ref>
+        <p>
+          The offset in the context file, e.g. the line offset in the current
+          debugger frame.
+        </p>
+      </field>
+      <field name="variables">
+        <list>
+          <ref>RuntimeCompletionVariable</ref>
+        </list>
+        <p>
+          The runtime context variables that are potentially referenced in the
+          code.
+        </p>
+      </field>
+      <field name="expressions" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpression</ref>
+        </list>
+        <p>
+          The list of sub-expressions in the code for which the client wants
+          to provide runtime types. It does not have to be the full list of
+          expressions requested by the server, for missing expressions their
+          static types will be used.
+        </p>
+        <p>
+          When this field is omitted, the server will return completion
+          suggestions only when there are no interesting sub-expressions in the
+          given code. The client may provide an empty list, in this case the
+          server will return completion suggestions.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="suggestions" optional="true">
+        <list>
+          <ref>CompletionSuggestion</ref>
+        </list>
+        <p>
+          The completion suggestions. In contrast to usual completion request,
+          suggestions for private elements also will be provided.
+        </p>
+        <p>
+          If there are sub-expressions that can have different runtime types,
+          and are considered to be safe to evaluate at runtime (e.g. getters),
+          so using their actual runtime types can improve completion results,
+          the server omits this field in the response, and instead will return
+          the "expressions" field.
+        </p>
+      </field>
+      <field name="expressions" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpression</ref>
+        </list>
+        <p>
+          The list of sub-expressions in the code for which the server would
+          like to know runtime types to provide better completion suggestions.
+        </p>
+        <p>
+          This field is omitted the field "suggestions" is returned.
+        </p>
+      </field>
+    </result>
   </request>
   <request method="mapUri">
     <p>
@@ -2580,6 +2855,127 @@
     </result>
   </request>
 </domain>
+<domain name="flutter" experimental="true">
+  <p>
+    The analysis domain contains API’s related to Flutter support.
+  </p>
+  <request method="getChangeAddForDesignTimeConstructor">
+    <p>
+      Return the change that adds the forDesignTime() constructor for the
+      widget class at the given offset.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code of the class.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the class in the code.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change that adds the forDesignTime() constructor.
+          If the change cannot be produced, an error is returned.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="setSubscriptions">
+    <p>
+      Subscribe for services that are specific to individual files.
+      All previous subscriptions are replaced by the current set of
+      subscriptions. If a given service is not included as a key in the map
+      then no files will be subscribed to the service, exactly as if the
+      service had been included in the map with an explicit empty list of
+      files.
+    </p>
+    <p>
+      Note that this request determines the set of requested
+      subscriptions. The actual set of subscriptions at any given
+      time is the intersection of this set with the set of files
+      currently subject to analysis. The files currently subject
+      to analysis are the set of files contained within an actual
+      analysis root but not excluded, plus all of the files
+      transitively reachable from those files via import, export
+      and part directives. (See analysis.setAnalysisRoots for an
+      explanation of how the actual analysis roots are
+      determined.) When the actual analysis roots change, the
+      actual set of subscriptions is automatically updated, but
+      the set of requested subscriptions is unchanged.
+    </p>
+    <p>
+      If a requested subscription is a directory it is ignored,
+      but remains in the set of requested subscriptions so that if
+      it later becomes a file it can be included in the set of
+      actual subscriptions.
+    </p>
+    <p>
+      It is an error if any of the keys in the map are not valid
+      services. If there is an error, then the existing
+      subscriptions will remain unchanged.
+    </p>
+    <params>
+      <field name="subscriptions">
+        <map>
+          <key>
+            <ref>FlutterService</ref>
+          </key>
+          <value>
+            <list>
+              <ref>FilePath</ref>
+            </list>
+          </value>
+        </map>
+        <p>
+          A table mapping services to a list of the files being
+          subscribed to the service.
+        </p>
+      </field>
+    </params>
+  </request>
+  <notification event="outline" experimental="true">
+    <p>
+      Reports the Flutter outline associated with a single file.
+    </p>
+    <p>
+      This notification is not subscribed to by default. Clients
+      can subscribe by including the value <tt>"OUTLINE"</tt> in
+      the list of services passed in an flutter.setSubscriptions
+      request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file with which the outline is associated.
+        </p>
+      </field>
+      <field name="outline">
+        <ref>FlutterOutline</ref>
+        <p>
+          The outline associated with the file.
+        </p>
+      </field>
+      <field name="instrumentedCode" optional="true">
+        <ref>String</ref>
+        <p>
+          If the file has Flutter widgets that can be rendered, this field
+          has the instrumented content of the file, that allows associating
+          widgets with corresponding outline nodes. If there are no widgets
+          to render, this field is absent.
+        </p>
+      </field>
+    </params>
+  </notification>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>
@@ -2797,6 +3193,88 @@
       </field>
     </object>
   </type>
+  <type name="ElementDeclaration">
+    <p>
+      A declaration - top-level (class, field, etc) or a class member (method,
+      field, etc).
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the declaration.
+        </p>
+      </field>
+      <field name="kind">
+        <ref>ElementKind</ref>
+        <p>
+          The kind of the element that corresponds to the declaration.
+        </p>
+      </field>
+      <field name="fileIndex">
+        <ref>int</ref>
+        <p>
+          The index of the file (in the enclosing response).
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the declaration name in the file.
+        </p>
+      </field>
+      <field name="line">
+        <ref>int</ref>
+        <p>
+          The one-based index of the line containing the declaration name.
+        </p>
+      </field>
+      <field name="column">
+        <ref>int</ref>
+        <p>
+          The one-based index of the column containing the declaration name.
+        </p>
+      </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the declaration code in the file.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the declaration code in the file.
+        </p>
+      </field>
+      <field name="className" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the class enclosing this declaration. If the declaration
+          is not a class member, this field will be absent.
+        </p>
+      </field>
+      <field name="mixinName" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the mixin enclosing this declaration. If the declaration
+          is not a mixin member, this field will be absent.
+        </p>
+      </field>
+      <field name="parameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The parameter list for the element. If the element is not a method or
+          function this field will not be defined. If the element doesn't have
+          parameters (e.g. getter), this field will not be defined. If the
+          element has zero parameters, this field will have a value of "()".
+
+          The value should not be treated as exact presentation of parameters,
+          it is just approximation of parameters to give the user general idea.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="ExecutableFile">
     <p>
       A description of an executable file.
@@ -2833,6 +3311,132 @@
       The identifier for a execution context.
     </p>
   </type>
+  <type name="RuntimeCompletionExpression">
+    <p>
+      An expression for which we want to know its runtime type.
+      In expressions like 'a.b.c.where((e) => e.^)' we want to know the
+      runtime type of 'a.b.c' to enforce it statically at the time when we
+      compute completion suggestions, and get better type for 'e'.
+    </p>
+    <object>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the expression in the code for completion.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the expression in the code for completion.
+        </p>
+      </field>
+      <field name="type" optional="true">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          When the expression is sent from the server to the client, the
+          type is omitted. The client should fill the type when it sends the
+          request to the server again.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionVariable">
+    <p>
+      A variable in a runtime context.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the variable.
+          The name "this" has a special meaning and is used as an implicit
+          target for runtime completion, and in explicit "this" references.
+        </p>
+      </field>
+      <field name="type">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          The type of the variable.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionExpressionType">
+    <p>
+      A type at runtime.
+    </p>
+    <object>
+      <field name="libraryPath" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The path of the library that has this type.
+          Omitted if the type is not declared in any library, e.g. "dynamic",
+          or "void".
+        </p>
+      </field>
+      <field name="kind">
+        <ref>RuntimeCompletionExpressionTypeKind</ref>
+        <p>
+          The kind of the type.
+        </p>
+      </field>
+      <field name="name" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the type. Omitted if the type does not have a name, e.g.
+          an inline function type.
+        </p>
+      </field>
+      <field name="typeArguments" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpressionType</ref>
+        </list>
+        <p>
+          The type arguments of the type.
+          Omitted if the type does not have type parameters.
+        </p>
+      </field>
+      <field name="returnType" optional="true">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          If the type is a function type, the return type of the function.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+      <field name="parameterTypes" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpressionType</ref>
+        </list>
+        <p>
+          If the type is a function type, the types of the function parameters
+          of all kinds - required, optional positional, and optional named.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+      <field name="parameterNames" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          If the type is a function type, the names of the function parameters
+          of all kinds - required, optional positional, and optional named.
+          The names of positional parameters are empty strings.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionExpressionTypeKind">
+    <p>
+      An enumeration of the kinds of runtime expression types.
+    </p>
+    <enum>
+      <value><code>DYNAMIC</code></value>
+      <value><code>FUNCTION</code></value>
+      <value><code>INTERFACE</code></value>
+    </enum>
+  </type>
   <type name="ExecutionService">
     <p>
       An enumeration of the services provided by the execution
@@ -2849,6 +3453,232 @@
     <enum>
       <value><code>LIBRARY</code></value>
       <value><code>PART</code></value>
+    </enum>
+  </type>
+  <type name="FlutterService" experimental="true">
+    <p>
+      An enumeration of the services provided by the flutter domain that
+      are related to a specific list of files.
+    </p>
+    <enum>
+      <value><code>OUTLINE</code></value>
+    </enum>
+  </type>
+  <type name="FlutterOutline" experimental="true">
+    <p>
+      An node in the Flutter specific outline structure of a file.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>FlutterOutlineKind</ref>
+        <p>The kind of the node.</p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element. This is different
+          than the offset in the Element, which is the offset of the name of the
+          element. It can be used, for example, to map locations in the file
+          back to an outline.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the element.
+        </p>
+      </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the element code.
+        </p>
+      </field>
+      <field name="label" optional="true">
+        <ref>String</ref>
+        <p>
+          The text label of the node children of the node.
+          It is provided for any FlutterOutlineKind.GENERIC node,
+          where better information is not available.
+        </p>
+      </field>
+      <field name="dartElement" optional="true">
+        <ref>Element</ref>
+        <p>
+          If this node is a Dart element, the description of it; omitted
+          otherwise.
+        </p>
+      </field>
+      <field name="attributes" optional="true">
+        <list>
+          <ref>FlutterOutlineAttribute</ref>
+        </list>
+        <p>
+          Additional attributes for this node, which might be interesting
+          to display on the client. These attributes are usually arguments
+          for the instance creation or the invocation that created the widget.
+        </p>
+      </field>
+      <field name="className" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node creates a new class instance, or a reference to an
+          instance, this field has the name of the class.
+        </p>
+      </field>
+      <field name="parentAssociationLabel" optional="true">
+        <ref>String</ref>
+        <p>
+          A short text description how this node is associated with the parent
+          node. For example "appBar" or "body" in Scaffold.
+        </p>
+      </field>
+      <field name="variableName" optional="true">
+        <ref>String</ref>
+        <p>
+          If FlutterOutlineKind.VARIABLE, the name of the variable.
+        </p>
+      </field>
+      <field name="children" optional="true">
+        <list>
+          <ref>FlutterOutline</ref>
+        </list>
+        <p>
+          The children of the node. The field will be omitted if the node has no
+          children.
+        </p>
+      </field>
+      <field name="id" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a widget, and it is instrumented, the unique identifier
+          of this widget, that can be used to associate rendering information
+          with this node.
+        </p>
+      </field>
+      <field name="isWidgetClass" optional="true">
+        <ref>bool</ref>
+        <p>
+          True if the node is a widget class, so it can potentially be
+          rendered, even if it does not yet have the rendering constructor.
+          This field is omitted if the node is not a widget class.
+        </p>
+      </field>
+      <field name="renderConstructor" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node is a widget class that can be rendered for IDE, the name
+          of the constructor that should be used to instantiate the widget.
+          Empty string for default constructor. Absent if the node is not a
+          widget class that can be rendered.
+        </p>
+      </field>
+      <field name="stateClassName" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node is a StatefulWidget, and its state class is defined in
+          the same file, the name of the state class.
+        </p>
+      </field>
+      <field name="stateOffset" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its state
+          class is defined in the same file, the offset of the state class code
+          in the file.
+        </p>
+      </field>
+      <field name="stateLength" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its state
+          class is defined in the same file, the length of the state class code
+          in the file.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterOutlineAttribute" experimental="true">
+    <p>
+      An attribute for a FlutterOutline.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the attribute.
+        </p>
+      </field>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label of the attribute value, usually the Dart code.
+          It might be quite long, the client should abbreviate as needed.
+        </p>
+      </field>
+      <field name="literalValueBoolean" optional="true">
+        <ref>bool</ref>
+        <p>
+          The boolean literal value of the attribute.
+          This field is absent if the value is not a boolean literal.
+        </p>
+      </field>
+      <field name="literalValueInteger" optional="true">
+        <ref>int</ref>
+        <p>
+          The integer literal value of the attribute.
+          This field is absent if the value is not an integer literal.
+        </p>
+      </field>
+      <field name="literalValueString" optional="true">
+        <ref>String</ref>
+        <p>
+          The string literal value of the attribute.
+          This field is absent if the value is not a string literal.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterOutlineKind" experimental="true">
+    <p>
+      An enumeration of the kinds of FlutterOutline elements. The list of kinds
+      might be expanded with time, clients must be able to handle new kinds
+      in some general way.
+    </p>
+    <enum>
+      <value>
+        <code>DART_ELEMENT</code>
+        <p>A dart element declaration.</p>
+      </value>
+      <value>
+        <code>GENERIC</code>
+        <p>A generic Flutter element, without additional information.</p>
+      </value>
+      <value>
+        <code>NEW_INSTANCE</code>
+        <p>A new instance creation.</p>
+      </value>
+      <value>
+        <code>INVOCATION</code>
+        <p>An invocation of a method, a top-level function, a function
+          expression, etc.</p>
+      </value>
+      <value>
+        <code>VARIABLE</code>
+        <p>A reference to a local variable, or a field.</p>
+      </value>
+      <value>
+        <code>PLACEHOLDER</code>
+        <p>The parent node has a required Widget. The node works as a
+          placeholder child to drop a new Widget to.</p>
+      </value>
     </enum>
   </type>
   <type name="GeneralAnalysisService">
@@ -3255,6 +4085,29 @@
         </p>
       </value>
       <value>
+        <code>GET_SIGNATURE_INVALID_FILE</code>
+        <p>
+          An "analysis.getSignature" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_SIGNATURE_INVALID_OFFSET</code>
+        <p>
+          An "analysis.getSignature" request specified an offset
+          which is not a valid location within for the contents of
+          the file specified FilePath.
+        </p>
+      </value>
+      <value>
+        <code>GET_SIGNATURE_UNKNOWN_FUNCTION</code>
+        <p>
+          An "analysis.getSignature" request specified an offset
+          that could not be matched to a function call.
+        </p>
+      </value>
+      <value>
         <code>IMPORT_ELEMENTS_INVALID_FILE</code>
         <p>
           An "edit.importElements" request specified a FilePath that does not
@@ -3351,31 +4204,11 @@
         </p>
       </value>
       <value>
-        <code>UNANALYZED_PRIORITY_FILES</code>
-        <p>
-          An "analysis.setPriorityFiles" request includes one or
-          more files that are not being analyzed.
-        </p>
-        <p>
-          This is a legacy error; it will be removed before the
-          API reaches version 1.0.
-        </p>
-        <!-- TODO(paulberry): remove this error and the code that
-                 generates it. -->
-      </value>
-      <value>
         <code>UNKNOWN_REQUEST</code>
         <p>
           A request was received which the analysis server does
           not recognize, or cannot handle in its current
           configuration.
-        </p>
-      </value>
-      <value>
-        <code>UNKNOWN_SOURCE</code>
-        <p>
-          The analysis server was requested to perform an action
-          on a source that does not exist.
         </p>
       </value>
       <value>
@@ -3399,6 +4232,25 @@
       An identifier used to associate search results with a search
       request.
     </p>
+  </type>
+  <type name="DartFixSuggestion" experimental="true">
+    <p>
+      A suggestion from an edit.dartfix request.
+    </p>
+    <object>
+      <field name="description">
+        <ref>String</ref>
+        <p>
+          A human readable description of the suggested change.
+        </p>
+      </field>
+      <field name="location" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the suggested change.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="SearchResult">
     <p>
@@ -3813,6 +4665,23 @@
       </field>
     </options>
   </refactoring>
+  <refactoring kind="EXTRACT_WIDGET">
+    <p>
+      Create a new class that extends StatelessWidget, whose build() method is
+      the widget creation expression, or a method returning a Flutter widget,
+      at the specified offset.
+    </p>
+    <feedback>
+    </feedback>
+    <options>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name that the widget class should be given.
+        </p>
+      </field>
+    </options>
+  </refactoring>
   <refactoring kind="INLINE_LOCAL_VARIABLE">
     <p>
       Inline the initializer expression of a local variable in
@@ -3926,7 +4795,7 @@
         <ref>int</ref>
         <p>
           The offset to the beginning of the name selected to be
-          renamed.
+          renamed, or -1 if the name does not exist yet.
         </p>
       </field>
       <field name="length">

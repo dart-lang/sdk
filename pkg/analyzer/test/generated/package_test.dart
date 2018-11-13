@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.generated.package_test;
 
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -33,18 +31,19 @@ const String pubspecName = 'pubspec.yaml';
 @reflectiveTest
 class DependencyFinderTest extends ResolverTestCase {
   void test_transitiveDependenciesFor_circularDependencies() {
+    var pathContext = resourceProvider.pathContext;
     String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
     String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
-    resourceProvider.newFile('$packageA/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageA, pubspecName), '''
     dependencies:
       b: any
     ''');
-    resourceProvider.newFile('$packageB/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageB, pubspecName), '''
     dependencies:
       c: any
     ''');
-    resourceProvider.newFile('$packageC/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageC, pubspecName), '''
     dependencies:
       a: any
     ''');
@@ -61,19 +60,20 @@ class DependencyFinderTest extends ResolverTestCase {
   }
 
   void test_transitiveDependenciesFor_missingPubspec() {
-    String packagePath = '/pub-cache/a-1.0';
+    String packagePath = resourceProvider.convertPath('/pub-cache/a-1.0');
     Map<String, List<Folder>> packageMap = <String, List<Folder>>{
       'a': <Folder>[resourceProvider.getFolder(packagePath)]
     };
 
     DependencyFinder finder = new DependencyFinder(resourceProvider);
     expect(() => finder.transitiveDependenciesFor(packageMap, packagePath),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   void test_transitiveDependenciesFor_noDependencies() {
-    String packagePath = '/pub-cache/a-1.0';
-    resourceProvider.newFile('$packagePath/$pubspecName', '');
+    var pathContext = resourceProvider.pathContext;
+    String packagePath = resourceProvider.convertPath('/pub-cache/a-1.0');
+    resourceProvider.newFile(pathContext.join(packagePath, pubspecName), '');
     Map<String, List<Folder>> packageMap = <String, List<Folder>>{
       'a': <Folder>[resourceProvider.getFolder(packagePath)]
     };
@@ -85,24 +85,25 @@ class DependencyFinderTest extends ResolverTestCase {
   }
 
   void test_transitiveDependenciesFor_overlappingDependencies() {
+    var pathContext = resourceProvider.pathContext;
     String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
     String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     String packageD = resourceProvider.convertPath('/pub-cache/d-1.0');
-    resourceProvider.newFile('$packageA/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageA, pubspecName), '''
     dependencies:
       b: any
       c: any
     ''');
-    resourceProvider.newFile('$packageB/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageB, pubspecName), '''
     dependencies:
       d: any
     ''');
-    resourceProvider.newFile('$packageC/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageC, pubspecName), '''
     dependencies:
       d: any
     ''');
-    resourceProvider.newFile('$packageD/$pubspecName', '');
+    resourceProvider.newFile(pathContext.join(packageD, pubspecName), '');
     Map<String, List<Folder>> packageMap = <String, List<Folder>>{
       'a': <Folder>[resourceProvider.getFolder(packageA)],
       'b': <Folder>[resourceProvider.getFolder(packageB)],
@@ -117,16 +118,17 @@ class DependencyFinderTest extends ResolverTestCase {
   }
 
   void test_transitiveDependenciesFor_simpleDependencies() {
+    var pathContext = resourceProvider.pathContext;
     String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
     String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
-    resourceProvider.newFile('$packageA/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageA, pubspecName), '''
     dependencies:
       b: any
       c: any
     ''');
-    resourceProvider.newFile('$packageB/$pubspecName', '');
-    resourceProvider.newFile('$packageC/$pubspecName', '');
+    resourceProvider.newFile(pathContext.join(packageB, pubspecName), '');
+    resourceProvider.newFile(pathContext.join(packageC, pubspecName), '');
     Map<String, List<Folder>> packageMap = <String, List<Folder>>{
       'a': <Folder>[resourceProvider.getFolder(packageA)],
       'b': <Folder>[resourceProvider.getFolder(packageB)],
@@ -190,23 +192,24 @@ class PackageDescriptionTest extends ResolverTestCase {
 @reflectiveTest
 class PackageManagerTest extends ResolverTestCase {
   void test_getContext() {
+    var pathContext = resourceProvider.pathContext;
     String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
     String packageB1 = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageB2 = resourceProvider.convertPath('/pub-cache/b-2.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
-    resourceProvider.newFile('$packageA/$pubspecName', '''
+    resourceProvider.newFile(pathContext.join(packageA, pubspecName), '''
     dependencies:
       b: any
       c: any
     ''');
-    resourceProvider.newFile('$packageB1/$pubspecName', '');
-    resourceProvider.newFile('$packageB2/$pubspecName', '');
-    resourceProvider.newFile('$packageC/$pubspecName', '');
+    resourceProvider.newFile(pathContext.join(packageB1, pubspecName), '');
+    resourceProvider.newFile(pathContext.join(packageB2, pubspecName), '');
+    resourceProvider.newFile(pathContext.join(packageC, pubspecName), '');
 
     Packages packages1 = new _MockPackages(<String, Uri>{
-      'a': new Uri.file(packageA),
-      'b': new Uri.file(packageB1),
-      'c': new Uri.file(packageC),
+      'a': pathContext.toUri(packageA),
+      'b': pathContext.toUri(packageB1),
+      'c': pathContext.toUri(packageC),
     });
     DartUriResolver resolver = new DartUriResolver(new MockSdk());
     AnalysisOptions options = new AnalysisOptionsImpl();
@@ -227,9 +230,9 @@ class PackageManagerTest extends ResolverTestCase {
     // Verify that if we have a different package map we get a different context.
     //
     Packages packages3 = new _MockPackages(<String, Uri>{
-      'a': new Uri.file(packageA),
-      'b': new Uri.file(packageB2),
-      'c': new Uri.file(packageC),
+      'a': pathContext.toUri(packageA),
+      'b': pathContext.toUri(packageB2),
+      'c': pathContext.toUri(packageC),
     });
     AnalysisContext context3 =
         manager.getContext(packageA, packages3, resolver, options);
@@ -254,6 +257,5 @@ class _MockPackages implements Packages {
   @override
   Uri resolve(Uri packageUri, {Uri notFound(Uri packageUri)}) {
     fail('Unexpected invocation of resolve');
-    return null;
   }
 }

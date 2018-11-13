@@ -65,6 +65,13 @@ bool SourceReport::IsReportRequested(ReportKind report_kind) {
 }
 
 bool SourceReport::ShouldSkipFunction(const Function& func) {
+  // TODO(32315): Verify that the check is still needed after the issue is
+  // resolved.
+  if (!func.token_pos().IsReal() || !func.end_token_pos().IsReal()) {
+    // At least one of the token positions is not known.
+    return true;
+  }
+
   if (script_ != NULL && !script_->IsNull()) {
     if (func.script() != script_->raw()) {
       // The function is from the wrong script.
@@ -105,15 +112,18 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
 }
 
 intptr_t SourceReport::GetScriptIndex(const Script& script) {
+  ScriptTableEntry wrapper;
   const String& url = String::Handle(zone(), script.url());
-  ScriptTableEntry* pair = script_table_.LookupValue(&url);
+  wrapper.key = &url;
+  wrapper.script = &Script::Handle(zone(), script.raw());
+  ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
   if (pair != NULL) {
     return pair->index;
   }
   ScriptTableEntry* tmp = new ScriptTableEntry();
   tmp->key = &url;
   tmp->index = next_script_index_++;
-  tmp->script = &Script::Handle(zone(), script.raw());
+  tmp->script = wrapper.script;
   script_table_entries_.Add(tmp);
   script_table_.Insert(tmp);
   ASSERT(script_table_entries_.length() == next_script_index_);
@@ -132,7 +142,10 @@ void SourceReport::VerifyScriptTable() {
     ASSERT(i == index);
     const String& url2 = String::Handle(zone(), script->url());
     ASSERT(url2.Equals(*url));
-    ScriptTableEntry* pair = script_table_.LookupValue(&url2);
+    ScriptTableEntry wrapper;
+    wrapper.key = &url2;
+    wrapper.script = &Script::Handle(zone(), script->raw());
+    ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
     ASSERT(i == pair->index);
   }
 }
@@ -376,6 +389,11 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   const TokenPosition end_pos = func.end_token_pos();
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+    code = func.Bytecode();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (code.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
       const Error& err =
@@ -391,6 +409,11 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
         return;
       }
       code = func.unoptimized_code();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+        code = func.Bytecode();
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
       // This function has not been compiled yet.
       JSONObject range(jsarr);
@@ -445,7 +468,15 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     cls = it.GetNextClass();
     if (!cls.is_finalized()) {
       if (compile_mode_ == kForceCompile) {
-        const Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
+        Error& err = Error::Handle();
+        if (cls.is_marked_for_parsing()) {
+          const String& error_message = String::Handle(
+              String::New("Unable to process 'force compile' request, "
+                          "while the class is being finalized."));
+          err = ApiError::New(error_message);
+        } else {
+          err = cls.EnsureIsFinalized(thread());
+        }
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
           JSONObject range(jsarr);
@@ -457,6 +488,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           range.AddProperty("error", err);
           continue;
         }
+        ASSERT(cls.is_finalized());
       } else {
         // Emit one range for the whole uncompiled class.
         JSONObject range(jsarr);

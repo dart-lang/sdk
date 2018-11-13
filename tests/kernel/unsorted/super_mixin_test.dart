@@ -4,6 +4,17 @@
 
 import 'package:expect/expect.dart';
 
+class BaseMixin {
+  method(x) {
+    print(x);
+    return x + 'error';
+  }
+
+  set setter(x) {
+    print(x);
+  }
+}
+
 class Base {
   var field;
 
@@ -18,7 +29,7 @@ class Base {
   }
 }
 
-class Mixin {
+class Mixin extends BaseMixin {
   method(x) {
     return super.method(x + 'Mixin');
   }

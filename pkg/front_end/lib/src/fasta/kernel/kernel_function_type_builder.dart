@@ -11,9 +11,11 @@ import 'package:kernel/ast.dart'
         FunctionType,
         NamedType,
         Supertype,
-        TypeParameter;
+        TypeParameter,
+        TypedefType;
 
-import '../fasta_codes.dart' show messageSupertypeIsFunction;
+import '../fasta_codes.dart'
+    show LocatedMessage, messageSupertypeIsFunction, noLength;
 
 import '../problems.dart' show unsupported;
 
@@ -25,6 +27,7 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
+        TypeBuilder,
         TypeVariableBuilder;
 
 class KernelFunctionTypeBuilder extends FunctionTypeBuilder
@@ -35,11 +38,10 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       List<FormalParameterBuilder> formals)
       : super(returnType, typeVariables, formals);
 
-  FunctionType build(LibraryBuilder library) {
+  FunctionType build(LibraryBuilder library, [TypedefType origin]) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
-    List<String> positionalParameterNames = <String>[];
     List<NamedType> namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
@@ -47,7 +49,6 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         DartType type = formal.type?.build(library) ?? const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
-          positionalParameterNames.add(formal.name ?? '');
           if (formal.isRequired) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
@@ -69,18 +70,40 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
         requiredParameterCount: requiredParameterCount,
-        positionalParameterNames: positionalParameterNames);
+        typedefType: origin);
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    library.addCompileTimeError(
-        messageSupertypeIsFunction, charOffset, fileUri);
+    library.addProblem(
+        messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    return buildSupertype(library, charOffset, fileUri);
+  }
+
   @override
-  buildInvalidType(int charOffset, Uri fileUri) {
-    return unsupported("buildInvalidType", charOffset, fileUri);
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
+    return unsupported("buildInvalidType", message.charOffset, message.uri);
+  }
+
+  KernelFunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
+    List<TypeVariableBuilder> clonedTypeVariables =
+        new List<TypeVariableBuilder>(typeVariables.length);
+    for (int i = 0; i < clonedTypeVariables.length; i++) {
+      clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
+    }
+    List<FormalParameterBuilder> clonedFormals =
+        new List<FormalParameterBuilder>(formals.length);
+    for (int i = 0; i < clonedFormals.length; i++) {
+      clonedFormals[i] = formals[i].clone(newTypes);
+    }
+    KernelFunctionTypeBuilder newType = new KernelFunctionTypeBuilder(
+        returnType.clone(newTypes), clonedTypeVariables, clonedFormals);
+    newTypes.add(newType);
+    return newType;
   }
 }

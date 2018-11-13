@@ -1,0 +1,42 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file contains all sources (vm and tests) for the compiler pipeline.
+# Unit test files need to have a "_test" suffix appended to the name.
+heap_sources = [
+  "become.cc",
+  "become.h",
+  "compactor.cc",
+  "compactor.h",
+  "freelist.cc",
+  "freelist.h",
+  "heap.cc",
+  "heap.h",
+  "marker.cc",
+  "marker.h",
+  "pages.cc",
+  "pages.h",
+  "pointer_block.cc",
+  "pointer_block.h",
+  "safepoint.cc",
+  "safepoint.h",
+  "scavenger.cc",
+  "scavenger.h",
+  "spaces.h",
+  "sweeper.cc",
+  "sweeper.h",
+  "verifier.cc",
+  "verifier.h",
+  "weak_code.cc",
+  "weak_code.h",
+  "weak_table.cc",
+  "weak_table.h",
+]
+
+heap_sources_tests = [
+  "freelist_test.cc",
+  "heap_test.cc",
+  "pages_test.cc",
+  "scavenger_test.cc",
+]

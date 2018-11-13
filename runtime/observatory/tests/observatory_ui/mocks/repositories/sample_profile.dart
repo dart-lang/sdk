@@ -44,7 +44,7 @@ class ClassSampleProfileRepositoryMock
   final ClassSampleProfileRepositoryMockToggleCallback _disable;
 
   Stream<M.SampleProfileLoadingProgressEvent> get(
-      M.Isolate isolate, M.ClassRef cls, M.SampleProfileTag tag,
+      covariant M.Isolate isolate, M.ClassRef cls, M.SampleProfileTag tag,
       {bool clear: false, bool forceFetch: false}) {
     if (_get != null) {
       return _get(isolate, cls, tag, clear, forceFetch);
@@ -52,14 +52,14 @@ class ClassSampleProfileRepositoryMock
     return null;
   }
 
-  Future enable(M.Isolate isolate, M.ClassRef cls) {
+  Future enable(covariant M.Isolate isolate, M.ClassRef cls) {
     if (_enable != null) {
       return _enable(isolate, cls);
     }
     return new Future.value();
   }
 
-  Future disable(M.Isolate isolate, M.ClassRef cls) {
+  Future disable(covariant M.Isolate isolate, M.ClassRef cls) {
     if (_disable != null) {
       return _disable(isolate, cls);
     }

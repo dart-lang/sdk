@@ -25,103 +25,39 @@ class Address : public ValueObject {
   Address();
 };
 
-class Label : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
-  Label() : position_(0) {}
-
-  ~Label() {
-    // Assert if label is being destroyed with unresolved branches pending.
-    ASSERT(!IsLinked());
-  }
-
-  // Returns the position for bound and linked labels. Cannot be used
-  // for unused labels.
-  intptr_t Position() const {
-    ASSERT(!IsUnused());
-    return IsBound() ? -position_ - kWordSize : position_ - kWordSize;
-  }
-
-  bool IsBound() const { return position_ < 0; }
-  bool IsUnused() const { return position_ == 0; }
-  bool IsLinked() const { return position_ > 0; }
-
- private:
-  intptr_t position_;
-
-  void Reinitialize() { position_ = 0; }
-
-  void BindTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = -position - kWordSize;
-    ASSERT(IsBound());
-  }
-
-  void LinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = position + kWordSize;
-    ASSERT(IsLinked());
-  }
-
-  friend class Assembler;
-  DISALLOW_COPY_AND_ASSIGN(Label);
-};
-
-class Assembler : public ValueObject {
- public:
-  explicit Assembler(bool use_far_branches = false) : buffer_(), comments_() {}
-
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false)
+      : AssemblerBase(object_pool_wrapper) {}
   ~Assembler() {}
 
   void Bind(Label* label);
   void Jump(Label* label);
 
   // Misc. functionality
-  intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return 0; }
-  bool has_single_entry_point() const { return true; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.
-  intptr_t CountPointerOffsets() const { return 0; }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
-  }
-
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
 
   // Debugging and bringup support.
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
 
   static const char* FpuRegisterName(FpuRegister reg) { return "?"; }
 
-  static uword GetBreakInstructionFiller() { return Bytecode::kTrap; }
+  static uword GetBreakInstructionFiller() { return SimulatorBytecode::kTrap; }
 
   static bool IsSafe(const Object& value) { return true; }
   static bool IsSafeSmi(const Object& value) { return false; }
 
-// Bytecodes.
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
+  // Bytecodes.
 
 #define DECLARE_EMIT(Name, Signature, Fmt0, Fmt1, Fmt2)                        \
   void Name(PARAMS_##Signature);
@@ -159,26 +95,6 @@ class Assembler : public ValueObject {
   void Nop(intptr_t d) { Nop(0, d); }
 
  private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
-
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };

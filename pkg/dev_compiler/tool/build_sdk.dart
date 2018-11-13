@@ -13,7 +13,7 @@ import 'dart:io';
 
 import 'package:dev_compiler/src/analyzer/command.dart';
 
-main(List<String> arguments) {
+main(List<String> arguments) async {
   var args = ['--no-source-map', '--no-emit-metadata'];
   args.addAll(arguments);
   args.addAll([
@@ -23,7 +23,6 @@ main(List<String> arguments) {
     'dart:_interceptors',
     'dart:_internal',
     'dart:_isolate_helper',
-    'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_mirrors',
     'dart:_js_primitives',
@@ -50,6 +49,5 @@ main(List<String> arguments) {
     'dart:web_sql'
   ]);
 
-  var result = compile(args);
-  exit(result);
+  exit((await compile(args)).exitCode);
 }

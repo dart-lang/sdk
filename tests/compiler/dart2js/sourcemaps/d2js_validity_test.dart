@@ -17,8 +17,11 @@ void main() {
       'tests/compiler/dart2js/sourcemaps/test_files/validator_test_file.dart';
   asyncTest(() => createTempDir().then((Directory tmpDir) {
         print('Compiling $mainFile');
-        Future<CompilationResult> result = entry.internalMain(
-            [mainFile, '-o${tmpDir.path}/out.js', '--library-root=sdk']);
+        Future<CompilationResult> result = entry.internalMain([
+          mainFile,
+          '-o${tmpDir.path}/out.js',
+          '--libraries-spec=sdk/lib/libraries.json',
+        ]);
         return result.then((CompilationResult result) {
           CompilerImpl compiler = result.compiler;
           Uri uri = new Uri.file('${tmpDir.path}/out.js',

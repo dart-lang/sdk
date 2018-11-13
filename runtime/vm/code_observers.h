@@ -14,6 +14,18 @@ namespace dart {
 
 class Mutex;
 
+// An abstract representation of comments associated with the given code
+// object. We assume that comments are sorted by PCOffset.
+class CodeComments : public ValueObject {
+ public:
+  CodeComments() = default;
+  virtual ~CodeComments() = default;
+
+  virtual intptr_t Length() const = 0;
+  virtual intptr_t PCOffsetAt(intptr_t index) const = 0;
+  virtual const char* CommentAt(intptr_t index) const = 0;
+};
+
 // Object observing code creation events. Used by external profilers and
 // debuggers to map address ranges to function names.
 class CodeObserver {
@@ -32,7 +44,8 @@ class CodeObserver {
                       uword base,
                       uword prologue_offset,
                       uword size,
-                      bool optimized) = 0;
+                      bool optimized,
+                      const CodeComments* comments) = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CodeObserver);
@@ -40,7 +53,7 @@ class CodeObserver {
 
 class CodeObservers : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
 
   static void Register(CodeObserver* observer);
 
@@ -49,12 +62,13 @@ class CodeObservers : public AllStatic {
                         uword base,
                         uword prologue_offset,
                         uword size,
-                        bool optimized);
+                        bool optimized,
+                        const CodeComments* comments);
 
   // Returns true if there is at least one active code observer.
   static bool AreActive();
 
-  static void DeleteAll();
+  static void Cleanup();
 
   static Mutex* mutex() { return mutex_; }
 

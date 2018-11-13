@@ -16,8 +16,7 @@ def Main():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_test_script = string.join(
       [tools_dir, 'testing', 'dart', 'main.dart'], os.sep)
-  command = [utils.CheckedInSdkExecutable(),
-             '--checked', dart_test_script] + args
+  command = [utils.CheckedInSdkExecutable(), dart_test_script] + args
 
   # The testing script potentially needs the android platform tools in PATH so
   # we do that in ./tools/test.py (a similar logic exists in ./tools/build.py).
@@ -28,8 +27,9 @@ def Main():
     os.environ['PATH'] = '%s%s%s' % (
             os.environ['PATH'], os.pathsep, android_platform_tools)
 
-  with utils.CoreDumpArchiver(args):
-    exit_code = subprocess.call(command)
+  with utils.FileDescriptorLimitIncreaser():
+    with utils.CoreDumpArchiver(args):
+      exit_code = subprocess.call(command)
 
   utils.DiagnoseExitCode(exit_code, command)
   return exit_code

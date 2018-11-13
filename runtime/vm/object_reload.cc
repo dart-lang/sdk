@@ -345,7 +345,7 @@ void Class::PatchFieldsAndFunctions() const {
       PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  patch.set_library_kernel_data(TypedData::Handle(lib.kernel_data()));
+  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
   patch.set_library_kernel_offset(lib.kernel_offset());
 
   const Array& funcs = Array::Handle(functions());
@@ -591,7 +591,6 @@ void Class::CheckReload(const Class& replacement,
   if (is_prefinalized()) {
     if (!CanReloadPreFinalized(replacement, context)) return;
   }
-  ASSERT(is_finalized() == replacement.is_finalized());
   TIR_Print("Class `%s` can be reloaded (%" Pd " and %" Pd ")\n", ToCString(),
             id(), replacement.id());
 }
@@ -634,13 +633,9 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
 
 bool Class::CanReloadFinalized(const Class& replacement,
                                IsolateReloadContext* context) const {
-  // Make sure the declaration types matches for the two classes.
+  // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
-
-  const AbstractType& dt = AbstractType::Handle(DeclarationType());
-  const AbstractType& replacement_dt =
-      AbstractType::Handle(replacement.DeclarationType());
-  if (!dt.Equals(replacement_dt)) {
+  if (NumTypeArguments() != replacement.NumTypeArguments()) {
     context->AddReasonForCancelling(new (context->zone()) TypeParametersChanged(
         context->zone(), *this, replacement));
     return false;
@@ -692,12 +687,13 @@ static const Function* static_call_target = NULL;
 void ICData::Reset(Zone* zone) const {
   RebindRule rule = rebind_rule();
   if (rule == kInstance) {
-    intptr_t num_args = NumArgsTested();
+    const intptr_t num_args = NumArgsTested();
+    const bool tracking_exactness = IsTrackingExactness();
     if (num_args == 2) {
       ClearWithSentinel();
     } else {
-      const Array& data_array =
-          Array::Handle(zone, CachedEmptyICDataArray(num_args));
+      const Array& data_array = Array::Handle(
+          zone, CachedEmptyICDataArray(num_args, tracking_exactness));
       set_ic_data_array(data_array);
     }
     return;
@@ -720,7 +716,10 @@ void ICData::Reset(Zone* zone) const {
              old_target.kind() == RawFunction::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       const Class& cls = Class::Handle(zone, old_target.Owner());
-      new_target = cls.LookupStaticFunction(selector);
+      new_target = cls.LookupFunction(selector);
+      if (new_target.kind() != old_target.kind()) {
+        new_target = Function::null();
+      }
     } else {
       // Super call.
       Function& caller = Function::Handle(zone);

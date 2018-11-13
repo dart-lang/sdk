@@ -25,8 +25,8 @@ class B extends A {
 class C extends B {
   var z;
   C(i)
-      : super(i * 3),
-        z = i {
+      : z = i,
+        super(i * 3) {
     message = '${message}C($i)';
   }
 }

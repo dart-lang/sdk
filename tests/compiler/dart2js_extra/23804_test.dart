@@ -9,7 +9,7 @@
 import 'package:expect/expect.dart';
 
 test(n) => n == 1;
-run(f) => f(1);
+bool run(f(dynamic)) => f(1);
 main() {
   Expect.equals([test].any(run), true);
 }

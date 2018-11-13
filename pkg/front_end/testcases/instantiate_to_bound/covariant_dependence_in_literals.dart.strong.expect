@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+class C<X extends core::Object = dynamic, Y extends self::A<self::C::X> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X, self::C::Y>
+    : super core::Object::•()
+    ;
+}
+class D<X extends core::num = core::num, Y extends self::A<self::D::X> = self::A<core::num>> extends core::Object {
+  synthetic constructor •() → self::D<self::D::X, self::D::Y>
+    : super core::Object::•()
+    ;
+}
+class E<X extends core::Object = dynamic, Y extends () → self::E::X = () → dynamic> extends core::Object {
+  synthetic constructor •() → self::E<self::E::X, self::E::Y>
+    : super core::Object::•()
+    ;
+}
+class F<X extends core::num = core::num, Y extends () → self::F::X = () → core::num> extends core::Object {
+  synthetic constructor •() → self::F<self::F::X, self::F::Y>
+    : super core::Object::•()
+    ;
+}
+static field core::List<self::C<dynamic, self::A<dynamic>>> lc = <self::C<dynamic, self::A<dynamic>>>[];
+static field core::Map<self::C<dynamic, self::A<dynamic>>, self::C<dynamic, self::A<dynamic>>> mc = <self::C<dynamic, self::A<dynamic>>, self::C<dynamic, self::A<dynamic>>>{};
+static field core::List<self::D<core::num, self::A<core::num>>> ld = <self::D<core::num, self::A<core::num>>>[];
+static field core::Map<self::D<core::num, self::A<core::num>>, self::D<core::num, self::A<core::num>>> md = <self::D<core::num, self::A<core::num>>, self::D<core::num, self::A<core::num>>>{};
+static field core::List<self::E<dynamic, () → dynamic>> le = <self::E<dynamic, () → dynamic>>[];
+static field core::Map<self::E<dynamic, () → dynamic>, self::E<dynamic, () → dynamic>> me = <self::E<dynamic, () → dynamic>, self::E<dynamic, () → dynamic>>{};
+static field core::List<self::F<core::num, () → core::num>> lf = <self::F<core::num, () → core::num>>[];
+static field core::Map<self::F<core::num, () → core::num>, self::F<core::num, () → core::num>> mf = <self::F<core::num, () → core::num>, self::F<core::num, () → core::num>>{};
+static method main() → dynamic {}

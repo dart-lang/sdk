@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:observatory/debugger.dart';
+import 'package:observatory/service.dart' as S;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/service.dart' as S;
 
 import 'service_test_common.dart';
 import 'test_helper.dart';
@@ -35,7 +35,7 @@ Future<Debugger> initDebugger(Isolate isolate) {
 
 List<String> stops = [];
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   // Load the isolate's libraries
   (Isolate isolate) async {
@@ -67,7 +67,7 @@ var tests = [
     }
 
     isolate.resume();
-  },
+  }
 ];
 
 main(args) {

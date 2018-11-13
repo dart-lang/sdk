@@ -68,8 +68,10 @@ const kIsolateMustBePaused = 106;
 const kCannotResume = 107;
 const kIsolateIsReloading = 108;
 const kIsolateReloadBarred = 109;
-const kServiceAlreadyRegistered = 110;
-const kServiceDisappeared = 111;
+const kIsolateMustHaveReloaded = 110;
+const kServiceAlreadyRegistered = 111;
+const kServiceDisappeared = 112;
+const kExpressionCompilationError = 113;
 
 // Experimental (used in private rpcs).
 const kFileSystemAlreadyExists = 1001;
@@ -87,6 +89,7 @@ var _errorMessages = {
   kFileDoesNotExist: 'File does not exist',
   kServiceAlreadyRegistered: 'Service already registered',
   kServiceDisappeared: 'Service has disappeared',
+  kExpressionCompilationError: 'Expression compilation error',
 };
 
 String encodeRpcError(Message message, int code, {String details}) {
@@ -115,6 +118,11 @@ String encodeInvalidParamError(Message message, String param) {
   var value = message.params[param];
   return encodeRpcError(message, kInvalidParams,
       details: "${message.method}: invalid '${param}' parameter: ${value}");
+}
+
+String encodeCompilationError(Message message, String diagnostic) {
+  return encodeRpcError(message, kExpressionCompilationError,
+      details: diagnostic);
 }
 
 String encodeResult(Message message, Map result) {
@@ -196,6 +204,9 @@ class VMService extends MessageRouter {
   /// Collection of currently running isolates.
   RunningIsolates runningIsolates = new RunningIsolates();
 
+  /// Flag to indicate VM service is exiting.
+  bool isExiting = false;
+
   /// A port used to receive events from the VM.
   final RawReceivePort eventPort;
 
@@ -233,7 +244,7 @@ class VMService extends MessageRouter {
             }
           }));
     }
-    // Complete all requestes as failed
+    // Complete all requests as failed
     for (var handle in client.serviceHandles.values) {
       handle(null);
     }
@@ -283,7 +294,40 @@ class VMService extends MessageRouter {
     }
   }
 
+  Future<Null> _handleNativeRpcCall(message, SendPort replyPort) async {
+    // Keep in sync with "runtime/vm/service_isolate.cc:InvokeServiceRpc".
+    Response response;
+
+    try {
+      final Message rpc = new Message.fromJsonRpc(
+          null, json.decode(utf8.decode(message as List<int>)));
+      if (rpc.type != MessageType.Request) {
+        response = new Response.internalError(
+            'The client sent a non-request json-rpc message.');
+      } else {
+        response = await routeRequest(this, rpc);
+      }
+    } catch (exception) {
+      response = new Response.internalError(
+          'The rpc call resulted in exception: $exception.');
+    }
+    List<int> bytes;
+    switch (response.kind) {
+      case ResponsePayloadKind.String:
+        bytes = utf8.encode(response.payload);
+        bytes = bytes is Uint8List ? bytes : new Uint8List.fromList(bytes);
+        break;
+      case ResponsePayloadKind.Binary:
+      case ResponsePayloadKind.Utf8String:
+        bytes = response.payload as Uint8List;
+        break;
+    }
+    replyPort.send(bytes);
+  }
+
   Future _exit() async {
+    isExiting = true;
+
     // Stop the server.
     if (VMServiceEmbedderHooks.serverStop != null) {
       await VMServiceEmbedderHooks.serverStop();
@@ -303,6 +347,7 @@ class VMService extends MessageRouter {
     if (VMServiceEmbedderHooks.cleanup != null) {
       await VMServiceEmbedderHooks.cleanup();
     }
+
     // Notify the VM that we have exited.
     _onExit();
   }
@@ -321,11 +366,17 @@ class VMService extends MessageRouter {
         return;
       }
       if (message.length == 3) {
-        // This is a message interacting with the web server.
-        assert((message[0] == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
-            (message[0] == Constants.SERVER_INFO_MESSAGE_ID));
-        _serverMessageHandler(message[0], message[1], message[2]);
-        return;
+        final opcode = message[0];
+        if (opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+          _handleNativeRpcCall(message[1], message[2]);
+          return;
+        } else {
+          // This is a message interacting with the web server.
+          assert((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
+              (opcode == Constants.SERVER_INFO_MESSAGE_ID));
+          _serverMessageHandler(message[0], message[1], message[2]);
+          return;
+        }
       }
       if (message.length == 4) {
         // This is a message informing us of the birth or death of an
@@ -356,6 +407,17 @@ class VMService extends MessageRouter {
       }
     }
     return false;
+  }
+
+  Client _findFirstClientThatHandlesService(String service) {
+    if (clients != null) {
+      for (Client c in clients) {
+        if (c.services.containsKey(service)) {
+          return c;
+        }
+      }
+    }
+    return null;
   }
 
   static const kServiceStream = '_Service';
@@ -511,12 +573,21 @@ class VMService extends MessageRouter {
       return encodeInvalidParamError(message, 'uri');
     }
     var args = message.params['args'];
-    if (args != null && args is! List<String>) {
-      return encodeInvalidParamError(message, 'args');
+    var argsOfString = new List<String>();
+    if (args != null) {
+      if (args is! List) {
+        return encodeInvalidParamError(message, 'args');
+      }
+      for (var arg in args) {
+        if (arg is! String) {
+          return encodeInvalidParamError(message, 'args');
+        }
+        argsOfString.add(arg);
+      }
     }
     var msg = message.params['message'];
 
-    Isolate.spawnUri(Uri.parse(uri), args, msg).then((isolate) {
+    Isolate.spawnUri(Uri.parse(uri), argsOfString, msg).then((isolate) {
       _spawnUriNotify(isolate.controlPort, token);
     }).catchError((e) {
       _spawnUriNotify(e.toString(), token);
@@ -562,13 +633,13 @@ class VMService extends MessageRouter {
         var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
-        var response = (await isolate.routeRequest(message)).decodeJson();
+        var response = (await isolate.routeRequest(this, message)).decodeJson();
         responses[message.toUri().toString()] = response['result'];
       }
       // Dump the object id ring requests.
       var message =
           new Message.forIsolate(client, Uri.parse('_dumpIdZone'), isolate);
-      var response = (await isolate.routeRequest(message)).decodeJson();
+      var response = (await isolate.routeRequest(this, message)).decodeJson();
       // Insert getObject requests into responses map.
       for (var object in response['result']['objects']) {
         final requestUri =
@@ -581,7 +652,7 @@ class VMService extends MessageRouter {
     return encodeResult(message, responses);
   }
 
-  Future<Response> routeRequest(Message message) async {
+  Future<Response> routeRequest(VMService _, Message message) async {
     return new Response.from(await _routeRequestImpl(message));
   }
 
@@ -613,7 +684,7 @@ class VMService extends MessageRouter {
         return await _handleService(message);
       }
       if (message.params['isolateId'] != null) {
-        return await runningIsolates.routeRequest(message);
+        return await runningIsolates.routeRequest(this, message);
       }
       return await message.sendToVM();
     } catch (e, st) {
@@ -631,11 +702,13 @@ class VMService extends MessageRouter {
   }
 }
 
+@pragma("vm:entry-point")
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;
 }
 
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 void _registerIsolate(int port_id, SendPort sp, String name) {
   var service = new VMService();
   service.runningIsolates.isolateStartup(port_id, sp, name);

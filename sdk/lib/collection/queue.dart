@@ -28,9 +28,56 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
    *
    * The element order in the queue is as if the elements were added using
    * [addLast] in the order provided by [elements.iterator].
+   *
+   * All the [elements] should be instances of [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Queue`, for example as:
+   * ```dart
+   * Queue<SuperType> superQueue = ...;
+   * Queue<SubType> subQueue =
+   *     new Queue<SubType>.from(superSet.whereType<SubType>());
+   * ```
    */
   factory Queue.from(Iterable elements) = ListQueue<E>.from;
 
+  /**
+   * Creates a queue from [elements].
+   *
+   * The element order in the queue is as if the elements were added using
+   * [addLast] in the order provided by [elements.iterator].
+   */
+  factory Queue.of(Iterable<E> elements) = ListQueue<E>.of;
+
+  /**
+   * Adapts [source] to be a `Queue<T>`.
+   *
+   * Any time the queue would produce an element that is not a [T],
+   * the element access will throw.
+   *
+   * Any time a [T] value is attempted stored into the adapted queue,
+   * the store will throw unless the value is also an instance of [S].
+   *
+   * If all accessed elements of [source] are actually instances of [T],
+   * and if all elements stored into the returned queue are actually instance
+   * of [S],
+   * then the returned queue can be used as a `Queue<T>`.
+   */
+  static Queue<T> castFrom<S, T>(Queue<S> source) =>
+      new CastQueue<S, T>(source);
+
+  /**
+   * Provides a view of this queue as a queue of [R] instances, if necessary.
+   *
+   * If this queue contains only instances of [R], all read operations
+   * will work correctly. If any operation tries to access an element
+   * that is not an instance of [R], the access will throw instead.
+   *
+   * Elements added to the queue (e.g., by using [addFirst] or [addAll])
+   * must be instance of [R] to be valid arguments to the adding function,
+   * and they must be instances of [E] as well to be accepted by
+   * this queue as well.
+   */
+  Queue<R> cast<R>();
   /**
    * Removes and returns the first element of this queue.
    *
@@ -265,6 +312,15 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
    *
    * The element order in the queue is as if the elements were added using
    * [addLast] in the order provided by [elements.iterator].
+   *
+   * All the [elements] should be instances of [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Queue`, for example as:
+   * ```dart
+   * Queue<SuperType> superQueue = ...;
+   * Queue<SubType> subQueue =
+   *     new DoubleLinkedQueue<SubType>.from(superQueue.whereType<SubType>());
+   * ```
    */
   factory DoubleLinkedQueue.from(Iterable elements) {
     Queue<E> list = new DoubleLinkedQueue<E>();
@@ -274,6 +330,16 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     return list;
   }
 
+  /**
+   * Creates a double-linked queue from [elements].
+   *
+   * The element order in the queue is as if the elements were added using
+   * [addLast] in the order provided by [elements.iterator].
+   */
+  factory DoubleLinkedQueue.of(Iterable<E> elements) =>
+      new DoubleLinkedQueue<E>()..addAll(elements);
+
+  Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
   int get length => _elementCount;
 
   void addLast(E value) {
@@ -525,7 +591,14 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
    * The elements are added to the queue, as by [addLast], in the order given by
    * `elements.iterator`.
    *
-   * All `elements` should be assignable to [E].
+   * All the [elements] should be instances of [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Queue`, for example as:
+   * ```dart
+   * Queue<SuperType> superQueue = ...;
+   * Queue<SubType> subQueue =
+   *     new ListQueue<SubType>.from(superQueue.whereType<SubType>());
+   * ```
    */
   factory ListQueue.from(Iterable elements) {
     if (elements is List) {
@@ -550,8 +623,18 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     }
   }
 
+  /**
+   * Create a `ListQueue` from [elements].
+   *
+   * The elements are added to the queue, as by [addLast], in the order given by
+   * `elements.iterator`.
+   */
+  factory ListQueue.of(Iterable<E> elements) =>
+      new ListQueue<E>()..addAll(elements);
+
   // Iterable interface.
 
+  Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
   Iterator<E> get iterator => new _ListQueueIterator<E>(this);
 
   void forEach(void f(E element)) {
@@ -590,7 +673,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   List<E> toList({bool growable: true}) {
     List<E> list;
     if (growable) {
-      list = new List<E>()..length = length;
+      list = <E>[]..length = length;
     } else {
       list = new List<E>(length);
     }

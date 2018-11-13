@@ -75,8 +75,9 @@ class TestRoot {
 
     Uri packages = uri.resolve(data["packages"]);
 
-    List<Suite> suites = new List<Suite>.from(
-        data["suites"].map((Map json) => new Suite.fromJsonMap(uri, json)));
+    List<Suite> suites = data["suites"]
+        .map<Suite>((json) => new Suite.fromJsonMap(uri, json))
+        .toList();
 
     Analyze analyze = await Analyze.fromJsonMap(uri, data["analyze"], suites);
 

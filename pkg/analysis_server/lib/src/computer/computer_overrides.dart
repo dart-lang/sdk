@@ -136,14 +136,6 @@ class _OverriddenElementsFinder {
   _OverriddenElementsFinder(Element seed) {
     _seed = seed;
     _class = seed.enclosingElement;
-    if (_class == null) {
-      // TODO(brianwilkerson) Remove this code when the issue has been fixed
-      // (https://github.com/dart-lang/sdk/issues/25884)
-      Type type = seed.runtimeType;
-      String name = seed.name;
-      throw new ArgumentError(
-          'The $type named $name does not have an enclosing element');
-    }
     _library = _class.library;
     _name = seed.displayName;
     if (seed is MethodElement) {
@@ -160,7 +152,7 @@ class _OverriddenElementsFinder {
    */
   OverriddenElements find() {
     _visited.clear();
-    _addSuperOverrides(_class.supertype);
+    _addSuperOverrides(_class.type, withThisType: false);
     _visited.clear();
     _addInterfaceOverrides(_class.type, false);
     _superElements.forEach(_interfaceElements.remove);
@@ -189,20 +181,23 @@ class _OverriddenElementsFinder {
     _addInterfaceOverrides(type.superclass, checkType);
   }
 
-  void _addSuperOverrides(InterfaceType type) {
+  void _addSuperOverrides(InterfaceType type, {bool withThisType: true}) {
     if (type == null) {
       return;
     }
     if (!_visited.add(type)) {
       return;
     }
-    // this type
-    Element element = _lookupMember(type.element);
-    if (element != null && !_superElements.contains(element)) {
-      _superElements.add(element);
+
+    if (withThisType) {
+      Element element = _lookupMember(type.element);
+      if (element != null && !_superElements.contains(element)) {
+        _superElements.add(element);
+      }
     }
-    // super
+
     _addSuperOverrides(type.superclass);
+    type.mixins.forEach(_addSuperOverrides);
   }
 
   Element _lookupMember(ClassElement classElement) {

@@ -6,17 +6,21 @@
 
 #include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
+#include "vm/heap/safepoint.h"
+#include "vm/interpreter.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
-#include "vm/safepoint.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, enable_interpreter);
 
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
@@ -51,11 +55,15 @@ class ScopedIsolateStackLimits : public ValueObject {
     ASSERT(os_thread != NULL);
     os_thread->RefineStackBoundsFromSP(current_sp);
 
-    // Save the Thread's current stack limit and adjust the stack
-    // limit based on the thread's stack_base.
+    // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
-    thread->SetStackLimitFromStackBase(os_thread->stack_base());
+#if defined(USING_SIMULATOR)
+    thread->SetStackLimit(Simulator::Current()->stack_limit());
+#else
+    thread->SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
+    // TODO(regis): For now, the interpreter is using its own stack limit.
+#endif
 
 #if defined(USING_SAFE_STACK)
     saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();
@@ -105,6 +113,17 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
                                      const Array& arguments_descriptor,
                                      uword current_sp) {
+  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
+  // and never start the VM service isolate. So we should never end up invoking
+  // any dart code in the Dart 2.0 AOT compiler.
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_strong && FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  ASSERT(!function.IsNull());
+
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -112,18 +131,40 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
-  if (ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() > 0) {
-    const String& message = String::Handle(String::New(
-        "Unsupported invocation of Dart generic function with type arguments"));
-    return ApiError::New(message);
-  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (!function.HasCode()) {
+    if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
+      if (!function.HasBytecode()) {
+        RawError* error =
+            kernel::BytecodeReader::ReadFunctionBytecode(thread, function);
+        if (error != Error::null()) {
+          return error;
+        }
+      }
+
+      // If we have bytecode but no native code then invoke the interpreter.
+      if (function.HasBytecode()) {
+        ASSERT(thread->no_callback_scope_depth() == 0);
+        SuspendLongJumpScope suspend_long_jump_scope(thread);
+        TransitionToGenerated transition(thread);
+        return Interpreter::Current()->Call(function, arguments_descriptor,
+                                            arguments, thread);
+      }
+
+      // No bytecode, fall back to compilation.
+    }
+
     const Object& result =
         Object::Handle(zone, Compiler::CompileFunction(thread, function));
     if (result.IsError()) {
       return Error::Cast(result).raw();
     }
+
+    // At this point we should have native code.
+    ASSERT(function.HasCode());
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 // Now Call the invoke stub which will invoke the dart function.
 #if !defined(TARGET_ARCH_DBC)
   invokestub entrypoint = reinterpret_cast<invokestub>(
@@ -277,18 +318,15 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
 ArgumentsDescriptor::ArgumentsDescriptor(const Array& array) : array_(array) {}
 
 intptr_t ArgumentsDescriptor::TypeArgsLen() const {
-  return TypeArgsLenField::decode(
-      Smi::Cast(Object::Handle(array_.At(kTypeArgsLenIndex))).Value());
+  return Smi::Value(Smi::RawCast(array_.At(kTypeArgsLenIndex)));
 }
 
 intptr_t ArgumentsDescriptor::Count() const {
-  return Smi::Cast(Object::Handle(array_.At(kCountIndex))).Value();
+  return Smi::Value(Smi::RawCast(array_.At(kCountIndex)));
 }
 
 intptr_t ArgumentsDescriptor::PositionalCount() const {
-  intptr_t entry =
-      Smi::Cast(Object::Handle(array_.At(kPositionalCountIndex))).Value();
-  return PositionalCountField::decode(entry);
+  return Smi::Value(Smi::RawCast(array_.At(kPositionalCountIndex)));
 }
 
 RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
@@ -302,13 +340,32 @@ RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
 intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
   const intptr_t offset =
       kFirstNamedEntryIndex + (index * kNamedEntrySize) + kPositionOffset;
-  return NamedPositionField::decode(
-      Smi::Value(Smi::RawCast(array_.At(offset))));
+  return Smi::Value(Smi::RawCast(array_.At(offset)));
 }
 
 bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
                                         const String& other) const {
   return NameAt(index) == other.raw();
+}
+
+RawArray* ArgumentsDescriptor::GetArgumentNames() const {
+  const intptr_t num_named_args = NamedCount();
+  if (num_named_args == 0) {
+    return Array::null();
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  const Array& names =
+      Array::Handle(zone, Array::New(num_named_args, Heap::kOld));
+  String& name = String::Handle(zone);
+  const intptr_t num_pos_args = PositionalCount();
+  for (intptr_t i = 0; i < num_named_args; ++i) {
+    const intptr_t index = PositionAt(i) - num_pos_args;
+    name = NameAt(i);
+    ASSERT(names.At(index) == Object::null());
+    names.SetAt(index, name);
+  }
+  return names.raw();
 }
 
 intptr_t ArgumentsDescriptor::type_args_len_offset() {
@@ -329,9 +386,7 @@ intptr_t ArgumentsDescriptor::first_named_entry_offset() {
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
-                                   const Array& optional_arguments_names,
-                                   intptr_t arg_bits,
-                                   intptr_t type_arg_bits) {
+                                   const Array& optional_arguments_names) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   if (num_named_args == 0) {
@@ -340,16 +395,6 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
   const intptr_t num_pos_args = num_arguments - num_named_args;
-
-  intptr_t pos_arg_bits = arg_bits;
-  pos_arg_bits &= Utils::SignedNBitMask(Utils::Minimum<intptr_t>(
-      num_pos_args,
-      ArgumentsDescriptor::PositionalArgumentsChecksField::bitsize()));
-
-  type_arg_bits &= Utils::SignedNBitMask(Utils::Minimum<intptr_t>(
-      type_args_len, ArgumentsDescriptor::TypeArgsChecksField::bitsize()));
-
-  const intptr_t named_arg_bits = arg_bits >> num_pos_args;
 
   // Build the arguments descriptor array, which consists of the the type
   // argument vector length (0 if none); total argument count; the positional
@@ -363,18 +408,12 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
       Array::Handle(zone, Array::New(descriptor_len, Heap::kOld));
 
   // Set length of type argument vector.
-  descriptor.SetAt(kTypeArgsLenIndex,
-                   Smi::Handle(PackBitFieldsToSmi(
-                       TypeArgsChecksField::encode(type_arg_bits) |
-                       TypeArgsLenField::encode(type_args_len))));
+  descriptor.SetAt(kTypeArgsLenIndex, Smi::Handle(Smi::New(type_args_len)));
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, Smi::Handle(Smi::New(num_arguments)));
 
   // Set number of positional arguments.
-  descriptor.SetAt(kPositionalCountIndex,
-                   Smi::Handle(PackBitFieldsToSmi(
-                       PositionalCountField::encode(num_pos_args) |
-                       PositionalArgumentsChecksField::encode(pos_arg_bits))));
+  descriptor.SetAt(kPositionalCountIndex, Smi::Handle(Smi::New(num_pos_args)));
 
   // Set alphabetically sorted entries for named arguments.
   String& name = String::Handle(zone);
@@ -383,9 +422,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   Smi& previous_pos = Smi::Handle(zone);
   for (intptr_t i = 0; i < num_named_args; i++) {
     name ^= optional_arguments_names.At(i);
-    pos =
-        PackBitFieldsToSmi(NamedCheckField::encode((named_arg_bits >> i) & 1) |
-                           NamedPositionField::encode(num_pos_args + i));
+    pos = Smi::New(num_pos_args + i);
     intptr_t insert_index = kFirstNamedEntryIndex + (kNamedEntrySize * i);
     // Shift already inserted pairs with "larger" names.
     while (insert_index > kFirstNamedEntryIndex) {
@@ -408,37 +445,28 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
-  descriptor ^= descriptor.CheckAndCanonicalize(thread, NULL);
+  const char* error_str = NULL;
+  descriptor ^= descriptor.CheckAndCanonicalize(thread, &error_str);
+  if (error_str != NULL) {
+    FATAL1("Failed to canonicalize: %s", error_str);
+  }
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();
 }
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
-                                   intptr_t num_arguments,
-                                   intptr_t arg_bits,
-                                   intptr_t type_arg_bits) {
+                                   intptr_t num_arguments) {
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
 
-  arg_bits &= Utils::NBitMask(Utils::Minimum<intptr_t>(
-      num_arguments, PositionalArgumentsChecksField::bitsize()));
-  type_arg_bits &= Utils::NBitMask(
-      Utils::Minimum<intptr_t>(type_args_len, TypeArgsChecksField::bitsize()));
-
-  // TODO(sjindel): Support caching of argument descriptors for calls with
-  // strong-mode annotations.
-  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount) &&
-      (arg_bits == 0) && (type_arg_bits == 0)) {
+  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount)) {
     return cached_args_descriptors_[num_arguments];
   }
-  return NewNonCached(type_args_len, num_arguments, arg_bits, type_arg_bits,
-                      false);
+  return NewNonCached(type_args_len, num_arguments, true);
 }
 
 RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
                                             intptr_t num_arguments,
-                                            intptr_t pos_arg_bits,
-                                            intptr_t type_arg_bits,
                                             bool canonicalize) {
   // Build the arguments descriptor array, which consists of the length of the
   // type argument vector, total argument count; the positional argument count;
@@ -451,20 +479,14 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   const Smi& arg_count = Smi::Handle(zone, Smi::New(num_arguments));
 
   // Set type argument vector length.
-  descriptor.SetAt(
-      kTypeArgsLenIndex,
-      Smi::Handle(zone, PackBitFieldsToSmi(
-                            TypeArgsLenField::encode(type_args_len) |
-                            TypeArgsChecksField::encode(type_arg_bits))));
+  descriptor.SetAt(kTypeArgsLenIndex,
+                   Smi::Handle(zone, Smi::New(type_args_len)));
 
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, arg_count);
 
   // Set number of positional arguments.
-  descriptor.SetAt(kPositionalCountIndex,
-                   Smi::Handle(PackBitFieldsToSmi(
-                       PositionalCountField::encode(num_arguments) |
-                       PositionalArgumentsChecksField::encode(pos_arg_bits))));
+  descriptor.SetAt(kPositionalCountIndex, arg_count);
 
   // Set terminating null.
   descriptor.SetAt((descriptor_len - 1), Object::null_object());
@@ -472,16 +494,26 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
   if (canonicalize) {
-    descriptor ^= descriptor.CheckAndCanonicalize(thread, NULL);
+    const char* error_str = NULL;
+    descriptor ^= descriptor.CheckAndCanonicalize(thread, &error_str);
+    if (error_str != NULL) {
+      FATAL1("Failed to canonicalize: %s", error_str);
+    }
   }
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();
 }
 
-void ArgumentsDescriptor::InitOnce() {
+void ArgumentsDescriptor::Init() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
-    cached_args_descriptors_[i] =
-        NewNonCached(/*type_args_len=*/0, i, 0, 0, false);
+    cached_args_descriptors_[i] = NewNonCached(/*type_args_len=*/0, i, false);
+  }
+}
+
+void ArgumentsDescriptor::Cleanup() {
+  for (int i = 0; i < kCachedDescriptorCount; i++) {
+    // Don't free pointers to RawArray objects managed by the VM.
+    cached_args_descriptors_[i] = NULL;
   }
 }
 
@@ -659,6 +691,20 @@ RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
   Function& function =
       Function::Handle(zone, isolate_lib.LookupFunctionAllowPrivate(
                                  Symbols::_runPendingImmediateCallback()));
+  const Object& result = Object::Handle(
+      zone, DartEntry::InvokeFunction(function, Object::empty_array()));
+  ASSERT(result.IsNull() || result.IsError());
+  return result.raw();
+}
+
+RawObject* DartLibraryCalls::EnsureScheduleImmediate() {
+  Zone* zone = Thread::Current()->zone();
+  const Library& async_lib = Library::Handle(zone, Library::AsyncLibrary());
+  ASSERT(!async_lib.IsNull());
+  const Function& function =
+      Function::Handle(zone, async_lib.LookupFunctionAllowPrivate(
+                                 Symbols::_ensureScheduleImmediate()));
+  ASSERT(!function.IsNull());
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeFunction(function, Object::empty_array()));
   ASSERT(result.IsNull() || result.IsError());

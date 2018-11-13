@@ -88,11 +88,20 @@
  * [futures-tutorial]: https://www.dartlang.org/docs/tutorials/futures/
  * [futures-error-handling]: https://www.dartlang.org/articles/futures-and-error-handling/
  * [test-readme]: https://pub.dartlang.org/packages/test
+ *
+ * {@category Core}
  */
 library dart.async;
 
 import "dart:collection" show HashMap, IterableBase;
-import "dart:_internal" show printToZone, printToConsole, IterableElementError;
+import "dart:_internal"
+    show
+        CastStream,
+        CastStreamTransformer,
+        EmptyIterator,
+        printToZone,
+        printToConsole,
+        IterableElementError;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

@@ -13,31 +13,86 @@
 part of dart._runtime;
 
 /// Returns a new type that mixes members from base and the mixin.
-///
-/// The mixin must be non-generic; generic mixins are handled by [genericMixin].
-mixinMembers(to, from) {
+void applyMixin(to, from) {
   JS('', '#[#] = #', to, _mixin, from);
   var toProto = JS('', '#.prototype', to);
   var fromProto = JS('', '#.prototype', from);
-  copyProperties(toProto, fromProto);
-  copySignature(to, from, _methodSig);
-  copySignature(to, from, _fieldSig);
-  copySignature(to, from, _getterSig);
-  copySignature(to, from, _setterSig);
+  _copyMembers(toProto, fromProto);
+  _mixinSignature(to, from, _methodSig);
+  _mixinSignature(to, from, _fieldSig);
+  _mixinSignature(to, from, _getterSig);
+  _mixinSignature(to, from, _setterSig);
+  var mixinOnFn = JS('', '#[#]', from, mixinOn);
+  if (mixinOnFn != null) {
+    var proto = JS('', '#(#.__proto__).prototype', mixinOnFn, to);
+    _copyMembers(toProto, proto);
+  }
 }
 
-void copySignature(to, from, signatureField) {
-  defineLazyField(
-      to,
-      signatureField,
-      JS('', '{ get: # }', () {
-        var baseSignature = JS('', '#.__proto__[#]', to, signatureField);
-        var fromSignature = JS('', '#[#]', from, signatureField);
-        if (fromSignature == null) return baseSignature;
-        var toSignature = JS('', '{ __proto__: # }', baseSignature);
-        copyProperties(toSignature, fromSignature);
-        return toSignature;
-      }));
+void _copyMembers(to, from) {
+  var names = getOwnNamesAndSymbols(from);
+  for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
+    String name = JS('', '#[#]', names, i);
+    if (name == 'constructor') continue;
+    _copyMember(to, from, name);
+  }
+  return to;
+}
+
+void _copyMember(to, from, name) {
+  var desc = getOwnPropertyDescriptor(from, name);
+  if (JS('!', '# == Symbol.iterator', name)) {
+    // On native types, Symbol.iterator may already be present.
+    // TODO(jmesserly): investigate if we still need this.
+    // If so, we need to find a better solution.
+    // See https://github.com/dart-lang/sdk/issues/28324
+    var existing = getOwnPropertyDescriptor(to, name);
+    if (existing != null) {
+      if (JS('!', '#.writable', existing)) {
+        JS('', '#[#] = #.value', to, name, desc);
+      }
+      return;
+    }
+  }
+  var getter = JS('', '#.get', desc);
+  var setter = JS('', '#.set', desc);
+  if (getter != null) {
+    if (setter == null) {
+      var obj = JS(
+          '',
+          '#.set = { __proto__: #.__proto__, '
+          'set [#](x) { return super[#] = x; } }',
+          desc,
+          to,
+          name,
+          name);
+      JS('', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
+    }
+  } else if (setter != null) {
+    if (getter == null) {
+      var obj = JS(
+          '',
+          '#.get = { __proto__: #.__proto__, '
+          'get [#]() { return super[#]; } }',
+          desc,
+          to,
+          name,
+          name);
+      JS('', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
+    }
+  }
+  defineProperty(to, name, desc);
+}
+
+void _mixinSignature(to, from, kind) {
+  JS('', '#[#] = #', to, kind, () {
+    var baseMembers = _getMembers(JS('', '#.__proto__', to), kind);
+    var fromMembers = _getMembers(from, kind);
+    if (fromMembers == null) return baseMembers;
+    var toSignature = JS('', '{ __proto__: # }', baseMembers);
+    copyProperties(toSignature, fromMembers);
+    return toSignature;
+  });
 }
 
 final _mixin = JS('', 'Symbol("mixin")');
@@ -45,11 +100,18 @@ final _mixin = JS('', 'Symbol("mixin")');
 getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz, _mixin, clazz, _mixin);
 
-@JSExportName('implements')
-final _implements = JS('', 'Symbol("implements")');
+final mixinOn = JS('', 'Symbol("mixinOn")');
 
-getImplements(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
-    clazz, _implements, clazz, _implements);
+@JSExportName('implements')
+final implements_ = JS('', 'Symbol("implements")');
+
+List Function() getImplements(clazz) => JS(
+    '',
+    'Object.hasOwnProperty.call(#, #) ? #[#] : null',
+    clazz,
+    implements_,
+    clazz,
+    implements_);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
@@ -58,24 +120,6 @@ final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
 
-/// Wrap a generic class builder function with future flattening.
-flattenFutures(builder) => JS('', '''(() => {
-  function flatten(T) {
-    if (!T) return $builder($dynamic);
-    let futureClass = $getGenericClass($Future);
-    //TODO(leafp): This only handles the direct flattening case.
-    // It would probably be good to at least search up the class
-    // hierarchy.  If we keep doing flattening long term, we may
-    // want to implement the full future flattening per spec.
-    if ($getGenericClass(T) == futureClass) {
-      let args = $getGenericArgs(T);
-      if (args) return $builder(args[0]);
-    }
-    return $builder(T);
-  }
-  return flatten;
-})()''');
-
 /// Memoize a generic type constructor function.
 generic(typeConstructor, setBaseClass) => JS('', '''(() => {
   let length = $typeConstructor.length;
@@ -83,6 +127,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     $throwInternalError('must have at least one generic type argument');
   }
   let resultMap = new Map();
+  $_cacheMaps.push(resultMap);
   function makeGenericType(...args) {
     if (args.length != length && args.length != 0) {
       $throwInternalError('requires ' + length + ' or 0 type arguments');
@@ -107,7 +152,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
             value[$_originalDeclaration] = makeGenericType;
           }
           map.set(arg, value);
-          if ($setBaseClass) $setBaseClass(value);
+          if ($setBaseClass != null) $setBaseClass.apply(null, args);
         } else {
           value = new Map();
           map.set(arg, value);
@@ -125,7 +170,14 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 List getGenericArgs(type) =>
     JS('List', '#', safeGetOwnProperty(type, _typeArguments));
 
-// TODO(vsm): Collapse into one expando.
+List<TypeVariable> getGenericTypeFormals(genericClass) {
+  return _typeFormalsFromFunction(getGenericTypeCtor(genericClass));
+}
+
+Object instantiateClass(Object genericClass, List<Object> typeArgs) {
+  return JS('', '#.apply(null, #)', genericClass, typeArgs);
+}
+
 final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sigMethod")');
 final _fieldSig = JS('', 'Symbol("sigField")');
@@ -137,17 +189,15 @@ final _staticGetterSig = JS('', 'Symbol("sigStaticGetter")');
 final _staticSetterSig = JS('', 'Symbol("sigStaticSetter")');
 final _genericTypeCtor = JS('', 'Symbol("genericType")');
 
-// TODO(vsm): Collapse this as well - just provide a dart map to mirrors code.
-// These are queried by mirrors code.
-getConstructors(value) => JS('', '#[#]', value, _constructorSig);
-getMethods(value) => JS('', '#[#]', value, _methodSig);
-getFields(value) => JS('', '#[#]', value, _fieldSig);
-getGetters(value) => JS('', '#[#]', value, _getterSig);
-getSetters(value) => JS('', '#[#]', value, _setterSig);
-getStaticMethods(value) => JS('', '#[#]', value, _staticMethodSig);
-getStaticFields(value) => JS('', '#[#]', value, _staticFieldSig);
-getStaticGetters(value) => JS('', '#[#]', value, _staticGetterSig);
-getStaticSetters(value) => JS('', '#[#]', value, _staticSetterSig);
+getConstructors(value) => _getMembers(value, _constructorSig);
+getMethods(value) => _getMembers(value, _methodSig);
+getFields(value) => _getMembers(value, _fieldSig);
+getGetters(value) => _getMembers(value, _getterSig);
+getSetters(value) => _getMembers(value, _setterSig);
+getStaticMethods(value) => _getMembers(value, _staticMethodSig);
+getStaticFields(value) => _getMembers(value, _staticFieldSig);
+getStaticGetters(value) => _getMembers(value, _staticGetterSig);
+getStaticSetters(value) => _getMembers(value, _staticSetterSig);
 
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
@@ -157,49 +207,44 @@ getType(obj) =>
 
 bool isJsInterop(obj) {
   if (obj == null) return false;
-  if (JS('bool', 'typeof # === "function"', obj)) {
+  if (JS('!', 'typeof # === "function"', obj)) {
     // A function is a Dart function if it has runtime type information.
-    return _getRuntimeType(obj) == null;
+    return JS('!', '#[#] == null', obj, _runtimeType);
   }
   // Primitive types are not JS interop types.
-  if (JS('bool', 'typeof # !== "object"', obj)) return false;
+  if (JS('!', 'typeof # !== "object"', obj)) return false;
 
   // Extension types are not considered JS interop types.
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
-  if (JS('bool', '#[#] != null', obj, _extensionType)) return false;
-  return JS('bool', '!($obj instanceof $Object)');
+  if (JS('!', '#[#] != null', obj, _extensionType)) return false;
+  return JS('!', '!($obj instanceof $Object)');
 }
 
 /// Get the type of a method from a type using the stored signature
 getMethodType(type, name) {
-  var m = JS('', '#[#]', type, _methodSig);
+  var m = getMethods(type);
   return m != null ? JS('', '#[#]', m, name) : null;
 }
 
 /// Gets the type of the corresponding setter (this includes writable fields).
 getSetterType(type, name) {
-  var signature = JS('', '#[#]', type, _setterSig);
-  if (signature != null) {
-    var type = JS('', '#[#]', signature, name);
+  var setters = getSetters(type);
+  if (setters != null) {
+    var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      // TODO(jmesserly): it would be nice not to encode setters with a full
-      // function type.
-      if (JS('bool', '# instanceof Array', type)) {
+      if (JS('!', '# instanceof Array', type)) {
         // The type has metadata attached.  Pull out just the type.
-        // TODO(vsm): Come up with a more robust encoding for this or remove
-        // if we can deprecate mirrors.
-        // Essentially, we've got a FunctionType or a
-        // [FunctionType, metadata1, ..., metadataN].
-        type = JS('', '#[0]', type);
+        // TODO(jmesserly): remove when we remove mirrors
+        return JS('', '#[0]', type);
       }
-      return JS('', '#.args[0]', type);
+      return type;
     }
   }
-  signature = JS('', '#[#]', type, _fieldSig);
-  if (signature != null) {
-    var fieldInfo = JS('', '#[#]', signature, name);
-    if (fieldInfo != null && JS('bool', '!#.isFinal', fieldInfo)) {
+  var fields = getFields(type);
+  if (fields != null) {
+    var fieldInfo = JS('', '#[#]', fields, name);
+    if (fieldInfo != null && JS<bool>('!', '!#.isFinal', fieldInfo)) {
       return JS('', '#.type', fieldInfo);
     }
   }
@@ -215,44 +260,51 @@ fieldType(type, metadata) =>
 /// Get the type of a constructor from a class using the stored signature
 /// If name is undefined, returns the type of the default constructor
 /// Returns undefined if the constructor is not found.
-classGetConstructorType(cls, name) => JS('', '''(() => {
-  if(!$name) $name = 'new';
-  if ($cls === void 0) return void 0;
-  if ($cls == null) return void 0;
-  let sigCtor = $cls[$_constructorSig];
-  if (sigCtor === void 0) return void 0;
-  return sigCtor[$name];
-})()''');
-
-setMethodSignature(f, sigF) => defineLazyGetter(f, _methodSig, sigF);
-setFieldSignature(f, sigF) => defineLazyGetter(f, _fieldSig, sigF);
-setGetterSignature(f, sigF) => defineLazyGetter(f, _getterSig, sigF);
-setSetterSignature(f, sigF) => defineLazyGetter(f, _setterSig, sigF);
-
-// Set up the constructor signature field on the constructor
-setConstructorSignature(f, sigF) => defineLazyGetter(f, _constructorSig, sigF);
-
-// Set up the static signature field on the constructor
-setStaticMethodSignature(f, sigF) =>
-    defineLazyGetter(f, _staticMethodSig, sigF);
-
-setStaticFieldSignature(f, sigF) => defineLazyGetter(f, _staticFieldSig, sigF);
-
-setStaticGetterSignature(f, sigF) =>
-    defineLazyGetter(f, _staticGetterSig, sigF);
-
-setStaticSetterSignature(f, sigF) =>
-    defineLazyGetter(f, _staticSetterSig, sigF);
-
-bool _hasSigEntry(type, kind, name) {
-  var sig = JS('', '#[#]', type, kind);
-  return sig != null && JS('bool', '# in #', name, sig);
+classGetConstructorType(cls, name) {
+  if (cls == null) return null;
+  if (name == null) name = 'new';
+  var ctors = getConstructors(cls);
+  return ctors != null ? JS('', '#[#]', ctors, name) : null;
 }
 
-bool hasMethod(type, name) => _hasSigEntry(type, _methodSig, name);
-bool hasGetter(type, name) => _hasSigEntry(type, _getterSig, name);
-bool hasSetter(type, name) => _hasSigEntry(type, _setterSig, name);
-bool hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
+void setMethodSignature(f, sigF) => JS('', '#[#] = #', f, _methodSig, sigF);
+void setFieldSignature(f, sigF) => JS('', '#[#] = #', f, _fieldSig, sigF);
+void setGetterSignature(f, sigF) => JS('', '#[#] = #', f, _getterSig, sigF);
+void setSetterSignature(f, sigF) => JS('', '#[#] = #', f, _setterSig, sigF);
+
+// Set up the constructor signature field on the constructor
+void setConstructorSignature(f, sigF) =>
+    JS('', '#[#] = #', f, _constructorSig, sigF);
+
+// Set up the static signature field on the constructor
+void setStaticMethodSignature(f, sigF) =>
+    JS('', '#[#] = #', f, _staticMethodSig, sigF);
+
+void setStaticFieldSignature(f, sigF) =>
+    JS('', '#[#] = #', f, _staticFieldSig, sigF);
+
+void setStaticGetterSignature(f, sigF) =>
+    JS('', '#[#] = #', f, _staticGetterSig, sigF);
+
+void setStaticSetterSignature(f, sigF) =>
+    JS('', '#[#] = #', f, _staticSetterSig, sigF);
+
+_getMembers(type, kind) {
+  var sig = JS('', '#[#]', type, kind);
+  return JS<bool>('!', 'typeof # == "function"', sig)
+      ? JS('', '#[#] = #()', type, kind, sig)
+      : sig;
+}
+
+bool _hasMember(type, kind, name) {
+  var sig = _getMembers(type, kind);
+  return sig != null && JS<bool>('!', '# in #', name, sig);
+}
+
+bool hasMethod(type, name) => _hasMember(type, _methodSig, name);
+bool hasGetter(type, name) => _hasMember(type, _getterSig, name);
+bool hasSetter(type, name) => _hasMember(type, _setterSig, name);
+bool hasField(type, name) => _hasMember(type, _fieldSig, name);
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
@@ -261,14 +313,14 @@ final dartx = JS('', 'dartx');
 /// Install properties in prototype-first order.  Properties / descriptors from
 /// more specific types should overwrite ones from less specific types.
 void _installProperties(jsProto, dartType, installedParent) {
-  if (JS('bool', '# === #', dartType, Object)) {
+  if (JS('!', '# === #', dartType, Object)) {
     _installPropertiesForObject(jsProto);
     return;
   }
   // If the extension methods of the parent have been installed on the parent
   // of [jsProto], the methods will be available via prototype inheritance.
   var dartSupertype = JS('', '#.__proto__', dartType);
-  if (JS('bool', '# !== #', dartSupertype, installedParent)) {
+  if (JS('!', '# !== #', dartSupertype, installedParent)) {
     _installProperties(jsProto, dartSupertype, installedParent);
   }
 
@@ -281,8 +333,8 @@ void _installPropertiesForObject(jsProto) {
   // symbol name.
   var coreObjProto = JS('', '#.prototype', Object);
   var names = getOwnPropertyNames(coreObjProto);
-  for (int i = 0; i < JS('int', '#.length', names); ++i) {
-    var name = JS('String', '#[#]', names, i);
+  for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
+    var name = JS<String>('!', '#[#]', names, i);
     if (name == 'constructor') continue;
     var desc = getOwnPropertyDescriptor(coreObjProto, name);
     defineProperty(jsProto, JS('', '#.#', dartx, name), desc);
@@ -304,7 +356,7 @@ _applyExtension(jsType, dartExtType) {
   var jsProto = JS('', '#.prototype', jsType);
   if (jsProto == null) return;
 
-  if (JS('bool', '# === #', dartExtType, Object)) {
+  if (JS('!', '# === #', dartExtType, Object)) {
     _installPropertiesForGlobalObject(jsProto);
     return;
   }
@@ -313,18 +365,13 @@ _applyExtension(jsType, dartExtType) {
       jsProto, dartExtType, JS('', '#[#]', jsProto, _extensionType));
 
   // Mark the JS type's instances so we can easily check for extensions.
-  if (JS('bool', '# !== #', dartExtType, JSFunction)) {
+  if (JS('!', '# !== #', dartExtType, JSFunction)) {
     JS('', '#[#] = #', jsProto, _extensionType, dartExtType);
   }
-
-  defineLazyGetter(
-      jsType, _methodSig, JS('', '() => #[#]', dartExtType, _methodSig));
-  defineLazyGetter(
-      jsType, _fieldSig, JS('', '() => #[#]', dartExtType, _fieldSig));
-  defineLazyGetter(
-      jsType, _getterSig, JS('', '() => #[#]', dartExtType, _getterSig));
-  defineLazyGetter(
-      jsType, _setterSig, JS('', '() => #[#]', dartExtType, _setterSig));
+  JS('', '#[#] = #[#]', jsType, _methodSig, dartExtType, _methodSig);
+  JS('', '#[#] = #[#]', jsType, _fieldSig, dartExtType, _fieldSig);
+  JS('', '#[#] = #[#]', jsType, _getterSig, dartExtType, _getterSig);
+  JS('', '#[#] = #[#]', jsType, _setterSig, dartExtType, _setterSig);
 }
 
 /// Apply the previously registered extension to the type of [nativeObject].
@@ -385,10 +432,10 @@ defineExtensionAccessors(type, Iterable memberNames) {
     var member;
     var p = proto;
     for (;; p = JS('', '#.__proto__', p)) {
-      member = JS('', 'Object.getOwnPropertyDescriptor(#, #)', p, name);
+      member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
-    JS('', 'Object.defineProperty(#, dartx[#], #)', proto, name, member);
+    defineProperty(proto, JS('', 'dartx[#]', name), member);
   }
 }
 
@@ -400,7 +447,7 @@ definePrimitiveHashCode(proto) {
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {
   JS('', '#.prototype.__proto__ = #.prototype', derived, base);
-  // We use __proto__ to track the superclass hierarchy (see isSubtype).
+  // We use __proto__ to track the superclass hierarchy (see isSubtypeOf).
   JS('', '#.__proto__ = #', derived, base);
 }
 

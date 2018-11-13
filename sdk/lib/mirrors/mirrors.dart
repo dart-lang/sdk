@@ -52,6 +52,8 @@
  * result of user feedback. This library is platform dependent and therefore it
  * has implementations for both dart2js and the Dart VM. Both are under
  * development and may not support all operations yet.
+ *
+ * {@category VM}
  */
 library dart.mirrors;
 
@@ -173,7 +175,7 @@ external ClassMirror reflectClass(Type key);
  *
  * Optionally takes a list of [typeArguments] for generic classes. If the list
  * is provided, then the [key] must be a generic class type, and the number of
- * the provided type arguments must be equal to the number of type variables 
+ * the provided type arguments must be equal to the number of type variables
  * declared by the class.
  *
  * Note that since one cannot obtain a [Type] object from another isolate, this
@@ -218,6 +220,23 @@ abstract class IsolateMirror implements Mirror {
    *    reflected by [other].
    */
   bool operator ==(other);
+
+  /**
+   * Loads the library at the given uri into this isolate.
+   *
+   * WARNING: You are strongly encouraged to use Isolate.spawnUri instead when
+   * possible. IsolateMirror.loadUri should only be used when synchronous
+   * communication or shared state with dynamically loaded code is needed.
+   *
+   * If a library with the same canonicalized uri has already been loaded,
+   * the existing library will be returned. (The isolate will not load a new
+   * copy of the library.)
+   *
+   * This behavior is similar to the behavior of an import statement that
+   * appears in the root library, except that the import scope of the root
+   * library is not changed.
+   */
+  Future<LibraryMirror> loadUri(Uri uri);
 }
 
 /**
@@ -452,7 +471,7 @@ abstract class ObjectMirror implements Mirror {
   InstanceMirror setField(Symbol fieldName, Object value);
 
   /**
-   * Performs [invocation] on [reflectee].
+   * Performs [invocation] on the reflectee of this [ObjectMirror].
    *
    * Equivalent to
    *
@@ -460,7 +479,7 @@ abstract class ObjectMirror implements Mirror {
    *       return this.getField(invocation.memberName).reflectee;
    *     } else if (invocation.isSetter) {
    *       return this.setField(invocation.memberName,
-   *                            invocation.positionArguments[0]).reflectee;
+   *                            invocation.positionalArguments[0]).reflectee;
    *     } else {
    *       return this.invoke(invocation.memberName,
    *                          invocation.positionalArguments,
@@ -820,7 +839,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * If this class is the result of a mixin application of the form S with M,
    * returns a class mirror on M. Otherwise returns a class mirror on
-   * [reflectee].
+   * the reflectee.
    */
   ClassMirror get mixin;
 
@@ -1239,6 +1258,7 @@ class Comment {
  * will ensure that the target `Bar` from the current library and from library
  * `foo` is available for reflection. See also [override].
  */
+@Deprecated("No longer has any effect. Will be removed in a later release.")
 class MirrorsUsed {
   // Note: the fields of this class are untyped.  This is because the most
   // convenient way to specify symbols today is using a single string. In

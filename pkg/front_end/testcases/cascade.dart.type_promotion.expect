@@ -1,0 +1,3 @@
+pkg/front_end/testcases/cascade.dart:25:8: Context: Write to list@232
+  list = [
+       ^

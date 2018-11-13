@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A CompletionTarget represents an edge in the parse tree which connects an
@@ -88,6 +87,17 @@ class CompletionTarget {
   final AstNode containingNode;
 
   /**
+   * The "dropped" identifier or keyword which the completed text will replace,
+   * or `null` if none.
+   *
+   * For the purposes of code completion, a "dropped" token is an identifier
+   * or keyword that is part of the token stream, but that the parser has
+   * skipped and not reported in to the parser listeners, meaning that it is
+   * not part of the AST.
+   */
+  Token droppedToken;
+
+  /**
    * The entity which the completed text will replace (or which will be
    * displaced once the completed text is inserted).  This may be an AstNode or
    * a Token, or it may be null if the cursor is after all tokens in the file.
@@ -155,7 +165,7 @@ class CompletionTarget {
       }
       for (var entity in containingNode.childEntities) {
         if (entity is Token) {
-          if (_isCandidateToken(entity, offset)) {
+          if (_isCandidateToken(containingNode, entity, offset)) {
             // Try to replace with a comment token.
             Token commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
@@ -174,7 +184,7 @@ class CompletionTarget {
           // If the last token in the node isn't a candidate target, then
           // neither the node nor any of its descendants can possibly be the
           // completion target, so we can skip the node entirely.
-          if (!_isCandidateToken(entity.endToken, offset)) {
+          if (!_isCandidateToken(containingNode, entity.endToken, offset)) {
             continue;
           }
 
@@ -235,7 +245,9 @@ class CompletionTarget {
       Object entity, this.isCommentText)
       : this.containingNode = containingNode,
         this.entity = entity,
-        this.argIndex = _computeArgIndex(containingNode, entity);
+        this.argIndex = _computeArgIndex(containingNode, entity),
+        this.droppedToken =
+            _computeDroppedToken(containingNode, entity, offset);
 
   /**
    * Return `true` if the [containingNode] is a cascade
@@ -263,16 +275,17 @@ class CompletionTarget {
     bool isKeywordOrIdentifier(Token token) =>
         token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
-    Token token = entity is AstNode ? (entity as AstNode).beginToken : entity;
+    Token token = droppedToken ??
+        (entity is AstNode ? (entity as AstNode).beginToken : entity);
     if (token != null && requestOffset < token.offset) {
-      token = token.previous;
+      token = containingNode.findPrevious(token);
     }
     if (token != null) {
       if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
         // If the insertion point is at the beginning of the current token
         // and the current token is not an identifier
         // then check the previous token to see if it should be replaced
-        token = token.previous;
+        token = containingNode.findPrevious(token);
       }
       if (token != null && isKeywordOrIdentifier(token)) {
         if (token.offset <= requestOffset && requestOffset <= token.end) {
@@ -283,7 +296,7 @@ class CompletionTarget {
       if (token is StringToken) {
         SimpleStringLiteral uri =
             astFactory.simpleStringLiteral(token, token.lexeme);
-        Keyword keyword = token.previous?.keyword;
+        Keyword keyword = containingNode.findPrevious(token)?.keyword;
         if (keyword == Keyword.IMPORT ||
             keyword == Keyword.EXPORT ||
             keyword == Keyword.PART) {
@@ -300,6 +313,19 @@ class CompletionTarget {
   }
 
   /**
+   * Return `true` if the target is a double or int literal.
+   */
+  bool isDoubleOrIntLiteral() {
+    var entity = this.entity;
+    if (entity is Token) {
+      TokenType previousTokenType = containingNode.findPrevious(entity)?.type;
+      return previousTokenType == TokenType.DOUBLE ||
+          previousTokenType == TokenType.INT;
+    }
+    return false;
+  }
+
+  /**
    * Return `true` if the target is a functional argument in an argument list.
    * The target [AstNode] hierarchy *must* be resolved for this to work.
    * See [maybeFunctionalArgument].
@@ -313,7 +339,7 @@ class CompletionTarget {
       parent = parent.parent;
     }
     if (parent is InstanceCreationExpression) {
-      DartType instType = parent.bestType;
+      DartType instType = parent.staticType;
       if (instType != null) {
         Element intTypeElem = instType.element;
         if (intTypeElem is ClassElement) {
@@ -329,7 +355,7 @@ class CompletionTarget {
     } else if (parent is MethodInvocation) {
       SimpleIdentifier methodName = parent.methodName;
       if (methodName != null) {
-        Element methodElem = methodName.bestElement;
+        Element methodElem = methodName.staticElement;
         if (methodElem is MethodElement) {
           return _isFunctionalParameter(
               methodElem.parameters, argIndex, containingNode);
@@ -379,11 +405,58 @@ class CompletionTarget {
       }
       if (entity == argList.rightParenthesis) {
         // Parser ignores trailing commas
-        if (argList.rightParenthesis.previous?.lexeme == ',') {
+        Token previous = containingNode.findPrevious(argList.rightParenthesis);
+        if (previous?.lexeme == ',') {
           return args.length;
         }
         return args.length - 1;
       }
+    }
+    return null;
+  }
+
+  static Token _computeDroppedToken(
+      AstNode containingNode, Object entity, int offset) {
+    // Find the last token of the member before the entity.
+    var previousMember;
+    for (var member in containingNode.childEntities) {
+      if (entity == member) {
+        break;
+      }
+      if (member is! Comment && member is! CommentToken) {
+        previousMember = member;
+      }
+    }
+    Token token;
+    if (previousMember is AstNode) {
+      token = previousMember.endToken;
+    } else if (previousMember is Token) {
+      token = previousMember;
+    }
+    if (token == null) {
+      return null;
+    }
+
+    // Find the first token of the entity (which may be the entity itself).
+    Token endSearch;
+    if (entity is AstNode) {
+      endSearch = entity.beginToken;
+    } else if (entity is Token) {
+      endSearch = entity;
+    }
+    if (endSearch == null) {
+      return null;
+    }
+
+    // Find a dropped token that overlaps the offset.
+    token = token.next;
+    while (token != endSearch && !token.isEof) {
+      if (token.isKeywordOrIdentifier &&
+          token.offset <= offset &&
+          offset <= token.end) {
+        return token;
+      }
+      token = token.next;
     }
     return null;
   }
@@ -436,7 +509,7 @@ class CompletionTarget {
     // candidate entity if its first token is.
     Token beginToken = node.beginToken;
     if (beginToken.type.isKeyword || beginToken.type == TokenType.IDENTIFIER) {
-      return _isCandidateToken(beginToken, offset);
+      return _isCandidateToken(node, beginToken, offset);
     }
 
     // Otherwise, the node is a candidate entity only if the offset is before
@@ -450,7 +523,7 @@ class CompletionTarget {
    * Determine whether [token] could possibly be the [entity] for a
    * [CompletionTarget] associated with the given [offset].
    */
-  static bool _isCandidateToken(Token token, int offset) {
+  static bool _isCandidateToken(AstNode node, Token token, int offset) {
     if (token == null) {
       return false;
     }
@@ -469,8 +542,11 @@ class CompletionTarget {
     }
     // If the current token is synthetic, then check the previous token
     // because it may have been dropped from the parse tree
-    Token previous = token.previous;
-    if (offset < previous.end) {
+    Token previous = node.findPrevious(token);
+    if (previous == null) {
+      // support dangling expression completion, where previous may be null.
+      return false;
+    } else if (offset < previous.end) {
       return true;
     } else if (offset == previous.end) {
       return token.type.isKeyword || previous.type == TokenType.IDENTIFIER;
@@ -487,13 +563,11 @@ class CompletionTarget {
     DartType paramType;
     if (paramIndex < parameters.length) {
       ParameterElement param = parameters[paramIndex];
-      if (param.parameterKind == ParameterKind.NAMED) {
+      if (param.isNamed) {
         if (containingNode is NamedExpression) {
           String name = containingNode.name?.label?.name;
           param = parameters.firstWhere(
-              (ParameterElement param) =>
-                  param.parameterKind == ParameterKind.NAMED &&
-                  param.name == name,
+              (ParameterElement param) => param.isNamed && param.name == name,
               orElse: () => null);
           paramType = param?.type;
         }

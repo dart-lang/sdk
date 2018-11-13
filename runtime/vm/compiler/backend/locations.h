@@ -17,6 +17,7 @@ class ConstantInstr;
 class Definition;
 class PairLocation;
 class Value;
+struct FrameLayout;
 
 enum Representation {
   kNoRepresentation,
@@ -62,6 +63,14 @@ class Location : public ValueObject {
   static const uword kLocationTagMask = 0x3;
 
  public:
+#if defined(TARGET_ARCH_DBC)
+  enum SpecialDbcRegister{
+      kArgsDescriptorReg,
+      kExceptionReg,
+      kStackTraceReg,
+  };
+#endif
+
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
   // the same as kConstantTag or kPairLocationTag.
@@ -99,9 +108,9 @@ class Location : public ValueObject {
     kFpuRegister = 12,
 
 #ifdef TARGET_ARCH_DBC
-    // We use this to signify a special `Location` where the arguments
-    // descriptor can be found on DBC.
-    kArgsDescRegister = 15,
+    // We use this to signify a special `Location` where the different
+    // [SpecialDbcRegister]s can be found on DBC.
+    kSpecialDbcRegister = 15,
 #endif
   };
 
@@ -130,8 +139,9 @@ class Location : public ValueObject {
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kPairLocationTag);
 
 #ifdef TARGET_ARCH_DBC
-    COMPILE_ASSERT((kArgsDescRegister & kLocationTagMask) != kConstantTag);
-    COMPILE_ASSERT((kArgsDescRegister & kLocationTagMask) != kPairLocationTag);
+    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) !=
+                   kPairLocationTag);
 #endif
 
     // Verify tags and tagmask.
@@ -247,12 +257,44 @@ class Location : public ValueObject {
 
   bool IsFpuRegister() const { return kind() == kFpuRegister; }
 
-#ifdef TARGET_ARCH_DBC
   static Location ArgumentsDescriptorLocation() {
-    return Location(kArgsDescRegister, 0);
+#ifdef TARGET_ARCH_DBC
+    return Location(kSpecialDbcRegister, kArgsDescriptorReg);
+#else
+    return Location::RegisterLocation(ARGS_DESC_REG);
+#endif
   }
 
-  bool IsArgsDescRegister() const { return kind() == kArgsDescRegister; }
+  static Location ExceptionLocation() {
+#ifdef TARGET_ARCH_DBC
+    return Location(kSpecialDbcRegister, kExceptionReg);
+#else
+    return Location::RegisterLocation(kExceptionObjectReg);
+#endif
+  }
+
+  static Location StackTraceLocation() {
+#ifdef TARGET_ARCH_DBC
+    return Location(kSpecialDbcRegister, kStackTraceReg);
+#else
+    return Location::RegisterLocation(kStackTraceObjectReg);
+#endif
+  }
+
+#ifdef TARGET_ARCH_DBC
+  bool IsArgsDescRegister() const {
+    return IsSpecialDbcRegister(kArgsDescriptorReg);
+  }
+  bool IsExceptionRegister() const {
+    return IsSpecialDbcRegister(kExceptionReg);
+  }
+  bool IsStackTraceRegister() const {
+    return IsSpecialDbcRegister(kStackTraceReg);
+  }
+
+  bool IsSpecialDbcRegister(SpecialDbcRegister reg) const {
+    return kind() == kSpecialDbcRegister && payload() == reg;
+  }
 #endif
 
   FpuRegister fpu_reg() const {
@@ -286,7 +328,6 @@ class Location : public ValueObject {
     return static_cast<uword>(kStackIndexBias + stack_index);
   }
 
-  // Spill slots.
   static Location StackSlot(intptr_t stack_index, Register base = FPREG) {
     uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
@@ -476,6 +517,19 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
+  void AddAllNonReservedRegisters(bool include_fpu_registers) {
+    for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+      if (kReservedCpuRegisters & (1 << i)) continue;
+      Add(Location::RegisterLocation(static_cast<Register>(i)));
+    }
+
+    if (include_fpu_registers) {
+      for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+        Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+      }
+    }
+  }
+
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
       cpu_registers_.Add(loc.reg());
@@ -570,7 +624,10 @@ class LocationSummary : public ZoneAllocated {
   enum ContainsCall {
     kNoCall,  // Used registers must be reserved as tmp.
     kCall,    // Registers have been saved and can be used without reservation.
-    kCallOnSlowPath  // Used registers must be reserved as tmp.
+    kCallCalleeSafe,       // Registers will be saved by the callee.
+    kCallOnSlowPath,       // Used registers must be reserved as tmp.
+    kCallOnSharedSlowPath  // Registers used to invoke shared stub must be
+                           // reserved as tmp.
   };
 
   LocationSummary(Zone* zone,
@@ -651,11 +708,19 @@ class LocationSummary : public ZoneAllocated {
   }
   void SetStackBit(intptr_t index) { stack_bitmap()->Set(index, true); }
 
-  bool always_calls() const { return contains_call_ == kCall; }
+  bool always_calls() const {
+    return contains_call_ == kCall || contains_call_ == kCallCalleeSafe;
+  }
+
+  bool callee_safe_call() const { return contains_call_ == kCallCalleeSafe; }
 
   bool can_call() { return contains_call_ != kNoCall; }
 
   bool HasCallOnSlowPath() { return can_call() && !always_calls(); }
+
+  bool call_on_shared_slow_path() const {
+    return contains_call_ == kCallOnSharedSlowPath;
+  }
 
   void PrintTo(BufferFormatter* f) const;
 

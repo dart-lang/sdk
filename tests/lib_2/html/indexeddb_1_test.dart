@@ -46,15 +46,15 @@ testReadWrite(key, value, matcher,
         dbName = nextDatabaseName();
       }
       createObjectStore(e) {
-        var store = e.target.result.createObjectStore(storeName);
+        idb.ObjectStore store = e.target.result.createObjectStore(storeName);
         expect(store, isNotNull);
       }
 
-      var db;
+      idb.Database db;
       return html.window.indexedDB.deleteDatabase(dbName).then((_) {
         return html.window.indexedDB
             .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
-      }).then((result) {
+      }).then((idb.Database result) {
         db = result;
         var transaction = db.transactionList([storeName], 'readwrite');
         transaction.objectStore(storeName).put(value, key);

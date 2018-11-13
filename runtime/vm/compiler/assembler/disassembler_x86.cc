@@ -11,7 +11,7 @@
 
 #include "platform/utils.h"
 #include "vm/allocation.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/os.h"
 #include "vm/stack_frame.h"
@@ -19,7 +19,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 enum OperandType {
   UNSET_OP_ORDER = 0,
@@ -385,7 +385,7 @@ void DisassemblerX64::Print(const char* format, ...) {
   char* buf = buffer_ + buffer_pos_;
   va_list args;
   va_start(args, format);
-  int length = OS::VSNPrint(buf, available, format, args);
+  int length = Utils::VSNPrint(buf, available, format, args);
   va_end(args);
   buffer_pos_ =
       (length >= available) ? (buffer_size_ - 1) : (buffer_pos_ + length);
@@ -443,7 +443,7 @@ int DisassemblerX64::PrintRightOperandHelper(
         int scale, index, base;
         get_sib(sib, &scale, &index, &base);
         int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 2)
-                              : *reinterpret_cast<char*>(modrmp + 2);
+                              : *reinterpret_cast<int8_t*>(modrmp + 2);
         if (index == 4 && (base & 7) == 4 && scale == 0 /*times_1*/) {
           Print("[%s", NameOfCPURegister(base));
           PrintDisp(disp, "]");
@@ -456,7 +456,7 @@ int DisassemblerX64::PrintRightOperandHelper(
       } else {
         // No sib.
         int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 1)
-                              : *reinterpret_cast<char*>(modrmp + 1);
+                              : *reinterpret_cast<int8_t*>(modrmp + 1);
         Print("[%s", NameOfCPURegister(rm));
         PrintDisp(disp, "]");
         return (mod == 2) ? 5 : 2;
@@ -1234,8 +1234,11 @@ void DisassemblerX64::CheckPrintStop(uint8_t* data) {
 #if defined(TARGET_ARCH_IA32)
   // Recognize stop pattern.
   if (*data == 0xCC) {
-    const char* text = *reinterpret_cast<const char**>(data - 4);
-    Print("  STOP:'%s'", text);
+    const char* message = "Stop messages not enabled";
+    if (FLAG_print_stop_message) {
+      message = *reinterpret_cast<const char**>(data - 4);
+    }
+    Print("  STOP:'%s'", message);
   }
 #endif
 }
@@ -1559,7 +1562,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       Print(",");
       current += PrintImmediate(current, BYTE_SIZE);
     }
-  } else if (opcode == 0xBA && (*current & 0xE0) == 0xE0) {
+  } else if (opcode == 0xBA && (*current & 0x60) == 0x60) {
     // bt? immediate instruction
     int r = (*current >> 3) & 7;
     static const char* const names[4] = {"bt", "bts", "btr", "btc"};
@@ -1957,7 +1960,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
   int hex_index = 0;
   int remaining_size = hex_size - hex_index;
   for (int i = 0; (i < instruction_length) && (remaining_size > 2); ++i) {
-    OS::SNPrint(&hex_buffer[hex_index], remaining_size, "%02x", pc_ptr[i]);
+    Utils::SNPrint(&hex_buffer[hex_index], remaining_size, "%02x", pc_ptr[i]);
     hex_index += 2;
     remaining_size -= 2;
   }
@@ -1988,7 +1991,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
 #endif
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart
 

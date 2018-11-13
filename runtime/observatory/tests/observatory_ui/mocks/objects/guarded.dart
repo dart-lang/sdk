@@ -4,7 +4,7 @@
 
 part of mocks;
 
-class GuardedMock<T> implements M.Guarded {
+class GuardedMock<T> implements M.Guarded<T> {
   bool get isSentinel => asSentinel != null;
   bool get isValue => asValue != null;
   final T asValue;

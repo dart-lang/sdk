@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
@@ -13,7 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
-import '../utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -29,15 +27,16 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testPath = provider.convertPath('/test.dart');
+    testPath = resourceProvider.convertPath('/test.dart');
   }
 
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
-    provider.newFile(testPath, code);
+    newFile(testPath, content: code);
     AnalysisResult analysisResult = await driver.getResult(testPath);
     return new DartUnitOutlineComputer(
-            testPath, analysisResult.lineInfo, analysisResult.unit)
+            testPath, analysisResult.lineInfo, analysisResult.unit,
+            withBasicFlutter: true)
         .compute();
   }
 }
@@ -47,8 +46,7 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
   void setUp() {
     super.setUp();
-    Folder libFolder = configureFlutterPackage(provider);
-    packageMap['flutter'] = [libFolder];
+    addFlutterPackage();
   }
 
   test_columnWithChildren() async {
@@ -143,7 +141,7 @@ MyWidget
 class OutlineComputerTest extends AbstractOutlineComputerTest {
   test_class() async {
     Outline unitOutline = await _computeOutline('''
-class A<K, V> {
+abstract class A<K, V> {
   int fa, fb;
   String fc;
   A(int i, String s);
@@ -151,15 +149,18 @@ class A<K, V> {
   A._privateName(num p);
   static String ma(int pa) => null;
   _mb(int pb);
+  R mc<R, P>(P p) {}
   String get propA => null;
   set propB(int v) {}
 }
 class B {
   B(int p);
-}");
+}
+String fa(int pa) => null;
+R fb<R, P>(P p) {}
 ''');
     List<Outline> topOutlines = unitOutline.children;
-    expect(topOutlines, hasLength(2));
+    expect(topOutlines, hasLength(4));
     // A
     {
       Outline outline_A = topOutlines[0];
@@ -176,7 +177,7 @@ class B {
       expect(element_A.returnType, null);
       // A children
       List<Outline> outlines_A = outline_A.children;
-      expect(outlines_A, hasLength(10));
+      expect(outlines_A, hasLength(11));
       {
         Outline outline = outlines_A[0];
         Element element = outline.element;
@@ -279,6 +280,22 @@ class B {
       {
         Outline outline = outlines_A[8];
         Element element = outline.element;
+        expect(element.kind, ElementKind.METHOD);
+        expect(element.name, "mc");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("mc<R, P>"));
+          expect(location.length, "mc".length);
+        }
+        expect(element.parameters, "(P p)");
+        expect(element.returnType, "R");
+        expect(element.typeParameters, "<R, P>");
+        expect(element.isAbstract, isFalse);
+        expect(element.isStatic, isFalse);
+      }
+      {
+        Outline outline = outlines_A[9];
+        Element element = outline.element;
         expect(element.kind, ElementKind.GETTER);
         expect(element.name, "propA");
         {
@@ -290,7 +307,7 @@ class B {
         expect(element.returnType, "String");
       }
       {
-        Outline outline = outlines_A[9];
+        Outline outline = outlines_A[10];
         Element element = outline.element;
         expect(element.kind, ElementKind.SETTER);
         expect(element.name, "propB");
@@ -333,6 +350,37 @@ class B {
         expect(element.parameters, "(int p)");
         expect(element.returnType, isNull);
       }
+    }
+    {
+      Outline outline = topOutlines[2];
+      Element element = outline.element;
+      expect(element.kind, ElementKind.FUNCTION);
+      expect(element.name, "fa");
+      {
+        Location location = element.location;
+        expect(location.offset, testCode.indexOf("fa(int pa)"));
+        expect(location.length, "ma".length);
+      }
+      expect(element.parameters, "(int pa)");
+      expect(element.returnType, "String");
+      expect(element.isAbstract, isFalse);
+      expect(element.isStatic, isTrue);
+    }
+    {
+      Outline outline = topOutlines[3];
+      Element element = outline.element;
+      expect(element.kind, ElementKind.FUNCTION);
+      expect(element.name, "fb");
+      {
+        Location location = element.location;
+        expect(location.offset, testCode.indexOf("fb<R, P>"));
+        expect(location.length, "fb".length);
+      }
+      expect(element.parameters, "(P p)");
+      expect(element.returnType, "R");
+      expect(element.typeParameters, "<R, P>");
+      expect(element.isAbstract, isFalse);
+      expect(element.isStatic, isTrue);
     }
   }
 
@@ -495,6 +543,138 @@ class A {
     expect(outline, isNotNull);
   }
 
+  /**
+   * Code like this caused Dart2 failure in the past.
+   *
+   * https://github.com/dart-lang/sdk/issues/33228
+   */
+  test_invocation_ofParameter() async {
+    Outline outline = await _computeOutline('''
+main(p()) {
+  p();
+}
+''');
+    expect(outline, isNotNull);
+  }
+
+  test_isTest_isTestGroup() async {
+    addMetaPackageSource();
+    Outline outline = await _computeOutline('''
+import 'package:meta/meta.dart';
+
+@isTestGroup
+void myGroup(name, body()) {}
+
+@isTest
+void myTest(name) {}
+
+void main() {
+  myGroup('group1', () {
+    myGroup('group1_1', () {
+      myTest('test1_1_1');
+      myTest('test1_1_2');
+    });
+    myGroup('group1_2', () {
+      myTest('test1_2_1');
+    });
+  });
+  myGroup('group2', () {
+    myTest('test2_1');
+    myTest('test2_2');
+  });
+}
+''');
+    // unit
+    List<Outline> unit_children = outline.children;
+    expect(unit_children, hasLength(3));
+    // main
+    Outline main_outline = unit_children[2];
+    _expect(main_outline,
+        kind: ElementKind.FUNCTION,
+        name: 'main',
+        offset: testCode.indexOf("main() {"),
+        parameters: '()',
+        returnType: 'void');
+    List<Outline> main_children = main_outline.children;
+    expect(main_children, hasLength(2));
+    // group1
+    Outline group1_outline = main_children[0];
+    _expect(group1_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'myGroup("group1")',
+        offset: testCode.indexOf("myGroup('group1'"));
+    List<Outline> group1_children = group1_outline.children;
+    expect(group1_children, hasLength(2));
+    // group1_1
+    Outline group1_1_outline = group1_children[0];
+    _expect(group1_1_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'myGroup("group1_1")',
+        offset: testCode.indexOf("myGroup('group1_1'"));
+    List<Outline> group1_1_children = group1_1_outline.children;
+    expect(group1_1_children, hasLength(2));
+    // test1_1_1
+    Outline test1_1_1_outline = group1_1_children[0];
+    _expect(test1_1_1_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'myTest("test1_1_1")',
+        offset: testCode.indexOf("myTest('test1_1_1'"));
+    // test1_1_1
+    Outline test1_1_2_outline = group1_1_children[1];
+    _expect(test1_1_2_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'myTest("test1_1_2")',
+        offset: testCode.indexOf("myTest('test1_1_2'"));
+    // group1_2
+    Outline group1_2_outline = group1_children[1];
+    _expect(group1_2_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'myGroup("group1_2")',
+        offset: testCode.indexOf("myGroup('group1_2'"));
+    List<Outline> group1_2_children = group1_2_outline.children;
+    expect(group1_2_children, hasLength(1));
+    // test2_1
+    Outline test1_2_1_outline = group1_2_children[0];
+    _expect(test1_2_1_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'myTest("test1_2_1")',
+        offset: testCode.indexOf("myTest('test1_2_1'"));
+    // group2
+    Outline group2_outline = main_children[1];
+    _expect(group2_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'myGroup("group2")',
+        offset: testCode.indexOf("myGroup('group2'"));
+    List<Outline> group2_children = group2_outline.children;
+    expect(group2_children, hasLength(2));
+    // test2_1
+    Outline test2_1_outline = group2_children[0];
+    _expect(test2_1_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'myTest("test2_1")',
+        offset: testCode.indexOf("myTest('test2_1'"));
+    // test2_2
+    Outline test2_2_outline = group2_children[1];
+    _expect(test2_2_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'myTest("test2_2")',
+        offset: testCode.indexOf("myTest('test2_2'"));
+  }
+
   test_localFunctions() async {
     Outline unitOutline = await _computeOutline('''
 class A {
@@ -650,203 +830,226 @@ f() {
     }
   }
 
-  test_sourceRange_inClass() async {
+  test_mixin() async {
     Outline unitOutline = await _computeOutline('''
-class A { // leftA
-  int methodA() {} // endA
-  int methodB() {} // endB
+mixin M<N> {
+  c(int d) {}
+  String get e => null;
+  set f(int g) {}
 }
 ''');
-    List<Outline> outlines = unitOutline.children[0].children;
-    expect(outlines, hasLength(2));
-    // methodA
+    List<Outline> topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // M
     {
-      Outline outline = outlines[0];
-      Element element = outline.element;
-      expect(element.kind, ElementKind.METHOD);
-      expect(element.name, "methodA");
+      Outline outline_M = topOutlines[0];
+      Element element_M = outline_M.element;
+      expect(element_M.kind, ElementKind.MIXIN);
+      expect(element_M.name, "M");
+      expect(element_M.typeParameters, "<N>");
       {
-        int offset = testCode.indexOf(" // leftA");
-        int end = testCode.indexOf(" // endA");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
+        Location location = element_M.location;
+        expect(location.offset, testCode.indexOf("M<N>"));
+        expect(location.length, 1);
       }
-    }
-    // methodB
-    {
-      Outline outline = outlines[1];
-      Element element = outline.element;
-      expect(element.kind, ElementKind.METHOD);
-      expect(element.name, "methodB");
+      expect(element_M.parameters, isNull);
+      expect(element_M.returnType, isNull);
+      // M children
+      List<Outline> outlines_M = outline_M.children;
+      expect(outlines_M, hasLength(3));
       {
-        int offset = testCode.indexOf(" // endA");
-        int end = testCode.indexOf(" // endB");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
+        Outline outline = outlines_M[0];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.METHOD);
+        expect(element.name, "c");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("c(int d)"));
+          expect(location.length, 1);
+        }
+        expect(element.parameters, "(int d)");
+        expect(element.returnType, "");
+        expect(element.isAbstract, isFalse);
+        expect(element.isStatic, isFalse);
+      }
+      {
+        Outline outline = outlines_M[1];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.GETTER);
+        expect(element.name, "e");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("e => null"));
+          expect(location.length, 1);
+        }
+        expect(element.parameters, isNull);
+        expect(element.returnType, "String");
+      }
+      {
+        Outline outline = outlines_M[2];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.SETTER);
+        expect(element.name, "f");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("f(int g)"));
+          expect(location.length, 1);
+        }
+        expect(element.parameters, "(int g)");
+        expect(element.returnType, "");
       }
     }
   }
 
-  test_sourceRange_inClass_inVariableList() async {
+  test_sourceRanges_fields() async {
     Outline unitOutline = await _computeOutline('''
-class A { // leftA
-  int fieldA, fieldB, fieldC; // marker
-  int fieldD; // marker2
+class A {
+  int fieldA, fieldB = 2;
+  
+  int fieldC;
+  
+  /// Documentation.
+  int fieldD;
 }
 ''');
     List<Outline> outlines = unitOutline.children[0].children;
     expect(outlines, hasLength(4));
+
     // fieldA
     {
       Outline outline = outlines[0];
       Element element = outline.element;
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, "fieldA");
-      {
-        int offset = testCode.indexOf(" // leftA");
-        int end = testCode.indexOf(", fieldB");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+
+      expect(outline.offset, 12);
+      expect(outline.length, 10);
+
+      expect(outline.codeOffset, 16);
+      expect(outline.codeLength, 6);
     }
+
     // fieldB
     {
       Outline outline = outlines[1];
       Element element = outline.element;
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, "fieldB");
-      {
-        int offset = testCode.indexOf(", fieldB");
-        int end = testCode.indexOf(", fieldC");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+
+      expect(outline.offset, 24);
+      expect(outline.length, 11);
+
+      expect(outline.codeOffset, 24);
+      expect(outline.codeLength, 10);
     }
+
     // fieldC
     {
       Outline outline = outlines[2];
       Element element = outline.element;
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, "fieldC");
-      {
-        int offset = testCode.indexOf(", fieldC");
-        int end = testCode.indexOf(" // marker");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+
+      expect(outline.offset, 41);
+      expect(outline.length, 11);
+
+      expect(outline.codeOffset, 45);
+      expect(outline.codeLength, 6);
     }
+
     // fieldD
     {
       Outline outline = outlines[3];
       Element element = outline.element;
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, "fieldD");
-      {
-        int offset = testCode.indexOf(" // marker");
-        int end = testCode.indexOf(" // marker2");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+
+      expect(outline.offset, 58);
+      expect(outline.length, 32);
+
+      expect(outline.codeOffset, 83);
+      expect(outline.codeLength, 6);
     }
   }
 
-  test_sourceRange_inUnit() async {
+  test_sourceRanges_inUnit() async {
     Outline unitOutline = await _computeOutline('''
-library lib;
 /// My first class.
-class A {
-} // endA
-class B {
-} // endB
+class A {}
+
+class B {}
 ''');
     List<Outline> topOutlines = unitOutline.children;
     expect(topOutlines, hasLength(2));
+
     // A
     {
       Outline outline = topOutlines[0];
       Element element = outline.element;
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, "A");
-      {
-        int offset = testCode.indexOf("/// My first class.");
-        int end = testCode.indexOf(" // endA");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+
+      expect(outline.offset, 0);
+      expect(outline.length, 30);
+
+      expect(outline.codeOffset, 20);
+      expect(outline.codeLength, 10);
     }
+
     // B
     {
       Outline outline = topOutlines[1];
       Element element = outline.element;
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, "B");
-      {
-        int offset = testCode.indexOf(" // endA");
-        int end = testCode.indexOf(" // endB");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+
+      expect(outline.offset, 32);
+      expect(outline.length, 10);
+
+      expect(outline.codeOffset, 32);
+      expect(outline.codeLength, 10);
     }
   }
 
-  test_sourceRange_inUnit_inVariableList() async {
+  test_sourceRanges_method() async {
     Outline unitOutline = await _computeOutline('''
-int fieldA, fieldB, fieldC; // marker
-int fieldD; // marker2
+class A {
+  int methodA() {}
+  
+  /// Documentation.
+  @override
+  int methodB() {}
+}
 ''');
-    List<Outline> outlines = unitOutline.children;
-    expect(outlines, hasLength(4));
-    // fieldA
+    List<Outline> outlines = unitOutline.children[0].children;
+    expect(outlines, hasLength(2));
+
+    // methodA
     {
       Outline outline = outlines[0];
       Element element = outline.element;
-      expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
-      expect(element.name, "fieldA");
-      {
-        int offset = 0;
-        int end = testCode.indexOf(", fieldB");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+      expect(element.kind, ElementKind.METHOD);
+      expect(element.name, "methodA");
+
+      expect(outline.offset, 12);
+      expect(outline.length, 16);
+
+      expect(outline.codeOffset, 12);
+      expect(outline.codeLength, 16);
     }
-    // fieldB
+
+    // methodB
     {
       Outline outline = outlines[1];
       Element element = outline.element;
-      expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
-      expect(element.name, "fieldB");
-      {
-        int offset = testCode.indexOf(", fieldB");
-        int end = testCode.indexOf(", fieldC");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
-    }
-    // fieldC
-    {
-      Outline outline = outlines[2];
-      Element element = outline.element;
-      expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
-      expect(element.name, "fieldC");
-      {
-        int offset = testCode.indexOf(", fieldC");
-        int end = testCode.indexOf(" // marker");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
-    }
-    // fieldD
-    {
-      Outline outline = outlines[3];
-      Element element = outline.element;
-      expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
-      expect(element.name, "fieldD");
-      {
-        int offset = testCode.indexOf(" // marker");
-        int end = testCode.indexOf(" // marker2");
-        expect(outline.offset, offset);
-        expect(outline.length, end - offset);
-      }
+      expect(element.kind, ElementKind.METHOD);
+      expect(element.name, "methodB");
+
+      expect(outline.offset, 34);
+      expect(outline.length, 49);
+
+      expect(outline.codeOffset, 67);
+      expect(outline.codeLength, 16);
     }
   }
 

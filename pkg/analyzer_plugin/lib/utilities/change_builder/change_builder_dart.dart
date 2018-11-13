@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,6 +14,11 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /**
+ * The optional generator for prefix that should be used for new imports.
+ */
+typedef ImportPrefixGenerator = String Function(Uri);
+
+/**
  * A [ChangeBuilder] used to build changes in Dart files.
  *
  * Clients may not extend, implement or mix-in this class.
@@ -24,9 +29,18 @@ abstract class DartChangeBuilder implements ChangeBuilder {
    */
   factory DartChangeBuilder(AnalysisSession session) = DartChangeBuilderImpl;
 
+  /**
+   * Use the [buildFileEdit] function to create a collection of edits to the
+   * file with the given [path]. The edits will be added to the source change
+   * that is being built.
+   *
+   * If [importPrefixGenerator] is provided, it will be asked to generate an
+   * import prefix for every newly imported library.
+   */
   @override
-  Future<Null> addFileEdit(
-      String path, void buildFileEdit(DartFileEditBuilder builder));
+  Future<void> addFileEdit(
+      String path, void buildFileEdit(DartFileEditBuilder builder),
+      {ImportPrefixGenerator importPrefixGenerator});
 }
 
 /**
@@ -43,9 +57,8 @@ abstract class DartEditBuilder implements EditBuilder {
    * Write the code for a declaration of a class with the given [name]. If a
    * list of [interfaces] is provided, then the class will implement those
    * interfaces. If [isAbstract] is `true`, then the class will be abstract. If
-   * a [memberWriter] is provided, then it will be invoked to allow members to
-   * be generated. (The members will automatically be preceded and followed by
-   * end-of-line markers.) If a list of [mixins] is provided, then the class
+   * a [membersWriter] is provided, then it will be invoked to allow members to
+   * be generated. If a list of [mixins] is provided, then the class
    * will mix in those classes. If a [nameGroupName] is provided, then the name
    * of the class will be included in the linked edit group with that name. If a
    * [superclass] is given then it will be the superclass of the class. (If a
@@ -55,7 +68,7 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract: false,
-      void memberWriter(),
+      void membersWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
@@ -67,18 +80,26 @@ abstract class DartEditBuilder implements EditBuilder {
    * as being a `const` constructor. If a [constructorName] is provided, then
    * the constructor will have the given name. If both a constructor name and a
    * [constructorNameGroupName] is provided, then the name of the constructor
-   * will be included in the linked edit group with that name. If an
+   * will be included in the linked edit group with that name. If a
+   * [parameterWriter] is provided then it is used to write the constructor
+   * parameters (enclosing parenthesis are written for you). Otherwise, if an
    * [argumentList] is provided then the constructor will have parameters that
    * match the given arguments. If no argument list is given, but a list of
    * [fieldNames] is provided, then field formal parameters will be created for
-   * each of the field names.
+   * each of the field names. If an [initializerWriter] is provided then it is
+   * used to write the constructor initializers (the ` : ` prefix is written
+   * for you). If a [bodyWriter] is provided then it is used to write the
+   * constructor body, otherwise an empty body is written.
    */
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
+      void bodyWriter(),
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
-      bool isConst: false});
+      void initializerWriter(),
+      bool isConst: false,
+      void parameterWriter()});
 
   /**
    * Write the code for a declaration of a field with the given [name]. If an
@@ -169,9 +190,42 @@ abstract class DartEditBuilder implements EditBuilder {
       String typeGroupName});
 
   /**
-   * Append a placeholder for an override of the specified inherited [member].
+   * Write the code for a declaration of a mixin with the given [name]. If a
+   * list of [interfaces] is provided, then the mixin will implement those
+   * interfaces. If a [membersWriter] is provided, then it will be invoked to
+   * allow members to be generated. If a [nameGroupName] is provided, then the
+   * name of the class will be included in the linked edit group with that name.
    */
-  void writeOverrideOfInheritedMember(ExecutableElement member);
+  void writeMixinDeclaration(String name,
+      {Iterable<DartType> interfaces,
+      void membersWriter(),
+      String nameGroupName,
+      Iterable<DartType> superclassConstraints});
+
+  /**
+   * Append a placeholder for an override of the specified inherited
+   * [signature]. If provided, write a string value suitable for display
+   * (e.g., in a completion popup) in the given [displayTextBuffer].
+   * If [invokeSuper] is `true`, then the corresponding `super.name()` will be
+   * added in the body.
+   */
+  void writeOverride(
+    FunctionType signature, {
+    StringBuffer displayTextBuffer,
+    bool invokeSuper: true,
+  });
+
+  /**
+   * Write the code for a single parameter with the given [name].
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
+   *
+   * If a [type] is provided, then it will be used as the type of the parameter.
+   */
+  void writeParameter(String name,
+      {ExecutableElement methodBeingCopied, DartType type});
 
   /**
    * Write the code for a parameter that would match the given [argument]. The
@@ -201,15 +255,11 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeParametersMatchingArguments(ArgumentList arguments);
 
   /**
-   * Write the code for a single parameter with the given [type] and [name].
-   * The [type] can be `null` if no type is to be specified for the parameter.
-   *
-   * If a [methodBeingCopied] is provided, then type parameters defined by that
-   * method are assumed to be part of what is being written and hence valid
-   * types.
+   * Write the code that references the [element]. If the [element] is a
+   * top-level element that has not been imported into the current library,
+   * imports will be updated.
    */
-  void writeParameterSource(DartType type, String name,
-      {ExecutableElement methodBeingCopied});
+  void writeReference(Element element);
 
   /**
    * Write the code for a type annotation for the given [type]. If the [type] is
@@ -238,14 +288,31 @@ abstract class DartEditBuilder implements EditBuilder {
   /**
    * Write the code to declare the given [typeParameter]. The enclosing angle
    * brackets are not automatically written.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeTypeParameter(TypeParameterElement typeParameter);
+  void writeTypeParameter(TypeParameterElement typeParameter,
+      {ExecutableElement methodBeingCopied});
 
   /**
    * Write the code to declare the given list of [typeParameters]. The enclosing
    * angle brackets are automatically written.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeTypeParameters(List<TypeParameterElement> typeParameters);
+  void writeTypeParameters(List<TypeParameterElement> typeParameters,
+      {ExecutableElement methodBeingCopied});
+
+  /**
+   * Write the code for a comma-separated list of [types], optionally prefixed
+   * by a [prefix]. If the list of [types] is `null` or does not contain any
+   * types, then nothing will be written.
+   */
+  void writeTypes(Iterable<DartType> types, {String prefix});
 }
 
 /**
@@ -277,9 +344,12 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
       FunctionBody body, TypeProvider typeProvider);
 
   /**
-   * Arrange to have imports added for each of the given [libraries].
+   * Arrange to have an import added for the library with the given [uri].
+   *
+   * Returns the text of the URI that will be used in the import directive.
+   * It can be different than the given [Uri].
    */
-  void importLibraries(Iterable<Source> libraries);
+  String importLibrary(Uri uri);
 
   /**
    * Optionally create an edit to replace the given [typeAnnotation] with the

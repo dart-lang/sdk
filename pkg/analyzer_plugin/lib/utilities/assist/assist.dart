@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -57,7 +57,8 @@ class AssistGenerator {
    * by the given [request]. If any of the contributors throws an exception,
    * also create a non-fatal 'plugin.error' notification.
    */
-  GeneratorResult generateAssistsResponse(AssistRequest request) {
+  GeneratorResult<EditGetAssistsResult> generateAssistsResponse(
+      AssistRequest request) {
     List<Notification> notifications = <Notification>[];
     AssistCollectorImpl collector = new AssistCollectorImpl();
     for (AssistContributor contributor in contributors) {
@@ -83,9 +84,9 @@ class AssistGenerator {
  */
 class AssistKind {
   /**
-   * The name of this kind of assist, used for debugging.
+   * The unique identifier of this kind of assist.
    */
-  final String name;
+  final String id;
 
   /**
    * The priority of this kind of assist for the kind of error being addressed.
@@ -101,13 +102,13 @@ class AssistKind {
   final String message;
 
   /**
-   * Initialize a newly created kind of assist to have the given [name],
-   * [relevance] and [message].
+   * Initialize a newly created kind of assist to have the given [id],
+   * [priority] and [message].
    */
-  const AssistKind(this.name, this.priority, this.message);
+  const AssistKind(this.id, this.priority, this.message);
 
   @override
-  String toString() => name;
+  String toString() => id;
 }
 
 /**

@@ -11,7 +11,7 @@ class C {
 }
 
 void g(C c) {
-  c.f /*@callKind=dynamic*/ (1.5);
+  c.f(1.5);
 }
 
 void h(int i) {}

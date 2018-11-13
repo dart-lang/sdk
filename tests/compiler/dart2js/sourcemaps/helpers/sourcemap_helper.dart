@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';
@@ -20,8 +19,8 @@ import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../../memory_compiler.dart';
-import '../../output_collector.dart';
+import '../../helpers/memory_compiler.dart';
+import '../../helpers/output_collector.dart';
 
 class SourceFileSink implements OutputSink {
   final String filename;
@@ -65,6 +64,10 @@ class OutputProvider implements CompilerOutput {
   OutputSink createOutputSink(String name, String extension, OutputType type) {
     return createSourceFileSink(name, extension, type);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) =>
+      throw new UnsupportedError("OutputProvider.createBinarySink");
 }
 
 class CloningOutputProvider extends OutputProvider {
@@ -79,6 +82,10 @@ class CloningOutputProvider extends OutputProvider {
     return new CloningOutputSink(
         [output, createSourceFileSink(name, extension, type)]);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) =>
+      throw new UnsupportedError("CloningOutputProvider.createBinarySink");
 }
 
 abstract class SourceFileManager {
@@ -144,6 +151,17 @@ class RecordingSourceMapper implements SourceMapper {
   void register(js.Node node, int codeOffset, SourceLocation sourceLocation) {
     nodeToSourceLocationsMap.register(node, codeOffset, sourceLocation);
     sourceMapper.register(node, codeOffset, sourceLocation);
+  }
+
+  @override
+  void registerPush(
+      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName) {
+    sourceMapper.registerPush(codeOffset, sourceLocation, inlinedMethodName);
+  }
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {
+    sourceMapper.registerPop(codeOffset, isEmpty: isEmpty);
   }
 }
 
@@ -315,26 +333,31 @@ class SourceMapProcessor {
     if (options.contains(Flags.disableInlining)) {
       if (verbose) print('Inlining disabled');
     }
-    api.CompilerImpl compiler = await compilerFor(
+    CompilationResult result = await runCompiler(
+        entryPoint: inputUri,
         outputProvider: outputProvider,
         // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
-          ..addAll(options));
-
-    JavaScriptBackend backend = compiler.backend;
-    dynamic handler = compiler.handler;
-    SourceFileProvider sourceFileProvider = handler.provider;
-    sourceFileManager =
-        new ProviderSourceFileManager(sourceFileProvider, outputProvider);
-    RecordingSourceInformationStrategy strategy =
-        new RecordingSourceInformationStrategy(
-            backend.sourceInformationStrategy);
-    backend.sourceInformationStrategy = strategy;
-    await compiler.run(inputUri);
-    if (compiler.compilationFailed) {
+          ..addAll(options),
+        beforeRun: (compiler) {
+          JavaScriptBackend backend = compiler.backend;
+          dynamic handler = compiler.handler;
+          SourceFileProvider sourceFileProvider = handler.provider;
+          sourceFileManager =
+              new ProviderSourceFileManager(sourceFileProvider, outputProvider);
+          RecordingSourceInformationStrategy strategy =
+              new RecordingSourceInformationStrategy(
+                  backend.sourceInformationStrategy);
+          backend.sourceInformationStrategy = strategy;
+        });
+    if (!result.isSuccess) {
       throw "Compilation failed.";
     }
 
+    api.CompilerImpl compiler = result.compiler;
+    JavaScriptBackend backend = compiler.backend;
+    RecordingSourceInformationStrategy strategy =
+        backend.sourceInformationStrategy;
     SourceMapInfo mainSourceMapInfo;
     Map<MemberEntity, SourceMapInfo> elementSourceMapInfos =
         <MemberEntity, SourceMapInfo>{};
@@ -442,6 +465,13 @@ class _LocationRecorder implements SourceMapper, LocationMap {
         .putIfAbsent(codeOffset, () => [])
         .add(sourceLocation);
   }
+
+  @override
+  void registerPush(int codeOffset, SourceLocation sourceLocation,
+      String inlinedMethodName) {}
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {}
 
   Iterable<js.Node> get nodes => _nodeMap.keys;
 

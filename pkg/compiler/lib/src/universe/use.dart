@@ -16,18 +16,15 @@
 /// program.
 library dart2js.universe.use;
 
-import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
-import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../js_model/closure.dart';
-import '../util/util.dart' show Hashing;
-import '../world.dart' show World;
+import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'world_builder.dart' show ReceiverConstraint;
+import 'world_builder.dart' show StrongModeConstraint;
 
 enum DynamicUseKind {
   INVOKE,
@@ -36,18 +33,46 @@ enum DynamicUseKind {
 }
 
 /// The use of a dynamic property. [selector] defined the name and kind of the
-/// property and [mask] defines the known constraint for the object on which
+/// property and [receiverConstraint] defines the known constraint for the object on which
 /// the property is accessed.
 class DynamicUse {
   final Selector selector;
-  final ReceiverConstraint mask;
 
-  DynamicUse(this.selector, this.mask);
+  DynamicUse(this.selector);
 
-  bool appliesUnnamed(MemberEntity element, World world) {
-    return selector.appliesUnnamed(element) &&
-        (mask == null || mask.canHit(element, selector, world));
+  /// Short textual representation use for testing.
+  String get shortText {
+    StringBuffer sb = new StringBuffer();
+    if (receiverConstraint != null) {
+      var constraint = receiverConstraint;
+      if (constraint is StrongModeConstraint) {
+        sb.write(constraint.cls.name);
+      } else {
+        sb.write(constraint);
+      }
+      sb.write('.');
+    }
+    sb.write(selector.name);
+    if (typeArguments != null && typeArguments.isNotEmpty) {
+      sb.write('<');
+      sb.write(typeArguments.join(','));
+      sb.write('>');
+    }
+    if (selector.isCall) {
+      sb.write('(');
+      sb.write(selector.callStructure.positionalArgumentCount);
+      if (selector.callStructure.namedArgumentCount > 0) {
+        sb.write(',');
+        sb.write(selector.callStructure.getOrderedNamedArguments().join(','));
+      }
+      sb.write(')');
+    } else if (selector.isSetter) {
+      sb.write('=');
+    }
+    return sb.toString();
   }
+
+  Object get receiverConstraint => null;
 
   DynamicUseKind get kind {
     if (selector.isGetter) {
@@ -59,15 +84,58 @@ class DynamicUse {
     }
   }
 
-  int get hashCode => selector.hashCode * 13 + mask.hashCode * 17;
+  List<DartType> get typeArguments => const <DartType>[];
+
+  int get hashCode => Hashing.listHash(
+      typeArguments, Hashing.objectsHash(selector, receiverConstraint));
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! DynamicUse) return false;
-    return selector == other.selector && mask == other.mask;
+    return selector == other.selector &&
+        receiverConstraint == other.receiverConstraint &&
+        equalElements(typeArguments, other.typeArguments);
   }
 
-  String toString() => '$selector,$mask';
+  String toString() => '$selector,$receiverConstraint';
+}
+
+class GenericDynamicUse extends DynamicUse {
+  final List<DartType> _typeArguments;
+
+  GenericDynamicUse(Selector selector, [this._typeArguments])
+      : super(selector) {
+    assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${typeArguments?.length ?? 0} were passed.");
+  }
+
+  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
+}
+
+/// A dynamic use with a receiver constraint.
+///
+/// This is used in the codegen phase where receivers are constrained to a
+/// type mask or similar.
+class ConstrainedDynamicUse extends DynamicUse {
+  final Object receiverConstraint;
+  final List<DartType> _typeArguments;
+
+  ConstrainedDynamicUse(
+      Selector selector, this.receiverConstraint, this._typeArguments)
+      : super(selector) {
+    assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${_typeArguments?.length ?? 0} were passed.");
+  }
+
+  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 }
 
 enum StaticUseKind {
@@ -77,12 +145,12 @@ enum StaticUseKind {
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
+  CLOSURE_CALL,
   CALL_METHOD,
   CONSTRUCTOR_INVOKE,
   CONST_CONSTRUCTOR_INVOKE,
   REDIRECTION,
   DIRECT_INVOKE,
-  DIRECT_USE,
   INLINING,
   INVOKE,
   GET,
@@ -98,31 +166,76 @@ class StaticUse {
   final Entity element;
   final StaticUseKind kind;
   final int hashCode;
-  final DartType type;
+  final InterfaceType type;
   final CallStructure callStructure;
 
-  StaticUse.internal(Entity element, this.kind, {this.type, this.callStructure})
+  StaticUse.internal(Entity element, this.kind,
+      {this.type, this.callStructure, typeArgumentsHash: 0})
       : this.element = element,
-        this.hashCode =
-            Hashing.objectsHash(element, kind, type, callStructure) {
-    assert(
-        !(element is Element && !element.isDeclaration),
-        failedAt(element,
-            "Static use element $element must be the declaration element."));
+        this.hashCode = Hashing.objectsHash(
+            element, kind, type, typeArgumentsHash, callStructure);
+
+  /// Short textual representation use for testing.
+  String get shortText {
+    StringBuffer sb = new StringBuffer();
+    switch (kind) {
+      case StaticUseKind.FIELD_SET:
+      case StaticUseKind.SUPER_FIELD_SET:
+      case StaticUseKind.SET:
+        sb.write('set:');
+        break;
+      case StaticUseKind.INIT:
+        sb.write('init:');
+        break;
+      case StaticUseKind.CLOSURE:
+        sb.write('def:');
+        break;
+      default:
+    }
+    if (element is MemberEntity) {
+      MemberEntity member = element;
+      if (member.enclosingClass != null) {
+        sb.write(member.enclosingClass.name);
+        sb.write('.');
+      }
+    }
+    if (element.name == null) {
+      sb.write('<anonymous>');
+    } else {
+      sb.write(element.name);
+    }
+    if (typeArguments != null && typeArguments.isNotEmpty) {
+      sb.write('<');
+      sb.write(typeArguments.join(','));
+      sb.write('>');
+    }
+    if (callStructure != null) {
+      sb.write('(');
+      sb.write(callStructure.positionalArgumentCount);
+      if (callStructure.namedArgumentCount > 0) {
+        sb.write(',');
+        sb.write(callStructure.getOrderedNamedArguments().join(','));
+      }
+      sb.write(')');
+    }
+    return sb.toString();
   }
+
+  List<DartType> get typeArguments => null;
 
   /// Invocation of a static or top-level [element] with the given
   /// [callStructure].
   factory StaticUse.staticInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+      FunctionEntity element, CallStructure callStructure,
+      [List<DartType> typeArguments]) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
             element,
             "Static invoke element $element must be a top-level "
             "or static method."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
-        callStructure: callStructure);
+    return new GenericStaticUse(
+        element, StaticUseKind.INVOKE, callStructure, typeArguments);
   }
 
   /// Closurization of a static or top-level function [element].
@@ -182,13 +295,14 @@ class StaticUse {
 
   /// Invocation of a super method [element] with the given [callStructure].
   factory StaticUse.superInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+      FunctionEntity element, CallStructure callStructure,
+      [List<DartType> typeArguments]) {
     assert(
         element.isInstanceMember,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
-        callStructure: callStructure);
+    return new GenericStaticUse(
+        element, StaticUseKind.INVOKE, callStructure, typeArguments);
   }
 
   /// Read access of a super field or getter [element].
@@ -257,17 +371,23 @@ class StaticUse {
         callStructure: callStructure);
   }
 
+  /// Direct invocation of a generator (body) [element], as a static call or
+  /// through a this or super constructor call.
+  factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
+    return new StaticUse.internal(element, StaticUseKind.INVOKE);
+  }
+
   /// Direct invocation of a method [element] with the given [callStructure].
-  factory StaticUse.directInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+  factory StaticUse.directInvoke(FunctionEntity element,
+      CallStructure callStructure, List<DartType> typeArguments) {
     assert(
         element.isInstanceMember,
         failedAt(element,
             "Direct invoke element $element must be an instance member."));
     assert(element.isFunction,
         failedAt(element, "Direct invoke element $element must be a method."));
-    return new StaticUse.internal(element, StaticUseKind.DIRECT_INVOKE,
-        callStructure: callStructure);
+    return new GenericStaticUse(
+        element, StaticUseKind.DIRECT_INVOKE, callStructure, typeArguments);
   }
 
   /// Direct read access of a field or getter [element].
@@ -307,8 +427,8 @@ class StaticUse {
 
   /// Constructor invocation of [element] with the given [callStructure] on
   /// [type].
-  factory StaticUse.typedConstructorInvoke(
-      ConstructorEntity element, CallStructure callStructure, DartType type) {
+  factory StaticUse.typedConstructorInvoke(ConstructorEntity element,
+      CallStructure callStructure, InterfaceType type) {
     assert(type != null,
         failedAt(element, "No type provided for constructor invocation."));
     assert(
@@ -323,8 +443,8 @@ class StaticUse {
 
   /// Constant constructor invocation of [element] with the given
   /// [callStructure] on [type].
-  factory StaticUse.constConstructorInvoke(
-      ConstructorEntity element, CallStructure callStructure, DartType type) {
+  factory StaticUse.constConstructorInvoke(ConstructorEntity element,
+      CallStructure callStructure, InterfaceType type) {
     assert(type != null,
         failedAt(element, "No type provided for constructor invocation."));
     assert(
@@ -363,9 +483,7 @@ class StaticUse {
   /// Read access of an instance field or boxed field [element].
   factory StaticUse.fieldGet(FieldEntity element) {
     assert(
-        element.isInstanceMember ||
-            element is BoxFieldElement ||
-            element is JRecordField,
+        element.isInstanceMember || element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return new StaticUse.internal(element, StaticUseKind.FIELD_GET);
@@ -374,9 +492,7 @@ class StaticUse {
   /// Write access of an instance field or boxed field [element].
   factory StaticUse.fieldSet(FieldEntity element) {
     assert(
-        element.isInstanceMember ||
-            element is BoxFieldElement ||
-            element is JRecordField,
+        element.isInstanceMember || element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return new StaticUse.internal(element, StaticUseKind.FIELD_SET);
@@ -385,6 +501,14 @@ class StaticUse {
   /// Read of a local function [element].
   factory StaticUse.closure(Local element) {
     return new StaticUse.internal(element, StaticUseKind.CLOSURE);
+  }
+
+  /// An invocation of a local function [element] with the provided
+  /// [callStructure] and [typeArguments].
+  factory StaticUse.closureCall(Local element, CallStructure callStructure,
+      List<DartType> typeArguments) {
+    return new GenericStaticUse(
+        element, StaticUseKind.CLOSURE_CALL, callStructure, typeArguments);
   }
 
   /// Read of a call [method] on a closureClass.
@@ -403,16 +527,17 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.INVOKE);
   }
 
-  /// Direct use of [element] as done with `--analyze-all` and `--analyze-main`.
-  factory StaticUse.directUse(MemberEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.DIRECT_USE);
+  /// Inlining of [element].
+  factory StaticUse.constructorInlining(
+      ConstructorEntity element, InterfaceType instanceType) {
+    return new StaticUse.internal(element, StaticUseKind.INLINING,
+        type: instanceType);
   }
 
   /// Inlining of [element].
-  factory StaticUse.inlining(
-      FunctionEntity element, InterfaceType instanceType) {
-    return new StaticUse.internal(element, StaticUseKind.INLINING,
-        type: instanceType);
+  factory StaticUse.methodInlining(
+      FunctionEntity element, List<DartType> typeArguments) {
+    return new GenericStaticUse.methodInlining(element, typeArguments);
   }
 
   bool operator ==(other) {
@@ -421,24 +546,50 @@ class StaticUse {
     return element == other.element &&
         kind == other.kind &&
         type == other.type &&
-        callStructure == other.callStructure;
+        callStructure == other.callStructure &&
+        equalElements(typeArguments, other.typeArguments);
   }
 
-  String toString() => 'StaticUse($element,$kind,$type,$callStructure)';
+  String toString() =>
+      'StaticUse($element,$kind,$type,$typeArguments,$callStructure)';
+}
+
+class GenericStaticUse extends StaticUse {
+  final List<DartType> typeArguments;
+
+  GenericStaticUse(Entity entity, StaticUseKind kind,
+      CallStructure callStructure, this.typeArguments)
+      : super.internal(entity, kind,
+            callStructure: callStructure,
+            typeArgumentsHash: Hashing.listHash(typeArguments)) {
+    assert(
+        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
+        failedAt(
+            element,
+            "Type argument count mismatch. Call structure has "
+            "${callStructure?.typeArgumentCount ?? 0} but "
+            "${typeArguments?.length ?? 0} were passed."));
+  }
+
+  GenericStaticUse.methodInlining(FunctionEntity entity, this.typeArguments)
+      : super.internal(entity, StaticUseKind.INLINING,
+            typeArgumentsHash: Hashing.listHash(typeArguments));
 }
 
 enum TypeUseKind {
   IS_CHECK,
   AS_CAST,
-  CHECKED_MODE_CHECK,
   CATCH_TYPE,
   TYPE_LITERAL,
   INSTANTIATION,
-  MIRROR_INSTANTIATION,
   NATIVE_INSTANTIATION,
+  IMPLICIT_CAST,
+  PARAMETER_CHECK,
+  RTI_VALUE,
+  TYPE_ARGUMENT,
 }
 
-/// Use of a [ResolutionDartType].
+/// Use of a [DartType].
 class TypeUse {
   final DartType type;
   final TypeUseKind kind;
@@ -448,6 +599,45 @@ class TypeUse {
       : this.type = type,
         this.kind = kind,
         this.hashCode = Hashing.objectHash(type, Hashing.objectHash(kind));
+
+  /// Short textual representation use for testing.
+  String get shortText {
+    StringBuffer sb = new StringBuffer();
+    switch (kind) {
+      case TypeUseKind.IS_CHECK:
+        sb.write('is:');
+        break;
+      case TypeUseKind.AS_CAST:
+        sb.write('as:');
+        break;
+      case TypeUseKind.CATCH_TYPE:
+        sb.write('catch:');
+        break;
+      case TypeUseKind.TYPE_LITERAL:
+        sb.write('lit:');
+        break;
+      case TypeUseKind.INSTANTIATION:
+        sb.write('inst:');
+        break;
+      case TypeUseKind.NATIVE_INSTANTIATION:
+        sb.write('native:');
+        break;
+      case TypeUseKind.IMPLICIT_CAST:
+        sb.write('impl:');
+        break;
+      case TypeUseKind.PARAMETER_CHECK:
+        sb.write('param:');
+        break;
+      case TypeUseKind.RTI_VALUE:
+        sb.write('rti:');
+        break;
+      case TypeUseKind.TYPE_ARGUMENT:
+        sb.write('typeArg:');
+        break;
+    }
+    sb.write(type);
+    return sb.toString();
+  }
 
   /// [type] used in an is check, like `e is T` or `e is! T`.
   factory TypeUse.isCheck(DartType type) {
@@ -459,9 +649,22 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.AS_CAST);
   }
 
-  /// [type] used as a type annotation, like `T foo;`.
-  factory TypeUse.checkedModeCheck(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.CHECKED_MODE_CHECK);
+  /// [type] used as a parameter type or field type in Dart 2, like `T` in:
+  ///
+  ///    method(T t) {}
+  ///    T field;
+  ///
+  factory TypeUse.parameterCheck(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.PARAMETER_CHECK);
+  }
+
+  /// [type] used in an implicit cast in Dart 2, like `T` in
+  ///
+  ///    dynamic foo = new Object();
+  ///    T bar = foo; // Implicitly `T bar = foo as T`.
+  ///
+  factory TypeUse.implicitCast(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.IMPLICIT_CAST);
   }
 
   /// [type] used in a on type catch clause, like `try {} on T catch (e) {}`.
@@ -479,14 +682,29 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
   }
 
-  /// [type] used in an instantiation through mirrors.
-  factory TypeUse.mirrorInstantiation(InterfaceType type) {
-    return new TypeUse.internal(type, TypeUseKind.MIRROR_INSTANTIATION);
-  }
-
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
+  }
+
+  /// [type] used as a direct RTI value.
+  factory TypeUse.constTypeLiteral(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+  }
+
+  /// [type] used in a `instanceof` check.
+  factory TypeUse.instanceConstructor(DartType type) {
+    // TODO(johnniwinther,sra): Use a separate use kind if constructors is no
+    // longer used for RTI.
+    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+  }
+
+  /// [type] used directly as a type argument.
+  ///
+  /// The happens during optimization where a type variable can be replaced by
+  /// an invariable type argument derived from a constant receiver.
+  factory TypeUse.typeArgument(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
   }
 
   bool operator ==(other) {
@@ -513,6 +731,11 @@ class ConstantUse {
 
   ConstantUse._(this.value, this.kind)
       : this.hashCode = Hashing.objectHash(value, kind.hashCode);
+
+  /// Short textual representation use for testing.
+  String get shortText {
+    return value.toDartText();
+  }
 
   /// Constant used as the initial value of a field.
   ConstantUse.init(ConstantValue value) : this._(value, ConstantUseKind.DIRECT);

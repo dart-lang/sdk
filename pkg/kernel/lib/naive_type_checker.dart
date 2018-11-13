@@ -17,14 +17,21 @@ abstract class FailureListener {
 class StrongModeTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
-  StrongModeTypeChecker(FailureListener failures, Program program,
+  StrongModeTypeChecker(FailureListener failures, Component component,
       {bool ignoreSdk: false})
-      : this._(failures, new CoreTypes(program),
-            new ClosedWorldClassHierarchy(program), ignoreSdk);
+      : this._(
+            failures,
+            new CoreTypes(component),
+            new ClassHierarchy(component,
+                onAmbiguousSupertypes: (Class cls, Supertype s0, Supertype s1) {
+              failures.reportFailure(
+                  cls, "$cls can't implement both $s1 and $s1");
+            }),
+            ignoreSdk);
 
   StrongModeTypeChecker._(this.failures, CoreTypes coreTypes,
       ClassHierarchy hierarchy, bool ignoreSdk)
-      : super(coreTypes, hierarchy, strongMode: true, ignoreSdk: ignoreSdk);
+      : super(coreTypes, hierarchy, ignoreSdk: ignoreSdk);
 
   // TODO(vegorov) this only gets called for immediate overrides which leads
   // to less strict checking that Dart 2.0 specification demands for covariant
@@ -157,8 +164,7 @@ ${ownType} is not a subtype of ${superType}
 
     if (!_isSubtypeOf(ownSubstitution.substituteType(ownFunction.returnType),
         superSubstitution.substituteType(superFunction.returnType))) {
-      return 'return type of override ${ownFunction
-          .returnType} is not a subtype'
+      return 'return type of override ${ownFunction.returnType} is not a subtype'
           ' of ${superFunction.returnType}';
     }
 

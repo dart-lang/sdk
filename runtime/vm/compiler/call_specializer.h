@@ -34,8 +34,8 @@ class CallSpecializer : public FlowGraphVisitor {
                   bool should_clone_fields)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
         speculative_policy_(speculative_policy),
-        flow_graph_(flow_graph),
-        should_clone_fields_(should_clone_fields) {}
+        should_clone_fields_(should_clone_fields),
+        flow_graph_(flow_graph) {}
 
   virtual ~CallSpecializer() {}
 
@@ -82,17 +82,18 @@ class CallSpecializer : public FlowGraphVisitor {
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
-  void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
   // Add a class check for the call's first argument (receiver).
   void AddReceiverCheck(InstanceCallInstr* call) {
-    AddChecksForArgNr(call, call->ArgumentAt(0), /* argument_number = */ 0);
+    AddChecksForArgNr(call, call->Receiver()->definition(),
+                      /* argument_number = */ 0);
   }
 
   // Insert a null check if needed.
   void AddCheckNull(Value* to_check,
+                    const String& function_name,
                     intptr_t deopt_id,
                     Environment* deopt_environment,
                     Instruction* insert_before);
@@ -105,13 +106,13 @@ class CallSpecializer : public FlowGraphVisitor {
   virtual bool TryReplaceInstanceOfWithRangeCheck(InstanceCallInstr* call,
                                                   const AbstractType& type);
 
-  virtual bool TryReplaceTypeCastWithRangeCheck(InstanceCallInstr* call,
-                                                const AbstractType& type);
-
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call) = 0;
 
  protected:
+  void InlineImplicitInstanceGetter(Definition* call, const Field& field);
+
   SpeculativeInliningPolicy* speculative_policy_;
+  const bool should_clone_fields_;
 
  private:
   bool TypeCheckAsClassEquality(const AbstractType& type);
@@ -169,7 +170,6 @@ class CallSpecializer : public FlowGraphVisitor {
       const AbstractType& type);
 
   FlowGraph* flow_graph_;
-  const bool should_clone_fields_;
 };
 
 }  // namespace dart

@@ -17,7 +17,7 @@ class BitNotOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      return DART_CONSTANT_SYSTEM.createInt(~intConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createInt(~intConstant.intValue);
     }
     return null;
   }
@@ -29,11 +29,11 @@ class NegateOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      return DART_CONSTANT_SYSTEM.createInt(-intConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createInt(-intConstant.intValue);
     }
     if (constant.isDouble) {
       DoubleConstantValue doubleConstant = constant;
-      return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.doubleValue);
     }
     return null;
   }
@@ -45,7 +45,7 @@ class NotOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isBool) {
       BoolConstantValue boolConstant = constant;
-      return DART_CONSTANT_SYSTEM.createBool(!boolConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createBool(!boolConstant.boolValue);
     }
     return null;
   }
@@ -60,46 +60,45 @@ abstract class BinaryBitOperation implements BinaryOperation {
     if (left.isInt && right.isInt) {
       IntConstantValue leftInt = left;
       IntConstantValue rightInt = right;
-      int resultValue =
-          foldInts(leftInt.primitiveValue, rightInt.primitiveValue);
+      BigInt resultValue = foldInts(leftInt.intValue, rightInt.intValue);
       if (resultValue == null) return null;
       return DART_CONSTANT_SYSTEM.createInt(resultValue);
     }
     return null;
   }
 
-  int foldInts(int left, int right);
+  BigInt foldInts(BigInt left, BigInt right);
 }
 
 class BitOrOperation extends BinaryBitOperation {
   final String name = '|';
   const BitOrOperation();
-  int foldInts(int left, int right) => left | right;
+  BigInt foldInts(BigInt left, BigInt right) => left | right;
   apply(left, right) => left | right;
 }
 
 class BitAndOperation extends BinaryBitOperation {
   final String name = '&';
   const BitAndOperation();
-  int foldInts(int left, int right) => left & right;
+  BigInt foldInts(BigInt left, BigInt right) => left & right;
   apply(left, right) => left & right;
 }
 
 class BitXorOperation extends BinaryBitOperation {
   final String name = '^';
   const BitXorOperation();
-  int foldInts(int left, int right) => left ^ right;
+  BigInt foldInts(BigInt left, BigInt right) => left ^ right;
   apply(left, right) => left ^ right;
 }
 
 class ShiftLeftOperation extends BinaryBitOperation {
   final String name = '<<';
   const ShiftLeftOperation();
-  int foldInts(int left, int right) {
+  BigInt foldInts(BigInt left, BigInt right) {
     // TODO(floitsch): find a better way to guard against excessive shifts to
     // the left.
-    if (right > 100 || right < 0) return null;
-    return left << right;
+    if (right > new BigInt.from(100) || right < BigInt.zero) return null;
+    return left << right.toInt();
   }
 
   apply(left, right) => left << right;
@@ -108,9 +107,9 @@ class ShiftLeftOperation extends BinaryBitOperation {
 class ShiftRightOperation extends BinaryBitOperation {
   final String name = '>>';
   const ShiftRightOperation();
-  int foldInts(int left, int right) {
-    if (right < 0) return null;
-    return left >> right;
+  BigInt foldInts(BigInt left, BigInt right) {
+    if (right < BigInt.zero) return null;
+    return left >> right.toInt();
   }
 
   apply(left, right) => left >> right;
@@ -122,8 +121,7 @@ abstract class BinaryBoolOperation implements BinaryOperation {
     if (left.isBool && right.isBool) {
       BoolConstantValue leftBool = left;
       BoolConstantValue rightBool = right;
-      bool resultValue =
-          foldBools(leftBool.primitiveValue, rightBool.primitiveValue);
+      bool resultValue = foldBools(leftBool.boolValue, rightBool.boolValue);
       return DART_CONSTANT_SYSTEM.createBool(resultValue);
     }
     return null;
@@ -152,16 +150,18 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
     if (left.isNum && right.isNum) {
       NumConstantValue leftNum = left;
       NumConstantValue rightNum = right;
-      num foldedValue;
+      var foldedValue;
       if (left.isInt && right.isInt) {
-        foldedValue = foldInts(leftNum.primitiveValue, rightNum.primitiveValue);
+        IntConstantValue leftInt = leftNum;
+        IntConstantValue rightInt = rightNum;
+        foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
       } else {
-        foldedValue = foldNums(leftNum.primitiveValue, rightNum.primitiveValue);
+        foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
       }
       // A division by 0 means that we might not have a folded value.
       if (foldedValue == null) return null;
       if (left.isInt && right.isInt && !isDivide() || isTruncatingDivide()) {
-        assert(foldedValue is int);
+        assert(foldedValue is BigInt);
         return DART_CONSTANT_SYSTEM.createInt(foldedValue);
       } else {
         return DART_CONSTANT_SYSTEM.createDouble(foldedValue);
@@ -172,13 +172,14 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
 
   bool isDivide() => false;
   bool isTruncatingDivide() => false;
-  num foldInts(int left, int right) => foldNums(left, right);
-  num foldNums(num left, num right);
+  foldInts(BigInt left, BigInt right);
+  foldNums(num left, num right);
 }
 
 class SubtractOperation extends ArithmeticNumOperation {
   final String name = '-';
   const SubtractOperation();
+  BigInt foldInts(BigInt left, BigInt right) => left - right;
   num foldNums(num left, num right) => left - right;
   apply(left, right) => left - right;
 }
@@ -186,6 +187,7 @@ class SubtractOperation extends ArithmeticNumOperation {
 class MultiplyOperation extends ArithmeticNumOperation {
   final String name = '*';
   const MultiplyOperation();
+  BigInt foldInts(BigInt left, BigInt right) => left * right;
   num foldNums(num left, num right) => left * right;
   apply(left, right) => left * right;
 }
@@ -193,8 +195,8 @@ class MultiplyOperation extends ArithmeticNumOperation {
 class ModuloOperation extends ArithmeticNumOperation {
   final String name = '%';
   const ModuloOperation();
-  int foldInts(int left, int right) {
-    if (right == 0) return null;
+  BigInt foldInts(BigInt left, BigInt right) {
+    if (right == BigInt.zero) return null;
     return left % right;
   }
 
@@ -205,6 +207,7 @@ class ModuloOperation extends ArithmeticNumOperation {
 class RemainderOperation extends ArithmeticNumOperation {
   final String name = 'remainder';
   const RemainderOperation();
+  BigInt foldInts(BigInt left, BigInt right) => null;
   // Not a defined constant operation.
   num foldNums(num left, num right) => null;
   apply(left, right) => left.remainder(right);
@@ -213,15 +216,15 @@ class RemainderOperation extends ArithmeticNumOperation {
 class TruncatingDivideOperation extends ArithmeticNumOperation {
   final String name = '~/';
   const TruncatingDivideOperation();
-  int foldInts(int left, int right) {
-    if (right == 0) return null;
+  BigInt foldInts(BigInt left, BigInt right) {
+    if (right == BigInt.zero) return null;
     return left ~/ right;
   }
 
-  num foldNums(num left, num right) {
+  BigInt foldNums(num left, num right) {
     num ratio = left / right;
     if (ratio.isNaN || ratio.isInfinite) return null;
-    return ratio.truncate().toInt();
+    return new BigInt.from(ratio.truncate().toInt());
   }
 
   apply(left, right) => left ~/ right;
@@ -231,6 +234,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
 class DivideOperation extends ArithmeticNumOperation {
   final String name = '/';
   const DivideOperation();
+  double foldInts(BigInt left, BigInt right) => left / right;
   num foldNums(num left, num right) => left / right;
   bool isDivide() => true;
   apply(left, right) => left / right;
@@ -243,17 +247,17 @@ class AddOperation implements BinaryOperation {
     if (left.isInt && right.isInt) {
       IntConstantValue leftInt = left;
       IntConstantValue rightInt = right;
-      int result = leftInt.primitiveValue + rightInt.primitiveValue;
+      BigInt result = leftInt.intValue + rightInt.intValue;
       return DART_CONSTANT_SYSTEM.createInt(result);
     } else if (left.isNum && right.isNum) {
       NumConstantValue leftNum = left;
       NumConstantValue rightNum = right;
-      double result = leftNum.primitiveValue + rightNum.primitiveValue;
+      double result = leftNum.doubleValue + rightNum.doubleValue;
       return DART_CONSTANT_SYSTEM.createDouble(result);
     } else if (left.isString && right.isString) {
       StringConstantValue leftString = left;
       StringConstantValue rightString = right;
-      String result = leftString.primitiveValue + rightString.primitiveValue;
+      String result = leftString.stringValue + rightString.stringValue;
       return DART_CONSTANT_SYSTEM.createString(result);
     } else {
       return null;
@@ -267,20 +271,28 @@ abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (!left.isNum || !right.isNum) return null;
-    NumConstantValue leftNum = left;
-    NumConstantValue rightNum = right;
-    bool foldedValue =
-        foldNums(leftNum.primitiveValue, rightNum.primitiveValue);
+    bool foldedValue;
+    if (left.isInt && right.isInt) {
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
+    } else {
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
+    }
     assert(foldedValue != null);
     return DART_CONSTANT_SYSTEM.createBool(foldedValue);
   }
 
+  bool foldInts(BigInt left, BigInt right);
   bool foldNums(num left, num right);
 }
 
 class LessOperation extends RelationalNumOperation {
   final String name = '<';
   const LessOperation();
+  bool foldInts(BigInt left, BigInt right) => left < right;
   bool foldNums(num left, num right) => left < right;
   apply(left, right) => left < right;
 }
@@ -288,6 +300,7 @@ class LessOperation extends RelationalNumOperation {
 class LessEqualOperation extends RelationalNumOperation {
   final String name = '<=';
   const LessEqualOperation();
+  bool foldInts(BigInt left, BigInt right) => left <= right;
   bool foldNums(num left, num right) => left <= right;
   apply(left, right) => left <= right;
 }
@@ -295,6 +308,7 @@ class LessEqualOperation extends RelationalNumOperation {
 class GreaterOperation extends RelationalNumOperation {
   final String name = '>';
   const GreaterOperation();
+  bool foldInts(BigInt left, BigInt right) => left > right;
   bool foldNums(num left, num right) => left > right;
   apply(left, right) => left > right;
 }
@@ -302,6 +316,7 @@ class GreaterOperation extends RelationalNumOperation {
 class GreaterEqualOperation extends RelationalNumOperation {
   final String name = '>=';
   const GreaterEqualOperation();
+  bool foldInts(BigInt left, BigInt right) => left >= right;
   bool foldNums(num left, num right) => left >= right;
   apply(left, right) => left >= right;
 }
@@ -310,19 +325,31 @@ class EqualsOperation implements BinaryOperation {
   final String name = '==';
   const EqualsOperation();
   ConstantValue fold(ConstantValue left, ConstantValue right) {
-    if (left.isNum && right.isNum) {
-      // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
-      // and 1 == 1.0.
-      NumConstantValue leftNum = left;
-      NumConstantValue rightNum = right;
-      bool result = leftNum.primitiveValue == rightNum.primitiveValue;
+    // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
+    // and 1 == 1.0.
+    if (left.isInt && right.isInt) {
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      bool result = leftInt.intValue == rightInt.intValue;
       return DART_CONSTANT_SYSTEM.createBool(result);
     }
+
+    if (left.isNum && right.isNum) {
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      bool result = leftNum.doubleValue == rightNum.doubleValue;
+      return DART_CONSTANT_SYSTEM.createBool(result);
+    }
+
     if (left.isConstructedObject) {
+      if (right.isNull) {
+        return DART_CONSTANT_SYSTEM.createBool(false);
+      }
       // Unless we know that the user-defined object does not implement the
       // equality operator we cannot fold here.
       return null;
     }
+
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
 
@@ -367,11 +394,11 @@ class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
     if (left.isString && right.isInt) {
       StringConstantValue stringConstant = left;
       IntConstantValue indexConstant = right;
-      String string = stringConstant.primitiveValue;
-      int index = indexConstant.primitiveValue;
+      String string = stringConstant.stringValue;
+      int index = indexConstant.intValue.toInt();
       if (index < 0 || index >= string.length) return null;
       int value = string.codeUnitAt(index);
-      return DART_CONSTANT_SYSTEM.createInt(value);
+      return DART_CONSTANT_SYSTEM.createIntFromInt(value);
     }
     return null;
   }
@@ -418,11 +445,12 @@ class DartConstantSystem extends ConstantSystem {
   final truncatingDivide = const TruncatingDivideOperation();
   final codeUnitAt = const CodeUnitAtOperation();
   final round = const UnfoldedUnaryOperation('round');
+  final abs = const UnfoldedUnaryOperation('abs');
 
   const DartConstantSystem();
 
   @override
-  IntConstantValue createInt(int i) => new IntConstantValue(i);
+  IntConstantValue createInt(BigInt i) => new IntConstantValue(i);
 
   @override
   DoubleConstantValue createDouble(double d) => new DoubleConstantValue(d);

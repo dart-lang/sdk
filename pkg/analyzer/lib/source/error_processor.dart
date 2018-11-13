@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.source.error_processor;
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -28,7 +26,7 @@ class ErrorConfig {
   ///     new ErrorConfig({'missing_return' : 'error'});
   /// will create a processor config that turns `missing_return` hints into
   /// errors.
-  ErrorConfig(Object codeMap) {
+  ErrorConfig(YamlNode codeMap) {
     _processMap(codeMap);
   }
 
@@ -45,18 +43,11 @@ class ErrorConfig {
     }
   }
 
-  void _processMap(Object codes) {
+  void _processMap(YamlNode codes) {
     if (codes is YamlMap) {
-      // TODO(pq): stop traversing nodes and unify w/ standard map handling
       codes.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
           _process(k.value, v.value);
-        }
-      });
-    } else if (codes is Map) {
-      codes.forEach((k, v) {
-        if (k is String) {
-          _process(k, v);
         }
       });
     }
@@ -106,11 +97,9 @@ class ErrorProcessor {
     // Let the user configure how specific errors are processed.
     List<ErrorProcessor> processors = analysisOptions.errorProcessors;
 
-    // Give strong mode a chance to upgrade it.
-    if (analysisOptions.strongMode) {
-      processors = processors.toList();
-      processors.add(_StrongModeTypeErrorProcessor.instance);
-    }
+    // Add the strong mode processor.
+    processors = processors.toList();
+    processors.add(_StrongModeTypeErrorProcessor.instance);
     return processors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
         orElse: () => null);
   }
@@ -134,11 +123,8 @@ class _StrongModeTypeErrorProcessor implements ErrorProcessor {
   /// Check if this processor applies to the given [error].
   bool appliesTo(AnalysisError error) {
     ErrorCode errorCode = error.errorCode;
-    if (errorCode is StaticTypeWarningCode) {
-      return true;
-    }
     if (errorCode is StaticWarningCode) {
-      return errorCode.isStrongModeError;
+      return true;
     }
     return false;
   }

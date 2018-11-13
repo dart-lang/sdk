@@ -4,13 +4,22 @@
 
 library fasta.type_builder;
 
+import '../fasta_codes.dart' show LocatedMessage;
+
 import 'builder.dart'
     show LibraryBuilder, Scope, TypeDeclarationBuilder, TypeVariableBuilder;
 
 abstract class TypeBuilder {
   const TypeBuilder();
 
-  void resolveIn(Scope scope, int charOffset, Uri fileUri) {}
+  void resolveIn(
+      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {}
+
+  /// See `UnresolvedType.checkType`.
+  void check(int charOffset, Uri fileUri) {}
+
+  /// See `UnresolvedType.normalizeType`.
+  void normalize(int charOffset, Uri fileUri) {}
 
   void bind(TypeDeclarationBuilder builder) {}
 
@@ -25,9 +34,15 @@ abstract class TypeBuilder {
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
 
+  /// Clones the type builder recursively without binding the subterms to
+  /// existing declaration or type variable builders.  All newly built types
+  /// are added to [newTypes], so that they can be added to a proper scope and
+  /// resolved later.
+  TypeBuilder clone(List<TypeBuilder> newTypes);
+
   build(LibraryBuilder library);
 
-  buildInvalidType(int charOffset, Uri fileUri);
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context});
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 }

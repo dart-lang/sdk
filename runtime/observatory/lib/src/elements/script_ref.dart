@@ -29,7 +29,7 @@ class ScriptRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(script != null);
     ScriptRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ScriptRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._script = script;
     return e;
@@ -46,12 +46,12 @@ class ScriptRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(isolate, object: script))
         ..title = script.uri
         ..text = script.uri.split('/').last

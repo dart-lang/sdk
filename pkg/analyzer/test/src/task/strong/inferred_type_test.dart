@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.strong.inferred_type_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../utils.dart';
+import '../../summary/element_text.dart';
 import 'strong_test_helper.dart';
 
 void main() {
@@ -43,9 +41,7 @@ abstract class InferredTypeMixin {
   Future<CompilationUnit> checkFile(String content,
       {bool declarationCasts: true,
       bool implicitCasts: true,
-      bool implicitDynamic: true,
-      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
-      bool superMixins: false});
+      bool implicitDynamic: true});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved
@@ -57,8 +53,8 @@ abstract class InferredTypeMixin {
     var mainUnit = await checkFileElement('''
 import 'dart:async';
 Future<int> futureInt = null;
-var f = () => futureInt;
-var g = () async => futureInt;
+var f = /*info:INFERRED_TYPE_CLOSURE*/() => futureInt;
+var g = /*info:INFERRED_TYPE_CLOSURE*/() async => futureInt;
 ''');
     var futureInt = mainUnit.topLevelVariables[0];
     expect(futureInt.name, 'futureInt');
@@ -72,7 +68,9 @@ var g = () async => futureInt;
   }
 
   test_asyncClosureReturnType_future() async {
-    var mainUnit = await checkFileElement('var f = () async => 0;');
+    var mainUnit = await checkFileElement('''
+var f = /*info:INFERRED_TYPE_CLOSURE*/() async => 0;
+''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.name, 'f');
     expect(f.type.toString(), '() → Future<int>');
@@ -82,8 +80,8 @@ var g = () async => futureInt;
     var mainUnit = await checkFileElement('''
 import 'dart:async';
 FutureOr<int> futureOrInt = null;
-var f = () => futureOrInt;
-var g = () async => futureOrInt;
+var f = /*info:INFERRED_TYPE_CLOSURE*/() => futureOrInt;
+var g = /*info:INFERRED_TYPE_CLOSURE*/() async => futureOrInt;
 ''');
     var futureOrInt = mainUnit.topLevelVariables[0];
     expect(futureOrInt.name, 'futureOrInt');
@@ -265,7 +263,7 @@ main() {
   var f = /*info:INFERRED_TYPE_CLOSURE*/(Object x) { return null; };
   String y = f(42);
 
-  f = /*error:INVALID_CAST_FUNCTION_EXPR, info:INFERRED_TYPE_CLOSURE*/(x) => 'hello';
+  f = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*error:INVALID_CAST_LITERAL*/'hello';
 
   foo(/*info:INFERRED_TYPE_CLOSURE,
         info:INFERRED_TYPE_CLOSURE*/(x) { return null; });
@@ -377,18 +375,17 @@ var v = null;
     // When a closure's return type is inferred from the expression `null`, the
     // inferred type is `dynamic`.
     var mainUnit = await checkFileElement('''
-var v = () => null;
+var v = /*info:INFERRED_TYPE_CLOSURE*/() => null;
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), '() → dynamic');
-    expect(v.initializer.type.toString(), '() → () → dynamic');
+    expect(v.type.toString(), '() → Null');
+    expect(v.initializer.type.toString(), '() → () → Null');
   }
 
-  @failingTest
   test_circularReference_viaClosures() async {
     var mainUnit = await checkFileElement('''
-var x = () => /*error:TOP_LEVEL_CYCLE*/y;
-var y = () => /*error:TOP_LEVEL_CYCLE*/x;
+var x = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/y;
+var y = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/x;
 ''');
     var x = mainUnit.topLevelVariables[0];
     var y = mainUnit.topLevelVariables[1];
@@ -398,11 +395,10 @@ var y = () => /*error:TOP_LEVEL_CYCLE*/x;
     expect(y.type.toString(), 'dynamic');
   }
 
-  @failingTest
   test_circularReference_viaClosures_initializerTypes() async {
     var mainUnit = await checkFileElement('''
-var x = () => /*error:TOP_LEVEL_CYCLE*/y;
-var y = () => /*error:TOP_LEVEL_CYCLE*/x;
+var x = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/y;
+var y = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/x;
 ''');
     var x = mainUnit.topLevelVariables[0];
     var y = mainUnit.topLevelVariables[1];
@@ -430,12 +426,12 @@ class B {
 }
 
 class C1 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -467,7 +463,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -485,7 +481,8 @@ void main() {
   }
 
   test_constructors_inferenceFBounded() async {
-    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER';
+    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER,'
+        'error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS';
 //    if (hasExtraTaskModelPass) errors = '$errors,$errors';
     var unit = await checkFile('''
 class Clonable<T> {}
@@ -549,7 +546,8 @@ class NotA {}
 NotA myF() => null;
 
 main() {
-  var x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/C(myF);
+  var x = /*info:INFERRED_TYPE_ALLOCATION*/new
+      /*error:COULD_NOT_INFER,error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/C(myF);
 }
 ''');
     var x = findLocalVariable(unit, 'x');
@@ -750,7 +748,7 @@ class A {
 }
 
 class B implements A {
-  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {
@@ -917,7 +915,7 @@ class Foo {
 }
 void f([List<int> l = /*info:INFERRED_TYPE_LITERAL*/const [1]]) {}
 // We do this inference in an early task but don't preserve the infos.
-Function2<List<int>, String> g = /*pass should be info:INFERRED_TYPE_CLOSURE*/([llll = /*info:INFERRED_TYPE_LITERAL*/const [1]]) => "hello";
+Function2<List<int>, String> g = /*pass should be info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/([llll = /*info:INFERRED_TYPE_LITERAL*/const [1]]) => "hello";
 ''');
   }
 
@@ -1013,29 +1011,29 @@ typedef T Function2<S, T>(S x);
 void main () {
   {
     Function2<int, String> l0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => null;
-    Function2<int, String> l1 = (int x) => "hello";
-    Function2<int, String> l2 = /*error:INVALID_ASSIGNMENT*/(String x) => "hello";
-    Function2<int, String> l3 = /*error:INVALID_ASSIGNMENT*/(int x) => 3;
+    Function2<int, String> l1 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => "hello";
+    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(String x) => "hello";
+    Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
     Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(int x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
   }
   {
-    Function2<int, String> l0 = /*info:INFERRED_TYPE_CLOSURE*/(x) => null;
+    Function2<int, String> l0 = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => null;
     Function2<int, String> l1 = /*info:INFERRED_TYPE_CLOSURE*/(x) => "hello";
-    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => 3;
+    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
     Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
     Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;};
   }
   {
     Function2<int, List<String>> l0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => null;
-    Function2<int, List<String>> l1 = (int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    Function2<int, List<String>> l2 = /*error:INVALID_ASSIGNMENT*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    Function2<int, List<String>> l3 = (int x) => /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
+    Function2<int, List<String>> l1 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+    Function2<int, List<String>> l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+    Function2<int, List<String>> l3 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
     Function2<int, List<String>> l4 = /*info:INFERRED_TYPE_CLOSURE*/(int x) {return /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];};
   }
   {
     Function2<int, int> l0 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x;
     Function2<int, int> l1 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x+1;
-    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => x;
+    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
     Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/x./*error:UNDEFINED_METHOD*/substring(3);
     Function2<String, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x.substring(3);
   }
@@ -1049,12 +1047,12 @@ void main () {
   {
     T f<T>(T x) => null;
     var v1 = f;
-    v1 = /*info:INFERRED_TYPE_CLOSURE*/<S>(x) => x;
+    v1 = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<S>(x) => x;
   }
   {
     List<T> f<T>(T x) => null;
     var v2 = f;
-    v2 = /*info:INFERRED_TYPE_CLOSURE*/<S>(x) => /*info:INFERRED_TYPE_LITERAL*/[x];
+    v2 = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<S>(x) => /*info:INFERRED_TYPE_LITERAL*/[x];
     Iterable<int> r = v2(42);
     Iterable<String> s = v2('hello');
     Iterable<List<int>> t = v2(<int>[]);
@@ -1097,6 +1095,9 @@ class F3<T> {
 class F4<T> {
   F4({Iterable<Iterable<T>> a}) {}
 }
+class F5<T> {
+  F5(Iterable<Iterable<Iterable<T>>> a) {}
+}
 void main() {
   new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[]);
   new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[3]);
@@ -1137,6 +1138,9 @@ void main() {
   /*info:INFERRED_TYPE_ALLOCATION*/new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"]]);
   /*info:INFERRED_TYPE_ALLOCATION*/new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"],
                                            /*info:INFERRED_TYPE_LITERAL*/[3]]);
+  
+  /*info:INFERRED_TYPE_ALLOCATION*/new F5(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[
+                                           /*info:INFERRED_TYPE_LITERAL*/[3]]]);
 }
 ''');
   }
@@ -1148,17 +1152,17 @@ void main () {
     String f<S>(int x) => null;
     var v = f;
     v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) => null;
-    v = <T>(int x) => "hello";
-    v = /*error:INVALID_ASSIGNMENT*/<T>(String x) => "hello";
-    v = /*error:INVALID_ASSIGNMENT*/<T>(int x) => 3;
+    v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) => "hello";
+    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/<T>(String x) => "hello";
+    v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
     v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
   }
   {
     String f<S>(int x) => null;
     var v = f;
     v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => null;
-    v = /*info:INFERRED_TYPE_CLOSURE*/<T>(x) => "hello";
-    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/<T>(x) => 3;
+    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => "hello";
+    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
     v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
     v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;};
   }
@@ -1166,9 +1170,9 @@ void main () {
     List<String> f<S>(int x) => null;
     var v = f;
     v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) => null;
-    v = <T>(int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    v = /*error:INVALID_ASSIGNMENT*/<T>(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    v = <T>(int x) => /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
+    v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/<T>(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+    v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) => /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
     v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) {return /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];};
   }
   {
@@ -1176,13 +1180,13 @@ void main () {
     String int2String<T>(int x) => null;
     String string2String<T>(String x) => null;
     var x = int2int;
-    x = /*info:INFERRED_TYPE_CLOSURE*/<T>(x) => x;
-    x = /*info:INFERRED_TYPE_CLOSURE*/<T>(x) => x+1;
+    x = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => x;
+    x = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => x+1;
     var y = int2String;
-    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/<T>(x) => x;
+    y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
     y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/x./*error:UNDEFINED_METHOD*/substring(3);
     var z = string2String;
-    z = /*info:INFERRED_TYPE_CLOSURE*/<T>(x) => x.substring(3);
+    z = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => x.substring(3);
   }
 }
 ''');
@@ -1549,23 +1553,23 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 void main() {
   $declared f;
-  $downwards<int> t1 = f.then((_) async => await new $upwards<int>.value(3));
+  $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async => await new $upwards<int>.value(1));
   $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
-     return await new $upwards<int>.value(3);});
-  $downwards<int> t3 = f.then((_) async => 3);
+     return await new $upwards<int>.value(2);});
+  $downwards<int> t3 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async => 3);
   $downwards<int> t4 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
-    return 3;});
-  $downwards<int> t5 = f.then((_) => new $upwards<int>.value(3));
-  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) {return new $upwards<int>.value(3);});
-  $downwards<int> t7 = f.then((_) async => new $upwards<int>.value(3));
+    return 4;});
+  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) => new $upwards<int>.value(5));
+  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) {return new $upwards<int>.value(6);});
+  $downwards<int> t7 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async => new $upwards<int>.value(7));
   $downwards<int> t8 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
-    return new $upwards<int>.value(3);});
+    return new $upwards<int>.value(8);});
 }
 ''';
 
@@ -1589,18 +1593,18 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 void main() {
   $declared<bool> f;
-  $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+  $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/
       (x) async => x ? 2 : await new $upwards<int>.value(3));
   $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
     return /*info:DOWN_CAST_COMPOSITE*/await x ? 2 : new $upwards<int>.value(3);});
-  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
-      (x) => x ? 2 : new $upwards<int>.value(3));
+  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+      (x) => /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
       (x) {return /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
 }
@@ -1626,9 +1630,9 @@ import 'dart:async';
 main() {
   Future<int> f;
   Future<List<int>> b = /*info:ASSIGNMENT_CAST should be pass*/f
-      .then(/*info:INFERRED_TYPE_CLOSURE*/(x) => [])
+      .then(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => [])
       .whenComplete(/*info:INFERRED_TYPE_CLOSURE*/() {});
-  b = f.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+  b = f.then(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
 }
   ''');
   }
@@ -1638,14 +1642,13 @@ main() {
 import "dart:async";
 m1() {
   Future<int> f;
-  var x = f.then<Future<List<int>>>(/*info:INFERRED_TYPE_CLOSURE,
-                                      error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/
-                                    (x) => []);
-  Future<List<int>> y = x;
+  var x = f.then<Future<List<int>>>(/*info:INFERRED_TYPE_CLOSURE*/
+                                    (x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/[]);
+  Future<List<int>> y = /*error:INVALID_ASSIGNMENT*/x;
 }
 m2() {
   Future<int> f;
-  var x = f.then<List<int>>(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+  var x = f.then<List<int>>(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
   Future<List<int>> y = x;
 }
   ''');
@@ -1658,18 +1661,18 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 void main() {
-  var f = foo().then((_) => 2.3);
+  var f = foo().then(/*info:INFERRED_TYPE_CLOSURE*/(_) => 2.3);
   $downwards<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
 
   // The unnecessary cast is to illustrate that we inferred <double> for
   // the generic type args, even though we had a return type context.
   $downwards<num> f3 = /*info:UNNECESSARY_CAST*/foo().then(
-      (_) => 2.3) as $upwards<double>;
+      /*info:INFERRED_TYPE_CLOSURE*/(_) => 2.3) as $upwards<double>;
 }
 $declared foo() => new $declared<int>.value(1);
     ''';
@@ -1688,7 +1691,7 @@ import 'dart:async';
 main() {
   Future<int> base;
   var f = base.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { return x == 0; });
-  var g = base.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => x == 0);
+  var g = base.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) => x == 0);
   Future<bool> b = f;
   b = g;
 }
@@ -1706,7 +1709,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1737,17 +1740,17 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value([x]) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 $declared f;
 // Instantiates Future<int>
-$downwards<int> t1 = f.then((_) =>
+$downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) =>
    /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value($expectedError'hi'));
 
 // Instantiates List<int>
-$downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
+$downwards<List<int>> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
 $downwards<List<int>> g2() async { return /*info:INFERRED_TYPE_LITERAL*/[3]; }
 $downwards<List<int>> g3() async {
   return /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(
@@ -1855,18 +1858,6 @@ class Foo<T extends Pattern> {
   U method<U extends T>(U u) => u;
 }
 main() {
-/*!!!
-  String s;
-  var a = new Foo().method<String>("str");
-  s = a;
-  new Foo();
-
-  var b = new Foo<String>().method("str");
-  s = b;
-  var c = new Foo().method("str");
-  s = c;
-  */
-
   new Foo<String>()./*error:COULD_NOT_INFER*/method(42);
 }
 ''');
@@ -1892,11 +1883,12 @@ main() {
   printInt(/*info:DOWN_CAST_IMPLICIT*/myMax(1, 2));
   printInt(myMax(1, 2) as int);
 
-  // Mixing int and double means return type is num.
+  // An int context means doubles are rejected
   printInt(max(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0));
   printInt(min(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0));
-  printDouble(max(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, 2.0));
-  printDouble(min(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, 2.0));
+  // A double context means ints are accepted as doubles
+  printDouble(max(1, 2.0));
+  printDouble(min(1, 2.0));
 
   // Types other than int and double are not accepted.
   printInt(
@@ -1913,7 +1905,7 @@ class C {
 T m<T>(T x) => x;
 }
 class D extends C {
-/*error:INVALID_METHOD_OVERRIDE*/m(x) => x;
+/*error:INVALID_OVERRIDE*/m(x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/m<int>(42);
@@ -1940,13 +1932,13 @@ main() {
 void main() {
   List<int> o;
   int y = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
-  var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
   y = /*info:DYNAMIC_CAST*/z;
 }
 void functionExpressionInvocation() {
   List<int> o;
   int y = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
-  var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
   y = /*info:DYNAMIC_CAST*/z;
 }
 ''');
@@ -1960,8 +1952,8 @@ class C {
   dynamic g(int x) => x;
 }
 class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/T m<T>(T x) => x;
-  /*error:INVALID_METHOD_OVERRIDE*/T g<T>(T x) => x;
+  /*error:INVALID_OVERRIDE*/T m<T>(T x) => x;
+  /*error:INVALID_OVERRIDE*/T g<T>(T x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
@@ -1974,7 +1966,7 @@ main() {
     await checkFileElement(r'''
 main() {
   List<String> y;
-  Iterable<String> x = y.map(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(String z) => 1.0);
+  Iterable<String> x = y.map(/*info:INFERRED_TYPE_CLOSURE*/(String z) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/1.0);
 }
   ''');
   }
@@ -1982,7 +1974,7 @@ main() {
   test_genericMethods_inferGenericFunctionParameterType() async {
     var mainUnit = await checkFileElement('''
 class C<T> extends D<T> {
-  f<U>(x) {}
+  f<U>(x) { return null; }
 }
 class D<T> {
   F<U> f<U>(U u) => null;
@@ -2010,7 +2002,7 @@ typedef List<V> G<V>();
   test_genericMethods_inferGenericFunctionReturnType() async {
     var mainUnit = await checkFileElement('''
 class C<T> extends D<T> {
-  f<U>(x) {}
+  f<U>(x) { return null; }
 }
 class D<T> {
   F<U> f<U>(U u) => null;
@@ -2149,18 +2141,18 @@ main() {
     await checkFileElement('''
 import 'dart:async';
 
-Future<int> make(int x) => (/*info:INFERRED_TYPE_ALLOCATION*/new Future(() => x));
+Future<int> make(int x) => (/*info:INFERRED_TYPE_ALLOCATION*/new Future(/*info:INFERRED_TYPE_CLOSURE*/() => x));
 
 main() {
   Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
   Future<List<int>> results = Future.wait(list);
-  Future<String> results2 = results.then((List<int> list)
+  Future<String> results2 = results.then(/*info:INFERRED_TYPE_CLOSURE*/(List<int> list)
     => list.fold('', /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/x /*error:UNDEFINED_OPERATOR*/+ y.toString()));
 
-  Future<String> results3 = results.then((List<int> list)
-    => list.fold('', /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(String x, y) => x + y.toString()));
+  Future<String> results3 = results.then(/*info:INFERRED_TYPE_CLOSURE*/(List<int> list)
+    => list.fold('', /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE, error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(String x, y) => x + y.toString()));
 
-  Future<String> results4 = results.then((List<int> list)
+  Future<String> results4 = results.then(/*info:INFERRED_TYPE_CLOSURE*/(List<int> list)
     => list.fold<String>('', /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y.toString()));
 }
 ''');
@@ -2178,7 +2170,7 @@ class Frame {
 main() {
   List<Trace> traces = /*info:INFERRED_TYPE_LITERAL*/[];
   var longest = traces.map(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(trace) {
-    return trace.frames.map(/*info:INFERRED_TYPE_CLOSURE*/(frame) => frame.location.length)
+    return trace.frames.map(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(frame) => frame.location.length)
         .fold(0, math.max);
   }).fold(0, math.max);
 }
@@ -2193,7 +2185,7 @@ typedef List<int> G(double x);
 T generic<T>(a(T _), b(T _)) => null;
 
 main() {
-  var v = generic((F f) => null, (G g) => null);
+  var v = generic(/*info:INFERRED_TYPE_CLOSURE*/(F f) => null, /*info:INFERRED_TYPE_CLOSURE*/(G g) => null);
 }
 ''');
     var v = findLocalVariable(unit, 'v');
@@ -2207,7 +2199,7 @@ typedef List<int> G(double x);
 
 T generic<T>(a(T _), b(T _)) => null;
 
-var v = generic((F f) => null, (G g) => null);
+var v = generic(/*info:INFERRED_TYPE_CLOSURE*/(F f) => null, /*info:INFERRED_TYPE_CLOSURE*/(G g) => null);
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), '(num) → List<int>');
@@ -2428,7 +2420,7 @@ class B {
 class C extends B {
   f() {}
 }
-var x = new C()./*info:USE_OF_VOID_RESULT*/f();
+var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C()./*error:USE_OF_VOID_RESULT*/f();
 ''');
   }
 
@@ -2761,8 +2753,8 @@ main() {
     // Regression test for https://github.com/dart-lang/sdk/issues/26414
     var unit = await checkFile(r'''
 main() {
-  f0() => 42;
-  f1() async => 42;
+  f0 /*info:INFERRED_TYPE_CLOSURE*/() => 42;
+  f1 /*info:INFERRED_TYPE_CLOSURE*/() async => 42;
 
   f2 /*info:INFERRED_TYPE_CLOSURE*/() { return 42; }
   f3 /*info:INFERRED_TYPE_CLOSURE*/() async { return 42; }
@@ -2771,9 +2763,9 @@ main() {
 
   num f6() => 42;
 
-  f7() => f7();
-  f8() => /*error:REFERENCED_BEFORE_DECLARATION*/f9();
-  f9() => f5();
+  f7 /*info:INFERRED_TYPE_CLOSURE*/() => f7();
+  f8 /*info:INFERRED_TYPE_CLOSURE*/() => /*error:REFERENCED_BEFORE_DECLARATION*/f9();
+  f9 /*info:INFERRED_TYPE_CLOSURE*/() => f5();
 }
 ''');
     expect(findLocalFunction(unit, 'f0').type.toString(), '() → int');
@@ -3068,7 +3060,8 @@ final x = <String, F<int>>{};
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
     var mainUnit = await checkFileElement('''
 class C {
-  static final f = (bool b) => (int i) => /*info:INFERRED_TYPE_LITERAL*/{i: b};
+  static final f = /*info:INFERRED_TYPE_CLOSURE*/(bool b) =>
+      /*info:INFERRED_TYPE_CLOSURE*/(int i) => /*info:INFERRED_TYPE_LITERAL*/{i: b};
 }
 ''');
     var f = mainUnit.getType('C').fields[0];
@@ -3078,7 +3071,7 @@ class C {
   test_inferredType_viaClosure_typeDependsOnArgs() async {
     var mainUnit = await checkFileElement('''
 class C {
-  static final f = (bool b) => b;
+  static final f = /*info:INFERRED_TYPE_CLOSURE*/(bool b) => b;
 }
 ''');
     var f = mainUnit.getType('C').fields[0];
@@ -3088,7 +3081,7 @@ class C {
   test_inferredType_viaClosure_typeIndependentOfArgs_field() async {
     var mainUnit = await checkFileElement('''
 class C {
-  static final f = (bool b) => 1;
+  static final f = /*info:INFERRED_TYPE_CLOSURE*/(bool b) => 1;
 }
 ''');
     var f = mainUnit.getType('C').fields[0];
@@ -3096,7 +3089,9 @@ class C {
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_topLevel() async {
-    var mainUnit = await checkFileElement('final f = (bool b) => 1;');
+    var mainUnit = await checkFileElement('''
+final f = /*info:INFERRED_TYPE_CLOSURE*/(bool b) => 1;
+''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '(bool) → int');
   }
@@ -3368,7 +3363,7 @@ class B<E> extends A<E> implements M {
   const B();
   int get y => 0;
 
-  m(a, f(v, E e)) {}
+  m(a, f(v, E e)) { return null; }
 }
 
 foo () {
@@ -3385,7 +3380,7 @@ class A<T> {
 }
 
 class B implements A<int> {
-  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {
@@ -3422,7 +3417,7 @@ class B<E> extends A<E> implements M {
   const B();
   int get y => 0;
 
-  m(a, f(v, int e)) {}
+  m(a, f(v, int e)) { return null; }
 }
 
 foo () {
@@ -3512,65 +3507,19 @@ test() {
   test_inferVariableVoid() async {
     var mainUnit = await checkFileElement('''
 void f() {}
-var x = /*info:USE_OF_VOID_RESULT*/f();
+var x = f();
   ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.name, 'x');
     expect(x.type.toString(), 'void');
   }
 
-  test_instantiateToBounds_generic2_hasBound_definedAfter() async {
-    var unit = await checkFileElement(r'''
-class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
-class A<T extends int> {}
-B v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
-  }
-
-  test_instantiateToBounds_generic2_hasBound_definedBefore() async {
-    var unit = await checkFileElement(r'''
-class A<T extends int> {}
-class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
-B v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
-  }
-
-  test_instantiateToBounds_generic2_noBound() async {
-    var unit = await checkFileElement(r'''
-class A<T> {}
-class B<T extends A> {}
-B v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
-  }
-
-  test_instantiateToBounds_generic_hasBound_definedAfter() async {
-    var unit = await checkFileElement(r'''
-A v = null;
-class A<T extends int> {}
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
-  }
-
-  test_instantiateToBounds_generic_hasBound_definedBefore() async {
-    var unit = await checkFileElement(r'''
-class A<T extends int> {}
-A v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
-  }
-
   test_instantiateToBounds_invokeConstructor_noBound() async {
-    var unit = await checkFile('''
+    var unit = await checkFileElement('''
 class C<T> {}
-main() {
-  var v = new C();
-}
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C();
 ''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'C<dynamic>');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<dynamic>');
   }
 
   test_instantiateToBounds_invokeConstructor_typeArgsExact() async {
@@ -3587,7 +3536,127 @@ class A {}
 class B<T extends A> {}
 B v = null;
 ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A>');
+    checkElementText(unit.library, r'''
+class A {
+}
+class B<T extends A> {
+}
+B<A> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_error1() async {
+    var unit = await checkFileElement(r'''
+class A<T1 extends int, T2 extends T1> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+notSimplyBounded class A<T1 extends int, T2 extends T1> {
+}
+notSimplyBounded class B<T extends A<int, int>> {
+}
+B<A<int, int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_error2() async {
+    var unit = await checkFileElement(r'''
+class A<T1 extends T2, T2 extends int> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+notSimplyBounded class A<T1 extends T2, T2 extends int> {
+}
+notSimplyBounded class B<T extends A<int, int>> {
+}
+B<A<int, int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_error3() async {
+    var unit = await checkFileElement(r'''
+class A<T1 extends int, T2 extends List<T1>> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+notSimplyBounded class A<T1 extends int, T2 extends List<T1>> {
+}
+notSimplyBounded class B<T extends A<int, List<int>>> {
+}
+B<A<int, List<int>>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
+    var unit = await checkFileElement(r'''
+class B<T extends A> {}
+class A<T extends int> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class B<T extends A<int>> {
+}
+class A<T extends int> {
+}
+B<A<int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_hasBound_definedBefore() async {
+    var unit = await checkFileElement(r'''
+class A<T extends int> {}
+class B<T extends A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T extends int> {
+}
+class B<T extends A<int>> {
+}
+B<A<int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_inBound_hasBound_definedAfter() async {
+    var unit = await checkFileElement(r'''
+A v = null;
+class A<T extends int> {}
+''');
+    checkElementText(unit.library, r'''
+class A<T extends int> {
+}
+A<int> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_inBound_hasBound_definedBefore() async {
+    var unit = await checkFileElement(r'''
+class A<T extends int> {}
+A v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T extends int> {
+}
+A<int> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_noBound() async {
+    var unit = await checkFileElement(r'''
+class A<T> {}
+class B<T extends A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T> {
+}
+class B<T extends A<dynamic>> {
+}
+B<A<dynamic>> v;
+''');
   }
 
   test_lambdaDoesNotHavePropagatedTypeHint() async {
@@ -3596,7 +3665,7 @@ List<String> getListOfString() => const <String>[];
 
 void foo() {
   List myList = getListOfString();
-  myList.map((type) => 42);
+  myList.map(/*info:INFERRED_TYPE_CLOSURE*/(type) => 42);
 }
 
 void bar() {
@@ -3606,7 +3675,7 @@ void bar() {
   } catch (_) {
     return;
   }
-  /*info:DYNAMIC_INVOKE*/list.map((value) => '$value');
+  /*info:DYNAMIC_INVOKE*/list.map(/*info:INFERRED_TYPE_CLOSURE*/(value) => '$value');
 }
   ''');
   }
@@ -3823,10 +3892,10 @@ var h = null;
 void foo(int f(Object _)) {}
 
 main() {
-  var f = (Object x) => null;
-  String y = /*info:DYNAMIC_CAST*/f(42);
+  var f = /*info:INFERRED_TYPE_CLOSURE*/(Object x) => null;
+  String y = f(42);
 
-  f = /*info:INFERRED_TYPE_CLOSURE*/(x) => 'hello';
+  f = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*error:INVALID_CAST_LITERAL*/'hello';
 
   var g = null;
   g = 'hello';
@@ -3835,8 +3904,8 @@ main() {
   h = 'hello';
   (/*info:DYNAMIC_INVOKE*/h.foo());
 
-  foo(/*info:INFERRED_TYPE_CLOSURE*/(x) => null);
-  foo(/*info:INFERRED_TYPE_CLOSURE*/(x) => throw "not implemented");
+  foo(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => null);
+  foo(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => throw "not implemented");
 }
 ''');
   }
@@ -3994,7 +4063,7 @@ class C {
     // Regression test for https://github.com/dart-lang/sdk/issues/26962
     var unit = await checkFile('''
 main() {
-  var v = ((x) => 1.0)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+  var v = (/*info:INFERRED_TYPE_CLOSURE*/(x) => 1.0)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 }
 ''');
     var v = findLocalVariable(unit, 'v');
@@ -4065,9 +4134,8 @@ var v = f<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'List<dynamic>');
   }
 
-  @failingTest
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
-    // Note: (f/*<dynamic>*/) is nort properly resulting in an instantiated
+    // Note: (f<dynamic>) is not properly resulting in an instantiated
     // function type due to dartbug.com/25824.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
@@ -4098,13 +4166,12 @@ var v = f<int>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'List<int>');
   }
 
-  @failingTest
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
-    // TODO(paulberry): for some reason (f/*<int>) is nort properly resulting
+    // TODO(paulberry): for some reason (f<int>) is not properly resulting
     // in an instantiated function type.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
-var v = (f/int>)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+var v = (f<int>)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
@@ -4293,7 +4360,7 @@ var v = new C().f(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'double');
   }
 
-  test_voidReturnTypeSubtypesDynamic() async {
+  test_voidReturnTypeEquivalentToDynamic() async {
     var unit = await checkFileElement(r'''
 T run<T>(T f()) {
   print("running");
@@ -4305,16 +4372,16 @@ T run<T>(T f()) {
 
 void printRunning() { print("running"); }
 var x = run<dynamic>(printRunning);
-var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
+var y = run(printRunning);
 
 main() {
   void printRunning() { print("running"); }
   var x = run<dynamic>(printRunning);
-  var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
+  var y = run(printRunning);
   x = 123;
   x = 'hi';
-  y = /*error:INVALID_ASSIGNMENT*/123;
-  y = /*error:INVALID_ASSIGNMENT*/'hi';
+  y = 123;
+  y = 'hi';
 }
   ''');
 
@@ -4333,12 +4400,66 @@ class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
   @override
   Future<CompilationUnitElement> checkFileElement(String content) async {
     CompilationUnit unit = await checkFile(content);
-    return (unit).element;
+    return unit.declaredElement;
+  }
+
+  @override
+  @failingTest
+  test_circularReference_viaClosures() {
+    return super.test_circularReference_viaClosures();
+  }
+
+  @override
+  @failingTest
+  test_circularReference_viaClosures_initializerTypes() {
+    return super.test_circularReference_viaClosures_initializerTypes();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error1() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error1();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error2() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error2();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error3() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error3();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() {
+    return super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
+  }
+
+  @override
+  @failingTest
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
   }
 }
 
 @reflectiveTest
-class InferredTypeTest_Driver extends InferredTypeTest {
+class InferredTypeTest_Driver extends AbstractStrongTest
+    with InferredTypeMixin {
   @override
   bool get enableNewAnalysisDriver => true;
 
@@ -4346,30 +4467,20 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   bool get hasExtraTaskModelPass => false;
 
   @override
-  test_circularReference_viaClosures() async {
-    await super.test_circularReference_viaClosures();
-  }
+  bool get mayCheckTypesOfLocals => true;
 
   @override
-  test_circularReference_viaClosures_initializerTypes() async {
-    await super.test_circularReference_viaClosures_initializerTypes();
-  }
-
-  @failingTest
-  @override
-  test_genericMethods_usesGreatestLowerBound_topLevel() async {
-    await super.test_genericMethods_usesGreatestLowerBound_topLevel();
+  Future<CompilationUnitElement> checkFileElement(String content) async {
+    CompilationUnit unit = await checkFile(content);
+    return unit.declaredElement;
   }
 
   @failingTest
   @override
-  test_listLiteralsCanInferNull_topLevel() =>
-      super.test_listLiteralsCanInferNull_topLevel();
-
-  @failingTest
-  @override
-  test_mapLiteralsCanInferNull_topLevel() =>
-      super.test_mapLiteralsCanInferNull_topLevel();
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
+  }
 
   @failingTest
   @override
@@ -4380,14 +4491,15 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
   }
 
   @failingTest
   @override
-  test_voidReturnTypeSubtypesDynamic() async {
-    await super.test_voidReturnTypeSubtypesDynamic();
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
   }
 }

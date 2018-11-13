@@ -7,25 +7,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 
 String flutterPkgLibPath = '/packages/flutter/lib';
 
-String get flutter_framework_code => '''
-class Widget {}
-class RenderObjectWidget extends Widget {}
-class StatelessWidget extends Widget {}
-abstract class StatefulWidget extends Widget { }
-class SingleChildRenderObjectWidget extends RenderObjectWidget {}
-class Transform extends SingleChildRenderObjectWidget {}
-class ClipRect extends SingleChildRenderObjectWidget { ClipRect.rect(){} }
-class AspectRatio extends SingleChildRenderObjectWidget {}
-class Container extends StatelessWidget { Container({child: null, width: null, height: null}){}}
-class Center extends StatelessWidget { Center({child: null, key: null}){}}
-class DefaultTextStyle extends StatelessWidget { DefaultTextStyle({child: null}){}}
-class Row extends Widget { Row({List<Widget> children: null, key: null}){}}
-class GestureDetector extends SingleChildRenderObjectWidget { GestureDetector({child: null, onTap: null}){}}
-class AppBar extends StatefulWidget implements PreferredSizeWidget { AppBar(title: null, color: null, key: null) }
-class Scaffold extends Widget { Scaffold({body: null, PreferredSizeWidget appBar: null}){}}
-class PreferredSizeWidget implements Widget {}
-''';
-
 /**
  * Add some Flutter libraries and types to the given [provider] and return
  * the `lib` folder.
@@ -37,12 +18,15 @@ Folder configureFlutterPackage(MemoryResourceProvider provider) {
   Folder newFolder(String path) =>
       provider.newFolder(provider.convertPath(path));
 
-  newFile('/flutter/lib/material.dart', r'''
+  newFile('$flutterPkgLibPath/material.dart', r'''
 export 'widgets.dart';
+export 'src/material/app_bar.dart';
+export 'src/material/gesture_detector.dart';
 export 'src/material/icons.dart';
+export 'src/material/scaffold.dart';
 ''');
 
-  newFile('/flutter/lib/widgets.dart', r'''
+  newFile('$flutterPkgLibPath/widgets.dart', r'''
 export 'src/widgets/basic.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
@@ -50,8 +34,27 @@ export 'src/widgets/icon.dart';
 export 'src/widgets/text.dart';
 ''');
 
+  newFile('$flutterPkgLibPath/foundation.dart', r'''
+export 'package:meta/meta.dart' show
+  required;
+
+export 'src/foundation/key.dart';
+''');
+
   void createSrcMaterial() {
-    newFile('/flutter/lib/src/material/icons.dart', r'''
+    newFile('$flutterPkgLibPath/src/material/app_bar.dart', r'''
+import 'package:flutter/widgets.dart';
+
+class AppBar extends StatefulWidget {
+  AppBar({
+    Key key,
+    title,
+    backgroundColor,
+  });
+}
+''');
+
+    newFile('$flutterPkgLibPath/src/material/icons.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class Icons {
@@ -62,15 +65,116 @@ class Icons {
   Icons._();
 }
 ''');
+
+    newFile('$flutterPkgLibPath/src/material/scaffold.dart', r'''
+import 'package:flutter/widgets.dart';
+
+class Scaffold extends StatefulWidget {
+  const Scaffold({
+    Key key,
+    Widget body,
+  });
+}
+''');
+
+    newFile('$flutterPkgLibPath/src/material/gesture_detector.dart', r'''
+import 'package:flutter/widgets.dart';
+
+class GestureDetector extends StatelessWidget {
+  GestureDetector({
+    Key key,
+    Widget child,
+    onTap,
+  });
+}
+''');
+  }
+
+  void createRendering() {
+    newFile('$flutterPkgLibPath/rendering.dart', r'''
+export 'painting.dart';
+export 'src/rendering/flex.dart';
+''');
+    newFile('$flutterPkgLibPath/src/rendering/flex.dart', r'''
+enum CrossAxisAlignment {
+  start,
+  end,
+  center,
+  stretch,
+  baseline,
+}
+''');
+  }
+
+  void createPainting() {
+    newFile('$flutterPkgLibPath/painting.dart', r'''
+export 'src/painting/edge_insets.dart';
+''');
+
+    newFile('$flutterPkgLibPath/src/painting/edge_insets.dart', r'''
+abstract class EdgeInsetsGeometry {
+  const EdgeInsetsGeometry();
+}
+
+class EdgeInsets extends EdgeInsetsGeometry {
+  const EdgeInsets.fromLTRB(this.left, this.top, this.right, this.bottom);
+
+  const EdgeInsets.all(double value)
+      : left = value, top = value, right = value, bottom = value;
+
+  const EdgeInsets.only({
+    this.left: 0.0,
+    this.top: 0.0,
+    this.right: 0.0,
+    this.bottom: 0.0
+  });
+
+  const EdgeInsets.symmetric({ double vertical: 0.0,
+                             double horizontal: 0.0 })
+    : left = horizontal, top = vertical, right = horizontal, bottom = vertical;
+}
+''');
+  }
+
+  void createSrcFoundation() {
+    newFile('$flutterPkgLibPath/src/foundation/key.dart', r'''
+
+abstract class Key {
+  const factory Key(String value) = ValueKey<String>;
+
+  const Key._();
+}
+
+abstract class LocalKey extends Key {
+  const LocalKey() : super._();
+}
+
+
+class ValueKey<T> extends LocalKey {
+  final T value;
+
+  const ValueKey(this.value);
+}
+''');
   }
 
   void createSrcWidgets() {
-    newFile('/flutter/lib/src/widgets/basic.dart', r'''
+    newFile('$flutterPkgLibPath/src/widgets/basic.dart', r'''
+import 'package:flutter/rendering.dart';
+
 import 'framework.dart';
+
+export 'package:flutter/painting.dart';
+export 'package:flutter/rendering.dart';
+
+class Center extends StatelessWidget {
+  const Center({Key key, double heightFactor, Widget child});
+}
 
 class Column extends Flex {
   Column({
     Key key,
+    CrossAxisAlignment crossAxisAlignment: CrossAxisAlignment.center,
     List<Widget> children: const <Widget>[],
   });
 }
@@ -88,9 +192,55 @@ class Flex extends Widget {
     List<Widget> children: const <Widget>[],
   });
 }
+
+class ClipRect extends SingleChildRenderObjectWidget {
+  const ClipRect({Key key, Widget child}) :
+    super(key: key, child: child);
+    
+  /// Does not actually exist in Flutter.
+  const ClipRect.rect({Key key, Widget child}) :
+    super(key: key, child: child);
+}
+
+class Transform extends SingleChildRenderObjectWidget {
+  const Transform({
+    Key key,
+    @required transform,
+    origin,
+    alignment,
+    transformHitTests: true,
+    Widget child,
+  });
+}
+
+class AspectRatio extends SingleChildRenderObjectWidget {
+  const AspectRatio({
+    Key key,
+    @required double aspectRatio,
+    Widget child,
+  });
+}
+
+class Padding extends SingleChildRenderObjectWidget {
+  final EdgeInsetsGeometry padding;
+
+  const Padding({
+    Key key,
+    this.padding,
+    Widget child,
+  });
+}
+
+class Expanded extends StatelessWidget {
+  const Expanded({
+    Key key,
+    int flex: 1,
+    @required Widget child,
+  });
+}
 ''');
 
-    newFile('/flutter/lib/src/widgets/container.dart', r'''
+    newFile('$flutterPkgLibPath/src/widgets/container.dart', r'''
 import 'framework.dart';
 
 class Container extends StatelessWidget {
@@ -108,21 +258,16 @@ class Container extends StatelessWidget {
 }
 ''');
 
-    newFile('/flutter/lib/src/widgets/framework.dart', r'''
+    newFile('$flutterPkgLibPath/src/widgets/framework.dart', r'''
+import 'package:flutter/foundation.dart';
+
+export 'package:flutter/foundation.dart' show required;
+export 'package:flutter/foundation.dart' show Key, LocalKey, ValueKey;
+
 typedef void VoidCallback();
 
 abstract class BuildContext {
   Widget get widget;
-}
-
-abstract class Key {
-  const factory Key(String value) = ValueKey<String>;
-
-  const Key._();
-}
-
-abstract class LocalKey extends Key {
-  const LocalKey() : super._();
 }
 
 abstract class State<T extends StatefulWidget> {
@@ -149,20 +294,24 @@ abstract class StatelessWidget extends Widget {
   Widget build(BuildContext context) => null;
 }
 
-class ValueKey<T> extends LocalKey {
-  final T value;
-
-  const ValueKey(this.value);
-}
-
 class Widget {
   final Key key;
 
   const Widget({this.key});
 }
+
+abstract class SingleChildRenderObjectWidget extends RenderObjectWidget {
+  final Widget child;
+
+  const SingleChildRenderObjectWidget({Key key, this.child}) : super(key: key);
+}
+
+abstract class RenderObjectWidget extends Widget {
+  const RenderObjectWidget({Key key}) : super(key: key);
+}
 ''');
 
-    newFile('/flutter/lib/src/widgets/icon.dart', r'''
+    newFile('$flutterPkgLibPath/src/widgets/icon.dart', r'''
 import 'framework.dart';
 
 class Icon extends StatelessWidget {
@@ -184,8 +333,12 @@ class IconData {
 }
 ''');
 
-    newFile('/flutter/lib/src/widgets/text.dart', r'''
+    newFile('$flutterPkgLibPath/src/widgets/text.dart', r'''
 import 'framework.dart';
+
+class DefaultTextStyle extends StatelessWidget {
+  DefaultTextStyle({Widget child});
+}
 
 class Text extends StatelessWidget {
   final String data;
@@ -198,8 +351,11 @@ class Text extends StatelessWidget {
 ''');
   }
 
-  createSrcMaterial();
+  createSrcFoundation();
+  createPainting();
+  createRendering();
   createSrcWidgets();
+  createSrcMaterial();
 
-  return newFolder('/flutter/lib');
+  return newFolder(flutterPkgLibPath);
 }

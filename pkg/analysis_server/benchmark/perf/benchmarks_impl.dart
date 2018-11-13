@@ -28,7 +28,6 @@ class ColdAnalysisBenchmark extends Benchmark {
   @override
   Future<BenchMarkResult> run({
     bool quick: false,
-    bool previewDart2: false,
     bool verbose: false,
   }) async {
     if (!quick) {
@@ -38,13 +37,13 @@ class ColdAnalysisBenchmark extends Benchmark {
     Stopwatch stopwatch = new Stopwatch()..start();
 
     AnalysisServerMemoryUsageTest test = new AnalysisServerMemoryUsageTest();
-    await test.setUp(previewDart2: previewDart2);
+    await test.setUp();
     await test.subscribeToStatusNotifications();
     await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
     await test.analysisFinished;
 
     stopwatch.stop();
-    int usedBytes = test.getMemoryUsage();
+    int usedBytes = await test.getMemoryUsage();
 
     CompoundBenchMarkResult result = new CompoundBenchMarkResult(id);
     result.add('analysis',
@@ -73,7 +72,6 @@ class AnalysisBenchmark extends Benchmark {
   @override
   Future<BenchMarkResult> run({
     bool quick: false,
-    bool previewDart2: false,
     bool verbose: false,
   }) async {
     Stopwatch stopwatch = new Stopwatch()..start();
@@ -82,13 +80,13 @@ class AnalysisBenchmark extends Benchmark {
     if (verbose) {
       test.debugStdio();
     }
-    await test.setUp(previewDart2: previewDart2);
+    await test.setUp();
     await test.subscribeToStatusNotifications();
     await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
     await test.analysisFinished;
 
     stopwatch.stop();
-    int usedBytes = test.getMemoryUsage();
+    int usedBytes = await test.getMemoryUsage();
 
     CompoundBenchMarkResult result = new CompoundBenchMarkResult(id);
     result.add('warm-analysis',

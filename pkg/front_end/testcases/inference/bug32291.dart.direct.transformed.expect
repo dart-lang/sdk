@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  dynamic l = <dynamic>[<dynamic>["hi", "world"]];
+  dynamic i1 = l.map((dynamic ll) → dynamic => let final dynamic #t1 = ll in #t1.==(null) ? <dynamic>[] : #t1);
+  dynamic i2 = i1.map((core::List<core::String> l) → dynamic => l.length);
+  core::print(i2);
+}

@@ -18,4 +18,5 @@ external bool identical(Object a, Object b);
  *
  * This hash code is compatible with [identical].
  */
+@pragma("vm:entry-point")
 external int identityHashCode(Object object);

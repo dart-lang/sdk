@@ -9,30 +9,29 @@ import 'dart:web_gl';
 
 import 'package:expect/minitest.dart';
 
-final isAngleInstancedArrays = predicate((v) => v is AngleInstancedArrays);
-final isExtBlendMinMax = predicate((v) => v is ExtBlendMinMax);
-final isExtFragDepth = predicate((v) => v is ExtFragDepth);
-final isEXTsRgb = predicate((v) => v is EXTsRgb);
-final isExtShaderTextureLod = predicate((v) => v is ExtShaderTextureLod);
-final isExtTextureFilterAnisotropic =
-    predicate((v) => v is ExtTextureFilterAnisotropic);
-final isOesElementIndexUint = predicate((v) => v is OesElementIndexUint);
-final isOesStandardDerivatives = predicate((v) => v is OesStandardDerivatives);
-final isOesTextureFloat = predicate((v) => v is OesTextureFloat);
-final isOesTextureFloatLinear = predicate((v) => v is OesTextureFloatLinear);
-final isOesTextureHalfFloat = predicate((v) => v is OesTextureHalfFloat);
-final isOesTextureHalfFloatLinear =
-    predicate((v) => v is OesTextureHalfFloatLinear);
-final isOesVertexArrayObject = predicate((v) => v is OesVertexArrayObject);
-final isCompressedTextureAtc = predicate((v) => v is CompressedTextureAtc);
-final isCompressedTextureETC1 = predicate((v) => v is CompressedTextureETC1);
-final isCompressedTexturePvrtc = predicate((v) => v is CompressedTexturePvrtc);
-final isCompressedTextureS3TC = predicate((v) => v is CompressedTextureS3TC);
-final isDebugRendererInfo = predicate((v) => v is DebugRendererInfo);
-final isDebugShaders = predicate((v) => v is DebugShaders);
-final isDepthTexture = predicate((v) => v is DepthTexture);
-final isDrawBuffers = predicate((v) => v is DrawBuffers);
-final isLoseContext = predicate((v) => v is LoseContext);
+final isAngleInstancedArrays = (v) => v is AngleInstancedArrays;
+final isExtBlendMinMax = (v) => v is ExtBlendMinMax;
+final isExtFragDepth = (v) => v is ExtFragDepth;
+final isEXTsRgb = (v) => v is EXTsRgb;
+final isExtShaderTextureLod = (v) => v is ExtShaderTextureLod;
+final isExtTextureFilterAnisotropic = (v) => v is ExtTextureFilterAnisotropic;
+final isOesElementIndexUint = (v) => v is OesElementIndexUint;
+final isOesStandardDerivatives = (v) => v is OesStandardDerivatives;
+final isOesTextureFloat = (v) => v is OesTextureFloat;
+final isOesTextureFloatLinear = (v) => v is OesTextureFloatLinear;
+final isOesTextureHalfFloat = (v) => v is OesTextureHalfFloat;
+final isOesTextureHalfFloatLinear = (v) => v is OesTextureHalfFloatLinear;
+final isOesVertexArrayObject = (v) => v is OesVertexArrayObject;
+final isCompressedTextureAtc = (v) => v is CompressedTextureAtc;
+final isCompressedTextureETC1 = (v) => v is CompressedTextureETC1;
+final isCompressedTexturePvrtc = (v) => v is CompressedTexturePvrtc;
+final isCompressedTextureS3TC = (v) => v is CompressedTextureS3TC;
+final isDebugRendererInfo = (v) => v is DebugRendererInfo;
+final isDebugShaders = (v) => v is DebugShaders;
+final isDepthTexture = (v) => v is DepthTexture;
+final isDrawBuffers = (v) => v is DrawBuffers;
+final isLoseContext = (v) => v is LoseContext;
+
 final isFunction = predicate((v) => v is Function);
 
 // Test that various webgl extensions are available. Only test advertised
@@ -89,12 +88,11 @@ main() {
     test('type', () {
       var extension = getExtension(name);
       if (extension == null) return;
-      expect(extension, typeMatcher);
+      expect(extension, predicate(typeMatcher));
       // Ensure that isInstanceOf<X> is not instantiated for an erroneous type
       // X.  If X is erroneous, there is only a warning at compile time and X is
       // treated as dynamic, which would make the above line pass.
-      expect(() => expect(1, typeMatcher), throws,
-          reason: 'invalid typeMatcher');
+      expect(typeMatcher(1), false, reason: 'invalid typeMatcher');
     });
   }
 

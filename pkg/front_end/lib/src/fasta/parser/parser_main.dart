@@ -4,7 +4,7 @@
 
 library fasta.parser.main;
 
-import 'dart:convert' show LineSplitter, UTF8;
+import 'dart:convert' show LineSplitter, utf8;
 
 import 'dart:io' show File;
 
@@ -36,7 +36,7 @@ mainEntryPoint(List<String> arguments) async {
       Uri uri = Uri.base.resolve(argument.substring(1));
       await for (String file in new File.fromUri(uri)
           .openRead()
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(const LineSplitter())) {
         outLine(uri.resolve(file));
       }

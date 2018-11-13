@@ -41,21 +41,19 @@ class A {}
     addSource('/libB.dart', '''
 library libB;
 import "/libA.dart" as foo;
-part '$testFile';
+part '${convertAbsolutePathToUri(testFile)}';
 ''');
     addTestSource('part of libB; main() {^}');
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         await driver.getResult(testFile),
-        provider,
-        testSource,
         completionOffset,
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
         new Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl
-        .from(baseRequest, resultDescriptor: RESOLVED_UNIT1)
+    DartCompletionRequestImpl.from(baseRequest,
+            resultDescriptor: RESOLVED_UNIT1)
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);
     });
@@ -76,7 +74,6 @@ part '$testFile';
         }
       }
       fail('Failed to find $expectedUri in $uriList');
-      return null;
     }
 
     void assertImportedLib(String expectedUri) {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async' show Future;
+
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -19,14 +21,15 @@ class Data {
 abstract class ChainContextWithCleanupHelper extends ChainContext {
   Map<TestDescription, Data> cleanupHelper = {};
 
-  void cleanUp(TestDescription description, Result result) {
+  Future<void> cleanUp(TestDescription description, Result result) {
     if (debugging() && result.outcome != Expectation.Pass) {
       print("Not cleaning up: Running in debug-mode for non-passing test.");
-      return;
+      return null;
     }
 
     Data data = cleanupHelper.remove(description);
     data?.outDir?.deleteSync(recursive: true);
+    return null;
   }
 
   bool debugging() => false;
@@ -38,7 +41,7 @@ class Setup extends Step<TestDescription, Data, ChainContext> {
   String get name => "setup";
 
   Future<Result<Data>> run(TestDescription input, ChainContext context) async {
-    Data data = new Data()..uri = input.uri;
+    Data data = Data()..uri = input.uri;
     if (context is ChainContextWithCleanupHelper) {
       context.cleanupHelper[input] = data;
     }
@@ -67,7 +70,7 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
     var outWrapperPath = path.join(data.outDir.path, "wrapper.js");
     ProcessResult runResult =
         runD8AndStep(data.outDir.path, data.code, ['--module', outWrapperPath]);
-    data.d8Output = runResult.stdout.split("\n");
+    data.d8Output = (runResult.stdout as String).split("\n");
     return pass(data);
   }
 }
@@ -89,7 +92,7 @@ File findInOutDir(String relative) {
   var outerDir = sdkRoot.path;
   for (var outDir in const ["out/ReleaseX64", "xcodebuild/ReleaseX64"]) {
     var tryPath = path.join(outerDir, outDir, relative);
-    File file = new File(tryPath);
+    File file = File(tryPath);
     if (file.existsSync()) return file;
   }
   throw "Couldn't find $relative. Try building more targets.";

@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static const field dynamic constField;
+  const constructor •(dynamic x) → self::C
+    ;
+}
+static const field dynamic constTopLevelField;
+static method main() → dynamic
+  ;

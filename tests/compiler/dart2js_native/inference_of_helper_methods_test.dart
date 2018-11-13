@@ -5,9 +5,9 @@
 import 'native_testing.dart';
 import 'dart:_js_helper' show intTypeCheck;
 
-bool get inCheckedMode {
+bool get inComplianceMode {
   try {
-    String a = 42;
+    String a = (42 as dynamic);
   } on TypeError catch (e) {
     return true;
   }
@@ -25,7 +25,7 @@ main() {
   // implementing checked mode semantics (like in the check below),
   // the check won't fail at runtime.
   intTypeCheck(42);
-  if (inCheckedMode) {
+  if (inComplianceMode) {
     int value;
     Expect.throws(() => value = a[1], (e) => e is TypeError);
   }

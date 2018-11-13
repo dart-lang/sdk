@@ -7,20 +7,21 @@
 
 namespace dart {
 
-TEST_CASE(InstructionTests) {
-  TargetEntryInstr* target_instr = new TargetEntryInstr(
-      1, CatchClauseNode::kInvalidTryIndex, Thread::kNoDeoptId);
+ISOLATE_UNIT_TEST_CASE(InstructionTests) {
+  TargetEntryInstr* target_instr =
+      new TargetEntryInstr(1, kInvalidTryIndex, DeoptId::kNone);
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsDefinition());
   SpecialParameterInstr* context = new SpecialParameterInstr(
-      SpecialParameterInstr::kContext, Thread::kNoDeoptId);
+      SpecialParameterInstr::kContext, DeoptId::kNone, target_instr);
   EXPECT(context->IsDefinition());
   EXPECT(!context->IsBlockEntry());
+  EXPECT(context->GetBlock() == target_instr);
 }
 
-TEST_CASE(OptimizationTests) {
-  JoinEntryInstr* join = new JoinEntryInstr(
-      1, CatchClauseNode::kInvalidTryIndex, Thread::kNoDeoptId);
+ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
+  JoinEntryInstr* join =
+      new JoinEntryInstr(1, kInvalidTryIndex, DeoptId::kNone);
 
   Definition* def1 = new PhiInstr(join, 0);
   Definition* def2 = new PhiInstr(join, 0);

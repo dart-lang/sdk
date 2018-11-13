@@ -21,9 +21,7 @@ class _TestUtils {}
 
 class TestUriResolver extends ResourceUriResolver {
   final MemoryResourceProvider provider;
-  TestUriResolver(provider)
-      : provider = provider,
-        super(provider);
+  TestUriResolver(this.provider) : super(provider);
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {

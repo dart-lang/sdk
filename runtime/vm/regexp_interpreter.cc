@@ -84,21 +84,21 @@ static void TraceInterpreter(const uint8_t* code_base,
         printable
             ? "pc = %02x, sp = %d, curpos = %d, curchar = %08x (%c), bc = %s"
             : "pc = %02x, sp = %d, curpos = %d, curchar = %08x .%c., bc = %s";
-    OS::Print(format, pc - code_base, stack_depth, current_position,
-              current_char, printable ? current_char : '.', bytecode_name);
+    OS::PrintErr(format, pc - code_base, stack_depth, current_position,
+                 current_char, printable ? current_char : '.', bytecode_name);
     for (int i = 0; i < bytecode_length; i++) {
-      OS::Print(", %02x", pc[i]);
+      OS::PrintErr(", %02x", pc[i]);
     }
-    OS::Print(" ");
+    OS::PrintErr(" ");
     for (int i = 1; i < bytecode_length; i++) {
       unsigned char b = pc[i];
       if (b < 127 && b >= 32) {
-        OS::Print("%c", b);
+        OS::PrintErr("%c", b);
       } else {
-        OS::Print(".");
+        OS::PrintErr(".");
       }
     }
-    OS::Print("\n");
+    OS::PrintErr("\n");
   }
 }
 
@@ -167,7 +167,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
 
 #ifdef DEBUG
   if (FLAG_trace_regexp_bytecodes) {
-    OS::Print("Start irregexp bytecode interpreter\n");
+    OS::PrintErr("Start irregexp bytecode interpreter\n");
   }
 #endif
   while (true) {

@@ -7,7 +7,6 @@
 // OtherScripts=issue_24243_child1_isolate.dart
 // OtherScripts=issue_24243_child2_isolate.dart
 // OtherScripts=issue_24243_child3_isolate.dart
-// VMOptions=--checked
 
 import 'dart:collection';
 import 'dart:isolate';

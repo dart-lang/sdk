@@ -7,7 +7,7 @@ library test;
 
 void expectTypeError(void callback()) {
   try {
-    callback /*@callKind=closure*/ ();
+    callback();
     throw 'Expected TypeError, did not occur';
   } on TypeError {}
 }

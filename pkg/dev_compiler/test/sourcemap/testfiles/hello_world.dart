@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*bl*/
-  /*s:1*/ print("Hello, World!");
+  /*nb*/ // no break on empty line
+  /*bl*/ print("Hello, World!");
+/*s:1*/
 }

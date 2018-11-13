@@ -4,6 +4,18 @@
 
 library fasta.kernel_builder;
 
+import 'package:kernel/ast.dart'
+    show
+        Combinator,
+        Constructor,
+        Initializer,
+        Procedure,
+        RedirectingInitializer;
+
+import '../combinator.dart' as fasta;
+
+export '../builder/builder.dart';
+
 export 'kernel_class_builder.dart' show KernelClassBuilder;
 
 export 'kernel_enum_builder.dart' show KernelEnumBuilder;
@@ -12,59 +24,38 @@ export 'kernel_field_builder.dart' show KernelFieldBuilder;
 
 export 'kernel_formal_parameter_builder.dart' show KernelFormalParameterBuilder;
 
-export 'kernel_function_type_builder.dart' show KernelFunctionTypeBuilder;
-
 export 'kernel_function_type_alias_builder.dart'
     show KernelFunctionTypeAliasBuilder;
 
-export 'kernel_named_type_builder.dart' show KernelNamedTypeBuilder;
+export 'kernel_function_type_builder.dart' show KernelFunctionTypeBuilder;
+
+export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
 
 export 'kernel_library_builder.dart' show KernelLibraryBuilder;
 
 export 'kernel_mixin_application_builder.dart'
     show KernelMixinApplicationBuilder;
 
+export 'kernel_named_type_builder.dart' show KernelNamedTypeBuilder;
+
+export 'kernel_prefix_builder.dart' show KernelPrefixBuilder;
+
 export 'kernel_procedure_builder.dart'
     show
         KernelConstructorBuilder,
         KernelFunctionBuilder,
+        KernelRedirectingFactoryBuilder,
         KernelProcedureBuilder;
 
 export 'kernel_type_builder.dart' show KernelTypeBuilder;
 
 export 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
 
-export '../builder/builder.dart';
-
 export 'kernel_variable_builder.dart' show KernelVariableBuilder;
 
-export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
+export 'load_library_builder.dart' show LoadLibraryBuilder;
 
-import 'package:kernel/ast.dart'
-    show
-        Combinator,
-        Constructor,
-        DartType,
-        DynamicType,
-        Initializer,
-        Procedure,
-        RedirectingInitializer,
-        TypeParameter;
-
-import '../builder/builder.dart' show LibraryBuilder;
-
-import '../combinator.dart' as fasta;
-
-List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
-    List<TypeParameter> typeParameters, List<DartType> arguments) {
-  // TODO(scheglov): Use TypeSchemaEnvironment.instantiateToBounds
-  if (arguments == null || arguments.length != typeParameters.length) {
-    // TODO(scheglov): Check that we report a warning.
-    return new List<DartType>.filled(
-        typeParameters.length, const DynamicType());
-  }
-  return arguments;
-}
+export 'unlinked_scope.dart' show UnlinkedDeclaration;
 
 int compareProcedures(Procedure a, Procedure b) {
   int i = "${a.fileUri}".compareTo("${b.fileUri}");

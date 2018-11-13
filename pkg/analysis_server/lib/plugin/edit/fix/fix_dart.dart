@@ -52,14 +52,16 @@ abstract class DartFixContext implements FixContext {
 abstract class DartFixContributor implements FixContributor {
   @override
   Future<List<Fix>> computeFixes(FixContext context) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AnalysisDriver driver = context.analysisDriver;
     Source source = context.error.source;
     if (!AnalysisEngine.isDartFileName(source.fullName)) {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
     CompilationUnit unit = (await driver.getResult(source.fullName)).unit;
     if (unit == null) {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
     DartFixContext dartContext =
         new DartFixContextImpl(context, new AstProviderForDriver(driver), unit);

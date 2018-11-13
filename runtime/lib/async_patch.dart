@@ -17,6 +17,43 @@ import "dart:_internal" show VMLibraryHooks, patch;
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartAsync_fatal";
 
+class _AsyncAwaitCompleter<T> implements Completer<T> {
+  final _completer = new Completer<T>.sync();
+  bool isSync;
+
+  _AsyncAwaitCompleter() : isSync = false;
+
+  void complete([FutureOr<T> value]) {
+    if (isSync) {
+      _completer.complete(value);
+    } else if (value is Future<T>) {
+      value.then(_completer.complete, onError: _completer.completeError);
+    } else {
+      scheduleMicrotask(() {
+        _completer.complete(value);
+      });
+    }
+  }
+
+  void completeError(e, [st]) {
+    if (isSync) {
+      _completer.completeError(e, st);
+    } else {
+      scheduleMicrotask(() {
+        _completer.completeError(e, st);
+      });
+    }
+  }
+
+  void start(f) {
+    f();
+    isSync = true;
+  }
+
+  Future<T> get future => _completer.future;
+  bool get isCompleted => _completer.isCompleted;
+}
+
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
 // See vm/ast_transformer.cc for usage.
@@ -83,6 +120,7 @@ void _asyncStarListenHelper(var object, var awaiter) {
   object._awaiter = awaiter;
 }
 
+@pragma("vm:entry-point")
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {
     return;
@@ -97,6 +135,7 @@ void _asyncStarMoveNextHelper(var stream) {
 
 // _AsyncStarStreamController is used by the compiler to implement
 // async* generator functions.
+@pragma("vm:entry-point")
 class _AsyncStarStreamController<T> {
   StreamController<T> controller;
   Function asyncStarBody;
@@ -251,6 +290,7 @@ class _StreamImpl<T> {
   Function _generator;
 }
 
+@pragma("vm:entry-point")
 void _completeOnAsyncReturn(Completer completer, Object value) {
   completer.complete(value);
 }
@@ -260,9 +300,11 @@ void _completeOnAsyncReturn(Completer completer, Object value) {
 Object _asyncStackTraceHelper(Function async_op)
     native "StackTrace_asyncStackTraceHelper";
 
+@pragma("vm:entry-point")
 void _clearAsyncThreadStackTrace()
     native "StackTrace_clearAsyncThreadStackTrace";
 
+@pragma("vm:entry-point")
 void _setAsyncThreadStackTrace(StackTrace stackTrace)
     native "StackTrace_setAsyncThreadStackTrace";
 

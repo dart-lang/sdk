@@ -8,12 +8,11 @@ library test;
 typedef void F<T>(T x);
 
 class B<T> {
-  B<T> operator +(B<T> /*@covariance=genericInterface, genericImpl*/ other) =>
-      null;
+  B<T> operator +(B<T> /*@covariance=genericImpl*/ other) => null;
 }
 
 class C<T> {
-  B<F<T>> get /*@genericContravariant=true*/ x => null;
+  B<F<T>> get x => null;
   void set x(B<F<T>> value) {}
 }
 

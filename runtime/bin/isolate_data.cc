@@ -4,8 +4,7 @@
 
 #include "bin/isolate_data.h"
 #include "bin/snapshot_utils.h"
-
-#include "vm/kernel.h"
+#include "platform/growable_array.h"
 
 namespace dart {
 namespace bin {
@@ -17,11 +16,13 @@ IsolateData::IsolateData(const char* url,
     : script_url((url != NULL) ? strdup(url) : NULL),
       package_root(NULL),
       packages_file(NULL),
-      kernel_program(NULL),
-      builtin_lib_(NULL),
       loader_(NULL),
       app_snapshot_(app_snapshot),
-      dependencies_(NULL) {
+      dependencies_(NULL),
+      resolved_packages_config_(NULL),
+      kernel_buffer_(NULL),
+      kernel_buffer_size_(0),
+      owns_kernel_buffer_(false) {
   if (package_root != NULL) {
     ASSERT(packages_file == NULL);
     this->package_root = strdup(package_root);
@@ -31,10 +32,6 @@ IsolateData::IsolateData(const char* url,
 }
 
 void IsolateData::OnIsolateShutdown() {
-  if (builtin_lib_ != NULL) {
-    Dart_DeletePersistentHandle(builtin_lib_);
-    builtin_lib_ = NULL;
-  }
 }
 
 IsolateData::~IsolateData() {
@@ -44,12 +41,17 @@ IsolateData::~IsolateData() {
   package_root = NULL;
   free(packages_file);
   packages_file = NULL;
-  if (kernel_program != NULL) {
-    delete reinterpret_cast<kernel::Program*>(kernel_program);
-    kernel_program = NULL;
+  free(resolved_packages_config_);
+  resolved_packages_config_ = NULL;
+  if (owns_kernel_buffer_) {
+    ASSERT(kernel_buffer_ != NULL);
+    free(kernel_buffer_);
   }
+  kernel_buffer_ = NULL;
+  kernel_buffer_size_ = 0;
   delete app_snapshot_;
   app_snapshot_ = NULL;
+  delete dependencies_;
 }
 
 }  // namespace bin

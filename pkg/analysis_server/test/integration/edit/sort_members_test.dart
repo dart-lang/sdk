@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
-    defineReflectiveTests(SortMembersTest_PreviewDart2);
   });
 }
 
@@ -62,10 +61,4 @@ int bar;
       expect(message.error['code'], 'SORT_MEMBERS_PARSE_ERRORS');
     }
   }
-}
-
-@reflectiveTest
-class SortMembersTest_PreviewDart2 extends SortMembersTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

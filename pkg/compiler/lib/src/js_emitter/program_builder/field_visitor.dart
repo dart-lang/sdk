@@ -27,13 +27,12 @@ typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
 
 class FieldVisitor {
   final CompilerOptions _options;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
+  final JElementEnvironment _elementEnvironment;
+  final JCommonElements _commonElements;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final NativeData _nativeData;
-  final MirrorsData _mirrorsData;
   final Namer _namer;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   FieldVisitor(
       this._options,
@@ -41,7 +40,6 @@ class FieldVisitor {
       this._commonElements,
       this._codegenWorldBuilder,
       this._nativeData,
-      this._mirrorsData,
       this._namer,
       this._closedWorld);
 
@@ -63,10 +61,6 @@ class FieldVisitor {
    */
   void visitFields(AcceptField f,
       {bool visitStatics: false, LibraryEntity library, ClassEntity cls}) {
-    assert(!(library is LibraryElement && !library.isDeclaration),
-        failedAt(library));
-    assert(!(cls is ClassElement && !cls.isDeclaration), failedAt(cls));
-
     bool isNativeClass = false;
     bool isLibrary = false;
     bool isInstantiated = false;
@@ -86,8 +80,6 @@ class FieldVisitor {
     }
 
     void visitField(FieldEntity field, {ClassEntity holder}) {
-      assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
-
       bool isMixinNativeField =
           isNativeClass && _elementEnvironment.isMixinApplication(holder);
 
@@ -108,7 +100,7 @@ class FieldVisitor {
         js.Name accessorName = _namer.fieldAccessorName(field);
         js.Name fieldName = _namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
-        if (_options.enableTypeAssertions &&
+        if (_options.parameterCheckPolicy.isEmitted &&
             needsSetter &&
             !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;
@@ -153,7 +145,6 @@ class FieldVisitor {
   bool fieldNeedsGetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    if (_mirrorsData.shouldRetainGetter(field)) return true;
     return field.enclosingClass != null &&
         _codegenWorldBuilder.hasInvokedGetter(field, _closedWorld);
   }
@@ -162,7 +153,6 @@ class FieldVisitor {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
-    if (_mirrorsData.shouldRetainSetter(field)) return true;
     return field.enclosingClass != null &&
         _codegenWorldBuilder.hasInvokedSetter(field, _closedWorld);
   }
@@ -173,7 +163,8 @@ class FieldVisitor {
         // knowing that it is there.  Therefore we don't need to use a getter
         // (that will throw if the getter method is missing), but can always
         // access the field directly.
-        field is ClosureFieldElement;
+        // TODO(johnniwinther): Return `true` JClosureField.
+        false;
   }
 
   bool canAvoidGeneratedCheckedSetter(FieldEntity member) {

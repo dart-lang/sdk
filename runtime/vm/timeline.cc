@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <cstdlib>
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -112,7 +112,17 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
       if (FLAG_trace_timeline) {
         THR_Print("Using the Systrace timeline recorder.\n");
       }
-      return TimelineEventPlatformRecorder::CreatePlatformRecorder();
+
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+      return new TimelineEventSystraceRecorder();
+#elif defined(HOST_OS_FUCHSIA)
+      return new TimelineEventFuchsiaRecorder();
+#else
+      OS::PrintErr(
+          "Warning: The systrace timeline recorder is equivalent to the"
+          "ring recorder on this platform.");
+      return new TimelineEventRingRecorder();
+#endif
     }
   }
 
@@ -189,7 +199,7 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
   return false;
 }
 
-void Timeline::InitOnce() {
+void Timeline::Init() {
   ASSERT(recorder_ == NULL);
   recorder_ = CreateTimelineRecorder();
   ASSERT(recorder_ != NULL);
@@ -221,7 +231,7 @@ void Timeline::StreamStateChange(const char* stream_name,
   }
 }
 
-void Timeline::Shutdown() {
+void Timeline::Cleanup() {
   ASSERT(recorder_ != NULL);
 
   if (Timeline::stream_Embedder_.enabled() &&
@@ -355,11 +365,11 @@ void TimelineEventArguments::FormatArgument(intptr_t i,
   ASSERT(i < length_);
   va_list args2;
   va_copy(args2, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
   va_end(args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  OS::VSNPrint(buffer, (len + 1), fmt, args2);
+  Utils::VSNPrint(buffer, (len + 1), fmt, args2);
   va_end(args2);
 
   SetArgument(i, name, buffer);
@@ -1113,7 +1123,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
       OS::SCreate(NULL, "%s/dart-timeline-%" Pd ".json", directory, pid);
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
-    OS::Print("Failed to write timeline file: %s\n", filename);
+    OS::PrintErr("Failed to write timeline file: %s\n", filename);
     free(filename);
     return;
   }
@@ -1342,6 +1352,42 @@ void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
   delete event;
 }
 
+TimelineEventPlatformRecorder::TimelineEventPlatformRecorder() {}
+
+TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
+
+void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
+                                              TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  JSONObject topLevel(js);
+  topLevel.AddProperty("type", "_Timeline");
+  {
+    JSONArray events(&topLevel, "traceEvents");
+    PrintJSONMeta(&events);
+  }
+}
+
+void TimelineEventPlatformRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  JSONArray events(js);
+}
+
+TimelineEvent* TimelineEventPlatformRecorder::StartEvent() {
+  TimelineEvent* event = new TimelineEvent();
+  return event;
+}
+
+void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
+  OnEvent(event);
+  delete event;
+}
+
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(NULL), block_index_(0) {}
 
@@ -1404,7 +1450,7 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   block->Open();
   head_ = block;
   if (FLAG_trace_timeline) {
-    OS::Print("Created new block %p\n", block);
+    OS::PrintErr("Created new block %p\n", block);
   }
   return head_;
 }
@@ -1494,7 +1540,7 @@ TimelineEvent* TimelineEventBlock::StartEvent() {
     OSThread* os_thread = OSThread::Current();
     ASSERT(os_thread != NULL);
     intptr_t tid = OSThread::ThreadIdToIntPtr(os_thread->id());
-    OS::Print("StartEvent in block %p for thread %" Px "\n", this, tid);
+    OS::PrintErr("StartEvent in block %p for thread %" Px "\n", this, tid);
   }
   return &events_[length_++];
 }
@@ -1549,7 +1595,7 @@ void TimelineEventBlock::Open() {
 
 void TimelineEventBlock::Finish() {
   if (FLAG_trace_timeline) {
-    OS::Print("Finish block %p\n", this);
+    OS::PrintErr("Finish block %p\n", this);
   }
   in_use_ = false;
   if (Service::timeline_stream.enabled()) {

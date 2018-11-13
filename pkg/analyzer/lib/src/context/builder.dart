@@ -2,40 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.context_builder;
-
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analyzer/context/context_root.dart';
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/command_line/arguments.dart'
     show
         applyAnalysisOptionFlags,
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
+import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/gn.dart';
+import 'package:analyzer/src/generated/package_build.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/sdk.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:args/args.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -131,9 +131,9 @@ class ContextBuilder {
   FileContentOverlay fileContentOverlay;
 
   /**
-   * Whether to enable the Dart 2.0 Front End.
+   * Whether to enable the Dart 2.0 preview.
    */
-  bool previewDart2 = false;
+  bool get previewDart2 => true;
 
   /**
    * Initialize a newly created builder to be ready to build a context rooted in
@@ -152,9 +152,10 @@ class ContextBuilder {
   AnalysisContext buildContext(String path) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
-    AnalysisOptions options = getAnalysisOptions(path);
+    AnalysisOptionsImpl options = getAnalysisOptions(path);
     context.contentCache = contentCache;
     context.sourceFactory = createSourceFactory(path, options);
+    options.previewDart2 = previewDart2;
     context.analysisOptions = options;
     context.name = path;
     //_processAnalysisOptions(context, optionMap);
@@ -173,18 +174,6 @@ class ContextBuilder {
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
 
-    // The folder with `vm_platform_strong.dill`, which has required patches.
-    Folder kernelPlatformFolder;
-    if (previewDart2) {
-      DartSdk sdk = sf.dartSdk;
-      if (sdk is FolderBasedDartSdk) {
-        var binariesPath = computePlatformBinariesPath(sdk.directory.path);
-        if (binariesPath != null) {
-          kernelPlatformFolder = resourceProvider.getFolder(binariesPath);
-        }
-      }
-    }
-
     AnalysisDriver driver = new AnalysisDriver(
         analysisDriverScheduler,
         performanceLog,
@@ -193,9 +182,7 @@ class ContextBuilder {
         fileContentOverlay,
         contextRoot,
         sf,
-        options,
-        enableKernelDriver: previewDart2,
-        kernelPlatformFolder: kernelPlatformFolder);
+        options);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,
@@ -208,8 +195,9 @@ class ContextBuilder {
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
     Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
     if (packages != null && packages != Packages.noPackages) {
+      var pathContext = resourceProvider.pathContext;
       packages.asMap().forEach((String packageName, Uri uri) {
-        String path = resourceProvider.pathContext.fromUri(uri);
+        String path = fileUriToNormalizedPath(pathContext, uri);
         folderMap[packageName] = [resourceProvider.getFolder(path)];
       });
     }
@@ -276,11 +264,13 @@ class ContextBuilder {
   Workspace createWorkspace(String rootPath) {
     if (_hasPackageFileInPath(rootPath)) {
       // Bazel workspaces that include package files are treated like normal
-      // (non-Bazel) directories.
-      return _BasicWorkspace.find(resourceProvider, rootPath, this);
+      // (non-Bazel) directories. But may still use package:build.
+      return PackageBuildWorkspace.find(resourceProvider, rootPath, this) ??
+          _BasicWorkspace.find(resourceProvider, rootPath, this);
     }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
+    workspace ??= PackageBuildWorkspace.find(resourceProvider, rootPath, this);
     return workspace ?? _BasicWorkspace.find(resourceProvider, rootPath, this);
   }
 
@@ -288,13 +278,10 @@ class ContextBuilder {
    * Add any [declaredVariables] to the list of declared variables used by the
    * given [context].
    */
-  void declareVariables(InternalAnalysisContext context) {
+  void declareVariables(AnalysisContextImpl context) {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
-      DeclaredVariables contextVariables = context.declaredVariables;
-      variables.forEach((String variableName, String value) {
-        contextVariables.define(variableName, value);
-      });
+      context.declaredVariables = new DeclaredVariables.fromMap(variables);
     }
   }
 
@@ -305,10 +292,7 @@ class ContextBuilder {
   void declareVariablesInDriver(AnalysisDriver driver) {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
-      DeclaredVariables contextVariables = driver.declaredVariables;
-      variables.forEach((String variableName, String value) {
-        contextVariables.define(variableName, value);
-      });
+      driver.declaredVariables = new DeclaredVariables.fromMap(variables);
     }
   }
 
@@ -326,8 +310,15 @@ class ContextBuilder {
     Resource location = _findPackagesLocation(path);
     if (location is File) {
       List<int> fileBytes = location.readAsBytesSync();
-      Map<String, Uri> map =
-          parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      Map<String, Uri> map;
+      try {
+        map =
+            parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      } catch (exception) {
+        // If we cannot read the file, then we respond as if the file did not
+        // exist.
+        return Packages.noPackages;
+      }
       resolveSymbolicLinks(map);
       return new MapPackages(map);
     } else if (location is Folder) {
@@ -344,7 +335,7 @@ class ContextBuilder {
       Map<String, List<Folder>> packageMap, AnalysisOptions analysisOptions) {
     String summaryPath = builderOptions.dartSdkSummaryPath;
     if (summaryPath != null) {
-      return new SummaryBasedDartSdk(summaryPath, analysisOptions.strongMode,
+      return new SummaryBasedDartSdk(summaryPath, true,
           resourceProvider: resourceProvider);
     } else if (packageMap != null) {
       SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
@@ -399,8 +390,8 @@ class ContextBuilder {
     SdkDescription description =
         new SdkDescription(<String>[sdkPath], analysisOptions);
     return sdkManager.getSdk(description, () {
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-          resourceProvider.getFolder(sdkPath), analysisOptions.strongMode);
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          resourceProvider, resourceProvider.getFolder(sdkPath), true);
       sdk.analysisOptions = analysisOptions;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;
@@ -429,7 +420,7 @@ class ContextBuilder {
 
     AnalysisOptionsImpl options = createDefaultOptions();
     File optionsFile = getOptionsFile(path);
-    Map<String, YamlNode> optionMap;
+    YamlMap optionMap;
 
     if (optionsFile != null) {
       try {
@@ -443,28 +434,26 @@ class ContextBuilder {
         verbose('Exception: $e\n  when loading ${optionsFile.path}');
       }
     } else {
-      // Search for the default analysis options
-      // unless explicitly directed not to do so.
+      // Search for the default analysis options.
+      // TODO(danrubel) determine if bazel or gn project depends upon flutter
       Source source;
-      if (builderOptions.packageDefaultAnalysisOptions) {
-        // TODO(danrubel) determine if bazel or gn project depends upon flutter
-        if (workspace.hasFlutterDependency) {
-          source = sourceFactory.forUri(flutterAnalysisOptionsPath);
-        }
-        if (source == null || !source.exists()) {
-          source = sourceFactory.forUri(bazelAnalysisOptionsPath);
-        }
-        if (source != null && source.exists()) {
-          try {
-            optionMap = optionsProvider.getOptionsFromSource(source);
-            if (contextRoot != null) {
-              contextRoot.optionsFilePath = source.fullName;
-            }
-            verbose('Loaded analysis options from ${source.fullName}');
-          } catch (e) {
-            // Ignore exceptions thrown while trying to load the options file.
-            verbose('Exception: $e\n  when loading ${source.fullName}');
+      if (workspace.hasFlutterDependency) {
+        source = sourceFactory.forUri(flutterAnalysisOptionsPath);
+      }
+      if (source == null || !source.exists()) {
+        source = sourceFactory.forUri(bazelAnalysisOptionsPath);
+      }
+
+      if (source != null && source.exists()) {
+        try {
+          optionMap = optionsProvider.getOptionsFromSource(source);
+          if (contextRoot != null) {
+            contextRoot.optionsFilePath = source.fullName;
           }
+          verbose('Loaded analysis options from ${source.fullName}');
+        } catch (e) {
+          // Ignore exceptions thrown while trying to load the options file.
+          verbose('Exception: $e\n  when loading ${source.fullName}');
         }
       }
     }
@@ -480,17 +469,6 @@ class ContextBuilder {
           verbose('Using default lint rules');
         }
       }
-      if (ContextBuilderOptions.flutterRepo) {
-        const lintName = 'public_member_api_docs';
-        Linter rule = options.lintRules.firstWhere(
-            (Linter lint) => lint.name == lintName,
-            orElse: () => null);
-        if (rule == null) {
-          rule = Registry.ruleRegistry
-              .firstWhere((Linter lint) => lint.name == lintName);
-          options.lintRules = new List.from(options.lintRules)..add(rule);
-        }
-      }
     } else {
       verbose('Using default analysis options');
     }
@@ -500,11 +478,17 @@ class ContextBuilder {
   /**
    * Return the analysis options file that should be used when analyzing code in
    * the directory with the given [path].
+   *
+   * If [forceSearch] is true, then don't return the default analysis options
+   * path. This allows cli to locate what *would* have been the analysis options
+   * file path, and super-impose the defaults over it in-place.
    */
-  File getOptionsFile(String path) {
-    String filePath = builderOptions.defaultAnalysisOptionsFilePath;
-    if (filePath != null) {
-      return resourceProvider.getFile(filePath);
+  File getOptionsFile(String path, {bool forceSearch: false}) {
+    if (!forceSearch) {
+      String filePath = builderOptions.defaultAnalysisOptionsFilePath;
+      if (filePath != null) {
+        return resourceProvider.getFile(filePath);
+      }
     }
     Folder root = resourceProvider.getFolder(path);
     for (Folder folder = root; folder != null; folder = folder.parent) {
@@ -561,8 +545,9 @@ class ContextBuilder {
   void resolveSymbolicLinks(Map<String, Uri> map) {
     Context pathContext = resourceProvider.pathContext;
     for (String packageName in map.keys) {
-      Folder folder =
-          resourceProvider.getFolder(pathContext.fromUri(map[packageName]));
+      var uri = map[packageName];
+      String path = fileUriToNormalizedPath(pathContext, uri);
+      Folder folder = resourceProvider.getFolder(path);
       String folderPath = resolveSymbolicLink(folder);
       // Add a '.' so that the URI is suitable for resolving relative URI's
       // against it.
@@ -642,12 +627,6 @@ class ContextBuilder {
  */
 class ContextBuilderOptions {
   /**
-   * A flag indicating that the flutter repository is being analyzed.
-   * See comments in source for `flutter analyze --watch`.
-   */
-  static bool flutterRepo = false;
-
-  /**
    * The results of parsing the command line arguments as defined by
    * [defineAnalysisArguments] or `null` if none.
    */
@@ -693,11 +672,6 @@ class ContextBuilderOptions {
    * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
-
-  /**
-   * Allow Flutter and bazel default analysis options to be used.
-   */
-  bool packageDefaultAnalysisOptions = true;
 
   /**
    * Initialize a newly created set of options
@@ -821,10 +795,6 @@ class _BasicWorkspace extends Workspace {
   Packages _packages;
 
   _BasicWorkspace._(this.provider, this.root, this._builder);
-
-  @override
-  // Alternately, we could check the pubspec for "sdk: flutter"
-  bool get hasFlutterDependency => packageMap.containsKey('flutter');
 
   @override
   Map<String, List<Folder>> get packageMap {

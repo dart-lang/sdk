@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
 main() {
@@ -27,7 +27,7 @@ main() {
     test('created', () async {
       final label = 'custom-label';
       final e = new NavMenuItemElement(label);
-      e.content = [document.createElement('content')];
+      e.content = <Element>[document.createElement('content')];
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');

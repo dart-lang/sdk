@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.source.package_map_resolver_test;
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -78,10 +76,8 @@ class _PackageMapUriResolverTest {
     provider.newFile(pkgFileB, 'library lib_b;');
     PackageMapUriResolver resolver =
         new PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[
-        provider.getResource(provider.convertPath('/pkgA/lib/'))
-      ],
-      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib/'))]
+      'pkgA': <Folder>[provider.getResource(provider.convertPath('/pkgA/lib'))],
+      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib'))]
     });
     {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
@@ -136,10 +132,8 @@ class _PackageMapUriResolverTest {
     provider.newFile(pkgFileB, 'library lib_b;');
     PackageMapUriResolver resolver =
         new PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[
-        provider.getResource(provider.convertPath('/pkgA/lib/'))
-      ],
-      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib/'))]
+      'pkgA': <Folder>[provider.getResource(provider.convertPath('/pkgA/lib'))],
+      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib'))]
     });
     {
       Source source =

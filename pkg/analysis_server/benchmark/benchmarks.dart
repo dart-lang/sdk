@@ -14,11 +14,13 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
+import 'perf/flutter_analyze_benchmark.dart';
 
 Future main(List<String> args) async {
   final List<Benchmark> benchmarks = [
     new ColdAnalysisBenchmark(),
-    new AnalysisBenchmark()
+    new AnalysisBenchmark(),
+    new FlutterAnalyzeBenchmark(),
   ];
 
   CommandRunner runner = new CommandRunner(
@@ -46,7 +48,7 @@ class ListCommand extends Command {
   String get invocation => '${runner.executableName} $name';
 
   void run() {
-    if (argResults['machine']) {
+    if (argResults['machine'] as bool) {
       final Map map = {
         'benchmarks': benchmarks.map((b) => b.toJson()).toList()
       };
@@ -68,9 +70,6 @@ class RunCommand extends Command {
         help: 'Run a quick version of the benchmark. This is not useful for '
             'gathering accurate times,\nbut can be used to validate that the '
             'benchmark works.');
-    argParser.addFlag('preview-dart-2',
-        negatable: false,
-        help: 'Benchmark against the Dart 2.0 front end implementation.');
     argParser.addOption('repeat',
         defaultsTo: '10', help: 'The number of times to repeat the benchmark.');
     argParser.addFlag('verbose',
@@ -94,20 +93,26 @@ class RunCommand extends Command {
     }
 
     final String benchmarkId = argResults.rest.first;
-    final int repeatCount = int.parse(argResults['repeat']);
+    final int repeatCount = int.parse(argResults['repeat'] as String);
     final bool quick = argResults['quick'];
-    final bool previewDart2 = argResults['preview-dart-2'];
     final bool verbose = argResults['verbose'];
 
     final Benchmark benchmark =
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
       print("Benchmark '$benchmarkId' not found.");
       exit(1);
+      // Never reached.
+      return null;
     });
 
     int actualIterations = repeatCount;
     if (benchmark.maxIterations > 0) {
       actualIterations = math.min(benchmark.maxIterations, repeatCount);
+    }
+
+    if (benchmark.needsSetup) {
+      print('Setting up $benchmarkId...');
+      await benchmark.oneTimeSetup();
     }
 
     try {
@@ -118,7 +123,6 @@ class RunCommand extends Command {
       for (int iteration = 0; iteration < actualIterations; iteration++) {
         BenchMarkResult newResult = await benchmark.run(
           quick: quick,
-          previewDart2: previewDart2,
           verbose: verbose,
         );
         print('  $newResult');
@@ -128,7 +132,9 @@ class RunCommand extends Command {
       time.stop();
       print('Finished in ${time.elapsed.inSeconds} seconds.\n');
       Map m = {'benchmark': benchmarkId, 'result': result.toJson()};
-      print(JSON.encode(m));
+      print(json.encode(m));
+
+      await benchmark.oneTimeCleanup();
     } catch (error, st) {
       print('$benchmarkId threw exception: $error');
       print(st);
@@ -147,9 +153,14 @@ abstract class Benchmark {
 
   Benchmark(this.id, this.description, {this.enabled: true, this.kind: 'cpu'});
 
+  bool get needsSetup => false;
+
+  Future oneTimeSetup() => new Future.value();
+
+  Future oneTimeCleanup() => new Future.value();
+
   Future<BenchMarkResult> run({
     bool quick: false,
-    bool previewDart2: false,
     bool verbose: false,
   });
 
@@ -201,8 +212,10 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     CompoundBenchMarkResult o = other as CompoundBenchMarkResult;
 
     CompoundBenchMarkResult combined = new CompoundBenchMarkResult(name);
-    List<String> keys =
-        (new Set()..addAll(results.keys)..addAll(o.results.keys)).toList();
+    List<String> keys = (new Set<String>()
+          ..addAll(results.keys)
+          ..addAll(o.results.keys))
+        .toList();
 
     for (String key in keys) {
       combined.add(key, _combine(results[key], o.results[key]));

@@ -9,58 +9,48 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 void main() {
-  deferredTest1();
-  deferredTest2();
-}
-
-void deferredTest1() {
   asyncTest(() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: TEST1);
-    Compiler compiler = result.compiler;
-
-    lookupLibrary(name) {
-      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
-    }
-
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
-
-    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
-    dynamic lib1 = lookupLibrary("memory:lib1.dart");
-    dynamic lib2 = lookupLibrary("memory:lib2.dart");
-    lib1.find("foo1");
-    var foo2 = lib2.find("foo2");
-
-    Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo2));
+    await deferredTest1();
+    await deferredTest2();
   });
 }
 
-void deferredTest2() {
-  asyncTest(() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: TEST2);
-    Compiler compiler = result.compiler;
+deferredTest1() async {
+  CompilationResult result = await runCompiler(memorySourceFiles: TEST1);
+  Compiler compiler = result.compiler;
+  var closedWorld = compiler.backendClosedWorldForTesting;
+  var env = closedWorld.elementEnvironment;
+  var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
+  var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
+  lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
+  dynamic lib1 = lookupLibrary("memory:lib1.dart");
+  dynamic lib2 = lookupLibrary("memory:lib2.dart");
+  env.lookupLibraryMember(lib1, "foo1");
+  var foo2 = env.lookupLibraryMember(lib2, "foo2");
 
-    lookupLibrary(name) {
-      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
-    }
+  Expect.notEquals(mainOutputUnit, outputUnitForMember(foo2));
+}
 
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+deferredTest2() async {
+  CompilationResult result = await runCompiler(memorySourceFiles: TEST2);
+  Compiler compiler = result.compiler;
+  var closedWorld = compiler.backendClosedWorldForTesting;
+  var env = closedWorld.elementEnvironment;
+  var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
+  var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
+  lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
+  dynamic shared = lookupLibrary("memory:shared.dart");
+  var a = env.lookupClass(shared, "A");
 
-    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
-    dynamic shared = lookupLibrary("memory:shared.dart");
-    var a = shared.find("A");
-
-    Expect.equals(mainOutputUnit, outputUnitForEntity(a));
-  });
+  Expect.equals(mainOutputUnit, outputUnitForClass(a));
 }
 
 // lib1 imports lib2 deferred. But mainlib never uses DeferredLibrary.
 // Test that this case works.
-const Map TEST1 = const {
+const Map<String, String> TEST1 = const {
   "main.dart": """
 library mainlib;
 
@@ -75,10 +65,8 @@ library lib1;
 
 import 'lib2.dart' deferred as lib2;
 
-const def = const DeferredLibrary('lib2');
-
 void foo1() {
-  lib1.loadLibrary().then((_) => lib2.foo2());
+  lib2.loadLibrary().then((_) => lib2.foo2());
 }
 """,
   "lib2.dart": """
@@ -90,7 +78,7 @@ void foo2() {}
 
 // main indirectly uses class A from shared. A should still be included in the
 // main fragment.
-const Map TEST2 = const {
+const Map<String, String> TEST2 = const {
   "main.dart": """
 import 'def.dart' deferred as def;
 import 'shared.dart';

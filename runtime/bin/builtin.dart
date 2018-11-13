@@ -28,15 +28,18 @@ void _print(arg) {
   _printString(arg.toString());
 }
 
+@pragma("vm:entry-point")
 _getPrintClosure() => _print;
 
 // Asynchronous loading of resources.
 // The embedder forwards loading requests to the service isolate.
 
 // A port for communicating with the service isolate for I/O.
+@pragma("vm:entry-point")
 SendPort _loadPort;
 
 // The isolateId used to communicate with the service isolate for I/O.
+@pragma("vm:entry-point")
 int _isolateId;
 
 // Requests made to the service isolate over the load port.
@@ -50,10 +53,12 @@ const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
 // Make a request to the loader. Future will complete with result which is
 // either a Uri or a List<int>.
-Future _makeLoaderRequest(int tag, String uri) {
+Future<T> _makeLoaderRequest<T>(int tag, String uri) {
   assert(_isolateId != null);
-  assert(_loadPort != null);
-  Completer completer = new Completer();
+  if (_loadPort == null) {
+    throw new UnsupportedError("Service isolate is not available.");
+  }
+  Completer completer = new Completer<T>();
   RawReceivePort port = new RawReceivePort();
   port.handler = (msg) {
     // Close the port.
@@ -135,7 +140,8 @@ _enforceTrailingSlash(uri) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with the current working directory.
-void _setWorkingDirectory(cwd) {
+@pragma("vm:entry-point")
+void _setWorkingDirectory(String cwd) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -150,7 +156,8 @@ void _setWorkingDirectory(cwd) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with a custom package root.
-_setPackageRoot(String packageRoot) {
+@pragma("vm:entry-point")
+String _setPackageRoot(String packageRoot) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -171,14 +178,17 @@ _setPackageRoot(String packageRoot) {
   // up for use in Platform.packageRoot. This is only set when the embedder
   // sets up the package root. Automatically discovered package root will
   // not update the VMLibraryHooks value.
-  VMLibraryHooks.packageRootString = _packageRoot.toString();
+  var packageRootStr = _packageRoot.toString();
+  VMLibraryHooks.packageRootString = packageRootStr;
   if (_traceLoading) {
     _log('Package root URI: $_packageRoot');
   }
+  return packageRootStr;
 }
 
 // Embedder Entrypoint:
-void _setPackagesMap(String packagesParam) {
+@pragma("vm:entry-point")
+String _setPackagesMap(String packagesParam) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -204,10 +214,12 @@ void _setPackagesMap(String packagesParam) {
   if (_traceLoading) {
     _log('Resolved packages map to: $packagesUri');
   }
+  return packagesUriStr;
 }
 
 // Resolves the script uri in the current working directory iff the given uri
 // did not specify a scheme (e.g. a path to a script file on the command line).
+@pragma("vm:entry-point")
 String _resolveScriptUri(String scriptName) {
   if (_traceLoading) {
     _log("Resolving script: $scriptName");
@@ -236,6 +248,7 @@ String _resolveScriptUri(String scriptName) {
 
 // Embedder Entrypoint (gen_snapshot):
 // Resolve relative paths relative to working directory.
+@pragma("vm:entry-point")
 String _resolveInWorkingDirectory(String fileName) {
   if (!_setupCompleted) {
     _setupHooks();
@@ -292,6 +305,7 @@ String _filePathFromUri(String userUri) {
 }
 
 // Embedder Entrypoint.
+@pragma("vm:entry-point")
 _libraryFilePath(String libraryUri) {
   if (!_setupCompleted) {
     _setupHooks();
@@ -307,6 +321,7 @@ _libraryFilePath(String libraryUri) {
 }
 
 // Register callbacks and hooks with the rest of the core libraries.
+@pragma("vm:entry-point")
 _setupHooks() {
   _setupCompleted = true;
   VMLibraryHooks.resourceReadAsBytes = _resourceReadAsBytes;
@@ -318,7 +333,8 @@ _setupHooks() {
 
 // Handling of Resource class by dispatching to the load port.
 Future<List<int>> _resourceReadAsBytes(Uri uri) async {
-  List response = await _makeLoaderRequest(_Dart_kResourceLoad, uri.toString());
+  List response =
+      await _makeLoaderRequest<List<int>>(_Dart_kResourceLoad, uri.toString());
   if (response[4] is String) {
     // Throw the error.
     throw response[4];
@@ -327,11 +343,13 @@ Future<List<int>> _resourceReadAsBytes(Uri uri) async {
   }
 }
 
+// TODO(mfairhurst): remove this
 Future<Uri> _getPackageRootFuture() {
   if (_traceLoading) {
     _log("Request for package root from user code.");
   }
-  return _makeLoaderRequest(_Dart_kGetPackageRootUri, null);
+  // Return null, as the `packages/` directory is not supported in dart 2.
+  return new Future.value(null);
 }
 
 Future<Uri> _getPackageConfigFuture() {
@@ -339,7 +357,7 @@ Future<Uri> _getPackageConfigFuture() {
     _log("Request for package config from user code.");
   }
   assert(_loadPort != null);
-  return _makeLoaderRequest(_Dart_kGetPackageConfigUri, null);
+  return _makeLoaderRequest<Uri>(_Dart_kGetPackageConfigUri, null);
 }
 
 Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
@@ -353,8 +371,8 @@ Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
     // Return the incoming parameter if not passed a package: URI.
     return packageUri;
   }
-  var result =
-      await _makeLoaderRequest(_Dart_kResolvePackageUri, packageUri.toString());
+  var result = await _makeLoaderRequest<Uri>(
+      _Dart_kResolvePackageUri, packageUri.toString());
   if (result is! Uri) {
     if (_traceLoading) {
       _log("Exception when resolving package URI: $packageUri");

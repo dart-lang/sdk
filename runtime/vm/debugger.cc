@@ -57,6 +57,8 @@ DEFINE_FLAG(bool,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
+DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 #ifndef PRODUCT
@@ -250,17 +252,24 @@ ActivationFrame::ActivationFrame(uword pc,
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
-      deopt_id_(Thread::kNoDeoptId),
+      deopt_id_(DeoptId::kNone),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
       deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
       deopt_frame_offset_(deopt_frame_offset),
       kind_(kind),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      is_interpreted_(FLAG_enable_interpreter &&
+                      function_.Bytecode() == code_.raw()),
+#else
+      is_interpreted_(false),
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
-      pc_desc_(PcDescriptors::ZoneHandle()) {}
+      pc_desc_(PcDescriptors::ZoneHandle()) {
+}
 
 ActivationFrame::ActivationFrame(Kind kind)
     : pc_(0),
@@ -279,6 +288,7 @@ ActivationFrame::ActivationFrame(Kind kind)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kind),
+      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
@@ -301,28 +311,41 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kAsyncActivation),
+      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // TODO(regis): Revise debugger functionality when running a mix of
+  // interpreted and compiled code.
+  if (!FLAG_enable_interpreter || !function_.HasBytecode()) {
+    function_.EnsureHasCompiledUnoptimizedCode();
+  }
+  if (FLAG_enable_interpreter && function_.HasBytecode()) {
+    is_interpreted_ = true;
+    code_ = function_.Bytecode();
+  } else {
+    code_ = function_.unoptimized_code();
+  }
+#else
   function_.EnsureHasCompiledUnoptimizedCode();
   code_ = function_.unoptimized_code();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   ctx_ = async_activation.context();
   ASSERT(fp_ == 0);
   ASSERT(!ctx_.IsNull());
 }
 
 bool Debugger::NeedsIsolateEvents() {
-  return ((isolate_ != Dart::vm_isolate()) &&
-          !ServiceIsolate::IsServiceIsolateDescendant(isolate_) &&
+  return (!Isolate::IsVMInternalIsolate(isolate_) &&
           ((event_handler_ != NULL) || Service::isolate_stream.enabled()));
 }
 
 bool Debugger::NeedsDebugEvents() {
-  ASSERT(isolate_ != Dart::vm_isolate() &&
-         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+  ASSERT(!Isolate::IsVMInternalIsolate(isolate_));
   return (FLAG_warn_on_pause_with_no_debugger || (event_handler_ != NULL) ||
           Service::debug_stream.enabled());
 }
@@ -644,6 +667,11 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
+    if (is_interpreted()) {
+      // TODO(regis): Kernel bytecode does not yet provide var descriptors.
+      var_descriptors_ = Object::empty_var_descriptors().raw();
+      return;
+    }
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
     if (unoptimized_code.IsNull()) {
       Thread* thread = Thread::Current();
@@ -674,7 +702,7 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   DisassembleToStdout formatter;
   code().Disassemble(&formatter);
   PcDescriptors::Handle(code().pc_descriptors()).Print();
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
@@ -693,7 +721,7 @@ intptr_t ActivationFrame::ContextLevel() {
 
     GetVarDescriptors();
     intptr_t deopt_id = DeoptId();
-    if (deopt_id == Thread::kNoDeoptId) {
+    if (deopt_id == DeoptId::kNone) {
       PrintDescriptorsError("Missing deopt id");
     }
     intptr_t var_desc_len = var_descriptors_.Length();
@@ -732,15 +760,16 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
       if (!live_frame_) {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
       }
+      const auto variable_index = VariableIndex(var_info.index());
       if (kind == RawLocalVarDescriptors::kStackVar) {
-        return GetStackVar(var_info.index());
+        return GetStackVar(variable_index);
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
         if (!live_frame_) {
           ASSERT(!ctx_.IsNull());
-          return ctx_.At(var_info.index());
+          return ctx_.At(variable_index.value());
         }
-        return GetContextVar(var_info.scope_id, var_info.index());
+        return GetContextVar(var_info.scope_id, variable_index.value());
       }
     }
   }
@@ -752,15 +781,26 @@ RawObject* ActivationFrame::GetAsyncCompleter() {
 }
 
 RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
-  const Class& sync_completer_cls = Class::Handle(completer.clazz());
-  ASSERT(!sync_completer_cls.IsNull());
-  const Class& completer_cls = Class::Handle(sync_completer_cls.SuperClass());
-  const Field& future_field =
-      Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
-          Symbols::CompleterFuture()));
-  ASSERT(!future_field.IsNull());
   Instance& future = Instance::Handle();
-  future ^= Instance::Cast(completer).GetField(future_field);
+  if (FLAG_sync_async) {
+    const Class& completer_cls = Class::Handle(completer.clazz());
+    ASSERT(!completer_cls.IsNull());
+    const Function& future_getter = Function::Handle(
+        completer_cls.LookupGetterFunction(Symbols::CompleterFuture()));
+    ASSERT(!future_getter.IsNull());
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, Instance::Cast(completer));
+    future ^= DartEntry::InvokeFunction(future_getter, args);
+  } else {
+    const Class& sync_completer_cls = Class::Handle(completer.clazz());
+    ASSERT(!sync_completer_cls.IsNull());
+    const Class& completer_cls = Class::Handle(sync_completer_cls.SuperClass());
+    const Field& future_field =
+        Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
+            Symbols::CompleterFuture()));
+    ASSERT(!future_field.IsNull());
+    future ^= Instance::Cast(completer).GetField(future_field);
+  }
   if (future.IsNull()) {
     // The completer object may not be fully initialized yet.
     return Object::null();
@@ -823,7 +863,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   handlers = code().exception_handlers();
   ASSERT(!handlers.IsNull());
   intptr_t num_handlers_checked = 0;
-  while (try_index != CatchClauseNode::kInvalidTryIndex) {
+  while (try_index != kInvalidTryIndex) {
     // Detect circles in the exception handler data.
     num_handlers_checked++;
     ASSERT(num_handlers_checked <= handlers.num_entries());
@@ -855,11 +895,18 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 
 void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   // Attempt to determine the token position from the async closure.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Script& script = Script::Handle(zone, function().script());
+
   ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
   // This should only be called on frames that aren't active on the stack.
   ASSERT(fp() == 0);
+
   const Array& await_to_token_map =
-      Array::Handle(code_.await_token_positions());
+      Array::Handle(zone, script.kind() == RawScript::kKernelTag
+                              ? script.yield_positions()
+                              : code_.await_token_positions());
   if (await_to_token_map.IsNull()) {
     // No mapping.
     return;
@@ -883,9 +930,36 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   if (await_jump_var < 0) {
     return;
   }
-  ASSERT(await_jump_var < await_to_token_map.Length());
+  intptr_t await_to_token_map_index =
+      script.kind() == RawScript::kKernelTag
+          ? await_jump_var - 1
+          :
+          // source script tokens array has first element duplicated
+          await_jump_var;
+
+  if (script.kind() == RawScript::kKernelTag) {
+    // yield_positions returns all yield positions for the script (in sorted
+    // order).
+    // We thus need to offset the function start to get the actual index.
+    if (!function_.token_pos().IsReal()) {
+      return;
+    }
+    const intptr_t function_start = function_.token_pos().value();
+    for (intptr_t i = 0;
+         i < await_to_token_map.Length() &&
+         Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
+             function_start;
+         i++) {
+      await_to_token_map_index++;
+    }
+  }
+
+  if (await_to_token_map_index >= await_to_token_map.Length()) {
+    return;
+  }
+
   const Object& token_pos =
-      Object::Handle(await_to_token_map.At(await_jump_var));
+      Object::Handle(await_to_token_map.At(await_to_token_map_index));
   if (token_pos.IsNull()) {
     return;
   }
@@ -897,7 +971,7 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
     if (iter.TokenPos() == token_pos_) {
       // Match the lowest try index at this token position.
       // TODO(johnmccutchan): Is this heuristic precise enough?
-      if (iter.TryIndex() != CatchClauseNode::kInvalidTryIndex) {
+      if (iter.TryIndex() != kInvalidTryIndex) {
         if ((try_index_ == -1) || (iter.TryIndex() < try_index_)) {
           try_index_ = iter.TryIndex();
         }
@@ -935,7 +1009,8 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
                      var_info.index());
       }
-      obj = GetStackVar(var_info.index());
+      const auto variable_index = VariableIndex(var_info.index());
+      obj = GetStackVar(variable_index);
       if (obj.IsClosure()) {
         ASSERT(function().name() == Symbols::Call().raw());
         ASSERT(function().IsInvokeFieldDispatcher());
@@ -960,11 +1035,12 @@ RawObject* ActivationFrame::GetAsyncOperation() {
     var_descriptors_.GetInfo(i, &var_info);
     if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
       const int8_t kind = var_info.kind();
+      const auto variable_index = VariableIndex(var_info.index());
       if (kind == RawLocalVarDescriptors::kStackVar) {
-        return GetStackVar(var_info.index());
+        return GetStackVar(variable_index);
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        return GetContextVar(var_info.scope_id, var_info.index());
+        return GetContextVar(var_info.scope_id, variable_index.value());
       }
     }
   }
@@ -1075,8 +1151,9 @@ RawObject* ActivationFrame::GetParameter(intptr_t index) {
     // can be in a number of places in the caller's frame depending on how many
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
-    return GetVariableValue(
-        LocalVarAddress(fp(), (kFirstLocalSlotFromFp - index)));
+
+    return GetVariableValue(LocalVarAddress(
+        fp(), runtime_frame_layout.FrameSlotForVariableIndex(-index)));
   } else {
     intptr_t reverse_index = num_parameters - index;
     return GetVariableValue(ParamAddress(fp(), reverse_index));
@@ -1088,7 +1165,9 @@ RawObject* ActivationFrame::GetClosure() {
   return GetParameter(0);
 }
 
-RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
+RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
+  const intptr_t slot_index =
+      runtime_frame_layout.FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
     return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
@@ -1150,7 +1229,7 @@ void ActivationFrame::PrintContextMismatchError(intptr_t ctx_slot,
   OS::PrintErr(
       "-------------------------\n"
       "All frames...\n\n");
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -1184,11 +1263,12 @@ void ActivationFrame::VariableAt(intptr_t i,
   *visible_end_token_pos = var_info.end_pos;
   ASSERT(value != NULL);
   const int8_t kind = var_info.kind();
+  const auto variable_index = VariableIndex(var_info.index());
   if (kind == RawLocalVarDescriptors::kStackVar) {
-    *value = GetStackVar(var_info.index());
+    *value = GetStackVar(variable_index);
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    *value = GetContextVar(var_info.scope_id, var_info.index());
+    *value = GetContextVar(var_info.scope_id, variable_index.value());
   }
 }
 
@@ -1262,18 +1342,50 @@ static bool IsPrivateVariableName(const String& var_name) {
   return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
 }
 
-RawObject* ActivationFrame::Evaluate(const String& expr,
-                                     const GrowableObjectArray& param_names,
-                                     const GrowableObjectArray& param_values) {
+RawObject* ActivationFrame::EvaluateCompiledExpression(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) {
+  if (function().is_static()) {
+    const Class& cls = Class::Handle(function().Owner());
+    return cls.EvaluateCompiledExpression(kernel_bytes, kernel_length,
+                                          type_definitions, arguments,
+                                          type_arguments);
+  } else {
+    const Object& receiver = Object::Handle(GetReceiver());
+    const Class& method_cls = Class::Handle(function().origin());
+    ASSERT(receiver.IsInstance() || receiver.IsNull());
+    if (!(receiver.IsInstance() || receiver.IsNull())) {
+      return Object::null();
+    }
+    const Instance& inst = Instance::Cast(receiver);
+    return inst.EvaluateCompiledExpression(method_cls, kernel_bytes,
+                                           kernel_length, type_definitions,
+                                           arguments, type_arguments);
+  }
+}
+
+RawTypeArguments* ActivationFrame::BuildParameters(
+    const GrowableObjectArray& param_names,
+    const GrowableObjectArray& param_values,
+    const GrowableObjectArray& type_params_names) {
   GetDescIndices();
+  bool type_arguments_available = false;
   String& name = String::Handle();
   String& existing_name = String::Handle();
   Object& value = Instance::Handle();
+  TypeArguments& type_arguments = TypeArguments::Handle();
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
     VariableAt(i, &name, &ignore, &ignore, &ignore, &value);
-    if (!name.Equals(Symbols::This()) && !IsSyntheticVariableName(name)) {
+    if (name.Equals(Symbols::FunctionTypeArgumentsVar())) {
+      type_arguments_available = true;
+      type_arguments ^= value.raw();
+    } else if (!name.Equals(Symbols::This()) &&
+               !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
       }
@@ -1295,25 +1407,37 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
     }
   }
 
-  if (function().is_static()) {
-    const Class& cls = Class::Handle(function().Owner());
-    return cls.Evaluate(expr,
-                        Array::Handle(Array::MakeFixedLength(param_names)),
-                        Array::Handle(Array::MakeFixedLength(param_values)));
-  } else {
-    const Object& receiver = Object::Handle(GetReceiver());
-    const Class& method_cls = Class::Handle(function().origin());
-    ASSERT(receiver.IsInstance() || receiver.IsNull());
-    if (!(receiver.IsInstance() || receiver.IsNull())) {
-      return Object::null();
+  if ((function().IsGeneric() || function().HasGenericParent()) &&
+      type_arguments_available) {
+    intptr_t num_vars =
+        function().NumTypeParameters() + function().NumParentTypeParameters();
+    type_params_names.Grow(num_vars);
+    type_params_names.SetLength(num_vars);
+    TypeArguments& type_params = TypeArguments::Handle();
+    TypeParameter& type_param = TypeParameter::Handle();
+    Function& current = Function::Handle(function().raw());
+    for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
+                  current = current.parent_function()) {
+      type_params = current.type_parameters();
+      for (intptr_t j = 0; j < current.NumTypeParameters(); ++j) {
+        type_param = TypeParameter::RawCast(type_params.TypeAt(j));
+        name = type_param.Name();
+        // Write the names in backwards so they match up with the order of the
+        // types in 'type_arguments'.
+        type_params_names.SetAt(num_vars - (i + j) - 1, name);
+      }
     }
-    const Instance& inst = Instance::Cast(receiver);
-    return inst.Evaluate(method_cls, expr,
-                         Array::Handle(Array::MakeFixedLength(param_names)),
-                         Array::Handle(Array::MakeFixedLength(param_values)));
+    if (!type_arguments.IsNull()) {
+      if (type_arguments.Length() == 0) {
+        for (intptr_t i = 0; i < num_vars; ++i) {
+          type_arguments.SetTypeAt(i, Object::dynamic_type());
+        }
+      }
+      ASSERT(type_arguments.Length() == num_vars);
+    }
   }
-  UNREACHABLE();
-  return Object::null();
+
+  return type_arguments.raw();
 }
 
 const char* ActivationFrame::ToCString() {
@@ -1473,8 +1597,8 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
 #if !defined(TARGET_ARCH_DBC)
       saved_value_(Code::null())
 #else
-      saved_value_(Bytecode::kTrap),
-      saved_value_fastsmi_(Bytecode::kTrap)
+      saved_value_(SimulatorBytecode::kTrap),
+      saved_value_fastsmi_(SimulatorBytecode::kTrap)
 #endif
 {
   ASSERT(!code.IsNull());
@@ -1594,8 +1718,7 @@ Debugger::~Debugger() {
 void Debugger::Shutdown() {
   // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
   // them. Then, assert here that isolate_ is not one of those isolates.
-  if ((isolate_ == Dart::vm_isolate()) ||
-      ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+  if (Isolate::IsVMInternalIsolate(isolate_)) {
     return;
   }
   while (breakpoint_locations_ != NULL) {
@@ -1711,6 +1834,9 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // We currently don't have this info so we deoptimize all functions.
 void Debugger::DeoptimizeWorld() {
   BackgroundCompiler::Stop(isolate_);
+  if (FLAG_trace_deoptimization) {
+    THR_Print("Deopt for debugger\n");
+  }
   DeoptimizeFunctionsOnStack();
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
@@ -1808,7 +1934,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   Code& code = Code::Handle(zone);
@@ -1897,7 +2023,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   // asynchronous function. We truncate the remainder of the synchronous
   // stack trace because it contains activations that are part of the
   // asynchronous dispatch mechanisms.
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -1949,6 +2075,16 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   return stack_trace;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static bool CheckAndSkipAsync(int skip_sync_async_frames_count,
+                              const String& function_name) {
+  return (skip_sync_async_frames_count == 2 &&
+          function_name.Equals(Symbols::_ClosureCall())) ||
+         (skip_sync_async_frames_count == 1 &&
+          function_name.Equals(Symbols::_AsyncAwaitCompleterStart()));
+}
+#endif
+
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Causal async stacks are not supported in the AOT runtime.
@@ -1964,7 +2100,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
 
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
 
@@ -1977,11 +2113,15 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   Array& deopt_frame = Array::Handle(zone);
   class StackTrace& async_stack_trace = StackTrace::Handle(zone);
   bool stack_has_async_function = false;
+
+  // Number of frames we are trying to skip that form "sync async" entry.
+  int skip_sync_async_frames_count = -1;
+  String& function_name = String::Handle(zone);
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
+      OS::PrintErr("CollectAwaiterReturnStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
     if (frame->IsDartFrame()) {
@@ -1989,14 +2129,31 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
       if (code.is_optimized()) {
         deopt_frame = DeoptimizeToArray(thread, frame, code);
         bool found_async_awaiter = false;
+        bool abort_attempt_to_navigate_through_sync_async = false;
         for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
              it.Advance()) {
           inlined_code = it.code();
           function = it.function();
+
+          if (skip_sync_async_frames_count > 0) {
+            function_name ^= function.QualifiedScrubbedName();
+            if (CheckAndSkipAsync(skip_sync_async_frames_count,
+                                  function_name)) {
+              skip_sync_async_frames_count--;
+            } else {
+              // Unexpected function in sync async call
+              skip_sync_async_frames_count = -1;
+              abort_attempt_to_navigate_through_sync_async = true;
+              break;
+            }
+          }
+
           if (FLAG_trace_debugger_stacktrace) {
             ASSERT(!function.IsNull());
-            OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
-                         function.ToFullyQualifiedCString());
+            OS::PrintErr(
+                "CollectAwaiterReturnStackTrace: visiting inlined function: "
+                "%s\n",
+                function.ToFullyQualifiedCString());
           }
           intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
           if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
@@ -2009,7 +2166,20 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
             // Grab the awaiter.
             async_activation ^= activation->GetAsyncAwaiter();
             found_async_awaiter = true;
-            break;
+            if (FLAG_sync_async) {
+              // async function might have been called synchronously, in which
+              // case we need to keep going down the stack.
+              // To determine how we are called we peek few more frames further
+              // expecting to see Closure_call followed by
+              // AsyncAwaitCompleter_start.
+              // If we are able to see those functions we continue going down
+              // thestack, if we are not, we break out of the loop as we are
+              // not interested in exploring rest of the stack - there is only
+              // dart-internal code left.
+              skip_sync_async_frames_count = 2;
+            } else {
+              break;
+            }
           } else {
             stack_trace->AddActivation(
                 CollectDartFrame(isolate, it.pc(), frame, inlined_code,
@@ -2017,11 +2187,23 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           }
         }
         // Break out of outer loop.
-        if (found_async_awaiter) {
+        if (found_async_awaiter ||
+            abort_attempt_to_navigate_through_sync_async) {
           break;
         }
       } else {
         function = code.function();
+
+        if (skip_sync_async_frames_count > 0) {
+          function_name ^= function.QualifiedScrubbedName();
+          if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
+            skip_sync_async_frames_count--;
+          } else {
+            // Unexpected function in sync async call.
+            break;
+          }
+        }
+
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
           ActivationFrame* activation = CollectDartFrame(
               isolate, frame->pc(), frame, code, Object::null_array(), 0,
@@ -2032,7 +2214,12 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
-          break;
+          if (FLAG_sync_async) {
+            // see comment regarding skipping sync-async frames above.
+            skip_sync_async_frames_count = 2;
+          } else {
+            break;
+          }
         } else {
           stack_trace->AddActivation(CollectDartFrame(
               isolate, frame->pc(), frame, code, Object::null_array(), 0));
@@ -2100,7 +2287,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 }
 
 ActivationFrame* Debugger::TopDartFrame() const {
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -2258,21 +2445,6 @@ void Debugger::PauseException(const Instance& exc) {
   ClearCachedStackTraces();
 }
 
-static TokenPosition LastTokenOnLine(Zone* zone,
-                                     const TokenStream& tokens,
-                                     TokenPosition pos) {
-  TokenStream::Iterator iter(zone, tokens, pos,
-                             TokenStream::Iterator::kAllTokens);
-  ASSERT(iter.IsValid());
-  TokenPosition last_pos = pos;
-  while ((iter.CurrentTokenKind() != Token::kNEWLINE) &&
-         (iter.CurrentTokenKind() != Token::kEOS)) {
-    last_pos = iter.CurrentPosition();
-    iter.Advance();
-  }
-  return last_pos;
-}
-
 // Returns the best fit token position for a breakpoint.
 //
 // Takes a range of tokens [requested_token_pos, last_token_pos] and
@@ -2411,8 +2583,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
         end_of_line_pos = begin_pos;
       }
     } else {
-      const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-      end_of_line_pos = LastTokenOnLine(zone, tokens, begin_pos);
+      UNREACHABLE();
+      end_of_line_pos = TokenPosition::kNoSource;
     }
 
     uword lowest_pc_offset = kUwordMax;
@@ -2678,17 +2850,9 @@ bool Debugger::FindBestFit(const Script& script,
 
         bool has_func_literal_initializer = false;
 #ifndef DART_PRECOMPILED_RUNTIME
-        if (isolate_->use_dart_frontend()) {
-          has_func_literal_initializer =
-              kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
-        } else {
+        has_func_literal_initializer =
+            kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
 #endif  // !DART_PRECOMPILED_RUNTIME
-          has_func_literal_initializer =
-              Parser::FieldHasFunctionLiteralInitializer(field, &start, &end);
-#ifndef DART_PRECOMPILED_RUNTIME
-        }
-#endif  // !DART_PRECOMPILED_RUNTIME
-
         if (has_func_literal_initializer) {
           if ((start <= token_pos && token_pos <= end) ||
               (token_pos <= start && start <= last_token_pos)) {
@@ -2705,11 +2869,17 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             TokenPosition token_pos,
                                             TokenPosition last_token_pos,
                                             intptr_t requested_line,
-                                            intptr_t requested_column) {
+                                            intptr_t requested_column,
+                                            const Function& function) {
   Function& func = Function::Handle();
-  if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
-    return NULL;
+  if (function.IsNull()) {
+    if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
+      return NULL;
+    }
+  } else {
+    func = function.raw();
   }
+
   if (!func.IsNull()) {
     // There may be more than one function object for a given function
     // in source code. There may be implicit closure functions, and
@@ -2751,7 +2921,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
           intptr_t line_number;
           intptr_t column_number;
           script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
-          OS::Print(
+          OS::PrintErr(
               "Resolved BP for "
               "function '%s' at line %" Pd " col %" Pd "\n",
               func.ToFullyQualifiedCString(), line_number, column_number);
@@ -2768,12 +2938,12 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
     intptr_t column_number;
     script.GetTokenLocation(token_pos, &line_number, &column_number);
     if (func.IsNull()) {
-      OS::Print(
+      OS::PrintErr(
           "Registering pending breakpoint for "
           "an uncompiled function literal at line %" Pd " col %" Pd "\n",
           line_number, column_number);
     } else {
-      OS::Print(
+      OS::PrintErr(
           "Registering pending breakpoint for "
           "uncompiled function '%s' at line %" Pd " col %" Pd "\n",
           func.ToFullyQualifiedCString(), line_number, column_number);
@@ -2807,16 +2977,6 @@ void Debugger::SyncBreakpointLocation(BreakpointLocation* loc) {
   }
 }
 
-RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    SetBreakpointAtEntry(target_function, true);
-    return Error::null();
-  } else {
-    return Thread::Current()->sticky_error();
-  }
-}
-
 Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
                                            bool single_shot) {
   ASSERT(!target_function.IsNull());
@@ -2826,7 +2986,7 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
   const Script& script = Script::Handle(target_function.script());
   BreakpointLocation* bpt_location = SetBreakpoint(
       script, target_function.token_pos(), target_function.end_token_pos(), -1,
-      -1 /* no requested line/col */);
+      -1 /* no requested line/col */, target_function);
   if (bpt_location == NULL) {
     return NULL;
   }
@@ -2845,8 +3005,9 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
   }
   const Function& func = Function::Handle(Closure::Cast(closure).function());
   const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt_location = SetBreakpoint(
-      script, func.token_pos(), func.end_token_pos(), -1, -1 /* no line/col */);
+  BreakpointLocation* bpt_location =
+      SetBreakpoint(script, func.token_pos(), func.end_token_pos(), -1,
+                    -1 /* no line/col */, func);
   return bpt_location->AddPerClosure(this, closure, for_over_await);
 }
 
@@ -2927,7 +3088,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     BreakpointLocation* latent_bpt =
         GetLatentBreakpoint(script_url, line_number, column_number);
     if (FLAG_verbose_debug) {
-      OS::Print(
+      OS::PrintErr(
           "Set latent breakpoint in url '%s' at "
           "line %" Pd " col %" Pd "\n",
           script_url.ToCString(), line_number, column_number);
@@ -2936,7 +3097,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   }
   if (scripts.Length() > 1) {
     if (FLAG_verbose_debug) {
-      OS::Print("Multiple scripts match url '%s'\n", script_url.ToCString());
+      OS::PrintErr("Multiple scripts match url '%s'\n", script_url.ToCString());
     }
     return NULL;
   }
@@ -2946,15 +3107,15 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   if (!first_token_idx.IsReal()) {
     // Script does not contain the given line number.
     if (FLAG_verbose_debug) {
-      OS::Print("Script '%s' does not contain line number %" Pd "\n",
-                script_url.ToCString(), line_number);
+      OS::PrintErr("Script '%s' does not contain line number %" Pd "\n",
+                   script_url.ToCString(), line_number);
     }
     return NULL;
   } else if (!last_token_idx.IsReal()) {
     // Line does not contain any tokens.
     if (FLAG_verbose_debug) {
-      OS::Print("No executable code at line %" Pd " in '%s'\n", line_number,
-                script_url.ToCString());
+      OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
+                   script_url.ToCString());
     }
     return NULL;
   }
@@ -2963,12 +3124,12 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   ASSERT(first_token_idx <= last_token_idx);
   while ((bpt == NULL) && (first_token_idx <= last_token_idx)) {
     bpt = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
-                        column_number);
+                        column_number, Function::Handle());
     first_token_idx.Next();
   }
   if ((bpt == NULL) && FLAG_verbose_debug) {
-    OS::Print("No executable code at line %" Pd " in '%s'\n", line_number,
-              script_url.ToCString());
+    OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
+                 script_url.ToCString());
   }
   return bpt;
 }
@@ -3304,7 +3465,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     skip_next_step_ = skip_next_step;
     SetAsyncSteppingFramePointer();
     if (FLAG_verbose_debug) {
-      OS::Print("HandleSteppingRequest- kStepInto\n");
+      OS::PrintErr("HandleSteppingRequest- kStepInto\n");
     }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
@@ -3314,7 +3475,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     stepping_fp_ = stack_trace->FrameAt(0)->fp();
     SetAsyncSteppingFramePointer();
     if (FLAG_verbose_debug) {
-      OS::Print("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
+      OS::PrintErr("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
     if (FLAG_async_debugger) {
@@ -3343,7 +3504,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
       }
     }
     if (FLAG_verbose_debug) {
-      OS::Print("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
+      OS::PrintErr("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepRewind) {
     if (FLAG_trace_rewind) {
@@ -3351,7 +3512,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
       OS::PrintErr(
           "-------------------------\n"
           "All frames...\n\n");
-      StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+      StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                                   Thread::Current(),
                                   StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* frame = iterator.NextFrame();
@@ -3469,7 +3630,7 @@ void Debugger::RewindToFrame(intptr_t frame_index) {
   Function& function = Function::Handle(zone);
 
   // Find the requested frame.
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   intptr_t current_frame = 0;
@@ -3570,7 +3731,7 @@ void Debugger::RewindPostDeopt() {
     OS::PrintErr(
         "-------------------------\n"
         "All frames...\n\n");
-    StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+    StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                                 Thread::Current(),
                                 StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
@@ -3585,7 +3746,7 @@ void Debugger::RewindPostDeopt() {
   Zone* zone = thread->zone();
   Code& code = Code::Handle(zone);
 
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   intptr_t current_frame = 0;
@@ -3651,13 +3812,7 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
       }
       return false;
     }
-    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-    TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
-    if ((iter.CurrentTokenKind() == Token::kIDENT) &&
-        ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
-         (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
-      return true;
-    }
+    UNREACHABLE();
   }
   return false;
 }
@@ -3729,11 +3884,11 @@ RawError* Debugger::PauseStepping() {
   ASSERT(!HasActiveBreakpoint(frame->pc()));
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> single step break at %s:%" Pd " (func %s token %s)\n",
-              String::Handle(frame->SourceUrl()).ToCString(),
-              frame->LineNumber(),
-              String::Handle(frame->QualifiedFunctionName()).ToCString(),
-              frame->TokenPos().ToCString());
+    OS::PrintErr(">>> single step break at %s:%" Pd " (func %s token %s)\n",
+                 String::Handle(frame->SourceUrl()).ToCString(),
+                 frame->LineNumber(),
+                 String::Handle(frame->QualifiedFunctionName()).ToCString(),
+                 frame->TokenPos().ToCString());
   }
 
   CacheStackTraces(CollectStackTrace(), CollectAsyncCausalStackTrace(),
@@ -3778,12 +3933,12 @@ RawError* Debugger::PauseBreakpoint() {
 
     // Hit a synthetic async breakpoint.
     if (FLAG_verbose_debug) {
-      OS::Print(">>> hit synthetic breakpoint at %s:%" Pd
-                " "
-                "(token %s) (address %#" Px ")\n",
-                String::Handle(cbpt->SourceUrl()).ToCString(),
-                cbpt->LineNumber(), cbpt->token_pos().ToCString(),
-                top_frame->pc());
+      OS::PrintErr(">>> hit synthetic breakpoint at %s:%" Pd
+                   " "
+                   "(token %s) (address %#" Px ")\n",
+                   String::Handle(cbpt->SourceUrl()).ToCString(),
+                   cbpt->LineNumber(), cbpt->token_pos().ToCString(),
+                   top_frame->pc());
     }
 
     ASSERT(synthetic_async_breakpoint_ == NULL);
@@ -3801,12 +3956,12 @@ RawError* Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit breakpoint %" Pd " at %s:%" Pd
-              " (token %s) "
-              "(address %#" Px ")\n",
-              bpt_hit->id(), String::Handle(cbpt->SourceUrl()).ToCString(),
-              cbpt->LineNumber(), cbpt->token_pos().ToCString(),
-              top_frame->pc());
+    OS::PrintErr(">>> hit breakpoint %" Pd " at %s:%" Pd
+                 " (token %s) "
+                 "(address %#" Px ")\n",
+                 bpt_hit->id(), String::Handle(cbpt->SourceUrl()).ToCString(),
+                 cbpt->LineNumber(), cbpt->token_pos().ToCString(),
+                 top_frame->pc());
   }
 
   CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
@@ -3960,8 +4115,8 @@ void Debugger::NotifyCompilation(const Function& func) {
         // be compiled already.
         ASSERT(!inner_function.HasCode());
         if (FLAG_verbose_debug) {
-          OS::Print("Pending BP remains unresolved in inner function '%s'\n",
-                    inner_function.ToFullyQualifiedCString());
+          OS::PrintErr("Pending BP remains unresolved in inner function '%s'\n",
+                       inner_function.ToFullyQualifiedCString());
         }
         continue;
       }
@@ -3980,8 +4135,8 @@ void Debugger::NotifyCompilation(const Function& func) {
                                  loc->requested_column_number());
         if (!bp_pos.IsDebugPause()) {
           if (FLAG_verbose_debug) {
-            OS::Print("Failed resolving breakpoint for function '%s'\n",
-                      String::Handle(func.name()).ToCString());
+            OS::PrintErr("Failed resolving breakpoint for function '%s'\n",
+                         String::Handle(func.name()).ToCString());
           }
           continue;
         }
@@ -3991,17 +4146,17 @@ void Debugger::NotifyCompilation(const Function& func) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
           if (FLAG_verbose_debug) {
-            OS::Print("Resolved BP %" Pd
-                      " to pos %s, "
-                      "line %" Pd " col %" Pd
-                      ", "
-                      "function '%s' (requested range %s-%s, "
-                      "requested col %" Pd ")\n",
-                      bpt->id(), loc->token_pos().ToCString(),
-                      loc->LineNumber(), loc->ColumnNumber(),
-                      func.ToFullyQualifiedCString(), requested_pos.ToCString(),
-                      requested_end_pos.ToCString(),
-                      loc->requested_column_number());
+            OS::PrintErr(
+                "Resolved BP %" Pd
+                " to pos %s, "
+                "line %" Pd " col %" Pd
+                ", "
+                "function '%s' (requested range %s-%s, "
+                "requested col %" Pd ")\n",
+                bpt->id(), loc->token_pos().ToCString(), loc->LineNumber(),
+                loc->ColumnNumber(), func.ToFullyQualifiedCString(),
+                requested_pos.ToCString(), requested_end_pos.ToCString(),
+                loc->requested_column_number());
           }
           SendBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
           bpt = bpt->next();
@@ -4011,12 +4166,12 @@ void Debugger::NotifyCompilation(const Function& func) {
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
-          OS::Print("Setting breakpoint %" Pd " at line %" Pd " col %" Pd
-                    ""
-                    " for %s '%s'\n",
-                    bpt->id(), loc->LineNumber(), loc->ColumnNumber(),
-                    func.IsClosureFunction() ? "closure" : "function",
-                    String::Handle(func.name()).ToCString());
+          OS::PrintErr("Setting breakpoint %" Pd " at line %" Pd " col %" Pd
+                       ""
+                       " for %s '%s'\n",
+                       bpt->id(), loc->LineNumber(), loc->ColumnNumber(),
+                       func.IsClosureFunction() ? "closure" : "function",
+                       String::Handle(func.name()).ToCString());
           bpt = bpt->next();
         }
       }
@@ -4068,10 +4223,10 @@ void Debugger::NotifyDoneLoading() {
           Breakpoint* bpt = matched_loc->breakpoints();
           while (bpt != NULL) {
             if (FLAG_verbose_debug) {
-              OS::Print("No code found at line %" Pd
-                        ": "
-                        "dropping latent breakpoint %" Pd " in '%s'\n",
-                        line_number, bpt->id(), url.ToCString());
+              OS::PrintErr("No code found at line %" Pd
+                           ": "
+                           "dropping latent breakpoint %" Pd " in '%s'\n",
+                           line_number, bpt->id(), url.ToCString());
             }
             Breakpoint* prev = bpt;
             bpt = bpt->next();
@@ -4100,7 +4255,7 @@ void Debugger::NotifyDoneLoading() {
             while (bpt != NULL) {
               bpt->set_bpt_location(unresolved_loc);
               if (FLAG_verbose_debug) {
-                OS::Print(
+                OS::PrintErr(
                     "Converted latent breakpoint "
                     "%" Pd " in '%s' at line %" Pd " col %" Pd "\n",
                     bpt->id(), url.ToCString(), line_number, column_number);
@@ -4128,7 +4283,7 @@ void Debugger::NotifyDoneLoading() {
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
-          OS::Print(
+          OS::PrintErr(
               "No match found for latent breakpoint id "
               "%" Pd " with url '%s'\n",
               bpt->id(), url.ToCString());

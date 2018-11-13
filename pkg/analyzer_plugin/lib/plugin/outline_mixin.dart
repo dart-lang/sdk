@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,6 +25,8 @@ import 'package:analyzer_plugin/utilities/outline/outline.dart';
 abstract class DartOutlineMixin implements OutlineMixin {
   @override
   Future<OutlineRequest> getOutlineRequest(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(path);
     return new DartOutlineRequestImpl(resourceProvider, result);
   }
@@ -53,13 +55,15 @@ abstract class OutlineMixin implements ServerPlugin {
   Future<OutlineRequest> getOutlineRequest(String path);
 
   @override
-  Future<Null> sendOutlineNotification(String path) async {
+  Future<void> sendOutlineNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       OutlineRequest request = await getOutlineRequest(path);
       OutlineGenerator generator =
           new OutlineGenerator(getOutlineContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateOutlineNotification(request);
+          generator.generateOutlineNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

@@ -1,7 +1,6 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:developer';
 
@@ -35,35 +34,41 @@ var tests = <IsolateTest>[
     expect(stack['frames'].length, greaterThanOrEqualTo(1));
     expect(stack['frames'][0].function.name, equals('foo'));
 
-    var lib = await isolate.rootLibrary.load();
-    var thing1 =
-        (await lib.variables.singleWhere((v) => v.name == "thing1").load())
-            .staticValue;
+    Library lib = await isolate.rootLibrary.load();
+    Field thing1Field =
+        await lib.variables.singleWhere((v) => v.name == "thing1").load();
+    var thing1 = thing1Field.staticValue;
     print(thing1);
-    var thing2 =
-        (await lib.variables.singleWhere((v) => v.name == "thing2").load())
-            .staticValue;
+    Field thing2Field =
+        await lib.variables.singleWhere((v) => v.name == "thing2").load();
+    var thing2 = thing2Field.staticValue;
     print(thing2);
 
-    var result = await isolate
-        .evalFrame(0, "x + y + a + b", scope: {"a": thing1, "b": thing2});
+    final isInstanceOf<Instance> isInstanceOfInstance =
+        new isInstanceOf<Instance>();
+    ServiceObject result = await isolate.evalFrame(0, "x + y + a + b",
+        scope: <String, ServiceObject>{"a": thing1, "b": thing2});
+    expect(result, isInstanceOfInstance);
     print(result);
-    expect(result.valueAsString, equals('2033'));
+    expect((result as Instance).valueAsString, equals('2033'));
 
-    result = await isolate
-        .evalFrame(0, "local + a + b", scope: {"a": thing1, "b": thing2});
+    result = await isolate.evalFrame(0, "local + a + b",
+        scope: <String, ServiceObject>{"a": thing1, "b": thing2});
+    expect(result, isInstanceOfInstance);
     print(result);
-    expect(result.valueAsString, equals('2033'));
+    expect((result as Instance).valueAsString, equals('2033'));
 
     // Note the eval's scope is shadowing the locals' scope.
-    result =
-        await isolate.evalFrame(0, "x + y", scope: {"x": thing1, "y": thing2});
+    result = await isolate.evalFrame(0, "x + y",
+        scope: <String, ServiceObject>{"x": thing1, "y": thing2});
+    expect(result, isInstanceOfInstance);
     print(result);
-    expect(result.valueAsString, equals('7'));
+    expect((result as Instance).valueAsString, equals('7'));
 
     bool didThrow = false;
     try {
-      await lib.evaluate("x + y", scope: {"x": lib, "y": lib});
+      await lib.evaluate("x + y",
+          scope: <String, ServiceObject>{"x": lib, "y": lib});
     } catch (e) {
       didThrow = true;
       expect(e.toString(),
@@ -73,8 +78,8 @@ var tests = <IsolateTest>[
 
     didThrow = false;
     try {
-      result =
-          await lib.evaluate("x + y", scope: {"not&an&identifier": thing1});
+      result = await lib.evaluate("x + y",
+          scope: <String, ServiceObject>{"not&an&identifier": thing1});
       print(result);
     } catch (e) {
       didThrow = true;

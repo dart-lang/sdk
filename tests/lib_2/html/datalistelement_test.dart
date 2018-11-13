@@ -31,35 +31,41 @@ main() {
     document.body.nodes.removeLast();
   });
 
-  // Support is checked in element_types test.
-  var expectation = DataListElement.supported ? returnsNormally : throws;
-
   test('is', () {
-    expect(() {
-      var list = document.query('#browsers');
+    try {
+      var list = document.querySelector('#browsers');
       expect(list, isDataListElement);
-    }, expectation);
+    } catch (e) {
+      expect(DataListElement.supported, false);
+    }
   });
 
   test('list', () {
-    expect(() {
-      var list = document.query('#browsers') as DataListElement;
-      var input = document.query('#input') as InputElement;
+    try {
+      var list = document.querySelector('#browsers') as DataListElement;
+      var input = document.querySelector('#input') as InputElement;
       expect(input.list, list);
-    }, expectation);
+    } catch (e) {
+      expect(DataListElement.supported, false);
+    }
   });
 
   test('options', () {
-    expect(() {
-      var options = (document.query('#browsers') as DataListElement).options;
+    try {
+      var options =
+          (document.querySelector('#browsers') as DataListElement).options;
       expect(options.length, 5);
-    }, expectation);
+    } catch (e) {
+      expect(DataListElement.supported, false);
+    }
   });
 
   test('create', () {
-    expect(() {
+    try {
       var list = new DataListElement();
       expect(list, isDataListElement);
-    }, expectation);
+    } catch (e) {
+      expect(DataListElement.supported, false);
+    }
   });
 }

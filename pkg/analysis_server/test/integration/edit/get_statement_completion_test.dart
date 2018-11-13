@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -14,12 +12,12 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetStatementCompletionTest);
-    defineReflectiveTests(GetStatementCompletionTest_PreviewDart2);
   });
 }
 
 @reflectiveTest
 class GetStatementCompletionTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_statement_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -42,20 +40,14 @@ void foo() { }''';
     for (SourceEdit edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
+    expect(text, r'''
+void bar() { foo(); } // missing semi-colon
+
+void foo() { }''');
+
     await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
-}
-
-@reflectiveTest
-class GetStatementCompletionTest_PreviewDart2
-    extends GetStatementCompletionTest {
-  @override
-  bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  Future test_statement_completion() => super.test_statement_completion();
 }

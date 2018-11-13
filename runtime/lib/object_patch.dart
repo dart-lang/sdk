@@ -4,13 +4,16 @@
 
 // part of "core_patch.dart";
 
+@pragma("vm:exact-result-type", "dart:core#_Smi")
 int _getHash(obj) native "Object_getHash";
 void _setHash(obj, hash) native "Object_setHash";
 
 @patch
+@pragma("vm:entry-point")
 class Object {
   // The VM has its own implementation of equals.
   @patch
+  @pragma("vm:exact-result-type", bool)
   bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
@@ -41,28 +44,31 @@ class Object {
   static String _toString(obj) native "Object_toString";
 
   @patch
+  @pragma("vm:entry-point")
   dynamic noSuchMethod(Invocation invocation) {
     // TODO(regis): Remove temp constructor identifier 'withInvocation'.
     throw new NoSuchMethodError.withInvocation(this, invocation);
   }
 
   @patch
+  @pragma("vm:exact-result-type", "dart:core#_Type")
   Type get runtimeType native "Object_runtimeType";
 
+  @pragma("vm:entry-point")
+  @pragma("vm:exact-result-type", bool)
   static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
+  @pragma("vm:entry-point")
   bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type)
       native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
+  @pragma("vm:entry-point")
   bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
+  @pragma("vm:entry-point")
   bool _simpleInstanceOfTrue(type) => true;
+  @pragma("vm:entry-point")
   bool _simpleInstanceOfFalse(type) => false;
-
-  // Call this function instead of inlining 'as', thus collecting type
-  // feedback. Returns receiver.
-  _as(instantiatorTypeArguments, functionTypeArguments, type)
-      native "Object_as";
 }

@@ -9,8 +9,7 @@
 
 #include <dlfcn.h>
 #include <fcntl.h>
-#include <fdio/io.h>
-#include <launchpad/vmo.h>
+#include <lib/fdio/io.h>
 #include <zircon/dlfcn.h>
 
 #include "platform/assert.h"
@@ -30,7 +29,7 @@ void* Extensions::LoadExtensionLibrary(const char* library_file) {
     return NULL;
   }
   zx_handle_t vmo;
-  zx_status_t status = fdio_get_vmo(fd, &vmo);
+  zx_status_t status = fdio_get_vmo_clone(fd, &vmo);
   close(fd);
   if (status != ZX_OK) {
     return NULL;

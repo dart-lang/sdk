@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  core::Function f = (dynamic x) → dynamic => x;
+  dynamic l = <dynamic>["bar"].map(f).toList();
+  l.add(42);
+  return l.first.length;
+}
+static method main() → dynamic {}

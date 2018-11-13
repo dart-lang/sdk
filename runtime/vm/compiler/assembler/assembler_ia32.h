@@ -221,81 +221,12 @@ class FieldAddress : public Address {
   }
 };
 
-class Label : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
-  Label() : position_(0), unresolved_(0) {
-#ifdef DEBUG
-    for (int i = 0; i < kMaxUnresolvedBranches; i++) {
-      unresolved_near_positions_[i] = -1;
-    }
-#endif  // DEBUG
-  }
-
-  ~Label() {
-    // Assert if label is being destroyed with unresolved branches pending.
-    ASSERT(!IsLinked());
-    ASSERT(!HasNear());
-  }
-
-  // Returns the position for bound labels. Cannot be used for unused or linked
-  // labels.
-  intptr_t Position() const {
-    ASSERT(IsBound());
-    return -position_ - kWordSize;
-  }
-
-  intptr_t LinkPosition() const {
-    ASSERT(IsLinked());
-    return position_ - kWordSize;
-  }
-
-  intptr_t NearPosition() {
-    ASSERT(HasNear());
-    return unresolved_near_positions_[--unresolved_];
-  }
-
-  bool IsBound() const { return position_ < 0; }
-  bool IsUnused() const { return (position_ == 0) && (unresolved_ == 0); }
-  bool IsLinked() const { return position_ > 0; }
-  bool HasNear() const { return unresolved_ != 0; }
-
- private:
-  void BindTo(intptr_t position) {
-    ASSERT(!IsBound());
-    ASSERT(!HasNear());
-    position_ = -position - kWordSize;
-    ASSERT(IsBound());
-  }
-
-  void LinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = position + kWordSize;
-    ASSERT(IsLinked());
-  }
-
-  void NearLinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    ASSERT(unresolved_ < kMaxUnresolvedBranches);
-    unresolved_near_positions_[unresolved_++] = position;
-  }
-
-  static const int kMaxUnresolvedBranches = 20;
-
-  intptr_t position_;
-  intptr_t unresolved_;
-  intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
-
-  friend class Assembler;
-  DISALLOW_COPY_AND_ASSIGN(Label);
-};
-
-class Assembler : public ValueObject {
- public:
-  explicit Assembler(bool use_far_branches = false)
-      : buffer_(),
-        prologue_offset_(-1),
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false)
+      : AssemblerBase(object_pool_wrapper),
         jit_cookie_(0),
-        comments_(),
         code_(Code::ZoneHandle()) {
     // This mode is only needed and implemented for ARM.
     ASSERT(!use_far_branches);
@@ -634,6 +565,7 @@ class Assembler : public ValueObject {
 
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
+  void LoadField(Register dst, FieldAddress address) { movw(dst, address); }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
@@ -642,6 +574,10 @@ class Assembler : public ValueObject {
 
   void AddImmediate(Register reg, const Immediate& imm);
   void SubImmediate(Register reg, const Immediate& imm);
+
+  void CompareImmediate(Register reg, int32_t immediate) {
+    cmpl(reg, Immediate(immediate));
+  }
 
   void Drop(intptr_t stack_elements);
 
@@ -659,10 +595,25 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);
 
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
+  // Store into a heap object and apply the generational write barrier. (Unlike
+  // the other architectures, this does not apply the incremental write barrier,
+  // and so concurrent marking is not enabled for now on IA32.) All stores into
+  // heap objects must pass through this function or, if the value can be proven
+  // either Smi or old-and-premarked, its NoBarrier variants.
+  // Destroys the value register.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       bool can_value_be_smi = true);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreIntoArray(Register object,  // Object we are storing into.
+                      Register slot,    // Where we are storing into.
+                      Register value,   // Value we are storing.
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -702,6 +653,8 @@ class Assembler : public ValueObject {
   void Call(const StubEntry& stub_entry, bool movable_target = false);
   void CallToRuntime();
 
+  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+
   void Jmp(const StubEntry& stub_entry);
   void J(Condition condition, const StubEntry& stub_entry);
 
@@ -711,8 +664,6 @@ class Assembler : public ValueObject {
   void LoadClassId(Register result, Register object);
 
   void LoadClassById(Register result, Register class_id);
-
-  void LoadClass(Register result, Register object, Register scratch);
 
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
@@ -728,13 +679,15 @@ class Assembler : public ValueObject {
                                            intptr_t cid,
                                            intptr_t index_scale,
                                            Register array,
-                                           intptr_t index);
+                                           intptr_t index,
+                                           intptr_t extra_disp = 0);
 
   static Address ElementAddressForRegIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
                                            Register array,
-                                           Register index);
+                                           Register index,
+                                           intptr_t extra_disp = 0);
 
   static Address VMTagAddress() {
     return Address(THR, Thread::vm_tag_offset());
@@ -761,29 +714,7 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
-  // Address of code at offset.
-  uword CodeAddress(intptr_t offset) { return buffer_.Address(offset); }
-
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
   bool has_single_entry_point() const { return true; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.
-  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
-  }
-
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
@@ -877,17 +808,9 @@ class Assembler : public ValueObject {
 
   // Debugging and bringup support.
   void Breakpoint() { int3(); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
   static const char* FpuRegisterName(FpuRegister reg);
@@ -919,21 +842,6 @@ class Assembler : public ValueObject {
   void PushCodeObject();
 
  private:
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
   void Alu(int bytes, uint8_t opcode, Register dst, Register src);
   void Alu(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void Alu(int bytes, uint8_t opcode, Register dst, const Address& src);
@@ -957,21 +865,27 @@ class Assembler : public ValueObject {
   void EmitGenericShift(int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(int rm, const Operand& operand, Register shifter);
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  enum BarrierFilterMode {
+    // Filter falls through into the barrier update code. Target label
+    // is a "after-store" label.
+    kJumpToNoUpdate,
 
-  // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+    // Filter falls through to the "after-store" code. Target label
+    // is barrier update code label.
+    kJumpToBarrier,
+  };
+
+  void StoreIntoObjectFilter(Register object,
+                             Register value,
+                             Label* label,
+                             CanBeSmi can_be_smi,
+                             BarrierFilterMode barrier_filter_mode);
+
   void UnverifiedStoreOldObject(const Address& dest, const Object& value);
 
   int32_t jit_cookie();
 
-  AssemblerBuffer buffer_;
-  ObjectPoolWrapper object_pool_wrapper_;
-  intptr_t prologue_offset_;
   int32_t jit_cookie_;
-  GrowableArray<CodeComment*> comments_;
   Code& code_;
 
   DISALLOW_ALLOCATION();

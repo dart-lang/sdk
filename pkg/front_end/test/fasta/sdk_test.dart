@@ -11,7 +11,6 @@ import 'testing/suite.dart';
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) async {
   environment[ENABLE_FULL_COMPILE] = "";
-  environment[AST_KIND_INDEX] = "${AstKind.Kernel.index}";
   environment["skipVm"] ??= "true";
   environment["onlyCrashes"] ??= "true";
   environment["ignoreExpectations"] ??= "true";

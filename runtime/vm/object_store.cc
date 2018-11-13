@@ -57,6 +57,13 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
+static RawInstance* AllocateObjectByClassName(const Library& library,
+                                              const String& class_name) {
+  const Class& cls = Class::Handle(library.LookupClassAllowPrivate(class_name));
+  ASSERT(!cls.IsNull());
+  return Instance::New(cls);
+}
+
 RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -81,17 +88,13 @@ RawError* ObjectStore::PreallocateObjects() {
   Object& result = Object::Handle();
   const Library& library = Library::Handle(Library::CoreLibrary());
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::StackOverflowError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::StackOverflowError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
   set_stack_overflow(Instance::Cast(result));
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::OutOfMemoryError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::OutOfMemoryError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
@@ -146,9 +149,6 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClass(Symbols::Completer());
   ASSERT(!cls.IsNull());
   set_completer_class(cls);
-  cls = async_lib.LookupClass(Symbols::StreamIterator());
-  ASSERT(!cls.IsNull());
-  set_stream_iterator_class(cls);
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
@@ -216,6 +216,16 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
   ASSERT(!cls.IsNull());
   set_compiletime_error_class(cls);
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
+  ASSERT(!cls.IsNull());
+  set_pragma_class(cls);
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
+  ASSERT(!cls.IsNull());
+  growable_list_factory_ =
+      cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
+  ASSERT(growable_list_factory_ != Function::null());
 
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =

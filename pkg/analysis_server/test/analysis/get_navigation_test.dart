@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -44,8 +43,29 @@ main() {
     assertHasTarget('test = 0');
   }
 
+  test_fieldType() async {
+    // This test mirrors test_navigation() from
+    // test/integration/analysis/get_navigation_test.dart
+    String text = r'''
+class Foo {}
+
+class Bar {
+  Foo foo;
+}
+''';
+    addTestFile(text);
+    await _getNavigation(testFile, text.indexOf('Foo foo'), 0);
+    expect(targets, hasLength(1));
+    NavigationTarget target = targets.first;
+    expect(target.kind, ElementKind.CLASS);
+    expect(target.offset, text.indexOf('Foo {'));
+    expect(target.length, 3);
+    expect(target.startLine, 1);
+    expect(target.startColumn, 7);
+  }
+
   test_fileDoesNotExist() async {
-    String file = '$projectPath/doesNotExist.dart';
+    String file = convertPath('$projectPath/doesNotExist.dart');
     Request request = _createGetNavigationRequest(file, 0, 100);
     Response response = await serverChannel.sendRequest(request);
     expect(response.error, isNull);
@@ -55,7 +75,7 @@ main() {
   }
 
   test_fileOutsideOfRoot() async {
-    testFile = '/outside.dart';
+    testFile = resourceProvider.convertPath('/outside.dart');
     addTestFile('''
 main() {
   var test = 0;
@@ -183,28 +203,6 @@ main() {
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
-  }
-
-  test_removeContextAfterRequest() async {
-    addTestFile('''
-main() {
-  var test = 0;
-  print(test);
-}
-''');
-    // handle the request synchronously
-    Request request =
-        _createGetNavigationRequest(testFile, testCode.indexOf('test);'), 0);
-    server.handleRequest(request);
-    // remove context, causes sending an "invalid file" error
-    {
-      Folder projectFolder = resourceProvider.getResource(projectPath);
-      server.contextManager.callbacks.removeContext(projectFolder, <String>[]);
-    }
-    // wait for an error response
-    Response response = await serverChannel.waitForResponse(request);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.GET_NAVIGATION_INVALID_FILE);
   }
 
   test_zeroLength_end() async {

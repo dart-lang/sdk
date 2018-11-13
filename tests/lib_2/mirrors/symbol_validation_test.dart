@@ -61,7 +61,7 @@ main() {
       .expand((op) => [".$op", "$op.x", "x$op", "_x.$op"])
       .forEach(invalidSymbol);
   operators
-      .expand((op) => operators.contains("$op=") ? [] : ["x.$op=", "$op="])
+      .expand<String>((op) => operators.contains("$op=") ? [] : ["x.$op=", "$op="])
       .forEach(invalidSymbol);
 
   var simpleSymbols = [

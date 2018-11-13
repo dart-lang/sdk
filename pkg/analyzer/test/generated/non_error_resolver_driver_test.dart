@@ -13,7 +13,31 @@ main() {
 }
 
 @reflectiveTest
-class NonErrorResolverTest_Driver extends NonErrorResolverTest {
+class NonErrorResolverTest_Driver extends NonErrorResolverTestBase {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  @override
+  @failingTest
+  test_constConstructorWithMixinWithField_withoutSuperMixins() {
+    return super.test_constConstructorWithMixinWithField_withoutSuperMixins();
+  }
+
+  @override
+  @failingTest
+  test_intLiteralInDoubleContext_const_exact() {
+    return super.test_intLiteralInDoubleContext_const_exact();
+  }
+
+  @override
+  @failingTest
+  test_null_callMethod() {
+    return super.test_null_callMethod();
+  }
+
+  @override
+  @failingTest
+  test_null_callOperator() {
+    return super.test_null_callOperator();
+  }
 }

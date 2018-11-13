@@ -1056,7 +1056,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         listen_socket->SetPortAndMask(msg->dart_port, events);
         TryDispatchingPendingAccepts(listen_socket);
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
-        listen_socket->RemovePort(msg->dart_port);
+        if (msg->dart_port != ILLEGAL_PORT) {
+          listen_socket->RemovePort(msg->dart_port);
+        }
 
         // We only close the socket file descriptor from the operating
         // system if there are no other dart socket objects which

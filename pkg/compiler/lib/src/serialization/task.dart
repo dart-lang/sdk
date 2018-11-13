@@ -1,163 +1,104 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.serialization.task;
-
-import 'dart:async' show Future;
-
-import '../../compiler_new.dart';
-import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
-import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
-import '../elements/entities.dart' show Entity;
-import '../universe/world_impact.dart' show WorldImpact;
-import 'json_serializer.dart';
+import 'dart:async';
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/binary/ast_from_binary.dart' as ir;
+import 'package:kernel/binary/ast_to_binary.dart' as ir;
+import '../../compiler_new.dart' as api;
+import '../common/tasks.dart';
+import '../compiler.dart';
+import '../diagnostics/diagnostic_listener.dart';
+import '../environment.dart';
+import '../js_backend/inferred_data.dart';
+import '../js_model/js_world.dart';
+import '../options.dart';
+import '../types/abstract_value_domain.dart';
+import '../types/types.dart';
+import 'strategies.dart';
 import 'serialization.dart';
-import 'system.dart';
 
-/// A deserializer that can load a library element by reading it's information
-/// from a serialized form.
-abstract class LibraryDeserializer {
-  /// Loads the [LibraryElement] associated with a library under [uri], or null
-  /// if no serialized information is available for the given library.
-  Future<LibraryElement> readLibrary(Uri uri);
-
-  /// Returns `true` if [element] has been deserialized.
-  bool isDeserialized(Entity element);
+void serializeGlobalTypeInferenceResults(
+    GlobalTypeInferenceResults results, DataSink sink) {
+  JsClosedWorld closedWorld = results.closedWorld;
+  InferredData inferredData = results.inferredData;
+  closedWorld.writeToDataSink(sink);
+  inferredData.writeToDataSink(sink);
+  results.writeToDataSink(sink);
+  sink.close();
 }
 
-/// Task that supports deserialization of elements.
-class SerializationTask extends CompilerTask implements LibraryDeserializer {
-  final Compiler compiler;
-  SerializationTask(Compiler compiler)
-      : compiler = compiler,
-        super(compiler.measurer);
+GlobalTypeInferenceResults deserializeGlobalTypeInferenceResults(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    Environment environment,
+    AbstractValueStrategy abstractValueStrategy,
+    ir.Component component,
+    DataSource source) {
+  JsClosedWorld newClosedWorld = new JsClosedWorld.readFromDataSource(
+      options, reporter, environment, abstractValueStrategy, component, source);
+  InferredData newInferredData =
+      new InferredData.readFromDataSource(source, newClosedWorld);
+  return new GlobalTypeInferenceResults.readFromDataSource(
+      source, newClosedWorld, newInferredData);
+}
 
-  DeserializerSystem deserializer;
+class SerializationTask extends CompilerTask {
+  final Compiler compiler;
+
+  SerializationTask(this.compiler, Measurer measurer) : super(measurer);
 
   String get name => 'Serialization';
 
-  /// If `true`, data must be retained to support serialization.
-  // TODO(johnniwinther): Make this more precise in terms of what needs to be
-  // retained, for instance impacts, resolution data etc.
-  bool supportSerialization = false;
+  void serialize(GlobalTypeInferenceResults results) {
+    measureSubtask('serialize dill', () {
+      compiler.reporter.log('Writing dill to ${compiler.options.outputUri}');
+      api.BinaryOutputSink dillOutput =
+          compiler.outputProvider.createBinarySink(compiler.options.outputUri);
+      JsClosedWorld closedWorld = results.closedWorld;
+      ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
+      BinaryOutputSinkAdapter irSink = new BinaryOutputSinkAdapter(dillOutput);
+      ir.BinaryPrinter printer = new ir.BinaryPrinter(irSink);
+      printer.writeComponentFile(component);
+      irSink.close();
+    });
 
-  /// Set this flag to also deserialize [ResolvedAst]s and [ResolutionImpact]s
-  /// in `resolveOnly` mode. Use this for testing only.
-  bool deserializeCompilationDataForTesting = false;
-
-  /// If `true`, deserialized data is supported.
-  bool get supportsDeserialization => deserializer != null;
-
-  /// Returns the [LibraryElement] for [resolvedUri] if available from
-  /// serialization.
-  Future<LibraryElement> readLibrary(Uri resolvedUri) {
-    if (deserializer == null) return new Future<LibraryElement>.value();
-    return deserializer.readLibrary(resolvedUri);
-  }
-
-  /// Returns `true` if [element] has been deserialized.
-  bool isDeserialized(Entity element) {
-    return deserializer != null && deserializer.isDeserialized(element);
-  }
-
-  bool hasResolutionImpact(Element element) {
-    return deserializer != null && deserializer.hasResolutionImpact(element);
-  }
-
-  ResolutionImpact getResolutionImpact(Element element) {
-    return deserializer != null
-        ? deserializer.getResolutionImpact(element)
-        : null;
-  }
-
-  /// Creates the [ResolutionWorkItem] for the deserialized [element].
-  ResolutionWorkItem createResolutionWorkItem(MemberElement element) {
-    assert(deserializer != null);
-    assert(isDeserialized(element));
-    return new DeserializedResolutionWorkItem(
-        element, deserializer.computeWorldImpact(element));
-  }
-
-  bool hasResolvedAst(ExecutableElement element) {
-    return deserializer != null ? deserializer.hasResolvedAst(element) : false;
-  }
-
-  ResolvedAst getResolvedAst(ExecutableElement element) {
-    return deserializer != null ? deserializer.getResolvedAst(element) : null;
-  }
-
-  Serializer createSerializer(Iterable<LibraryElement> libraries) {
-    return measure(() {
-      assert(supportSerialization);
-
-      Serializer serializer =
-          new Serializer(shouldInclude: (e) => libraries.contains(e.library));
-      SerializerPlugin backendSerializer =
-          compiler.backend.serialization.serializer;
-      serializer.plugins.add(backendSerializer);
-      serializer.plugins.add(new ResolutionImpactSerializer(
-          compiler.resolution, backendSerializer));
-      serializer.plugins.add(new ResolvedAstSerializerPlugin(
-          compiler.resolution, backendSerializer));
-
-      for (LibraryElement library in libraries) {
-        serializer.serialize(library);
-      }
-      return serializer;
+    measureSubtask('serialize data', () {
+      compiler.reporter.log('Writing data to ${compiler.options.writeDataUri}');
+      api.BinaryOutputSink dataOutput = compiler.outputProvider
+          .createBinarySink(compiler.options.writeDataUri);
+      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      serializeGlobalTypeInferenceResults(results, sink);
     });
   }
 
-  void serializeToSink(OutputSink sink, Iterable<LibraryElement> libraries) {
-    measure(() {
-      sink
-        ..add(createSerializer(libraries)
-            .toText(const JsonSerializationEncoder()))
-        ..close();
+  Future<GlobalTypeInferenceResults> deserialize() async {
+    ir.Component component =
+        await measureIoSubtask('deserialize dill', () async {
+      compiler.reporter.log('Reading dill from ${compiler.options.entryPoint}');
+      api.Input<List<int>> dillInput = await compiler.provider.readFromUri(
+          compiler.options.entryPoint,
+          inputKind: api.InputKind.binary);
+      ir.Component component = new ir.Component();
+      new ir.BinaryBuilder(dillInput.data).readComponent(component);
+      return component;
+    });
+
+    return await measureIoSubtask('deserialize data', () async {
+      compiler.reporter
+          .log('Reading data from ${compiler.options.readDataUri}');
+      api.Input<List<int>> dataInput = await compiler.provider.readFromUri(
+          compiler.options.readDataUri,
+          inputKind: api.InputKind.binary);
+      DataSource source = new BinarySourceImpl(dataInput.data);
+      return deserializeGlobalTypeInferenceResults(
+          compiler.options,
+          compiler.reporter,
+          compiler.environment,
+          compiler.abstractValueStrategy,
+          component,
+          source);
     });
   }
-
-  void deserializeFromText(Uri sourceUri, String serializedData) {
-    measure(() {
-      if (deserializer == null) {
-        deserializer = new ResolutionDeserializerSystem(compiler,
-            deserializeCompilationDataForTesting:
-                deserializeCompilationDataForTesting);
-      }
-      ResolutionDeserializerSystem deserializerImpl = deserializer;
-      DeserializationContext context = deserializerImpl.deserializationContext;
-      Deserializer dataDeserializer = new Deserializer.fromText(
-          context, sourceUri, serializedData, const JsonSerializationDecoder());
-      context.deserializers.add(dataDeserializer);
-    });
-  }
-}
-
-/// A [ResolutionWorkItem] for a deserialized element.
-///
-/// This will not resolve the element but only compute the [WorldImpact].
-class DeserializedResolutionWorkItem implements ResolutionWorkItem {
-  final MemberElement element;
-  final WorldImpact worldImpact;
-
-  DeserializedResolutionWorkItem(this.element, this.worldImpact);
-
-  @override
-  WorldImpact run() {
-    return worldImpact;
-  }
-}
-
-/// The interface for a system that supports deserialization of libraries and
-/// elements.
-abstract class DeserializerSystem {
-  Future<LibraryElement> readLibrary(Uri resolvedUri);
-  bool isDeserialized(Entity element);
-  bool hasResolvedAst(ExecutableElement element);
-  ResolvedAst getResolvedAst(ExecutableElement element);
-  bool hasResolutionImpact(Element element);
-  ResolutionImpact getResolutionImpact(Element element);
-  WorldImpact computeWorldImpact(Element element);
 }

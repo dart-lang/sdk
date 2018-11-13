@@ -55,8 +55,7 @@ class FrontView extends CompositeView {
   final Set previousPageKeyPresses;
 
   FrontView(this.swarm)
-      : super('front-view fullpage'),
-        downKeyPresses = new Set.from([74 /*j*/, 40 /*down*/]),
+      : downKeyPresses = new Set.from([74 /*j*/, 40 /*down*/]),
         upKeyPresses = new Set.from([75 /*k*/, 38 /*up*/]),
         rightKeyPresses = new Set.from([39 /*right*/, 68 /*d*/, 76 /*l*/]),
         leftKeyPresses = new Set.from([37 /*left*/, 65 /*a*/, 72 /*h*/]),
@@ -64,7 +63,8 @@ class FrontView extends CompositeView {
         backKeyPresses = new Set.from([8 /*delete*/, 27 /*escape*/]),
         nextPageKeyPresses = new Set.from([78 /*n*/]),
         previousPageKeyPresses = new Set.from([80 /*p*/]),
-        nextPrevShown = false {
+        nextPrevShown = false,
+        super('front-view fullpage') {
     topView = new CompositeView('top-view', false, false, false);
 
     headerView = new HeaderView(swarm);
@@ -324,7 +324,7 @@ void _backToMain(SwarmState state) {
 class SwarmBackButton extends View {
   Swarm swarm;
 
-  SwarmBackButton(this.swarm) : super();
+  SwarmBackButton(this.swarm);
 
   Element render() => new Element.html('<div class="back-arrow button"></div>');
 
@@ -470,7 +470,7 @@ class HeaderView extends CompositeView {
 // TODO(rnystrom): We have nearly identical versions of this littered through
 // the sample apps. Should consolidate into one.
 class WebBackButton extends View {
-  WebBackButton() : super();
+  WebBackButton();
 
   Element render() {
     return new Element.html('<div class="web-back-button button"></div>');
@@ -493,7 +493,7 @@ class WebBackButton extends View {
 // TODO(rnystrom): We have nearly identical versions of this littered through
 // the sample apps. Should consolidate into one.
 class WebForwardButton extends View {
-  WebForwardButton() : super();
+  WebForwardButton();
 
   Element render() {
     return new Element.html('<div class="web-forward-button button"></div>');
@@ -572,9 +572,7 @@ class ToggleButton extends View {
   EventListeners onChanged;
   List<String> states;
 
-  ToggleButton(this.states)
-      : super(),
-        onChanged = new EventListeners();
+  ToggleButton(this.states) : onChanged = new EventListeners();
 
   Element render() => new Element.tag('button');
 
@@ -711,7 +709,7 @@ class ArticleView extends View {
   final Swarm swarm;
   final ArticleViewLayout articleLayout;
 
-  ArticleView(this.item, this.swarm, this.articleLayout) : super();
+  ArticleView(this.item, this.swarm, this.articleLayout);
 
   Element render() {
     Element node;
@@ -821,7 +819,7 @@ class ArticleView extends View {
         new CanvasElement(height: img.height, width: img.width);
 
     final CanvasRenderingContext2D ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, img.width, img.height);
+    ctx.drawImageScaled(img, 0, 0, img.width, img.height);
 
     return canvas.toDataUrl("image/png");
   }
@@ -853,7 +851,7 @@ class StoryContentView extends View {
 
   View _pagedStory;
 
-  StoryContentView(this.swarm, this.item) : super();
+  StoryContentView(this.swarm, this.item);
 
   get childViews => [_pagedStory];
 
@@ -906,9 +904,9 @@ class SectionView extends CompositeView {
   final PageState pageState;
 
   SectionView(this.swarm, this.section, this._viewFactory)
-      : super('section-view'),
-        loadingText = new View.html('<div class="loading-section"></div>'),
-        pageState = new PageState() {
+      : loadingText = new View.html('<div class="loading-section"></div>'),
+        pageState = new PageState(),
+        super('section-view') {
     addChild(loadingText);
   }
 

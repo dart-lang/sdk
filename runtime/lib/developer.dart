@@ -68,6 +68,7 @@ _registerExtension(String method, ServiceExtensionHandler handler)
     native "Developer_registerExtension";
 
 // This code is only invoked when there is no other Dart code on the stack.
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 _runExtension(
     ServiceExtensionHandler handler,
     String method,
@@ -76,7 +77,7 @@ _runExtension(
     SendPort replyPort,
     Object id,
     bool trace_service) {
-  var parameters = {};
+  var parameters = <String, String>{};
   for (var i = 0; i < parameterKeys.length; i++) {
     parameters[parameterKeys[i]] = parameterValues[i];
   }

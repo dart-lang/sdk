@@ -14,15 +14,15 @@ import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
     show
-        Builder,
         ClassBuilder,
         ConstructorReferenceBuilder,
+        Declaration,
+        EnumConstantInfo,
         FormalParameterBuilder,
         FunctionTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
-        NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
         QualifiedName,
@@ -30,33 +30,47 @@ import '../builder/builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder,
-        Unhandled,
-        UnresolvedType;
+        UnresolvedType,
+        flattenName;
 
 import '../combinator.dart' show Combinator;
-
-import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
+        Message,
+        messageConstructorWithWrongName,
         messageExpectedUri,
-        messagePartOfSelf,
         messageMemberWithSameNameAsClass,
+        messagePartExport,
+        messagePartExportContext,
+        messagePartInPart,
+        messagePartInPartLibraryContext,
+        messagePartOfSelf,
+        messagePartOfTwoLibraries,
+        messagePartOfTwoLibrariesContext,
+        noLength,
         templateConflictsWithMember,
         templateConflictsWithSetter,
+        templateConstructorWithWrongNameContext,
         templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
-        templateDuplicatedDefinition,
+        templateDuplicatedDeclaration,
+        templateDuplicatedDeclarationCause,
         templateMissingPartOf,
+        templateNotAPrefixInTypeAnnotation,
+        templatePartOfInLibrary,
         templatePartOfLibraryNameMismatch,
         templatePartOfUriMismatch,
         templatePartOfUseUri,
         templatePartTwice;
 
 import '../import.dart' show Import;
+
+import '../configuration.dart' show Configuration;
 
 import '../problems.dart' show unhandled;
 
@@ -75,6 +89,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<SourceLibraryBuilder<T, R>> parts = <SourceLibraryBuilder<T, R>>[];
 
+  // Can I use library.parts instead? See KernelLibraryBuilder.addPart.
+  final List<int> partOffsets = <int>[];
+
   final List<Import> imports = <Import>[];
 
   final List<Export> exports = <Export>[];
@@ -87,7 +104,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   /// Indicates whether type inference (and type promotion) should be disabled
   /// for this library.
+  @override
   final bool disableTypeInference;
+
+  final List<Object> accessors = <Object>[];
 
   String documentationComment;
 
@@ -107,9 +127,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
-  SourceLibraryBuilder(SourceLoader loader, Uri fileUri)
+  /// Non-null if this library causes an error upon access, that is, there was
+  /// an error reading its source.
+  Message accessProblem;
+
+  SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
-            new Scope.top());
+            scope ?? new Scope.top());
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
@@ -120,9 +144,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   Uri get uri;
 
+  @override
   bool get isPart => partOfName != null || partOfUri != null;
 
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
+
+  @override
+  bool get isSynthetic => accessProblem != null;
 
   T addNamedType(Object name, List<T> arguments, int charOffset);
 
@@ -152,7 +180,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     assert(
         (name?.startsWith(currentDeclaration.name) ??
                 (name == currentDeclaration.name)) ||
-            currentDeclaration.name == "operator",
+            currentDeclaration.name == "operator" ||
+            identical(name, "<syntax-error>"),
         "${name} != ${currentDeclaration.name}");
     DeclarationBuilder<T> previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
@@ -163,7 +192,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   Uri resolve(Uri baseUri, String uri, int uriOffset, {isPart: false}) {
     if (uri == null) {
-      addCompileTimeError(messageExpectedUri, uriOffset, this.uri);
+      addProblem(messageExpectedUri, uriOffset, noLength, this.uri);
       return new Uri(scheme: MALFORMED_URI_SCHEME);
     }
     Uri parsedUri;
@@ -173,10 +202,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // Point to position in string indicated by the exception,
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
-      addCompileTimeError(
-          templateCouldNotParseUri.withArguments(uri, e.message),
-          uriOffset + 1 + (e.offset ?? -1),
-          this.uri);
+      addProblem(templateCouldNotParseUri.withArguments(uri, e.message),
+          uriOffset + 1 + (e.offset ?? -1), 1, this.uri);
       return new Uri(
           scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
     }
@@ -188,49 +215,134 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
+  String computeAndValidateConstructorName(Object name, int charOffset,
+      {isFactory: false}) {
+    String className = currentDeclaration.name;
+    String prefix;
+    String suffix;
+    if (name is QualifiedName) {
+      prefix = name.qualifier;
+      suffix = name.name;
+    } else {
+      prefix = name;
+      suffix = null;
+    }
+    if (prefix == className) {
+      return suffix ?? "";
+    }
+    if (suffix == null && !isFactory) {
+      // A legal name for a regular method, but not for a constructor.
+      return null;
+    }
+
+    addProblem(
+        messageConstructorWithWrongName, charOffset, prefix.length, fileUri,
+        context: [
+          templateConstructorWithWrongNameContext
+              .withArguments(currentDeclaration.name)
+              .withLocation(uri, currentDeclaration.charOffset,
+                  currentDeclaration.name.length)
+        ]);
+
+    return suffix;
+  }
+
   void addExport(
       List<MetadataBuilder> metadata,
       String uri,
-      Unhandled conditionalUris,
+      List<Configuration> configurations,
       List<Combinator> combinators,
       int charOffset,
       int uriOffset) {
+    if (configurations != null) {
+      for (Configuration config in configurations) {
+        if (lookupImportCondition(config.dottedName) == config.condition) {
+          uri = config.importUri;
+          break;
+        }
+      }
+    }
+
     var exportedLibrary = loader
         .read(resolve(this.uri, uri, uriOffset), charOffset, accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
 
+  String lookupImportCondition(String dottedName) {
+    const String prefix = "dart.library.";
+    if (!dottedName.startsWith(prefix)) return "";
+    dottedName = dottedName.substring(prefix.length);
+    if (!loader.target.uriTranslator.isLibrarySupported(dottedName)) return "";
+
+    LibraryBuilder imported =
+        loader.builders[new Uri(scheme: "dart", path: dottedName)];
+
+    if (imported == null) {
+      LibraryBuilder coreLibrary = loader.read(
+          resolve(
+              this.uri, new Uri(scheme: "dart", path: "core").toString(), -1),
+          -1);
+      imported = coreLibrary
+          .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
+    }
+    return imported != null ? "true" : "";
+  }
+
   void addImport(
       List<MetadataBuilder> metadata,
       String uri,
-      Unhandled conditionalUris,
+      List<Configuration> configurations,
       String prefix,
       List<Combinator> combinators,
       bool deferred,
       int charOffset,
       int prefixCharOffset,
-      int uriOffset) {
-    imports.add(new Import(
-        this,
-        loader.read(resolve(this.uri, uri, uriOffset), charOffset,
-            accessor: this),
-        deferred,
-        prefix,
-        combinators,
-        charOffset,
-        prefixCharOffset));
+      int uriOffset,
+      int importIndex) {
+    if (configurations != null) {
+      for (Configuration config in configurations) {
+        if (lookupImportCondition(config.dottedName) == config.condition) {
+          uri = config.importUri;
+          break;
+        }
+      }
+    }
+
+    LibraryBuilder builder = null;
+
+    Uri resolvedUri;
+    String nativePath;
+    const String nativeExtensionScheme = "dart-ext:";
+    if (uri.startsWith(nativeExtensionScheme)) {
+      String strippedUri = uri.substring(nativeExtensionScheme.length);
+      if (strippedUri.startsWith("package")) {
+        resolvedUri = resolve(
+            this.uri, strippedUri, uriOffset + nativeExtensionScheme.length);
+        resolvedUri = loader.target.translateUri(resolvedUri);
+        nativePath = resolvedUri.toString();
+      } else {
+        resolvedUri = new Uri(scheme: "dart-ext", pathSegments: [uri]);
+        nativePath = uri;
+      }
+    } else {
+      resolvedUri = resolve(this.uri, uri, uriOffset);
+      builder = loader.read(resolvedUri, uriOffset, accessor: this);
+    }
+
+    imports.add(new Import(this, builder, deferred, prefix, combinators,
+        configurations, charOffset, prefixCharOffset, importIndex,
+        nativeImportPath: nativePath));
   }
 
   void addPart(List<MetadataBuilder> metadata, String uri, int charOffset) {
     Uri resolvedUri;
     Uri newFileUri;
     resolvedUri = resolve(this.uri, uri, charOffset, isPart: true);
-    if (this.uri.scheme != "package") {
-      newFileUri = resolve(fileUri, uri, charOffset);
-    }
+    newFileUri = resolve(fileUri, uri, charOffset);
     parts.add(loader.read(resolvedUri, charOffset,
         fileUri: newFileUri, accessor: this));
+    partOffsets.add(charOffset);
   }
 
   void addPartOf(
@@ -238,6 +350,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     partOfName = name;
     if (uri != null) {
       partOfUri = resolve(this.uri, uri, uriOffset);
+      Uri newFileUri = resolve(fileUri, uri, uriOffset);
+      LibraryBuilder library = loader.read(partOfUri, uriOffset,
+          fileUri: newFileUri, accessor: this);
+      if (loader.first == this) {
+        // This is a part, and it was the first input. Let the loader know
+        // about that.
+        loader.first = library;
+      }
     }
   }
 
@@ -249,6 +369,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<TypeVariableBuilder> typeVariables,
       T supertype,
       List<T> interfaces,
+      int startCharOffset,
       int charOffset,
       int charEndOffset,
       int supertypeOffset);
@@ -274,15 +395,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool hasInitializer);
 
   void addFields(String documentationComment, List<MetadataBuilder> metadata,
-      int modifiers, T type, List<Object> fieldsInfo) {
-    for (int i = 0; i < fieldsInfo.length; i += 4) {
-      String name = fieldsInfo[i];
-      int charOffset = fieldsInfo[i + 1];
-      bool hasInitializer = fieldsInfo[i + 2] != null;
+      int modifiers, T type, List<FieldInfo> fieldInfos) {
+    for (FieldInfo info in fieldInfos) {
+      String name = info.name;
+      int charOffset = info.charOffset;
+      bool hasInitializer = info.initializerTokenForInference != null;
       Token initializerTokenForInference =
-          type == null ? fieldsInfo[i + 2] : null;
+          type == null ? info.initializerTokenForInference : null;
       if (initializerTokenForInference != null) {
-        Token beforeLast = fieldsInfo[i + 3];
+        Token beforeLast = info.beforeLast;
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
       addField(documentationComment, metadata, modifiers, type, name,
@@ -290,15 +411,31 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
+  void addConstructor(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      T returnType,
+      final Object name,
+      String constructorName,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String nativeMethodName);
+
   void addProcedure(
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
-      Object name,
+      String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -309,7 +446,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<EnumConstantInfo> enumConstantInfos,
       int charOffset,
       int charEndOffset);
 
@@ -331,9 +468,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      ConstructorReferenceBuilder name,
+      Object name,
       List<FormalParameterBuilder> formals,
       ConstructorReferenceBuilder redirectionTarget,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -344,73 +482,90 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 
-  Builder addBuilder(String name, Builder builder, int charOffset) {
+  Declaration addBuilder(String name, Declaration declaration, int charOffset) {
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
+    if (name == null) {
+      unhandled("null", "name", charOffset, fileUri);
+    }
     if (currentDeclaration == libraryDeclaration) {
-      if (builder is MemberBuilder) {
-        builder.parent = this;
-      } else if (builder is TypeDeclarationBuilder) {
-        builder.parent = this;
-      } else if (builder is PrefixBuilder) {
-        assert(builder.parent == this);
+      if (declaration is MemberBuilder) {
+        declaration.parent = this;
+      } else if (declaration is TypeDeclarationBuilder) {
+        declaration.parent = this;
+      } else if (declaration is PrefixBuilder) {
+        assert(declaration.parent == this);
       } else {
         return unhandled(
-            "${builder.runtimeType}", "addBuilder", charOffset, fileUri);
+            "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
       }
     } else {
       assert(currentDeclaration.parent == libraryDeclaration);
     }
-    bool isConstructor = builder is ProcedureBuilder &&
-        (builder.isConstructor || builder.isFactory);
+    bool isConstructor = declaration is ProcedureBuilder &&
+        (declaration.isConstructor || declaration.isFactory);
     if (!isConstructor && name == currentDeclaration.name) {
-      addCompileTimeError(
-          messageMemberWithSameNameAsClass, charOffset, fileUri);
+      addProblem(
+          messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
     }
-    Map<String, Builder> members = isConstructor
+    Map<String, Declaration> members = isConstructor
         ? currentDeclaration.constructors
-        : (builder.isSetter
+        : (declaration.isSetter
             ? currentDeclaration.setters
             : currentDeclaration.members);
-    Builder existing = members[name];
-    builder.next = existing;
-    if (builder is PrefixBuilder && existing is PrefixBuilder) {
+    Declaration existing = members[name];
+    declaration.next = existing;
+    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
       assert(existing.next == null);
-      Builder deferred;
-      Builder other;
-      if (builder.deferred) {
-        deferred = builder;
+      Declaration deferred;
+      Declaration other;
+      if (declaration.deferred) {
+        deferred = declaration;
         other = existing;
       } else if (existing.deferred) {
         deferred = existing;
-        other = builder;
+        other = declaration;
       }
       if (deferred != null) {
-        addCompileTimeError(
-            templateDeferredPrefixDuplicated.withArguments(name),
-            deferred.charOffset,
-            fileUri);
-        addCompileTimeError(
-            templateDeferredPrefixDuplicatedCause.withArguments(name),
-            other.charOffset,
-            fileUri);
+        addProblem(templateDeferredPrefixDuplicated.withArguments(name),
+            deferred.charOffset, noLength, fileUri,
+            context: [
+              templateDeferredPrefixDuplicatedCause
+                  .withArguments(name)
+                  .withLocation(fileUri, other.charOffset, noLength)
+            ]);
       }
       return existing
-        ..exportScope.merge(builder.exportScope,
-            (String name, Builder existing, Builder member) {
-          return buildAmbiguousBuilder(name, existing, member, charOffset);
+        ..exportScope.merge(declaration.exportScope,
+            (String name, Declaration existing, Declaration member) {
+          return computeAmbiguousDeclaration(
+              name, existing, member, charOffset);
         });
-    } else if (isDuplicatedDefinition(existing, builder)) {
-      addCompileTimeError(templateDuplicatedDefinition.withArguments(name),
-          charOffset, fileUri);
+    } else if (isDuplicatedDeclaration(existing, declaration)) {
+      String fullName = name;
+      if (isConstructor) {
+        if (name.isEmpty) {
+          fullName = currentDeclaration.name;
+        } else {
+          fullName = "${currentDeclaration.name}.$name";
+        }
+      }
+      addProblem(templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset, fullName.length, fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing.fileUri, existing.charOffset, fullName.length)
+          ]);
     }
-    return members[name] = builder;
+    return members[name] = declaration;
   }
 
-  bool isDuplicatedDefinition(Builder existing, Builder other) {
+  bool isDuplicatedDeclaration(Declaration existing, Declaration other) {
     if (existing == null) return false;
-    Builder next = existing.next;
+    Declaration next = existing.next;
     if (next == null) {
       if (existing.isGetter && other.isSetter) return false;
       if (existing.isSetter && other.isGetter) return false;
@@ -427,34 +582,34 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return true;
   }
 
-  void buildBuilder(Builder builder, LibraryBuilder coreLibrary);
+  void buildBuilder(Declaration declaration, LibraryBuilder coreLibrary);
 
   R build(LibraryBuilder coreLibrary) {
     assert(implementationBuilders.isEmpty);
     canAddImplementationBuilders = true;
-    forEach((String name, Builder builder) {
+    forEach((String name, Declaration declaration) {
       do {
-        buildBuilder(builder, coreLibrary);
-        builder = builder.next;
-      } while (builder != null);
+        buildBuilder(declaration, coreLibrary);
+        declaration = declaration.next;
+      } while (declaration != null);
     });
     for (List list in implementationBuilders) {
       String name = list[0];
-      Builder builder = list[1];
+      Declaration declaration = list[1];
       int charOffset = list[2];
-      addBuilder(name, builder, charOffset);
-      buildBuilder(builder, coreLibrary);
+      addBuilder(name, declaration, charOffset);
+      buildBuilder(declaration, coreLibrary);
     }
     canAddImplementationBuilders = false;
 
-    scope.setters.forEach((String name, Builder setter) {
-      Builder member = scopeBuilder[name];
+    scope.setters.forEach((String name, Declaration setter) {
+      Declaration member = scopeBuilder[name];
       if (member == null || !member.isField || member.isFinal) return;
-      // TODO(ahe): charOffset is missing.
-      addCompileTimeError(templateConflictsWithMember.withArguments(name),
-          setter.charOffset, fileUri);
-      addCompileTimeError(templateConflictsWithSetter.withArguments(name),
-          member.charOffset, fileUri);
+      addProblem(templateConflictsWithMember.withArguments(name),
+          setter.charOffset, noLength, fileUri);
+      // TODO(ahe): Context to previous message?
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          member.charOffset, noLength, fileUri);
     });
 
     return null;
@@ -464,63 +619,95 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// Currently, only anonymous mixins are using implementation builders (see
   /// [KernelMixinApplicationBuilder]
   /// (../kernel/kernel_mixin_application_builder.dart)).
-  void addImplementationBuilder(String name, Builder builder, int charOffset) {
+  void addImplementationBuilder(
+      String name, Declaration declaration, int charOffset) {
     assert(canAddImplementationBuilders, "$uri");
-    implementationBuilders.add([name, builder, charOffset]);
+    implementationBuilders.add([name, declaration, charOffset]);
   }
 
-  void validatePart() {
-    if (parts.isNotEmpty) {
-      deprecated_inputError(fileUri, -1,
-          "A file that's a part of a library can't have parts itself.");
+  void validatePart(SourceLibraryBuilder library, Set<Uri> usedParts) {
+    if (library != null && parts.isNotEmpty) {
+      // If [library] is null, we have already reported a problem that this
+      // part is orphaned.
+      List<LocatedMessage> context = <LocatedMessage>[
+        messagePartInPartLibraryContext.withLocation(library.fileUri, 0, 1),
+      ];
+      for (int offset in partOffsets) {
+        addProblem(messagePartInPart, offset, noLength, fileUri,
+            context: context);
+      }
+      for (SourceLibraryBuilder part in parts) {
+        // Mark this part as used so we don't report it as orphaned.
+        usedParts.add(part.uri);
+      }
     }
+    parts.clear();
     if (exporters.isNotEmpty) {
-      Export export = exporters.first;
-      deprecated_inputError(
-          export.fileUri, export.charOffset, "A part can't be exported.");
-    }
-  }
-
-  void includeParts() {
-    Set<Uri> seenParts = new Set<Uri>();
-    for (SourceLibraryBuilder<T, R> part in parts.toList()) {
-      if (part == this) {
-        addCompileTimeError(messagePartOfSelf, -1, fileUri);
-      } else if (seenParts.add(part.fileUri)) {
-        includePart(part);
-      } else {
-        addCompileTimeError(
-            templatePartTwice.withArguments(part.fileUri), -1, fileUri);
+      List<LocatedMessage> context = <LocatedMessage>[
+        messagePartExportContext.withLocation(fileUri, 0, 1),
+      ];
+      for (Export export in exporters) {
+        export.exporter.addProblem(
+            messagePartExport, export.charOffset, "export".length, null,
+            context: context);
       }
     }
   }
 
-  void includePart(SourceLibraryBuilder<T, R> part) {
+  void includeParts(Set<Uri> usedParts) {
+    Set<Uri> seenParts = new Set<Uri>();
+    for (SourceLibraryBuilder<T, R> part in parts) {
+      if (part == this) {
+        addProblem(messagePartOfSelf, -1, noLength, fileUri);
+      } else if (seenParts.add(part.fileUri)) {
+        if (part.partOfLibrary != null) {
+          addProblem(messagePartOfTwoLibraries, -1, noLength, part.fileUri,
+              context: [
+                messagePartOfTwoLibrariesContext.withLocation(
+                    part.partOfLibrary.fileUri, -1, noLength),
+                messagePartOfTwoLibrariesContext.withLocation(
+                    this.fileUri, -1, noLength)
+              ]);
+        } else {
+          usedParts.add(part.uri);
+          includePart(part, usedParts);
+        }
+      } else {
+        addProblem(templatePartTwice.withArguments(part.fileUri), -1, noLength,
+            fileUri);
+      }
+    }
+  }
+
+  void includePart(SourceLibraryBuilder<T, R> part, Set<Uri> usedParts) {
     if (part.partOfUri != null) {
       if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
         // This is a warning, but the part is still included.
-        addWarning(
+        addProblem(
             templatePartOfUriMismatch.withArguments(
                 part.fileUri, uri, part.partOfUri),
             -1,
+            noLength,
             fileUri);
       }
     } else if (part.partOfName != null) {
       if (name != null) {
         if (part.partOfName != name) {
           // This is a warning, but the part is still included.
-          addWarning(
+          addProblem(
               templatePartOfLibraryNameMismatch.withArguments(
                   part.fileUri, name, part.partOfName),
               -1,
+              noLength,
               fileUri);
         }
       } else {
         // This is a warning, but the part is still included.
-        addWarning(
+        addProblem(
             templatePartOfUseUri.withArguments(
                 part.fileUri, fileUri, part.partOfName),
             -1,
+            noLength,
             fileUri);
       }
     } else {
@@ -528,18 +715,19 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // metadata annotations can be associated with it.
       assert(!part.isPart);
       if (uriIsValid(part.fileUri)) {
-        addCompileTimeError(
-            templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+        addProblem(templateMissingPartOf.withArguments(part.fileUri), -1,
+            noLength, fileUri);
       }
     }
-    part.forEach((String name, Builder builder) {
-      if (builder.next != null) {
+    part.validatePart(this, usedParts);
+    part.forEach((String name, Declaration declaration) {
+      if (declaration.next != null) {
         // TODO(ahe): This shouldn't be necessary as setters have been added to
         // their own scope.
-        assert(builder.next.next == null);
-        addBuilder(name, builder.next, builder.next.charOffset);
+        assert(declaration.next.next == null);
+        addBuilder(name, declaration.next, declaration.next.charOffset);
       }
-      addBuilder(name, builder, builder.charOffset);
+      addBuilder(name, declaration, declaration.charOffset);
     });
     types.addAll(part.types);
     constructorReferences.addAll(part.constructorReferences);
@@ -558,23 +746,32 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       if (import.imported == loader.coreLibrary) {
         explicitCoreImport = true;
       }
+      if (import.imported?.isPart ?? false) {
+        addProblem(
+            templatePartOfInLibrary.withArguments(import.imported.fileUri),
+            import.charOffset,
+            noLength,
+            fileUri);
+      }
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
+      loader.coreLibrary.exportScope.forEach((String name, Declaration member) {
         addToScope(name, member, -1, true);
       });
     }
   }
 
   @override
-  void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    Map<String, Builder> map =
+  void addToScope(
+      String name, Declaration member, int charOffset, bool isImport) {
+    Map<String, Declaration> map =
         member.isSetter ? importScope.setters : importScope.local;
-    Builder existing = map[name];
+    Declaration existing = map[name];
     if (existing != null) {
       if (existing != member) {
-        map[name] = buildAmbiguousBuilder(name, existing, member, charOffset,
+        map[name] = computeAmbiguousDeclaration(
+            name, existing, member, charOffset,
             isImport: isImport);
       }
     } else {
@@ -587,7 +784,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   int resolveTypes() {
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
-      t.resolveIn(scope);
+      t.resolveIn(scope, this);
+      if (loader.target.strongMode) {
+        t.checkType();
+      } else {
+        t.normalizeType();
+      }
     }
     types.clear();
     return typeCount;
@@ -596,14 +798,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   @override
   int resolveConstructors(_) {
     int count = 0;
-    forEach((String name, Builder member) {
+    forEach((String name, Declaration member) {
       count += member.resolveConstructors(this);
     });
     return count;
   }
 
   List<TypeVariableBuilder> copyTypeVariables(
-      List<TypeVariableBuilder> original);
+      List<TypeVariableBuilder> original, DeclarationBuilder declaration);
 
   @override
   String get fullNameForErrors {
@@ -616,23 +818,40 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   @override
-  void prepareTopLevelInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
-    forEach((String name, Builder member) {
-      if (member is ClassBuilder) {
-        // Classes are handled separately, in class hierarchy order.
-        return;
-      }
-      member.prepareTopLevelInference(library, currentClass);
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    forEach((String name, Declaration member) {
+      member.instrumentTopLevelInference(instrumentation);
     });
   }
 
   @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    forEach((String name, Builder member) {
-      member.instrumentTopLevelInference(instrumentation);
-    });
+  void recordAccess(int charOffset, int length, Uri fileUri) {
+    accessors.add(fileUri);
+    accessors.add(charOffset);
+    accessors.add(length);
+    if (accessProblem != null) {
+      addProblem(accessProblem, charOffset, length, fileUri);
+    }
   }
+
+  void addProblemAtAccessors(Message message) {
+    if (accessProblem == null) {
+      if (accessors.isEmpty && this == loader.first) {
+        // This is the entry point library, and nobody access it directly. So
+        // we need to report a problem.
+        loader.addProblem(message, -1, 1, null);
+      }
+      for (int i = 0; i < accessors.length; i += 3) {
+        Uri accessor = accessors[i];
+        int charOffset = accessors[i + 1];
+        int length = accessors[i + 2];
+        addProblem(message, charOffset, length, accessor);
+      }
+      accessProblem = message;
+    }
+  }
+
+  void checkBoundsInOutline(covariant typeEnvironment);
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to
@@ -640,34 +859,38 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 class DeclarationBuilder<T extends TypeBuilder> {
   final DeclarationBuilder<T> parent;
 
-  final Map<String, Builder> members;
+  final Map<String, Declaration> members;
 
-  final Map<String, Builder> constructors;
+  final Map<String, Declaration> constructors;
 
-  final Map<String, Builder> setters;
+  final Map<String, Declaration> setters;
 
   final List<UnresolvedType<T>> types = <UnresolvedType<T>>[];
 
   String name;
 
-  final Map<ProcedureBuilder, DeclarationBuilder<T>> factoryDeclarations;
+  // Offset of name token, updated by the outline builder along
+  // with the name as the current declaration changes.
+  int charOffset;
 
-  DeclarationBuilder(this.members, this.setters, this.constructors,
-      this.factoryDeclarations, this.name, this.parent) {
+  List<TypeVariableBuilder> typeVariables;
+
+  DeclarationBuilder(this.members, this.setters, this.constructors, this.name,
+      this.charOffset, this.parent) {
     assert(name != null);
   }
 
   DeclarationBuilder.library()
-      : this(<String, Builder>{}, <String, Builder>{}, null, null, "library",
-            null);
+      : this(<String, Declaration>{}, <String, Declaration>{}, null,
+            "<library>", -1, null);
 
   DeclarationBuilder createNested(String name, bool hasMembers) {
     return new DeclarationBuilder<T>(
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
-        <ProcedureBuilder, DeclarationBuilder<T>>{},
         name,
+        -1,
         this);
   }
 
@@ -678,71 +901,61 @@ class DeclarationBuilder<T extends TypeBuilder> {
   /// Resolves type variables in [types] and propagate other types to [parent].
   void resolveTypes(
       List<TypeVariableBuilder> typeVariables, SourceLibraryBuilder library) {
-    // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
-    // type variables. It should be everything that's in scope, for example,
-    // members (of a class) or formal parameters (of a method).
-    // Also, this doesn't work well with patching.
-    if (typeVariables == null) {
-      // If there are no type variables in the scope, propagate our types to be
-      // resolved in the parent declaration.
-      factoryDeclarations.forEach((_, DeclarationBuilder<T> declaration) {
-        parent.types.addAll(declaration.types);
-      });
-      parent.types.addAll(types);
-    } else {
-      factoryDeclarations.forEach(
-          (ProcedureBuilder procedure, DeclarationBuilder<T> declaration) {
-        assert(procedure.typeVariables.isEmpty);
-        procedure.typeVariables
-            .addAll(library.copyTypeVariables(typeVariables));
-        DeclarationBuilder<T> savedDeclaration = library.currentDeclaration;
-        library.currentDeclaration = declaration;
-        for (TypeVariableBuilder tv in procedure.typeVariables) {
-          NamedTypeBuilder<T, dynamic> t = procedure.returnType;
-          t.arguments
-              .add(library.addNamedType(tv.name, null, procedure.charOffset));
-        }
-        library.currentDeclaration = savedDeclaration;
-        declaration.resolveTypes(procedure.typeVariables, library);
-      });
-      Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};
+    Map<String, TypeVariableBuilder> map;
+    if (typeVariables != null) {
+      map = <String, TypeVariableBuilder>{};
       for (TypeVariableBuilder builder in typeVariables) {
         map[builder.name] = builder;
       }
-      for (UnresolvedType<T> type in types) {
-        Object nameOrQualified = type.builder.name;
-        String name = nameOrQualified is QualifiedName
-            ? nameOrQualified.prefix
-            : nameOrQualified;
-        TypeVariableBuilder builder;
-        if (name != null) {
-          builder = map[name];
+    }
+    Scope scope;
+    for (UnresolvedType<T> type in types) {
+      Object nameOrQualified = type.builder.name;
+      String name = nameOrQualified is QualifiedName
+          ? nameOrQualified.qualifier
+          : nameOrQualified;
+      Declaration declaration;
+      if (name != null) {
+        if (members != null) {
+          declaration = members[name];
         }
-        if (builder == null) {
-          // Since name didn't resolve in this scope, propagate it to the
-          // parent declaration.
-          parent.addType(type);
-        } else if (nameOrQualified is QualifiedName) {
-          // Attempt to use type variable as prefix.
-          type.builder.bind(
-              type.builder.buildInvalidType(type.charOffset, type.fileUri));
-        } else {
-          type.builder.bind(builder);
+        if (declaration == null && map != null) {
+          declaration = map[name];
         }
+      }
+      if (declaration == null) {
+        // Since name didn't resolve in this scope, propagate it to the
+        // parent declaration.
+        parent.addType(type);
+      } else if (nameOrQualified is QualifiedName) {
+        // Attempt to use a member or type variable as a prefix.
+        type.builder.bind(type.builder.buildInvalidType(
+            templateNotAPrefixInTypeAnnotation
+                .withArguments(
+                    flattenName(nameOrQualified.qualifier, type.charOffset,
+                        type.fileUri),
+                    nameOrQualified.name)
+                .withLocation(type.fileUri, type.charOffset,
+                    nameOrQualified.endCharOffset - type.charOffset)));
+      } else {
+        scope ??= toScope(null).withTypeVariables(typeVariables);
+        type.resolveIn(scope, library);
       }
     }
     types.clear();
   }
 
-  /// Called to register [procedure] as a factory whose types are collected in
-  /// [factoryDeclaration]. Later, once the class has been built, we can
-  /// synthesize type variables on the factory matching the class'.
-  void addFactoryDeclaration(
-      ProcedureBuilder procedure, DeclarationBuilder<T> factoryDeclaration) {
-    factoryDeclarations[procedure] = factoryDeclaration;
-  }
-
   Scope toScope(Scope parent) {
     return new Scope(members, setters, parent, name, isModifiable: false);
   }
+}
+
+class FieldInfo {
+  final String name;
+  final int charOffset;
+  final Token initializerTokenForInference;
+  final Token beforeLast;
+
+  const FieldInfo(this.name, this.charOffset, this.initializerTokenForInference,
+      this.beforeLast);
 }

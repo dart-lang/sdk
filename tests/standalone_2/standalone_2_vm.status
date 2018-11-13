@@ -9,10 +9,21 @@ no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 [ $compiler == app_jit ]
 full_coverage_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
+io/namespace_test: RuntimeError # Issue 33168
+io/platform_resolved_executable_test/00: RuntimeError # Issue 33168
+io/platform_resolved_executable_test/01: RuntimeError # Issue 33168
+io/platform_resolved_executable_test/02: RuntimeError # Issue 33168
+io/platform_resolved_executable_test/03: RuntimeError # Issue 33168
+io/platform_resolved_executable_test/04: RuntimeError # Issue 33168
+io/platform_resolved_executable_test/05: RuntimeError # Issue 33168
 io/platform_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
+io/test_runner_test: RuntimeError # Issue 33168
 regress_26031_test: Skip # Platform.resolvedExecutable
+
+[ $runtime == vm ]
+io/test_runner_test: Skip # Spawns a process which runs in Dart2 mode.
 
 [ $system == android ]
 io/file_stat_test: Skip # Issue 26376
@@ -76,12 +87,21 @@ io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 io/file_constructor_test: RuntimeError
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
+io/code_collection_test: Timeout, Pass
+io/dart_std_io_pipe_test: Timeout, Pass
 io/file_input_stream_test: Skip # Issue 26109
 io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
+io/process_sync_test: Timeout, Pass
+
+[ $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+io/code_collection_test: Timeout, Pass
+io/dart_std_io_pipe_test: Timeout, Pass
+io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
+io/process_sync_test: Timeout, Pass
+io/skipping_dart2js_compilations_test: Skip # Spawns process in Dart2 mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
 link_natives_lazily_test: SkipByDesign # SIMDBC interpreter doesn't support lazy linking of natives.
 no_lazy_dispatchers_test: SkipByDesign # SIMDBC interpreter doesn't support --no_lazy_dispatchers
-

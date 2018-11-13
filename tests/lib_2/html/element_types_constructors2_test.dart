@@ -9,10 +9,12 @@ import 'package:expect/minitest.dart';
 main() {
   check(String name, bool fn(), [bool supported = true]) {
     test(name, () {
-      var expectation = supported ? returnsNormally : throws;
-      expect(() {
-        expect(fn(), isTrue);
-      }, expectation);
+      if (supported) {
+        expect(fn(), supported);
+      } else {
+        // Can either throw or return false.
+        expect(() => (fn() || (throw "false")), throws);
+      }
     });
   }
 
@@ -31,7 +33,5 @@ main() {
     check('iframe', () => new IFrameElement() is IFrameElement);
     check('img', () => new ImageElement() is ImageElement);
     check('input', () => new InputElement() is InputElement);
-    check('keygen', () => new KeygenElement() is KeygenElement,
-        KeygenElement.supported);
   });
 }

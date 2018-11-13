@@ -146,7 +146,7 @@ class IsolateSampleProfileRepository
 
 class ClassSampleProfileRepository implements M.ClassSampleProfileRepository {
   Stream<SampleProfileLoadingProgressEvent> get(
-      M.Isolate i, M.ClassRef c, M.SampleProfileTag t,
+      covariant M.Isolate i, M.ClassRef c, M.SampleProfileTag t,
       {bool clear: false, bool forceFetch: false}) {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;

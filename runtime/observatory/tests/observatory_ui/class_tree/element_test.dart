@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/class_tree.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import '../mocks.dart';
@@ -43,12 +43,12 @@ main() {
           events,
           notifications,
           new ClassRepositoryMock(
-              object: expectAsync((i) async {
+              object: expectAsync1((i) async {
                 expect(i, equals(isolate));
                 expect(rendered, isFalse);
                 return object;
               }, count: 1),
-              getter: expectAsync((i, id) async {
+              getter: expectAsync2((i, id) async {
                 expect(i, equals(isolate));
                 expect(ids.contains(id), isTrue);
                 switch (id) {

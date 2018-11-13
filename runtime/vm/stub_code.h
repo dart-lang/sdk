@@ -26,10 +26,15 @@ class SnapshotWriter;
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
   V(DeoptForRewind)                                                            \
-  V(UpdateStoreBuffer)                                                         \
+  V(WriteBarrier)                                                              \
+  V(WriteBarrierWrappers)                                                      \
+  V(ArrayWriteBarrier)                                                         \
   V(PrintStopMessage)                                                          \
+  V(AllocateArray)                                                             \
+  V(AllocateContext)                                                           \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
+  V(InterpretCall)                                                             \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \
@@ -37,6 +42,7 @@ class SnapshotWriter;
   V(CallStaticFunction)                                                        \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
+  V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
   V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
@@ -52,8 +58,6 @@ class SnapshotWriter;
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
   V(RuntimeCallBreakpoint)                                                     \
-  V(AllocateArray)                                                             \
-  V(AllocateContext)                                                           \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \
@@ -67,9 +71,22 @@ class SnapshotWriter;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype4TestCache)                                                         \
+  V(Subtype6TestCache)                                                         \
+  V(DefaultTypeTest)                                                           \
+  V(TopTypeTypeTest)                                                           \
+  V(TypeRefTypeTest)                                                           \
+  V(UnreachableTypeTest)                                                       \
+  V(SlowTypeTest)                                                              \
+  V(LazySpecializeTypeTest)                                                    \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
-  V(AsynchronousGapMarker)
+  V(AsynchronousGapMarker)                                                     \
+  V(NullErrorSharedWithFPURegs)                                                \
+  V(NullErrorSharedWithoutFPURegs)                                             \
+  V(StackOverflowSharedWithFPURegs)                                            \
+  V(StackOverflowSharedWithoutFPURegs)                                         \
+  V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
+  V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -82,8 +99,16 @@ class SnapshotWriter;
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \
+  V(DefaultTypeTest)                                                           \
+  V(TopTypeTypeTest)                                                           \
+  V(TypeRefTypeTest)                                                           \
+  V(UnreachableTypeTest)                                                       \
+  V(SlowTypeTest)                                                              \
+  V(LazySpecializeTypeTest)                                                    \
   V(FrameAwaitingMaterialization)                                              \
-  V(AsynchronousGapMarker)
+  V(AsynchronousGapMarker)                                                     \
+  V(InvokeDartCodeFromBytecode)                                                \
+  V(InterpretCall)
 
 #endif  // !defined(TARGET_ARCH_DBC)
 
@@ -102,7 +127,7 @@ class StubEntry {
 
   const ExternalLabel& label() const { return label_; }
   uword EntryPoint() const { return entry_point_; }
-  uword CheckedEntryPoint() const { return checked_entry_point_; }
+  uword MonomorphicEntryPoint() const { return monomorphic_entry_point_; }
   RawCode* code() const { return code_; }
   intptr_t Size() const { return size_; }
 
@@ -112,7 +137,7 @@ class StubEntry {
  private:
   RawCode* code_;
   uword entry_point_;
-  uword checked_entry_point_;
+  uword monomorphic_entry_point_;
   intptr_t size_;
   ExternalLabel label_;
 
@@ -124,8 +149,9 @@ class StubCode : public AllStatic {
  public:
   // Generate all stubs which are shared across all isolates, this is done
   // only once and the stub code resides in the vm_isolate heap.
-  static void InitOnce();
+  static void Init();
 
+  static void Cleanup();
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Returns true if stub code has been initialized.
@@ -133,7 +159,7 @@ class StubCode : public AllStatic {
 
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
-  static bool InInvocationStub(uword pc);
+  static bool InInvocationStub(uword pc, bool is_interpreted_frame);
 
   // Check if the specified pc is in the jump to frame stub.
   static bool InJumpToFrameStub(uword pc);
@@ -149,6 +175,11 @@ class StubCode : public AllStatic {
 #undef STUB_CODE_ACCESSOR
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
+
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+  static RawCode* GetBuildMethodExtractorStub();
+  static void GenerateBuildMethodExtractorStub(Assembler* assembler);
+#endif
 
   static const StubEntry* UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
@@ -184,7 +215,14 @@ class StubCode : public AllStatic {
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
   static RawCode* Generate(const char* name,
+                           ObjectPoolWrapper* object_pool_wrapper,
                            void (*GenerateStub)(Assembler* assembler));
+
+  static void GenerateSharedStub(Assembler* assembler,
+                                 bool save_fpu_registers,
+                                 const RuntimeEntry* target,
+                                 intptr_t self_code_stub_offset_from_thread,
+                                 bool allow_return);
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
@@ -194,7 +232,8 @@ class StubCode : public AllStatic {
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
-      bool optimized = false);
+      bool optimized = false,
+      bool exactness_check = false);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
@@ -202,6 +241,23 @@ class StubCode : public AllStatic {
 };
 
 enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
+
+// Invocation mode for TypeCheck runtime entry that describes
+// where we are calling it from.
+enum TypeCheckMode {
+  // TypeCheck is invoked from LazySpecializeTypeTest stub.
+  // It should replace stub on the type with a specialized version.
+  kTypeCheckFromLazySpecializeStub,
+
+  // TypeCheck is invoked from the SlowTypeTest stub.
+  // This means that cache can be lazily created (if needed)
+  // and dst_name can be fetched from the pool.
+  kTypeCheckFromSlowStub,
+
+  // TypeCheck is invoked from normal inline AssertAssignable.
+  // Both cache and dst_name must be already populated.
+  kTypeCheckFromInline
+};
 
 // Zap value used to indicate unused CODE_REG in deopt.
 static const uword kZapCodeReg = 0xf1f1f1f1;

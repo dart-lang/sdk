@@ -1,12 +1,11 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library get_object_rpc_test;
 
 import 'dart:typed_data';
-import 'dart:convert' show BASE64;
+import 'dart:convert' show base64Decode;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
@@ -14,6 +13,7 @@ import 'test_helper.dart';
 
 class _DummyClass {
   static var dummyVar = 11;
+  final List<String> dummyList = new List<String>(20);
   void dummyFunction() {}
 }
 
@@ -447,7 +447,7 @@ var tests = <IsolateTest>[
     expect(result['offset'], isNull);
     expect(result['count'], isNull);
     expect(result['bytes'], equals('AwIB'));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -473,7 +473,7 @@ var tests = <IsolateTest>[
     expect(result['offset'], isNull);
     expect(result['count'], equals(2));
     expect(result['bytes'], equals('AwI='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2]'));
   },
 
@@ -500,7 +500,7 @@ var tests = <IsolateTest>[
     expect(result['offset'], equals(2));
     expect(result['count'], equals(1));
     expect(result['bytes'], equals('AQ=='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[1]'));
   },
 
@@ -550,7 +550,7 @@ var tests = <IsolateTest>[
     expect(result['offset'], isNull);
     expect(result['count'], isNull);
     expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAAEAAAAAAAAA'));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -576,7 +576,7 @@ var tests = <IsolateTest>[
     expect(result['offset'], isNull);
     expect(result['count'], equals(2));
     expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAA=='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2]'));
   },
 
@@ -603,7 +603,7 @@ var tests = <IsolateTest>[
     expect(result['offset'], equals(2));
     expect(result['count'], equals(1));
     expect(result['bytes'], equals('AQAAAAAAAAA='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[1]'));
   },
 
@@ -882,6 +882,39 @@ var tests = <IsolateTest>[
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);
     expect(result['_guardLength'], isNotNull);
+  },
+
+  // field with guards
+  (Isolate isolate) async {
+    var result = await isolate.vm.invokeRpcNoUpgrade('getFlagList', {});
+    var use_field_guards = false;
+    for (var flag in result['flags']) {
+      if (flag['name'] == 'use_field_guards') {
+        use_field_guards = flag['valueAsString'] == 'true';
+        break;
+      }
+    }
+    if (!use_field_guards) {
+      return; // skip the test if guards are not enabled(like on simdbc64)
+    }
+
+    // Call eval to get a class id.
+    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var id = "${evalResult['class']['id']}/fields/dummyList";
+    var params = {
+      'objectId': id,
+    };
+    result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Field'));
+    expect(result['id'], equals(id));
+    expect(result['name'], equals('dummyList'));
+    expect(result['const'], equals(false));
+    expect(result['static'], equals(false));
+    expect(result['final'], equals(true));
+    expect(result['location']['type'], equals('SourceLocation'));
+    expect(result['_guardNullable'], isNotNull);
+    expect(result['_guardClass'], isNotNull);
+    expect(result['_guardLength'], equals('20'));
   },
 
   // invalid field.

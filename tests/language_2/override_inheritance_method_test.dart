@@ -32,14 +32,26 @@ class A {
   method25() => null; //# 25: ok
   void method26() {} //# 26: ok
   int method27() => null; //# 27: compile-time error
-  method28(int a) => null; //# 28: ok
-  method29(int a) => null; //# 29: ok
+  method28(int a) => null; //# 28: compile-time error
+  method29(int a) => null; //# 29: compile-time error
   method30(int a) => null; //# 30: compile-time error
+  method34(int a) => null; //# 34: ok
+  method35(int a) => null; //# 35: ok
+  method36(int a) => null; //# 36: compile-time error
+  method37(num a) => null; //# 37: ok
+  method38(covariant num a) => null; //# 38: ok
+  method39(num a) => null; //# 39: compile-time error
 }
 
 class B extends A {
   method28(num a) => null; //# 28: continued
   method29(a) => null; //# 29: continued
+  method34(num a) => null; //# 34: continued
+  method35(dynamic a) => null; //# 35: continued
+  method36(dynamic a) => null; //# 36: continued
+  method37(covariant dynamic a) => null; //# 37: continued
+  method38(dynamic a) => null; //# 38: continued
+  method39(covariant dynamic a) => null; //# 39: continued
 }
 
 abstract class I {
@@ -87,6 +99,10 @@ class Class extends B implements I, J {
   method28(double a) => null; //# 28: continued
   method29(String a) => null; //# 29: continued
   method30(String a) => null; //# 30: continued
+  method36(int a) => null; //# 36: continued
+  method37(int a) => null; //# 37: continued
+  method38(int a) => null; //# 38: continued
+  method39(String a) => null; //# 39: continued
 }
 
 class SubClass extends Class {

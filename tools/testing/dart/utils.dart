@@ -39,7 +39,7 @@ class DebugLogger {
    */
   static void init(Path path, {bool append: false}) {
     if (path != null) {
-      var mode = append ? FileMode.APPEND : FileMode.WRITE;
+      var mode = append ? FileMode.append : FileMode.write;
       _sink = new File(path.toNativePath()).openWrite(mode: mode);
     }
   }
@@ -181,14 +181,14 @@ int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
 }
 
 List<int> encodeUtf8(String string) {
-  return UTF8.encode(string);
+  return utf8.encode(string);
 }
 
 // TODO(kustermann,ricow): As soon we have a debug log we should log
 // invalid utf8-encoded input to the log.
 // Currently invalid bytes will be replaced by a replacement character.
 String decodeUtf8(List<int> bytes) {
-  return UTF8.decode(bytes, allowMalformed: true);
+  return utf8.decode(bytes, allowMalformed: true);
 }
 
 /// Given a chunk of UTF-8 output, splits it into lines, normalizes carriage
@@ -217,10 +217,10 @@ String niceTime(Duration duration) {
     return n.toString().padLeft(count, "0");
   }
 
-  var minutes = digits(2, duration.inMinutes, Duration.MINUTES_PER_HOUR);
-  var seconds = digits(2, duration.inSeconds, Duration.SECONDS_PER_MINUTE);
+  var minutes = digits(2, duration.inMinutes, Duration.minutesPerHour);
+  var seconds = digits(2, duration.inSeconds, Duration.secondsPerMinute);
   var millis =
-      digits(6, duration.inMilliseconds, Duration.MILLISECONDS_PER_SECOND);
+      digits(6, duration.inMilliseconds, Duration.millisecondsPerSecond);
 
   if (duration.inHours >= 1) {
     return "${duration.inHours}:${minutes}:${seconds}s";
@@ -387,13 +387,17 @@ class TestUtils {
   }
 
   /**
+   * Keep a map of files copied to avoid race conditions.
+   */
+  static Map<String, Future> _copyFilesMap = {};
+
+  /**
    * Copy a [source] file to a new place.
    * Assumes that the directory for [dest] already exists.
    */
   static Future copyFile(Path source, Path dest) {
-    return new File(source.toNativePath())
-        .openRead()
-        .pipe(new File(dest.toNativePath()).openWrite());
+    return _copyFilesMap.putIfAbsent(dest.toNativePath(),
+        () => new File(source.toNativePath()).copy(dest.toNativePath()));
   }
 
   static Future copyDirectory(String source, String dest) {
@@ -422,8 +426,7 @@ class TestUtils {
       var native_path = new Path(path).toNativePath();
       // Running this in a shell sucks, but rmdir is not part of the standard
       // path.
-      return Process
-          .run('rmdir', ['/s', '/q', native_path], runInShell: true)
+      return Process.run('rmdir', ['/s', '/q', native_path], runInShell: true)
           .then((ProcessResult result) {
         if (result.exitCode != 0) {
           throw new Exception('Can\'t delete path $native_path. '
@@ -436,18 +439,19 @@ class TestUtils {
     }
   }
 
-  static void deleteTempSnapshotDirectory(Configuration configuration) {
+  static void deleteTempSnapshotDirectory(TestConfiguration configuration) {
     if (configuration.compiler == Compiler.appJit ||
         configuration.compiler == Compiler.precompiler ||
         configuration.compiler == Compiler.dartk ||
+        configuration.compiler == Compiler.dartkb ||
         configuration.compiler == Compiler.dartkp) {
       var checked = configuration.isChecked ? '-checked' : '';
-      var strong = configuration.isStrong ? '-strong' : '';
+      var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
       var minified = configuration.isMinified ? '-minified' : '';
       var csp = configuration.isCsp ? '-csp' : '';
       var sdk = configuration.useSdk ? '-sdk' : '';
       var dirName = "${configuration.compiler.name}"
-          "$checked$strong$minified$csp$sdk";
+          "$checked$legacy$minified$csp$sdk";
       var generatedPath =
           configuration.buildDirectory + "/generated_compilations/$dirName";
       if (FileSystemEntity.isDirectorySync(generatedPath)) {
@@ -465,15 +469,27 @@ class TestUtils {
   /// file can be made visible in the waterfall UI.
   static const flakyFileName = ".flaky.log";
 
-  /// If test.py was invoked with '--write-test-outcome-log it will write
+  /// If test.py was invoked with '--write-test-outcome-log' it will write
   /// test outcomes to this file.
   static const testOutcomeFileName = ".test-outcome.log";
 
-  /// If test.py was invoked with '--write-result-log it will write
+  /// If test.py was invoked with '--write-result-log' it will write
   /// test outcomes to this file in the '--output-directory'.
   static const resultLogFileName = "result.log";
 
-  static void ensureExists(String filename, Configuration configuration) {
+  /// If test.py was invoked with '--write-results' it will write
+  /// test outcomes to this file in the '--output-directory'.
+  static const resultsFileName = "results.json";
+
+  /// If test.py was invoked with '--write-results' it will write
+  /// data about this run of test.py to this file in the '--output-directory'.
+  static const resultsInstanceFileName = "run.json";
+
+  /// If test.py was invoked with '--write-results' and '--write-logs", save
+  /// the stdout and stderr to this file in the '--output-directory'.
+  static const logsFileName = "logs.json";
+
+  static void ensureExists(String filename, TestConfiguration configuration) {
     if (!configuration.listTests && !existsCache.doesFileExist(filename)) {
       throw "'$filename' does not exist";
     }

@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const List<Test> TESTS = const <Test>[
   const Test('Empty js-interop class.', '''
@@ -400,12 +400,61 @@ main() => new A(1);
 ''', errors: const [
     MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS
   ]),
+  const Test('Function-typed return type', '''
+@JS()
+library lib;
+
+import 'package:js/js.dart';
+
+@JS('func')
+external int Function() func();
+
+main() {
+  func();
+}
+'''),
+  const Test(
+    'Non-external field.',
+    '''
+@JS()
+library lib;
+
+import 'package:js/js.dart';
+
+@JS()
+@anonymous
+class B {
+  int Function() callback;
+}
+
+@JS('makeB')
+external B makeB();
+
+main() {
+  makeB().callback();
+}
+''',
+    // TODO(34174): Disallow js-interop fields.
+    /*errors: const [MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED]*/
+  ),
 ];
 
-void main() {
+void main(List<String> args) {
   asyncTest(() async {
     for (Test test in TESTS) {
-      await runTest(test);
+      bool run = true;
+      if (args.isNotEmpty) {
+        run = false;
+        for (String arg in args) {
+          if (test.name.contains(arg)) {
+            run = true;
+            break;
+          }
+        }
+      }
+      if (run) {
+        await runTest(test);
+      }
     }
   });
 }
@@ -439,21 +488,16 @@ class Test {
 runTest(Test test) async {
   print('==${test.name}======================================================');
   print(test.source);
-  await runTestInternal(test, useKernel: false);
   if (!test.skipForKernel) {
-    await runTestInternal(test, useKernel: true);
+    await runTestInternal(test);
   }
 }
 
-runTestInternal(Test test, {bool useKernel}) async {
+runTestInternal(Test test) async {
   DiagnosticCollector collector = new DiagnosticCollector();
   List<String> options = <String>[];
-  if (useKernel) {
-    options.add(Flags.useKernel);
-    // TODO(redemption): Enable inlining.
-    options.add(Flags.disableInlining);
-  }
-  print('--useKernel=${useKernel}--------------------------------------------');
+  // TODO(redemption): Enable inlining.
+  options.add(Flags.disableInlining);
   await runCompiler(
       diagnosticHandler: collector,
       options: options,

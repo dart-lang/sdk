@@ -515,7 +515,6 @@ class DatabaseBuilder(object):
     imported_interfaces = self._imported_interfaces
 
     # Step 1: Pre process imported interfaces
-#    for interface, import_options in imported_interfaces.iteritems():
     for interface, import_options in imported_interfaces:
       self._annotate(interface, import_options)
 

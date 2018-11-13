@@ -9,13 +9,16 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/exceptions.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/longjump.h"
+#include "vm/message.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/version.h"
 
 // We currently only expect the Dart mutator to read snapshots.
@@ -47,7 +50,7 @@ static bool IsObjectStoreClassId(intptr_t class_id) {
 
 static bool IsObjectStoreTypeId(intptr_t index) {
   // Check if this is a type which is stored in the object store.
-  return (index >= kObjectType && index <= kArrayType);
+  return (index >= kObjectType && index <= kStringStringTypeArguments);
 }
 
 static bool IsSplitClassId(intptr_t class_id) {
@@ -71,7 +74,7 @@ static intptr_t ObjectIdFromClassId(intptr_t class_id) {
   return (class_id + kClassIdsOffset);
 }
 
-static RawType* GetType(ObjectStore* object_store, intptr_t index) {
+static RawObject* GetType(ObjectStore* object_store, intptr_t index) {
   switch (index) {
     case kObjectType:
       return object_store->object_type();
@@ -95,6 +98,16 @@ static RawType* GetType(ObjectStore* object_store, intptr_t index) {
       return object_store->string_type();
     case kArrayType:
       return object_store->array_type();
+    case kIntTypeArguments:
+      return object_store->type_argument_int();
+    case kDoubleTypeArguments:
+      return object_store->type_argument_double();
+    case kStringTypeArguments:
+      return object_store->type_argument_string();
+    case kStringDynamicTypeArguments:
+      return object_store->type_argument_string_dynamic();
+    case kStringStringTypeArguments:
+      return object_store->type_argument_string_string();
     default:
       break;
   }
@@ -103,8 +116,7 @@ static RawType* GetType(ObjectStore* object_store, intptr_t index) {
 }
 
 static intptr_t GetTypeIndex(ObjectStore* object_store,
-                             const RawType* raw_type) {
-  ASSERT(raw_type->IsHeapObject());
+                             const RawObject* raw_type) {
   if (raw_type == object_store->object_type()) {
     return kObjectType;
   } else if (raw_type == object_store->null_type()) {
@@ -127,6 +139,16 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
     return kStringType;
   } else if (raw_type == object_store->array_type()) {
     return kArrayType;
+  } else if (raw_type == object_store->type_argument_int()) {
+    return kIntTypeArguments;
+  } else if (raw_type == object_store->type_argument_double()) {
+    return kDoubleTypeArguments;
+  } else if (raw_type == object_store->type_argument_string()) {
+    return kStringTypeArguments;
+  } else if (raw_type == object_store->type_argument_string_dynamic()) {
+    return kStringDynamicTypeArguments;
+  } else if (raw_type == object_store->type_argument_string_string()) {
+    return kStringStringTypeArguments;
   }
   return kInvalidIndex;
 }
@@ -135,14 +157,12 @@ const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
     case kFull:
       return "full";
-    case kScript:
-      return "script";
-    case kMessage:
-      return "message";
     case kFullJIT:
       return "full-jit";
     case kFullAOT:
       return "full-aot";
+    case kMessage:
+      return "message";
     case kNone:
       return "none";
     case kInvalid:
@@ -151,19 +171,16 @@ const char* Snapshot::KindToCString(Kind kind) {
   }
 }
 
-// TODO(5411462): Temporary setup of snapshot for testing purposes,
-// the actual creation of a snapshot maybe done differently.
 const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
-  ASSERT(kHeaderSize == sizeof(Snapshot));
-  ASSERT(kLengthIndex == length_offset());
-  ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
-  ASSERT((kHeapObjectTag & kInlined));
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
+  if (!snapshot->check_magic()) {
+    return NULL;
+  }
   // If the raw length is negative or greater than what the local machine can
   // handle, then signal an error.
-  int64_t snapshot_length = ReadUnaligned(&snapshot->unaligned_length_);
-  if ((snapshot_length < 0) || (snapshot_length > kIntptrMax)) {
+  int64_t length = snapshot->large_length();
+  if ((length < 0) || (length > kIntptrMax)) {
     return NULL;
   }
   return snapshot;
@@ -191,6 +208,8 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       heap_(isolate()->heap()),
       old_space_(thread_->isolate()->heap()->old_space()),
       cls_(Class::Handle(zone_)),
+      code_(Code::Handle(zone_)),
+      instructions_(Instructions::Handle(zone_)),
       obj_(Object::Handle(zone_)),
       pobj_(PassiveObject::Handle(zone_)),
       array_(Array::Handle(zone_)),
@@ -200,7 +219,6 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       type_(AbstractType::Handle(zone_)),
       type_arguments_(TypeArguments::Handle(zone_)),
       tokens_(GrowableObjectArray::Handle(zone_)),
-      stream_(TokenStream::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
       function_(Function::Handle(zone_)),
@@ -210,13 +228,15 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
               ? Object::vm_isolate_snapshot_object_table().Length()
               : 0),
       backward_references_(backward_refs),
+      types_to_postprocess_(GrowableObjectArray::Handle(zone_)),
       objects_to_rehash_(GrowableObjectArray::Handle(zone_)) {}
 
 RawObject* SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    objects_to_rehash_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
+    objects_to_rehash_ = GrowableObjectArray::New();
+    types_to_postprocess_ = GrowableObjectArray::New();
 
     PassiveObject& obj =
         PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
@@ -229,13 +249,11 @@ RawObject* SnapshotReader::ReadObject() {
     Object& result = Object::Handle(zone_);
     if (backward_references_->length() > 0) {
       ProcessDeferredCanonicalizations();
-      if (kind() == Snapshot::kScript) {
-        FixSubclassesAndImplementors();
-      }
       result = (*backward_references_)[0].reference()->raw();
     } else {
       result = obj.raw();
     }
+    RunDelayedTypePostprocessing();
     const Object& ok = Object::Handle(zone_, RunDelayedRehashingOfMaps());
     objects_to_rehash_ = GrowableObjectArray::null();
     if (!ok.IsNull()) {
@@ -250,8 +268,24 @@ RawObject* SnapshotReader::ReadObject() {
   }
 }
 
+void SnapshotReader::EnqueueTypePostprocessing(const AbstractType& type) {
+  types_to_postprocess_.Add(type);
+}
+
+void SnapshotReader::RunDelayedTypePostprocessing() {
+  if (types_to_postprocess_.Length() > 0) {
+    AbstractType& type = AbstractType::Handle();
+    Instructions& instr = Instructions::Handle();
+    for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
+      type ^= types_to_postprocess_.At(i);
+      instr = TypeTestingStubGenerator::DefaultCodeForType(type);
+      type.SetTypeTestingStub(instr);
+    }
+  }
+}
+
 void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
-  objects_to_rehash_.Add(map, HEAP_SPACE(kind_));
+  objects_to_rehash_.Add(map);
 }
 
 RawObject* SnapshotReader::RunDelayedRehashingOfMaps() {
@@ -263,8 +297,7 @@ RawObject* SnapshotReader::RunDelayedRehashingOfMaps() {
         collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
     ASSERT(!rehashing_function.IsNull());
 
-    const Array& arguments =
-        Array::Handle(zone_, Array::New(1, HEAP_SPACE(kind_)));
+    const Array& arguments = Array::Handle(zone_, Array::New(1));
     arguments.SetAt(0, objects_to_rehash_);
 
     return DartEntry::InvokeFunction(rehashing_function, arguments);
@@ -304,42 +337,6 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   return cls.raw();
 }
 
-RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
-  ASSERT(kind_ == Snapshot::kScript);
-  // Read the function header information and lookup the function.
-  intptr_t func_header = Read<int32_t>();
-  ASSERT((func_header & kSmiTagMask) != kSmiTag);
-  ASSERT(!IsVMIsolateObject(func_header) ||
-         !IsSingletonClassId(GetVMIsolateObjectId(func_header)));
-  ASSERT((SerializedHeaderTag::decode(func_header) != kObjectId) ||
-         !IsObjectStoreClassId(SerializedHeaderData::decode(func_header)));
-  Function& func = Function::ZoneHandle(zone(), Function::null());
-  AddBackRef(object_id, &func, kIsDeserialized);
-  // Read the library/class/function information and lookup the function.
-  str_ ^= ReadObjectImpl(func_header, kAsInlinedObject, kInvalidPatchIndex, 0);
-  library_ = Library::LookupLibrary(thread(), str_);
-  if (library_.IsNull() || !library_.Loaded()) {
-    SetReadException("Expected a library name, but found an invalid name.");
-  }
-  str_ ^= ReadObjectImpl(kAsInlinedObject);
-  if (str_.Equals(Symbols::TopLevel(), 0, Symbols::TopLevel().Length())) {
-    str_ ^= ReadObjectImpl(kAsInlinedObject);
-    func ^= library_.LookupLocalFunction(str_);
-  } else {
-    cls_ = library_.LookupClassAllowPrivate(str_);
-    if (cls_.IsNull()) {
-      SetReadException("Expected a class name, but found an invalid name.");
-    }
-    cls_.EnsureIsFinalized(thread());
-    str_ ^= ReadObjectImpl(kAsInlinedObject);
-    func ^= cls_.LookupFunctionAllowPrivate(str_);
-  }
-  if (func.IsNull()) {
-    SetReadException("Expected a function name, but found an invalid name.");
-  }
-  return func.raw();
-}
-
 RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
                                                      intptr_t class_header) {
   ASSERT(!Snapshot::IsFull(kind_));
@@ -370,7 +367,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
     str_ = String::ScrubName(str_);
     cls_ = library_.LookupClassAllowPrivate(str_);
     if (cls_.IsNull()) {
-      OS::Print("Name of class not found %s\n", str_.ToCString());
+      OS::PrintErr("Name of class not found %s\n", str_.ToCString());
       SetReadException("Invalid Class object found in message.");
     }
     cls_.EnsureIsFinalized(thread());
@@ -519,7 +516,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    *result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
+    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -558,7 +555,11 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       offset += kWordSize;
     }
     if (RawObject::IsCanonical(tags)) {
-      *result = result->CheckAndCanonicalize(thread(), NULL);
+      const char* error_str = NULL;
+      *result = result->CheckAndCanonicalize(thread(), &error_str);
+      if (error_str != NULL) {
+        FATAL1("Failed to canonicalize %s\n", error_str);
+      }
       ASSERT(!result->IsNull());
     }
   }
@@ -600,31 +601,6 @@ class HeapLocker : public StackResource {
   PageSpace* page_space_;
 };
 
-RawObject* SnapshotReader::ReadScriptSnapshot() {
-  ASSERT(kind_ == Snapshot::kScript);
-
-  // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersionAndFeatures(Isolate::Current());
-  if (error != ApiError::null()) {
-    return error;
-  }
-
-  // The version string matches. Read the rest of the snapshot.
-  obj_ = ReadObject();
-  if (!obj_.IsLibrary()) {
-    if (!obj_.IsError()) {
-      const intptr_t kMessageBufferSize = 128;
-      char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "Invalid object %s found in script snapshot",
-                  obj_.ToCString());
-      const String& msg = String::Handle(String::New(message_buffer));
-      obj_ = ApiError::New(msg);
-    }
-  }
-  return obj_.raw();
-}
-
 RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
@@ -635,9 +611,9 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   if (PendingBytes() < version_len) {
     const intptr_t kMessageBufferSize = 128;
     char message_buffer[kMessageBufferSize];
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "No full snapshot version found, expected '%s'",
-                expected_version);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "No full snapshot version found, expected '%s'",
+                   expected_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
@@ -649,11 +625,11 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   if (strncmp(version, expected_version, version_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
-    char* actual_version = OS::StrNDup(version, version_len);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Wrong %s snapshot version, expected '%s' found '%s'",
-                (Snapshot::IsFull(kind_)) ? "full" : "script", expected_version,
-                actual_version);
+    char* actual_version = Utils::StrNDup(version, version_len);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Wrong %s snapshot version, expected '%s' found '%s'",
+                   (Snapshot::IsFull(kind_)) ? "full" : "script",
+                   expected_version, actual_version);
     free(actual_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
@@ -662,23 +638,23 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, kind_);
+  const char* expected_features = Dart::FeaturesString(isolate, false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
   const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
   ASSERT(features != NULL);
-  intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
+  intptr_t buffer_len = Utils::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
       strncmp(features, expected_features, expected_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
-        OS::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Snapshot not compatible with the current VM configuration: "
-                "the snapshot requires '%s' but the VM has '%s'",
-                actual_features, expected_features);
+        Utils::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Snapshot not compatible with the current VM configuration: "
+                   "the snapshot requires '%s' but the VM has '%s'",
+                   actual_features, expected_features);
     free(const_cast<char*>(expected_features));
     free(actual_features);
     // This can also fail while bringing up the VM isolate, so make sure to
@@ -731,13 +707,14 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
   READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
   READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyTypeArguments,
+                        Object::empty_type_arguments().raw());
   READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
   READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterTypes,
                         Object::extractor_parameter_types().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterNames,
                         Object::extractor_parameter_names().raw());
-  READ_VM_SINGLETON_OBJ(kEmptyContextObject, Object::empty_context().raw());
   READ_VM_SINGLETON_OBJ(kEmptyContextScopeObject,
                         Object::empty_context_scope().raw());
   READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().raw());
@@ -854,36 +831,6 @@ void SnapshotReader::ProcessDeferredCanonicalizations() {
   }
 }
 
-void SnapshotReader::FixSubclassesAndImplementors() {
-  Class& cls = Class::Handle(zone());
-  Class& supercls = Class::Handle(zone());
-  Array& interfaces = Array::Handle(zone());
-  AbstractType& interface = AbstractType::Handle(zone());
-  Class& interface_cls = Class::Handle(zone());
-  for (intptr_t i = 0; i < backward_references_->length(); i++) {
-    BackRefNode& backref = (*backward_references_)[i];
-    Object* objref = backref.reference();
-    if (objref->IsClass()) {
-      cls ^= objref->raw();
-      if (!cls.IsInFullSnapshot()) {
-        supercls = cls.SuperClass();
-        if (!supercls.IsNull() && !supercls.IsObjectClass() &&
-            supercls.IsInFullSnapshot()) {
-          supercls.AddDirectSubclass(cls);
-          supercls.DisableCHAOptimizedCode(cls);
-        }
-        interfaces = cls.interfaces();
-        for (intptr_t i = 0; i < interfaces.Length(); i++) {
-          interface ^= interfaces.At(i);
-          interface_cls = interface.type_class();
-          interface_cls.set_is_implemented();
-          interface_cls.DisableCHAOptimizedCode(cls);
-        }
-      }
-    }
-  }
-}
-
 void SnapshotReader::ArrayReadFrom(intptr_t object_id,
                                    const Array& result,
                                    intptr_t len,
@@ -905,27 +852,13 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
   }
 }
 
-ScriptSnapshotReader::ScriptSnapshotReader(const uint8_t* buffer,
-                                           intptr_t size,
-                                           Thread* thread)
-    : SnapshotReader(buffer,
-                     size,
-                     Snapshot::kScript,
-                     new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
-                     thread) {}
-
-ScriptSnapshotReader::~ScriptSnapshotReader() {
-  ResetBackwardReferenceTable();
-}
-
-MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
-                                             intptr_t size,
-                                             Thread* thread)
-    : SnapshotReader(buffer,
-                     size,
+MessageSnapshotReader::MessageSnapshotReader(Message* message, Thread* thread)
+    : SnapshotReader(message->snapshot(),
+                     message->snapshot_length(),
                      Snapshot::kMessage,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
-                     thread) {}
+                     thread),
+      finalizable_data_(message->finalizable_data()) {}
 
 MessageSnapshotReader::~MessageSnapshotReader() {
   ResetBackwardReferenceTable();
@@ -933,13 +866,12 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 
 SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
-                               uint8_t** buffer,
                                ReAlloc alloc,
                                DeAlloc dealloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                bool can_send_any_object)
-    : BaseWriter(buffer, alloc, dealloc, initial_size),
+    : BaseWriter(alloc, dealloc, initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
@@ -972,7 +904,6 @@ uword SnapshotWriter::GetObjectTagsAndHash(RawObject* raw) {
   V(OneByteString)                                                             \
   V(TwoByteString)                                                             \
   V(Mint)                                                                      \
-  V(Bigint)                                                                    \
   V(Double)                                                                    \
   V(ImmutableArray)
 
@@ -1000,13 +931,14 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
   WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
   WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().raw(),
+                         kEmptyTypeArguments);
   WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);
   WRITE_VM_SINGLETON_OBJ(Bool::False().raw(), kFalseValue);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().raw(),
                          kExtractorParameterTypes);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().raw(),
                          kExtractorParameterNames);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_context().raw(), kEmptyContextObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().raw(),
                          kEmptyContextScopeObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().raw(), kEmptyObjectPool);
@@ -1062,7 +994,7 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
         return true;
       }
       default:
-        OS::Print("class id = %" Pd "\n", id);
+        OS::PrintErr("class id = %" Pd "\n", id);
         break;
     }
   }
@@ -1166,8 +1098,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   }
 
   // Now check it is a preinitialized type object.
-  RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
-  intptr_t index = GetTypeIndex(object_store(), raw_type);
+  intptr_t index = GetTypeIndex(object_store(), rawobj);
   if (index != kInvalidIndex) {
     WriteIndexedObject(index);
     return true;
@@ -1308,22 +1239,6 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(library != Library::null());
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
-}
-
-void SnapshotWriter::WriteFunctionId(RawFunction* func, bool owner_is_class) {
-  ASSERT(kind_ == Snapshot::kScript);
-  RawClass* cls = (owner_is_class)
-                      ? reinterpret_cast<RawClass*>(func->ptr()->owner_)
-                      : reinterpret_cast<RawPatchClass*>(func->ptr()->owner_)
-                            ->ptr()
-                            ->patched_class_;
-
-  // Write out the library url and class name.
-  RawLibrary* library = cls->ptr()->library_;
-  ASSERT(library != Library::null());
-  WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
-  WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
 }
 
 void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
@@ -1538,55 +1453,12 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), kind_);
+      Dart::FeaturesString(Isolate::Current(), false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
              features_len + 1);
   free(const_cast<char*>(expected_features));
-}
-
-ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-    : SnapshotWriter(Thread::Current(),
-                     Snapshot::kScript,
-                     buffer,
-                     alloc,
-                     NULL,
-                     kInitialSize,
-                     &forward_list_,
-                     true /* can_send_any_object */),
-      forward_list_(thread(), kMaxPredefinedObjectIds) {
-  ASSERT(buffer != NULL);
-  ASSERT(alloc != NULL);
-}
-
-void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
-  ASSERT(kind() == Snapshot::kScript);
-  ASSERT(isolate() != NULL);
-  ASSERT(ClassFinalizer::AllClassesFinalized());
-
-  // Setup for long jump in case there is an exception while writing
-  // the snapshot.
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    // Reserve space in the output buffer for a snapshot header.
-    ReserveHeader();
-
-    // Write out the version string.
-    WriteVersionAndFeatures();
-
-    // Write out the library object.
-    {
-      NoSafepointScope no_safepoint;
-
-      // Write out the library object.
-      WriteObject(lib.raw());
-
-      FillHeader(kind());
-    }
-  } else {
-    ThrowException(exception_type(), exception_msg());
-  }
 }
 
 void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
@@ -1598,26 +1470,35 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
   }
 }
 
-MessageWriter::MessageWriter(uint8_t** buffer,
-                             ReAlloc alloc,
-                             DeAlloc dealloc,
-                             bool can_send_any_object,
-                             intptr_t* buffer_len)
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
+}
+
+MessageWriter::MessageWriter(bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
-                     buffer,
-                     alloc,
-                     dealloc,
+                     malloc_allocator,
+                     malloc_deallocator,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
       forward_list_(thread(), kMaxPredefinedObjectIds),
-      buffer_len_(buffer_len) {
-  ASSERT(buffer != NULL);
-  ASSERT(alloc != NULL);
+      finalizable_data_(new MessageFinalizableData()) {}
+
+MessageWriter::~MessageWriter() {
+  delete finalizable_data_;
 }
 
-void MessageWriter::WriteMessage(const Object& obj) {
+Message* MessageWriter::WriteMessage(const Object& obj,
+                                     Dart_Port dest_port,
+                                     Message::Priority priority) {
   ASSERT(kind() == Snapshot::kMessage);
   ASSERT(isolate() != NULL);
 
@@ -1627,13 +1508,15 @@ void MessageWriter::WriteMessage(const Object& obj) {
   if (setjmp(*jump.Set()) == 0) {
     NoSafepointScope no_safepoint;
     WriteObject(obj.raw());
-    if (buffer_len_ != NULL) {
-      *buffer_len_ = BytesWritten();
-    }
   } else {
     FreeBuffer();
     ThrowException(exception_type(), exception_msg());
   }
+
+  MessageFinalizableData* finalizable_data = finalizable_data_;
+  finalizable_data_ = NULL;
+  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
+                     priority);
 }
 
 }  // namespace dart

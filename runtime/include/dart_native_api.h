@@ -7,7 +7,7 @@
 #ifndef RUNTIME_INCLUDE_DART_NATIVE_API_H_
 #define RUNTIME_INCLUDE_DART_NATIVE_API_H_
 
-#include "dart_api.h"
+#include "dart_api.h" /* NOLINT */
 
 /*
  * ==========================================
@@ -27,13 +27,18 @@
  * kTypedData. The specific type from dart:typed_data is in the type
  * field of the as_typed_data structure. The length in the
  * as_typed_data structure is always in bytes.
+ *
+ * The data for kTypedData is copied on message send and ownership remains with
+ * the caller. The ownership of data for kExternalTyped is passed to the VM on
+ * message send and returned when the VM invokes the
+ * Dart_WeakPersistentHandleFinalizer callback; a non-NULL callback must be
+ * provided.
  */
 typedef enum {
   Dart_CObject_kNull = 0,
   Dart_CObject_kBool,
   Dart_CObject_kInt32,
   Dart_CObject_kInt64,
-  Dart_CObject_kBigint,
   Dart_CObject_kDouble,
   Dart_CObject_kString,
   Dart_CObject_kArray,
@@ -53,11 +58,6 @@ typedef struct _Dart_CObject {
     int64_t as_int64;
     double as_double;
     char* as_string;
-    struct {
-      bool neg;
-      intptr_t used;
-      struct _Dart_CObject* digits;
-    } as_bigint;
     struct {
       Dart_Port id;
       Dart_Port origin_id;
@@ -167,12 +167,8 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  *
  * TODO(turnidge): Document.
  */
-DART_EXPORT Dart_Handle Dart_CompileAll();
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll();
 
-/**
- * Parses all loaded functions in the current isolate..
- *
- */
-DART_EXPORT Dart_Handle Dart_ParseAll();
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_ReadAllBytecode();
 
 #endif /* INCLUDE_DART_NATIVE_API_H_ */ /* NOLINT */

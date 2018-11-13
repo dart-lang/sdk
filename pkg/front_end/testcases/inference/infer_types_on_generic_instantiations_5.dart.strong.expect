@@ -1,27 +1,34 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_5.dart:30:26: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       . /*@target=B::m*/ m(null, null);
+//                          ^
+
 library test;
 import self as self;
 import "dart:core" as core;
 
-abstract class I<E extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class I<E extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::E>
     : super core::Object::•()
     ;
   abstract method m(dynamic a, (dynamic, self::I::E) → core::String f) → core::String;
 }
-abstract class A<E extends core::Object> extends core::Object implements self::I<self::A::E> {
-  const constructor •() → void
+abstract class A<E extends core::Object = dynamic> extends core::Object implements self::I<self::A::E> {
+  const constructor •() → self::A<self::A::E>
     : super core::Object::•()
     ;
   abstract method m(dynamic a, (dynamic, self::A::E) → core::String f) → core::String;
 }
 abstract class M extends core::Object {
   final field core::int y = 0;
-  default constructor •() → void
+  synthetic constructor •() → self::M
     : super core::Object::•()
     ;
 }
-class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
-  const constructor •() → void
+class B<E extends core::Object = dynamic> extends self::A<self::B::E> implements self::M {
+  const constructor •() → self::B<self::B::E>
     : super self::A::•()
     ;
   get y() → core::int
@@ -29,7 +36,10 @@ class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
   method m(dynamic a, (dynamic, self::B::E) → dynamic f) → core::String {}
 }
 static method foo() → dynamic {
-  core::int y = let final dynamic #t1 = new self::B::•<dynamic>().{self::B::m}(null, null) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_5.dart:30:26: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n      . /*@target=B::m*/ m(null, null);\n                         ^"));
+  core::int y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_5.dart:30:26: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      . /*@target=B::m*/ m(null, null);
+                         ^" in new self::B::•<dynamic>().{self::B::m}(null, null) as{TypeError} core::int;
   core::String z = new self::B::•<dynamic>().{self::B::m}(null, null);
 }
 static method main() → dynamic {}

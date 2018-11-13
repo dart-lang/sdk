@@ -40,8 +40,7 @@ verbose = False
 versiondir = ''
 
 # Ignore Git/SVN files, checked-in binaries, backup files, etc..
-ignoredPaths = ['tools/sdks',
-                'third_party/7zip', 'third_party/android_tools',
+ignoredPaths = ['third_party/7zip', 'third_party/android_tools',
                 'third_party/clang', 'third_party/d8',
                 'third_party/firefox_jsshell']
 ignoredDirs = ['.svn', '.git']
@@ -102,6 +101,10 @@ def GenerateChangeLog(filename, version):
     f.write(' -- Dart Team <misc@dartlang.org>  %s\n' %
             datetime.datetime.utcnow().strftime('%a, %d %b %Y %X +0000'))
 
+def GenerateEmpty(filename):
+  f = open(filename, 'w')
+  f.close()
+
 def GenerateGitRevision(filename, git_revision):
   with open(filename, 'w') as f:
     f.write(str(git_revision))
@@ -137,6 +140,11 @@ def CreateTarball(tarfilename):
       change_log = join(temp_dir, 'changelog')
       GenerateChangeLog(change_log, version)
       tar.add(change_log, arcname='%s/debian/changelog' % versiondir)
+
+      # For generated version file build dependency, add fake git reflog.
+      empty = join(temp_dir, 'empty')
+      GenerateEmpty(empty)
+      tar.add(empty, arcname='%s/dart/.git/logs/HEAD' % versiondir)
 
       # For bleeding_edge add the GIT_REVISION file.
       if utils.GetChannel() == 'be':

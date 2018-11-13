@@ -9,16 +9,12 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
-import '../../../src/utilities/flutter_util.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -29,7 +25,6 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 abstract class DartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
   String testFile;
-  Source testSource;
   int completionOffset;
   int replacementOffset;
   int replacementLength;
@@ -46,6 +41,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   bool get isNullExpectedReturnTypeConsideredDynamic => true;
 
+  /**
+   * Return `true` if contributors should suggest constructors in contexts where
+   * there is no `new` or `const` keyword.
+   */
+  bool get suggestConstructorsWithoutNew => true;
+
   bool get usingFastaParser => analyzer.Parser.useFasta;
 
   void addTestSource(String content) {
@@ -56,7 +57,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
-    testSource = addSource(testFile, content);
+    addSource(testFile, content);
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
@@ -138,7 +139,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.element.location.startLine, isNotNull);
     }
     if (elemFile != null) {
-      expect(cs.element.location.file, elemFile);
+      expect(cs.element.location.file, convertPath(elemFile));
     }
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
@@ -172,6 +173,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         importUri: importUri,
         isDeprecated: isDeprecated,
         elemFile: elemFile,
+        elemKind: ElementKind.CLASS,
         elemOffset: elemOffset);
     Element element = cs.element;
     expect(element, isNotNull);
@@ -201,12 +203,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestConstructor(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
+      String elementName,
       int elemOffset,
       String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         relevance: relevance,
         importUri: importUri,
+        elemKind: ElementKind.CONSTRUCTOR,
         elemOffset: elemOffset,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
@@ -214,7 +218,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     int index = name.indexOf('.');
-    expect(element.name, index >= 0 ? name.substring(index + 1) : '');
+    elementName ??= index >= 0 ? name.substring(index + 1) : '';
+    expect(element.name, elementName);
     return cs;
   }
 
@@ -228,7 +233,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestEnumConst(String completion,
-      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      bool isDeprecated: false,
+      bool hasTypeBoost: false}) {
+    if (hasTypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_TYPE;
+    }
     CompletionSuggestion suggestion = assertSuggest(completion,
         relevance: relevance, isDeprecated: isDeprecated);
     expect(suggestion.completion, completion);
@@ -372,7 +382,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     expect(cs.declaringType, equals(declaringType));
-    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    expect(cs.returnType, returnType ?? 'dynamic');
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.METHOD));
@@ -381,7 +391,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(param, isNotNull);
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
-    expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    expect(element.returnType, returnType ?? 'dynamic');
     assertHasParameterInfo(cs);
     return cs;
   }
@@ -454,71 +464,26 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Return a [Future] that completes with the containing library information
    * after it is accessible via [context.getLibrariesContaining].
    */
-  Future<Null> computeLibrariesContaining([int times = 200]) {
+  Future<void> computeLibrariesContaining([int times = 200]) {
     return driver.getResult(testFile).then((result) => null);
   }
 
   Future computeSuggestions({int times = 200}) async {
-    AnalysisResult analysisResult = await driver.getResult(testFile);
-    testSource = analysisResult.unit.element.source;
+    AnalysisResult analysisResult =
+        await driver.getResult(convertPath(testFile));
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        analysisResult,
-        provider,
-        testSource,
-        completionOffset,
-        new CompletionPerformance());
+        analysisResult, completionOffset, new CompletionPerformance());
 
     // Build the request
-    Completer<DartCompletionRequest> requestCompleter =
-        new Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl
-        .from(baseRequest)
-        .then((DartCompletionRequest request) {
-      requestCompleter.complete(request);
-    });
-    request = await performAnalysis(times, requestCompleter);
+    var request = await DartCompletionRequestImpl.from(baseRequest);
 
     var range = request.target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;
-    Completer<List<CompletionSuggestion>> suggestionCompleter =
-        new Completer<List<CompletionSuggestion>>();
 
     // Request completions
-    contributor
-        .computeSuggestions(request)
-        .then((List<CompletionSuggestion> computedSuggestions) {
-      suggestionCompleter.complete(computedSuggestions);
-    });
-
-    // Perform analysis until the suggestions have been computed
-    // or the max analysis cycles ([times]) has been reached
-    suggestions = await performAnalysis(times, suggestionCompleter);
+    suggestions = await contributor.computeSuggestions(request);
     expect(suggestions, isNotNull, reason: 'expected suggestions');
-  }
-
-  /**
-   * Configures the [SourceFactory] to have the `flutter` package in
-   * `/packages/flutter/lib` folder.
-   */
-  void configureFlutterPkg(Map<String, String> pathToCode) {
-    pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
-    });
-    // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'flutter': [myPkgFolder]
-    });
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    driver.configure(sourceFactory: sourceFactory);
-    // force 'flutter' resolution
-    addSource(
-        '/tmp/other.dart',
-        pathToCode.keys
-            .map((path) => "import 'package:flutter/$path';")
-            .join('\n'));
   }
 
   DartCompletionContributor createContributor();
@@ -568,15 +533,17 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future<E> performAnalysis<E>(int times, Completer<E> completer) async {
+    // Await a microtask. Otherwise the futures are chained and would
+    // resolve linearly using up the stack.
+    await null;
     if (completer.isCompleted) {
       return completer.future;
     }
     // We use a delayed future to allow microtask events to finish. The
-    // Future.value or Future() constructors use scheduleMicrotask themselves and
-    // would therefore not wait for microtask callbacks that are scheduled after
-    // invoking this method.
-    return new Future.delayed(
-        Duration.ZERO, () => performAnalysis(times - 1, completer));
+    // Future.value or Future.microtask() constructors use scheduleMicrotask
+    // themselves and would therefore not wait for microtask callbacks that
+    // are scheduled after invoking this method.
+    return new Future(() => performAnalysis(times - 1, completer));
   }
 
   void resolveSource(String path, String content) {
@@ -586,7 +553,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/completionTest.dart');
+    testFile = resourceProvider.convertPath('/completionTest.dart');
     contributor = createContributor();
   }
 }

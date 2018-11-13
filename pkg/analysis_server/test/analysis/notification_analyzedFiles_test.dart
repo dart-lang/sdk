@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -35,9 +34,9 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     expect(analyzedFiles, isNot(contains(filePath)));
   }
 
-  Future<Null> prepareAnalyzedFiles() async {
+  Future<void> prepareAnalyzedFiles() async {
     addGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
   }
 
   void processNotification(Notification notification) {
@@ -73,9 +72,7 @@ class A {}
   }
 
   test_beforeAnalysis_excludeYamlFiles() async {
-    File yamlFile = resourceProvider
-        .getFolder(projectPath)
-        .getChildAssumingFile('sample.yaml');
+    File yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
     yamlFile.writeAsStringSync('');
     addTestFile('''
 class A {}
@@ -117,14 +114,14 @@ class A {}
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');
-    addFile('/foo.dart', 'library foo;');
+    newFile('/foo.dart', content: 'library foo;');
     await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isTrue);
 
     analyzedFilesReceived = false;
-    modifyTestFile('import "/foo.dart";');
+    modifyTestFile('import "${convertAbsolutePathToUri('/foo.dart')}";');
     await prepareAnalyzedFiles();
-    assertHasFile('/foo.dart');
+    assertHasFile(convertPath('/foo.dart'));
   }
 
   void unsubscribeAnalyzedFiles() {

@@ -30,10 +30,10 @@ Metric::Metric()
       value_(0),
       next_(NULL) {}
 
-void Metric::Init(Isolate* isolate,
-                  const char* name,
-                  const char* description,
-                  Unit unit) {
+void Metric::InitInstance(Isolate* isolate,
+                          const char* name,
+                          const char* description,
+                          Unit unit) {
   // Only called once.
   ASSERT(next_ == NULL);
   ASSERT(name != NULL);
@@ -44,7 +44,9 @@ void Metric::Init(Isolate* isolate,
   RegisterWithIsolate();
 }
 
-void Metric::Init(const char* name, const char* description, Unit unit) {
+void Metric::InitInstance(const char* name,
+                          const char* description,
+                          Unit unit) {
   // Only called once.
   ASSERT(next_ == NULL);
   ASSERT(name != NULL);
@@ -54,7 +56,7 @@ void Metric::Init(const char* name, const char* description, Unit unit) {
   RegisterWithVM();
 }
 
-Metric::~Metric() {
+void Metric::CleanupInstance() {
   // Only deregister metrics which had been registered. Metrics without a name
   // are from shallow copy isolates.
   if (name_ != NULL) {
@@ -64,6 +66,10 @@ Metric::~Metric() {
       DeregisterWithIsolate();
     }
   }
+}
+
+Metric::~Metric() {
+  CleanupInstance();
 }
 
 #ifndef PRODUCT
@@ -297,14 +303,9 @@ int64_t MetricPeakRSS::Value() const {
   return Service::MaxRSS();
 }
 
-#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
-  static type vm_metric_##variable##_;
-VM_METRIC_LIST(VM_METRIC_VARIABLE);
-#undef VM_METRIC_VARIABLE
-
-void Metric::InitOnce() {
+void Metric::Init() {
 #define VM_METRIC_INIT(type, variable, name, unit)                             \
-  vm_metric_##variable##_.Init(name, NULL, Metric::unit);
+  vm_metric_##variable##_.InitInstance(name, NULL, Metric::unit);
   VM_METRIC_LIST(VM_METRIC_INIT);
 #undef VM_METRIC_INIT
 }
@@ -321,6 +322,10 @@ void Metric::Cleanup() {
     }
     OS::PrintErr("\n");
   }
+#define VM_METRIC_CLEANUP(type, variable, name, unit)                          \
+  vm_metric_##variable##_.CleanupInstance();
+  VM_METRIC_LIST(VM_METRIC_CLEANUP);
+#undef VM_METRIC_CLEANUP
 }
 
 MaxMetric::MaxMetric() : Metric() {

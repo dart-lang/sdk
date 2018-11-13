@@ -106,13 +106,15 @@ static bool IsUint8(intptr_t cid) {
 }
 
 DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
-  const Instance& dst = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Smi& dst_start = Smi::CheckedHandle(arguments->NativeArgAt(1));
-  const Smi& length = Smi::CheckedHandle(arguments->NativeArgAt(2));
-  const Instance& src = Instance::CheckedHandle(arguments->NativeArgAt(3));
-  const Smi& src_start = Smi::CheckedHandle(arguments->NativeArgAt(4));
-  const Smi& to_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(5));
-  const Smi& from_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(6));
+  const Instance& dst =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Smi& dst_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const Smi& length = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Instance& src =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const Smi& src_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(4));
+  const Smi& to_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(5));
+  const Smi& from_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(6));
 
   if (length.Value() < 0) {
     const String& error = String::Handle(String::NewFormatted(

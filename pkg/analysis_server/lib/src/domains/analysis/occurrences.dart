@@ -9,7 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
  * A concrete implementation of [OccurrencesCollector].
  */
 class OccurrencesCollectorImpl implements OccurrencesCollector {
-  Map<protocol.Element, protocol.Occurrences> elementOccurrences =
+  final Map<protocol.Element, protocol.Occurrences> elementOccurrences =
       <protocol.Element, protocol.Occurrences>{};
 
   List<protocol.Occurrences> get allOccurrences {

@@ -57,22 +57,23 @@ class MessageHandler {
   // Returns true on success.
   MessageStatus HandleNextMessage();
 
-  // Handles all messages for this message handler.  Should only
-  // be used when not running the handler on the thread pool (via Run
-  // or RunBlocking).
-  //
-  // Returns true on success.
-  MessageStatus HandleAllMessages();
-
   // Handles any OOB messages for this message handler.  Can be used
   // even if the message handler is running on the thread pool.
   //
   // Returns true on success.
   MessageStatus HandleOOBMessages();
 
+  // Blocks the thread on a condition variable until a message arrives, and then
+  // handles all messages.
+  MessageStatus PauseAndHandleAllMessages(int64_t timeout_millis);
+
   // Returns true if there are pending OOB messages for this message
   // handler.
   bool HasOOBMessages();
+
+  // Returns true if there are pending normal messages for this message
+  // handler.
+  bool HasMessages();
 
   // A message handler tracks how many live ports it has.
   bool HasLivePorts() const { return live_ports_ > 0; }
@@ -210,6 +211,17 @@ class MessageHandler {
   // Called by MessageHandlerTask to process our task queue.
   void TaskCallback();
 
+  // Checks if we have a slot for idle task execution, if we have a slot
+  // for idle task execution it is scheduled immediately or we wait for
+  // idle expiration and then attempt to schedule the idle task.
+  // Returns true if their is scope for idle task execution so that we
+  // can loop back to handle more messages or false if idle tasks are not
+  // scheduled.
+  bool CheckIfIdleLocked(MonitorLocker* ml);
+
+  // Triggers a run of the idle task.
+  void RunIdleTaskLocked(MonitorLocker* ml);
+
   // NOTE: These two functions release and reacquire the monitor, you may
   // need to call HandleMessages to ensure all pending messages are handled.
   void PausedOnStartLocked(MonitorLocker* ml, bool paused);
@@ -232,6 +244,7 @@ class MessageHandler {
   // This flag is not thread safe and can only reliably be accessed on a single
   // thread.
   bool oob_message_handling_allowed_;
+  bool paused_for_messages_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;      // The number of pause messages received.
 #if !defined(PRODUCT)
@@ -244,6 +257,7 @@ class MessageHandler {
   bool delete_me_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;
+  int64_t idle_start_time_;
   StartCallback start_callback_;
   EndCallback end_callback_;
   CallbackData callback_data_;

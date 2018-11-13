@@ -120,7 +120,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     E match = null;
     bool matchFound = false;
@@ -138,6 +138,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
       }
     }
     if (matchFound) return match;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -210,7 +211,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
   List<E> toList({bool growable: true}) {
     List<E> result;
     if (growable) {
-      result = new List<E>()..length = length;
+      result = <E>[]..length = length;
     } else {
       result = new List<E>(length);
     }
@@ -525,7 +526,7 @@ class TakeIterator<E> extends Iterator<E> {
   int _remaining;
 
   TakeIterator(this._iterator, this._remaining) {
-    assert(_remaining is int && _remaining >= 0);
+    assert(_remaining >= 0);
   }
 
   bool moveNext() {
@@ -632,7 +633,7 @@ class SkipIterator<E> extends Iterator<E> {
   int _skipCount;
 
   SkipIterator(this._iterator, this._skipCount) {
-    assert(_skipCount is int && _skipCount >= 0);
+    assert(_skipCount >= 0);
   }
 
   bool moveNext() {
@@ -730,7 +731,7 @@ class EmptyIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> where(bool test(E element)) => this;
 
-  Iterable<T> map<T>(T f(E element)) => const EmptyIterable();
+  Iterable<T> map<T>(T f(E element)) => new EmptyIterable<T>();
 
   E reduce(E combine(E value, E element)) {
     throw IterableElementError.noElement();
@@ -764,6 +765,125 @@ class EmptyIterator<E> implements Iterator<E> {
   const EmptyIterator();
   bool moveNext() => false;
   E get current => null;
+}
+
+class FollowedByIterable<E> extends Iterable<E> {
+  final Iterable<E> _first;
+  final Iterable<E> _second;
+  FollowedByIterable(this._first, this._second);
+
+  factory FollowedByIterable.firstEfficient(
+      EfficientLengthIterable<E> first, Iterable<E> second) {
+    if (second is EfficientLengthIterable<E>) {
+      return new EfficientLengthFollowedByIterable<E>(first, second);
+    }
+    return new FollowedByIterable<E>(first, second);
+  }
+
+  Iterator<E> get iterator => new FollowedByIterator(_first, _second);
+
+  int get length => _first.length + _second.length;
+  bool get isEmpty => _first.isEmpty && _second.isEmpty;
+  bool get isNotEmpty => _first.isNotEmpty || _second.isNotEmpty;
+
+  // May be more efficient if either iterable is a Set.
+  bool contains(Object value) =>
+      _first.contains(value) || _second.contains(value);
+
+  E get first {
+    var iterator = _first.iterator;
+    if (iterator.moveNext()) return iterator.current;
+    return _second.first;
+  }
+
+  E get last {
+    var iterator = _second.iterator;
+    if (iterator.moveNext()) {
+      E last = iterator.current;
+      while (iterator.moveNext()) last = iterator.current;
+      return last;
+    }
+    return _first.last;
+  }
+
+  // If linear sequences of `followedBy` becomes an issue, we can flatten
+  // into a list of iterables instead of a tree or spine.
+}
+
+class EfficientLengthFollowedByIterable<E> extends FollowedByIterable<E>
+    implements EfficientLengthIterable<E> {
+  EfficientLengthFollowedByIterable(
+      EfficientLengthIterable<E> first, EfficientLengthIterable<E> second)
+      : super(first, second);
+
+  Iterable<E> skip(int count) {
+    int firstLength = _first.length;
+    if (count >= firstLength) return _second.skip(count - firstLength);
+    return new EfficientLengthFollowedByIterable<E>(
+        _first.skip(count), _second);
+  }
+
+  Iterable<E> take(int count) {
+    int firstLength = _first.length;
+    if (count <= firstLength) return _first.take(count);
+    return new EfficientLengthFollowedByIterable<E>(
+        _first, _second.take(count - firstLength));
+  }
+
+  E elementAt(int index) {
+    int firstLength = _first.length;
+    if (index < firstLength) return _first.elementAt(index);
+    return _second.elementAt(index - firstLength);
+  }
+
+  E get first {
+    if (_first.isNotEmpty) return _first.first;
+    return _second.first;
+  }
+
+  E get last {
+    if (_second.isNotEmpty) return _second.last;
+    return _first.last;
+  }
+}
+
+class FollowedByIterator<E> implements Iterator<E> {
+  Iterator<E> _currentIterator;
+  Iterable<E> _nextIterable;
+
+  FollowedByIterator(Iterable<E> first, this._nextIterable)
+      : _currentIterator = first.iterator;
+
+  bool moveNext() {
+    if (_currentIterator.moveNext()) return true;
+    if (_nextIterable != null) {
+      _currentIterator = _nextIterable.iterator;
+      _nextIterable = null;
+      return _currentIterator.moveNext();
+    }
+    return false;
+  }
+
+  E get current => _currentIterator.current;
+}
+
+class WhereTypeIterable<T> extends Iterable<T> {
+  final Iterable<Object> _source;
+  WhereTypeIterable(this._source);
+  Iterator<T> get iterator => new WhereTypeIterator<T>(_source.iterator);
+}
+
+class WhereTypeIterator<T> implements Iterator<T> {
+  final Iterator<Object> _source;
+  WhereTypeIterator(this._source);
+  bool moveNext() {
+    while (_source.moveNext()) {
+      if (_source.current is T) return true;
+    }
+    return false;
+  }
+
+  T get current => _source.current;
 }
 
 /**

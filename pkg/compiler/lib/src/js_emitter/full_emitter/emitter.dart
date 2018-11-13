@@ -4,7 +4,6 @@
 
 library dart2js.js_emitter.full_emitter;
 
-import 'dart:collection' show HashMap;
 import 'dart:convert';
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
@@ -13,14 +12,12 @@ import 'package:js_runtime/shared/embedded_names.dart'
 
 import '../../../compiler_new.dart';
 import '../../common.dart';
+import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../../deferred_load.dart' show OutputUnit, OutputUnitData;
+import '../../deferred_load.dart'
+    show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
-import '../../elements/entity_utils.dart' as utils;
-import '../../elements/types.dart';
-import '../../elements/names.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
@@ -28,18 +25,13 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart'
-    show
-        ConstantEmitter,
-        JavaScriptBackend,
-        Namer,
-        SetterName,
-        TypeVariableCodegenAnalysis;
+    show ConstantEmitter, JavaScriptBackend, Namer;
 import '../../js_backend/native_data.dart';
+import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../universe/call_structure.dart' show CallStructure;
-import '../../universe/selector.dart' show Selector;
-import '../../universe/world_builder.dart' show CodegenWorldBuilder;
+import '../../universe/codegen_world_builder.dart';
 import '../../util/uri_extras.dart' show relativize;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
@@ -75,7 +67,7 @@ class EmitterFactory implements js_emitter.EmitterFactory {
 
   @override
   Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      ClosedWorld closedWorld, Sorter sorter) {
+      JClosedWorld closedWorld, Sorter sorter) {
     return new Emitter(
         task.compiler, namer, closedWorld, generateSourceMap, task, sorter);
   }
@@ -84,13 +76,12 @@ class EmitterFactory implements js_emitter.EmitterFactory {
 class Emitter extends js_emitter.EmitterBase {
   final Compiler compiler;
   final CodeEmitterTask task;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   // The following fields will be set to copies of the program-builder's
   // collector.
   Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists;
   Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists;
-  List<TypedefEntity> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder;
   final ClassEmitter classEmitter;
@@ -118,21 +109,14 @@ class Emitter extends js_emitter.EmitterBase {
   CommonElements get commonElements => _closedWorld.commonElements;
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
   CodegenWorldBuilder get _worldBuilder => compiler.codegenWorldBuilder;
-  OutputUnitData get _outputUnitData => compiler.backend.outputUnitData;
+  OutputUnitData get _outputUnitData => _closedWorld.outputUnitData;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
 
   String classesCollector;
-  final Map<jsAst.Name, String> mangledFieldNames =
-      new HashMap<jsAst.Name, String>();
-  final Map<jsAst.Name, String> mangledGlobalFieldNames =
-      new HashMap<jsAst.Name, String>();
-  final Set<jsAst.Name> recordedMangledNames = new Set<jsAst.Name>();
 
   JavaScriptBackend get backend => compiler.backend;
-  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis =>
-      backend.typeVariableCodegenAnalysis;
 
   String get _ => space;
   String get space => compiler.options.enableMinification ? "" : " ";
@@ -176,7 +160,7 @@ class Emitter extends js_emitter.EmitterBase {
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
         nsmEmitter = new NsmEmitter(_closedWorld),
         _sorter = sorter,
-        containerBuilder = new ContainerBuilder(),
+        containerBuilder = new ContainerBuilder(_closedWorld),
         _constantOrdering = new ConstantOrdering(sorter) {
     constantEmitter = new ConstantEmitter(
         compiler.options,
@@ -184,7 +168,7 @@ class Emitter extends js_emitter.EmitterBase {
         compiler.codegenWorldBuilder,
         _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
-        namer,
+        _closedWorld.allocatorAnalysis,
         task,
         this.constantReference,
         constantListGenerator);
@@ -278,11 +262,6 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Name get makeConstListProperty =>
       namer.internalGlobal('makeConstantList');
 
-  /// The name of the property that contains all field names.
-  ///
-  /// This property is added to constructors when isolate support is enabled.
-  static const String FIELD_NAMES_PROPERTY_NAME = r"$__fields__";
-
   /// For deferred loading we communicate the initializers via this global var.
   final String deferredInitializers = r"$dart_deferred_initializers$";
 
@@ -336,14 +315,23 @@ class Emitter extends js_emitter.EmitterBase {
       case JsBuiltin.isFunctionType:
         return backend.rtiEncoder.templateForIsFunctionType;
 
+      case JsBuiltin.isFutureOrType:
+        return backend.rtiEncoder.templateForIsFutureOrType;
+
+      case JsBuiltin.isVoidType:
+        return backend.rtiEncoder.templateForIsVoidType;
+
+      case JsBuiltin.isDynamicType:
+        return backend.rtiEncoder.templateForIsDynamicType;
+
+      case JsBuiltin.isJsInteropTypeArgument:
+        return backend.rtiEncoder.templateForIsJsInteropTypeArgument;
+
       case JsBuiltin.rawRtiToJsConstructorName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
 
       case JsBuiltin.rawRuntimeType:
         return jsAst.js.expressionTemplateFor("#.constructor");
-
-      case JsBuiltin.createFunctionTypeRti:
-        return backend.rtiEncoder.templateForCreateFunctionType;
 
       case JsBuiltin.isSubtype:
         // TODO(floitsch): move this closer to where is-check properties are
@@ -364,13 +352,6 @@ class Emitter extends js_emitter.EmitterBase {
         String typesAccess =
             generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
         return jsAst.js.expressionTemplateFor("$typesAccess[#]");
-
-      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
-        // The global-functions map contains a map from name to tear-off
-        // getters.
-        String functionGettersMap =
-            generateEmbeddedGlobalAccessString(embeddedNames.GLOBAL_FUNCTIONS);
-        return jsAst.js.expressionTemplateFor("$functionGettersMap[#]()");
 
       default:
         reporter.internalError(
@@ -398,10 +379,6 @@ class Emitter extends js_emitter.EmitterBase {
         subclassReadGenerator, interceptorsByTagAccess, leafTagsAccess);
   }
 
-  jsAst.ObjectInitializer generateInterceptedNamesSet() {
-    return interceptorEmitter.generateInterceptedNamesSet();
-  }
-
   /// In minified mode we want to keep the name for the most common core types.
   bool _isNativeTypeNeedingReflectionName(ClassEntity element) {
     return (element == commonElements.intClass ||
@@ -419,154 +396,15 @@ class Emitter extends js_emitter.EmitterBase {
   /// An anonymous mixin application has no reflection name.
   ///
   /// This is used by js_mirrors.dart.
+  // TODO(johnniwinther): Do we still need this when js_mirrors is deleted?
   String getReflectionClassName(ClassEntity cls, jsAst.Name mangledName) {
-    String name = cls.name;
-    if (backend.mirrorsData.shouldRetainName(name) ||
-        // Make sure to retain names of common native types.
-        _isNativeTypeNeedingReflectionName(cls)) {
-      // TODO(ahe): Enable the next line when I can tell the difference between
-      // an instance method and a global.  They may have the same mangled name.
-      // if (recordedMangledNames.contains(mangledName)) return null;
-      recordedMangledNames.add(mangledName);
-      if (cls.isClosure) {
-        // Closures are synthesized and their name might conflict with existing
-        // globals. Assign an illegal name, and make sure they don't clash
-        // with each other.
-        return " $name";
-      }
-      if (_elementEnvironment.isUnnamedMixinApplication(cls)) return null;
+    // Make sure to retain names of common native types.
+    if (_isNativeTypeNeedingReflectionName(cls)) {
+      assert(!cls.isClosure);
+      assert(!_elementEnvironment.isUnnamedMixinApplication(cls));
       return cls.name;
     }
     return null;
-  }
-
-  /// Returns the "reflection name" of a [MemberEntity], if needed.
-  ///
-  /// The reflection name of a getter 'foo' is 'foo'.
-  /// The reflection name of a setter 'foo' is 'foo='.
-  /// The reflection name of a method 'foo' is 'foo:N:M:O', where N is the
-  /// number of required arguments, M is the number of optional arguments, and
-  /// O is the named arguments.
-  /// The reflection name of a constructor is similar to a regular method but
-  /// starts with 'new '.
-  ///
-  /// This is used by js_mirrors.dart.
-  String getReflectionMemberName(MemberEntity member, jsAst.Name mangledName) {
-    String name = member.name;
-    if (backend.mirrorsData.shouldRetainName(name) ||
-        // Make sure to retain names of unnamed constructors.
-        (name == '' &&
-            backend.mirrorsData.isMemberAccessibleByReflection(member))) {
-      // TODO(ahe): Enable the next line when I can tell the difference between
-      // an instance method and a global.  They may have the same mangled name.
-      // if (recordedMangledNames.contains(mangledName)) return null;
-      recordedMangledNames.add(mangledName);
-      return getReflectionMemberNameInternal(member, mangledName);
-    }
-    return null;
-  }
-
-  String getReflectionMemberNameInternal(
-      MemberEntity member, jsAst.Name mangledName) {
-    if (member is ConstructorBodyEntity) {
-      return null;
-    }
-    if (member.isGetter) {
-      return _getReflectionGetterName(member.memberName);
-    } else if (member.isSetter) {
-      return _getReflectionSetterName(member.memberName, mangledName);
-    } else if (member.isConstructor) {
-      ConstructorEntity constructor = member;
-      String name = utils.reconstructConstructorName(constructor);
-      return _getReflectionCallStructureName(
-          name, constructor.parameterStructure.callStructure);
-    } else if (member.isFunction) {
-      FunctionEntity function = member;
-      return _getReflectionFunctionName(
-          member.memberName, function.parameterStructure.callStructure);
-    }
-    throw reporter.internalError(
-        member, 'Do not know how to reflect on this $member.');
-  }
-
-  /// Returns the "reflection name" of a [Selector], if needed.
-  ///
-  /// The reflection name of a getter 'foo' is 'foo'.
-  /// The reflection name of a setter 'foo' is 'foo='.
-  /// The reflection name of a method 'foo' is 'foo:N:M:O', where N is the
-  /// number of required arguments, M is the number of optional arguments, and
-  /// O is the named arguments.
-  ///
-  /// This is used by js_mirrors.dart.
-  String getReflectionSelectorName(Selector selector, jsAst.Name mangledName) {
-    String name = selector.name;
-    if (backend.mirrorsData.shouldRetainName(name)) {
-      // TODO(ahe): Enable the next line when I can tell the difference between
-      // an instance method and a global.  They may have the same mangled name.
-      // if (recordedMangledNames.contains(mangledName)) return null;
-      recordedMangledNames.add(mangledName);
-      if (selector.isGetter) {
-        return _getReflectionGetterName(selector.memberName);
-      } else if (selector.isSetter) {
-        return _getReflectionSetterName(selector.memberName, mangledName);
-      } else {
-        return _getReflectionFunctionName(
-            selector.memberName, selector.callStructure);
-      }
-    }
-    return null;
-  }
-
-  /// Returns the "reflection name" of a [TypedefEntity], if needed.
-  ///
-  /// The reflection name of typedef 'F' is 'F'.
-  ///
-  /// This is used by js_mirrors.dart.
-  String getReflectionTypedefName(
-      TypedefEntity typedef, jsAst.Name mangledName) {
-    String name = typedef.name;
-    if (backend.mirrorsData.shouldRetainName(name)) {
-      // TODO(ahe): Enable the next line when I can tell the difference between
-      // an instance method and a global.  They may have the same mangled name.
-      // if (recordedMangledNames.contains(mangledName)) return null;
-      recordedMangledNames.add(mangledName);
-      return typedef.name;
-    }
-    return null;
-  }
-
-  String _getReflectionGetterName(Name memberName) {
-    return namer.privateName(memberName);
-  }
-
-  String _getReflectionSetterName(Name memberName, jsAst.Name mangledName) {
-    String name = namer.privateName(memberName);
-    if (mangledName is! SetterName) return '$name=';
-    SetterName setterName = mangledName;
-    jsAst.Name base = setterName.base;
-    jsAst.Name getter = namer.deriveGetterName(base);
-    mangledFieldNames.putIfAbsent(getter, () => name);
-    assert(mangledFieldNames[getter] == name);
-    recordedMangledNames.add(getter);
-    // TODO(karlklose,ahe): we do not actually need to store information
-    // about the name of this setter in the output, but it is needed for
-    // marking the function as invokable by reflection.
-    return '$name=';
-  }
-
-  String _getReflectionFunctionName(
-      Name memberName, CallStructure callStructure) {
-    String name = namer.privateName(memberName);
-    return _getReflectionCallStructureName(name, callStructure);
-  }
-
-  String _getReflectionCallStructureName(
-      String name, CallStructure callStructure,
-      {bool isConstructor: false}) {
-    int positionalParameterCount = callStructure.positionalArgumentCount;
-    String namedArguments = namedParametersAsReflectionNames(callStructure);
-    String suffix = '$name:$positionalParameterCount$namedArguments';
-    return isConstructor ? 'new $suffix' : suffix;
   }
 
   String namedParametersAsReflectionNames(CallStructure structure) {
@@ -813,12 +651,10 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   buildMain(jsAst.Statement invokeMain) {
-    if (compiler.isMockCompilation) return js.comment("Mock compilation");
-
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    if (NativeGenerator
-        .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
+    if (NativeGenerator.needsIsolateAffinityTagInitialization(
+        _closedWorld.backendUsage)) {
       parts.add(NativeGenerator.generateIsolateAffinityTagInitialization(
           _closedWorld.backendUsage, generateEmbeddedGlobalAccess, js("""
         // On V8, the 'intern' function converts a string to a symbol, which
@@ -854,7 +690,7 @@ class Emitter extends js_emitter.EmitterBase {
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
-    return js.statement('''
+    return js.statement("""
       function init() {
         $isolatePropertiesName = Object.create(null);
         #allClasses = map();
@@ -958,7 +794,7 @@ class Emitter extends js_emitter.EmitterBase {
           return Isolate;
       }
 
-      }''', {
+      }""", {
       'allClasses': allClassesAccess,
       'getTypeFromName': getTypeFromNameAccess,
       'interceptorsByTag': interceptorsByTagAccess,
@@ -1052,8 +888,7 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Expression generateLibraryDescriptor(
       LibraryEntity library, Fragment fragment) {
     dynamic uri = "";
-    if (!compiler.options.enableMinification ||
-        backend.mirrorsData.mustPreserveUris) {
+    if (!compiler.options.enableMinification) {
       uri = library.canonicalUri;
       if (uri.scheme == 'file' && compiler.options.outputUri != null) {
         uri =
@@ -1061,13 +896,11 @@ class Emitter extends js_emitter.EmitterBase {
       }
     }
 
-    String libraryName = (!compiler.options.enableMinification ||
-            backend.mirrorsData.mustRetainLibraryNames)
+    String libraryName = !compiler.options.enableMinification
         ? _elementEnvironment.getLibraryName(library)
         : "";
 
-    jsAst.Fun metadata =
-        task.metadataCollector.buildLibraryMetadataFunction(library);
+    jsAst.Fun metadata = null;
 
     ClassBuilder descriptor = libraryDescriptors[fragment][library];
 
@@ -1107,18 +940,7 @@ class Emitter extends js_emitter.EmitterBase {
     cspPrecompiledFunctionFor(outputUnit)
         .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
-    String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-    bool hasIsolateSupport = _closedWorld.backendUsage.isIsolateInUse;
-    jsAst.Node fieldNamesArray;
-    if (hasIsolateSupport) {
-      fieldNamesArray =
-          new jsAst.ArrayInitializer(fields.map(js.quoteName).toList());
-    } else {
-      fieldNamesArray = new jsAst.LiteralNull();
-    }
-
-    cspPrecompiledFunctionFor(outputUnit).add(js.statement(
-        r'''
+    cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
           #constructorName.#typeNameProperty = #constructorNameString;
           // IE does not have a name property.
@@ -1126,61 +948,13 @@ class Emitter extends js_emitter.EmitterBase {
               #constructorName.name = #constructorNameString;
           $desc = $collectedClasses$.#constructorName[1];
           #constructorName.prototype = $desc;
-          ''' /* next string is not a raw string */ '''
-          if (#hasIsolateSupport) {
-            #constructorName.$fieldNamesProperty = #fieldNamesArray;
-          }
-        }''',
-        {
-          "constructorName": constructorName,
-          "typeNameProperty": typeNameProperty,
-          "constructorNameString": js.quoteName(constructorName),
-          "hasIsolateSupport": hasIsolateSupport,
-          "fieldNamesArray": fieldNamesArray
-        }));
+        }''', {
+      "constructorName": constructorName,
+      "typeNameProperty": typeNameProperty,
+      "constructorNameString": js.quoteName(constructorName),
+    }));
 
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
-  }
-
-  void assembleTypedefs(Program program) {
-    Fragment mainFragment = program.mainFragment;
-    OutputUnit mainOutputUnit = mainFragment.outputUnit;
-
-    // Emit all required typedef declarations into the main output unit.
-    // TODO(karlklose): unify required classes and typedefs to declarations
-    // and have builders for each kind.
-    for (TypedefEntity typedef in typedefsNeededForReflection) {
-      LibraryEntity library = typedef.library;
-      // TODO(karlklose): add a TypedefBuilder and move this code there.
-      FunctionType type = _elementEnvironment.getFunctionTypeOfTypedef(typedef);
-      // TODO(zarah): reify type variables once reflection on type arguments of
-      // typedefs is supported.
-      jsAst.Expression typeIndex = task.metadataCollector
-          .reifyType(type, mainOutputUnit, ignoreTypeVariables: true);
-      ClassBuilder builder = new ClassBuilder.forStatics(typedef, namer);
-      builder.addPropertyByName(
-          embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME, typeIndex);
-      builder.addPropertyByName(
-          embeddedNames.TYPEDEF_PREDICATE_PROPERTY_NAME, js.boolean(true));
-
-      // We can be pretty sure that the objectClass is initialized, since
-      // typedefs are only emitted with reflection, which requires lots of
-      // classes.
-      assert(commonElements.objectClass != null);
-      builder.superName = namer.className(commonElements.objectClass);
-      jsAst.Node declaration = builder.toObjectInitializer();
-      jsAst.Name mangledName = namer.globalPropertyNameForType(typedef);
-      String reflectionName = getReflectionTypedefName(typedef, mangledName);
-      getLibraryDescriptor(library, mainFragment)
-        ..addProperty(mangledName, declaration)
-        ..addPropertyByName("+$reflectionName", js.string(''));
-      // Also emit a trivial constructor for CSP mode.
-      jsAst.Name constructorName = mangledName;
-      jsAst.Expression constructorAst = js('function() {}');
-      List<jsAst.Name> fieldNames = [];
-      assemblePrecompiledConstructor(
-          mainOutputUnit, constructorName, constructorAst, fieldNames);
-    }
   }
 
   jsAst.Statement buildGlobalObjectSetup(bool isProgramSplit) {
@@ -1268,39 +1042,6 @@ class Emitter extends js_emitter.EmitterBase {
     return new jsAst.Block(parts);
   }
 
-  jsAst.Statement buildMangledNames() {
-    List<jsAst.Statement> parts = <jsAst.Statement>[];
-
-    if (!mangledFieldNames.isEmpty) {
-      List<jsAst.Name> keys = mangledFieldNames.keys.toList()..sort();
-      var properties = [];
-      for (jsAst.Name key in keys) {
-        var value = js.string(mangledFieldNames[key]);
-        properties.add(new jsAst.Property(key, value));
-      }
-
-      jsAst.Expression mangledNamesAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
-      var map = new jsAst.ObjectInitializer(properties);
-      parts.add(js.statement('# = #', [mangledNamesAccess, map]));
-    }
-
-    if (!mangledGlobalFieldNames.isEmpty) {
-      List<jsAst.Name> keys = mangledGlobalFieldNames.keys.toList()..sort();
-      List<jsAst.Property> properties = <jsAst.Property>[];
-      for (jsAst.Name key in keys) {
-        jsAst.Literal value = js.string(mangledGlobalFieldNames[key]);
-        properties.add(new jsAst.Property(js.quoteName(key), value));
-      }
-      jsAst.Expression mangledGlobalNamesAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.MANGLED_GLOBAL_NAMES);
-      jsAst.ObjectInitializer map = new jsAst.ObjectInitializer(properties);
-      parts.add(js.statement('# = #', [mangledGlobalNamesAccess, map]));
-    }
-
-    return new jsAst.Block(parts);
-  }
-
   void checkEverythingEmitted(
       Map<ClassEntity, ClassBuilder> pendingClassBuilders) {
     if (pendingClassBuilders == null) return;
@@ -1336,7 +1077,6 @@ class Emitter extends js_emitter.EmitterBase {
         assembleLibrary(library, fragment);
       }
     }
-    assembleTypedefs(program);
   }
 
   jsAst.Statement buildDeferredHeader() {
@@ -1432,8 +1172,6 @@ class Emitter extends js_emitter.EmitterBase {
 
        init();
 
-       #mangledNames;
-
        #cspPrecompiledFunctions;
 
        #setupProgram;
@@ -1501,7 +1239,6 @@ class Emitter extends js_emitter.EmitterBase {
       "isolatePropertiesName": js(isolatePropertiesName),
       "initName": initName,
       "functionThatReturnsNull": buildFunctionThatReturnsNull(),
-      "mangledNames": buildMangledNames(),
       "setupProgram": buildSetupProgram(
           program, compiler, backend, namer, this, _closedWorld),
       "setupProgramName": setupProgramName,
@@ -1565,6 +1302,8 @@ class Emitter extends js_emitter.EmitterBase {
       SourceMapBuilder.outputSourceMap(
           mainOutput,
           locationCollector,
+          namer.createMinifiedGlobalNameMap(),
+          namer.createMinifiedInstanceNameMap(),
           '',
           compiler.options.sourceMapUri,
           compiler.options.outputUri,
@@ -1614,14 +1353,15 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programForTesting =
+    Program program =
         programBuilder.buildProgram(storeFunctionTypesInMetadata: true);
+    if (retainDataForTesting) {
+      programForTesting = program;
+    }
 
     outputStaticNonFinalFieldLists =
         programBuilder.collector.outputStaticNonFinalFieldLists;
     outputLibraryLists = programBuilder.collector.outputLibraryLists;
-    typedefsNeededForReflection =
-        programBuilder.collector.typedefsNeededForReflection;
 
     assembleProgram(program);
 
@@ -1738,47 +1478,59 @@ class Emitter extends js_emitter.EmitterBase {
           generateEmbeddedGlobalAccess(embeddedNames.DEFERRED_INITIALIZED)
     }));
 
-    // Write a javascript mapping from Deferred import load ids (derrived
-    // from the import prefix.) to a list of lists of uris of hunks to load,
-    // and a corresponding mapping to a list of hashes used by
-    // INITIALIZE_LOADED_HUNK and IS_HUNK_LOADED.
-    Map<String, List<jsAst.LiteralString>> deferredLibraryUris =
-        new Map<String, List<jsAst.LiteralString>>();
-    Map<String, List<_DeferredOutputUnitHash>> deferredLibraryHashes =
-        new Map<String, List<_DeferredOutputUnitHash>>();
-    compiler.deferredLoadTask.hunksToLoad
-        .forEach((String loadId, List<OutputUnit> outputUnits) {
-      List<jsAst.LiteralString> uris = new List<jsAst.LiteralString>();
-      List<_DeferredOutputUnitHash> hashes =
-          new List<_DeferredOutputUnitHash>();
-      deferredLibraryHashes[loadId] = new List<_DeferredOutputUnitHash>();
-      for (OutputUnit outputUnit in outputUnits) {
-        uris.add(js.escapedString(
-            compiler.deferredLoadTask.deferredPartFileName(outputUnit.name)));
-        hashes.add(deferredLoadHashes[outputUnit]);
+    void store(
+        jsAst.Expression map, jsAst.Expression uris, jsAst.Expression hashes) {
+      void assign(String name, jsAst.Expression value) {
+        parts.add(
+            js.statement('# = #', [generateEmbeddedGlobalAccess(name), value]));
       }
 
-      deferredLibraryUris[loadId] = uris;
-      deferredLibraryHashes[loadId] = hashes;
-    });
-
-    void emitMapping(String name, Map<String, List<jsAst.Expression>> mapping) {
-      List<jsAst.Property> properties = new List<jsAst.Property>();
-      mapping.forEach((String key, List<jsAst.Expression> values) {
-        properties.add(new jsAst.Property(
-            js.escapedString(key), new jsAst.ArrayInitializer(values)));
-      });
-      jsAst.Node initializer =
-          new jsAst.ObjectInitializer(properties, isOneLiner: true);
-
-      jsAst.Node globalName = generateEmbeddedGlobalAccess(name);
-      parts.add(js.statement("# = #", [globalName, initializer]));
+      assign(embeddedNames.DEFERRED_LIBRARY_PARTS, map);
+      assign(embeddedNames.DEFERRED_PART_URIS, uris);
+      assign(embeddedNames.DEFERRED_PART_HASHES, hashes);
     }
 
-    emitMapping(embeddedNames.DEFERRED_LIBRARY_URIS, deferredLibraryUris);
-    emitMapping(embeddedNames.DEFERRED_LIBRARY_HASHES, deferredLibraryHashes);
+    createDeferredLoadingData(
+        _closedWorld.outputUnitData.hunksToLoad, deferredLoadHashes, store);
 
     return new jsAst.Block(parts);
+  }
+
+  // Create data used for loading and initializing the hunks for a deferred
+  // import. There are three parts: a map from loadId to list of parts, where
+  // parts are represented as an index; an array of uris indexed by part; and an
+  // array of hashes indexed by part.
+  void createDeferredLoadingData(
+      Map<String, List<OutputUnit>> loadMap,
+      Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes,
+      void finish(jsAst.Expression map, jsAst.Expression uris,
+          jsAst.Expression hashes)) {
+    Map<OutputUnit, int> fragmentIndexes = <OutputUnit, int>{};
+    var uris = <jsAst.Expression>[];
+    var hashes = <jsAst.Expression>[];
+
+    List<jsAst.Property> libraryPartsMapEntries = <jsAst.Property>[];
+
+    loadMap.forEach((String loadId, List<OutputUnit> fragmentList) {
+      List<jsAst.Expression> indexes = <jsAst.Expression>[];
+      for (OutputUnit fragment in fragmentList) {
+        int index = fragmentIndexes[fragment];
+        if (index == null) {
+          index = fragmentIndexes[fragment] = fragmentIndexes.length;
+          uris.add(js.escapedString(
+              deferredPartFileName(compiler.options, fragment.name)));
+          _DeferredOutputUnitHash hash = deferredLoadHashes[fragment];
+          assert(hash != null, "No hash for $fragment in $deferredLoadHashes.");
+          hashes.add(hash);
+        }
+        indexes.add(js.number(index));
+      }
+      libraryPartsMapEntries.add(new jsAst.Property(
+          js.string(loadId), new jsAst.ArrayInitializer(indexes)));
+    });
+
+    finish(new jsAst.ObjectInitializer(libraryPartsMapEntries),
+        new jsAst.ArrayInitializer(uris), new jsAst.ArrayInitializer(hashes));
   }
 
   Map<OutputUnit, jsAst.Program> buildOutputAstForDeferredCode(
@@ -1884,8 +1636,9 @@ class Emitter extends js_emitter.EmitterBase {
         outputListeners.add(locationCollector);
       }
 
-      String partPrefix = compiler.deferredLoadTask
-          .deferredPartFileName(outputUnit.name, addExtension: false);
+      String partPrefix = deferredPartFileName(
+          compiler.options, outputUnit.name,
+          addExtension: false);
       CodeOutput output = new StreamCodeOutput(
           compiler.outputProvider
               .createOutputSink(partPrefix, 'part.js', OutputType.jsPart),
@@ -1930,8 +1683,8 @@ class Emitter extends js_emitter.EmitterBase {
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        SourceMapBuilder.outputSourceMap(output, locationCollector, partName,
-            mapUri, partUri, compiler.outputProvider);
+        SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
+            partName, mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();
       }
@@ -1942,12 +1695,18 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   jsAst.Comment buildGeneratedBy() {
-    List<String> options = [];
-    if (_closedWorld.backendUsage.isMirrorsUsed) {
-      options.add('mirrors');
+    StringBuffer flavor = new StringBuffer();
+    flavor.write('full emitter');
+    // TODO(johnniwinther): Remove this flavor.
+    flavor.write(', strong');
+    if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
+    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
+    if (compiler.options.laxRuntimeTypeToString) {
+      flavor.write(', lax runtime type');
     }
-    if (compiler.options.useContentSecurityPolicy) options.add("CSP");
-    return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
+    if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
+    if (_closedWorld.backendUsage.isMirrorsUsed) flavor.write(', mirrors');
+    return new jsAst.Comment(generatedBy(compiler, flavor: '$flavor'));
   }
 
   void outputDeferredMap() {
@@ -1956,7 +1715,8 @@ class Emitter extends js_emitter.EmitterBase {
     // data.
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
-    mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
+    mapping.addAll(_closedWorld.outputUnitData
+        .computeDeferredMap(compiler.options, _elementEnvironment));
     compiler.outputProvider.createOutputSink(
         compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))

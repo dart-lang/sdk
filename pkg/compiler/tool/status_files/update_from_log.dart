@@ -3,25 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Script that updates dart2js status lines automatically for tests under the
-/// '$dart2js_with_kernel' configuration.
+/// '$fasta' configuration.
 ///
 /// This script is hardcoded to only support this configuration and relies on
 /// a convention for how the status files are structured, In particular,
 /// every status file for dart2js should have 3 sections:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+///     [ $compiler == dart2js && $fasta && $host_checked ]
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+///     [ $compiler == dart2js && $fasta && $minified ]
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+///     [ $compiler == dart2js && $fasta && $fast_startup ]
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
+///     [ $compiler == dart2js && $checked && $fasta ]
 library compiler.status_files.update_from_log;
 
 import 'dart:io';
@@ -30,25 +30,27 @@ import 'record.dart';
 import 'log_parser.dart';
 
 final dart2jsConfigurations = {
-  'host-checked':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]',
-  'minified': r'[ $compiler == dart2js && $dart2js_with_kernel && $minified ]',
-  'fast-startup':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]',
-  'checked-mode':
-      r'[ $compiler == dart2js && $checked && $dart2js_with_kernel ]',
+  'host-checked': r'[ $compiler == dart2js && $fasta && $host_checked ]',
+  'minified': r'[ $compiler == dart2js && $fasta && $minified ]',
+  'host-checked-strong':
+      r'[ $compiler == dart2js && $fasta && $host_checked && $strong ]',
+  'minified-strong':
+      r'[ $compiler == dart2js && $fasta && $minified && $strong ]',
+  'fast-startup': r'[ $compiler == dart2js && $fast_startup && $fasta ]',
+  'fast-startup-strong':
+      r'[ $compiler == dart2js && $fast_startup && $fasta && $strong ]',
+  'checked-mode': r'[ $compiler == dart2js && $checked && $fasta ]',
+  'checked-mode-strong':
+      r'[ $compiler == dart2js && $checked && $fasta && $strong ]',
 };
 
 final dart2jsStatusFiles = {
-  'language': 'tests/language/language_dart2js.status',
-  'corelib': 'tests/corelib/corelib.status',
   'language_2': 'tests/language_2/language_2_dart2js.status',
   // TODO(sigmund,rnystrom): update when corelib_2 gets split into multiple
   // status files.
   'corelib_2': 'tests/corelib_2/corelib_2.status',
   'dart2js_extra': 'tests/compiler/dart2js_extra/dart2js_extra.status',
   'dart2js_native': 'tests/compiler/dart2js_native/dart2js_native.status',
-  'html': 'tests/html/html.status',
 };
 
 main(args) {
@@ -70,7 +72,8 @@ mainInternal(List<String> args, Map<String, String> configurations,
     exit(1);
   }
 
-  var uri = Uri.base.resolve(args[1]);
+  var uri =
+      Uri.base.resolveUri(new Uri.file(args[1], windows: Platform.isWindows));
   var file = new File.fromUri(uri);
   if (!file.existsSync()) {
     print('file not found: $file');
@@ -97,6 +100,10 @@ void updateLogs(String mode, String log, Map<String, String> configurations,
     if (section?.suite != record.suite) {
       section?.update(globalReason);
       var statusFile = statusFiles[record.suite];
+      if (statusFile == null) {
+        print("No status file for suite '${record.suite}'.");
+        continue;
+      }
       var condition = configurations[mode];
       section = ConfigurationInSuiteSection.create(
           record.suite, mode, statusFile, condition);

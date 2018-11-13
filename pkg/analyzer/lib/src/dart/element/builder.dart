@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.element.builder;
 
 import 'dart:collection';
 
@@ -14,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -32,7 +31,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
    * A table mapping field names to field elements for the fields defined in the current class, or
    * `null` if we are not in the scope of a class.
    */
-  HashMap<String, FieldElement> _fieldMap;
+  Map<String, FieldElement> _fieldMap;
 
   /**
    * Whether the class being built has a constant constructor.
@@ -82,44 +81,16 @@ class ApiElementBuilder extends _BaseElementBuilder {
       }
     }
 
-    ElementHolder holder = new ElementHolder();
-    //
-    // Process field declarations before constructors and methods so that field
-    // formal parameters can be correctly resolved to their fields.
-    //
-    ElementHolder previousHolder = _currentHolder;
-    _currentHolder = holder;
-    try {
-      List<ClassMember> nonFields = new List<ClassMember>();
-      node.visitChildren(
-          new _ElementBuilder_visitClassDeclaration(this, nonFields));
-      _buildFieldMap(holder.fieldsWithoutFlushing);
-      int count = nonFields.length;
-      for (int i = 0; i < count; i++) {
-        nonFields[i].accept(this);
-      }
-    } finally {
-      _currentHolder = previousHolder;
-    }
+    ElementHolder holder = _buildClassMembers(node);
+
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.typeParameters = holder.typeParameters;
-    setElementDocumentationComment(element, node);
-    element.abstract = node.isAbstract;
-    element.accessors = holder.accessors;
-    List<ConstructorElement> constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      constructors = _createDefaultConstructors(element);
-    }
-    element.constructors = constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-    _currentHolder.addType(element);
     className.staticElement = element;
-    _fieldMap = null;
-    holder.validate();
+    element.abstract = node.isAbstract;
+    _fillClassElement(node, element, holder);
+
+    _currentHolder.addType(element);
+
     return null;
   }
 
@@ -217,12 +188,14 @@ class ApiElementBuilder extends _BaseElementBuilder {
       constantField.isStatic = true;
       constantField.isConst = true;
       constantField.type = enumType;
+      constantField.metadata = _createElementAnnotations(constant.metadata);
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
       new PropertyAccessorElementImpl_ImplicitGetter(constantField);
       constantName.staticElement = constantField;
     }
     enumElement.fields = fields;
+    enumElement.createToStringMethodElement();
 
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
@@ -601,6 +574,20 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    ElementHolder holder = _buildClassMembers(node);
+
+    SimpleIdentifier nameNode = node.name;
+    MixinElementImpl element = new MixinElementImpl.forNode(nameNode);
+    nameNode.staticElement = element;
+    _fillClassElement(node, element, holder);
+
+    _currentHolder.addMixin(element);
+
+    return null;
+  }
+
+  @override
   Object visitPartDirective(PartDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
@@ -688,7 +675,32 @@ class ApiElementBuilder extends _BaseElementBuilder {
       elementAnnotations = _createElementAnnotations(node.metadata);
     }
     _setVariableDeclarationListAnnotations(node, elementAnnotations);
+    _setVariableDeclarationListCodeRanges(node);
     return null;
+  }
+
+  ElementHolder _buildClassMembers(AstNode classNode) {
+    ElementHolder holder = new ElementHolder();
+    //
+    // Process field declarations before constructors and methods so that field
+    // formal parameters can be correctly resolved to their fields.
+    //
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      List<ClassMember> nonFields = new List<ClassMember>();
+      classNode.visitChildren(
+          new _ClassNotExecutableElementsBuilder(this, nonFields));
+      _buildFieldMap(holder.fieldsWithoutFlushing);
+      int count = nonFields.length;
+      for (int i = 0; i < count; i++) {
+        nonFields[i].accept(this);
+      }
+    } finally {
+      _currentHolder = previousHolder;
+      _fieldMap = null;
+    }
+    return holder;
   }
 
   /**
@@ -741,6 +753,27 @@ class ApiElementBuilder extends _BaseElementBuilder {
     return typeArguments;
   }
 
+  void _fillClassElement(
+      AnnotatedNode node, ClassElementImpl element, ElementHolder holder) {
+    _setCodeRange(element, node);
+    setElementDocumentationComment(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+
+    element.accessors = holder.accessors;
+
+    List<ConstructorElement> constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      constructors = _createDefaultConstructors(element);
+    }
+    element.constructors = constructors;
+
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    element.typeParameters = holder.typeParameters;
+
+    holder.validate();
+  }
+
   @override
   void _setFieldParameterField(
       FormalParameter node, FieldFormalParameterElementImpl element) {
@@ -771,8 +804,7 @@ class CompilationUnitBuilder {
         return null;
       }
       ElementHolder holder = new ElementHolder();
-      CompilationUnitElementImpl element =
-          new CompilationUnitElementImpl(source.shortName);
+      CompilationUnitElementImpl element = new CompilationUnitElementImpl();
       ElementBuilder builder = new ElementBuilder(holder, element);
       unit.accept(builder);
       element.accessors = holder.accessors;
@@ -780,6 +812,7 @@ class CompilationUnitBuilder {
       element.functions = holder.functions;
       element.source = source;
       element.librarySource = librarySource;
+      element.mixins = holder.mixins;
       element.typeAliases = holder.typeAliases;
       element.types = holder.types;
       element.topLevelVariables = holder.topLevelVariables;
@@ -905,35 +938,29 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // The exported source will be null if the URI in the export
     // directive was invalid.
     LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
-    if (exportedLibrary != null) {
-      ExportElementImpl exportElement = new ExportElementImpl(node.offset);
-      exportElement.metadata = _getElementAnnotations(node.metadata);
-      StringLiteral uriLiteral = node.uri;
+    ExportElementImpl exportElement = new ExportElementImpl(node.offset);
+    exportElement.metadata = _getElementAnnotations(node.metadata);
+    StringLiteral uriLiteral = node.uri;
+    if (uriLiteral != null) {
+      exportElement.uriOffset = uriLiteral.offset;
+      exportElement.uriEnd = uriLiteral.end;
+    }
+    exportElement.uri = node.selectedUriContent;
+    exportElement.combinators = _buildCombinators(node);
+    exportElement.exportedLibrary = exportedLibrary;
+    setElementDocumentationComment(exportElement, node);
+    node.element = exportElement;
+    exports.add(exportElement);
+    if (exportedTime >= 0 &&
+        exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+      int offset = node.offset;
+      int length = node.length;
       if (uriLiteral != null) {
-        exportElement.uriOffset = uriLiteral.offset;
-        exportElement.uriEnd = uriLiteral.end;
+        offset = uriLiteral.offset;
+        length = uriLiteral.length;
       }
-      exportElement.uri = node.selectedUriContent;
-      exportElement.combinators = _buildCombinators(node);
-      exportElement.exportedLibrary = exportedLibrary;
-      setElementDocumentationComment(exportElement, node);
-      node.element = exportElement;
-      exports.add(exportElement);
-      if (exportedTime >= 0 &&
-          exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-        int offset = node.offset;
-        int length = node.length;
-        if (uriLiteral != null) {
-          offset = uriLiteral.offset;
-          length = uriLiteral.length;
-        }
-        errors.add(new AnalysisError(
-            libraryElement.source,
-            offset,
-            length,
-            CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-            [uriLiteral.toSource()]));
-      }
+      errors.add(new AnalysisError(libraryElement.source, offset, length,
+          CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
     }
     return null;
   }
@@ -947,50 +974,48 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // The imported source will be null if the URI in the import
     // directive was invalid.
     LibraryElement importedLibrary = importLibraryMap[importedSource];
-    if (importedLibrary != null) {
-      if (importedLibrary.isDartCore) {
-        explicitlyImportsCore = true;
+    if (importedLibrary != null && importedLibrary.isDartCore) {
+      explicitlyImportsCore = true;
+    }
+    ImportElementImpl importElement = new ImportElementImpl(node.offset);
+    importElement.metadata = _getElementAnnotations(node.metadata);
+    StringLiteral uriLiteral = node.uri;
+    if (uriLiteral != null) {
+      importElement.uriOffset = uriLiteral.offset;
+      importElement.uriEnd = uriLiteral.end;
+    }
+    importElement.uri = node.selectedUriContent;
+    importElement.deferred = node.deferredKeyword != null;
+    importElement.combinators = _buildCombinators(node);
+    importElement.importedLibrary = importedLibrary;
+    setElementDocumentationComment(importElement, node);
+    SimpleIdentifier prefixNode = node.prefix;
+    if (prefixNode != null) {
+      importElement.prefixOffset = prefixNode.offset;
+      String prefixName = prefixNode.name;
+      PrefixElementImpl prefix = nameToPrefixMap[prefixName];
+      if (prefix == null) {
+        prefix = new PrefixElementImpl.forNode(prefixNode);
+        nameToPrefixMap[prefixName] = prefix;
       }
-      ImportElementImpl importElement = new ImportElementImpl(node.offset);
-      importElement.metadata = _getElementAnnotations(node.metadata);
-      StringLiteral uriLiteral = node.uri;
+      importElement.prefix = prefix;
+      prefixNode.staticElement = prefix;
+    }
+    node.element = importElement;
+    imports.add(importElement);
+    if (importedTime >= 0 &&
+        importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+      int offset = node.offset;
+      int length = node.length;
       if (uriLiteral != null) {
-        importElement.uriOffset = uriLiteral.offset;
-        importElement.uriEnd = uriLiteral.end;
+        offset = uriLiteral.offset;
+        length = uriLiteral.length;
       }
-      importElement.uri = node.selectedUriContent;
-      importElement.deferred = node.deferredKeyword != null;
-      importElement.combinators = _buildCombinators(node);
-      importElement.importedLibrary = importedLibrary;
-      setElementDocumentationComment(importElement, node);
-      SimpleIdentifier prefixNode = node.prefix;
-      if (prefixNode != null) {
-        importElement.prefixOffset = prefixNode.offset;
-        String prefixName = prefixNode.name;
-        PrefixElementImpl prefix = nameToPrefixMap[prefixName];
-        if (prefix == null) {
-          prefix = new PrefixElementImpl.forNode(prefixNode);
-          nameToPrefixMap[prefixName] = prefix;
-        }
-        importElement.prefix = prefix;
-        prefixNode.staticElement = prefix;
-      }
-      node.element = importElement;
-      imports.add(importElement);
-      if (importedTime >= 0 &&
-          importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-        int offset = node.offset;
-        int length = node.length;
-        if (uriLiteral != null) {
-          offset = uriLiteral.offset;
-          length = uriLiteral.length;
-        }
-        ErrorCode errorCode = importElement.isDeferred
-            ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-            : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
-        errors.add(new AnalysisError(libraryElement.source, offset, length,
-            errorCode, [uriLiteral.toSource()]));
-      }
+      ErrorCode errorCode = importElement.isDeferred
+          ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+          : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+      errors.add(new AnalysisError(libraryElement.source, offset, length,
+          errorCode, [uriLiteral.toSource()]));
     }
     return null;
   }
@@ -1016,7 +1041,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   List<ElementAnnotation> _getElementAnnotations(
       NodeList<Annotation> metadata) {
     if (metadata.isEmpty) {
-      return ElementAnnotation.EMPTY_LIST;
+      return const <ElementAnnotation>[];
     }
     return metadata.map((Annotation a) => a.elementAnnotation).toList();
   }
@@ -1041,6 +1066,10 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
  * model representing the AST structure.
  */
 class ElementBuilder extends ApiElementBuilder {
+  /// List of names of methods, getters, setters, and operators that are
+  /// super-invoked in the current mixin declaration.
+  Set<String> _mixinSuperInvokedNames;
+
   /**
    * Initialize a newly created element builder to build the elements for a
    * compilation unit. The [initialHolder] is the element holder to which the
@@ -1060,7 +1089,7 @@ class ElementBuilder extends ApiElementBuilder {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     buildParameterInitializer(
-        node.element as ParameterElementImpl, node.defaultValue);
+        node.declaredElement as ParameterElementImpl, node.defaultValue);
     return null;
   }
 
@@ -1071,15 +1100,31 @@ class ElementBuilder extends ApiElementBuilder {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    _mixinSuperInvokedNames = new Set<String>();
+    try {
+      return super.visitMixinDeclaration(node);
+    } finally {
+      MixinElementImpl element = node.declaredElement;
+      element.superInvokedNames = _mixinSuperInvokedNames.toList();
+      _mixinSuperInvokedNames = null;
+    }
+  }
+
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    VariableElementImpl element = node.element as VariableElementImpl;
+    VariableElementImpl element = node.declaredElement as VariableElementImpl;
     buildVariableInitializer(element, node.initializer);
     return null;
   }
 
-  void _buildLocal(AstNode node) {
-    node.accept(new LocalElementBuilder(_currentHolder, _unitElement));
+  void _buildLocal(FunctionBody body) {
+    body.accept(new LocalElementBuilder(_currentHolder, _unitElement));
+    // This is not efficient - we visit AST second time.
+    if (_mixinSuperInvokedNames != null) {
+      body.accept(new MixinSuperInvokedNamesCollector(_mixinSuperInvokedNames));
+    }
   }
 }
 
@@ -1159,6 +1204,10 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.isFinal = node.isFinal;
     if (node.type == null) {
       element.hasImplicitType = true;
+    } else {
+      // Note: this is a noop most of the time, however, not for
+      // [GenericFunctionType] and perhaps others in the future.
+      node.type.accept(this);
     }
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
@@ -1169,7 +1218,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     buildParameterInitializer(
-        node.element as ParameterElementImpl, node.defaultValue);
+        node.declaredElement as ParameterElementImpl, node.defaultValue);
     return null;
   }
 
@@ -1184,6 +1233,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     _visitChildren(holder, node);
 
     FunctionElementImpl element = new FunctionElementImpl.forNode(node.name);
+    element.type = new FunctionTypeImpl(element);
     _setCodeRange(element, node);
     setElementDocumentationComment(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
@@ -1313,6 +1363,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     List<ElementAnnotation> elementAnnotations =
         _createElementAnnotations(node.metadata);
     _setVariableDeclarationListAnnotations(node, elementAnnotations);
+    _setVariableDeclarationListCodeRanges(node);
     return null;
   }
 
@@ -1409,6 +1460,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     parameter.isConst = node.isConst;
     parameter.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
     parameter.isFinal = node.isFinal;
+    // ignore: deprecated_member_use
     parameter.parameterKind = node.kind;
     // visible range
     _setParameterVisibleRange(node, parameter);
@@ -1418,7 +1470,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     }
     _currentHolder.addParameter(parameter);
     if (normalParameter is SimpleFormalParameterImpl) {
-      normalParameter.element = parameter;
+      normalParameter.declaredElement = parameter;
     }
     parameterName?.staticElement = parameter;
     normalParameter.accept(this);
@@ -1436,6 +1488,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
+      // ignore: deprecated_member_use
       parameter.parameterKind = node.kind;
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
@@ -1446,7 +1499,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    ParameterElementImpl element = node.element;
+    ParameterElementImpl element = node.declaredElement;
     element.metadata = _createElementAnnotations(node.metadata);
     if (node.parameters != null) {
       _createGenericFunctionType(element, holder);
@@ -1465,6 +1518,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
+      // ignore: deprecated_member_use
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       _currentHolder.addParameter(parameter);
@@ -1476,7 +1530,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    ParameterElementImpl element = node.element;
+    ParameterElementImpl element = node.declaredElement;
     element.metadata = _createElementAnnotations(node.metadata);
     _createGenericFunctionType(element, holder);
     holder.validate();
@@ -1509,17 +1563,18 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
+      // ignore: deprecated_member_use
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       if (node.type == null) {
         parameter.hasImplicitType = true;
       }
       _currentHolder.addParameter(parameter);
-      (node as SimpleFormalParameterImpl).element = parameter;
+      (node as SimpleFormalParameterImpl).declaredElement = parameter;
       parameterName?.staticElement = parameter;
     }
     super.visitSimpleFormalParameter(node);
-    parameter ??= node.element;
+    parameter ??= node.declaredElement;
     parameter?.metadata = _createElementAnnotations(node.metadata);
     return null;
   }
@@ -1546,7 +1601,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   List<ElementAnnotation> _createElementAnnotations(
       NodeList<Annotation> annotations) {
     if (annotations.isEmpty) {
-      return ElementAnnotation.EMPTY_LIST;
+      return const <ElementAnnotation>[];
     }
     return annotations.map((Annotation a) {
       ElementAnnotationImpl elementAnnotation =
@@ -1609,9 +1664,19 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   void _setVariableDeclarationListAnnotations(VariableDeclarationList node,
       List<ElementAnnotation> elementAnnotations) {
     for (VariableDeclaration variableDeclaration in node.variables) {
-      ElementImpl element = variableDeclaration.element as ElementImpl;
-      _setCodeRange(element, node.parent);
+      ElementImpl element = variableDeclaration.declaredElement as ElementImpl;
       element.metadata = elementAnnotations;
+    }
+  }
+
+  void _setVariableDeclarationListCodeRanges(VariableDeclarationList node) {
+    List<VariableDeclaration> variables = node.variables;
+    for (var i = 0; i < variables.length; i++) {
+      var variable = variables[i];
+      var offset = (i == 0 ? node.parent : variable).offset;
+      var length = variable.end - offset;
+      var element = variable.declaredElement as ElementImpl;
+      element.setCodeRange(offset, length);
     }
   }
 
@@ -1652,12 +1717,14 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   }
 }
 
-class _ElementBuilder_visitClassDeclaration extends UnifyingAstVisitor<Object> {
+/**
+ * Builds elements for all node that are not constructors or methods.
+ */
+class _ClassNotExecutableElementsBuilder extends UnifyingAstVisitor<Object> {
   final ApiElementBuilder builder;
+  final List<ClassMember> nonFields;
 
-  List<ClassMember> nonFields;
-
-  _ElementBuilder_visitClassDeclaration(this.builder, this.nonFields) : super();
+  _ClassNotExecutableElementsBuilder(this.builder, this.nonFields);
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {

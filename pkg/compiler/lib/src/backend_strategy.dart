@@ -4,45 +4,43 @@
 
 library dart2js.backend_strategy;
 
-import 'closure.dart' show ClosureConversionTask;
 import 'common.dart';
 import 'common/tasks.dart';
 import 'deferred_load.dart' show OutputUnitData;
 import 'enqueue.dart';
 import 'elements/entities.dart';
 import 'io/source_information.dart';
+import 'js_backend/inferred_data.dart';
 import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
-import 'js_emitter/sorter.dart';
 import 'ssa/ssa.dart';
 import 'types/types.dart';
+import 'universe/codegen_world_builder.dart';
 import 'universe/world_builder.dart';
 import 'world.dart';
 
 /// Strategy pattern that defines the element model used in type inference
 /// and code generation.
 abstract class BackendStrategy {
-  /// Create the [ClosedWorldRefiner] for [closedWorld].
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld);
+  /// Create the [JClosedWorld] from [closedWorld].
+  JClosedWorld createJClosedWorld(
+      KClosedWorld closedWorld, OutputUnitData outputUnitData);
 
-  /// Converts [data] to use backend entities instead of frontend entities.
-  OutputUnitData convertOutputUnitData(OutputUnitData data);
-
-  /// Create the task that analyzes the code to see what closures need to be
-  /// rewritten.
-  ClosureConversionTask get closureDataLookup;
-
-  /// The [Sorter] used for sorting elements in the generated code.
-  Sorter get sorter;
+  /// Registers [closedWorld] as the current closed world used by this backend
+  /// strategy.
+  ///
+  /// This is used to support serialization after type inference.
+  void registerJClosedWorld(JClosedWorld closedWorld);
 
   /// Creates the [CodegenWorldBuilder] used by the codegen enqueuer.
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
-      ClosedWorld closedWorld,
+      JClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy);
 
   /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
-  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld);
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults);
 
   /// Creates the [SsaBuilder] used for the element model.
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
@@ -55,6 +53,6 @@ abstract class BackendStrategy {
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
 
   /// Creates the [TypesInferrer] used by this strategy.
-  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
-      {bool disableTypeInference: false});
+  TypesInferrer createTypesInferrer(
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder);
 }

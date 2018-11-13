@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class W extends core::Object {
+  field core::String native;
+  constructor •() → self::W
+    : self::W::native = "field", super core::Object::•()
+    ;
+}
+class X extends core::Object {
+  synthetic constructor •() → self::X
+    : super core::Object::•()
+    ;
+  method native() → core::String
+    return "method";
+}
+abstract class Y1 extends core::Object {
+  synthetic constructor •() → self::Y1
+    : super core::Object::•()
+    ;
+  abstract get native() → core::String;
+}
+class Y2 extends self::Y1 {
+  synthetic constructor •() → self::Y2
+    : super self::Y1::•()
+    ;
+  @core::override
+  get native() → core::String
+    return "getter";
+}
+class Z extends core::Object {
+  field core::String f = null;
+  synthetic constructor •() → self::Z
+    : super core::Object::•()
+    ;
+  set native(core::String s) → void
+    return this.{self::Z::f} = s;
+}
+static method main() → dynamic {
+  core::print(new self::W::•().{self::W::native});
+  core::print(new self::X::•().{self::X::native}());
+  core::print(new self::Y2::•().{self::Y2::native});
+  core::print((let final self::Z #t1 = new self::Z::•() in let final core::String #t2 = #t1.{self::Z::native} = "setter" in #t1).{self::Z::f});
+}

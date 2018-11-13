@@ -7,17 +7,20 @@ library vm.transformations.cha_devirtualization;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClosedWorldClassHierarchy;
+    show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 
 import '../metadata/direct_call.dart';
 
 /// Devirtualization of method invocations based on the class hierarchy
 /// analysis. Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program) {
-  new CHADevirtualization(
-          coreTypes, program, new ClosedWorldClassHierarchy(program))
-      .visitProgram(program);
-  return program;
+Component transformComponent(CoreTypes coreTypes, Component component) {
+  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component,
+      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+  final hierarchySubtypes = hierarchy.computeSubtypesInformation();
+  new CHADevirtualization(coreTypes, component, hierarchy, hierarchySubtypes)
+      .visitComponent(component);
+  return component;
 }
 
 /// Base class for implementing devirtualization of method invocations.
@@ -32,12 +35,12 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   Set<Name> _objectMemberNames;
 
   Devirtualization(
-      CoreTypes coreTypes, Program program, ClassHierarchy hierarchy)
+      CoreTypes coreTypes, Component component, ClassHierarchy hierarchy)
       : _metadata = new DirectCallMetadataRepository() {
     _objectMemberNames = new Set<Name>.from(hierarchy
         .getInterfaceMembers(coreTypes.objectClass)
         .map((Member m) => m.name));
-    program.addMetadataRepository(_metadata);
+    component.addMetadataRepository(_metadata);
   }
 
   bool isMethod(Member member) => (member is Procedure) && !member.isGetter;
@@ -65,7 +68,11 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
     return true;
   }
 
-  DirectCallMetadata getDirectCall(TreeNode node, Member target,
+  bool hasExtraTargetForNull(DirectCallMetadata directCall) =>
+      directCall.checkReceiverForNull &&
+      _objectMemberNames.contains(directCall.target.name);
+
+  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
       {bool setter = false});
 
   makeDirectCall(TreeNode node, Member target, DirectCallMetadata directCall) {
@@ -89,18 +96,20 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    Member target = node.interfaceTarget;
-    if ((target != null) &&
-        isMethod(target) &&
-        !_objectMemberNames.contains(target.name)) {
-      DirectCallMetadata directCall = getDirectCall(node, target);
-      // TODO(dartbug.com/30480): Convert _isLegalTargetForMethodInvocation()
-      // check into an assertion once front-end implements override checks.
-      if ((directCall != null) &&
-          isMethod(directCall.target) &&
-          isLegalTargetForMethodInvocation(directCall.target, node.arguments)) {
-        makeDirectCall(node, target, directCall);
-      }
+    final Member target = node.interfaceTarget;
+    if (target != null && !isMethod(target)) {
+      return;
+    }
+
+    final DirectCallMetadata directCall = getDirectCall(node, target);
+
+    // TODO(alexmarkov): Convert _isLegalTargetForMethodInvocation()
+    // check into an assertion once front-end implements all override checks.
+    if ((directCall != null) &&
+        isMethod(directCall.target) &&
+        isLegalTargetForMethodInvocation(directCall.target, node.arguments) &&
+        !hasExtraTargetForNull(directCall)) {
+      makeDirectCall(node, target, directCall);
     }
   }
 
@@ -108,14 +117,17 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   visitPropertyGet(PropertyGet node) {
     super.visitPropertyGet(node);
 
-    Member target = node.interfaceTarget;
-    if ((target != null) &&
-        isFieldOrGetter(target) &&
-        !_objectMemberNames.contains(target.name)) {
-      DirectCallMetadata directCall = getDirectCall(node, target);
-      if ((directCall != null) && isFieldOrGetter(directCall.target)) {
-        makeDirectCall(node, target, directCall);
-      }
+    final Member target = node.interfaceTarget;
+    if (target != null && !isFieldOrGetter(target)) {
+      return;
+    }
+
+    final DirectCallMetadata directCall = getDirectCall(node, target);
+
+    if ((directCall != null) &&
+        isFieldOrGetter(directCall.target) &&
+        !hasExtraTargetForNull(directCall)) {
+      makeDirectCall(node, target, directCall);
     }
   }
 
@@ -123,28 +135,31 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
 
-    Member target = node.interfaceTarget;
-    if (target != null) {
-      DirectCallMetadata directCall = getDirectCall(node, target, setter: true);
-      if (directCall != null) {
-        makeDirectCall(node, target, directCall);
-      }
+    final Member target = node.interfaceTarget;
+    final DirectCallMetadata directCall =
+        getDirectCall(node, target, setter: true);
+    if (directCall != null) {
+      makeDirectCall(node, target, directCall);
     }
   }
 }
 
 /// Devirtualization based on the closed-world class hierarchy analysis.
 class CHADevirtualization extends Devirtualization {
-  final ClosedWorldClassHierarchy _hierarchy;
+  final ClassHierarchySubtypes _hierarchySubtype;
 
-  CHADevirtualization(CoreTypes coreTypes, Program program, this._hierarchy)
-      : super(coreTypes, program, _hierarchy);
+  CHADevirtualization(CoreTypes coreTypes, Component component,
+      ClosedWorldClassHierarchy hierarchy, this._hierarchySubtype)
+      : super(coreTypes, component, hierarchy);
 
   @override
-  DirectCallMetadata getDirectCall(TreeNode node, Member target,
+  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
       {bool setter = false}) {
-    Member singleTarget = _hierarchy
-        .getSingleTargetForInterfaceInvocation(target, setter: setter);
+    if (interfaceTarget == null) {
+      return null;
+    }
+    Member singleTarget = _hierarchySubtype
+        .getSingleTargetForInterfaceInvocation(interfaceTarget, setter: setter);
     if (singleTarget == null) {
       return null;
     }

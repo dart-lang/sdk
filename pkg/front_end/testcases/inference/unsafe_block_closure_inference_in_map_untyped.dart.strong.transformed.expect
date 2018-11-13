@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::Map<core::int, () → core::int> v = <core::int, () → core::int>{1: () → core::int {
+    return 1;
+  }};
+}

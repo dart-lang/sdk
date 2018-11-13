@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.driver;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -12,9 +10,9 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/task/model.dart';
 
 final PerformanceTag analysisDriverProcessOutputs =
     _taskDriverTag.createChild('processOutputs');

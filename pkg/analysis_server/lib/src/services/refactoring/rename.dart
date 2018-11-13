@@ -12,62 +12,20 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart' as pathos;
-
-bool isElementInPubCache(Element element) {
-  Source source = element.source;
-  String path = source.fullName;
-  return isPathInPubCache(path);
-}
-
-bool isElementInSdkOrPubCache(Element element) {
-  Source source = element.source;
-  String path = source.fullName;
-  return source.isInSystemLibrary || isPathInPubCache(path);
-}
-
-bool isPathInPubCache(String path) {
-  List<String> parts = pathos.split(path);
-  if (parts.contains('.pub-cache')) {
-    return true;
-  }
-  for (int i = 0; i < parts.length - 1; i++) {
-    if (parts[i] == 'Pub' && parts[i + 1] == 'Cache') {
-      return true;
-    }
-    if (parts[i] == 'third_party' &&
-        (parts[i + 1] == 'pkg' || parts[i + 1] == 'pkg_tested')) {
-      return true;
-    }
-  }
-  return false;
-}
 
 /**
- * An abstract implementation of [RenameRefactoring].
+ * Helper for renaming one or more [Element]s.
  */
-abstract class RenameRefactoringImpl extends RefactoringImpl
-    implements RenameRefactoring {
+class RenameProcessor {
   final SearchEngine searchEngine;
-  final Element _element;
-  final String elementKindName;
-  final String oldName;
-  SourceChange change;
+  final SourceChange change;
+  final String newName;
 
-  String newName;
-
-  RenameRefactoringImpl(SearchEngine searchEngine, Element element)
-      : searchEngine = searchEngine,
-        _element = element,
-        elementKindName = element.kind.displayName,
-        oldName = _getDisplayName(element);
-
-  Element get element => _element;
+  RenameProcessor(this.searchEngine, this.change, this.newName);
 
   /**
-   * Adds a [SourceEdit] to update [element] name to [change].
+   * Add the edit that updates the [element] declaration.
    */
   void addDeclarationEdit(Element element) {
     if (element != null) {
@@ -78,7 +36,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   }
 
   /**
-   * Adds [SourceEdit]s to update [matches] to [change].
+   * Add edits that update [matches].
    */
   void addReferenceEdits(List<SearchMatch> matches) {
     List<SourceReference> references = getSourceReferences(matches);
@@ -86,6 +44,37 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       reference.addEdit(change, newName);
     }
   }
+
+  /**
+   * Update the [element] declaration and reference to it.
+   */
+  Future<void> renameElement(Element element) {
+    addDeclarationEdit(element);
+    return searchEngine.searchReferences(element).then(addReferenceEdits);
+  }
+}
+
+/**
+ * An abstract implementation of [RenameRefactoring].
+ */
+abstract class RenameRefactoringImpl extends RefactoringImpl
+    implements RenameRefactoring {
+  final RefactoringWorkspace workspace;
+  final SearchEngine searchEngine;
+  final Element _element;
+  final String elementKindName;
+  final String oldName;
+  SourceChange change;
+
+  String newName;
+
+  RenameRefactoringImpl(this.workspace, Element element)
+      : searchEngine = workspace.searchEngine,
+        _element = element,
+        elementKindName = element.kind.displayName,
+        oldName = _getDisplayName(element);
+
+  Element get element => _element;
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
@@ -97,9 +86,9 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
           getElementQualifiedName(element));
       result.addFatalError(message);
     }
-    if (isElementInPubCache(element)) {
+    if (!workspace.containsFile(element.source.fullName)) {
       String message = format(
-          "The {0} '{1}' is defined in a pub package, so cannot be renamed.",
+          "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
           getElementKindName(element),
           getElementQualifiedName(element));
       result.addFatalError(message);
@@ -119,6 +108,8 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String changeName = "$refactoringName '$oldName' to '$newName'";
     change = new SourceChange(changeName);
     await fillChange();
@@ -128,12 +119,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   /**
    * Adds individual edits to [change].
    */
-  Future fillChange();
-
-  @override
-  bool requiresPreview() {
-    return false;
-  }
+  Future<void> fillChange();
 
   static String _getDisplayName(Element element) {
     if (element is ImportElement) {

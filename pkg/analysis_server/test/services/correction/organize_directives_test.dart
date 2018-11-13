@@ -96,8 +96,8 @@ main() {
   }
 
   test_remove_unresolvedDirectives() async {
-    addSource('/existing_part1.dart', 'part of lib;');
-    addSource('/existing_part2.dart', 'part of lib;');
+    addSource('/project/existing_part1.dart', 'part of lib;');
+    addSource('/project/existing_part2.dart', 'part of lib;');
     await _computeUnitAndErrors(r'''
 library lib;
 
@@ -183,6 +183,27 @@ class A {}
 main() {
   Future f;
 }''', removeUnresolved: true, removeUnused: true);
+  }
+
+  test_remove_unusedImports_hasUnresolvedError() async {
+    Future<void> check(String declaration) async {
+      String code = '''
+import 'dart:async';
+$declaration
+''';
+      await _computeUnitAndErrors(code);
+      _assertOrganize(code, removeUnused: true);
+    }
+
+    await check('main() { Unresolved v; }');
+    await check('main() { new Unresolved(); }');
+    await check('main() { const Unresolved(); }');
+    await check('main() { unresolvedFunction(); }');
+    await check('main() { print(unresolvedVariable); }');
+    await check('main() { unresolvedVariable = 0; }');
+    await check('main() { Unresolved.field = 0; }');
+    await check('class A extends Unresolved {}');
+    await check('List<Unresolved> v;');
   }
 
   test_sort() async {
@@ -312,7 +333,7 @@ import 'package:product2.client/entity.dart';
     expect(result, expectedCode);
   }
 
-  Future<Null> _computeUnitAndErrors(String code) async {
+  Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
     AnalysisResult result = await driver.getResult(testSource.fullName);
     testUnit = result.unit;

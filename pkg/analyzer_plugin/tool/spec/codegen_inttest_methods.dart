@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -182,7 +182,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');
     }));
     notificationSwitchContents.add(collectCode(() {
-      writeln('case ${JSON.encode(notification.longEvent)}:');
+      writeln('case ${json.encode(notification.longEvent)}:');
       indent(() {
         String paramsValidator = camelJoin(
             ['is', notification.domainName, notification.event, 'params']);
@@ -255,7 +255,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         args.addAll(optionalArgs);
         writeln('var params = new $requestClass(${args.join(', ')}).toJson();');
       }
-      String methodJson = JSON.encode(request.longMethod);
+      String methodJson = json.encode(request.longMethod);
       writeln('var result = await server.send($methodJson, $paramsVar);');
       if (request.result != null) {
         String kind = 'null';

@@ -58,7 +58,6 @@ static const int kFirstLocalSlotFromFp = -1;
 
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
                                                 intptr_t var_index) {
-  ASSERT(var_index != 0);
   if (var_index > 0) {
     return fp_offset - var_index;
   } else {

@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.context.context_builder_test;
-
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -18,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -242,29 +241,29 @@ linter:
     _expectEqualOptions(options, expected);
   }
 
+  @failingTest
   void test_cmdline_options_override_options_file() {
-    ArgParser argParser = new ArgParser();
-    defineAnalysisArguments(argParser);
-    ArgResults argResults = argParser.parse(['--$enableStrictCallChecksFlag']);
-    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
-
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
-    expected.enableStrictCallChecks = true;
-
-    String path = resourceProvider.convertPath('/some/directory/path');
-    String filePath =
-        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(filePath, '''
-analyzer:
-  language:
-    enableSuperMixins : true
-    enableStrictCallChecks : false
-''');
-
-    AnalysisOptions options = builder.getAnalysisOptions(path);
-    _expectEqualOptions(options, expected);
+    fail('No clear choice of option to override.');
+//    ArgParser argParser = new ArgParser();
+//    defineAnalysisArguments(argParser);
+//    ArgResults argResults = argParser.parse(['--$enableSuperMixinFlag']);
+//    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+//        options: createContextBuilderOptions(argResults));
+//
+//    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+//    expected.previewDart2 = true;
+//
+//    String path = resourceProvider.convertPath('/some/directory/path');
+//    String filePath =
+//        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+//    resourceProvider.newFile(filePath, '''
+//analyzer:
+//  language:
+//    enablePreviewDart2: true
+//''');
+//
+//    AnalysisOptions options = builder.getAnalysisOptions(path);
+//    _expectEqualOptions(options, expected);
   }
 
   void test_convertPackagesToMap_noPackages() {
@@ -300,9 +299,6 @@ analyzer:
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
     defaultOptions.enableLazyAssignmentOperators =
         !defaultOptions.enableLazyAssignmentOperators;
-    defaultOptions.enableStrictCallChecks =
-        !defaultOptions.enableStrictCallChecks;
-    defaultOptions.enableSuperMixins = !defaultOptions.enableSuperMixins;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, defaultOptions);
@@ -633,20 +629,8 @@ b:${pathContext.toUri(packageB)}
     expect(sdk, isNotNull);
   }
 
-  void test_findSdk_noPackageMap_html_spec() {
-    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
-    expect(sdk, isNotNull);
-    Source htmlSource = sdk.mapDartUri('dart:html');
-    expect(
-        htmlSource.fullName,
-        resourceProvider
-            .convertPath('/sdk/lib/html/dartium/html_dartium.dart'));
-    expect(htmlSource.exists(), isTrue);
-  }
-
   void test_findSdk_noPackageMap_html_strong() {
-    DartSdk sdk =
-        builder.findSdk(null, new AnalysisOptionsImpl()..strongMode = true);
+    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
     expect(sdk, isNotNull);
     Source htmlSource = sdk.mapDartUri('dart:html');
     expect(
@@ -707,63 +691,6 @@ linter:
     _expectEqualOptions(options, expected);
   }
 
-  void test_getAnalysisOptions_default_flutter_disabled() {
-    _defineMockLintRules();
-    ArgParser argParser = new ArgParser();
-    defineAnalysisArguments(argParser);
-    ArgResults argResults =
-        argParser.parse(['--no-$packageDefaultAnalysisOptions']);
-
-    builderOptions = createContextBuilderOptions(argResults);
-    expect(builderOptions.packageDefaultAnalysisOptions, isFalse);
-    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: builderOptions);
-
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-
-    String packagesFilePath =
-        resourceProvider.convertPath('/some/directory/path/.packages');
-    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
-    String optionsFilePath = resourceProvider
-        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    createFile(optionsFilePath, '''
-linter:
-  rules:
-    - mock_lint_rule
-''');
-    String projPath = resourceProvider.convertPath('/some/directory/path');
-    AnalysisOptions options = builder.getAnalysisOptions(projPath);
-    _expectEqualOptions(options, expected);
-  }
-
-  void test_getAnalysisOptions_default_flutter_repo() {
-    _defineMockLintRules();
-    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    builderOptions.defaultOptions = defaultOptions;
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.lint = true;
-    expected.lintRules = <Linter>[_mockLintRule, _mockPublicMemberApiDocs];
-    String packagesFilePath =
-        resourceProvider.convertPath('/some/directory/path/.packages');
-    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
-    String optionsFilePath = resourceProvider
-        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    createFile(optionsFilePath, '''
-linter:
-  rules:
-    - mock_lint_rule
-''');
-    String projPath = resourceProvider.convertPath('/some/directory/path');
-    AnalysisOptions options;
-    try {
-      ContextBuilderOptions.flutterRepo = true;
-      options = builder.getAnalysisOptions(projPath);
-    } finally {
-      ContextBuilderOptions.flutterRepo = false;
-    }
-    _expectEqualOptions(options, expected);
-  }
-
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.enableLazyAssignmentOperators = true;
@@ -785,19 +712,17 @@ linter:
 
   void test_getAnalysisOptions_default_overrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    defaultOptions.enableSuperMixins = false;
-    defaultOptions.enableLazyAssignmentOperators = true;
+    defaultOptions.implicitDynamic = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
-    expected.enableLazyAssignmentOperators = true;
+    expected.implicitDynamic = false;
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(filePath, '''
 analyzer:
-  language:
-    enableSuperMixins : true
+  strong-mode:
+    implicit-dynamic: false
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -816,7 +741,6 @@ analyzer:
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse([]);
     builderOptions = createContextBuilderOptions(argResults);
-    expect(builderOptions.packageDefaultAnalysisOptions, isTrue);
     builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
         options: builderOptions);
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
@@ -827,10 +751,8 @@ analyzer:
   void test_getAnalysisOptions_includes() {
     _defineMockLintRules();
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    defaultOptions.enableSuperMixins = false;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
     expected.lint = true;
     expected.lintRules = <Linter>[
       _mockLintRule,
@@ -849,9 +771,6 @@ somepkg:../../../mypkgs/somepkg/lib
 ''');
     resourceProvider.newFile(pathContext.join(path, 'bar.yaml'), '''
 include: package:somepkg/here.yaml
-analyzer:
-  language:
-    enableSuperMixins : true
 linter:
   rules:
     - mock_lint_rule2
@@ -895,14 +814,14 @@ linter:
 
   void test_getAnalysisOptions_noDefault_overrides() {
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableSuperMixins = true;
+    expected.implicitDynamic = false;
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(filePath, '''
 analyzer:
-  language:
-    enableSuperMixins : true
+  strong-mode:
+    implicit-dynamic: false
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -919,7 +838,7 @@ linter:
     - empty_constructor_bodies
 ''');
 
-    ContextRoot root = new ContextRoot(path, []);
+    ContextRoot root = new ContextRoot(path, [], pathContext: pathContext);
     builder.getAnalysisOptions(path, contextRoot: root);
     expect(root.optionsFilePath, equals(filePath));
   }
@@ -1000,8 +919,6 @@ linter:
     expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableLazyAssignmentOperators,
         expected.enableLazyAssignmentOperators);
-    expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);
-    expect(actual.enableSuperMixins, expected.enableSuperMixins);
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
     expect(actual.generateSdkErrors, expected.generateSdkErrors);

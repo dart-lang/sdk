@@ -21,8 +21,9 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
   String testCode;
-  String testFile = '/test.dart';
+  String testFile;
   Source testSource;
+  AnalysisResult testAnalysisResult;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
@@ -109,12 +110,12 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<Null> resolveTestUnit(String code) async {
+  Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
-    AnalysisResult result = await driver.getResult(testFile);
-    testUnit = result.unit;
+    testAnalysisResult = await driver.getResult(convertPath(testFile));
+    testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
-      expect(result.errors.where((AnalysisError error) {
+      expect(testAnalysisResult.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&
             error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
             error.errorCode != HintCode.UNUSED_CATCH_STACK &&
@@ -124,12 +125,18 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testFile = resourceProvider.convertPath('/project/test.dart');
   }
 }
 
-class _ElementsByNameFinder extends RecursiveAstVisitor<Null> {
+class _ElementsByNameFinder extends RecursiveAstVisitor<void> {
   final String name;
   final List<Element> elements = [];
 

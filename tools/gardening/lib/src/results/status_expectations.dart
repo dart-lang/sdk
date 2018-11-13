@@ -112,9 +112,17 @@ class TestExpectationResult {
     Set<Expectation> testExpectations =
         expectationsFromTest(result.testExpectations);
     Set<Expectation> expectationSet = expectations();
+    final allowedWithoutRuntime = [
+      Expectation.runtimeError,
+      Expectation.missingRuntimeError,
+      Expectation.timeout
+    ];
     _isSuccess = testExpectations.contains(outcome) ||
         expectationSet.contains(Expectation.skip) ||
         expectationSet.contains(Expectation.skipByDesign) ||
+        outcome == Expectation.pass &&
+            configuration.runtime == "none" &&
+            allowedWithoutRuntime.any(expectationSet.contains) ||
         expectationSet.any((expectation) {
           return outcome.canBeOutcomeOf(expectation);
         });

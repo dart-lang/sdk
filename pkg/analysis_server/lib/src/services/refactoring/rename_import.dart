@@ -27,8 +27,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   final AstProvider astProvider;
 
   RenameImportRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, ImportElement element)
-      : super(searchEngine, element);
+      RefactoringWorkspace workspace, this.astProvider, ImportElement element)
+      : super(workspace, element);
 
   @override
   ImportElement get element => super.element as ImportElement;
@@ -52,7 +52,9 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
+  Future<void> fillChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // update declaration
     {
       PrefixElement prefix = element.prefix;
@@ -107,6 +109,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
    * Return the [ImportDirective] node that corresponds to the [element].
    */
   Future<ImportDirective> _findNode() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     LibraryElement library = element.library;
     CompilationUnit unit = await astProvider.getParsedUnitForElement(library);
     int index = library.imports.indexOf(element);
@@ -120,6 +124,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
    */
   Future<SimpleIdentifier> _getInterpolationIdentifier(
       SourceReference reference) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Source source = reference.element.source;
     AnalysisSession currentSession = astProvider.driver.currentSession;
     ParseResult result = await currentSession.getParsedAst(source.fullName);

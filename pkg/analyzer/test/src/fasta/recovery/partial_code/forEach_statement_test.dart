@@ -12,6 +12,8 @@ main() {
 
 class ForEachStatementTest extends PartialCodeTest {
   buildAll() {
+    List<String> allExceptEof =
+        PartialCodeTest.statementSuffixes.map((t) => t.name).toList();
     //
     // Without a preceding 'await', anything that doesn't contain the `in`
     // keyword will be interpreted as a normal for statement.
@@ -25,16 +27,21 @@ class ForEachStatementTest extends PartialCodeTest {
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
-              'for (var a in _s_) {}',
-              allFailing: true),
+              'for (var a in _s_) _s_;',
+              failing: allExceptEof),
           new TestDescriptor(
               'iterator',
               'for (var a in b',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
-              'for (var a in b) {}',
-              allFailing: true),
+              [
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              'for (var a in b) _s_;',
+              failing: allExceptEof),
         ],
         PartialCodeTest.statementSuffixes,
         head: 'f() { ',
@@ -46,69 +53,66 @@ class ForEachStatementTest extends PartialCodeTest {
     buildTests(
         'forEach_statement',
         [
-          new TestDescriptor(
-              'await_keyword',
-              'await for',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ScannerErrorCode.EXPECTED_TOKEN
-              ],
-              'await for (_s_ in _s_) {}',
-              allFailing: true),
+          new TestDescriptor('await_keyword', 'await for',
+              [ParserErrorCode.EXPECTED_TOKEN], 'await for (_s_ in _s_) _s_;'),
           new TestDescriptor(
               'await_leftParen',
               'await for (',
               [
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ScannerErrorCode.EXPECTED_TOKEN
+                ParserErrorCode.EXPECTED_TOKEN
               ],
-              "await for (_s_ in _s_) {}",
-              allFailing: true),
+              "await for (_s_ in _s_) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'await_variableName',
               'await for (a',
               [
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ScannerErrorCode.EXPECTED_TOKEN
+                ParserErrorCode.EXPECTED_TOKEN
               ],
-              "await for (a in _s_) {}",
-              allFailing: true),
+              "await for (a in _s_) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'await_typeAndVariableName',
               'await for (A a',
               [
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ScannerErrorCode.EXPECTED_TOKEN
+                ParserErrorCode.EXPECTED_TOKEN
               ],
-              "await for (a in _s_) {}",
-              allFailing: true),
+              "await for (A a in _s_) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'await_in',
               'await for (A a in',
               [
+                ScannerErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ScannerErrorCode.EXPECTED_TOKEN
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
               ],
-              "await for (a in _s_) {}",
-              allFailing: true),
+              "await for (A a in _s_) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'await_stream',
               'await for (A a in b',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
-              "await for (a in b) {}",
-              allFailing: true),
+              [
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "await for (A a in b) _s_;",
+              failing: allExceptEof),
         ],
         PartialCodeTest.statementSuffixes,
         head: 'f() async { ',

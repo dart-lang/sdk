@@ -83,7 +83,7 @@ class FailingTest {
     var entries = _sectionEntriesForTestInConfigurations(
         expectations, failingConfigurations, result.name,
         success: false);
-    return new Set.from(entries).toList();
+    return new Set.of(entries).toList();
   }
 
   /// Gets the failing configurations not covered by expressions in [sections].

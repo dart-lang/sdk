@@ -12,8 +12,7 @@ import 'js.dart';
 
 /// [SourceInformationStrategy] that can associate source information with
 /// JavaScript output.
-class JavaScriptSourceInformationStrategy<T>
-    extends SourceInformationStrategy<T> {
+class JavaScriptSourceInformationStrategy extends SourceInformationStrategy {
   const JavaScriptSourceInformationStrategy();
 
   /// Creates a processor that can associate source information on [Node] with
@@ -74,6 +73,16 @@ class SourceMapperProviderImpl implements SourceMapperProvider {
 abstract class SourceMapper {
   /// Associate [codeOffset] with [sourceLocation] for [node].
   void register(Node node, int codeOffset, SourceLocation sourceLocation);
+
+  /// Associate [codeOffset] with an inlining call at [sourceLocation].
+  void registerPush(
+      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName);
+
+  /// Associate [codeOffset] with an inlining return.
+  ///
+  /// If [isEmpty] is true, also associate that the inlining stack is empty at
+  /// [codeOffset].
+  void registerPop(int codeOffset, {bool isEmpty: false});
 }
 
 /// An implementation of [SourceMapper] that stores the information directly
@@ -86,6 +95,17 @@ class SourceLocationsMapper implements SourceMapper {
   @override
   void register(Node node, int codeOffset, SourceLocation sourceLocation) {
     sourceLocations.addSourceLocation(codeOffset, sourceLocation);
+  }
+
+  @override
+  void registerPush(
+      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName) {
+    sourceLocations.addPush(codeOffset, sourceLocation, inlinedMethodName);
+  }
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {
+    sourceLocations.addPop(codeOffset, isEmpty);
   }
 }
 

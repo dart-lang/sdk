@@ -4,7 +4,6 @@
 
 /// This tests the benchmarks in benchmark/benchmark.test, and ensures that our
 /// benchmarks can run.
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,6 +11,12 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() => defineTests();
+
+String get _serverSourcePath {
+  String script = Platform.script.toFilePath(windows: Platform.isWindows);
+  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
+  return path.join(pkgPath, 'analysis_server');
+}
 
 void defineTests() {
   group('benchmarks', () {
@@ -22,6 +27,10 @@ void defineTests() {
     });
 
     for (String benchmarkId in benchmarks) {
+      if (benchmarkId == 'analysis-flutter-analyze') {
+        continue;
+      }
+
       test(benchmarkId, () {
         ProcessResult r = Process.runSync(
           Platform.resolvedExecutable,
@@ -30,23 +39,6 @@ void defineTests() {
             'run',
             '--repeat=1',
             '--quick',
-            benchmarkId
-          ],
-          workingDirectory: _serverSourcePath,
-        );
-        expect(r.exitCode, 0,
-            reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
-      });
-
-      test('$benchmarkId-preview-dart-2', () {
-        ProcessResult r = Process.runSync(
-          Platform.resolvedExecutable,
-          [
-            path.join('benchmark', 'benchmarks.dart'),
-            'run',
-            '--repeat=1',
-            '--quick',
-            '--preview-dart-2',
             benchmarkId
           ],
           workingDirectory: _serverSourcePath,
@@ -64,13 +56,7 @@ List<String> _listBenchmarks() {
     [path.join('benchmark', 'benchmarks.dart'), 'list', '--machine'],
     workingDirectory: _serverSourcePath,
   );
-  Map m = JSON.decode(result.stdout);
+  Map m = json.decode(result.stdout);
   List benchmarks = m['benchmarks'];
-  return benchmarks.map((b) => b['id']).toList();
-}
-
-String get _serverSourcePath {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return path.join(pkgPath, 'analysis_server');
+  return benchmarks.map((b) => b['id']).cast<String>().toList();
 }

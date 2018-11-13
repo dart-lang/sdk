@@ -6,8 +6,8 @@
 #include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 
+#include "platform/atomic.h"
 #include "vm/allocation.h"
-#include "vm/atomic.h"
 #include "vm/code_patcher.h"
 #include "vm/debugger.h"
 #include "vm/instructions.h"
@@ -31,8 +31,7 @@ static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
-#if defined(HOST_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM_6) || defined(TARGET_ARCH_ARM_5TE)
 DEFINE_FLAG(int,
             profile_period,
             10000,
@@ -64,11 +63,11 @@ SampleBuffer* Profiler::sample_buffer_ = NULL;
 AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = NULL;
 ProfilerCounters Profiler::counters_;
 
-void Profiler::InitOnce() {
+void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
   SetSamplePeriod(FLAG_profile_period);
   SetSampleDepth(FLAG_max_profile_depth);
-  Sample::InitOnce();
+  Sample::Init();
   if (!FLAG_profiler) {
     return;
   }
@@ -77,7 +76,7 @@ void Profiler::InitOnce() {
   Profiler::InitAllocationSampleBuffer();
   // Zero counters.
   memset(&counters_, 0, sizeof(counters_));
-  ThreadInterrupter::InitOnce();
+  ThreadInterrupter::Init();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
   initialized_ = true;
@@ -90,12 +89,12 @@ void Profiler::InitAllocationSampleBuffer() {
   }
 }
 
-void Profiler::Shutdown() {
+void Profiler::Cleanup() {
   if (!FLAG_profiler) {
     return;
   }
   ASSERT(initialized_);
-  ThreadInterrupter::Shutdown();
+  ThreadInterrupter::Cleanup();
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   // TODO(30309): Free the sample buffer on platforms that use a signal-based
   // thread interrupter.
@@ -129,7 +128,7 @@ void Profiler::SetSamplePeriod(intptr_t period) {
 intptr_t Sample::pcs_length_ = 0;
 intptr_t Sample::instance_size_ = 0;
 
-void Sample::InitOnce() {
+void Sample::Init() {
   pcs_length_ = kSampleSize;
   instance_size_ = sizeof(Sample) + (sizeof(uword) * pcs_length_);  // NOLINT.
 }
@@ -155,9 +154,9 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
   cursor_ = 0;
 
   if (FLAG_trace_profiler) {
-    OS::Print("Profiler holds %" Pd " samples\n", capacity);
-    OS::Print("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
-    OS::Print("Profiler memory usage = %" Pd " bytes\n", size);
+    OS::PrintErr("Profiler holds %" Pd " samples\n", capacity);
+    OS::PrintErr("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
+    OS::PrintErr("Profiler memory usage = %" Pd " bytes\n", size);
   }
 }
 
@@ -411,15 +410,18 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
   sample->Clear();
 }
 
-static void DumpStackFrame(intptr_t frame_index, uword pc) {
+static void DumpStackFrame(intptr_t frame_index,
+                           uword pc,
+                           bool try_symbolize_dart_frames) {
   Thread* thread = Thread::Current();
-  if ((thread != NULL) && !thread->IsAtSafepoint()) {
+  if ((thread != NULL) && !thread->IsAtSafepoint() &&
+      try_symbolize_dart_frames) {
     Isolate* isolate = thread->isolate();
     if ((isolate != NULL) && isolate->is_runnable()) {
       // Only attempt to symbolize Dart frames if we can safely iterate the
       // current isolate's heap.
       Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
-      if (!code.IsNull()) {
+      if (code.IsNull()) {
         code = Code::LookupCode(pc);  // In current isolate.
       }
       if (!code.IsNull()) {
@@ -444,14 +446,16 @@ class ProfilerStackWalker : public ValueObject {
   ProfilerStackWalker(Dart_Port port_id,
                       Sample* head_sample,
                       SampleBuffer* sample_buffer,
-                      intptr_t skip_count = 0)
+                      intptr_t skip_count = 0,
+                      bool try_symbolize_dart_frames = true)
       : port_id_(port_id),
         sample_(head_sample),
         sample_buffer_(sample_buffer),
         skip_count_(skip_count),
         frames_skipped_(0),
         frame_index_(0),
-        total_frames_(0) {
+        total_frames_(0),
+        try_symbolize_dart_frames_(try_symbolize_dart_frames) {
     if (sample_ == NULL) {
       ASSERT(sample_buffer_ == NULL);
     } else {
@@ -467,7 +471,7 @@ class ProfilerStackWalker : public ValueObject {
     }
 
     if (sample_ == NULL) {
-      DumpStackFrame(frame_index_, pc);
+      DumpStackFrame(frame_index_, pc, try_symbolize_dart_frames_);
       frame_index_++;
       total_frames_++;
       return true;
@@ -502,6 +506,7 @@ class ProfilerStackWalker : public ValueObject {
   intptr_t frames_skipped_;
   intptr_t frame_index_;
   intptr_t total_frames_;
+  const bool try_symbolize_dart_frames_;
 };
 
 // Executing Dart code, walk the stack.
@@ -540,8 +545,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
           StackFrameIterator::kNoCrossThreadIteration;
 #endif
-      StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
-                                  thread, cross_thread_policy);
+      StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
+                                  cross_thread_policy);
       pc_ = NULL;
       fp_ = NULL;
       sp_ = NULL;
@@ -562,6 +567,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       pc_ = reinterpret_cast<uword*>(frame->pc());
       fp_ = reinterpret_cast<uword*>(frame->fp());
       sp_ = reinterpret_cast<uword*>(frame->sp());
+      is_interpreted_frame_ = frame->is_interpreted();
     }
   }
 
@@ -573,7 +579,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     }
     ASSERT(ValidFramePointer());
     uword return_pc = InitialReturnAddress();
-    if (StubCode::InInvocationStub(return_pc)) {
+    if (StubCode::InInvocationStub(return_pc, is_interpreted_frame_)) {
       // Edge case- we have called out from the Invocation Stub but have not
       // created the stack frame of the callee. Attempt to locate the exit
       // frame before walking the stack.
@@ -598,17 +604,13 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     if (!ValidFramePointer()) {
       return false;
     }
-    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_))) {
+    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                   is_interpreted_frame_)) {
       // In invocation stub.
       return NextExit();
     }
     // In regular Dart frame.
     uword* new_pc = CallerPC();
-    // Check if we've moved into the invocation stub.
-    if (StubCode::InInvocationStub(reinterpret_cast<uword>(new_pc))) {
-      // New PC is inside invocation stub, skip.
-      return NextExit();
-    }
     uword* new_fp = CallerFP();
     if (!IsCalleeFrameOf(reinterpret_cast<uword>(new_fp),
                          reinterpret_cast<uword>(fp_))) {
@@ -618,6 +620,11 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     // Success, update fp and pc.
     fp_ = new_fp;
     pc_ = new_pc;
+    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                   is_interpreted_frame_)) {
+      // In invocation stub.
+      return NextExit();
+    }
     return true;
   }
 
@@ -692,6 +699,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   uword* pc_;
   uword* fp_;
   uword* sp_;
+  bool is_interpreted_frame_;
   const uword stack_upper_;
   const uword stack_lower_;
   bool has_exit_frame_;
@@ -711,8 +719,13 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
                             uword pc,
                             uword fp,
                             uword sp,
-                            intptr_t skip_count = 0)
-      : ProfilerStackWalker(port_id, sample, sample_buffer, skip_count),
+                            intptr_t skip_count = 0,
+                            bool try_symbolize_dart_frames = true)
+      : ProfilerStackWalker(port_id,
+                            sample,
+                            sample_buffer,
+                            skip_count,
+                            try_symbolize_dart_frames),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -934,23 +947,19 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
 
 // Get |thread|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
-static bool GetAndValidateThreadStackBounds(Thread* thread,
+static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
+                                            Thread* thread,
                                             uintptr_t fp,
                                             uintptr_t sp,
                                             uword* stack_lower,
                                             uword* stack_upper) {
-  OSThread* os_thread = NULL;
-  if (thread != NULL) {
-    os_thread = thread->os_thread();
-  } else {
-    os_thread = OSThread::Current();
-  }
   ASSERT(os_thread != NULL);
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
 
 #if defined(USING_SIMULATOR)
-  const bool use_simulator_stack_bounds = thread->IsExecutingDartCode();
+  const bool use_simulator_stack_bounds =
+      thread != NULL && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != NULL);
@@ -1050,13 +1059,17 @@ static bool CheckIsolate(Isolate* isolate) {
 }
 
 void Profiler::DumpStackTrace(void* context) {
+  if (context == NULL) {
+    DumpStackTrace(/*for_crash=*/true);
+    return;
+  }
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
   mcontext_t mcontext = ucontext->uc_mcontext;
   uword pc = SignalHandler::GetProgramCounter(mcontext);
   uword fp = SignalHandler::GetFramePointer(mcontext);
   uword sp = SignalHandler::GetCStackPointer(mcontext);
-  DumpStackTrace(sp, fp, pc, true /* for_crash */);
+  DumpStackTrace(sp, fp, pc, /*for_crash=*/true);
 #elif defined(HOST_OS_WINDOWS)
   CONTEXT* ctx = reinterpret_cast<CONTEXT*>(context);
 #if defined(HOST_ARCH_IA32)
@@ -1070,7 +1083,7 @@ void Profiler::DumpStackTrace(void* context) {
 #else
 #error Unsupported architecture.
 #endif
-  DumpStackTrace(sp, fp, pc, true /* for_crash */);
+  DumpStackTrace(sp, fp, pc, /*for_crash=*/true);
 #else
 // TODO(fschneider): Add support for more platforms.
 // Do nothing on unsupported platforms.
@@ -1098,31 +1111,20 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     }
   }
 
-  Thread* thread = Thread::Current();
-  if (thread == NULL) {
-    OS::PrintErr("Stack dump aborted because no current Dart thread.\n");
-    return;
-  }
-  OSThread* os_thread = thread->os_thread();
+  OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
-  Isolate* isolate = thread->isolate();
-  if (!CheckIsolate(isolate)) {
-    OS::PrintErr("Stack dump aborted because CheckIsolate failed.\n");
-    return;
-  }
-
   OS::PrintErr("Dumping native stack trace for thread %" Px "\n",
                OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
-
-  uword stack_lower = 0;
-  uword stack_upper = 0;
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
     return;
   }
 
-  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+  Thread* thread = Thread::Current();  // NULL if no current isolate.
+  uword stack_lower = 0;
+  uword stack_upper = 0;
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
     OS::PrintErr(
         "Stack dump aborted because GetAndValidateThreadStackBounds failed.\n");
@@ -1130,8 +1132,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, NULL, NULL,
-      stack_lower, stack_upper, pc, fp, sp);
+      ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp, sp,
+      /*skip_count=*/0,
+      /*try_symbolize_dart_frames=*/!for_crash);
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 }
@@ -1166,7 +1169,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     return;
   }
 
-  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
     // Could not get stack boundary.
     return;
@@ -1352,7 +1355,7 @@ void Profiler::SampleThread(Thread* thread,
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
     AtomicOperations::IncrementInt64By(
         &counters_.single_frame_sample_get_and_validate_stack_bounds, 1);

@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -49,7 +48,7 @@ void testeeDoNamed() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -65,7 +64,7 @@ var tests = <IsolateTest>[
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1');
@@ -93,7 +92,7 @@ var tests = <IsolateTest>[
     await cancelFutureSubscription(subscriptionFuture);
   },
   (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -109,7 +108,7 @@ var tests = <IsolateTest>[
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1_named');
@@ -137,7 +136,7 @@ var tests = <IsolateTest>[
     await cancelFutureSubscription(subscriptionFuture);
   },
   (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -153,7 +152,7 @@ var tests = <IsolateTest>[
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1');

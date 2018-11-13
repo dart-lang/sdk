@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/isolate/counter_chart.dart';
 import 'package:observatory/src/elements/isolate/shared_summary.dart';
 import '../../mocks.dart';

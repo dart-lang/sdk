@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.html;
-
-import 'dart:collection';
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
@@ -14,11 +10,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/html.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/html.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart';
@@ -27,7 +23,7 @@ import 'package:source_span/source_span.dart';
  * The Dart scripts that are embedded in an HTML file.
  */
 final ListResultDescriptor<DartScript> DART_SCRIPTS =
-    new ListResultDescriptor<DartScript>('DART_SCRIPTS', DartScript.EMPTY_LIST);
+    new ListResultDescriptor<DartScript>('DART_SCRIPTS', const <DartScript>[]);
 
 /**
  * The errors found while parsing an HTML file.
@@ -43,7 +39,8 @@ class DartScript implements Source {
   /**
    * An empty list of scripts.
    */
-  static final List<DartScript> EMPTY_LIST = <DartScript>[];
+  @deprecated
+  static final List<DartScript> EMPTY_LIST = const <DartScript>[];
 
   /**
    * The source containing this script.
@@ -134,7 +131,7 @@ class DartScriptsTask extends SourceBasedAnalysisTask {
     List<DartScript> inlineScripts = <DartScript>[];
     List<Element> scripts = document.getElementsByTagName('script');
     for (Element script in scripts) {
-      LinkedHashMap<dynamic, String> attributes = script.attributes;
+      Map<dynamic, String> attributes = script.attributes;
       if (attributes['type'] == 'application/dart') {
         String src = attributes['src'];
         if (src == null) {
@@ -161,9 +158,9 @@ class DartScriptsTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[REFERENCED_LIBRARIES] =
-        libraries.isEmpty ? Source.EMPTY_LIST : libraries;
+        libraries.isEmpty ? const <Source>[] : libraries;
     outputs[DART_SCRIPTS] =
-        inlineScripts.isEmpty ? DartScript.EMPTY_LIST : inlineScripts;
+        inlineScripts.isEmpty ? const <DartScript>[] : inlineScripts;
   }
 
   /**

@@ -6,7 +6,7 @@ abstract class A {
   method1(); //# 01: ok
   method5(); //# 05: ok
   method6(); //# 06: ok
-  method7();
+  method7(); //# 07: compile-time error
   get getter8; //# 08: compile-time error
   set setter9(_); //# 09: compile-time error
   method10(); //# 10: compile-time error
@@ -44,7 +44,7 @@ abstract class J {
   var member21; //# 21: continued
 }
 
-abstract class Class extends A implements I, J {
+class Class extends A implements I, J {
   method1() {} //# 01: continued
   method2(); //# 02: compile-time error
   get getter3; //# 03: compile-time error
@@ -62,5 +62,5 @@ abstract class Class extends A implements I, J {
 }
 
 main() {
-  new Class(); //# 28: compile-time error
+  new Class();
 }

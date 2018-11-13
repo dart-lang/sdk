@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/curly_block.dart';
 
 main() {
@@ -79,7 +79,7 @@ main() {
     CurlyBlockElement e;
     setUp(() async {
       e = new CurlyBlockElement();
-      e.content = [document.createElement('content')];
+      e.content = <Element>[document.createElement('content')];
       document.body.append(e);
       await e.onRendered.first;
     });
@@ -152,7 +152,7 @@ main() {
       await e.onRendered.first;
     });
     test('fires on toggle', () async {
-      e.onToggle.listen(expectAsync((CurlyBlockToggleEvent event) {
+      e.onToggle.listen(expectAsync1((CurlyBlockToggleEvent event) {
         expect(event, isNotNull);
         expect(event.control, equals(e));
       }, count: 1));
@@ -160,7 +160,7 @@ main() {
       await e.onRendered.first;
     });
     test('fires on manual toggle', () async {
-      e.onToggle.listen(expectAsync((CurlyBlockToggleEvent event) {
+      e.onToggle.listen(expectAsync1((CurlyBlockToggleEvent event) {
         expect(event, isNotNull);
         expect(event.control, equals(e));
       }, count: 1));
@@ -168,7 +168,7 @@ main() {
       await e.onRendered.first;
     });
     test('does not fire if setting same expanded value', () async {
-      e.onToggle.listen(expectAsync((_) {}, count: 0));
+      e.onToggle.listen(expectAsync1((_) {}, count: 0));
       e.expanded = e.expanded;
       await e.onRendered.first;
     });

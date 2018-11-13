@@ -13,14 +13,12 @@ const CHANNELS = const ['dev', 'stable'];
 
 const FILES = const {
   'dev': const [x64File, ia32File],
-  'stable': const [x64File, ia32File, dartiumFile, contentShellFile]
+  'stable': const [x64File, ia32File]
 };
 
 const urlBase = 'https://storage.googleapis.com/dart-archive/channels';
 const x64File = 'sdk/dartsdk-macos-x64-release.zip';
 const ia32File = 'sdk/dartsdk-macos-ia32-release.zip';
-const dartiumFile = 'dartium/dartium-macos-x64-release.zip';
-const contentShellFile = 'dartium/content_shell-macos-x64-release.zip';
 
 const dartRbFileName = 'dart.rb';
 
@@ -33,7 +31,7 @@ Future<String> getHash256(
         'channels/$channel/release/$revision/$download.sha256sum',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var hashLine = await ASCII.decodeStream(media.stream);
+    var hashLine = await ascii.decodeStream(media.stream);
     return new RegExp('[0-9a-fA-F]*').stringMatch(hashLine);
   } finally {
     client.close();
@@ -49,7 +47,8 @@ Future<String> getVersion(String channel, String revision) async {
         'dart-archive', 'channels/$channel/release/$revision/VERSION',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var versionObject = await JSON.fuse(ASCII).decoder.bind(media.stream).first;
+    var versionObject =
+        await json.fuse(ascii).decoder.bind(media.stream).first as Map;
     return versionObject['version'];
   } finally {
     client.close();
@@ -136,58 +135,27 @@ class Dart < Formula
     end
   end
 
-  option "with-content-shell", "Download and install content_shell -- headless Dartium for testing"
-  option "with-dartium", "Download and install Dartium -- Chromium with Dart"
-
-  resource "content_shell" do
-    version "$stableVersion"
-    url "$urlBase/stable/release/${revisions['stable']}/$contentShellFile"
-    sha256 "${hashes['stable'][contentShellFile]}"
-  end
-
-  resource "dartium" do
-    version "$stableVersion"
-    url "$urlBase/stable/release/${revisions['stable']}/$dartiumFile"
-    sha256 "${hashes['stable'][dartiumFile]}"
-  end
-
   def install
     libexec.install Dir["*"]
     bin.install_symlink "#{libexec}/bin/dart"
     bin.write_exec_script Dir["#{libexec}/bin/{pub,dart?*}"]
-
-    if build.with? "dartium"
-      dartium_binary = "Chromium.app/Contents/MacOS/Chromium"
-      prefix.install resource("dartium")
-      (bin+"dartium").write shim_script dartium_binary
-    end
-
-    if build.with? "content-shell"
-      content_shell_binary = "Content Shell.app/Contents/MacOS/Content Shell"
-      prefix.install resource("content_shell")
-      (bin+"content_shell").write shim_script content_shell_binary
-    end
   end
 
   def shim_script(target)
-    <<-EOS.undent
+    <<~EOS
       #!/usr/bin/env bash
       exec "#{prefix}/#{target}" "\$@"
     EOS
   end
 
-  def caveats; <<-EOS.undent
+  def caveats; <<~EOS
     Please note the path to the Dart SDK:
       #{opt_libexec}
-
-    --with-dartium:
-      To use with IntelliJ, set the Dartium execute home to:
-        #{opt_prefix}/Chromium.app
     EOS
   end
 
   test do
-    (testpath/"sample.dart").write <<-EOS.undent
+    (testpath/"sample.dart").write <<~EOS
       void main() {
         print(r"test message");
       }

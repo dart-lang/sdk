@@ -6,10 +6,11 @@
 #define RUNTIME_VM_DART_API_IMPL_H_
 
 #include "vm/allocation.h"
+#include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
-#include "vm/safepoint.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -51,7 +52,7 @@ const char* CanonicalFunction(const char* func);
 #define CHECK_API_SCOPE(thread)                                                \
   do {                                                                         \
     Thread* tmpT = (thread);                                                   \
-    Isolate* tmpI = tmpT->isolate();                                           \
+    Isolate* tmpI = tmpT == NULL ? NULL : tmpT->isolate();                     \
     CHECK_ISOLATE(tmpI);                                                       \
     if (tmpT->api_top_scope() == NULL) {                                       \
       FATAL1(                                                                  \
@@ -101,15 +102,41 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
+#ifndef PRODUCT
+#define API_TIMELINE_DURATION(thread)                                          \
+  TimelineDurationScope tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+#define API_TIMELINE_DURATION_BASIC(thread)                                    \
+  API_TIMELINE_DURATION(thread);                                               \
+  tds.SetNumArguments(1);                                                      \
+  tds.CopyArgument(0, "mode", "basic");
+
+#define API_TIMELINE_BEGIN_END(thread)                                         \
+  TimelineBeginEndScope tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+
+#define API_TIMELINE_BEGIN_END_BASIC(thread)                                   \
+  API_TIMELINE_BEGIN_END(thread);                                              \
+  tbes.SetNumArguments(1);                                                     \
+  tbes.CopyArgument(0, "mode", "basic");
+#else
+#define API_TIMELINE_DURATION(thread)                                          \
+  do {                                                                         \
+  } while (false)
+#define API_TIMELINE_DURATION_BASIC(thread) API_TIMELINE_DURATION(thread)
+#define API_TIMELINE_BEGIN_END(thread)                                         \
+  do {                                                                         \
+  } while (false)
+#define API_TIMELINE_BEGIN_END_BASIC(thread) API_TIMELINE_BEGIN_END(thread)
+#endif  // !PRODUCT
+
 class Api : AllStatic {
  public:
   // Create on the stack to provide a new throw-safe api scope.
   class Scope : public StackResource {
    public:
     explicit Scope(Thread* thread) : StackResource(thread) {
-      Dart_EnterScope();
+      thread->EnterApiScope();
     }
-    ~Scope() { Dart_ExitScope(); }
+    ~Scope() { thread()->ExitApiScope(); }
 
    private:
     DISALLOW_COPY_AND_ASSIGN(Scope);
@@ -211,11 +238,14 @@ class Api : AllStatic {
   // Retrieves the top ApiLocalScope.
   static ApiLocalScope* TopScope(Thread* thread);
 
-  // Performs one-time initialization needed by the API.
-  static void InitOnce();
+  // Performs initialization needed by the API.
+  static void Init();
 
   // Allocates handles for objects in the VM isolate.
   static void InitHandles();
+
+  // Cleanup
+  static void Cleanup();
 
   // Helper function to get the peer value of an external string object.
   static bool StringGetPeerHelper(NativeArguments* args,

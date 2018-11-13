@@ -18,7 +18,7 @@ import 'package:analyzer/dart/element/type.dart';
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
-  Element _pivotElement;
+  final Element _pivotElement;
   LibraryElement _pivotLibrary;
   ElementKind _pivotKind;
   String _pivotName;
@@ -52,6 +52,8 @@ class TypeHierarchyComputer {
    * Returns the computed type hierarchy, maybe `null`.
    */
   Future<List<TypeHierarchyItem>> compute() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_pivotClass != null) {
       InterfaceType type = _pivotClass.type;
       _createSuperItem(type);
@@ -75,6 +77,8 @@ class TypeHierarchyComputer {
 
   Future _createSubclasses(
       TypeHierarchyItem item, int itemId, InterfaceType type) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Set<ClassElement> subElements =
         await getDirectSubClasses(_searchEngine, type.element);
     List<int> subItemIds = <int>[];

@@ -107,77 +107,6 @@ def _CheckDartFormat(input_api, output_api):
   return []
 
 
-def _CheckNewTests(input_api, output_api):
-  testsDirectories = [
-      #    Dart 1 tests              Dart 2.0 tests
-      # =================       ==========================
-      ("tests/language/",       "tests/language_2/"),
-      ("tests/corelib/",        "tests/corelib_2/"),
-      ("tests/lib/",            "tests/lib_2/"),
-      ("tests/html/",           "tests/lib_2/html/"),
-  ]
-
-  result = []
-  # Tuples of (new Dart 1 test path, expected Dart 2.0 test path)
-  dart1TestsAdded = []
-  # Tuples of (original Dart test path, expected Dart 2.0 test path)
-  dart2TestsExists = []
-  for f in input_api.AffectedTextFiles():
-    localpath = f.LocalPath()
-    if not(localpath.endswith('.status')):
-      for oldPath, newPath in testsDirectories:
-        if localpath.startswith(oldPath):
-          if f.Action() == 'A':
-            # Compute where the new test should live.
-            dart2TestPath = localpath.replace(oldPath, newPath)
-            dart1TestsAdded.append((localpath, dart2TestPath))
-          elif f.Action() == 'M':
-            # Find all modified tests in Dart 1.0
-            for oldPath, newPath in testsDirectories:
-              if localpath.find(oldPath) == 0:
-                dart2TestFilePathAbs = "%s" % \
-                    f.AbsoluteLocalPath().replace(oldPath, newPath)
-                if os.path.isfile(dart2TestFilePathAbs):
-                  #originalDart1Test.append(localpath)
-                  dart2TestsExists.append((localpath,
-                      localpath.replace(oldPath, newPath)))
-
-  # Does a Dart 2.0 test exist if so it must be changed too.
-  missingDart2TestsChange = []
-  for (dartTest, dart2Test) in dart2TestsExists:
-    foundDart2TestModified = False
-    for f in input_api.AffectedFiles():
-      if f.LocalPath() == dart2Test:
-        # Found corresponding Dart 2 test - great.
-        foundDart2TestModified = True
-        break
-    if not foundDart2TestModified:
-      # Add the tuple (dart 1 test path, Dart 2.0 test path)
-      missingDart2TestsChange.append((dartTest, dart2Test))
-
-  if missingDart2TestsChange:
-    errorList = []
-    for idx, (orginalTest, dart2Test) in enumerate(missingDart2TestsChange):
-      errorList.append(
-          '%s. Dart 1.0 test changed: %s\n%s. Only the Dart 2.0 test can '\
-          'change: %s\n' % (idx + 1, orginalTest, idx + 1, dart2Test))
-    result.append(output_api.PresubmitError(
-        'Error: Changed Dart 1.0 test detected - only 1.0 status files can '\
-        'change. Migrate test to Dart 2.0 tests:\n%s' % ''.join(errorList)))
-
-  if dart1TestsAdded:
-    errorList = []
-    for idx, (oldTestPath, newTestPath) in enumerate(dart1TestsAdded):
-      errorList.append('%s. New Dart 1.0  test: %s\n'
-          '%s. Should be Dart 2.0 test: %s\n' % \
-          (idx + 1, oldTestPath, idx + 1, newTestPath))
-    result.append(output_api.PresubmitError(
-        'Error: New Dart 1.0 test can not be added the test must be added '\
-        'as a Dart 2.0 test:\nFix tests:\n%s' % ''.join(errorList)))
-
-  return result
-
-
 def _CheckStatusFiles(input_api, output_api):
   local_root = input_api.change.RepositoryRoot()
   upstream = input_api.change._upstream
@@ -189,7 +118,7 @@ def _CheckStatusFiles(input_api, output_api):
 
   windows = utils.GuessOS() == 'win32'
   if windows:
-    dart += '.bat'
+    dart += '.exe'
 
   if not os.path.isfile(dart):
     print('WARNING: dart not found: %s' % dart)
@@ -225,14 +154,29 @@ def _CheckStatusFiles(input_api, output_api):
   return []
 
 
+def _CheckValidHostsInDEPS(input_api, output_api):
+  """Checks that DEPS file deps are from allowed_hosts."""
+  # Run only if DEPS file has been modified to annoy fewer bystanders.
+  if all(f.LocalPath() != 'DEPS' for f in input_api.AffectedFiles()):
+    return []
+  # Outsource work to gclient verify
+  try:
+    input_api.subprocess.check_output(['gclient', 'verify'])
+    return []
+  except input_api.subprocess.CalledProcessError, error:
+    return [output_api.PresubmitError(
+        'DEPS file must have only dependencies from allowed hosts.',
+        long_text=error.output)]
+
+
 def CheckChangeOnCommit(input_api, output_api):
-  return (_CheckBuildStatus(input_api, output_api) +
-          _CheckNewTests(input_api, output_api) +
+  return (_CheckValidHostsInDEPS(input_api, output_api) +
+          _CheckBuildStatus(input_api, output_api) +
           _CheckDartFormat(input_api, output_api) +
           _CheckStatusFiles(input_api, output_api))
 
 
 def CheckChangeOnUpload(input_api, output_api):
-  return (_CheckNewTests(input_api, output_api) +
+  return (_CheckValidHostsInDEPS(input_api, output_api) +
           _CheckDartFormat(input_api, output_api) +
           _CheckStatusFiles(input_api, output_api))

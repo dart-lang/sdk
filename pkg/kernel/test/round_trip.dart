@@ -12,7 +12,7 @@ import 'package:kernel/kernel.dart';
 const String usage = '''
 Usage: round_trip.dart FILE.dill
 
-Deserialize and serialize the given program and check that the resulting byte
+Deserialize and serialize the given component and check that the resulting byte
 sequence is identical to the original.
 ''';
 
@@ -25,9 +25,9 @@ void main(List<String> args) {
 }
 
 void testRoundTrip(List<int> bytes) {
-  var program = new Program();
-  new BinaryBuilder(bytes).readSingleFileProgram(program);
-  new BinaryPrinterWithExpectedOutput(bytes).writeProgramFile(program);
+  var component = new Component();
+  new BinaryBuilder(bytes).readSingleFileComponent(component);
+  new BinaryPrinterWithExpectedOutput(bytes).writeComponentFile(component);
 }
 
 class DummyStreamConsumer extends StreamConsumer<List<int>> {

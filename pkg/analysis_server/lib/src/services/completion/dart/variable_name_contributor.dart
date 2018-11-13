@@ -13,6 +13,12 @@ import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
+/**
+ * Given some [String] name "foo", return a [CompletionSuggestion] with the
+ * [String].
+ *
+ * If the passed [String] is null or empty, null is returned.
+ */
 CompletionSuggestion _createNameSuggestion(String name) {
   if (name == null || name.isEmpty) {
     return null;
@@ -21,6 +27,9 @@ CompletionSuggestion _createNameSuggestion(String name) {
       DART_RELEVANCE_DEFAULT, name, name.length, 0, false, false);
 }
 
+/**
+ * Convert some [Identifier] to its [String] name.
+ */
 String _getStringName(Identifier id) {
   if (id == null) {
     return null;
@@ -40,6 +49,8 @@ class VariableNameContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     OpType optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
@@ -48,6 +59,7 @@ class VariableNameContributor extends DartCompletionContributor {
       // Resolution not needed for this completion
 
       AstNode node = request.target.containingNode;
+
       String strName = null;
       if (node is ExpressionStatement) {
         if (node.expression is Identifier) {
@@ -80,8 +92,12 @@ class VariableNameContributor extends DartCompletionContributor {
         }
       }
       if (strName == null) {
-        return EMPTY_LIST;
+        return const <CompletionSuggestion>[];
       }
+
+      var doIncludePrivateVersion = !optype.inMethodBody &&
+          !optype.inFunctionBody &&
+          !optype.inConstructorBody;
 
       List<String> variableNameSuggestions = getCamelWordCombinations(strName);
       variableNameSuggestions.remove(strName);
@@ -91,9 +107,16 @@ class VariableNameContributor extends DartCompletionContributor {
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
+        if (doIncludePrivateVersion) {
+          CompletionSuggestion privateSuggestion =
+              _createNameSuggestion('_' + varName);
+          if (privateSuggestion != null) {
+            suggestions.add(privateSuggestion);
+          }
+        }
       }
       return suggestions;
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }

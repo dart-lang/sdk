@@ -31,7 +31,7 @@ main() {
     return customElementsReady.then((_) {
       if (!registered) {
         registered = true;
-        document.registerElement(A.tag, A);
+        document.registerElement2(A.tag, {'prototype': A});
       }
     });
   });
@@ -51,7 +51,7 @@ main() {
 
   test('accessing custom JS element from Dart', () {
     var script = '''
-    var Foo = document.registerElement('x-foo', {
+    var Foo = document.registerElement2('x-foo', {
       prototype: Object.create(HTMLElement.prototype, {
         createdCallback: {
           value: function() {

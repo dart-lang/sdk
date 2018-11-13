@@ -22,11 +22,13 @@ GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
 DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
 DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
-DART_USE_WHEEZY = "DART_USE_WHEEZY"  # Use instread of --wheezy
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
+DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
 # use instead of --platform-sdk
 DART_MAKE_PLATFORM_SDK = "DART_MAKE_PLATFORM_SDK"
+
+DART_GN_ARGS = "DART_GN_ARGS"
 
 def UseASAN():
   return DART_USE_ASAN in os.environ
@@ -38,10 +40,6 @@ def UseMSAN():
 
 def UseTSAN():
   return DART_USE_TSAN in os.environ
-
-
-def UseWheezy():
-  return DART_USE_WHEEZY in os.environ
 
 
 def ToolchainPrefix(args):
@@ -58,6 +56,13 @@ def TargetSysroot(args):
 
 def MakePlatformSDK():
   return DART_MAKE_PLATFORM_SDK in os.environ
+
+
+def GetGNArgs(args):
+  if args.gn_args != None:
+    return args.gn_args
+  args = os.environ.get(DART_GN_ARGS) or ""
+  return args.split()
 
 
 def GetOutDir(mode, arch, target_os):
@@ -91,7 +96,7 @@ def TargetCpuForArch(arch, target_os):
     return 'x64'
   if arch == 'simdbc':
     return 'arm' if target_os == 'android' else 'x86'
-  if arch == 'simdbc64':
+  if arch in ['simdbc64']:
     return 'arm64' if target_os == 'android' else 'x64'
   if arch == 'armsimdbc':
     return 'arm'
@@ -143,30 +148,18 @@ def UseSanitizer(args):
 
 def DontUseClang(args, target_os, host_cpu, target_cpu):
   # We don't have clang on Windows.
-  return (target_os == 'win'
-         # TODO(zra): After we roll our clang toolchain to pick up the fix for
-         # https://reviews.llvm.org/D34691 we should be able to use clang for
-         # arm as well.
-         or (target_os == 'linux'
-             and target_cpu.startswith('arm')
-             and target_cpu != 'arm64'
-             and not UseSanitizer(args)))
+  return target_os == 'win'
 
 
-def UseWheezySysroot(args, gn_args):
+def UseSysroot(args, gn_args):
   # Don't try to use a Linux sysroot if we aren't on Linux.
   if gn_args['target_os'] != 'linux':
     return False
-  # Use the wheezy sysroot if explicitly asked to do so.
-  if args.wheezy:
-    return True
-  # Don't use the wheezy sysroot if we're given another sysroot.
+  # Don't use the sysroot if we're given another sysroot.
   if TargetSysroot(args):
     return False
-  # The clang toolchain we pull from Fuchsia doesn't have arm and arm64
-  # sysroots, so use the wheezy/jesse ones.
-  return gn_args['is_clang'] and gn_args['target_cpu'].startswith('arm')
-
+  # Otherwise use the sysroot.
+  return True
 
 def ToGnArgs(args, mode, arch, target_os):
   gn_args = {}
@@ -181,10 +174,17 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
 
+  # Configure Crashpad library if it is used.
+  gn_args['dart_use_crashpad'] = (args.use_crashpad or
+      DART_USE_CRASHPAD in os.environ)
+  if gn_args['dart_use_crashpad']:
+    # Tell Crashpad's BUILD files which checkout layout to use.
+    gn_args['crashpad_dependencies'] = 'dart'
+
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
     # snapshots instead.
-    gn_args['dart_snapshot_kind'] = 'script'
+    gn_args['dart_snapshot_kind'] = 'kernel'
   else:
     gn_args['dart_snapshot_kind'] = 'app-jit'
 
@@ -193,7 +193,7 @@ def ToGnArgs(args, mode, arch, target_os):
   if gn_args['target_os'] in ['linux', 'win']:
     gn_args['dart_use_fallback_root_certificates'] = True
 
-  gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
+  gn_args['dart_platform_bytecode'] = args.bytecode
 
   # Use tcmalloc only when targeting Linux and when not using ASAN.
   gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux')
@@ -228,10 +228,15 @@ def ToGnArgs(args, mode, arch, target_os):
   else:
     gn_args['dart_runtime_mode'] = 'develop'
 
+  gn_args['exclude_kernel_service'] = args.exclude_kernel_service
+
   dont_use_clang = DontUseClang(args, gn_args['target_os'],
                                       gn_args['host_cpu'],
                                       gn_args['target_cpu'])
   gn_args['is_clang'] = args.clang and not dont_use_clang
+
+  enable_code_coverage = args.code_coverage and gn_args['is_clang']
+  gn_args['dart_vm_code_coverage'] = enable_code_coverage
 
   gn_args['is_asan'] = args.asan and gn_args['is_clang']
   gn_args['is_msan'] = args.msan and gn_args['is_clang']
@@ -242,8 +247,8 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
 
   # Setup the user-defined sysroot.
-  if UseWheezySysroot(args, gn_args):
-    gn_args['dart_use_wheezy_sysroot'] = True
+  if UseSysroot(args, gn_args):
+    gn_args['dart_use_debian_sysroot'] = True
   else:
     sysroot = TargetSysroot(args)
     if sysroot:
@@ -265,7 +270,11 @@ def ToGnArgs(args, mode, arch, target_os):
     gn_args['use_goma'] = False
     gn_args['goma_dir'] = None
 
-  if args.debug_opt_level:
+  # Code coverage requires -O0 to be set.
+  if enable_code_coverage:
+    gn_args['dart_debug_optimization_level'] = 0
+    gn_args['debug_optimization_level'] = 0
+  elif args.debug_opt_level:
     gn_args['dart_debug_optimization_level'] = args.debug_opt_level
     gn_args['debug_optimization_level'] = args.debug_opt_level
 
@@ -317,6 +326,9 @@ def ProcessOptions(args):
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
         return False
+  if HOST_OS != 'win' and args.use_crashpad:
+    print "Crashpad is only supported on Windows"
+    return False
   return True
 
 
@@ -375,6 +387,10 @@ def parse_args(args):
       help='Disable ASAN',
       dest='asan',
       action='store_false')
+  other_group.add_argument('--bytecode', '-b',
+      help='Include bytecode in the VMs platform dill',
+      default=False,
+      action="store_true")
   other_group.add_argument('--clang',
       help='Use Clang',
       default=True,
@@ -383,6 +399,11 @@ def parse_args(args):
       help='Disable Clang',
       dest='clang',
       action='store_false')
+  other_group.add_argument('--code-coverage',
+      help='Enable code coverage for the standalone VM',
+      default=False,
+      dest="code_coverage",
+      action='store_true')
   other_group.add_argument('--debug-opt-level',
       '-d',
       help='The optimization level to use for debug builds',
@@ -398,6 +419,11 @@ def parse_args(args):
   other_group.add_argument('--ide',
       help='Generate an IDE file.',
       default=os_has_ide(HOST_OS),
+      action='store_true')
+  other_group.add_argument('--exclude-kernel-service',
+      help='Exclude the kernel service.',
+      default=False,
+      dest='exclude_kernel_service',
       action='store_true')
   other_group.add_argument('--msan',
       help='Build with MSAN',
@@ -430,11 +456,11 @@ def parse_args(args):
       dest='tsan',
       action='store_false')
   other_group.add_argument('--wheezy',
-      help='Use the Debian wheezy sysroot on Linux',
-      default=UseWheezy(),
+      help='This flag is deprecated.',
+      default=True,
       action='store_true')
   other_group.add_argument('--no-wheezy',
-      help='Disable the Debian wheezy sysroot on Linux',
+      help='This flag is deprecated',
       dest='wheezy',
       action='store_false')
   other_group.add_argument('--workers', '-w',
@@ -442,6 +468,10 @@ def parse_args(args):
       help='Number of simultaneous GN invocations',
       dest='workers',
       default=multiprocessing.cpu_count())
+  other_group.add_argument('--use-crashpad',
+      default=False,
+      dest='use_crashpad',
+      action='store_true')
 
   options = parser.parse_args(args)
   if not ProcessOptions(options):
@@ -469,9 +499,9 @@ def Main(argv):
   if sys.platform.startswith(('cygwin', 'win')):
     subdir = 'win'
   elif sys.platform == 'darwin':
-    subdir = 'mac'
+    subdir = 'mac-x64'
   elif sys.platform.startswith('linux'):
-    subdir = 'linux64'
+    subdir = 'linux-x64'
   else:
     print 'Unknown platform: ' + sys.platform
     return 1
@@ -482,10 +512,12 @@ def Main(argv):
     for mode in args.mode:
       for arch in args.arch:
         out_dir = GetOutDir(mode, arch, target_os)
-        command = [gn, 'gen', out_dir, '--check']
+        # TODO(infra): Re-enable --check. Many targets fail to use
+        # public_deps to re-expose header files to their dependents.
+        # See dartbug.com/32364
+        command = [gn, 'gen', out_dir]
         gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
-        if args.gn_args != None:
-          gn_args += args.gn_args
+        gn_args += GetGNArgs(args)
         if args.verbose:
           print "gn gen --check in %s" % out_dir
         if args.ide:

@@ -38,7 +38,8 @@ main() {
             upgrader.upgrade(e);
           };
 
-          document.registerElement('custom-element', CustomElement);
+          document
+              .registerElement2('custom-element', {'prototype': CustomElement});
         }
       }));
 

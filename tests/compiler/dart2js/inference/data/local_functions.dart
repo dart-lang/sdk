@@ -64,8 +64,8 @@ recursiveLocalFunction() {
 /*element: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeMissingArgument() {
   /*[exact=JSUInt31]*/ local(/*[empty]*/ x) => 0;
-  // ignore: NOT_ENOUGH_REQUIRED_ARGUMENTS
-  return local();
+  dynamic b = local;
+  return b();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,8 +75,8 @@ namedLocalFunctionInvokeMissingArgument() {
 /*element: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeExtraArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
-  // ignore: EXTRA_POSITIONAL_ARGUMENTS
-  return local(0);
+  dynamic b = local;
+  return b(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,8 +86,8 @@ namedLocalFunctionInvokeExtraArgument() {
 /*element: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeExtraNamedArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
-  // ignore: UNDEFINED_NAMED_PARAMETER
-  return local(a: 0);
+  dynamic b = local;
+  return b(a: 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ closureCallToString() {
 // Operator == on the result of a parameter invocation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _callCompare:[exact=callCompare_closure]*/
+/*element: _callCompare:[subclass=Closure]*/
 _callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
   compare(a: 0, b: 1) == 0;
   return compare;
@@ -139,7 +139,7 @@ class Class1 {
   method1() {}
 }
 
-/*element: _callClosure:[exact=callClosure_closure]*/
+/*element: _callClosure:[subclass=Closure]*/
 _callClosure(/*[subclass=Closure]*/ f({c})) {
   f(c: new Class1()).method1();
   return f;

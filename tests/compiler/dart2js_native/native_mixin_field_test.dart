@@ -47,9 +47,9 @@ main() {
   setup();
   A a = makeA();
   Expect.equals("A-foo", a.foo);
-  Expect.throws(() => a.bar, (e) => e is NoSuchMethodError);
-  Expect.throws(() => a.baz, (e) => e is NoSuchMethodError);
-  Expect.throws(() => a.buz, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (a as dynamic).bar, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (a as dynamic).baz, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (a as dynamic).buz, (e) => e is NoSuchMethodError);
 
   B b = makeB();
   Expect.equals("A-foo", b.foo);
@@ -59,14 +59,14 @@ main() {
   Expect.isNull(b.buz);
 
   M1 m1 = new M1();
-  Expect.throws(() => m1.foo, (e) => e is NoSuchMethodError);
-  Expect.throws(() => m1.bar, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (m1 as dynamic).foo, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (m1 as dynamic).bar, (e) => e is NoSuchMethodError);
   Expect.isNull(m1.baz);
-  Expect.throws(() => m1.buz, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (m1 as dynamic).buz, (e) => e is NoSuchMethodError);
 
   M2 m2 = new M2();
-  Expect.throws(() => m2.foo, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (m2 as dynamic).foo, (e) => e is NoSuchMethodError);
   Expect.isNull(m2.bar);
-  Expect.throws(() => m2.baz, (e) => e is NoSuchMethodError);
+  Expect.throws(() => (m2 as dynamic).baz, (e) => e is NoSuchMethodError);
   Expect.isNull(m2.buz);
 }

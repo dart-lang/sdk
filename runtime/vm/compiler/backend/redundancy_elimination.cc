@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/hash_map.h"
 #include "vm/stack_frame.h"
 
@@ -1331,7 +1332,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 }
 
 void LICM::OptimisticallySpecializeSmiPhis() {
-  if (!flow_graph()->function().allows_hoisting_check_class() ||
+  if (flow_graph()->function().ProhibitsHoistingCheckClass() ||
       FLAG_precompiled_mode) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
@@ -1340,7 +1341,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->LoopHeaders();
+      flow_graph()->GetLoopHierarchy().headers();
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
@@ -1355,13 +1356,13 @@ void LICM::OptimisticallySpecializeSmiPhis() {
 }
 
 void LICM::Optimize() {
-  if (!flow_graph()->function().allows_hoisting_check_class()) {
+  if (flow_graph()->function().ProhibitsHoistingCheckClass()) {
     // Do not hoist any.
     return;
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->LoopHeaders();
+      flow_graph()->GetLoopHierarchy().headers();
 
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
@@ -1372,11 +1373,21 @@ void LICM::Optimize() {
     BlockEntryInstr* pre_header = header->ImmediateDominator();
     if (pre_header == NULL) continue;
 
-    for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-         loop_it.Advance()) {
+    for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+         !loop_it.Done(); loop_it.Advance()) {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
+
+        // Treat loads of static final fields specially: we can CSE them but
+        // we should not move them around unless the field is initialized.
+        // Otherwise we might move load past the initialization.
+        if (LoadStaticFieldInstr* load = current->AsLoadStaticField()) {
+          if (load->AllowsCSE() && !load->IsFieldInitialized()) {
+            continue;
+          }
+        }
+
         if ((current->AllowsCSE() ||
              IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
             !current->MayThrow()) {
@@ -1432,9 +1443,6 @@ class LoadOptimizer : public ValueObject {
 
   static bool OptimizeGraph(FlowGraph* graph) {
     ASSERT(FLAG_load_cse);
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("Before LoadOptimizer", graph);
-    }
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
@@ -1469,11 +1477,6 @@ class LoadOptimizer : public ValueObject {
     }
     ForwardLoads();
     EmitPhis();
-
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("After LoadOptimizer", graph_);
-    }
-
     return forwarded_;
   }
 
@@ -1880,7 +1883,7 @@ class LoadOptimizer : public ValueObject {
 
   void MarkLoopInvariantLoads() {
     const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-        graph_->LoopHeaders();
+        graph_->GetLoopHierarchy().headers();
 
     ZoneGrowableArray<BitVector*>* invariant_loads =
         new (Z) ZoneGrowableArray<BitVector*>(loop_headers.length());
@@ -1894,14 +1897,14 @@ class LoadOptimizer : public ValueObject {
       }
 
       BitVector* loop_gen = new (Z) BitVector(Z, aliased_set_->max_place_id());
-      for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-           loop_it.Advance()) {
+      for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+           !loop_it.Done(); loop_it.Advance()) {
         const intptr_t preorder_number = loop_it.Current();
         loop_gen->AddAll(gen_[preorder_number]);
       }
 
-      for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-           loop_it.Advance()) {
+      for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+           !loop_it.Done(); loop_it.Advance()) {
         const intptr_t preorder_number = loop_it.Current();
         loop_gen->RemoveAll(kill_[preorder_number]);
       }
@@ -2379,9 +2382,6 @@ class StoreOptimizer : public LivenessAnalysis {
 
   static void OptimizeGraph(FlowGraph* graph) {
     ASSERT(FLAG_load_cse);
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("Before StoreOptimizer", graph);
-    }
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
@@ -2406,9 +2406,6 @@ class StoreOptimizer : public LivenessAnalysis {
       Dump();
     }
     EliminateDeadStores();
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("After StoreOptimizer", graph_);
-    }
   }
 
   bool CanEliminateStore(Instruction* instr) {
@@ -2487,7 +2484,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
         // Handle side effects, deoptimization and function return.
         if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-            instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+            instr->MayThrow() || instr->IsReturn()) {
           // Instructions that return from the function, instructions with side
           // effects and instructions that can deoptimize are considered as
           // loads from all places.
@@ -2573,6 +2570,16 @@ void DeadStoreElimination::Optimize(FlowGraph* graph) {
   }
 }
 
+//
+// Allocation Sinking
+//
+
+// Returns true if the given instruction is an allocation that
+// can be sunk by the Allocation Sinking pass.
+static bool IsSupportedAllocation(Instruction* instr) {
+  return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext();
+}
+
 enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 
 // Check if the use is safe for allocation sinking. Allocation sinking
@@ -2604,7 +2611,7 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
   if (store != NULL) {
     if (use == store->value()) {
       Definition* instance = store->instance()->definition();
-      return instance->IsAllocateObject() &&
+      return IsSupportedAllocation(instance) &&
              ((check_type == kOptimisticCheck) ||
               instance->Identity().IsAllocationSinkingCandidate());
     }
@@ -2617,7 +2624,6 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 // Right now we are attempting to sink allocation only into
 // deoptimization exit. So candidate should only be used in StoreInstanceField
 // instructions that write into fields of the allocated object.
-// We do not support materialization of the object that has type arguments.
 static bool IsAllocationSinkingCandidate(Definition* alloc,
                                          SafeUseCheck check_type) {
   for (Value* use = alloc->input_use_list(); use != NULL;
@@ -2688,22 +2694,15 @@ void AllocationSinking::CollectCandidates() {
        !block_it.Done(); block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      {
-        AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
-        if ((alloc != NULL) &&
-            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
-          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
-          candidates_.Add(alloc);
-        }
+      Instruction* current = it.Current();
+      if (!IsSupportedAllocation(current)) {
+        continue;
       }
-      {
-        AllocateUninitializedContextInstr* alloc =
-            it.Current()->AsAllocateUninitializedContext();
-        if ((alloc != NULL) &&
-            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
-          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
-          candidates_.Add(alloc);
-        }
+
+      Definition* alloc = current->Cast<Definition>();
+      if (IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
+        alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
+        candidates_.Add(alloc);
       }
     }
   }
@@ -3170,13 +3169,8 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     // generator functions they may be context-allocated in which case they are
     // not tracked in the environment anyway.
 
-    const intptr_t parameter_count = flow_graph->num_direct_parameters();
-    if (!catch_entry->exception_var().is_captured()) {
-      cdefs[catch_entry->exception_var().BitIndexIn(parameter_count)] = NULL;
-    }
-    if (!catch_entry->stacktrace_var().is_captured()) {
-      cdefs[catch_entry->stacktrace_var().BitIndexIn(parameter_count)] = NULL;
-    }
+    cdefs[flow_graph->EnvIndex(catch_entry->raw_exception_var())] = NULL;
+    cdefs[flow_graph->EnvIndex(catch_entry->raw_stacktrace_var())] = NULL;
 
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
          !block_it.Done(); block_it.Advance()) {

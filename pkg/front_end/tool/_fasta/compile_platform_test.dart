@@ -20,13 +20,13 @@ main(List<String> arguments) {
   asyncTest(() async {
     await withTemporaryDirectory("compile_platform_test_", (Uri tmp) async {
       Uri platformDill = tmp.resolve("vm_platform.dill");
-      Uri outlineDill = tmp.resolve("vm_outline.dill");
+      Uri outlineDill = tmp.resolve("vm_outline_strong.dill");
       ProcessResult result = await Process.run(dartVm.toFilePath(), <String>[
         compilePlatform.toFilePath(),
         "-v",
-        "--strong",
         "dart:core",
         librariesJson.toFilePath(),
+        outlineDill.toFilePath(),
         platformDill.toFilePath(),
         outlineDill.toFilePath(),
       ]);
@@ -40,7 +40,7 @@ main(List<String> arguments) {
   });
 }
 
-withTemporaryDirectory(String prefix, Future f(Uri tmp)) async {
+withTemporaryDirectory(String prefix, Future<void> f(Uri tmp)) async {
   Directory tmp = await Directory.systemTemp.createTemp(prefix);
   try {
     await f(tmp.uri);

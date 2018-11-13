@@ -1,15 +1,20 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart' show Class, Member;
+import 'package:kernel/ast.dart' show Class, DartType, Member;
 
 import '../problems.dart' show unimplemented;
 
 import '../kernel/kernel_builder.dart'
-    show MemberBuilder, KernelClassBuilder, KernelTypeBuilder, Scope;
+    show
+        KernelClassBuilder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        MemberBuilder,
+        Scope;
 
 import '../modifier.dart' show abstractMask;
 
@@ -49,6 +54,34 @@ class DillClassBuilder extends KernelClassBuilder {
     } else {
       scopeBuilder.addMember(name, builder);
     }
+  }
+
+  @override
+  int get typeVariablesCount => cls.typeParameters.length;
+
+  @override
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    // For performance reasons, [typeVariables] aren't restored from [target].
+    // So, if [arguments] is null, the default types should be retrieved from
+    // [cls.typeParameters].
+    if (arguments == null) {
+      List<DartType> result = new List<DartType>.filled(
+          cls.typeParameters.length, null,
+          growable: true);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = cls.typeParameters[i].defaultType;
+      }
+      return result;
+    }
+
+    // [arguments] != null
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
   }
 
   /// Returns true if this class is the result of applying a mixin to its

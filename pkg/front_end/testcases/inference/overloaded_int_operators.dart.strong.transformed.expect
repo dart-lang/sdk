@@ -1,0 +1,45 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::num n = 1;
+  core::int i = 1;
+  core::double d = 1.0;
+  core::double ddPlus = d.{core::double::+}(d);
+  core::double ddMinus = d.{core::double::-}(d);
+  core::double ddTimes = d.{core::double::*}(d);
+  core::double ddMod = d.{core::double::%}(d);
+  core::double diPlus = d.{core::double::+}(i);
+  core::double diMinus = d.{core::double::-}(i);
+  core::double diTimes = d.{core::double::*}(i);
+  core::double diMod = d.{core::double::%}(i);
+  core::double dnPlus = d.{core::double::+}(n);
+  core::double dnMinus = d.{core::double::-}(n);
+  core::double dnTimes = d.{core::double::*}(n);
+  core::double dnMod = d.{core::double::%}(n);
+  core::double idPlus = i.{core::num::+}(d);
+  core::double idMinus = i.{core::num::-}(d);
+  core::double idTimes = i.{core::num::*}(d);
+  core::double idMod = i.{core::num::%}(d);
+  core::int iiPlus = i.{core::num::+}(i);
+  core::int iiMinus = i.{core::num::-}(i);
+  core::int iiTimes = i.{core::num::*}(i);
+  core::int iiMod = i.{core::num::%}(i);
+  core::num inPlus = i.{core::num::+}(n);
+  core::num inMinus = i.{core::num::-}(n);
+  core::num inTimes = i.{core::num::*}(n);
+  core::num inMod = i.{core::num::%}(n);
+  core::num ndPlus = n.{core::num::+}(d);
+  core::num ndMinus = n.{core::num::-}(d);
+  core::num ndTimes = n.{core::num::*}(d);
+  core::num ndMod = n.{core::num::%}(d);
+  core::num niPlus = n.{core::num::+}(i);
+  core::num niMinus = n.{core::num::-}(i);
+  core::num niTimes = n.{core::num::*}(i);
+  core::num niMod = n.{core::num::%}(i);
+  core::num nnPlus = n.{core::num::+}(n);
+  core::num nnMinus = n.{core::num::-}(n);
+  core::num nnTimes = n.{core::num::*}(n);
+  core::num nnMod = n.{core::num::%}(n);
+}

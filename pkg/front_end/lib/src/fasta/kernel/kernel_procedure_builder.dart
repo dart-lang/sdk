@@ -4,12 +4,6 @@
 
 library fasta.kernel_procedure_builder;
 
-import 'package:front_end/src/base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueForType;
-
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrer;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -22,10 +16,9 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionNode,
         Initializer,
-        LocalInitializer,
+        InterfaceType,
         Member,
         Name,
-        NamedExpression,
         Procedure,
         ProcedureKind,
         RedirectingInitializer,
@@ -34,35 +27,40 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
-        VariableGet,
         VoidType,
         setParents;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
+
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
-        messageConstConstructorWithBody,
-        messageInternalProblemBodyOnAbstractMethod,
+        Message,
+        messageConstFactoryRedirectionToNonConst,
+        messageMoreThanOneSuperOrThisInitializer,
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
-        messagePatchNonExternal;
+        messagePatchNonExternal,
+        messageSuperInitializerNotLast,
+        messageThisInitializerNotAlone,
+        noLength;
 
-import '../problems.dart' show internalProblem, unexpected;
-
-import '../deprecated_problems.dart' show deprecated_inputError;
+import '../problems.dart' show unexpected;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'kernel_builder.dart'
     show
-        Builder,
         ClassBuilder,
         ConstructorReferenceBuilder,
+        Declaration,
         FormalParameterBuilder,
         KernelFormalParameterBuilder,
         KernelLibraryBuilder,
@@ -74,9 +72,12 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import 'kernel_shadow_ast.dart' show ShadowProcedure, ShadowVariableDeclaration;
+import 'kernel_shadow_ast.dart'
+    show ShadowProcedure, VariableDeclarationJudgment;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
+
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -102,32 +103,38 @@ abstract class KernelFunctionBuilder
   KernelFunctionBuilder get actualOrigin;
 
   void set body(Statement newBody) {
-    if (newBody != null) {
-      if (isAbstract) {
-        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
-            newBody.fileOffset, fileUri);
-      }
-      if (isConstructor && isConst) {
-        return library.addCompileTimeError(
-            messageConstConstructorWithBody, newBody.fileOffset, fileUri);
-      }
-    }
+//    if (newBody != null) {
+//      if (isAbstract) {
+//        // TODO(danrubel): Is this check needed?
+//        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
+//            newBody.fileOffset, fileUri);
+//      }
+//    }
     actualBody = newBody;
     if (function != null) {
-      function.body = newBody;
-      newBody?.parent = function;
+      // A forwarding semi-stub is a method that is abstract in the source code,
+      // but which needs to have a forwarding stub body in order to ensure that
+      // covariance checks occur.  We don't want to replace the forwarding stub
+      // body with null.
+      var parent = function.parent;
+      if (!(newBody == null &&
+          parent is Procedure &&
+          parent.isForwardingSemiStub)) {
+        function.body = newBody;
+        newBody?.parent = function;
+      }
     }
   }
 
-  void setRedirectingFactoryBody(Member target) {
+  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
     if (actualBody != null) {
       unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
     }
-    actualBody = new RedirectingFactoryBody(target);
+    actualBody = new RedirectingFactoryBody(target, typeArguments);
     function.body = actualBody;
     actualBody?.parent = function;
     if (isPatch) {
-      actualOrigin.setRedirectingFactoryBody(target);
+      actualOrigin.setRedirectingFactoryBody(target, typeArguments);
     }
   }
 
@@ -146,7 +153,7 @@ abstract class KernelFunctionBuilder
     }
     if (formals != null) {
       for (KernelFormalParameterBuilder formal in formals) {
-        VariableDeclaration parameter = formal.build(library);
+        VariableDeclaration parameter = formal.build(library, 0);
         if (formal.isNamed) {
           result.namedParameters.add(parameter);
         } else {
@@ -163,7 +170,7 @@ abstract class KernelFunctionBuilder
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
       VariableDeclaration parameter =
-          new ShadowVariableDeclaration("#synthetic", 0);
+          new VariableDeclarationJudgment("#synthetic", 0);
       result.positionalParameters.clear();
       result.positionalParameters.add(parameter);
       parameter.parent = result;
@@ -184,8 +191,8 @@ abstract class KernelFunctionBuilder
               substitution[parameter] = const DynamicType();
             }
           }
-          library.addWarning(
-              messageNonInstanceTypeVariableUse, charOffset, fileUri);
+          library.addProblem(
+              messageNonInstanceTypeVariableUse, charOffset, noLength, fileUri);
           return substitute(type, substitution);
         }
 
@@ -211,7 +218,7 @@ abstract class KernelFunctionBuilder
   Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader) {
-    Builder constructor = loader.getNativeAnnotation();
+    Declaration constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
     Expression annotation;
@@ -227,20 +234,22 @@ abstract class KernelFunctionBuilder
 
   bool checkPatch(KernelFunctionBuilder patch) {
     if (!isExternal) {
-      patch.library.addCompileTimeError(
-          messagePatchNonExternal, patch.charOffset, patch.fileUri,
-          context:
-              messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+      patch.library.addProblem(
+          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri,
+          context: [
+            messagePatchDeclarationOrigin.withLocation(
+                fileUri, charOffset, noLength)
+          ]);
       return false;
     }
     return true;
   }
 
-  void reportPatchMismatch(Builder patch) {
-    library.addCompileTimeError(
-        messagePatchDeclarationMismatch, patch.charOffset, patch.fileUri,
-        context:
-            messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+  void reportPatchMismatch(Declaration patch) {
+    library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
+        noLength, patch.fileUri, context: [
+      messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
+    ]);
   }
 }
 
@@ -249,8 +258,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
-
-  final ConstructorReferenceBuilder redirectionTarget;
 
   @override
   KernelProcedureBuilder actualOrigin;
@@ -264,13 +271,14 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
+      int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      [String nativeMethodName,
-      this.redirectionTarget])
+      [String nativeMethodName])
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.fileUri)
+          ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
@@ -284,10 +292,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   AsyncMarker get asyncModifier => actualAsyncModifier;
 
   Statement get body {
-    if (actualBody == null &&
-        redirectionTarget == null &&
-        !isAbstract &&
-        !isExternal) {
+    if (actualBody == null && !isAbstract && !isExternal) {
       actualBody = new EmptyStatement();
     }
     return actualBody;
@@ -327,7 +332,9 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
     }
-    if (library.loader.target.strongMode && isSetter && returnType == null) {
+    if (library.loader.target.strongMode &&
+        (isSetter || (isOperator && name == '[]=')) &&
+        returnType == null) {
       procedure.function.returnType = const VoidType();
     }
     return procedure;
@@ -362,6 +369,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.procedure.fileUri = fileUri;
+    origin.procedure.startFileOffset = procedure.startFileOffset;
     origin.procedure.fileOffset = procedure.fileOffset;
     origin.procedure.fileEndOffset = procedure.fileEndOffset;
     origin.procedure.annotations
@@ -381,7 +389,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   @override
-  void applyPatch(Builder patch) {
+  void applyPatch(Declaration patch) {
     if (patch is KernelProcedureBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
@@ -415,11 +423,13 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       KernelLibraryBuilder compilationUnit,
+      int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
       : constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
+          ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
@@ -440,89 +450,104 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     return isRedirectingGenerativeConstructorImplementation(constructor);
   }
 
+  bool get isEligibleForTopLevelInference {
+    if (formals != null) {
+      for (var formal in formals) {
+        if (formal.type == null && formal.hasThis) return true;
+      }
+    }
+    return false;
+  }
+
   Constructor build(SourceLibraryBuilder library) {
     if (constructor.name == null) {
       constructor.function = buildFunction(library);
       constructor.function.parent = constructor;
       constructor.function.fileOffset = charOpenParenOffset;
       constructor.function.fileEndOffset = constructor.fileEndOffset;
+      constructor.function.typeParameters = const <TypeParameter>[];
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);
+    }
+    if (!library.disableTypeInference && isEligibleForTopLevelInference) {
+      for (KernelFormalParameterBuilder formal in formals) {
+        if (formal.type == null && formal.hasThis) {
+          formal.declaration.type = null;
+        }
+      }
+      library.loader.typeInferenceEngine.toBeInferred[constructor] = library;
     }
     return constructor;
   }
 
   FunctionNode buildFunction(LibraryBuilder library) {
-    // TODO(ahe): Should complain if another type is explicitly set.
-    return super.buildFunction(library)..returnType = const VoidType();
+    // According to the specification §9.3 the return type of a constructor
+    // function is its enclosing class.
+    FunctionNode functionNode = super.buildFunction(library);
+    ClassBuilder enclosingClass = parent;
+    List<DartType> typeParameterTypes = new List<DartType>();
+    for (int i = 0; i < enclosingClass.target.typeParameters.length; i++) {
+      TypeParameter typeParameter = enclosingClass.target.typeParameters[i];
+      typeParameterTypes.add(new TypeParameterType(typeParameter));
+    }
+    functionNode.returnType =
+        new InterfaceType(enclosingClass.target, typeParameterTypes);
+    return functionNode;
   }
 
   Constructor get target => origin.constructor;
 
-  void checkSuperOrThisInitializer(Initializer initializer) {
-    if (superInitializer != null || redirectingInitializer != null) {
-      return deprecated_inputError(fileUri, initializer.fileOffset,
-          "Can't have more than one 'super' or 'this' initializer.");
-    }
+  void injectInvalidInitializer(
+      Message message, int charOffset, ExpressionGeneratorHelper helper) {
+    List<Initializer> initializers = constructor.initializers;
+    Initializer lastInitializer = initializers.removeLast();
+    assert(lastInitializer == superInitializer ||
+        lastInitializer == redirectingInitializer);
+    Initializer error = helper.buildInvalidInitializer(
+        helper.buildProblem(message, charOffset, noLength).desugared,
+        charOffset);
+    initializers.add(error..parent = constructor);
+    initializers.add(lastInitializer);
   }
 
-  void addInitializer(Initializer initializer, TypeInferrer typeInferrer) {
+  void addInitializer(
+      Initializer initializer, ExpressionGeneratorHelper helper) {
     List<Initializer> initializers = constructor.initializers;
     if (initializer is SuperInitializer) {
-      checkSuperOrThisInitializer(initializer);
-      superInitializer = initializer;
+      if (superInitializer != null || redirectingInitializer != null) {
+        injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
+            initializer.fileOffset, helper);
+      } else {
+        initializers.add(initializer..parent = constructor);
+        superInitializer = initializer;
+      }
     } else if (initializer is RedirectingInitializer) {
-      checkSuperOrThisInitializer(initializer);
-      redirectingInitializer = initializer;
-      if (constructor.initializers.isNotEmpty) {
-        deprecated_inputError(fileUri, initializer.fileOffset,
-            "'this' initializer must be the only initializer.");
+      if (superInitializer != null || redirectingInitializer != null) {
+        injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
+            initializer.fileOffset, helper);
+      } else if (constructor.initializers.isNotEmpty) {
+        Initializer first = constructor.initializers.first;
+        Initializer error = helper.buildInvalidInitializer(
+            helper
+                .buildProblem(
+                    messageThisInitializerNotAlone, first.fileOffset, noLength)
+                .desugared,
+            first.fileOffset);
+        initializers.add(error..parent = constructor);
+      } else {
+        initializers.add(initializer..parent = constructor);
+        redirectingInitializer = initializer;
       }
     } else if (redirectingInitializer != null) {
-      deprecated_inputError(fileUri, initializer.fileOffset,
-          "'this' initializer must be the only initializer.");
+      injectInvalidInitializer(
+          messageThisInitializerNotAlone, initializer.fileOffset, helper);
     } else if (superInitializer != null) {
-      // If there is a super initializer ([initializer] isn't it), we need to
-      // insert [initializer] before the super initializer (thus ensuring that
-      // the super initializer is always last).
-      assert(superInitializer != initializer);
-      assert(initializers.last == superInitializer);
-      initializers.removeLast();
-      if (!hasMovedSuperInitializer) {
-        // To preserve correct evaluation order, the arguments to super call
-        // must be evaluated before [initializer]. Once the super initializer
-        // has been moved once, the arguments are evaluated in the correct
-        // order.
-        hasMovedSuperInitializer = true;
-        Arguments arguments = superInitializer.arguments;
-        List<Expression> positional = arguments.positional;
-        for (int i = 0; i < positional.length; i++) {
-          var type = typeInferrer.typeSchemaEnvironment.strongMode
-              ? positional[i].getStaticType(typeInferrer.typeSchemaEnvironment)
-              : const DynamicType();
-          VariableDeclaration variable = new VariableDeclaration.forValue(
-              positional[i],
-              isFinal: true,
-              type: type);
-          initializers
-              .add(new LocalInitializer(variable)..parent = constructor);
-          positional[i] = new VariableGet(variable)..parent = arguments;
-        }
-        for (NamedExpression named in arguments.named) {
-          VariableDeclaration variable =
-              new VariableDeclaration.forValue(named.value, isFinal: true);
-          named.value = new VariableGet(variable)..parent = named;
-          initializers
-              .add(new LocalInitializer(variable)..parent = constructor);
-        }
-      }
+      injectInvalidInitializer(
+          messageSuperInitializerNotLast, superInitializer.fileOffset, helper);
+    } else {
       initializers.add(initializer..parent = constructor);
-      initializers.add(superInitializer);
-      return;
     }
-    initializers.add(initializer);
-    initializer.parent = constructor;
   }
 
   @override
@@ -532,6 +557,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.constructor.fileUri = fileUri;
+    origin.constructor.startFileOffset = constructor.startFileOffset;
     origin.constructor.fileOffset = constructor.fileOffset;
     origin.constructor.fileEndOffset = constructor.fileEndOffset;
     origin.constructor.annotations
@@ -552,7 +578,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   @override
-  void applyPatch(Builder patch) {
+  void applyPatch(Declaration patch) {
     if (patch is KernelConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
@@ -560,5 +586,103 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     } else {
       reportPatchMismatch(patch);
     }
+  }
+}
+
+class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
+  final ConstructorReferenceBuilder redirectionTarget;
+  List<DartType> typeArguments;
+
+  KernelRedirectingFactoryBuilder(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      KernelTypeBuilder returnType,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      KernelLibraryBuilder compilationUnit,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      [String nativeMethodName,
+      this.redirectionTarget])
+      : super(
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            typeVariables,
+            formals,
+            ProcedureKind.Factory,
+            compilationUnit,
+            startCharOffset,
+            charOffset,
+            charOpenParenOffset,
+            charEndOffset,
+            nativeMethodName);
+
+  @override
+  Statement get body => actualBody;
+
+  @override
+  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
+    if (actualBody != null) {
+      unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
+    }
+
+    // Ensure that constant factories only have constant targets/bodies.
+    if (isConst && !target.isConst) {
+      library.addProblem(messageConstFactoryRedirectionToNonConst, charOffset,
+          noLength, fileUri);
+    }
+
+    actualBody = new RedirectingFactoryBody(target, typeArguments);
+    function.body = actualBody;
+    actualBody?.parent = function;
+    if (isPatch) {
+      if (function.typeParameters != null) {
+        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+        for (int i = 0; i < function.typeParameters.length; i++) {
+          substitution[function.typeParameters[i]] =
+              new TypeParameterType(actualOrigin.function.typeParameters[i]);
+        }
+        List<DartType> newTypeArguments =
+            new List<DartType>(typeArguments.length);
+        for (int i = 0; i < newTypeArguments.length; i++) {
+          newTypeArguments[i] = substitute(typeArguments[i], substitution);
+        }
+        typeArguments = newTypeArguments;
+      }
+      actualOrigin.setRedirectingFactoryBody(target, typeArguments);
+    }
+  }
+
+  @override
+  Procedure build(SourceLibraryBuilder library) {
+    Procedure result = super.build(library);
+    result.isRedirectingFactoryConstructor = true;
+    if (redirectionTarget.typeArguments != null) {
+      typeArguments =
+          new List<DartType>(redirectionTarget.typeArguments.length);
+      for (int i = 0; i < typeArguments.length; i++) {
+        typeArguments[i] = redirectionTarget.typeArguments[i].build(library);
+      }
+    }
+    return result;
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+
+    super.finishPatch();
+
+    if (origin is KernelRedirectingFactoryBuilder) {
+      KernelRedirectingFactoryBuilder redirectingOrigin = origin;
+      redirectingOrigin.typeArguments = typeArguments;
+    }
+
+    return 1;
   }
 }

@@ -10,19 +10,6 @@ import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/src/elements/elements.dart'
-    show
-        AstElement,
-        ClassElement,
-        CompilationUnitElement,
-        Element,
-        FunctionElement,
-        LibraryElement,
-        MemberElement;
-import 'package:compiler/src/io/source_file.dart' show SourceFile;
-import 'package:compiler/src/io/source_information.dart'
-    show computeElementNameForSourceMaps;
-import 'package:kernel/ast.dart' show Location;
 
 validateSourceMap(Uri targetUri,
     {Uri mainUri, Position mainPosition, CompilerImpl compiler}) {
@@ -62,8 +49,8 @@ checkIndexReferences(
       //
       // Expect.isTrue(entry.column < target[line.line].length);
       Expect.isTrue(entry.column >= 0);
-      Expect
-          .isTrue(urlIndex == null || (urlIndex >= 0 && urlIndex < urlsLength));
+      Expect.isTrue(
+          urlIndex == null || (urlIndex >= 0 && urlIndex < urlsLength));
       Expect.isTrue(entry.sourceLine == null ||
           (entry.sourceLine >= 0 &&
               entry.sourceLine < sources[urlIndex].length));
@@ -102,6 +89,8 @@ checkRedundancy(SingleMapping sourceMap) {
 
 checkNames(
     Uri targetUri, Uri mapUri, SingleMapping sourceMap, CompilerImpl compiler) {
+  // TODO(johnniwinther): Port this to work on kernel based elements.
+  /*
   Map<Uri, CompilationUnitElement> compilationUnitMap = {};
 
   void mapCompilationUnits(LibraryElement library) {
@@ -142,9 +131,8 @@ checkNames(
         Interval intervalFromElement(AstElement element) {
           if (!element.hasNode) return null;
 
-          var begin = element.node.getBeginToken().charOffset;
-          var endToken = element.node.getEndToken();
-          int end = endToken.charOffset + endToken.charCount;
+          var begin = 0;
+          int end = 0;
           return new Interval(
               positionFromOffset(begin), positionFromOffset(end));
         }
@@ -180,6 +168,12 @@ checkNames(
           if (interval != null && interval.contains(sourcePosition)) {
             AstElement innerElement = findInnermost(element);
             String expectedName = computeElementNameForSourceMaps(innerElement);
+            int stubIndex = name.indexOf('[function-entry');
+            if (stubIndex != -1) {
+              Expect.isTrue(innerElement is FunctionElement,
+                  "Unexpected element $innerElement for stub '$name'.");
+              name = name.substring(0, stubIndex);
+            }
             if (name != expectedName) {
               // For the code
               //    (){}();
@@ -218,7 +212,7 @@ checkNames(
         });
       }
     }
-  });
+  });*/
 }
 
 RegExp mainSignaturePrefix = new RegExp(r'main: \[?function\(');

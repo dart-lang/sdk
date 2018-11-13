@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
@@ -26,6 +25,7 @@ void main(List<String> args) {
     bool continuing = false;
     await for (FileSystemEntity entity in dataDir.list()) {
       String name = entity.uri.pathSegments.last;
+      if (!name.endsWith('.dart')) continue;
       if (argResults.rest.isNotEmpty &&
           !argResults.rest.contains(name) &&
           !continuing) {
@@ -38,7 +38,8 @@ void main(List<String> args) {
       await testAnnotatedCode(annotatedCode,
           verbose: argResults['verbose'],
           printJs: argResults['print-js'],
-          writeJs: argResults['write-js']);
+          writeJs: argResults['write-js'],
+          inlineData: name.endsWith('_inlining.dart'));
       if (argResults['continued']) {
         continuing = true;
       }
@@ -46,25 +47,28 @@ void main(List<String> args) {
   });
 }
 
-const String astMarker = 'ast.';
 const String kernelMarker = 'kernel.';
 
 Future testAnnotatedCode(String code,
-    {bool printJs: false, bool writeJs: false, bool verbose: false}) async {
-  Test test = processTestCode(code, [astMarker, kernelMarker]);
+    {bool printJs: false,
+    bool writeJs: false,
+    bool verbose: false,
+    bool inlineData: false}) async {
+  Test test = processTestCode(code, [kernelMarker]);
   print(test.code);
-  print('---from ast---------------------------------------------------------');
-  await runTest(test, astMarker,
-      printJs: printJs, writeJs: writeJs, verbose: verbose);
   print('---from kernel------------------------------------------------------');
   await runTest(test, kernelMarker,
-      printJs: printJs, writeJs: writeJs, verbose: verbose);
+      printJs: printJs,
+      writeJs: writeJs,
+      verbose: verbose,
+      inlineData: inlineData);
 }
 
 Future runTest(Test test, String config,
     {bool printJs: false,
     bool writeJs: false,
     bool verbose: false,
+    bool inlineData: false,
     List<String> options: const <String>[]}) async {
   List<LineException> testAfterExceptions = <LineException>[];
   if (config == kernelMarker) {
@@ -77,14 +81,10 @@ Future runTest(Test test, String config,
   return testStackTrace(test, config, (String input, String output) async {
     List<String> arguments = [
       '-o$output',
-      '--library-root=sdk',
+      '--libraries-spec=sdk/lib/libraries.json',
       '--packages=${Platform.packageConfig}',
-      Flags.useNewSourceInfo,
       input,
     ]..addAll(options);
-    if (config == kernelMarker) {
-      arguments.add(Flags.useKernel);
-    }
     print("Compiling dart2js ${arguments.join(' ')}");
     CompilationResult compilationResult = await entry.internalMain(arguments);
     return compilationResult.isSuccess;
@@ -92,18 +92,25 @@ Future runTest(Test test, String config,
       jsPreambles: (input, output) =>
           ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js'],
       afterExceptions: testAfterExceptions,
-      beforeExceptions: beforeExceptions);
+      beforeExceptions: beforeExceptions,
+      verbose: verbose,
+      printJs: printJs,
+      writeJs: writeJs,
+      stackTraceLimit: 100,
+      expandDart2jsInliningData: inlineData);
 }
 
 /// Lines allowed before the intended stack trace. Typically from helper
 /// methods.
 const List<LineException> beforeExceptions = const [
   const LineException('wrapException', 'js_helper.dart'),
+  const LineException('throwExpression', 'js_helper.dart'),
 ];
 
 /// Lines allowed after the intended stack trace. Typically from the event
 /// queue.
 const List<LineException> afterExceptions = const [
+  const LineException('_asyncStartSync', 'async_patch.dart'),
   const LineException('_wrapJsFunctionForAsync', 'async_patch.dart'),
   const LineException(
       '_wrapJsFunctionForAsync.<anonymous function>', 'async_patch.dart'),
@@ -119,4 +126,11 @@ const List<LineException> afterExceptions = const [
   const LineException('_Future._propagateToListeners', 'future_impl.dart'),
   const LineException(
       '_Future._addListener.<anonymous function>', 'future_impl.dart'),
+  const LineException('_microtaskLoop', 'schedule_microtask.dart'),
+  const LineException('_startMicrotaskLoop', 'schedule_microtask.dart'),
+  const LineException('_AsyncRun._scheduleImmediateJsOverride.internalCallback',
+      'async_patch.dart'),
+  const LineException('invokeClosure.<anonymous function>', 'js_helper.dart'),
+  const LineException('invokeClosure', 'js_helper.dart'),
+  const LineException('convertDartClosureToJS', 'js_helper.dart'),
 ];

@@ -40,6 +40,7 @@ main() {
 
     test('works', () {
       // Use Blob to make a local URL so we don't have to have a separate file.
+      // This does not work on browsers using CSP (Content Security Policy).
       var blob = new Blob([workerScript], 'text/javascript');
       var url = Url.createObjectUrl(blob);
       var worker = new Worker(url);

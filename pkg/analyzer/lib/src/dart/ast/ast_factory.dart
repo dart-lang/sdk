@@ -525,10 +525,9 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          FormalParameterList parameters,
-          {Token question: null}) =>
+          FormalParameterList parameters) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, null, returnType,
-          identifier, typeParameters, parameters, question);
+          identifier, typeParameters, parameters);
 
   @override
   FunctionTypedFormalParameter functionTypedFormalParameter2(
@@ -538,10 +537,9 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          @required FormalParameterList parameters,
-          Token question}) =>
+          @required FormalParameterList parameters}) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, covariantKeyword,
-          returnType, identifier, typeParameters, parameters, question);
+          returnType, identifier, typeParameters, parameters);
 
   @override
   GenericFunctionType genericFunctionType(
@@ -625,9 +623,10 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   InstanceCreationExpression instanceCreationExpression(Token keyword,
-          ConstructorName constructorName, ArgumentList argumentList) =>
-      new InstanceCreationExpressionImpl(
-          keyword, constructorName, argumentList);
+          ConstructorName constructorName, ArgumentList argumentList,
+          {TypeArgumentList typeArguments}) =>
+      new InstanceCreationExpressionImpl(keyword, constructorName, argumentList,
+          typeArguments: typeArguments);
 
   @override
   IntegerLiteral integerLiteral(Token literal, int value) =>
@@ -723,6 +722,30 @@ class AstFactoryImpl extends AstFactory {
           target, operator, methodName, typeArguments, argumentList);
 
   @override
+  MixinDeclaration mixinDeclaration(
+          Comment comment,
+          List<Annotation> metadata,
+          Token mixinKeyword,
+          SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          OnClause onClause,
+          ImplementsClause implementsClause,
+          Token leftBracket,
+          List<ClassMember> members,
+          Token rightBracket) =>
+      new MixinDeclarationImpl(
+          comment,
+          metadata,
+          mixinKeyword,
+          name,
+          typeParameters,
+          onClause,
+          implementsClause,
+          leftBracket,
+          members,
+          rightBracket);
+
+  @override
   NamedExpression namedExpression(Label name, Expression expression) =>
       new NamedExpressionImpl(name, expression);
 
@@ -741,6 +764,10 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   NullLiteral nullLiteral(Token literal) => new NullLiteralImpl(literal);
+
+  @override
+  OnClause onClause(Token onKeyword, List<TypeName> superclassConstraints) =>
+      new OnClauseImpl(onKeyword, superclassConstraints);
 
   @override
   ParenthesizedExpression parenthesizedExpression(Token leftParenthesis,
@@ -859,6 +886,7 @@ class AstFactoryImpl extends AstFactory {
   @override
   SuperExpression superExpression(Token superKeyword) =>
       new SuperExpressionImpl(superKeyword);
+
   @override
   SwitchCase switchCase(List<Label> labels, Token keyword,
           Expression expression, Token colon, List<Statement> statements) =>
@@ -918,9 +946,8 @@ class AstFactoryImpl extends AstFactory {
       new TypeArgumentListImpl(leftBracket, arguments, rightBracket);
 
   @override
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
-          {Token question: null}) =>
-      new TypeNameImpl(name, typeArguments, question);
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments) =>
+      new TypeNameImpl(name, typeArguments);
 
   @override
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,

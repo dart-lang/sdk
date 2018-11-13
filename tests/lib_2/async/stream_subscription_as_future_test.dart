@@ -8,7 +8,7 @@ library stream_single_test;
 import 'dart:async';
 
 import 'package:expect/expect.dart';
-import 'package:unittest/unittest.dart';
+import 'package:expect/async_minitest.dart';
 
 main() {
   test("subscription.asFuture success", () {

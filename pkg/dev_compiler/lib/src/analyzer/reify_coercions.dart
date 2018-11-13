@@ -11,32 +11,28 @@ import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/task/strong/ast_properties.dart' as ast_properties;
-import 'package:logging/logging.dart' as logger;
 
 import 'ast_builder.dart';
 import 'element_helpers.dart' show isInlineJS;
 
-final _log = new logger.Logger('dev_compiler.reify_coercions');
-
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
-class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
-  final cloner = new _TreeCloner();
+class CoercionReifier extends analyzer.GeneralizingAstVisitor<void> {
+  final cloner = _TreeCloner();
 
   CoercionReifier._();
 
   /// Transforms the given compilation units, and returns a new AST with
   /// explicit coercion nodes in appropriate places.
   static List<CompilationUnit> reify(List<CompilationUnit> units) {
-    var cr = new CoercionReifier._();
+    var cr = CoercionReifier._();
     return units.map(cr.visitCompilationUnit).toList(growable: false);
   }
 
   /// True if the `as` [node] is a required runtime check for soundness.
   // TODO(sra): Find a better way to recognize reified coercion, since we
   // can't set the isSynthetic attribute.
-  static bool isRequiredForSoundness(AsExpression node) =>
-      node.asOperator.offset == 0;
+  static bool isImplicit(AsExpression node) => node.asOperator.offset == 0;
 
   /// Creates an implicit cast for expression [e] to [toType].
   static Expression castExpression(Expression e, DartType toType) {
@@ -113,7 +109,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
   void _replaceNode(AstNode parent, AstNode oldNode, AstNode newNode) {
     if (!identical(oldNode, newNode)) {
-      var replaced = parent.accept(new NodeReplacer(oldNode, newNode));
+      var replaced = parent.accept(NodeReplacer(oldNode, newNode));
       // It looks like NodeReplacer will always return true.
       // It does throw IllegalArgumentException though, if child is not found.
       assert(replaced);
@@ -129,7 +125,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
 class _TreeCloner extends analyzer.AstCloner {
   void _cloneProperties(AstNode clone, AstNode node) {
-    if (clone is Expression) {
+    if (clone is Expression && node is Expression) {
       ast_properties.setImplicitCast(
           clone, ast_properties.getImplicitCast(node));
       ast_properties.setImplicitOperationCast(
@@ -137,7 +133,7 @@ class _TreeCloner extends analyzer.AstCloner {
       ast_properties.setIsDynamicInvoke(
           clone, ast_properties.isDynamicInvoke(node));
     }
-    if (clone is ClassDeclaration || clone is ClassTypeAlias) {
+    if (clone is Declaration && node is Declaration) {
       ast_properties.setClassCovariantParameters(
           clone, ast_properties.getClassCovariantParameters(node));
       ast_properties.setSuperclassCovariantParameters(

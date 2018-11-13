@@ -40,7 +40,7 @@ class InferredTypeCollector {
 
   InferredTypeCollector(
       GetDependencyCallback getDependency, GetUnitCallback getUnit)
-      : _linker = new Linker({}, getDependency, getUnit, true);
+      : _linker = new Linker({}, getDependency, getUnit, null);
 
   /**
    * If an inferred type exists matching the given [slot], record that it is the
@@ -166,7 +166,7 @@ class InferredTypeCollector {
   String formatParam(UnlinkedParam param) {
     if (param.isFunctionTyped) {
       // TODO(paulberry): fix this case.
-      return 'BAD(${JSON.encode(param)})';
+      return 'BAD(${json.encode(param)})';
     }
     String result;
     if (param.type != null) {

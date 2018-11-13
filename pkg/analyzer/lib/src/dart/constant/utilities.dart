@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.constant.utilities;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart'
@@ -56,7 +56,7 @@ class ConstantAstCloner extends AstCloner {
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
     FunctionExpression expression = super.visitFunctionExpression(node);
-    expression.element = node.element;
+    expression.element = node.declaredElement;
     return expression;
   }
 
@@ -65,8 +65,35 @@ class ConstantAstCloner extends AstCloner {
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =
         super.visitInstanceCreationExpression(node);
+    if (node.keyword == null) {
+      if (node.isConst) {
+        expression.keyword = new KeywordToken(Keyword.CONST, node.offset);
+      } else {
+        expression.keyword = new KeywordToken(Keyword.NEW, node.offset);
+      }
+    }
     expression.staticElement = node.staticElement;
     return expression;
+  }
+
+  @override
+  ListLiteral visitListLiteral(ListLiteral node) {
+    ListLiteral literal = super.visitListLiteral(node);
+    literal.staticType = node.staticType;
+    if (node.constKeyword == null && node.isConst) {
+      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+    }
+    return literal;
+  }
+
+  @override
+  MapLiteral visitMapLiteral(MapLiteral node) {
+    MapLiteral literal = super.visitMapLiteral(node);
+    literal.staticType = node.staticType;
+    if (node.constKeyword == null && node.isConst) {
+      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+    }
+    return literal;
   }
 
   @override
@@ -125,7 +152,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    if (node.constKeyword != null) {
+    if (node.isConst) {
       _find(node);
     } else {
       super.visitListLiteral(node);
@@ -134,9 +161,13 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
 
   @override
   void visitMapLiteral(MapLiteral node) {
-    if (node.constKeyword != null) {
+    if (node.isConst) {
       _find(node);
     } else {
+      // Values of keys are computed to check that they are unique.
+      for (var entry in node.entries) {
+        _find(entry.key);
+      }
       super.visitMapLiteral(node);
     }
   }
@@ -212,7 +243,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     if (node.constKeyword != null) {
-      ConstructorElement element = node.element;
+      ConstructorElement element = node.declaredElement;
       if (element != null) {
         constantsToCompute.add(element);
         constantsToCompute.addAll(element.parameters);
@@ -225,7 +256,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     Expression defaultValue = node.defaultValue;
-    if (defaultValue != null && node.element != null) {
+    if (defaultValue != null && node.declaredElement != null) {
       constantsToCompute
           .add(resolutionMap.elementDeclaredByFormalParameter(node));
     }
@@ -236,7 +267,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
-    VariableElement element = node.element;
+    VariableElement element = node.declaredElement;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&

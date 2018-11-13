@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,11 +39,13 @@ abstract class CompletionMixin implements ServerPlugin {
   @override
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
       CompletionGetSuggestionsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     CompletionRequest request = await getCompletionRequest(parameters);
     CompletionGenerator generator =
         new CompletionGenerator(getCompletionContributors(path));
-    GeneratorResult result =
+    GeneratorResult<CompletionGetSuggestionsResult> result =
         await generator.generateCompletionResponse(request);
     result.sendNotifications(channel);
     return result.result;
@@ -64,6 +66,8 @@ abstract class DartCompletionMixin implements CompletionMixin {
   @override
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(parameters.file);
     return new DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);

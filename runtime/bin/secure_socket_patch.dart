@@ -18,8 +18,10 @@ class _SecureFilter {
 }
 
 @patch
+@pragma("vm:entry-point")
 class X509Certificate {
   @patch
+  @pragma("vm:entry-point")
   factory X509Certificate._() => new _X509CertificateImpl();
 }
 
@@ -66,12 +68,15 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
     implements _SecureFilter {
   // Performance is improved if a full buffer of plaintext fits
   // in the encrypted buffer, when encrypted.
+  // SIZE and ENCRYPTED_SIZE are referenced from C++.
+  @pragma("vm:entry-point")
   static final int SIZE = 8 * 1024;
+  @pragma("vm:entry-point")
   static final int ENCRYPTED_SIZE = 10 * 1024;
 
   _SecureFilterImpl() {
-    buffers = new List<_ExternalBuffer>(_RawSecureSocket.NUM_BUFFERS);
-    for (int i = 0; i < _RawSecureSocket.NUM_BUFFERS; ++i) {
+    buffers = new List<_ExternalBuffer>(_RawSecureSocket.bufferCount);
+    for (int i = 0; i < _RawSecureSocket.bufferCount; ++i) {
       buffers[i] = new _ExternalBuffer(
           _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE);
     }
@@ -94,6 +99,10 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   void handshake() native "SecureSocket_Handshake";
 
+  void rehandshake() => throw new UnimplementedError();
+
+  int processBuffer(int bufferIndex) => throw new UnimplementedError();
+
   String selectedProtocol() native "SecureSocket_GetSelectedProtocol";
 
   void renegotiate(bool useSessionCache, bool requestClientCertificate,
@@ -112,6 +121,7 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   // This is a security issue, as it exposes a raw pointer to Dart code.
   int _pointer() native "SecureSocket_FilterPointer";
 
+  @pragma("vm:entry-point", "get")
   List<_ExternalBuffer> buffers;
 }
 
@@ -196,6 +206,33 @@ class _X509CertificateImpl extends NativeFieldWrapperClass1
   // The native field must be set manually on a new object, in native code.
   // This is done by WrappedX509 in secure_socket.cc.
   _X509CertificateImpl();
+
+  Uint8List _cachedDer;
+  Uint8List get _der native "X509_Der";
+  Uint8List get der {
+    if (_cachedDer == null) {
+      _cachedDer = _der;
+    }
+    return _cachedDer;
+  }
+
+  String _cachedPem;
+  String get _pem native "X509_Pem";
+  String get pem {
+    if (_cachedPem == null) {
+      _cachedPem = _pem;
+    }
+    return _cachedPem;
+  }
+
+  Uint8List _cachedSha1;
+  Uint8List get _sha1 native "X509_Sha1";
+  Uint8List get sha1 {
+    if (_cachedSha1 == null) {
+      _cachedSha1 = _sha1;
+    }
+    return _cachedSha1;
+  }
 
   String get subject native "X509_Subject";
   String get issuer native "X509_Issuer";

@@ -39,9 +39,9 @@ main() {
 
   ClassMirror cm = reflectClass(A);
 
-  var v1 = cm.newInstance(const Symbol(''), []).reflectee;
-  var v2 = cm.newInstance(const Symbol(''), [1]).reflectee;
-  var v3 = cm.newInstance(const Symbol(''), [2, 3]).reflectee;
+  var v1 = cm.newInstance(Symbol.empty, []).reflectee;
+  var v2 = cm.newInstance(Symbol.empty, [1]).reflectee;
+  var v3 = cm.newInstance(Symbol.empty, [2, 3]).reflectee;
 
   Expect.equals('B(x=x, y=y, z=null)', '$v1', 'unnamed 1');
   Expect.equals('B(x=1, y=y, z=null)', '$v2', 'unnamed 2');

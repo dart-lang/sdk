@@ -24,7 +24,7 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.NORMAL}) {
+      ProcessStartMode mode: ProcessStartMode.normal}) {
     _ProcessImpl process = new _ProcessImpl(
         executable,
         arguments,
@@ -42,8 +42,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     return _runNonInteractiveProcess(
         executable,
         arguments,
@@ -61,8 +61,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     return _runNonInteractiveProcessSync(
         executable,
         arguments,
@@ -75,7 +75,7 @@ class Process {
   }
 
   @patch
-  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError("Argument 'signal' must be a ProcessSignal");
     }
@@ -106,9 +106,9 @@ class _SignalController {
       return;
     }
     _id = id;
-    var socket = new _RawSocket(new _NativeSocket.watch(id));
+    var socket = new _RawSocket(new _NativeSocket.watchSignal(id));
     socket.listen((event) {
-      if (event == RawSocketEvent.READ) {
+      if (event == RawSocketEvent.read) {
         var bytes = socket.read();
         for (int i = 0; i < bytes.length; i++) {
           _controller.add(signal);
@@ -129,6 +129,7 @@ class _SignalController {
       native "Process_ClearSignalHandler";
 }
 
+@pragma("vm:entry-point")
 Function _getWatchSignalInternal() => _ProcessUtils._watchSignalInternal;
 
 @patch
@@ -146,13 +147,13 @@ class _ProcessUtils {
   static bool _killPid(int pid, int signal) native "Process_KillPid";
   @patch
   static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
-    if (signal != ProcessSignal.SIGHUP &&
-        signal != ProcessSignal.SIGINT &&
-        signal != ProcessSignal.SIGTERM &&
+    if (signal != ProcessSignal.sighup &&
+        signal != ProcessSignal.sigint &&
+        signal != ProcessSignal.sigterm &&
         (Platform.isWindows ||
-            (signal != ProcessSignal.SIGUSR1 &&
-                signal != ProcessSignal.SIGUSR2 &&
-                signal != ProcessSignal.SIGWINCH))) {
+            (signal != ProcessSignal.sigusr1 &&
+                signal != ProcessSignal.sigusr2 &&
+                signal != ProcessSignal.sigwinch))) {
       throw new SignalException(
           "Listening for signal $signal is not supported");
     }
@@ -192,7 +193,9 @@ class ProcessInfo {
 }
 
 class _ProcessStartStatus {
+  @pragma("vm:entry-point", "set")
   int _errorCode; // Set to OS error code if process start failed.
+  @pragma("vm:entry-point", "set")
   String _errorMessage; // Set to OS error message if process start failed.
 }
 
@@ -281,7 +284,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     }
     _mode = mode;
 
-    if (mode != ProcessStartMode.DETACHED) {
+    if (_modeHasStdio(mode)) {
       // stdin going to process.
       _stdin = new _StdSink(new _Socket._writePipe().._owner = this);
       // stdout coming from process.
@@ -289,7 +292,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       // stderr coming from process.
       _stderr = new _StdStream(new _Socket._readPipe().._owner = this);
     }
-    if (mode == ProcessStartMode.NORMAL) {
+    if (_modeIsAttached(mode)) {
       _exitHandler = new _Socket._readPipe();
     }
     _ended = false;
@@ -302,6 +305,16 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       (_stdout._stream as _Socket)._nativeSocket;
   _NativeSocket get _stderrNativeSocket =>
       (_stderr._stream as _Socket)._nativeSocket;
+
+  static bool _modeIsAttached(ProcessStartMode mode) {
+    return (mode == ProcessStartMode.normal) ||
+        (mode == ProcessStartMode.inheritStdio);
+  }
+
+  static bool _modeHasStdio(ProcessStartMode mode) {
+    return (mode == ProcessStartMode.normal) ||
+        (mode == ProcessStartMode.detachedWithStdio);
+  }
 
   static String _getShellCommand() {
     if (Platform.isWindows) {
@@ -390,7 +403,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
   Future<Process> _start() {
     var completer = new Completer<Process>();
-    if (_mode == ProcessStartMode.NORMAL) {
+    if (_modeIsAttached(_mode)) {
       _exitCode = new Completer<int>();
     }
     // TODO(ager): Make the actual process starting really async instead of
@@ -403,11 +416,11 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
           _arguments,
           _workingDirectory,
           _environment,
-          _mode.index,
-          _mode == ProcessStartMode.DETACHED ? null : _stdinNativeSocket,
-          _mode == ProcessStartMode.DETACHED ? null : _stdoutNativeSocket,
-          _mode == ProcessStartMode.DETACHED ? null : _stderrNativeSocket,
-          _mode != ProcessStartMode.NORMAL ? null : _exitHandler._nativeSocket,
+          _mode._mode,
+          _modeHasStdio(_mode) ? _stdinNativeSocket : null,
+          _modeHasStdio(_mode) ? _stdoutNativeSocket : null,
+          _modeHasStdio(_mode) ? _stderrNativeSocket : null,
+          _modeIsAttached(_mode) ? _exitHandler._nativeSocket : null,
           status);
       if (!success) {
         completer.completeError(new ProcessException(
@@ -420,7 +433,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
-      if (_mode == ProcessStartMode.NORMAL) {
+      if (_modeIsAttached(_mode)) {
         int exitDataRead = 0;
         final int EXIT_DATA_SIZE = 8;
         List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
@@ -436,7 +449,9 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
             _ended = true;
             _exitCode.complete(exitCode(exitDataBuffer));
             // Kill stdin, helping hand if the user forgot to do it.
-            (_stdin._sink as _Socket).destroy();
+            if (_modeHasStdio(_mode)) {
+              (_stdin._sink as _Socket).destroy();
+            }
             _resourceInfo.stopped();
           }
 
@@ -463,7 +478,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
         _arguments,
         _workingDirectory,
         _environment,
-        ProcessStartMode.NORMAL.index,
+        ProcessStartMode.normal._mode,
         _stdinNativeSocket,
         _stdoutNativeSocket,
         _stderrNativeSocket,
@@ -523,7 +538,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
   Future<int> get exitCode => _exitCode != null ? _exitCode.future : null;
 
-  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError("Argument 'signal' must be a ProcessSignal");
     }
@@ -563,8 +578,7 @@ Future<ProcessResult> _runNonInteractiveProcess(
     Encoding stdoutEncoding,
     Encoding stderrEncoding) {
   // Start the underlying process.
-  return Process
-      .start(path, arguments,
+  return Process.start(path, arguments,
           workingDirectory: workingDirectory,
           environment: environment,
           includeParentEnvironment: includeParentEnvironment,
@@ -615,6 +629,6 @@ ProcessResult _runNonInteractiveProcessSync(
       environment,
       includeParentEnvironment,
       runInShell,
-      ProcessStartMode.NORMAL);
+      ProcessStartMode.normal);
   return process._runAndWait(stdoutEncoding, stderrEncoding);
 }

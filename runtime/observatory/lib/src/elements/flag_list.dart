@@ -48,7 +48,7 @@ class FlagListElement extends HtmlElement implements Renderable {
     assert(repository != null);
     assert(notifications != null);
     FlagListElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<FlagListElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     e._repository = repository;
@@ -68,7 +68,7 @@ class FlagListElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -97,8 +97,8 @@ class FlagListElement extends HtmlElement implements Renderable {
       }
     }
 
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         navMenu('flags', link: Uris.flags()),
@@ -138,7 +138,7 @@ class FlagListElement extends HtmlElement implements Renderable {
       new DivElement()
         ..classes =
             flag.modified ? ['flag', 'modified'] : ['flag', 'unmodified']
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['name']
             ..text = flag.name,

@@ -1,0 +1,11 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:5: Error: Method not found: 'Directory'.
+  new Directory("test")
+      ^^^^^^^^^
+  org-dartlang-debug:synthetic_debug_expression:1:14: Error: Too many positional arguments: 0 allowed, but 1 found.
+  Try removing the extra positional arguments.
+  new Directory("test")
+               ^
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:5: Error: Method not found: 'Directory'.\nnew Directory(\"test\")\n    ^^^^^^^^^";

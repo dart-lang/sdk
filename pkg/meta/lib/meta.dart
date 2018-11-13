@@ -105,6 +105,22 @@ const _Factory factory = const _Factory();
 ///   class that has this annotation is not immutable.
 const Immutable immutable = const Immutable();
 
+/// Used to annotate a test framework function that runs a single test.
+///
+/// Tools, such as IDEs, can show invocations of such function in a file
+/// structure view to help the user navigating in large test files.
+///
+/// The first parameter of the function must be the description of the test.
+const _IsTest isTest = const _IsTest();
+
+/// Used to annotate a test framework function that runs a group of tests.
+///
+/// Tools, such as IDEs, can show invocations of such function in a file
+/// structure view to help the user navigating in large test files.
+///
+/// The first parameter of the function must be the description of the group.
+const _IsTestGroup isTestGroup = const _IsTestGroup();
+
 /// Used to annotate a const constructor `c`. Indicates that any invocation of
 /// the constructor must use the keyword `const` unless one or more of the
 /// arguments to the constructor is not a compile-time constant.
@@ -171,6 +187,20 @@ const _Protected protected = const _Protected();
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
 const Required required = const Required();
+
+/// Annotation marking a class or mixin as not allowed as a super-type.
+///
+/// Classes in the same package as the marked class or mixin may extend,
+/// implement or mix-in the annotated class or mixin.
+///
+/// Given a class or mixin `C`, which is annotated with this, and a class or
+/// mixin `D`, which extends, implements, or mixes in `C`, then tools, such as
+/// the analyzer, may emit warnings if:
+///
+/// * `C` and `D` are declared in different packages, or
+/// * `C` and `D` are declared in the same package, and `D` is not also
+///   annotated with this.
+const _Sealed sealed = const _Sealed();
 
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
 const _Virtual virtual = const _Virtual();
@@ -244,6 +274,14 @@ class _Factory {
   const _Factory();
 }
 
+class _IsTest {
+  const _IsTest();
+}
+
+class _IsTestGroup {
+  const _IsTestGroup();
+}
+
 class _Literal {
   const _Literal();
 }
@@ -258,6 +296,10 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+class _Sealed {
+  const _Sealed();
 }
 
 class _Virtual {

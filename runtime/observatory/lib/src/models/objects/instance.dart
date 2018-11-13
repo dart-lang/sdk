@@ -323,7 +323,7 @@ abstract class Instance extends Object implements InstanceRef {
   ///   Int32x4List
   ///   Float32x4List
   ///   Float64x2List
-  Iterable<dynamic> get typedElements;
+  List<dynamic> get typedElements;
 
   /// [optional] The native fields of this Instance.
   Iterable<NativeField> get nativeFields;
@@ -420,37 +420,37 @@ abstract class Instance extends Object implements InstanceRef {
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  Function get oneByteFunction;
+  FunctionRef get oneByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  Function get twoByteFunction;
+  FunctionRef get twoByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  Function get externalOneByteFunction;
+  FunctionRef get externalOneByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  Function get externalTwoByteFunction;
+  FunctionRef get externalTwoByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  Instance get oneByteBytecode;
+  InstanceRef get oneByteBytecode;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  Instance get twoByteBytecode;
+  InstanceRef get twoByteBytecode;
 }
 
 abstract class BoundField {

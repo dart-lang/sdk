@@ -24,12 +24,12 @@ testCreateSync() {
   new Directory(target).createSync();
   new Link(link).createSync(target);
   Expect.equals(
-      FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(link));
+      FileSystemEntityType.directory, FileSystemEntity.typeSync(link));
   Expect.equals(
-      FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(target));
-  Expect.equals(FileSystemEntityType.LINK,
+      FileSystemEntityType.directory, FileSystemEntity.typeSync(target));
+  Expect.equals(FileSystemEntityType.link,
       FileSystemEntity.typeSync(link, followLinks: false));
-  Expect.equals(FileSystemEntityType.DIRECTORY,
+  Expect.equals(FileSystemEntityType.directory,
       FileSystemEntity.typeSync(target, followLinks: false));
   Expect.isTrue(FileSystemEntity.isLinkSync(link));
   Expect.isFalse(FileSystemEntity.isLinkSync(target));
@@ -50,9 +50,9 @@ testCreateSync() {
       new Directory(join(base, 'link', 'createdDirectly')).existsSync());
   Expect.isTrue(
       new Directory(join(base, 'target', 'createdThroughLink')).existsSync());
-  Expect.equals(FileSystemEntityType.DIRECTORY,
+  Expect.equals(FileSystemEntityType.directory,
       FileSystemEntity.typeSync(createdThroughLink, followLinks: false));
-  Expect.equals(FileSystemEntityType.DIRECTORY,
+  Expect.equals(FileSystemEntityType.directory,
       FileSystemEntity.typeSync(createdDirectly, followLinks: false));
 
   // Test FileSystemEntity.identical on files, directories, and links,

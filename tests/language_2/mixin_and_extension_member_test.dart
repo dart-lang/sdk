@@ -27,6 +27,6 @@ class ListMock extends ListBase with OverrideFirstGetter {
 main() {
   List x = new ListMock();
   x.add(42);
-  Expect.equals(x[0], 42);
-  Expect.equals(x.first, 9999);
+  Expect.equals(42, x[0]);
+  Expect.equals(9999, x.first);
 }

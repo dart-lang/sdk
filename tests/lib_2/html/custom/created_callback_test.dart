@@ -37,12 +37,12 @@ class C extends HtmlElement {
       return;
     }
 
-    var t = div.query('#t');
-    var v = div.query('#v');
-    var w = div.query('#w');
+    var t = div.querySelector('#t');
+    var v = div.querySelector('#v');
+    var w = div.querySelector('#w');
 
-    expect(query('x-b:not(:unresolved)'), this);
-    expect(queryAll(':unresolved'), [v, w]);
+    expect(querySelector('x-b:not(:unresolved)'), this);
+    expect(querySelectorAll(':unresolved'), [v, w]);
 
     // As per:
     // http://www.w3.org/TR/2013/WD-custom-elements-20130514/#serializing-and-parsing
@@ -65,15 +65,15 @@ main() {
     return customElementsReady.then((_) {
       if (!registered) {
         registered = true;
-        document.registerElement(B.tag, B);
-        document.registerElement(C.tag, C);
+        document.registerElement2(B.tag, {'prototype': B});
+        document.registerElement2(C.tag, {'prototype': C});
         ErrorConstructorElement.register();
       }
     });
   });
 
   test('transfer created callback', () {
-    document.registerElement(A.tag, A as dynamic);
+    document.registerElement2(A.tag, {'prototype': A as dynamic});
     var x = new A();
     expect(A.createdInvocations, 1);
   });
@@ -91,7 +91,7 @@ main() {
     upgradeCustomElements(div);
 
     expect(C.createdInvocations, 2);
-    expect(div.query('#w') is B, isTrue);
+    expect(div.querySelector('#w') is B, isTrue);
   });
 
   test('nesting of constructors', NestedElement.test);
@@ -107,8 +107,8 @@ main() {
 
   test('cannot register without created', () {
     expect(() {
-      document.registerElement(
-          MissingCreatedElement.tag, MissingCreatedElement);
+      document.registerElement2(
+          MissingCreatedElement.tag, {'prototype': MissingCreatedElement});
     }, throws);
   });
 
@@ -150,8 +150,8 @@ main() {
 
   test('cannot register created with params', () {
     expect(() {
-      document.registerElement(
-          'x-created-with-params', CreatedWithParametersElement);
+      document.registerElement2(
+          'x-created-with-params', {'prototype': CreatedWithParametersElement});
     }, throws);
   });
 
@@ -171,7 +171,7 @@ class NestedElement extends HtmlElement {
   NestedElement.created() : super.created();
 
   static void register() {
-    document.registerElement(tag, NestedElement);
+    document.registerElement2(tag, {'prototype': NestedElement});
   }
 
   static void test() {
@@ -202,7 +202,7 @@ class AccessWhileUpgradingElement extends HtmlElement {
   }
 
   static void register() {
-    document.registerElement(tag, AccessWhileUpgradingElement);
+    document.registerElement2(tag, {'prototype': AccessWhileUpgradingElement});
   }
 
   static void test() {
@@ -238,7 +238,7 @@ class ErrorConstructorElement extends HtmlElement {
   }
 
   static void register() {
-    document.registerElement(tag, ErrorConstructorElement);
+    document.registerElement2(tag, {'prototype': ErrorConstructorElement});
   }
 }
 
@@ -253,7 +253,8 @@ class NestedCreatedConstructorElement extends HtmlElement {
   NestedCreatedConstructorElement.created() : super.created();
 
   static void register() {
-    document.registerElement(tag, NestedCreatedConstructorElement);
+    document
+        .registerElement2(tag, {'prototype': NestedCreatedConstructorElement});
   }
 
   // Try to run the created constructor, and record the results.

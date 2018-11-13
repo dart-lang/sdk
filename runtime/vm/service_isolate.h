@@ -29,6 +29,12 @@ class ServiceIsolate : public AllStatic {
   static Dart_Port WaitForLoadPort();
   static Dart_Port LoadPort();
 
+  // Returns `true` if the request was sucessfully sent.  If it was, the
+  // [reply_port] will receive a Dart_TypedData_kUint8 response json.
+  static bool SendServiceRpc(uint8_t* request_json,
+                             intptr_t request_json_length,
+                             Dart_Port reply_port);
+
   static void Run();
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();
@@ -54,7 +60,6 @@ class ServiceIsolate : public AllStatic {
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);
   static void SetLoadPort(Dart_Port port);
-  static void ConstructExitMessageAndCache(Isolate* isolate);
   static void FinishedExiting();
   static void FinishedInitializing();
   static void MaybeMakeServiceIsolate(Isolate* isolate);
@@ -63,8 +68,6 @@ class ServiceIsolate : public AllStatic {
   }
 
   static Dart_IsolateCreateCallback create_callback_;
-  static uint8_t* exit_message_;
-  static intptr_t exit_message_length_;
   static Monitor* monitor_;
   static bool initializing_;
   static bool shutting_down_;
@@ -75,6 +78,7 @@ class ServiceIsolate : public AllStatic {
   static char* server_address_;
 
   friend class Dart;
+  friend class Isolate;
   friend class RunServiceTask;
   friend class ServiceIsolateNatives;
 };

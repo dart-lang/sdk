@@ -14,7 +14,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
-    defineReflectiveTests(GetTypeHierarchyTest_PreviewDart2);
   });
 }
 
@@ -194,7 +193,7 @@ class Pivot /* target */ extends Base2 {}
     });
   }
 
-  test_getTypeHierarchy() {
+  Future<void> test_getTypeHierarchy() {
     pathname = sourcePath('test.dart');
     // Write a dummy file which will be overridden by tests using
     // [sendAnalysisUpdateContent].
@@ -270,18 +269,6 @@ class HierarchyResults {
       return items[nameToIndex[name]];
     } else {
       fail('Class $name not found in hierarchy results');
-      return null;
     }
   }
-}
-
-@reflectiveTest
-class GetTypeHierarchyTest_PreviewDart2 extends GetTypeHierarchyTest {
-  @override
-  bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  // TODO(devoncarew): 'NoSuchMethodError: The getter 'source' was called on null'
-  Future test_getTypeHierarchy() => new Future.error('failing test');
 }

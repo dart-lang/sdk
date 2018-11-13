@@ -27,7 +27,7 @@ enum ARMVersion {
 
 class HostCPUFeatures : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
   static void Cleanup();
   static const char* hardware() {
     DEBUG_ASSERT(initialized_);
@@ -92,7 +92,7 @@ class HostCPUFeatures : public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Init() { HostCPUFeatures::Init(); }
   static void Cleanup() { HostCPUFeatures::Cleanup(); }
   static bool double_truncate_round_supported() { return false; }
   static bool integer_division_supported() {

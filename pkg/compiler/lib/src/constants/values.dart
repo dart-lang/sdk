@@ -8,7 +8,8 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../util/util.dart' show Hashing;
+import '../deferred_load.dart' show OutputUnit;
+import '../util/util.dart';
 
 enum ConstantValueKind {
   FUNCTION,
@@ -23,7 +24,8 @@ enum ConstantValueKind {
   TYPE,
   INTERCEPTOR,
   SYNTHETIC,
-  DEFERRED,
+  INSTANTIATION,
+  DEFERRED_GLOBAL,
   NON_CONSTANT,
 }
 
@@ -44,8 +46,11 @@ abstract class ConstantValueVisitor<R, A> {
   R visitInterceptor(
       covariant InterceptorConstantValue constant, covariant A arg);
   R visitSynthetic(covariant SyntheticConstantValue constant, covariant A arg);
-  R visitDeferred(covariant DeferredConstantValue constant, covariant A arg);
+  R visitDeferredGlobal(
+      covariant DeferredGlobalConstantValue constant, covariant A arg);
   R visitNonConstant(covariant NonConstantValue constant, covariant A arg);
+  R visitInstantiation(
+      covariant InstantiationConstantValue constant, covariant A arg);
 }
 
 abstract class ConstantValue {
@@ -94,8 +99,8 @@ abstract class ConstantValue {
   /// expression from the value so the unparse of these is best effort.
   ///
   /// For the synthetic constants, [DeferredConstantValue],
-  /// [SyntheticConstantValue], [InterceptorConstantValue] the unparse is
-  /// descriptive only.
+  /// [DeferredGlobalConstantValue], [SyntheticConstantValue],
+  /// [InterceptorConstantValue] the unparse is descriptive only.
   String toDartText();
 
   /// Returns a structured representation of this constant suited for debugging.
@@ -127,7 +132,7 @@ class FunctionConstantValue extends ConstantValue {
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  DartType getType(CommonElements types) => type;
+  FunctionType getType(CommonElements types) => type;
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
@@ -149,26 +154,19 @@ class FunctionConstantValue extends ConstantValue {
 }
 
 abstract class PrimitiveConstantValue extends ConstantValue {
-  get primitiveValue;
-
   const PrimitiveConstantValue();
 
   bool get isPrimitive => true;
 
   bool operator ==(var other) {
-    if (other is! PrimitiveConstantValue) return false;
-    PrimitiveConstantValue otherPrimitive = other;
-    // We use == instead of 'identical' so that DartStrings compare correctly.
-    return primitiveValue == otherPrimitive.primitiveValue;
+    // Making this method abstract does not give us an error.
+    throw new UnsupportedError('PrimitiveConstant.==');
   }
 
   int get hashCode => throw new UnsupportedError('PrimitiveConstant.hashCode');
 
   // Primitive constants don't have dependencies.
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
-
-  /// This value in Dart syntax.
-  String toDartText() => primitiveValue.toString();
 }
 
 class NullConstantValue extends PrimitiveConstantValue {
@@ -181,9 +179,9 @@ class NullConstantValue extends PrimitiveConstantValue {
 
   bool get isNull => true;
 
-  get primitiveValue => null;
-
   DartType getType(CommonElements types) => types.nullType;
+
+  bool operator ==(other) => other is NullConstantValue;
 
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
@@ -193,97 +191,82 @@ class NullConstantValue extends PrimitiveConstantValue {
   ConstantValueKind get kind => ConstantValueKind.NULL;
 
   String toStructuredText() => 'NullConstant';
+
+  String toDartText() => 'null';
 }
 
 abstract class NumConstantValue extends PrimitiveConstantValue {
-  const NumConstantValue();
-
-  num get primitiveValue;
+  double get doubleValue;
 
   bool get isNum => true;
+
+  const NumConstantValue();
 }
 
 class IntConstantValue extends NumConstantValue {
-  final int primitiveValue;
+  final BigInt intValue;
 
-  factory IntConstantValue(int value) {
-    switch (value) {
-      case 0:
-        return const IntConstantValue._internal(0);
-      case 1:
-        return const IntConstantValue._internal(1);
-      case 2:
-        return const IntConstantValue._internal(2);
-      case 3:
-        return const IntConstantValue._internal(3);
-      case 4:
-        return const IntConstantValue._internal(4);
-      case 5:
-        return const IntConstantValue._internal(5);
-      case 6:
-        return const IntConstantValue._internal(6);
-      case 7:
-        return const IntConstantValue._internal(7);
-      case 8:
-        return const IntConstantValue._internal(8);
-      case 9:
-        return const IntConstantValue._internal(9);
-      case 10:
-        return const IntConstantValue._internal(10);
-      case -1:
-        return const IntConstantValue._internal(-1);
-      case -2:
-        return const IntConstantValue._internal(-2);
-      default:
-        return new IntConstantValue._internal(value);
+  // Caching IntConstantValues representing -2 through 10 so that we don't have
+  // to create new ones every time those values are used.
+  static Map<BigInt, IntConstantValue> _cachedValues = {};
+
+  double get doubleValue => intValue.toDouble();
+
+  factory IntConstantValue(BigInt value) {
+    var existing = _cachedValues[value];
+    if (existing != null) return existing;
+    var intConstantVal = new IntConstantValue._internal(value);
+    var intValue = value.toInt();
+    if (intValue <= -2 && intValue >= 10) {
+      _cachedValues[value] = intConstantVal;
     }
+    return intConstantVal;
   }
 
-  const IntConstantValue._internal(this.primitiveValue);
+  const IntConstantValue._internal(this.intValue);
 
   bool get isInt => true;
 
-  bool isUInt31() => primitiveValue >= 0 && primitiveValue < (1 << 31);
+  bool isUInt31() => intValue.toUnsigned(31) == intValue;
 
-  bool isUInt32() => primitiveValue >= 0 && primitiveValue < (1 << 32);
+  bool isUInt32() => intValue.toUnsigned(32) == intValue;
 
-  bool isPositive() => primitiveValue >= 0;
+  bool isPositive() => intValue >= BigInt.zero;
 
-  bool get isZero => primitiveValue == 0;
+  bool get isZero => intValue == BigInt.zero;
 
-  bool get isOne => primitiveValue == 1;
+  bool get isOne => intValue == BigInt.one;
 
   DartType getType(CommonElements types) => types.intType;
 
-  // We have to override the equality operator so that ints and doubles are
-  // treated as separate constants.
-  // The is [:!IntConstant:] check at the beginning of the function makes sure
-  // that we compare only equal to integer constants.
   bool operator ==(var other) {
+    // Ints and doubles are treated as separate constants.
     if (other is! IntConstantValue) return false;
     IntConstantValue otherInt = other;
-    return primitiveValue == otherInt.primitiveValue;
+    return intValue == otherInt.intValue;
   }
 
-  int get hashCode => primitiveValue & Hashing.SMI_MASK;
+  int get hashCode => intValue.hashCode & Hashing.SMI_MASK;
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitInt(this, arg);
 
   ConstantValueKind get kind => ConstantValueKind.INT;
 
   String toStructuredText() => 'IntConstant(${toDartText()})';
+
+  String toDartText() => intValue.toString();
 }
 
 class DoubleConstantValue extends NumConstantValue {
-  final double primitiveValue;
+  final double doubleValue;
 
   factory DoubleConstantValue(double value) {
     if (value.isNaN) {
-      return const DoubleConstantValue._internal(double.NAN);
-    } else if (value == double.INFINITY) {
-      return const DoubleConstantValue._internal(double.INFINITY);
-    } else if (value == -double.INFINITY) {
-      return const DoubleConstantValue._internal(-double.INFINITY);
+      return const DoubleConstantValue._internal(double.nan);
+    } else if (value == double.infinity) {
+      return const DoubleConstantValue._internal(double.infinity);
+    } else if (value == -double.infinity) {
+      return const DoubleConstantValue._internal(-double.infinity);
     } else if (value == 0.0 && !value.isNegative) {
       return const DoubleConstantValue._internal(0.0);
     } else if (value == 1.0) {
@@ -293,45 +276,47 @@ class DoubleConstantValue extends NumConstantValue {
     }
   }
 
-  const DoubleConstantValue._internal(this.primitiveValue);
+  const DoubleConstantValue._internal(this.doubleValue);
 
   bool get isDouble => true;
 
-  bool get isNaN => primitiveValue.isNaN;
+  bool get isNaN => doubleValue.isNaN;
 
   // We need to check for the negative sign since -0.0 == 0.0.
-  bool get isMinusZero => primitiveValue == 0.0 && primitiveValue.isNegative;
+  bool get isMinusZero => doubleValue == 0.0 && doubleValue.isNegative;
 
-  bool get isZero => primitiveValue == 0.0;
+  bool get isZero => doubleValue == 0.0;
 
-  bool get isOne => primitiveValue == 1.0;
+  bool get isOne => doubleValue == 1.0;
 
-  bool get isPositiveInfinity => primitiveValue == double.INFINITY;
+  bool get isPositiveInfinity => doubleValue == double.infinity;
 
-  bool get isNegativeInfinity => primitiveValue == -double.INFINITY;
+  bool get isNegativeInfinity => doubleValue == -double.infinity;
 
   DartType getType(CommonElements types) => types.doubleType;
 
   bool operator ==(var other) {
     if (other is! DoubleConstantValue) return false;
     DoubleConstantValue otherDouble = other;
-    double otherValue = otherDouble.primitiveValue;
-    if (primitiveValue == 0.0 && otherValue == 0.0) {
-      return primitiveValue.isNegative == otherValue.isNegative;
-    } else if (primitiveValue.isNaN) {
+    double otherValue = otherDouble.doubleValue;
+    if (doubleValue == 0.0 && otherValue == 0.0) {
+      return doubleValue.isNegative == otherValue.isNegative;
+    } else if (doubleValue.isNaN) {
       return otherValue.isNaN;
     } else {
-      return primitiveValue == otherValue;
+      return doubleValue == otherValue;
     }
   }
 
-  int get hashCode => primitiveValue.hashCode;
+  int get hashCode => doubleValue.hashCode;
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDouble(this, arg);
 
   ConstantValueKind get kind => ConstantValueKind.DOUBLE;
 
   String toStructuredText() => 'DoubleConstant(${toDartText()})';
+
+  String toDartText() => doubleValue.toString();
 }
 
 abstract class BoolConstantValue extends PrimitiveConstantValue {
@@ -342,6 +327,8 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
   const BoolConstantValue._internal();
 
   bool get isBool => true;
+
+  bool get boolValue;
 
   DartType getType(CommonElements types) => types.boolType;
 
@@ -361,7 +348,7 @@ class TrueConstantValue extends BoolConstantValue {
 
   bool get isTrue => true;
 
-  bool get primitiveValue => true;
+  bool get boolValue => true;
 
   FalseConstantValue negate() => new FalseConstantValue();
 
@@ -370,6 +357,8 @@ class TrueConstantValue extends BoolConstantValue {
   // The magic constant is just a random value. It does not have any
   // significance.
   int get hashCode => 499;
+
+  String toDartText() => boolValue.toString();
 }
 
 class FalseConstantValue extends BoolConstantValue {
@@ -379,7 +368,7 @@ class FalseConstantValue extends BoolConstantValue {
 
   bool get isFalse => true;
 
-  bool get primitiveValue => false;
+  bool get boolValue => false;
 
   TrueConstantValue negate() => new TrueConstantValue();
 
@@ -388,16 +377,18 @@ class FalseConstantValue extends BoolConstantValue {
   // The magic constant is just a random value. It does not have any
   // significance.
   int get hashCode => 536555975;
+
+  String toDartText() => boolValue.toString();
 }
 
 class StringConstantValue extends PrimitiveConstantValue {
-  final String primitiveValue;
+  final String stringValue;
 
   final int hashCode;
 
   // TODO(floitsch): cache StringConstants.
   StringConstantValue(String value)
-      : this.primitiveValue = value,
+      : this.stringValue = value,
         this.hashCode = value.hashCode;
 
   bool get isString => true;
@@ -409,19 +400,19 @@ class StringConstantValue extends PrimitiveConstantValue {
     if (other is! StringConstantValue) return false;
     StringConstantValue otherString = other;
     return hashCode == otherString.hashCode &&
-        primitiveValue == otherString.primitiveValue;
+        stringValue == otherString.stringValue;
   }
 
-  String toDartString() => primitiveValue;
+  String toDartString() => stringValue;
 
-  int get length => primitiveValue.length;
+  int get length => stringValue.length;
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitString(this, arg);
 
   ConstantValueKind get kind => ConstantValueKind.STRING;
 
   // TODO(johnniwinther): Ensure correct escaping.
-  String toDartText() => '"${primitiveValue}"';
+  String toDartText() => '"${stringValue}"';
 
   String toStructuredText() => 'StringConstant(${toDartText()})';
 }
@@ -684,6 +675,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
         hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
         super(type) {
     assert(type != null);
+    assert(!fields.containsKey(null));
     assert(!fields.containsValue(null));
   }
 
@@ -751,36 +743,86 @@ class ConstructedConstantValue extends ObjectConstantValue {
   }
 }
 
+class InstantiationConstantValue extends ConstantValue {
+  final List<DartType> typeArguments;
+  final FunctionConstantValue function;
+
+  InstantiationConstantValue(this.typeArguments, this.function);
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is InstantiationConstantValue &&
+        function == other.function &&
+        equalElements(typeArguments, other.typeArguments);
+  }
+
+  @override
+  int get hashCode {
+    return Hashing.objectHash(function, Hashing.listHash(typeArguments));
+  }
+
+  List<ConstantValue> getDependencies() => <ConstantValue>[function];
+
+  accept(ConstantValueVisitor visitor, arg) =>
+      visitor.visitInstantiation(this, arg);
+
+  DartType getType(CommonElements types) {
+    FunctionType type = function.getType(types);
+    return type.instantiate(typeArguments);
+  }
+
+  ConstantValueKind get kind => ConstantValueKind.INSTANTIATION;
+
+  String toDartText() =>
+      '<${typeArguments.join(', ')}>(${function.toDartText()})';
+
+  String toStructuredText() {
+    return 'InstantiationConstant($typeArguments,'
+        '${function.toStructuredText()})';
+  }
+}
+
 /// A reference to a constant in another output unit.
-/// Used for referring to deferred constants.
-class DeferredConstantValue extends ConstantValue {
-  DeferredConstantValue(this.referenced, this.import);
+///
+/// Used for referring to deferred constants that appear as initializers of
+/// final (non-const) global fields.
+///
+// TODO(sigmund): this should eventually not be a constant value. In particular,
+// [DeferredConstantValue] is introduced by the constant evaluator when it first
+// sees constants used in the program. [DeferredGlobalConstantValue] are
+// introduced later by the SSA builder and should be represented
+// with a dedicated JEntity instead. We currently model them as a regular
+// constant to take advantage of the machinery we already have in place to
+// generate deferred constants in the emitter.
+class DeferredGlobalConstantValue extends ConstantValue {
+  DeferredGlobalConstantValue(this.referenced, this.unit);
 
   final ConstantValue referenced;
-  final ImportEntity import;
+  final OutputUnit unit;
 
   bool get isReference => true;
 
   bool operator ==(other) {
-    return other is DeferredConstantValue &&
+    return other is DeferredGlobalConstantValue &&
         referenced == other.referenced &&
-        import == other.import;
+        unit == other.unit;
   }
 
-  get hashCode => (referenced.hashCode * 17 + import.hashCode) & 0x3fffffff;
+  get hashCode => (referenced.hashCode * 17 + unit.hashCode) & 0x3fffffff;
 
   List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
 
-  accept(ConstantValueVisitor visitor, arg) => visitor.visitDeferred(this, arg);
+  accept(ConstantValueVisitor visitor, arg) =>
+      visitor.visitDeferredGlobal(this, arg);
 
   DartType getType(CommonElements types) => referenced.getType(types);
 
-  ConstantValueKind get kind => ConstantValueKind.DEFERRED;
+  ConstantValueKind get kind => ConstantValueKind.DEFERRED_GLOBAL;
 
-  String toDartText() => 'deferred(${referenced.toDartText()})';
+  String toDartText() => 'deferred_global(${referenced.toDartText()})';
 
   String toStructuredText() {
-    return 'DeferredConstant(${referenced.toStructuredText()})';
+    return 'DeferredGlobalConstant(${referenced.toStructuredText()})';
   }
 }
 

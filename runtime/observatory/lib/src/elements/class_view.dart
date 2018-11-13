@@ -121,7 +121,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
     assert(topRetained != null);
     assert(profiles != null);
     ClassViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ClassViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -155,7 +155,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   ObjectCommonElement _common;
@@ -184,8 +184,8 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.isPatch) {
       header += 'patch ';
     }
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -210,7 +210,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = '$header class ${_cls.name}',
           new HRElement(),
           _common,
@@ -240,7 +240,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Allocations',
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Tracing allocations?	',
@@ -252,7 +252,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                         new ButtonElement()
                           ..text = 'disable'
                           ..onClick.listen((e) async {
-                            e.target.disabled = true;
+                            (e.target as ButtonElement).disabled = true;
                             await _profiles.disable(_isolate, _cls);
                             _loadProfile = true;
                             _refresh();
@@ -263,7 +263,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                         new ButtonElement()
                           ..text = 'enable'
                           ..onClick.listen((e) async {
-                            e.target.disabled = true;
+                            (e.target as ButtonElement).disabled = true;
                             await _profiles.enable(_isolate, _cls);
                             _refresh();
                           })
@@ -300,13 +300,13 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.library != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'library',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new LibraryRefElement(_isolate, _cls.library, queue: _r.queue)
             ]
         ]);
@@ -314,13 +314,13 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.location != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'script',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new SourceLinkElement(_isolate, _cls.location, _scripts,
                   queue: _r.queue)
             ]
@@ -329,13 +329,13 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.superclass != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'superclass',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new ClassRefElement(_isolate, _cls.superclass, queue: _r.queue)
             ]
         ]);
@@ -343,13 +343,13 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.superType != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'supertype',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new InstanceRefElement(_isolate, _cls.superType, _objects,
                   queue: _r.queue)
             ]
@@ -358,13 +358,13 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (cls.mixin != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'mixin',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new InstanceRefElement(_isolate, _cls.mixin, _objects,
                   queue: _r.queue)
             ]
@@ -373,14 +373,14 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.subclasses.length > 0) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'extended by',
           new DivElement()
             ..classes = ['memberValue']
             ..children = (_cls.subclasses
-                .expand((subcls) => [
+                .expand((subcls) => <Element>[
                       new ClassRefElement(_isolate, subcls, queue: _r.queue),
                       new SpanElement()..text = ', '
                     ])
@@ -394,14 +394,14 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.interfaces.length > 0) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'implements',
           new DivElement()
             ..classes = ['memberValue']
             ..children = (_cls.interfaces
-                .expand((interf) => [
+                .expand((interf) => <Element>[
                       new InstanceRefElement(_isolate, interf, _objects,
                           queue: _r.queue),
                       new SpanElement()..text = ', '
@@ -413,7 +413,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
     if (_cls.name != _cls.vmName) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'vm name',
@@ -432,25 +432,25 @@ class ClassViewElement extends HtmlElement implements Renderable {
       _fieldsExpanded = _fieldsExpanded ?? (fields.length <= 8);
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'fields ${fields.length}',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new CurlyBlockElement(expanded: _fieldsExpanded)
                 ..onToggle.listen((e) => _fieldsExpanded = e.control.expanded)
-                ..content = [
+                ..content = <Element>[
                   new DivElement()
                     ..classes = ['memberList']
                     ..children = (fields
-                        .map((f) => new DivElement()
+                        .map<Element>((f) => new DivElement()
                           ..classes = ['memberItem']
-                          ..children = [
+                          ..children = <Element>[
                             new DivElement()
                               ..classes = ['memberName']
-                              ..children = [
+                              ..children = <Element>[
                                 new FieldRefElement(_isolate, f, _objects,
                                     queue: _r.queue)
                               ],
@@ -474,20 +474,20 @@ class ClassViewElement extends HtmlElement implements Renderable {
       _functionsExpanded = _functionsExpanded ?? (functions.length <= 8);
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'functions (${functions.length})',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new CurlyBlockElement(expanded: _functionsExpanded)
                 ..onToggle
                     .listen((e) => _functionsExpanded = e.control.expanded)
                 ..content = (functions
-                    .map((f) => new DivElement()
+                    .map<Element>((f) => new DivElement()
                       ..classes = ['indent']
-                      ..children = [
+                      ..children = <Element>[
                         new FunctionRefElement(_isolate, f, queue: _r.queue)
                       ])
                     .toList())

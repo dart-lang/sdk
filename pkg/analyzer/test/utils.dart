@@ -1,8 +1,6 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.utils;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -10,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/testing/element_search.dart';
-import 'package:front_end/src/base/source.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
 /**
@@ -74,7 +72,6 @@ class AstFinder {
     }
     Source source = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
     fail('No class named $className in $source');
-    return null;
   }
 
   /**
@@ -94,7 +91,6 @@ class AstFinder {
       }
     }
     fail('No constructor named $constructorName in $className');
-    return null;
   }
 
   /**
@@ -116,7 +112,6 @@ class AstFinder {
       }
     }
     fail('No field named $fieldName in $className');
-    return null;
   }
 
   /**
@@ -144,7 +139,6 @@ class AstFinder {
       }
     }
     fail('No method named $methodName in $className');
-    return null;
   }
 
   /**
@@ -185,7 +179,6 @@ class AstFinder {
       }
     }
     fail('No toplevel function named $functionName found');
-    return null;
   }
 
   /**
@@ -207,7 +200,6 @@ class AstFinder {
       }
     }
     fail('No toplevel variable named $variableName found');
-    return null;
   }
 
   /**

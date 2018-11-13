@@ -20,10 +20,12 @@ class LibraryMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // Determine if the target looks like a library prefix
     Expression targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
-      Element elem = targetId.bestElement;
+      Element elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
         LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library or directives
@@ -36,7 +38,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   List<CompletionSuggestion> _buildSuggestions(
@@ -57,7 +59,9 @@ class LibraryMemberContributor extends DartCompletionContributor {
           LibraryElementSuggestionBuilder builder =
               new LibraryElementSuggestionBuilder(containingLibrary,
                   CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
-          library.visitChildren(builder);
+          for (var element in importElem.namespace.definedNames.values) {
+            element.accept(builder);
+          }
           suggestions.addAll(builder.suggestions);
 
           // If the import is 'deferred' then suggest 'loadLibrary'

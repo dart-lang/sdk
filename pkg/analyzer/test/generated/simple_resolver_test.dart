@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.generated.simple_resolver_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -11,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -145,14 +142,7 @@ class A {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, isNull);
-    ParameterElement parameter = rhs.propagatedParameterElement;
-    expect(parameter, isNotNull);
-    expect(parameter.displayName, "x");
-    // validate
-    ClassElement classA = unit.element.types[0];
-    PropertyAccessorElement setter = classA.accessors[0];
-    expect(setter.parameters[0], same(parameter));
+    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
@@ -176,14 +166,7 @@ class B {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, isNull);
-    ParameterElement parameter = rhs.propagatedParameterElement;
-    expect(parameter, isNotNull);
-    expect(parameter.displayName, "x");
-    // validate
-    ClassElement classB = unit.element.types[1];
-    PropertyAccessorElement setter = classB.accessors[0];
-    expect(setter.parameters[0], same(parameter));
+    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
   }
 
   test_argumentResolution_setter_static() async {
@@ -208,7 +191,7 @@ class A {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classA = unit.element.types[0];
+    ClassElement classA = unit.declaredElement.types[0];
     PropertyAccessorElement setter = classA.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
@@ -238,7 +221,7 @@ class B {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classB = unit.element.types[1];
+    ClassElement classB = unit.declaredElement.types[1];
     PropertyAccessorElement setter = classB.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
@@ -645,10 +628,10 @@ class A {
     FieldDeclaration field = classA.members[0];
     ConstructorDeclaration constructor = classA.members[2];
     ParameterElement paramElement =
-        constructor.parameters.parameters[0].element;
-    expect(paramElement, new isInstanceOf<FieldFormalParameterElement>());
+        constructor.parameters.parameters[0].declaredElement;
+    expect(paramElement, new TypeMatcher<FieldFormalParameterElement>());
     expect((paramElement as FieldFormalParameterElement).field,
-        field.fields.variables[0].element);
+        field.fields.variables[0].declaredElement);
     ConstructorFieldInitializer initializer = constructor.initializers[0];
     SimpleIdentifier identifierX = initializer.expression;
     expect(identifierX.staticElement, paramElement);
@@ -1054,23 +1037,6 @@ class C = Object with A;''');
     verify([source]);
   }
 
-  test_isValidMixin_badSuperclass_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-class A extends B {}
-class B {}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_isValidMixin_constructor() async {
     Source source = addSource(r'''
 class A {
@@ -1084,47 +1050,14 @@ class C = Object with A;''');
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isFalse);
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
-    verify([source]);
-  }
-
-  test_isValidMixin_constructor_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-class A {
-  A() {}
-}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isFalse);
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+    );
     verify([source]);
   }
 
   test_isValidMixin_factoryConstructor() async {
-    Source source = addSource(r'''
-class A {
-  factory A() => null;
-}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_isValidMixin_factoryConstructor_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   factory A() => null;
@@ -1160,43 +1093,7 @@ class C = Object with A;''');
     verify([source]);
   }
 
-  test_isValidMixin_super_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-class A {
-  toString() {
-    return super.toString();
-  }
-}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_isValidMixin_valid() async {
-    Source source = addSource('''
-class A {}
-class C = Object with A;''');
-    LibraryElement library = resolve2(source);
-    expect(library, isNotNull);
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
-    ClassElement a = unit.getType('A');
-    expect(a.isValidMixin, isTrue);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_isValidMixin_valid_withSuperMixins() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource('''
 class A {}
 class C = Object with A;''');
@@ -1838,10 +1735,15 @@ class _SimpleResolverTest_localVariable_types_invoked
         found[0] = true;
         // check static type
         DartType staticType = node.staticType;
-        expect(staticType, same(test.typeProvider.dynamicType));
-        // check propagated type
-        FunctionType propagatedType = node.propagatedType as FunctionType;
-        expect(propagatedType.returnType, test.typeProvider.stringType);
+        if (test.previewDart2) {
+          expect(staticType is FunctionType, isTrue);
+          FunctionType functionType = staticType;
+          expect(
+              functionType.parameters[0].type, same(test.typeProvider.intType));
+          expect(functionType.returnType, same(test.typeProvider.stringType));
+        } else {
+          expect(staticType, same(test.typeProvider.dynamicType));
+        }
       } on AnalysisException catch (e, stackTrace) {
         thrownException[0] = new CaughtException(e, stackTrace);
       }

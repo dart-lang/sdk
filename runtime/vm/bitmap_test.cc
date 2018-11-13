@@ -9,7 +9,7 @@
 
 namespace dart {
 
-TEST_CASE(BitmapBuilder) {
+ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   // Test basic bit map builder operations.
   BitmapBuilder* builder1 = new BitmapBuilder();
   EXPECT_EQ(0, builder1->Length());
@@ -39,7 +39,7 @@ TEST_CASE(BitmapBuilder) {
   // Create a StackMap object from the builder and verify its contents.
   const StackMap& stackmap1 = StackMap::Handle(StackMap::New(0, builder1, 0));
   EXPECT_EQ(1024, stackmap1.Length());
-  OS::Print("%s\n", stackmap1.ToCString());
+  OS::PrintErr("%s\n", stackmap1.ToCString());
   value = true;
   for (int32_t i = 0; i < 1024; i++) {
     EXPECT_EQ(value, stackmap1.IsObject(i));

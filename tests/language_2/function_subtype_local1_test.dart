@@ -26,10 +26,10 @@ main() {
   Expect.isFalse(foo is Baz<int>, 'foo is Baz<int>');
   Expect.isFalse(foo is Boz<int>, 'foo is Boz<int>');
 
-  Expect.isTrue(foo is Foo, 'foo is Foo');
-  Expect.isTrue(foo is Bar, 'foo is Bar');
+  Expect.isFalse(foo is Foo, 'foo is Foo');
+  Expect.isFalse(foo is Bar, 'foo is Bar');
   Expect.isFalse(foo is Baz, 'foo is Baz');
-  Expect.isTrue(foo is Boz, 'foo is Boz');
+  Expect.isFalse(foo is Boz, 'foo is Boz');
 
   Expect.isFalse(baz is Foo<bool>, 'baz is Foo<bool>');
   Expect.isFalse(baz is Bar<bool>, 'baz is Bar<bool>');
@@ -43,6 +43,6 @@ main() {
 
   Expect.isFalse(baz is Foo, 'baz is Foo');
   Expect.isFalse(baz is Bar, 'baz is Bar');
-  Expect.isTrue(baz is Baz, 'baz is Baz');
-  Expect.isTrue(baz is Boz, 'baz is Boz');
+  Expect.isFalse(baz is Baz, 'baz is Baz');
+  Expect.isFalse(baz is Boz, 'baz is Boz');
 }

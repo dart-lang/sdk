@@ -7,7 +7,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
@@ -1834,50 +1834,52 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 // Destroys the value register.
-void Assembler::StoreIntoObjectFilterNoSmi(Register object,
-                                           Register value,
-                                           Label* no_update) {
-  COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
-                 (kOldObjectAlignmentOffset == 0));
-
-  // Write-barrier triggers if the value is in the new space (has bit set) and
-  // the object is in the old space (has bit cleared).
-  // To check that we could compute value & ~object and skip the write barrier
-  // if the bit is not set. However we can't destroy the object.
-  // However to preserve the object we compute negated expression
-  // ~value | object instead and skip the write barrier if the bit is set.
-  notl(value);
-  orl(value, object);
-  testl(value, Immediate(kNewObjectAlignmentOffset));
-  j(NOT_ZERO, no_update, Assembler::kNearJump);
-}
-
-// Destroys the value register.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
-                                      Label* no_update) {
-  ASSERT(kNewObjectAlignmentOffset == 4);
-  ASSERT(kHeapObjectTag == 1);
-  // Detect value being ...101 and object being ...001.
-  andl(value, Immediate(7));
-  leal(value, Address(value, object, TIMES_2, 9));
-  testl(value, Immediate(0xf));
-  j(NOT_ZERO, no_update, Assembler::kNearJump);
+                                      Label* label,
+                                      CanBeSmi can_be_smi,
+                                      BarrierFilterMode how_to_jump) {
+  if (can_be_smi == kValueIsNotSmi) {
+#if defined(DEBUG)
+    Label okay;
+    BranchIfNotSmi(value, &okay);
+    Stop("Unexpected Smi!");
+    Bind(&okay);
+#endif
+    COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
+                   (kOldObjectAlignmentOffset == 0));
+    // Write-barrier triggers if the value is in the new space (has bit set) and
+    // the object is in the old space (has bit cleared).
+    // To check that we could compute value & ~object and skip the write barrier
+    // if the bit is not set. However we can't destroy the object.
+    // However to preserve the object we compute negated expression
+    // ~value | object instead and skip the write barrier if the bit is set.
+    notl(value);
+    orl(value, object);
+    testl(value, Immediate(kNewObjectAlignmentOffset));
+  } else {
+    ASSERT(kNewObjectAlignmentOffset == 4);
+    ASSERT(kHeapObjectTag == 1);
+    // Detect value being ...101 and object being ...001.
+    andl(value, Immediate(7));
+    leal(value, Address(value, object, TIMES_2, 9));
+    testl(value, Immediate(0xf));
+  }
+  Condition condition = how_to_jump == kJumpToNoUpdate ? NOT_ZERO : ZERO;
+  bool distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
+  j(condition, label, distance);
 }
 
-// Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                bool can_value_be_smi) {
+                                CanBeSmi can_be_smi) {
+  // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+
   movl(dest, value);
   Label done;
-  if (can_value_be_smi) {
-    StoreIntoObjectFilter(object, value, &done);
-  } else {
-    StoreIntoObjectFilterNoSmi(object, value, &done);
-  }
+  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
   if (value != EDX) {
     pushl(EDX);  // Preserve EDX.
@@ -1885,7 +1887,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EDX) {
     movl(EDX, object);
   }
-  call(Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  call(Address(THR, Thread::write_barrier_entry_point_offset()));
   if (value != EDX) {
     popl(EDX);  // Restore EDX.
   }
@@ -1899,12 +1901,54 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 #if defined(DEBUG)
   Label done;
   pushl(value);
-  StoreIntoObjectFilter(object, value, &done);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
   Stop("Store buffer update is required");
   Bind(&done);
   popl(value);
 #endif  // defined(DEBUG)
   // No store buffer update.
+}
+
+// Destroys the value register.
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi) {
+  ASSERT(object != value);
+  movl(Address(slot, 0), value);
+
+  Label done;
+  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
+  // A store buffer update is required.
+  if (value != kWriteBarrierObjectReg) {
+    pushl(kWriteBarrierObjectReg);  // Preserve kWriteBarrierObjectReg.
+  }
+  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
+    pushl(kWriteBarrierSlotReg);  // Preserve kWriteBarrierSlotReg.
+  }
+  if (object != kWriteBarrierObjectReg && slot != kWriteBarrierSlotReg) {
+    if (slot == kWriteBarrierObjectReg && object == kWriteBarrierSlotReg) {
+      xchgl(slot, object);
+    } else if (slot == kWriteBarrierObjectReg) {
+      movl(kWriteBarrierSlotReg, slot);
+      movl(kWriteBarrierObjectReg, object);
+    } else {
+      movl(kWriteBarrierObjectReg, object);
+      movl(kWriteBarrierSlotReg, slot);
+    }
+  } else if (object != kWriteBarrierObjectReg) {
+    movl(kWriteBarrierObjectReg, object);
+  } else if (slot != kWriteBarrierSlotReg) {
+    movl(kWriteBarrierSlotReg, slot);
+  }
+  call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
+    popl(kWriteBarrierSlotReg);  // Restore kWriteBarrierSlotReg.
+  }
+  if (value != kWriteBarrierObjectReg) {
+    popl(kWriteBarrierObjectReg);  // Restore kWriteBarrierObjectReg.
+  }
+  Bind(&done);
 }
 
 void Assembler::UnverifiedStoreOldObject(const Address& dest,
@@ -2095,7 +2139,6 @@ void Assembler::Call(const StubEntry& stub_entry, bool movable_target) {
 }
 
 void Assembler::CallToRuntime() {
-  movl(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 
@@ -2232,6 +2275,7 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     movl(FieldAddress(instance_reg, Object::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);
@@ -2276,6 +2320,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
     movl(FieldAddress(instance, Object::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);
@@ -2325,9 +2370,6 @@ void Assembler::Stop(const char* message) {
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
     Call(*StubCode::PrintStopMessage_entry());  // Passing message in EAX.
     popl(EAX);                                  // Restore EAX.
-  } else {
-    // Emit the message address as immediate operand in the test instruction.
-    testl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
   }
   // Emit the int3 instruction.
   int3();  // Execution can be resumed with the 'cont' command in gdb.
@@ -2430,13 +2472,8 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   movl(result, Address(result, offset));
-  movl(result, Address(result, class_id, TIMES_4, 0));
-}
-
-void Assembler::LoadClass(Register result, Register object, Register scratch) {
-  ASSERT(scratch != result);
-  LoadClassId(scratch, object);
-  LoadClassById(result, scratch);
+  ASSERT(kSizeOfClassPairLog2 == 3);
+  movl(result, Address(result, class_id, TIMES_8, 0));
 }
 
 void Assembler::CompareClassId(Register object,
@@ -2519,12 +2556,13 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
                                              Register array,
-                                             intptr_t index) {
+                                             intptr_t index,
+                                             intptr_t extra_disp) {
   if (is_external) {
-    return Address(array, index * index_scale);
+    return Address(array, index * index_scale + extra_disp);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
-                         Instance::DataOffsetFor(cid);
+                         Instance::DataOffsetFor(cid) + extra_disp;
     ASSERT(Utils::IsInt(32, disp));
     return FieldAddress(array, static_cast<int32_t>(disp));
   }
@@ -2556,12 +2594,13 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
                                              Register array,
-                                             Register index) {
+                                             Register index,
+                                             intptr_t extra_disp) {
   if (is_external) {
-    return Address(array, index, ToScaleFactor(index_scale), 0);
+    return Address(array, index, ToScaleFactor(index_scale), extra_disp);
   } else {
     return FieldAddress(array, index, ToScaleFactor(index_scale),
-                        Instance::DataOffsetFor(cid));
+                        Instance::DataOffsetFor(cid) + extra_disp);
   }
 }
 

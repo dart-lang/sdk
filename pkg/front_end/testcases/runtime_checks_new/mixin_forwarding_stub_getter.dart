@@ -9,7 +9,7 @@ typedef void F<T>(T t);
 
 void expectTypeError(void callback()) {
   try {
-    callback /*@callKind=closure*/ ();
+    callback();
     throw 'Expected TypeError, did not occur';
   } on TypeError {}
 }
@@ -31,12 +31,12 @@ class B {
 }
 
 abstract class I<T> {
-  F<T> get /*@genericContravariant=true*/ x;
+  F<T> get x;
   void set x(Object value);
 }
 
 abstract class M<T> {
-  T get x => f /*@callKind=this*/ ();
+  T get x => f();
   void set x(Object value) {
     throw 'Should not be reached';
   }
@@ -44,10 +44,7 @@ abstract class M<T> {
   T f();
 }
 
-abstract class
-/*@forwardingStub=abstract genericContravariant (C::T) -> void f()*/
-/*@forwardingStub=abstract genericContravariant (C::T) -> void get x()*/
-    C<T> = B with M<F<T>> implements I<T>;
+abstract class C<T> = B with M<F<T>> implements I<T>;
 
 class D extends C<int> {
   F<int> f() => (int i) {
@@ -64,7 +61,7 @@ void test(I<Object> iObj, I<int> iInt) {
   });
   // iInt.x is expected to return type (int) -> void, and it does.
   var x = iInt. /*@checkReturn=(int) -> void*/ x;
-  x /*@callKind=closure*/ (1);
+  x(1);
 }
 
 void main() {

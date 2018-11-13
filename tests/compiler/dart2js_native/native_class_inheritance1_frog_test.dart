@@ -104,7 +104,7 @@ main() {
 
   caught = false;
   try {
-    var x = 123;
+    dynamic x = 123;
     x.foo(20);
   } catch (ex) {
     caught = true;

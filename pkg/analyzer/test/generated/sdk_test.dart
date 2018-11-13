@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.generated.sdk_test;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -60,7 +58,6 @@ class DartSdkManagerTest extends EngineTestCase {
 
   DartSdk _failIfAbsent() {
     fail('Use of ifAbsent function');
-    return null;
   }
 }
 
@@ -89,9 +86,10 @@ class SdkDescriptionTest extends EngineTestCase {
 
   void test_equals_samePaths_differentOptions() {
     String path = '/a/b/c';
-    AnalysisOptionsImpl leftOptions = new AnalysisOptionsImpl();
-    AnalysisOptionsImpl rightOptions = new AnalysisOptionsImpl();
-    rightOptions.strongMode = !leftOptions.strongMode;
+    AnalysisOptionsImpl leftOptions = new AnalysisOptionsImpl()
+      ..useFastaParser = false;
+    AnalysisOptionsImpl rightOptions = new AnalysisOptionsImpl()
+      ..useFastaParser = true;
     SdkDescription left = new SdkDescription(<String>[path], leftOptions);
     SdkDescription right = new SdkDescription(<String>[path], rightOptions);
     expect(left == right, isFalse);

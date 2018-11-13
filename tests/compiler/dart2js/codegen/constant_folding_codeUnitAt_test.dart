@@ -4,7 +4,7 @@
 // Test constant folding on numbers.
 
 import 'package:async_helper/async_helper.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST_1 = """
 foo() {
@@ -18,7 +18,7 @@ foo() {
 const String TEST_2 = """
 foo() {
   var a = 'Hello';
-  var b = 1.5;
+  dynamic b = 1.5;
   return a.codeUnitAt(b);
 }
 """;
@@ -27,27 +27,21 @@ foo() {
 const String TEST_3 = """
 foo() {
   var a = 'Hello';
-  var b = 55;
+  dynamic b = 55;
   return a.codeUnitAt(b);
 }
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    await compileAndMatch(TEST_1, 'foo', new RegExp(r'return 72'),
-        useKernel: useKernel);
-    await compileAndDoNotMatch(TEST_1, 'foo', new RegExp(r'Hello'),
-        useKernel: useKernel);
-    await compileAndMatch(TEST_2, 'foo', new RegExp(r'Hello'),
-        useKernel: useKernel);
-    await compileAndMatch(TEST_3, 'foo', new RegExp(r'Hello'),
-        useKernel: useKernel);
+  runTests() async {
+    await compileAndMatch(TEST_1, 'foo', new RegExp(r'return 72'));
+    await compileAndDoNotMatch(TEST_1, 'foo', new RegExp(r'Hello'));
+    await compileAndMatch(TEST_2, 'foo', new RegExp(r'Hello'));
+    await compileAndMatch(TEST_3, 'foo', new RegExp(r'Hello'));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

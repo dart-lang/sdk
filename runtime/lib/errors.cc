@@ -67,13 +67,14 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  const TokenPosition assertion_start =
-      TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(0)).Value());
-  const TokenPosition assertion_end =
-      TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(1)).Value());
+  const TokenPosition assertion_start = TokenPosition(
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(0)).Value());
+  const TokenPosition assertion_end = TokenPosition(
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(1)).Value());
 
-  const Instance& message = Instance::CheckedHandle(arguments->NativeArgAt(2));
-  const Array& args = Array::Handle(Array::New(5));
+  const Instance& message =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Array& args = Array::Handle(zone, Array::New(5));
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -112,14 +113,16 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
 DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  const TokenPosition location =
-      TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(0)).Value());
+  const TokenPosition location = TokenPosition(
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(0)).Value());
   const Instance& src_value =
-      Instance::CheckedHandle(arguments->NativeArgAt(1));
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
   const AbstractType& dst_type =
-      AbstractType::CheckedHandle(arguments->NativeArgAt(2));
-  const String& dst_name = String::CheckedHandle(arguments->NativeArgAt(3));
-  const String& error_msg = String::CheckedHandle(arguments->NativeArgAt(4));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const String& dst_name =
+      String::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const String& error_msg =
+      String::CheckedHandle(zone, arguments->NativeArgAt(4));
   const AbstractType& src_type =
       AbstractType::Handle(src_value.GetType(Heap::kNew));
   Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name,

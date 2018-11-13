@@ -10,6 +10,7 @@
  */
 import 'dart:async';
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
@@ -17,12 +18,12 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
-    defineReflectiveTests(ReanalyzeTest_PreviewDart2);
   });
 }
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');
     String text = '''
@@ -47,10 +48,4 @@ main() {}''';
       });
     });
   }
-}
-
-@reflectiveTest
-class ReanalyzeTest_PreviewDart2 extends ReanalyzeTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

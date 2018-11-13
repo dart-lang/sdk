@@ -557,8 +557,8 @@ RegExpTree* RegExpParser::ParseDisjunction() {
           ReportError("Nothing to repeat");
           UNREACHABLE();
         }
-        // fallthrough
       }
+      /* Falls through */
       default:
         builder->AddCharacter(current());
         Advance();

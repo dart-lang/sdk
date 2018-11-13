@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A
     ;
 }
 class B extends self::A {
   static field self::B staticVariable;
-  default constructor •() → void
+  synthetic constructor •() → self::B
     ;
   operator +(self::C v) → self::A
     ;
@@ -20,11 +20,11 @@ class B extends self::A {
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::C
     ;
 }
 static field self::B topLevelVariable;
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   ;
 static method test_topLevelVariable() → void
   ;

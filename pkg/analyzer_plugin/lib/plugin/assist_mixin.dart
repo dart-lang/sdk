@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,11 +38,14 @@ abstract class AssistsMixin implements ServerPlugin {
   @override
   Future<EditGetAssistsResult> handleEditGetAssists(
       EditGetAssistsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     AssistRequest request = await getAssistRequest(parameters);
     AssistGenerator generator =
         new AssistGenerator(getAssistContributors(path));
-    GeneratorResult result = await generator.generateAssistsResponse(request);
+    GeneratorResult<EditGetAssistsResult> result =
+        generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
@@ -61,6 +64,8 @@ abstract class DartAssistsMixin implements AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
       EditGetAssistsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     ResolveResult result = await getResolveResult(path);
     return new DartAssistRequestImpl(

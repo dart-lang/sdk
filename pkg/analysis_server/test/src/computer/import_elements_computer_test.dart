@@ -8,7 +8,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:front_end/src/base/source.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,28 +34,31 @@ class ImportElementsComputerTest extends AbstractContextTest {
   }
 
   void assertNoChanges() {
-    expect(sourceFileEdit.edits, isEmpty);
+    expect(sourceFileEdit, isNull);
   }
 
-  Future<Null> computeChanges(List<ImportedElements> importedElements) async {
+  Future<void> computeChanges(List<ImportedElements> importedElements) async {
     SourceChange change = await computer.createEdits(importedElements);
     expect(change, isNotNull);
     List<SourceFileEdit> edits = change.edits;
-    expect(edits, hasLength(1));
-    sourceFileEdit = edits[0];
-    expect(sourceFileEdit, isNotNull);
+    if (edits.length == 1) {
+      sourceFileEdit = edits[0];
+      expect(sourceFileEdit, isNotNull);
+    } else {
+      sourceFileEdit = null;
+    }
   }
 
-  Future<Null> createBuilder(String content) async {
+  Future<void> createBuilder(String content) async {
     originalContent = content;
-    provider.newFile(path, content);
+    newFile(path, content: content);
     AnalysisResult result = await driver.getResult(path);
-    computer = new ImportElementsComputer(provider, result);
+    computer = new ImportElementsComputer(resourceProvider, result);
   }
 
   void setUp() {
     super.setUp();
-    path = provider.convertPath('/test.dart');
+    path = resourceProvider.convertPath('/test.dart');
   }
 
   test_createEdits_addImport_noDirectives() async {
@@ -65,7 +68,8 @@ main() {
 }
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements('/lib/math/math.dart', '', <String>['Random'])
+      new ImportedElements(
+          convertPath('/lib/math/math.dart'), '', <String>['Random'])
     ]);
     assertChanges('''
 import 'dart:math';
@@ -203,6 +207,20 @@ class A {
       new ImportedElements(path, '', <String>['A'])
     ]);
     assertNoChanges();
+  }
+
+  test_createEdits_invalidUri() async {
+    Source fooSource = addPackageSource('pkg', 'foo.dart', '');
+    await createBuilder('''
+import 'pakage:pkg/foo.dart';
+''');
+    await computeChanges(<ImportedElements>[
+      new ImportedElements(fooSource.fullName, '', <String>['A'])
+    ]);
+    assertChanges('''
+import 'pakage:pkg/foo.dart';
+import 'package:pkg/foo.dart';
+''');
   }
 
   test_createEdits_noElements() async {

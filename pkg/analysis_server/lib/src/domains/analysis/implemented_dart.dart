@@ -18,6 +18,8 @@ class ImplementedComputer {
   ImplementedComputer(this.searchEngine, this.unitElement);
 
   compute() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     for (ClassElement type in unitElement.types) {
       // Always include Object and its members.
       if (type.supertype == null) {

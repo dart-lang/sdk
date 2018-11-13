@@ -27,6 +27,9 @@ class OSError {
   }
   virtual ~OSError() { free(message_); }
 
+  // Reload this OSError with the current OS error, discarding the previous.
+  void Reload();
+
   SubSystem sub_system() { return sub_system_; }
   int code() { return code_; }
   char* message() { return message_; }
@@ -77,9 +80,6 @@ class StringUtils {
   static char* Utf8ToConsoleString(char* utf8,
                                    intptr_t len = -1,
                                    intptr_t* result_len = NULL);
-
-  // Not all platforms support strndup.
-  static char* StrNDup(const char* s, intptr_t n);
 
  private:
   DISALLOW_ALLOCATION();

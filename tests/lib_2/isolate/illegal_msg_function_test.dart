@@ -25,7 +25,8 @@ void main() {
   // Ignore returned Future.
   Isolate.spawn(echo, port.sendPort);
 
-  port.first.then((SendPort snd) {
+  port.first.then((_snd) {
+    SendPort snd = _snd;
     int function(x) => x + 2;
     try {
       snd.send(function);

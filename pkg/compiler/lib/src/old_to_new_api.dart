@@ -8,6 +8,7 @@
 library compiler.api.legacy;
 
 import 'dart:async' show EventSink, Future;
+import 'dart:convert' show utf8;
 
 import '../compiler.dart';
 import '../compiler_new.dart';
@@ -21,10 +22,10 @@ class LegacyCompilerInput implements CompilerInput {
   LegacyCompilerInput(this._inputProvider);
 
   @override
-  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.utf8}) {
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.UTF8}) {
     return _inputProvider(uri).then((/*String|List<int>*/ data) {
       switch (inputKind) {
-        case InputKind.utf8:
+        case InputKind.UTF8:
           SourceFile sourceFile;
           if (data is List<int>) {
             sourceFile = new Utf8BytesSourceFile(uri, data);
@@ -37,7 +38,7 @@ class LegacyCompilerInput implements CompilerInput {
           return sourceFile;
         case InputKind.binary:
           if (data is String) {
-            data = data.codeUnits;
+            data = utf8.encode(data);
           }
           return new Binary(uri, data);
       }
@@ -81,6 +82,11 @@ class LegacyCompilerOutput implements CompilerOutput {
       return new LegacyOutputSink(_outputProvider(name, extension));
     }
     return NullSink.outputProvider(name, extension, type);
+  }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) {
+    throw new UnsupportedError("LegacyCompilerOutput.createBinarySink");
   }
 }
 

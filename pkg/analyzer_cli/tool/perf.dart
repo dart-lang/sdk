@@ -3,25 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An entrypoint used to run portions of analyzer and measure its performance.
-library analyzer_cli.tool.perf;
-
 import 'dart:async';
 import 'dart:io' show exit;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:package_config/discovery.dart';
 
 main(List<String> args) async {
@@ -149,6 +147,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
   var libs = [
     "dart:async",
+    "dart:cli",
     "dart:collection",
     "dart:convert",
     "dart:core",
@@ -158,7 +157,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
     "dart:math",
     "dart:mirrors",
     "dart:typed_data",
-    "dart:io"
+    "dart:io",
   ];
 
   for (var lib in libs) {

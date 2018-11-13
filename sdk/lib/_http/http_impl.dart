@@ -311,7 +311,7 @@ class _HttpClientResponse extends _HttpInboundMessage
   List<Cookie> get cookies {
     if (_cookies != null) return _cookies;
     _cookies = new List<Cookie>();
-    List<String> values = headers[HttpHeaders.SET_COOKIE];
+    List<String> values = headers[HttpHeaders.setCookieHeader];
     if (values != null) {
       values.forEach((value) {
         _cookies.add(new Cookie.fromSetCookieValue(value));
@@ -322,12 +322,12 @@ class _HttpClientResponse extends _HttpInboundMessage
 
   bool get isRedirect {
     if (_httpRequest.method == "GET" || _httpRequest.method == "HEAD") {
-      return statusCode == HttpStatus.MOVED_PERMANENTLY ||
-          statusCode == HttpStatus.FOUND ||
-          statusCode == HttpStatus.SEE_OTHER ||
-          statusCode == HttpStatus.TEMPORARY_REDIRECT;
+      return statusCode == HttpStatus.movedPermanently ||
+          statusCode == HttpStatus.found ||
+          statusCode == HttpStatus.seeOther ||
+          statusCode == HttpStatus.temporaryRedirect;
     } else if (_httpRequest.method == "POST") {
-      return statusCode == HttpStatus.SEE_OTHER;
+      return statusCode == HttpStatus.seeOther;
     }
     return false;
   }
@@ -336,14 +336,14 @@ class _HttpClientResponse extends _HttpInboundMessage
       [String method, Uri url, bool followLoops]) {
     if (method == null) {
       // Set method as defined by RFC 2616 section 10.3.4.
-      if (statusCode == HttpStatus.SEE_OTHER && _httpRequest.method == "POST") {
+      if (statusCode == HttpStatus.seeOther && _httpRequest.method == "POST") {
         method = "GET";
       } else {
         method = _httpRequest.method;
       }
     }
     if (url == null) {
-      String location = headers.value(HttpHeaders.LOCATION);
+      String location = headers.value(HttpHeaders.locationHeader);
       if (location == null) {
         throw new StateError("Response has no Location header for redirect");
       }
@@ -376,10 +376,10 @@ class _HttpClientResponse extends _HttpInboundMessage
       _httpRequest._httpClientConnection.destroy();
       return new Stream<List<int>>.empty().listen(null, onDone: onDone);
     }
-    var stream = _incoming;
+    Stream<List<int>> stream = _incoming;
     if (_httpClient.autoUncompress &&
-        headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
-      stream = stream.transform(GZIP.decoder);
+        headers.value(HttpHeaders.contentEncodingHeader) == "gzip") {
+      stream = stream.transform(gzip.decoder);
     }
     return stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -394,16 +394,16 @@ class _HttpClientResponse extends _HttpInboundMessage
 
   bool get _shouldAuthenticateProxy {
     // Only try to authenticate if there is a challenge in the response.
-    List<String> challenge = headers[HttpHeaders.PROXY_AUTHENTICATE];
-    return statusCode == HttpStatus.PROXY_AUTHENTICATION_REQUIRED &&
+    List<String> challenge = headers[HttpHeaders.proxyAuthenticateHeader];
+    return statusCode == HttpStatus.proxyAuthenticationRequired &&
         challenge != null &&
         challenge.length == 1;
   }
 
   bool get _shouldAuthenticate {
     // Only try to authenticate if there is a challenge in the response.
-    List<String> challenge = headers[HttpHeaders.WWW_AUTHENTICATE];
-    return statusCode == HttpStatus.UNAUTHORIZED &&
+    List<String> challenge = headers[HttpHeaders.wwwAuthenticateHeader];
+    return statusCode == HttpStatus.unauthorized &&
         challenge != null &&
         challenge.length == 1;
   }
@@ -421,8 +421,8 @@ class _HttpClientResponse extends _HttpInboundMessage
 
     List<String> authChallenge() {
       return proxyAuth
-          ? headers[HttpHeaders.PROXY_AUTHENTICATE]
-          : headers[HttpHeaders.WWW_AUTHENTICATE];
+          ? headers[HttpHeaders.proxyAuthenticateHeader]
+          : headers[HttpHeaders.wwwAuthenticateHeader];
     }
 
     _Credentials findCredentials(_AuthenticationScheme scheme) {
@@ -722,8 +722,8 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
       : _uri = uri,
         headers = new _HttpHeaders(protocolVersion,
             defaultPortForScheme: uri.scheme == 'https'
-                ? HttpClient.DEFAULT_HTTPS_PORT
-                : HttpClient.DEFAULT_HTTP_PORT,
+                ? HttpClient.defaultHttpsPort
+                : HttpClient.defaultHttpPort,
             initialHeaders: initialHeaders),
         _outgoing = outgoing,
         super(outgoing, null) {
@@ -812,7 +812,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     _reasonPhrase = reasonPhrase;
   }
 
-  Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY}) {
+  Future redirect(Uri location, {int status: HttpStatus.movedTemporarily}) {
     if (_outgoing.headersWritten) throw new StateError("Header already sent");
     statusCode = status;
     headers.set("location", location.toString());
@@ -895,7 +895,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     // Add all the cookies set to the headers.
     if (_cookies != null) {
       _cookies.forEach((cookie) {
-        headers.add(HttpHeaders.SET_COOKIE, cookie);
+        headers.add(HttpHeaders.setCookieHeader, cookie);
       });
     }
 
@@ -915,85 +915,85 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     }
 
     switch (statusCode) {
-      case HttpStatus.CONTINUE:
+      case HttpStatus.continue_:
         return "Continue";
-      case HttpStatus.SWITCHING_PROTOCOLS:
+      case HttpStatus.switchingProtocols:
         return "Switching Protocols";
-      case HttpStatus.OK:
+      case HttpStatus.ok:
         return "OK";
-      case HttpStatus.CREATED:
+      case HttpStatus.created:
         return "Created";
-      case HttpStatus.ACCEPTED:
+      case HttpStatus.accepted:
         return "Accepted";
-      case HttpStatus.NON_AUTHORITATIVE_INFORMATION:
+      case HttpStatus.nonAuthoritativeInformation:
         return "Non-Authoritative Information";
-      case HttpStatus.NO_CONTENT:
+      case HttpStatus.noContent:
         return "No Content";
-      case HttpStatus.RESET_CONTENT:
+      case HttpStatus.resetContent:
         return "Reset Content";
-      case HttpStatus.PARTIAL_CONTENT:
+      case HttpStatus.partialContent:
         return "Partial Content";
-      case HttpStatus.MULTIPLE_CHOICES:
+      case HttpStatus.multipleChoices:
         return "Multiple Choices";
-      case HttpStatus.MOVED_PERMANENTLY:
+      case HttpStatus.movedPermanently:
         return "Moved Permanently";
-      case HttpStatus.FOUND:
+      case HttpStatus.found:
         return "Found";
-      case HttpStatus.SEE_OTHER:
+      case HttpStatus.seeOther:
         return "See Other";
-      case HttpStatus.NOT_MODIFIED:
+      case HttpStatus.notModified:
         return "Not Modified";
-      case HttpStatus.USE_PROXY:
+      case HttpStatus.useProxy:
         return "Use Proxy";
-      case HttpStatus.TEMPORARY_REDIRECT:
+      case HttpStatus.temporaryRedirect:
         return "Temporary Redirect";
-      case HttpStatus.BAD_REQUEST:
+      case HttpStatus.badRequest:
         return "Bad Request";
-      case HttpStatus.UNAUTHORIZED:
+      case HttpStatus.unauthorized:
         return "Unauthorized";
-      case HttpStatus.PAYMENT_REQUIRED:
+      case HttpStatus.paymentRequired:
         return "Payment Required";
-      case HttpStatus.FORBIDDEN:
+      case HttpStatus.forbidden:
         return "Forbidden";
-      case HttpStatus.NOT_FOUND:
+      case HttpStatus.notFound:
         return "Not Found";
-      case HttpStatus.METHOD_NOT_ALLOWED:
+      case HttpStatus.methodNotAllowed:
         return "Method Not Allowed";
-      case HttpStatus.NOT_ACCEPTABLE:
+      case HttpStatus.notAcceptable:
         return "Not Acceptable";
-      case HttpStatus.PROXY_AUTHENTICATION_REQUIRED:
+      case HttpStatus.proxyAuthenticationRequired:
         return "Proxy Authentication Required";
-      case HttpStatus.REQUEST_TIMEOUT:
+      case HttpStatus.requestTimeout:
         return "Request Time-out";
-      case HttpStatus.CONFLICT:
+      case HttpStatus.conflict:
         return "Conflict";
-      case HttpStatus.GONE:
+      case HttpStatus.gone:
         return "Gone";
-      case HttpStatus.LENGTH_REQUIRED:
+      case HttpStatus.lengthRequired:
         return "Length Required";
-      case HttpStatus.PRECONDITION_FAILED:
+      case HttpStatus.preconditionFailed:
         return "Precondition Failed";
-      case HttpStatus.REQUEST_ENTITY_TOO_LARGE:
+      case HttpStatus.requestEntityTooLarge:
         return "Request Entity Too Large";
-      case HttpStatus.REQUEST_URI_TOO_LONG:
-        return "Request-URI Too Large";
-      case HttpStatus.UNSUPPORTED_MEDIA_TYPE:
+      case HttpStatus.requestUriTooLong:
+        return "Request-URI Too Long";
+      case HttpStatus.unsupportedMediaType:
         return "Unsupported Media Type";
-      case HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE:
+      case HttpStatus.requestedRangeNotSatisfiable:
         return "Requested range not satisfiable";
-      case HttpStatus.EXPECTATION_FAILED:
+      case HttpStatus.expectationFailed:
         return "Expectation Failed";
-      case HttpStatus.INTERNAL_SERVER_ERROR:
+      case HttpStatus.internalServerError:
         return "Internal Server Error";
-      case HttpStatus.NOT_IMPLEMENTED:
+      case HttpStatus.notImplemented:
         return "Not Implemented";
-      case HttpStatus.BAD_GATEWAY:
+      case HttpStatus.badGateway:
         return "Bad Gateway";
-      case HttpStatus.SERVICE_UNAVAILABLE:
+      case HttpStatus.serviceUnavailable:
         return "Service Unavailable";
-      case HttpStatus.GATEWAY_TIMEOUT:
+      case HttpStatus.gatewayTimeout:
         return "Gateway Time-out";
-      case HttpStatus.HTTP_VERSION_NOT_SUPPORTED:
+      case HttpStatus.httpVersionNotSupported:
         return "Http Version not supported";
       default:
         return "Status $statusCode";
@@ -1039,8 +1039,9 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   Future<HttpClientResponse> get done {
     if (_response == null) {
-      _response = Future.wait([_responseCompleter.future, super.done],
-          eagerError: true).then((list) => list[0]);
+      _response =
+          Future.wait([_responseCompleter.future, super.done], eagerError: true)
+              .then((list) => list[0]);
     }
     return _response;
   }
@@ -1146,7 +1147,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         if (i > 0) sb.write("; ");
         sb..write(cookies[i].name)..write("=")..write(cookies[i].value);
       }
-      headers.add(HttpHeaders.COOKIE, sb.toString());
+      headers.add(HttpHeaders.cookieHeader, sb.toString());
     }
 
     headers._finalize();
@@ -1253,14 +1254,15 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
           outbound.bufferOutput &&
           outbound.headers.chunkedTransferEncoding) {
         List acceptEncodings =
-            response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
-        List contentEncoding = outbound.headers[HttpHeaders.CONTENT_ENCODING];
+            response._httpRequest.headers[HttpHeaders.acceptEncodingHeader];
+        List contentEncoding =
+            outbound.headers[HttpHeaders.contentEncodingHeader];
         if (acceptEncodings != null &&
             acceptEncodings
                 .expand((list) => list.split(","))
                 .any((encoding) => encoding.trim().toLowerCase() == "gzip") &&
             contentEncoding == null) {
-          outbound.headers.set(HttpHeaders.CONTENT_ENCODING, "gzip");
+          outbound.headers.set(HttpHeaders.contentEncodingHeader, "gzip");
           gzip = true;
         }
       }
@@ -1650,16 +1652,16 @@ class _HttpClientConnection {
     request.headers
       ..host = host
       ..port = port
-      .._add(HttpHeaders.ACCEPT_ENCODING, "gzip");
+      .._add(HttpHeaders.acceptEncodingHeader, "gzip");
     if (_httpClient.userAgent != null) {
       request.headers._add('user-agent', _httpClient.userAgent);
     }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = _CryptoUtils
-          .bytesToBase64(utf8.encode("${proxy.username}:${proxy.password}"));
-      request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
+      String auth = _CryptoUtils.bytesToBase64(
+          utf8.encode("${proxy.username}:${proxy.password}"));
+      request.headers.set(HttpHeaders.proxyAuthorizationHeader, "Basic $auth");
     } else if (!proxy.isDirect && _httpClient._proxyCredentials.length > 0) {
       proxyCreds = _httpClient._findProxyCredentials(proxy);
       if (proxyCreds != null) {
@@ -1670,7 +1672,7 @@ class _HttpClientConnection {
       // If the URL contains user information use that for basic
       // authorization.
       String auth = _CryptoUtils.bytesToBase64(utf8.encode(uri.userInfo));
-      request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+      request.headers.set(HttpHeaders.authorizationHeader, "Basic $auth");
     } else {
       // Look for credentials.
       creds = _httpClient._findCredentials(uri);
@@ -1767,7 +1769,7 @@ class _HttpClientConnection {
     closed = true;
     _httpClient._connectionClosed(this);
     _streamFuture
-        // TODO(ajohnsen): Add timeout.
+        .timeout(_httpClient.idleTimeout)
         .then((_) => _socket.destroy());
   }
 
@@ -1778,12 +1780,12 @@ class _HttpClientConnection {
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = _CryptoUtils
-          .bytesToBase64(utf8.encode("${proxy.username}:${proxy.password}"));
-      request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
+      String auth = _CryptoUtils.bytesToBase64(
+          utf8.encode("${proxy.username}:${proxy.password}"));
+      request.headers.set(HttpHeaders.proxyAuthorizationHeader, "Basic $auth");
     }
     return request.close().then((response) {
-      if (response.statusCode != HttpStatus.OK) {
+      if (response.statusCode != HttpStatus.ok) {
         throw "Proxy failed to establish tunnel "
             "(${response.statusCode} ${response.reasonPhrase})";
       }
@@ -1838,6 +1840,7 @@ class _ConnectionTarget {
   final SecurityContext context;
   final Set<_HttpClientConnection> _idle = new HashSet();
   final Set<_HttpClientConnection> _active = new HashSet();
+  final Set<ConnectionTask> _socketTasks = new HashSet();
   final Queue _pending = new ListQueue();
   int _connecting = 0;
 
@@ -1885,12 +1888,24 @@ class _ConnectionTarget {
   }
 
   void close(bool force) {
-    for (var c in _idle.toList()) {
-      c.close();
+    // Always cancel pending socket connections.
+    for (var t in _socketTasks.toList()) {
+      // Make sure the socket is destroyed if the ConnectionTask is cancelled.
+      t.socket.then((s) {
+        s.destroy();
+      }, onError: (e) {});
+      t.cancel();
     }
     if (force) {
+      for (var c in _idle.toList()) {
+        c.destroy();
+      }
       for (var c in _active.toList()) {
         c.destroy();
+      }
+    } else {
+      for (var c in _idle.toList()) {
+        c.close();
       }
     }
   }
@@ -1917,34 +1932,48 @@ class _ConnectionTarget {
       return currentBadCertificateCallback(certificate, uriHost, uriPort);
     }
 
-    Future socketFuture = (isSecure && proxy.isDirect
-        ? SecureSocket.connect(host, port,
+    Future<ConnectionTask> connectionTask = (isSecure && proxy.isDirect
+        ? SecureSocket.startConnect(host, port,
             context: context, onBadCertificate: callback)
-        : Socket.connect(host, port));
+        : Socket.startConnect(host, port));
     _connecting++;
-    return socketFuture.then((socket) {
-      _connecting--;
-      socket.setOption(SocketOption.TCP_NODELAY, true);
-      var connection =
-          new _HttpClientConnection(key, socket, client, false, context);
-      if (isSecure && !proxy.isDirect) {
-        connection._dispose = true;
-        return connection
-            .createProxyTunnel(uriHost, uriPort, proxy, callback)
-            .then((tunnel) {
-          client
-              ._getConnectionTarget(uriHost, uriPort, true)
-              .addNewActive(tunnel);
-          return new _ConnectionInfo(tunnel, proxy);
+    return connectionTask.then((ConnectionTask task) {
+      _socketTasks.add(task);
+      Future socketFuture = task.socket;
+      if (client.connectionTimeout != null) {
+        socketFuture =
+            socketFuture.timeout(client.connectionTimeout, onTimeout: () {
+          _socketTasks.remove(task);
+          task.cancel();
         });
-      } else {
-        addNewActive(connection);
-        return new _ConnectionInfo(connection, proxy);
       }
-    }, onError: (error) {
-      _connecting--;
-      _checkPending();
-      throw error;
+      return socketFuture.then((socket) {
+        _connecting--;
+        socket.setOption(SocketOption.tcpNoDelay, true);
+        var connection =
+            new _HttpClientConnection(key, socket, client, false, context);
+        if (isSecure && !proxy.isDirect) {
+          connection._dispose = true;
+          return connection
+              .createProxyTunnel(uriHost, uriPort, proxy, callback)
+              .then((tunnel) {
+            client
+                ._getConnectionTarget(uriHost, uriPort, true)
+                .addNewActive(tunnel);
+            _socketTasks.remove(task);
+            return new _ConnectionInfo(tunnel, proxy);
+          });
+        } else {
+          addNewActive(connection);
+          _socketTasks.remove(task);
+          return new _ConnectionInfo(connection, proxy);
+        }
+      }, onError: (error) {
+        _connecting--;
+        _socketTasks.remove(task);
+        _checkPending();
+        throw error;
+      });
     });
   }
 }
@@ -1966,6 +1995,8 @@ class _HttpClient implements HttpClient {
   BadCertificateCallback _badCertificateCallback;
 
   Duration get idleTimeout => _idleTimeout;
+
+  Duration connectionTimeout;
 
   int maxConnectionsPerHost;
 
@@ -2097,9 +2128,8 @@ class _HttpClient implements HttpClient {
     bool isSecure = (uri.scheme == "https");
     int port = uri.port;
     if (port == 0) {
-      port = isSecure
-          ? HttpClient.DEFAULT_HTTPS_PORT
-          : HttpClient.DEFAULT_HTTP_PORT;
+      port =
+          isSecure ? HttpClient.defaultHttpsPort : HttpClient.defaultHttpPort;
     }
     // Check to see if a proxy server should be used for this connection.
     var proxyConf = const _ProxyConfiguration.direct();
@@ -2205,12 +2235,7 @@ class _HttpClient implements HttpClient {
           .catchError(connect);
     }
 
-    // Make sure we go through the event loop before taking a
-    // connection from the pool. For long-running synchronous code the
-    // server might have closed the connection, so this lowers the
-    // probability of getting a connection that was already closed.
-    return new Future<_ConnectionInfo>(
-        () => connect(new HttpException("No proxies given")));
+    return connect(new HttpException("No proxies given"));
   }
 
   _SiteCredentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
@@ -2496,8 +2521,8 @@ class _HttpServer extends Stream<HttpRequest>
 
   static Future<HttpServer> bind(
       address, int port, int backlog, bool v6Only, bool shared) {
-    return ServerSocket
-        .bind(address, port, backlog: backlog, v6Only: v6Only, shared: shared)
+    return ServerSocket.bind(address, port,
+            backlog: backlog, v6Only: v6Only, shared: shared)
         .then<HttpServer>((socket) {
       return new _HttpServer._(socket, true);
     });
@@ -2511,8 +2536,7 @@ class _HttpServer extends Stream<HttpRequest>
       bool v6Only,
       bool requestClientCertificate,
       bool shared) {
-    return SecureServerSocket
-        .bind(address, port, context,
+    return SecureServerSocket.bind(address, port, context,
             backlog: backlog,
             v6Only: v6Only,
             requestClientCertificate: requestClientCertificate,
@@ -2538,7 +2562,7 @@ class _HttpServer extends Stream<HttpRequest>
 
   static HttpHeaders _initDefaultResponseHeaders() {
     var defaultResponseHeaders = new _HttpHeaders('1.1');
-    defaultResponseHeaders.contentType = ContentType.TEXT;
+    defaultResponseHeaders.contentType = ContentType.text;
     defaultResponseHeaders.set('X-Frame-Options', 'SAMEORIGIN');
     defaultResponseHeaders.set('X-Content-Type-Options', 'nosniff');
     defaultResponseHeaders.set('X-XSS-Protection', '1; mode=block');
@@ -2569,7 +2593,7 @@ class _HttpServer extends Stream<HttpRequest>
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event),
       {Function onError, void onDone(), bool cancelOnError}) {
     _serverSocket.listen((Socket socket) {
-      socket.setOption(SocketOption.TCP_NODELAY, true);
+      socket.setOption(SocketOption.tcpNoDelay, true);
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(socket, this);
       _idleConnections.add(connection);
@@ -2971,8 +2995,8 @@ class _SiteCredentials extends _Credentials {
     if (scheme != null && credentials.scheme != scheme) return false;
     if (uri.host != this.uri.host) return false;
     int thisPort =
-        this.uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : this.uri.port;
-    int otherPort = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;
+        this.uri.port == 0 ? HttpClient.defaultHttpPort : this.uri.port;
+    int otherPort = uri.port == 0 ? HttpClient.defaultHttpPort : uri.port;
     if (otherPort != thisPort) return false;
     return uri.path.startsWith(this.uri.path);
   }
@@ -3038,11 +3062,11 @@ class _HttpClientBasicCredentials extends _HttpClientCredentials
   }
 
   void authorize(_Credentials _, HttpClientRequest request) {
-    request.headers.set(HttpHeaders.AUTHORIZATION, authorization());
+    request.headers.set(HttpHeaders.authorizationHeader, authorization());
   }
 
   void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) {
-    request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, authorization());
+    request.headers.set(HttpHeaders.proxyAuthorizationHeader, authorization());
   }
 }
 
@@ -3110,14 +3134,14 @@ class _HttpClientDigestCredentials extends _HttpClientCredentials
   }
 
   void authorize(_Credentials credentials, HttpClientRequest request) {
-    request.headers
-        .set(HttpHeaders.AUTHORIZATION, authorization(credentials, request));
+    request.headers.set(
+        HttpHeaders.authorizationHeader, authorization(credentials, request));
   }
 
   void authorizeProxy(
       _ProxyCredentials credentials, HttpClientRequest request) {
-    request.headers.set(
-        HttpHeaders.PROXY_AUTHORIZATION, authorization(credentials, request));
+    request.headers.set(HttpHeaders.proxyAuthorizationHeader,
+        authorization(credentials, request));
   }
 }
 

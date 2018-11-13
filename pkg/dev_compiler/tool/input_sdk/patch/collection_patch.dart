@@ -30,18 +30,18 @@ class HashMap<K, V> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(K, String) || identical(K, int)) {
-            return new IdentityMap<K, V>();
+            return IdentityMap<K, V>();
           }
-          return new LinkedMap<K, V>();
+          return LinkedMap<K, V>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new IdentityMap<K, V>();
+        return IdentityMap<K, V>();
       }
-      return new CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
+      return CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
     }
-    return new CustomKeyHashMap<K, V>(
+    return CustomKeyHashMap<K, V>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -60,18 +60,18 @@ class LinkedHashMap<K, V> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(K, String) || identical(K, int)) {
-            return new IdentityMap<K, V>();
+            return IdentityMap<K, V>();
           }
-          return new LinkedMap<K, V>();
+          return LinkedMap<K, V>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new IdentityMap<K, V>();
+        return IdentityMap<K, V>();
       }
-      return new CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
+      return CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
     }
-    return new CustomKeyHashMap<K, V>(
+    return CustomKeyHashMap<K, V>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -90,19 +90,19 @@ class HashSet<E> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(E, String) || identical(E, int)) {
-            return new _IdentityHashSet<E>();
+            return _IdentityHashSet<E>();
           }
-          return new _HashSet<E>();
+          return _HashSet<E>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new _IdentityHashSet<E>();
+        return _IdentityHashSet<E>();
       }
-      return new _CustomHashSet<E>(
+      return _CustomHashSet<E>(
           equals ?? dart.equals, hashCode ?? dart.hashCode);
     }
-    return new _CustomKeyHashSet<E>(
+    return _CustomKeyHashSet<E>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -121,19 +121,19 @@ class LinkedHashSet<E> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(E, String) || identical(E, int)) {
-            return new _IdentityHashSet<E>();
+            return _IdentityHashSet<E>();
           }
-          return new _HashSet<E>();
+          return _HashSet<E>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new _IdentityHashSet<E>();
+        return _IdentityHashSet<E>();
       }
-      return new _CustomHashSet<E>(
+      return _CustomHashSet<E>(
           equals ?? dart.equals, hashCode ?? dart.hashCode);
     }
-    return new _CustomKeyHashSet<E>(
+    return _CustomKeyHashSet<E>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -141,7 +141,8 @@ class LinkedHashSet<E> {
   factory LinkedHashSet.identity() = _IdentityHashSet<E>;
 }
 
-class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
+class _HashSet<E> extends _InternalSet<E>
+    implements HashSet<E>, LinkedHashSet<E> {
   /// The backing store for this set.
   ///
   /// Keys that use identity equality are stored directly. For other types of
@@ -172,7 +173,9 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   _HashSet();
 
-  Set<E> _newSet() => new _HashSet<E>();
+  Set<E> _newSet() => _HashSet<E>();
+
+  Set<R> _newSimilarSet<R>() => _HashSet<R>();
 
   bool contains(Object key) {
     if (key == null) {
@@ -183,7 +186,7 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
       var k = key;
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, k.hashCode);
       if (buckets != null) {
-        for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+        for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           k = JS('', '#[#]', buckets, i);
           if (k == key) return true;
         }
@@ -201,7 +204,7 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
       var k = key;
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, k.hashCode);
       if (buckets != null) {
-        for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+        for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           k = JS('', '#[#]', buckets, i);
           if (k == key) return JS('', '#', k);
         }
@@ -221,12 +224,12 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
       var keyMap = _keyMap;
       @notNull
       var k = key;
-      var hash = JS('int', '# & 0x3ffffff', k.hashCode);
+      int hash = JS('!', '# & 0x3ffffff', k.hashCode);
       var buckets = JS('', '#.get(#)', keyMap, hash);
       if (buckets == null) {
         JS('', '#.set(#, [#])', keyMap, hash, key);
       } else {
-        for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+        for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           k = JS('', '#[#]', buckets, i);
           if (k == key) return false;
         }
@@ -252,7 +255,7 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
       }
       JS('', '#.add(#)', map, key);
     }
-    if (length != JS('int', '#.size', map)) {
+    if (length != JS<int>('!', '#.size', map)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
   }
@@ -264,10 +267,10 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
         dart.identityEquals)) {
       @notNull
       var k = key;
-      var hash = JS('int', '# & 0x3ffffff', k.hashCode);
+      int hash = JS('!', '# & 0x3ffffff', k.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) return false; // not found
-      for (int i = 0, n = JS('int', '#.length', buckets);;) {
+      for (int i = 0, n = JS('!', '#.length', buckets);;) {
         k = JS('', '#[#]', buckets, i);
         if (k == key) {
           key = k;
@@ -291,7 +294,7 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   void clear() {
     var map = _map;
-    if (JS('int', '#.size', map) > 0) {
+    if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
       _modifications = (_modifications + 1) & 0x3ffffff;
@@ -299,7 +302,8 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
   }
 }
 
-class _IdentityHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
+class _IdentityHashSet<E> extends _InternalSet<E>
+    implements HashSet<E>, LinkedHashSet<E> {
   /// The backing store for this set.
   @notNull
   final _map = JS('', 'new Set()');
@@ -309,7 +313,9 @@ class _IdentityHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   _IdentityHashSet();
 
-  Set<E> _newSet() => new _IdentityHashSet<E>();
+  Set<E> _newSet() => _IdentityHashSet<E>();
+
+  Set<R> _newSimilarSet<R>() => _IdentityHashSet<R>();
 
   bool contains(Object element) {
     return JS('', '#.has(#)', _map, element);
@@ -333,7 +339,7 @@ class _IdentityHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
     for (E key in objects) {
       JS('', '#.add(#)', map, key);
     }
-    if (length != JS('int', '#.size', map)) {
+    if (length != JS<int>('!', '#.size', map)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
   }
@@ -348,7 +354,7 @@ class _IdentityHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   void clear() {
     var map = _map;
-    if (JS('int', '#.size', map) > 0) {
+    if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
@@ -360,7 +366,9 @@ class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
   _CustomKeyHashSet(_Equality<E> equals, _Hasher<E> hashCode, this._validKey)
       : super(equals, hashCode);
 
-  Set<E> _newSet() => new _CustomKeyHashSet<E>(_equals, _hashCode, _validKey);
+  Set<E> _newSet() => _CustomKeyHashSet<E>(_equals, _hashCode, _validKey);
+
+  Set<R> _newSimilarSet<R>() => _HashSet<R>();
 
   bool contains(Object element) {
     // TODO(jmesserly): there is a subtle difference here compared to Dart 1.
@@ -382,7 +390,8 @@ class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
   }
 }
 
-class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
+class _CustomHashSet<E> extends _InternalSet<E>
+    implements HashSet<E>, LinkedHashSet<E> {
   _Equality<E> _equals;
   _Hasher<E> _hashCode;
 
@@ -408,14 +417,15 @@ class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   _CustomHashSet(this._equals, this._hashCode);
 
-  Set<E> _newSet() => new _CustomHashSet<E>(_equals, _hashCode);
+  Set<E> _newSet() => _CustomHashSet<E>(_equals, _hashCode);
+  Set<R> _newSimilarSet<R>() => _HashSet<R>();
 
   bool contains(Object key) {
     if (key is E) {
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
-        for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+        for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           E k = JS('', '#[#]', buckets, i);
           if (equals(k, key)) return true;
         }
@@ -429,7 +439,7 @@ class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
-        for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+        for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           E k = JS('', '#[#]', buckets, i);
           if (equals(k, key)) return JS('', '#', k);
         }
@@ -440,13 +450,13 @@ class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   bool add(E key) {
     var keyMap = _keyMap;
-    var hash = JS('int', '# & 0x3ffffff', _hashCode(key));
+    var hash = JS<int>('!', '# & 0x3ffffff', _hashCode(key));
     var buckets = JS('', '#.get(#)', keyMap, hash);
     if (buckets == null) {
       JS('', '#.set(#, [#])', keyMap, hash, key);
     } else {
       var equals = _equals;
-      for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+      for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
         E k = JS('', '#[#]', buckets, i);
         if (equals(k, key)) return false;
       }
@@ -464,12 +474,12 @@ class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   bool remove(Object key) {
     if (key is E) {
-      var hash = JS('int', '# & 0x3ffffff', _hashCode(key));
+      var hash = JS<int>('!', '# & 0x3ffffff', _hashCode(key));
       var keyMap = _keyMap;
       var buckets = JS('', '#.get(#)', keyMap, hash);
       if (buckets == null) return false; // not found
       var equals = _equals;
-      for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+      for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
         E k = JS('', '#[#]', buckets, i);
         if (equals(k, key)) {
           if (n == 1) {
@@ -488,7 +498,7 @@ class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
 
   void clear() {
     var map = _map;
-    if (JS('int', '#.size', map) > 0) {
+    if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
       _modifications = (_modifications + 1) & 0x3ffffff;
@@ -507,7 +517,7 @@ abstract class _InternalSet<E> extends _HashSetBase<E> {
   int get _modifications;
 
   @notNull
-  int get length => JS('int', '#.size', _map);
+  int get length => JS<int>('!', '#.size', _map);
 
   @notNull
   bool get isEmpty => JS('bool', '#.size == 0', _map);
@@ -515,7 +525,7 @@ abstract class _InternalSet<E> extends _HashSetBase<E> {
   @notNull
   bool get isNotEmpty => JS('bool', '#.size != 0', _map);
 
-  Iterator<E> get iterator => new DartIterator<E>(_jsIterator());
+  Iterator<E> get iterator => DartIterator<E>(_jsIterator());
 
   @JSExportName('Symbol.iterator')
   _jsIterator() {
@@ -534,7 +544,7 @@ abstract class _InternalSet<E> extends _HashSetBase<E> {
     }''',
         modifications,
         self._modifications,
-        new ConcurrentModificationError(self),
+        ConcurrentModificationError(self),
         iterator);
   }
 }

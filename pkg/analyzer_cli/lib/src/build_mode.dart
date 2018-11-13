@@ -6,7 +6,9 @@ library analyzer_cli.src.build_mode;
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:isolate';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -24,16 +26,18 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
+import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
+import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/byte_store/cache.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/cache.dart';
 
 /**
  * Persistent Bazel worker.
@@ -62,16 +66,31 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         dartSdkPath: dartSdkPath);
   }
 
+  factory AnalyzerWorkerLoop.sendPort(
+      ResourceProvider resourceProvider, SendPort sendPort,
+      {String dartSdkPath}) {
+    AsyncWorkerConnection connection =
+        new SendPortAsyncWorkerConnection(sendPort);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
+  }
+
   /**
    * Performs analysis with given [options].
    */
   Future<Null> analyze(
       CommandLineOptions options, Map<String, WorkerInput> inputs) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var packageBundleProvider =
         new WorkerPackageBundleProvider(packageBundleCache, inputs);
     var buildMode = new BuildMode(
-        resourceProvider, options, new AnalysisStats(),
-        logger: logger, packageBundleProvider: packageBundleProvider);
+        resourceProvider,
+        options,
+        new AnalysisStats(),
+        new ContextCache(resourceProvider, options, Driver.verbosePrint),
+        logger: logger,
+        packageBundleProvider: packageBundleProvider);
     await buildMode.analyze();
     AnalysisEngine.instance.clearCaches();
   }
@@ -81,7 +100,11 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return logger.runAsync('Perform request', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       errorBuffer.clear();
       outBuffer.clear();
       try {
@@ -126,10 +149,12 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<Null> run() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
-      return throw new StateError('Exit called: $exitCode');
+      throw new StateError('Exit called: $exitCode');
     };
     await super.run();
   }
@@ -149,12 +174,14 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
 /**
  * Analyzer used when the "--build-mode" option is supplied.
  */
-class BuildMode {
+class BuildMode extends Object with HasContextMixin {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
   final PerformanceLog logger;
   final PackageBundleProvider packageBundleProvider;
+
+  final ContextCache contextCache;
 
   SummaryDataStore summaryDataStore;
   AnalysisOptions analysisOptions;
@@ -168,7 +195,7 @@ class BuildMode {
   final Set<Source> processedSources = new Set<Source>();
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
-  BuildMode(this.resourceProvider, this.options, this.stats,
+  BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,
       {PerformanceLog logger, PackageBundleProvider packageBundleProvider})
       : logger = logger ?? new PerformanceLog(null),
         packageBundleProvider = packageBundleProvider ??
@@ -182,7 +209,11 @@ class BuildMode {
    * Perform package analysis according to the given [options].
    */
   Future<ErrorSeverity> analyze() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return await logger.runAsync('Analyze', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       // Write initial progress message.
       if (!options.machineFormat) {
         outSink.writeln("Analyzing ${options.sourceFiles.join(', ')}...");
@@ -231,8 +262,12 @@ class BuildMode {
       assembler = new PackageBundleAssembler();
       if (_shouldOutputSummary) {
         await logger.runAsync('Build and write output summary', () async {
+          // TODO(brianwilkerson) Determine whether this await is necessary.
+          await null;
           // Prepare all unlinked units.
           await logger.runAsync('Prepare unlinked units', () async {
+            // TODO(brianwilkerson) Determine whether this await is necessary.
+            await null;
             for (var src in explicitSources) {
               await _prepareUnlinkedUnit('${src.uri}');
             }
@@ -257,15 +292,20 @@ class BuildMode {
           if (options.buildSummaryOutput != null) {
             io.File file = new io.File(options.buildSummaryOutput);
             file.writeAsBytesSync(bundle.toBuffer(),
-                mode: io.FileMode.WRITE_ONLY);
+                mode: io.FileMode.writeOnly);
           }
           if (options.buildSummaryOutputSemantic != null) {
             bundle.flushInformative();
             io.File file = new io.File(options.buildSummaryOutputSemantic);
             file.writeAsBytesSync(bundle.toBuffer(),
-                mode: io.FileMode.WRITE_ONLY);
+                mode: io.FileMode.writeOnly);
           }
         });
+      } else {
+        // Build the graph, e.g. associate parts with libraries.
+        for (var file in uriToFileMap.values) {
+          analysisDriver.fsState.getFileForPath(file.path);
+        }
       }
 
       if (options.buildSummaryOnly) {
@@ -291,17 +331,15 @@ class BuildMode {
       UnlinkedUnit getUnit(String absoluteUri) =>
           summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
 
-      Map<String, LinkedLibraryBuilder> linkResult = link(
-          libraryUris,
-          getDependency,
-          getUnit,
-          analysisDriver.declaredVariables.get,
-          options.strongMode);
+      Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
+          getDependency, getUnit, analysisDriver.declaredVariables.get);
       linkResult.forEach(assembler.addLinkedLibrary);
     });
   }
 
   Future<ErrorSeverity> _computeMaxSeverity() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ErrorSeverity maxSeverity = ErrorSeverity.NONE;
     if (!options.buildSuppressExitCode) {
       for (Source source in explicitSources) {
@@ -355,25 +393,24 @@ class BuildMode {
       }
     });
 
+    String rootPath =
+        options.sourceFiles.isEmpty ? null : options.sourceFiles.first;
     DartSdk sdk;
     logger.run('Add SDK bundle', () {
       PackageBundle sdkBundle;
       if (options.dartSdkSummaryPath != null) {
-        SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
-            options.dartSdkSummaryPath, options.strongMode);
+        SummaryBasedDartSdk summarySdk =
+            new SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
         sdk = summarySdk;
         sdkBundle = summarySdk.bundle;
       } else {
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
-            resourceProvider,
-            resourceProvider.getFolder(options.dartSdkPath),
-            options.strongMode);
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
+            resourceProvider.getFolder(options.dartSdkPath), true);
         dartSdk.analysisOptions =
-            Driver.createAnalysisOptionsForCommandLineOptions(
-                resourceProvider, options);
+            createAnalysisOptionsForCommandLineOptions(options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
         sdk = dartSdk;
-        sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
+        sdkBundle = dartSdk.getSummarySdkBundle();
       }
 
       // Include SDK bundle to avoid parsing SDK sources.
@@ -386,8 +423,8 @@ class BuildMode {
       new ExplicitSourceResolver(uriToFileMap)
     ]);
 
-    analysisOptions = Driver.createAnalysisOptionsForCommandLineOptions(
-        resourceProvider, options);
+    analysisOptions =
+        createAnalysisOptionsForCommandLineOptions(options, rootPath);
 
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(
@@ -398,9 +435,10 @@ class BuildMode {
         new FileContentOverlay(),
         null,
         sourceFactory,
-        analysisOptions,
+        analysisOptions as AnalysisOptionsImpl,
         externalSummaries: summaryDataStore);
-    Driver.declareVariables(analysisDriver.declaredVariables, options);
+    analysisDriver.declaredVariables =
+        new DeclaredVariables.fromMap(options.definedVariables);
 
     scheduler.start();
   }
@@ -422,6 +460,8 @@ class BuildMode {
       }
       Uri uri = Uri.parse(sourceFile.substring(0, pipeIndex));
       String path = sourceFile.substring(pipeIndex + 1);
+      path = resourceProvider.pathContext.absolute(path);
+      path = resourceProvider.pathContext.normalize(path);
       uriToFileMap[uri] = resourceProvider.getFile(path);
     }
     return uriToFileMap;
@@ -435,6 +475,8 @@ class BuildMode {
    * Otherwise compute it and store into the [uriToUnit] and [assembler].
    */
   Future<Null> _prepareUnlinkedUnit(String absoluteUri) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // Maybe an input package contains the source.
     if (summaryDataStore.unlinkedMap[absoluteUri] != null) {
       return;
@@ -458,7 +500,11 @@ class BuildMode {
    * is sent to a new file at that path.
    */
   Future<Null> _printErrors({String outputPath}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     await logger.runAsync('Compute and print analysis errors', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       StringBuffer buffer = new StringBuffer();
       var severityProcessor = (AnalysisError error) =>
           determineProcessedSeverity(error, options, analysisOptions);
@@ -522,8 +568,7 @@ class ExplicitSourceResolver extends UriResolver {
     File file = uriToFileMap[uri];
     actualUri ??= uri;
     if (file == null) {
-      return new NonExistingSource(
-          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+      return null;
     } else {
       return new FileSource(file, actualUri);
     }

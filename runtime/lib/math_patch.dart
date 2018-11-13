@@ -83,6 +83,7 @@ num pow(num x, num exponent) {
   return _doublePow(x.toDouble(), exponent.toDouble());
 }
 
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double _doublePow(double base, double exponent) {
   if (exponent == 0.0) {
     return 1.0; // ECMA-262 15.8.2.13
@@ -116,7 +117,7 @@ int _intPow(int base, int exponent) {
       result *= base;
     }
     exponent >>= 1;
-    // Skip unnecessary operation (can overflow to Mint or Bigint).
+    // Skip unnecessary operation (can overflow to Mint).
     if (exponent != 0) {
       base *= base;
     }
@@ -125,20 +126,28 @@ int _intPow(int base, int exponent) {
 }
 
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double sin(num radians) => _sin(radians.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double cos(num radians) => _cos(radians.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double tan(num radians) => _tan(radians.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double acos(num x) => _acos(x.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double asin(num x) => _asin(x.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double atan(num x) => _atan(x.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double sqrt(num x) => _sqrt(x.toDouble());
 @patch
 double exp(num x) => _exp(x.toDouble());
@@ -178,6 +187,7 @@ class Random {
 
 class _Random implements Random {
   // Internal state of the random number generator.
+  @pragma("vm:entry-point")
   final Uint32List _state;
   static const _kSTATE_LO = 0;
   static const _kSTATE_HI = 1; // Unused in Dart code.
@@ -189,6 +199,7 @@ class _Random implements Random {
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
 
   // Implements:
+  //   const _A = 0xffffda61;
   //   var state =
   //       ((_A * (_state[_kSTATE_LO])) + _state[_kSTATE_HI]) & ((1 << 64) - 1);
   //   _state[_kSTATE_LO] = state & ((1 << 32) - 1);
@@ -232,8 +243,6 @@ class _Random implements Random {
   static const _POW2_32 = 1 << 32;
   static const _POW2_53_D = 1.0 * (1 << 53);
   static const _POW2_27_D = 1.0 * (1 << 27);
-
-  static const _A = 0xffffda61;
 
   // Use a singleton Random object to get a new seed if no seed was passed.
   static var _prng = new _Random._withState(_initialSeed());

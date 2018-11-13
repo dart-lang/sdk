@@ -9,7 +9,7 @@ import 'dart:convert';
 
 main() {
   for (int i = 0; i <= 0x10FFFF; i++) {
-    if (i == UNICODE_BOM_CHARACTER_RUNE) continue;
+    if (i == unicodeBomCharacterRune) continue;
     Expect.equals(
         i, utf8.decode(utf8.encode(new String.fromCharCode(i))).runes.first);
   }

@@ -7,7 +7,10 @@ get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
 get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
 get_retained_size_rpc_test: Pass, RuntimeError # Issue 28193
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
+pause_on_exceptions_test: Pass, RuntimeError # Issue 33049
+pause_on_start_and_exit_with_child_test: Pass, RuntimeError # Issue 33049
 reload_sources_test: Pass, Slow # Reload is slow on the bots
+valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
@@ -23,8 +26,11 @@ get_source_report_test: RuntimeError # Issue 27806
 next_through_closure_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 next_through_create_list_and_map_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 next_through_for_each_loop_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
+next_through_implicit_call_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout, Crash # Issue 29178
+process_service_test: RuntimeError # Spawned process runs in Dart2 mode
 set_name_rpc_test: RuntimeError # Issue 27806
+simple_reload_test: RuntimeError # Issue 27806
 step_through_constructor_calls_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 step_through_function_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 step_through_switch_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
@@ -34,15 +40,12 @@ unused_changes_in_last_reload_test: RuntimeError # Issue 27806
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
-evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 get_isolate_after_language_error_test: SkipByDesign
-
-[ $compiler == dartk ]
-next_through_simple_async_test: Pass, Fail # Issue 29145
 
 # Kernel version of tests
 [ $compiler != dartk ]
 add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_breakpoint_rpc_test
+evaluate_function_type_parameters_test: SkipByDesign # only supported in kernel
 
 [ $compiler == precompiler ]
 *: Skip # Issue 24651
@@ -61,33 +64,6 @@ async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simdbc64 && $compiler == dartk ]
-coverage_optimized_function_test: Crash # Please triage
-
-[ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
-eval_test: Pass, Slow
-
-[ $builder_tag == strong && $compiler == dart2analyzer ]
-*: Skip # Issue 28649
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-coverage_leaf_function_test: RuntimeError # Please triage.
-coverage_optimized_function_test: RuntimeError # Please triage.
-dev_fs_spawn_test: RuntimeError # Please triage.
-developer_service_get_isolate_id_test: RuntimeError # Please triage.
-get_object_rpc_test: RuntimeError # Please triage.
-get_source_report_test: RuntimeError # Please triage.
-issue_30555_test: RuntimeError # Please triage.
-library_dependency_test: RuntimeError # Please triage.
-reload_sources_test: Timeout, Skip # Please triage.
-set_name_rpc_test: RuntimeError # Please triage.
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
@@ -96,6 +72,12 @@ async_scope_test: Pass, Slow
 
 [ $mode == debug && ($arch == simarm || $arch == simarm64) ]
 *: SkipSlow
+
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
+
+[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
+*: Skip
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
@@ -121,7 +103,9 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 [ $compiler == dart2js || $browser ]
 *: SkipByDesign
 
+[ $compiler == dartk || $compiler == dartkp ]
+rewind_test: Pass, Slow
+
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]
 *: SkipByDesign # The service tests should run without being reloaded.
-

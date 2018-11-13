@@ -38,7 +38,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
       library libAB;
-      part '/partAB.dart';
+      part "${convertAbsolutePathToUri('/partAB.dart')}";
       class A { }
       class B { }''');
     addSource('/partAB.dart', '''
@@ -50,8 +50,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class C { }
       class D { }''');
     addTestSource('''
-      import "/testAB.dart" hide ^;
-      import "/testCD.dart";
+      import "${convertAbsolutePathToUri("/testAB.dart")}" hide ^;
+      import "${convertAbsolutePathToUri("/testCD.dart")}";
       class X {}''');
 
     await computeSuggestions();
@@ -78,7 +78,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
       library libAB;
-      part '/partAB.dart';
+      part "${convertAbsolutePathToUri('/partAB.dart')}";
       class A { }
       class B { }
       class _AB''');
@@ -93,8 +93,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class C { }
       class D { }''');
     addTestSource('''
-      import "/testAB.dart" show ^;
-      import "/testCD.dart";
+      import "${convertAbsolutePathToUri("/testAB.dart")}" show ^;
+      import "${convertAbsolutePathToUri("/testCD.dart")}";
       class X {}''');
 
     await computeSuggestions();
@@ -123,6 +123,24 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
+  test_Combinator_show_export_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addSource('/b.dart', r'''
+export 'a.dart' show A;
+''');
+    addTestSource(r'''
+import 'b.dart' show ^;
+''');
+    await computeSuggestions();
+    assertSuggestClass('A',
+        relevance: DART_RELEVANCE_DEFAULT,
+        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertNotSuggested('B');
+  }
+
   test_Combinator_show_PI() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();
@@ -140,7 +158,7 @@ export 'testB.dart';
 class B {}
 ''');
     addTestSource('''
-import "/testB.dart" show ^;
+import "${convertAbsolutePathToUri("/testB.dart")}" show ^;
 ''');
     await computeSuggestions();
     assertSuggestClass('A',

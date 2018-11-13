@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Verify that when no constructors are forwarded from the base class
-// through a mixin, it is always an error; the mixin does not acquire an
-// implicit default constructor.
+// Verify that a forwarding constructor is generated even when there is an
+// optional parameter.
 
 abstract class Mixin {}
 
 class Base {
   Base(
-      {x} //       //# 01: compile-time error
-      {x} //       //# 02: compile-time error
-      {x} //       //# 03: compile-time error
+      {x} //       //# 01: ok
+      {x} //       //# 02: ok
+      {x} //       //# 03: ok
       );
 }
 

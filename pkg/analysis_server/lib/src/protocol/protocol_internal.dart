@@ -193,6 +193,9 @@ RefactoringFeedback refactoringFeedbackFromJson(
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
+  if (kind == RefactoringKind.EXTRACT_WIDGET) {
+    return new ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
     return new InlineLocalVariableFeedback.fromJson(
         jsonDecoder, jsonPath, json);
@@ -217,6 +220,9 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.EXTRACT_WIDGET) {
+    return new ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
     return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
@@ -272,7 +278,7 @@ class RequestDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write('; found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     return new RequestFailure(
@@ -282,7 +288,7 @@ class RequestDecoder extends JsonDecoder {
   @override
   dynamic missingKey(String jsonPath, String key) {
     return new RequestFailure(new Response.invalidParameter(
-        _request, jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
+        _request, jsonPath, 'Expected to contain key ${json.encode(key)}'));
   }
 }
 
@@ -310,7 +316,7 @@ class ResponseDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write(' found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     buffer.write(' at ');

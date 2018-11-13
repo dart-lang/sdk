@@ -23,39 +23,39 @@ part "../../../sdk/lib/_http/http_session.dart";
 
 void testMultiValue() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
-  Expect.isNull(headers[HttpHeaders.PRAGMA]);
-  headers.add(HttpHeaders.PRAGMA, "pragma1");
-  Expect.equals(1, headers[HttpHeaders.PRAGMA].length);
+  Expect.isNull(headers[HttpHeaders.pragmaHeader]);
+  headers.add(HttpHeaders.pragmaHeader, "pragma1");
+  Expect.equals(1, headers[HttpHeaders.pragmaHeader].length);
   Expect.equals(1, headers["pragma"].length);
   Expect.equals(1, headers["Pragma"].length);
-  Expect.equals(1, headers["PRAGMA"].length);
-  Expect.equals("pragma1", headers.value(HttpHeaders.PRAGMA));
+  Expect.equals(1, headers["pragma"].length);
+  Expect.equals("pragma1", headers.value(HttpHeaders.pragmaHeader));
 
-  headers.add(HttpHeaders.PRAGMA, "pragma2");
-  Expect.equals(2, headers[HttpHeaders.PRAGMA].length);
+  headers.add(HttpHeaders.pragmaHeader, "pragma2");
+  Expect.equals(2, headers[HttpHeaders.pragmaHeader].length);
   Expect.throws(
-      () => headers.value(HttpHeaders.PRAGMA), (e) => e is HttpException);
+      () => headers.value(HttpHeaders.pragmaHeader), (e) => e is HttpException);
 
-  headers.add(HttpHeaders.PRAGMA, ["pragma3", "pragma4"]);
+  headers.add(HttpHeaders.pragmaHeader, ["pragma3", "pragma4"]);
   Expect.listEquals(["pragma1", "pragma2", "pragma3", "pragma4"],
-      headers[HttpHeaders.PRAGMA]);
+      headers[HttpHeaders.pragmaHeader]);
 
-  headers.remove(HttpHeaders.PRAGMA, "pragma3");
-  Expect.equals(3, headers[HttpHeaders.PRAGMA].length);
+  headers.remove(HttpHeaders.pragmaHeader, "pragma3");
+  Expect.equals(3, headers[HttpHeaders.pragmaHeader].length);
   Expect.listEquals(
-      ["pragma1", "pragma2", "pragma4"], headers[HttpHeaders.PRAGMA]);
+      ["pragma1", "pragma2", "pragma4"], headers[HttpHeaders.pragmaHeader]);
 
-  headers.remove(HttpHeaders.PRAGMA, "pragma3");
-  Expect.equals(3, headers[HttpHeaders.PRAGMA].length);
+  headers.remove(HttpHeaders.pragmaHeader, "pragma3");
+  Expect.equals(3, headers[HttpHeaders.pragmaHeader].length);
 
-  headers.set(HttpHeaders.PRAGMA, "pragma5");
-  Expect.equals(1, headers[HttpHeaders.PRAGMA].length);
+  headers.set(HttpHeaders.pragmaHeader, "pragma5");
+  Expect.equals(1, headers[HttpHeaders.pragmaHeader].length);
 
-  headers.set(HttpHeaders.PRAGMA, ["pragma6", "pragma7"]);
-  Expect.equals(2, headers[HttpHeaders.PRAGMA].length);
+  headers.set(HttpHeaders.pragmaHeader, ["pragma6", "pragma7"]);
+  Expect.equals(2, headers[HttpHeaders.pragmaHeader].length);
 
-  headers.removeAll(HttpHeaders.PRAGMA);
-  Expect.isNull(headers[HttpHeaders.PRAGMA]);
+  headers.removeAll(HttpHeaders.pragmaHeader);
+  Expect.isNull(headers[HttpHeaders.pragmaHeader]);
 }
 
 void testDate() {
@@ -68,19 +68,19 @@ void testDate() {
   Expect.isNull(headers.date);
   headers.date = date1;
   Expect.equals(date1, headers.date);
-  Expect.equals(httpDate1, headers.value(HttpHeaders.DATE));
-  Expect.equals(1, headers[HttpHeaders.DATE].length);
-  headers.add(HttpHeaders.DATE, httpDate2);
-  Expect.equals(1, headers[HttpHeaders.DATE].length);
+  Expect.equals(httpDate1, headers.value(HttpHeaders.dateHeader));
+  Expect.equals(1, headers[HttpHeaders.dateHeader].length);
+  headers.add(HttpHeaders.dateHeader, httpDate2);
+  Expect.equals(1, headers[HttpHeaders.dateHeader].length);
   Expect.equals(date2, headers.date);
-  Expect.equals(httpDate2, headers.value(HttpHeaders.DATE));
-  headers.set(HttpHeaders.DATE, httpDate1);
-  Expect.equals(1, headers[HttpHeaders.DATE].length);
+  Expect.equals(httpDate2, headers.value(HttpHeaders.dateHeader));
+  headers.set(HttpHeaders.dateHeader, httpDate1);
+  Expect.equals(1, headers[HttpHeaders.dateHeader].length);
   Expect.equals(date1, headers.date);
-  Expect.equals(httpDate1, headers.value(HttpHeaders.DATE));
+  Expect.equals(httpDate1, headers.value(HttpHeaders.dateHeader));
 
-  headers.set(HttpHeaders.DATE, "xxx");
-  Expect.equals("xxx", headers.value(HttpHeaders.DATE));
+  headers.set(HttpHeaders.dateHeader, "xxx");
+  Expect.equals("xxx", headers.value(HttpHeaders.dateHeader));
   Expect.equals(null, headers.date);
 }
 
@@ -94,19 +94,19 @@ void testExpires() {
   Expect.isNull(headers.expires);
   headers.expires = date1;
   Expect.equals(date1, headers.expires);
-  Expect.equals(httpDate1, headers.value(HttpHeaders.EXPIRES));
-  Expect.equals(1, headers[HttpHeaders.EXPIRES].length);
-  headers.add(HttpHeaders.EXPIRES, httpDate2);
-  Expect.equals(1, headers[HttpHeaders.EXPIRES].length);
+  Expect.equals(httpDate1, headers.value(HttpHeaders.expiresHeader));
+  Expect.equals(1, headers[HttpHeaders.expiresHeader].length);
+  headers.add(HttpHeaders.expiresHeader, httpDate2);
+  Expect.equals(1, headers[HttpHeaders.expiresHeader].length);
   Expect.equals(date2, headers.expires);
-  Expect.equals(httpDate2, headers.value(HttpHeaders.EXPIRES));
-  headers.set(HttpHeaders.EXPIRES, httpDate1);
-  Expect.equals(1, headers[HttpHeaders.EXPIRES].length);
+  Expect.equals(httpDate2, headers.value(HttpHeaders.expiresHeader));
+  headers.set(HttpHeaders.expiresHeader, httpDate1);
+  Expect.equals(1, headers[HttpHeaders.expiresHeader].length);
   Expect.equals(date1, headers.expires);
-  Expect.equals(httpDate1, headers.value(HttpHeaders.EXPIRES));
+  Expect.equals(httpDate1, headers.value(HttpHeaders.expiresHeader));
 
-  headers.set(HttpHeaders.EXPIRES, "xxx");
-  Expect.equals("xxx", headers.value(HttpHeaders.EXPIRES));
+  headers.set(HttpHeaders.expiresHeader, "xxx");
+  Expect.equals("xxx", headers.value(HttpHeaders.expiresHeader));
   Expect.equals(null, headers.expires);
 }
 
@@ -120,19 +120,19 @@ void testIfModifiedSince() {
   Expect.isNull(headers.ifModifiedSince);
   headers.ifModifiedSince = date1;
   Expect.equals(date1, headers.ifModifiedSince);
-  Expect.equals(httpDate1, headers.value(HttpHeaders.IF_MODIFIED_SINCE));
-  Expect.equals(1, headers[HttpHeaders.IF_MODIFIED_SINCE].length);
-  headers.add(HttpHeaders.IF_MODIFIED_SINCE, httpDate2);
-  Expect.equals(1, headers[HttpHeaders.IF_MODIFIED_SINCE].length);
+  Expect.equals(httpDate1, headers.value(HttpHeaders.ifModifiedSinceHeader));
+  Expect.equals(1, headers[HttpHeaders.ifModifiedSinceHeader].length);
+  headers.add(HttpHeaders.ifModifiedSinceHeader, httpDate2);
+  Expect.equals(1, headers[HttpHeaders.ifModifiedSinceHeader].length);
   Expect.equals(date2, headers.ifModifiedSince);
-  Expect.equals(httpDate2, headers.value(HttpHeaders.IF_MODIFIED_SINCE));
-  headers.set(HttpHeaders.IF_MODIFIED_SINCE, httpDate1);
-  Expect.equals(1, headers[HttpHeaders.IF_MODIFIED_SINCE].length);
+  Expect.equals(httpDate2, headers.value(HttpHeaders.ifModifiedSinceHeader));
+  headers.set(HttpHeaders.ifModifiedSinceHeader, httpDate1);
+  Expect.equals(1, headers[HttpHeaders.ifModifiedSinceHeader].length);
   Expect.equals(date1, headers.ifModifiedSince);
-  Expect.equals(httpDate1, headers.value(HttpHeaders.IF_MODIFIED_SINCE));
+  Expect.equals(httpDate1, headers.value(HttpHeaders.ifModifiedSinceHeader));
 
-  headers.set(HttpHeaders.IF_MODIFIED_SINCE, "xxx");
-  Expect.equals("xxx", headers.value(HttpHeaders.IF_MODIFIED_SINCE));
+  headers.set(HttpHeaders.ifModifiedSinceHeader, "xxx");
+  Expect.equals("xxx", headers.value(HttpHeaders.ifModifiedSinceHeader));
   Expect.equals(null, headers.ifModifiedSince);
 }
 
@@ -142,30 +142,30 @@ void testHost() {
   Expect.isNull(headers.host);
   Expect.isNull(headers.port);
   headers.host = host;
-  Expect.equals(host, headers.value(HttpHeaders.HOST));
+  Expect.equals(host, headers.value(HttpHeaders.hostHeader));
   headers.port = 1234;
-  Expect.equals("$host:1234", headers.value(HttpHeaders.HOST));
-  headers.port = HttpClient.DEFAULT_HTTP_PORT;
-  Expect.equals(host, headers.value(HttpHeaders.HOST));
+  Expect.equals("$host:1234", headers.value(HttpHeaders.hostHeader));
+  headers.port = HttpClient.defaultHttpPort;
+  Expect.equals(host, headers.value(HttpHeaders.hostHeader));
 
   headers = new _HttpHeaders("1.1");
-  headers.add(HttpHeaders.HOST, host);
+  headers.add(HttpHeaders.hostHeader, host);
   Expect.equals(host, headers.host);
-  Expect.equals(HttpClient.DEFAULT_HTTP_PORT, headers.port);
-  headers.add(HttpHeaders.HOST, "$host:4567");
-  Expect.equals(1, headers[HttpHeaders.HOST].length);
+  Expect.equals(HttpClient.defaultHttpPort, headers.port);
+  headers.add(HttpHeaders.hostHeader, "$host:4567");
+  Expect.equals(1, headers[HttpHeaders.hostHeader].length);
   Expect.equals(host, headers.host);
   Expect.equals(4567, headers.port);
 
   headers = new _HttpHeaders("1.1");
-  headers.add(HttpHeaders.HOST, "$host:xxx");
-  Expect.equals("$host:xxx", headers.value(HttpHeaders.HOST));
+  headers.add(HttpHeaders.hostHeader, "$host:xxx");
+  Expect.equals("$host:xxx", headers.value(HttpHeaders.hostHeader));
   Expect.equals(host, headers.host);
   Expect.isNull(headers.port);
 
   headers = new _HttpHeaders("1.1");
-  headers.add(HttpHeaders.HOST, ":1234");
-  Expect.equals(":1234", headers.value(HttpHeaders.HOST));
+  headers.add(HttpHeaders.hostHeader, ":1234");
+  Expect.equals(":1234", headers.value(HttpHeaders.hostHeader));
   Expect.isNull(headers.host);
   Expect.equals(1234, headers.port);
 }
@@ -218,7 +218,7 @@ void testTransferEncoding() {
 
 void testEnumeration() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
-  Expect.isNull(headers[HttpHeaders.PRAGMA]);
+  Expect.isNull(headers[HttpHeaders.pragmaHeader]);
   headers.add("My-Header-1", "value 1");
   headers.add("My-Header-2", "value 2");
   headers.add("My-Header-1", "value 3");
@@ -355,10 +355,10 @@ void testContentType() {
   check(contentType, "text", "html", {"charset": null});
 
   // Test builtin content types.
-  check(ContentType.TEXT, "text", "plain", {"charset": "utf-8"});
-  check(ContentType.HTML, "text", "html", {"charset": "utf-8"});
-  check(ContentType.JSON, "application", "json", {"charset": "utf-8"});
-  check(ContentType.BINARY, "application", "octet-stream");
+  check(ContentType.text, "text", "plain", {"charset": "utf-8"});
+  check(ContentType.html, "text", "html", {"charset": "utf-8"});
+  check(ContentType.json, "application", "json", {"charset": "utf-8"});
+  check(ContentType.binary, "application", "octet-stream");
 }
 
 void testKnownContentTypes() {
@@ -377,15 +377,15 @@ void testKnownContentTypes() {
 
 void testContentTypeCache() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
-  headers.set(HttpHeaders.CONTENT_TYPE, "text/html");
+  headers.set(HttpHeaders.contentTypeHeader, "text/html");
   Expect.equals("text", headers.contentType.primaryType);
   Expect.equals("html", headers.contentType.subType);
   Expect.equals("text/html", headers.contentType.value);
-  headers.set(HttpHeaders.CONTENT_TYPE, "text/plain; charset=utf-8");
+  headers.set(HttpHeaders.contentTypeHeader, "text/plain; charset=utf-8");
   Expect.equals("text", headers.contentType.primaryType);
   Expect.equals("plain", headers.contentType.subType);
   Expect.equals("text/plain", headers.contentType.value);
-  headers.removeAll(HttpHeaders.CONTENT_TYPE);
+  headers.removeAll(HttpHeaders.contentTypeHeader);
   Expect.isNull(headers.contentType);
 }
 
@@ -514,10 +514,10 @@ void testInvalidCookie() {
 }
 
 void testHeaderLists() {
-  HttpHeaders.GENERAL_HEADERS.forEach((x) => null);
-  HttpHeaders.ENTITY_HEADERS.forEach((x) => null);
-  HttpHeaders.RESPONSE_HEADERS.forEach((x) => null);
-  HttpHeaders.REQUEST_HEADERS.forEach((x) => null);
+  HttpHeaders.generalHeaders.forEach((x) => null);
+  HttpHeaders.entityHeaders.forEach((x) => null);
+  HttpHeaders.responseHeaders.forEach((x) => null);
+  HttpHeaders.requestHeaders.forEach((x) => null);
 }
 
 void testInvalidFieldName() {

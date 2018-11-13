@@ -16,7 +16,7 @@ from htmlrenamer import custom_html_constructors, html_interface_renames, \
 
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'AbstractWorker',
-    'CanvasPathMethods',
+    'CanvasPath',
     'ChildNode',
     'DocumentAnimation',
     'DocumentFontFaceSet',
@@ -153,7 +153,6 @@ _safe_interfaces_legacy = monitored.Set('generator._safe_interfaces_legacy', [
     'RTCDTMFSender',
     'RTCDataChannel',
     'RTCDataChannelEvent',
-    'RTCIceCandidateEvent',
     'RTCStatsReport',
     'RTCStatsResponse',
     'ReadableByteStreamReader',
@@ -231,6 +230,9 @@ _methods_with_named_formals = monitored.Set(
   'XMLHttpRequest.open',
   ])
 
+def hasNamedFormals(full_name):
+  return full_name in _methods_with_named_formals
+
 def ReturnValueConversionHack(idl_type, value, interface_name):
   if idl_type == 'SVGMatrix':
     return '%sTearOff::create(%s)' % (idl_type, value)
@@ -273,13 +275,13 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
 
-    'ClientRectList': 'ClientRectList,DOMRectList',
+    'DOMRect': 'ClientRect,DOMRect',
+
+    'DOMRectList': 'ClientRectList,DOMRectList',
 
     'CSSStyleDeclaration':
         #                    IE                   Firefox
         'CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties',
-
-    'Clipboard': 'Clipboard,DataTransfer',
 
     'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
@@ -310,8 +312,6 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'RTCPeerConnection': 'RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection',
 
     'RTCIceCandidate': 'RTCIceCandidate,mozRTCIceCandidate',
-
-    'RTCIceCandidateEvent': 'RTCIceCandidateEvent,RTCPeerConnectionIceEvent',
 
     'RTCSessionDescription': 'RTCSessionDescription,mozRTCSessionDescription',
 
@@ -404,7 +404,7 @@ class ParamInfo(object):
 def GetCallbackHandlers(interface):
   callback_handlers = []
   callback_handlers = [operation for operation in interface.operations
-      if operation.id == 'handleEvent']
+      if operation.id == 'handleEvent' or operation.id == 'handleMessage']
   if callback_handlers == []:
     callback_handlers = [operation for operation in interface.operations
                          if operation.id == 'handleItem']
@@ -696,12 +696,12 @@ class OperationInfo(object):
     """
     return len(filter(lambda i: not i.is_optional, self.param_infos))
 
-  def ParametersAsArgumentList(self, parameter_count=None):
+  def ParametersAsArgumentList(self, parameter_count=None, ignore_named_parameters=False):
     """Returns a string of the parameter names suitable for passing the
     parameters as arguments.
     """
     def param_name(param_info):
-      if self.requires_named_arguments and param_info.is_optional:
+      if self.requires_named_arguments and param_info.is_optional and not ignore_named_parameters:
         return '%s : %s' % (param_info.name, param_info.name)
       else:
         return param_info.name
@@ -709,6 +709,17 @@ class OperationInfo(object):
     if parameter_count is None:
       parameter_count = len(self.param_infos)
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
+
+  """ Check if a parameter to a Future API is a Dictionary argument and if its optional.
+      Used for any Promised based operation to correctly convert from Map to Dictionary then
+      perform the PromiseToFuture call.
+  """
+  def dictionaryArgumentName(self, parameter_count=None):
+      parameter_count = len(self.param_infos)
+      for argument in self.param_infos[:parameter_count]:
+        if argument.type_id == 'Dictionary':
+          return [argument.name, argument.is_optional]
+      return None
 
   def isCallback(self, type_registry, type_id):
     if type_id and not type_id.endswith('[]'):
@@ -744,17 +755,6 @@ class OperationInfo(object):
               # Events fired need use a JSFunction not a anonymous closure to
               # insure the event can really be removed.
               parameters.append('js.allowInterop(%s)' % p.name)
-# These commented out cases don't actually generate any code.
-#          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
-              # forEach is supported in the DOM for FontFaceSet as it iterates
-              # over the Javascript Object the callback parameters are also
-              # Javascript objects and must be wrapped.
- #             parameters.append('(fontFace, fontFaceAgain, set) => %s(fontFace, fontFaceAgain, wrap_jso(set))' % p.name)
-#          elif dart_js_interop and type_id == 'HeadersForEachCallback':
-              # forEach is supported in the DOM for Headers as it iterates
-              # over the Javascript Object the callback parameters are also
-              # Javascript objects and must be wrapped.
-#              parameters.append('(String value, String key, map) => %s(value, key, wrap_jso(map))' % p.name)
           elif dart_js_interop and type_is_callback and not(isRemoveOperation):
             # Any remove operation that has a a callback doesn't need wrapping.
             # TODO(terry): Kind of hacky but handles all the cases we care about
@@ -1177,8 +1177,14 @@ class CallbackIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
 
+  def interface_name(self):
+    return self.dart_type()
+
   def implementation_name(self):
-    return ""
+    return self.dart_type()
+
+  def list_item_type(self):
+    return self._data.item_type
 
 
 def array_type(data_type):
@@ -1453,18 +1459,16 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
-    'ClientRect': TypeData(clazz='Interface',
-        dart_type='Rectangle', suppress_interface=True),
+    'DOMRect': TypeData(clazz='Interface',
+         dart_type='Rectangle', suppress_interface=True),
     'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
     'Promise': TypeData(clazz='Primitive', dart_type='Future', native_type='ScriptPromise'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
+    'ScriptURLString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
     'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
-    # TODO(terry): It's a dictionary but a very complex dictionary is multiple lists.
-    #              Need to investigate a 1-off solution probably.
-    'MediaKeySystemConfiguration': TypeData(clazz='Primitive', dart_type='Map'),
     'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
     'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'PositionOptions': TypeData(clazz='Primitive', dart_type='Object'),
@@ -1491,22 +1495,74 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
-
-    'AudioTrackList': TypeData(clazz='Interface', item_type='AudioTrack',
-        suppress_interface=False, dart_type='List<AudioTrack>'),
-    'ClientRectList': TypeData(clazz='Interface',
-        item_type='ClientRect', dart_type='List<Rectangle>',
-        suppress_interface=True),
     'CSSRuleList': TypeData(clazz='Interface',
         item_type='CSSRule', suppress_interface=True),
     'CSSValueList': TypeData(clazz='Interface',
         item_type='CSSValue', suppress_interface=True),
     'MimeTypeArray': TypeData(clazz='Interface', item_type='MimeType'),
     'PluginArray': TypeData(clazz='Interface', item_type='Plugin'),
+    'DOMRectList': TypeData(clazz='Interface',
+        item_type='DOMRect', dart_type='List<Rectangle>',
+        custom_to_native = True),
     'DOMStringList': TypeData(clazz='Interface', item_type='DOMString',
         dart_type='List<String>', custom_to_native=True),
     'FileList': TypeData(clazz='Interface', item_type='File',
         dart_type='List<File>'),
+    # Handle new FrozenArray Web IDL builtin
+    # TODO(terry): Consider automating this mechanism to map the conversion from FrozenArray<xxx>
+    #              to List<xxx>. Some caveats for double, unsigned int and dictionary.
+    'FrozenArray<BackgroundFetchSettledFetch>': TypeData(clazz='Primitive', item_type='BackgroundFetchSettledFetch',
+        dart_type='List<BackgroundFetchSettledFetch>'),
+    'FrozenArray<DOMString>': TypeData(clazz='Primitive', item_type='DOMString',
+        dart_type='List<String>', custom_to_native=True),
+    'FrozenArray<double>': TypeData(clazz='Primitive', item_type='double',
+        dart_type='List<num>'),
+    'FrozenArray<Entry>': TypeData(clazz='Primitive', item_type='Entry',
+        dart_type='List<Entry>'),
+    'FrozenArray<FillLightMode>': TypeData(clazz='Primitive', item_type='FillLightMode',
+        dart_type='List'),
+    'FrozenArray<FontFace>': TypeData(clazz='Primitive', item_type='FontFace',
+        dart_type='List<FontFace>'),
+    'FrozenArray<GamepadButton>': TypeData(clazz='Primitive', item_type='GamepadButton',
+        dart_type='List<GamepadButton>'),
+    'FrozenArray<Landmark>': TypeData(clazz='Primitive', item_type='Landmark',
+        dart_type='List'),
+    'FrozenArray<MediaImage>': TypeData(clazz='Primitive', item_type='MediaImage',
+        dart_type='List'),
+    'FrozenArray<MediaStream>': TypeData(clazz='Primitive', item_type='MediaStream',
+        dart_type='List<MediaStream>'),
+    'FrozenArray<MessagePort>': TypeData(clazz='Primitive', item_type='MessagePort',
+        dart_type='List<MessagePort>'),
+    'FrozenArray<NotificationAction>': TypeData(clazz='Primitive', item_type='NotificationAction',
+        dart_type='List'),
+    'FrozenArray<PaymentDetailsModifier>': TypeData(clazz='Primitive', item_type='PaymentDetailsModifier',
+        dart_type='List'),
+    'FrozenArray<PaymentMethodData>':TypeData(clazz='Primitive', item_type='PaymentMethodData',
+        dart_type='List'),
+    'FrozenArray<PerformanceServerTiming>': TypeData(clazz='Primitive', item_type='PerformanceServerTiming',
+        dart_type='List<PerformanceServerTiming>'),
+    'FrozenArray<Point2D>': TypeData(clazz='Primitive', item_type='Point2D',
+        dart_type='List'),
+    'FrozenArray<PresentationConnection>': TypeData(clazz='Primitive', item_type='PresentationConnection',
+        dart_type='List<PresentationConnection>'),
+    'FrozenArray<TaskAttributionTiming>': TypeData(clazz='Primitive', item_type='TaskAttributionTiming',
+        dart_type='List<TaskAttributionTiming>'),
+    'FrozenArray<unsigned long>': TypeData(clazz='Primitive', item_type='unsigned long',
+        dart_type='List<int>'),
+    'FrozenArray<USBEndpoint>': TypeData(clazz='Primitive', item_type='USBEndpoint',
+        dart_type='List<USBEndpoint>'),
+    'FrozenArray<USBInterface>': TypeData(clazz='Primitive', item_type='USBInterface',
+        dart_type='List<USBInterface>'),
+    'FrozenArray<USBConfiguration>': TypeData(clazz='Primitive', item_type='USBConfiguration',
+        dart_type='List<USBConfiguration>'),
+    'FrozenArray<USBAlternateInterface>':TypeData(clazz='Primitive', item_type='USBAlternateInterface',
+        dart_type='List<USBAlternateInterface>'),
+    'FrozenArray<USBIsochronousInTransferPacket>':TypeData(clazz='Primitive', item_type='USBIsochronousInTransferPacket',
+        dart_type='List<USBIsochronousInTransferPacket>'), 
+    'FrozenArray<USBIsochronousOutTransferPacket>':TypeData(clazz='Primitive', item_type='USBIsochronousOutTransferPacket',
+        dart_type='List<USBIsochronousOutTransferPacket>'),  
+    'FrozenArray<VRStageBoundsPoint>': TypeData(clazz='Primitive', item_type='VRStageBoundsPoint',
+        dart_type='List<VRStageBoundsPoint>'),
     'Future': TypeData(clazz='Interface', dart_type='Future'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
         item_type_nullable=True, suppress_interface=True),
@@ -1610,8 +1666,12 @@ class TypeRegistry(object):
 
   def _TypeInfo(self, type_name):
     match = re.match(r'(?:sequence<([\w ]+)>|(\w+)\[\])$', type_name)
+
+    if match and self._database.HasDictionary(match.group(1)):
+      interface = self._database.GetDictionary(match.group(1))
+
     # sequence<any> should not be List<Object>
-    if match and match.group(1) != 'any':
+    if match and match.group(1) != 'any' and not(self._database.HasDictionary(match.group(1))):
       type_data = TypeData('Sequence')
       if self.HasTypeDef(match.group(1) or match.group(2)):
         # It's a typedef (union)
@@ -1628,17 +1688,21 @@ class TypeRegistry(object):
         return PrimitiveIDLTypeInfo(
             type_name,
             TypeData(clazz='Primitive', dart_type='String', native_type='String'))
-
       if self._database.HasInterface(type_name):
         interface = self._database.GetInterface(type_name)
       elif self._database.HasDictionary(type_name):
-        interface = self._database.GetDictionary(type_name)
+          type_data = _idl_type_registry.get('Dictionary')
+          class_name = '%sIDLTypeInfo' % type_data.clazz
+          return globals()[class_name](type_name, type_data)
       elif type_name.startswith('sequence<('):
         if type_name.find(' or ') != -1:
           # Union type of sequence is an any type (no type).
           type_data = TypeData('Sequence')
           item_info = self.TypeInfo('any')
           return SequenceIDLTypeInfo(type_name, type_data, item_info)
+      elif match and self._database.HasDictionary(match.group(1)):
+          return SequenceIDLTypeInfo(type_name,
+              TypeData('Sequence'), self.TypeInfo(match.group(1)))
       elif type_name.startswith('sequence<sequence<'):
         # TODO(terry): Cleanup up list of list, etc.
         type_data = TypeData('Sequence')
@@ -1647,6 +1711,8 @@ class TypeRegistry(object):
       elif self.HasTypeDef(type_name):
         # It's a typedef (implied union)
         return self.TypeInfo('any')
+      else:
+        print "ERROR: Unexpected interface, or type not found. %s" % type_name
 
       if 'Callback' in interface.ext_attrs:
         return CallbackIDLTypeInfo(type_name, TypeData('Callback',
@@ -1657,7 +1723,10 @@ class TypeRegistry(object):
           self._renamer.RenameInterface(interface),
           self)
 
-    type_data = _idl_type_registry.get(type_name)
+    if (self._database.HasDictionary(type_name)):
+      type_data = _idl_type_registry.get('Dictionary')
+    else:
+      type_data = _idl_type_registry.get(type_name)
 
     if type_data.clazz == 'Interface':
       if self._database.HasInterface(type_name):

@@ -15,7 +15,6 @@ final _functionRepository = new FunctionRepository();
 final _heapSnapshotRepository = new HeapSnapshotRepository();
 final _icdataRepository = new ICDataRepository();
 final _inboundReferencesRepository = new InboundReferencesRepository();
-final _instanceRepository = new InstanceRepository();
 final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
 final _libraryRepository = new LibraryRepository();
 final _megamorphicCacheRepository = new MegamorphicCacheRepository();
@@ -170,8 +169,9 @@ class VMPage extends MatchingPage {
       app.locationManager.go(Uris.vmConnect());
       return;
     }
-    app.vm.reload().then((VM vm) {
-      container.children = [
+    app.vm.reload().then((serviceObject) {
+      VM vm = serviceObject;
+      container.children = <Element>[
         new VMViewElement(vm, _vmrepository, app.events, app.notifications,
             new IsolateRepository(app.vm), _scriptRepository,
             queue: app.queue)
@@ -242,10 +242,10 @@ class InspectPage extends MatchingPage {
   }
 
   Future _visitObject(obj) async {
-    container.children = [];
+    container.children = <Element>[];
     await obj.reload();
     if (obj is Class) {
-      container.children = [
+      container.children = <Element>[
         new ClassViewElement(
             app.vm,
             obj.isolate,
@@ -268,7 +268,7 @@ class InspectPage extends MatchingPage {
       ];
     } else if (obj is Code) {
       await obj.loadScript();
-      container.children = [
+      container.children = <Element>[
         new CodeViewElement(
             app.vm,
             obj.isolate,
@@ -283,7 +283,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is Context) {
-      container.children = [
+      container.children = <Element>[
         new ContextViewElement(
             app.vm,
             obj.isolate,
@@ -299,11 +299,11 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is DartError) {
-      container.children = [
+      container.children = <Element>[
         new ErrorViewElement(app.notifications, obj, queue: app.queue)
       ];
     } else if (obj is Field) {
-      container.children = [
+      container.children = <Element>[
         new FieldViewElement(
             app.vm,
             obj.isolate,
@@ -321,7 +321,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is Instance) {
-      container.children = [
+      container.children = <Element>[
         new InstanceViewElement(
             app.vm,
             obj.isolate,
@@ -342,7 +342,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is Isolate) {
-      container.children = [
+      container.children = <Element>[
         new IsolateViewElement(
             app.vm,
             obj,
@@ -357,7 +357,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is ServiceFunction) {
-      container.children = [
+      container.children = <Element>[
         new FunctionViewElement(
             app.vm,
             obj.isolate,
@@ -375,7 +375,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is ICData) {
-      container.children = [
+      container.children = <Element>[
         new ICDataViewElement(
             app.vm,
             obj.isolate,
@@ -391,7 +391,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is SingleTargetCache) {
-      container.children = [
+      container.children = <Element>[
         new SingleTargetCacheViewElement(
             app.vm,
             obj.isolate,
@@ -407,7 +407,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is SubtypeTestCache) {
-      container.children = [
+      container.children = <Element>[
         new SubtypeTestCacheViewElement(
             app.vm,
             obj.isolate,
@@ -423,7 +423,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is UnlinkedCall) {
-      container.children = [
+      container.children = <Element>[
         new UnlinkedCallViewElement(
             app.vm,
             obj.isolate,
@@ -439,7 +439,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is Library) {
-      container.children = [
+      container.children = <Element>[
         new LibraryViewElement(
             app.vm,
             obj.isolate,
@@ -458,7 +458,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is MegamorphicCache) {
-      container.children = [
+      container.children = <Element>[
         new MegamorphicCacheViewElement(
             app.vm,
             obj.isolate,
@@ -474,7 +474,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is ObjectPool) {
-      container.children = [
+      container.children = <Element>[
         new ObjectPoolViewElement(
             app.vm,
             obj.isolate,
@@ -496,7 +496,7 @@ class InspectPage extends MatchingPage {
           pos = int.parse(app.locationManager.internalArguments['pos']);
         } catch (_) {}
       }
-      container.children = [
+      container.children = <Element>[
         new ScriptViewElement(
             app.vm,
             obj.isolate,
@@ -513,7 +513,7 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is HeapObject) {
-      container.children = [
+      container.children = <Element>[
         new ObjectViewElement(
             app.vm,
             obj.isolate,
@@ -528,13 +528,13 @@ class InspectPage extends MatchingPage {
             queue: app.queue)
       ];
     } else if (obj is Sentinel) {
-      container.children = [
+      container.children = <Element>[
         new SentinelViewElement(
             app.vm, obj.isolate, obj, app.events, app.notifications,
             queue: app.queue)
       ];
     } else {
-      container.children = [
+      container.children = <Element>[
         new JSONViewElement(obj, app.notifications, queue: app.queue)
       ];
     }
@@ -555,7 +555,7 @@ class ClassTreePage extends SimplePage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new ClassTreeElement(
             app.vm, isolate, app.events, app.notifications, _classRepository)
       ];
@@ -571,7 +571,7 @@ class DebuggerPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) async {
-      container.children = [
+      container.children = <Element>[
         new DebuggerPageElement(
             isolate, _objectRepository, _scriptRepository, app.events)
       ];
@@ -600,7 +600,7 @@ class ObjectStorePage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) async {
-      container.children = [
+      container.children = <Element>[
         new ObjectStoreViewElement(isolate.vm, isolate, app.events,
             app.notifications, _objectstoreRepository, _objectRepository)
       ];
@@ -623,7 +623,7 @@ class CpuProfilerPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new CpuProfileElement(isolate.vm, isolate, app.events,
             app.notifications, _isolateSampleProfileRepository)
       ];
@@ -646,7 +646,7 @@ class TableCpuProfilerPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new CpuProfileTableElement(isolate.vm, isolate, app.events,
             app.notifications, _isolateSampleProfileRepository)
       ];
@@ -669,7 +669,7 @@ class AllocationProfilerPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new AllocationProfileElement(isolate.vm, isolate, app.events,
             app.notifications, _allocationProfileRepository,
             queue: app.queue)
@@ -706,10 +706,11 @@ class MemoryDashboardPage extends MatchingPage {
       return;
     }
     final editor = getEditor(uri);
-    app.vm.reload().then((VM vm) async {
+    app.vm.reload().then((serviceObject) async {
+      VM vm = serviceObject;
       // Preload all isolates to avoid sorting problems.
       await Future.wait(vm.isolates.map((i) => i.load()));
-      container.children = [
+      container.children = <Element>[
         new MemoryDashboardElement(
             vm,
             _vmrepository,
@@ -752,7 +753,7 @@ class PortsPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new PortsElement(isolate.vm, isolate, app.events, app.notifications,
             _portsRepository, _objectRepository,
             queue: app.queue)
@@ -775,7 +776,7 @@ class PersistentHandlesPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new PersistentHandlesPageElement(isolate.vm, isolate, app.events,
             app.notifications, _persistentHandlesRepository, _objectRepository,
             queue: app.queue)
@@ -798,7 +799,7 @@ class HeapMapPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new HeapMapElement(isolate.vm, isolate, app.events, app.notifications,
             queue: app.queue)
       ];
@@ -820,7 +821,7 @@ class HeapSnapshotPage extends MatchingPage {
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new HeapSnapshotElement(isolate.vm, isolate, app.events,
             app.notifications, _heapSnapshotRepository, _objectRepository,
             queue: app.queue)
@@ -858,7 +859,7 @@ class LoggingPage extends MatchingPage {
     assert(element != null);
     assert(canVisit(uri));
     getIsolate(uri).then((isolate) {
-      container.children = [
+      container.children = <Element>[
         new LoggingPageElement(app.vm, isolate, app.events, app.notifications,
             queue: app.queue)
       ];
@@ -917,7 +918,7 @@ class IsolateReconnectPage extends Page {
 
   void _visit(Uri uri) {
     app.vm.reload();
-    container.children = [
+    container.children = <Element>[
       new IsolateReconnectElement(
           app.vm,
           app.events,
@@ -945,7 +946,7 @@ class MetricsPage extends MatchingPage {
       lastIsolate = isolate;
       container.children = const [];
       await _metricRepository.startSampling(isolate);
-      container.children = [
+      container.children = <Element>[
         new MetricsPageElement(isolate.vm, isolate, app.events,
             app.notifications, _metricRepository,
             queue: app.queue)
@@ -997,7 +998,7 @@ class TimelineDashboardPage extends Page {
   void _visit(Uri uri) {
     assert(canVisit(uri));
     app.vm.load().then((_) {
-      container.children = [
+      container.children = <Element>[
         new TimelineDashboardElement(
             app.vm, _timelineRepository, app.notifications,
             queue: app.queue)

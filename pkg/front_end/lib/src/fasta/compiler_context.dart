@@ -4,11 +4,9 @@
 
 library fasta.compiler_context;
 
-import 'dart:async' show Zone, runZoned;
+import 'dart:async' show Future, Zone, runZoned;
 
 import 'package:kernel/ast.dart' show Source;
-
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../api_prototype/file_system.dart' show FileSystem;
 
@@ -47,6 +45,11 @@ class CompilerContext {
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
+  // TODO(ahe): Remove this.
+  final List<Object> errors = <Object>[];
+
+  final List<Uri> dependencies = <Uri>[];
+
   FileSystem get fileSystem => options.fileSystem;
 
   bool enableColorsCached = null;
@@ -58,11 +61,13 @@ class CompilerContext {
   }
 
   /// Report [message], for example, by printing it.
-  void report(LocatedMessage message, Severity severity) {
-    options.report(message, severity);
+  void report(LocatedMessage message, Severity severity,
+      {List<LocatedMessage> context}) {
+    options.report(message, severity, context: context);
   }
 
   /// Report [message], for example, by printing it.
+  // TODO(askesc): Remove this and direct callers directly to report.
   void reportWithoutLocation(Message message, Severity severity) {
     options.reportWithoutLocation(message, severity);
   }
@@ -73,12 +78,29 @@ class CompilerContext {
   }
 
   /// Format [message] as a text string that can be included in generated code.
+  // TODO(askesc): Remove this and direct callers directly to format.
   String formatWithoutLocation(Message message, Severity severity) {
-    return command_line_reporting.formatWithoutLocation(message, severity);
+    return command_line_reporting.format(message.withoutLocation(), severity);
+  }
+
+  // TODO(ahe): Remove this.
+  void logError(Object message, Severity severity) {
+    errors.add(message);
+    errors.add(severity);
+  }
+
+  static void recordDependency(Uri uri) {
+    if (uri.scheme != "file") {
+      throw new ArgumentError("Expected a file-URI, but got: '$uri'.");
+    }
+    CompilerContext context = Zone.current[compilerContextKey];
+    if (context != null) {
+      context.dependencies.add(uri);
+    }
   }
 
   static CompilerContext get current {
-    var context = Zone.current[compilerContextKey];
+    CompilerContext context = Zone.current[compilerContextKey];
     if (context == null) {
       // Note: we throw directly and don't use internalProblem, because
       // internalProblem depends on having a compiler context available.
@@ -89,34 +111,40 @@ class CompilerContext {
     return context;
   }
 
+  static bool get isActive => Zone.current[compilerContextKey] != null;
+
   /// Perform [action] in a [Zone] where [this] will be available as
   /// `CompilerContext.current`.
-  T runInContext<T>(T action(CompilerContext c)) {
-    try {
-      return runZoned(() => action(this),
-          zoneValues: {compilerContextKey: this});
-    } finally {
-      clear();
-    }
+  Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
+    return runZoned(
+        () => new Future<T>.sync(() => action(this)).whenComplete(clear),
+        zoneValues: {compilerContextKey: this});
   }
 
   /// Perform [action] in a [Zone] where [options] will be available as
   /// `CompilerContext.current.options`.
-  static T runWithOptions<T>(
-      ProcessedOptions options, T action(CompilerContext c)) {
-    return new CompilerContext(options).runInContext(action);
+  static Future<T> runWithOptions<T>(
+      ProcessedOptions options, Future<T> action(CompilerContext c),
+      {bool errorOnMissingInput: true}) {
+    return new CompilerContext(options)
+        .runInContext<T>((CompilerContext c) async {
+      await options.validateOptions(errorOnMissingInput: errorOnMissingInput);
+      return action(c);
+    });
   }
 
-  static T runWithDefaultOptions<T>(T action(CompilerContext c)) {
-    var options = new ProcessedOptions(new CompilerOptions());
-    return new CompilerContext(options).runInContext(action);
+  static Future<T> runWithDefaultOptions<T>(
+      Future<T> action(CompilerContext c)) {
+    return new CompilerContext(new ProcessedOptions()).runInContext<T>(action);
   }
 
   static bool get enableColors {
     return current.enableColorsCached ??= computeEnableColors(current);
   }
 
-  static void clear() {
+  void clear() {
     StringToken.canonicalizer.clear();
+    errors.clear();
+    dependencies.clear();
   }
 }

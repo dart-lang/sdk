@@ -20,11 +20,11 @@ testFileExistsCreate() {
     Expect.isFalse(new File(x).existsSync());
     Expect.isTrue(FileSystemEntity.isLinkSync(y));
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
-    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
-    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.LINK,
+    Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.link,
         FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.NOT_FOUND,
+    Expect.equals(FileSystemEntityType.notFound,
         FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
@@ -35,11 +35,11 @@ testFileExistsCreate() {
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.isTrue(FileSystemEntity.isFileSync(y));
     Expect.isTrue(FileSystemEntity.isFileSync(x));
-    Expect.equals(FileSystemEntityType.FILE, FileSystemEntity.typeSync(y));
-    Expect.equals(FileSystemEntityType.FILE, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.LINK,
+    Expect.equals(FileSystemEntityType.file, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.file, FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.link,
         FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.FILE,
+    Expect.equals(FileSystemEntityType.file,
         FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
@@ -49,19 +49,19 @@ testFileExistsCreate() {
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.isTrue(FileSystemEntity.isDirectorySync(y));
     Expect.isTrue(FileSystemEntity.isDirectorySync(x));
-    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(y));
-    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.LINK,
+    Expect.equals(FileSystemEntityType.directory, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.directory, FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.link,
         FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.DIRECTORY,
+    Expect.equals(FileSystemEntityType.directory,
         FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
     new Link(y).deleteSync();
     Expect.isFalse(FileSystemEntity.isLinkSync(y));
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
-    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
-    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.directory, FileSystemEntity.typeSync(x));
     Expect.throws(() => new Link(y).targetSync());
 
     temp.deleteSync(recursive: true);
@@ -97,7 +97,7 @@ testFileWriteRead() {
   new File(x).createSync();
   createLink(x, y, () {
     var data = "asdf".codeUnits;
-    var output = new File(y).openWrite(mode: FileMode.WRITE);
+    var output = new File(y).openWrite(mode: FileMode.write);
     output.add(data);
     output.close();
     output.done.then((_) {

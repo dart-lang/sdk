@@ -19,7 +19,7 @@ main() {
       predicate((x) => x is ImageElement, 'is an ImageElement');
 
   test('query', () {
-    Element e = query('#testcanvas');
+    Element e = querySelector('#testcanvas');
     expect(e, isNotNull);
     expect(e.id, 'testcanvas');
     expect(e, isCanvasElement);
@@ -27,18 +27,18 @@ main() {
   });
 
   test('query (None)', () {
-    Element e = query('#nothere');
+    Element e = querySelector('#nothere');
     expect(e, isNull);
   });
 
   test('queryAll (One)', () {
-    List l = queryAll('canvas');
+    List l = querySelectorAll('canvas');
     expect(l.length, 1);
     expect(l[0], canvas);
   });
 
   test('queryAll (Multiple)', () {
-    List l = queryAll('img');
+    List l = querySelectorAll('img');
     expect(l.length, 2);
     expect(l[0], isImageElement);
     expect(l[1], isImageElement);
@@ -46,7 +46,7 @@ main() {
   });
 
   test('queryAll (None)', () {
-    List l = queryAll('video');
+    List l = querySelectorAll('video');
     expect(l.isEmpty, isTrue);
   });
 }

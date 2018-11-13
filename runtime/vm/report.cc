@@ -44,7 +44,7 @@ RawString* Report::PrependSnippet(Kind kind,
       UNREACHABLE();
   }
   String& result = String::Handle();
-  if (!script.IsNull()) {
+  if (!script.IsNull() && !String::Handle(script.Source()).IsNull()) {
     const String& script_url = String::Handle(script.url());
     if (token_pos.IsReal()) {
       intptr_t line, column, token_len;
@@ -154,7 +154,7 @@ void Report::MessageV(Kind kind,
       const String& msg = String::Handle(String::NewFormattedV(format, args));
       const String& snippet_msg = String::Handle(
           PrependSnippet(kind, script, token_pos, report_after_token, msg));
-      OS::Print("%s", snippet_msg.ToCString());
+      OS::PrintErr("%s", snippet_msg.ToCString());
       return;
     }
   }

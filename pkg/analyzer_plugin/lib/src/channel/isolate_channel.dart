@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -222,13 +222,15 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   @override
   void kill() {
-    _isolate.kill(priority: Isolate.immediate);
+    _isolate?.kill(priority: Isolate.immediate);
   }
 
   @override
-  Future<Null> listen(void onResponse(Response response),
+  Future<void> listen(void onResponse(Response response),
       void onNotification(Notification notification),
-      {Function onError, void onDone()}) async {
+      {void onError(dynamic error), void onDone()}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_isolate != null) {
       throw new StateError('Cannot listen to the same channel more than once.');
     }
@@ -262,18 +264,18 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       close();
       return null;
     }
-    Completer<Null> channelReady = new Completer<Null>();
+    Completer<void> channelReady = new Completer<void>();
     _receivePort.listen((dynamic input) {
       if (input is SendPort) {
         _sendPort = input;
         channelReady.complete(null);
       } else if (input is Map) {
         if (input.containsKey('id')) {
-          String encodedInput = JSON.encode(input);
+          String encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(pluginId, encodedInput);
           onResponse(new Response.fromJson(input));
         } else if (input.containsKey('event')) {
-          String encodedInput = JSON.encode(input);
+          String encodedInput = json.encode(input);
           instrumentationService.logPluginNotification(pluginId, encodedInput);
           onNotification(new Notification.fromJson(input));
         }
@@ -285,10 +287,10 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   @override
   void sendRequest(Request request) {
     if (_sendPort != null) {
-      Map<String, Object> json = request.toJson();
-      String encodedRequest = JSON.encode(json);
+      Map<String, Object> jsonData = request.toJson();
+      String encodedRequest = json.encode(jsonData);
       instrumentationService.logPluginRequest(pluginId, encodedRequest);
-      _sendPort.send(json);
+      _sendPort.send(jsonData);
     }
   }
 

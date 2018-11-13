@@ -101,6 +101,27 @@ class C2 = Object with B;
     assertThat(classElementB)..isAncestorOf('C2 = Object with B');
   }
 
+  test_hasAncestor_MixinDeclaration() async {
+    await _indexTestUnit('''
+class A {}
+class B extends A {}
+
+mixin M1 on A {}
+mixin M2 on B {}
+mixin M3 implements A {}
+mixin M4 implements B {}
+mixin M5 on M2 {}
+''');
+    ClassElement classElementA = findElement('A');
+    assertThat(classElementA)
+      ..isAncestorOf('B extends A')
+      ..isAncestorOf('M1 on A')
+      ..isAncestorOf('M2 on B')
+      ..isAncestorOf('M3 implements A')
+      ..isAncestorOf('M4 implements B')
+      ..isAncestorOf('M5 on M2');
+  }
+
   test_isExtendedBy_ClassDeclaration() async {
     await _indexTestUnit('''
 class A {} // 1
@@ -195,6 +216,28 @@ class C = Object with A implements B; // 3
     assertThat(elementB)
       ..isImplementedAt('B; // 3', false)
       ..isReferencedAt('B; // 3', false);
+  }
+
+  test_isImplementedBy_MixinDeclaration_implementsClause() async {
+    await _indexTestUnit('''
+class A {} // 1
+mixin M implements A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
+  }
+
+  test_isImplementedBy_MixinDeclaration_onClause() async {
+    await _indexTestUnit('''
+class A {} // 1
+mixin M on A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   test_isInvokedBy_FieldElement() async {
@@ -338,7 +381,7 @@ class A {
       ..isInvokedAt('ggg(); // nq', false);
   }
 
-  test_isMixedInBy_ClassDeclaration() async {
+  test_isMixedInBy_ClassDeclaration_class() async {
     await _indexTestUnit('''
 class A {} // 1
 class B extends Object with A {} // 2
@@ -361,9 +404,29 @@ class B extends Object with p.A {} // 2
     assertThat(elementA).isMixedInAt('A {} // 2', true);
   }
 
-  test_isMixedInBy_ClassTypeAlias() async {
+  test_isMixedInBy_ClassDeclaration_mixin() async {
+    await _indexTestUnit('''
+mixin A {} // 1
+class B extends Object with A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isMixedInAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
+  }
+
+  test_isMixedInBy_ClassTypeAlias_class() async {
     await _indexTestUnit('''
 class A {} // 1
+class B = Object with A; // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isMixedInAt('A; // 2', false);
+  }
+
+  test_isMixedInBy_ClassTypeAlias_mixin() async {
+    await _indexTestUnit('''
+mixin A {} // 1
 class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement('A');
@@ -412,6 +475,18 @@ main() {
 }''');
     Element element = importedUnit().getType('A');
     assertThat(element).isReferencedAt('A();', true);
+  }
+
+  test_isReferencedBy_ClassElement_invocationTypeArgument() async {
+    await _indexTestUnit('''
+class A {}
+void f<T>() {}
+main() {
+  f<A>();
+}
+''');
+    Element element = findElement('A');
+    assertThat(element)..isReferencedAt('A>();', false);
   }
 
   test_isReferencedBy_ClassTypeAlias() async {
@@ -808,6 +883,21 @@ main() {
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
+  test_isReferencedBy_ParameterElement_optionalPositional() async {
+    await _indexTestUnit('''
+foo([p]) {
+  p; // 1
+}
+main() {
+  foo(1); // 2
+}
+''');
+    Element element = findElement('p');
+    assertThat(element)
+      ..hasRelationCount(1)
+      ..isReferencedAt('1); // 2', true, length: 0);
+  }
+
   test_isReferencedBy_synthetic_leastUpperBound() async {
     await _indexTestUnit('''
 int f1({int p}) => 1;
@@ -924,27 +1014,20 @@ class Z implements E, D {
 }
 ''');
 
-    {
-      AnalysisDriverSubtype X =
-          index.subtypes.singleWhere((t) => t.name == 'X');
-      expect(X.supertypes, ['$libP;A']);
-      expect(X.members, ['field1', 'field2', 'getter1', 'method1', 'setter1']);
-    }
+    expect(index.supertypes, hasLength(6));
+    expect(index.subtypes, hasLength(6));
 
-    {
-      AnalysisDriverSubtype Y =
-          index.subtypes.singleWhere((t) => t.name == 'Y');
-      expect(
-          Y.supertypes, ['dart:core;dart:core;Object', '$libP;B', '$libP;C']);
-      expect(Y.members, ['methodY']);
-    }
-
-    {
-      AnalysisDriverSubtype Z =
-          index.subtypes.singleWhere((t) => t.name == 'Z');
-      expect(Z.supertypes, ['$libP;D', '$libP;E']);
-      expect(Z.members, ['methodZ']);
-    }
+    _assertSubtype(0, 'dart:core;dart:core;Object', 'Y', ['methodY']);
+    _assertSubtype(
+      1,
+      '$libP;A',
+      'X',
+      ['field1', 'field2', 'getter1', 'method1', 'setter1'],
+    );
+    _assertSubtype(2, '$libP;B', 'Y', ['methodY']);
+    _assertSubtype(3, '$libP;C', 'Y', ['methodY']);
+    _assertSubtype(4, '$libP;D', 'Z', ['methodZ']);
+    _assertSubtype(5, '$libP;E', 'Z', ['methodZ']);
   }
 
   test_subtypes_classTypeAlias() async {
@@ -962,19 +1045,16 @@ class X = A with B, C;
 class Y = A with B implements C, D;
 ''');
 
-    {
-      AnalysisDriverSubtype X =
-          index.subtypes.singleWhere((t) => t.name == 'X');
-      expect(X.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
-      expect(X.members, isEmpty);
-    }
+    expect(index.supertypes, hasLength(7));
+    expect(index.subtypes, hasLength(7));
 
-    {
-      AnalysisDriverSubtype Y =
-          index.subtypes.singleWhere((t) => t.name == 'Y');
-      expect(Y.supertypes, ['$libP;A', '$libP;B', '$libP;C', '$libP;D']);
-      expect(Y.members, isEmpty);
-    }
+    _assertSubtype(0, '$libP;A', 'X', []);
+    _assertSubtype(1, '$libP;A', 'Y', []);
+    _assertSubtype(2, '$libP;B', 'X', []);
+    _assertSubtype(3, '$libP;B', 'Y', []);
+    _assertSubtype(4, '$libP;C', 'X', []);
+    _assertSubtype(5, '$libP;C', 'Y', []);
+    _assertSubtype(6, '$libP;D', 'Y', []);
   }
 
   test_subtypes_dynamic() async {
@@ -984,9 +1064,35 @@ class X extends dynamic {
 }
 ''');
 
-    AnalysisDriverSubtype X = index.subtypes.singleWhere((t) => t.name == 'X');
-    expect(X.supertypes, isEmpty);
-    expect(X.members, ['foo']);
+    expect(index.supertypes, isEmpty);
+    expect(index.subtypes, isEmpty);
+  }
+
+  test_subtypes_mixinDeclaration() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    provider.newFile(_p('$testProject/lib.dart'), '''
+class A {}
+class B {}
+class C {}
+class D {}
+class E {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+mixin X on A implements B, C {}
+mixin Y on A, B implements C;
+''');
+
+    expect(index.supertypes, hasLength(6));
+    expect(index.subtypes, hasLength(6));
+
+    _assertSubtype(0, '$libP;A', 'X', []);
+    _assertSubtype(1, '$libP;A', 'Y', []);
+    _assertSubtype(2, '$libP;B', 'X', []);
+    _assertSubtype(3, '$libP;B', 'Y', []);
+    _assertSubtype(4, '$libP;C', 'X', []);
+    _assertSubtype(5, '$libP;C', 'Y', []);
   }
 
   test_usedName_inLibraryIdentifier() async {
@@ -1094,6 +1200,14 @@ main() {
         'not found\n$element $expectedRelationKind at $expectedLocation');
   }
 
+  void _assertSubtype(
+      int i, String superEncoded, String subName, List<String> members) {
+    expect(index.strings[index.supertypes[i]], superEncoded);
+    var subtype = index.subtypes[i];
+    expect(index.strings[subtype.name], subName);
+    expect(_decodeStringList(subtype.members), members);
+  }
+
   void _assertUsedName(String name, IndexRelationKind kind,
       ExpectedLocation expectedLocation, bool isNot) {
     int nameId = _getStringId(name);
@@ -1112,6 +1226,10 @@ main() {
       return;
     }
     _failWithIndexDump('Not found $name $kind at $expectedLocation');
+  }
+
+  List<String> _decodeStringList(List<int> stringIds) {
+    return stringIds.map((i) => index.strings[i]).toList();
   }
 
   ExpectedLocation _expectedLocation(String search, bool isQualified,
@@ -1223,7 +1341,7 @@ main() {
 
     AnalysisResult result = await driver.getResult(testFile);
     testUnit = result.unit;
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
 
     AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);

@@ -7,8 +7,9 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"
+#include "vm/heap/safepoint.h"
+#include "vm/kernel_isolate.h"
 #include "vm/object.h"
-#include "vm/safepoint.h"
 #include "vm/symbols.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
@@ -109,7 +110,7 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   BackgroundCompiler::Stop(isolate);
 }
 
-TEST_CASE(RegenerateAllocStubs) {
+ISOLATE_UNIT_TEST_CASE(RegenerateAllocStubs) {
   const char* kScriptChars =
       "class A {\n"
       "}\n"
@@ -119,29 +120,39 @@ TEST_CASE(RegenerateAllocStubs) {
       "  return unOpt();\n"
       "}\n";
 
+  Class& cls = Class::Handle();
+  TransitionVMToNative transition(thread);
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
-  Library& lib_handle = Library::ZoneHandle(raw_library);
-  Class& cls = Class::Handle(
-      lib_handle.LookupClass(String::Handle(Symbols::New(thread, "A"))));
-  EXPECT(!cls.IsNull());
 
-  Zone* zone = thread->zone();
-  const Code& stub =
-      Code::Handle(zone, StubCode::GetAllocationStubForClass(cls));
-  Class& owner = Class::Handle();
-  owner ^= stub.owner();
-  owner.DisableAllocationStub();
+  {
+    TransitionNativeToVM transition(thread);
+    Library& lib_handle =
+        Library::Handle(Library::RawCast(Api::UnwrapHandle(lib)));
+    cls = lib_handle.LookupClass(String::Handle(Symbols::New(thread, "A")));
+    EXPECT(!cls.IsNull());
+  }
+
+  {
+    TransitionNativeToVM transition(thread);
+    cls.DisableAllocationStub();
+  }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-  owner.DisableAllocationStub();
+  {
+    TransitionNativeToVM transition(thread);
+    cls.DisableAllocationStub();
+  }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-  owner.DisableAllocationStub();
+  {
+    TransitionNativeToVM transition(thread);
+    cls.DisableAllocationStub();
+  }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }
@@ -170,8 +181,28 @@ TEST_CASE(EvalExpression) {
   expr_text = String::New("apa + ' ${calc(10)}' + dot");
   Object& val = Object::Handle();
   const Class& receiver_cls = Class::Handle(obj.clazz());
-  val = Instance::Cast(obj).Evaluate(
-      receiver_cls, expr_text, Array::empty_array(), Array::empty_array());
+
+  if (!KernelIsolate::IsRunning()) {
+    UNREACHABLE();
+  } else {
+    RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
+    Library& lib_handle = Library::ZoneHandle(raw_library);
+
+    Dart_KernelCompilationResult compilation_result =
+        KernelIsolate::CompileExpressionToKernel(
+            expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
+            String::Handle(lib_handle.url()).ToCString(), "A",
+            /* is_static= */ false);
+    EXPECT_EQ(Dart_KernelCompilationStatus_Ok, compilation_result.status);
+
+    const uint8_t* kernel_bytes = compilation_result.kernel;
+    intptr_t kernel_length = compilation_result.kernel_size;
+
+    val = Instance::Cast(obj).EvaluateCompiledExpression(
+        receiver_cls, kernel_bytes, kernel_length, Array::empty_array(),
+        Array::empty_array(), TypeArguments::null_type_arguments());
+    free(const_cast<uint8_t*>(kernel_bytes));
+  }
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsString());
@@ -179,12 +210,18 @@ TEST_CASE(EvalExpression) {
 }
 
 ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
+  {  // Initialize an incremental compiler in DFE mode.
+    TransitionVMToNative transition(thread);
+    TestCase::LoadTestScript("", NULL);
+  }
   Library& lib = Library::Handle(Library::CoreLibrary());
-
   const String& expression = String::Handle(
       String::New("(){ return (){ return (){ return 3 + 4; }(); }(); }()"));
   Object& val = Object::Handle();
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
 
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
@@ -193,13 +230,18 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
+  {  // Initialize an incremental compiler in DFE mode.
+    TransitionVMToNative transition(thread);
+    TestCase::LoadTestScript("", NULL);
+  }
   Library& lib = Library::Handle(Library::CoreLibrary());
-
   const String& expression = String::Handle(String::New("3 + 4"));
   Object& val = Object::Handle();
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
 
-  // Run once to ensure everything we touch is compiled.
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());
@@ -208,7 +250,10 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   intptr_t initial_class_table_size =
       Isolate::Current()->class_table()->NumCids();
 
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());

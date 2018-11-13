@@ -58,7 +58,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     assert(mode != null);
     assert(direction != null);
     CpuProfileVirtualTreeElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<CpuProfileVirtualTreeElement>(e, queue: queue);
     e._isolate = owner;
     e._profile = profile;
     e._mode = mode;
@@ -79,7 +79,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   VirtualTreeElement _tree;
@@ -128,28 +128,28 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       });
     }
     if (tree == null) {
-      children = [new HeadingElement.h1()..text = 'No Results'];
+      children = <Element>[new HeadingElement.h1()..text = 'No Results'];
       return;
     }
     _tree = new VirtualTreeElement(create, update, _getChildren,
         items: tree.root.children, search: search, queue: _r.queue);
     if (tree.root.children.length == 0) {
-      children = [
+      children = <Element>[
         new DivElement()
           ..classes = ['tree-item']
-          ..children = [new HeadingElement.h1()..text = 'No Samples']
+          ..children = <Element>[new HeadingElement.h1()..text = 'No Samples']
       ];
       return;
     } else if (tree.root.children.length == 1) {
       _tree.expand(tree.root.children.first, autoExpandSingleChildNodes: true);
     }
-    children = [_tree];
+    children = <Element>[_tree];
   }
 
-  static Element _createCpuRow(toggle) {
+  static HtmlElement _createCpuRow(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['inclusive']
           ..title = 'global % on stack',
@@ -167,10 +167,10 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       ];
   }
 
-  static Element _createMemoryRow(toggle) {
+  static HtmlElement _createMemoryRow(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['inclusive']
           ..title = 'memory allocated from resulting calls: ',
@@ -188,13 +188,17 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       ];
   }
 
-  static _getChildren(M.CallTreeNode node) => node.children;
+  static Iterable<M.CallTreeNode> _getChildren(nodeDynamic) {
+    M.CallTreeNode node = nodeDynamic;
+    return node.children;
+  }
 
   static const String _expandedIcon = '▼';
   static const String _collapsedIcon = '►';
 
   void _updateCpuFunctionRow(
-      HtmlElement element, M.FunctionCallTreeNode item, int depth) {
+      HtmlElement element, itemDynamic, int depth) {
+    M.FunctionCallTreeNode item = itemDynamic;
     element.children[0].text = Utils
         .formatPercentNormalized(item.profileFunction.normalizedInclusiveTicks);
     element.children[1].text = Utils
@@ -214,7 +218,8 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
   }
 
   void _updateMemoryFunctionRow(
-      HtmlElement element, M.FunctionCallTreeNode item, int depth) {
+      HtmlElement element, itemDynamic, int depth) {
+    M.FunctionCallTreeNode item = itemDynamic;
     element.children[0].text =
         Utils.formatSize(item.inclusiveNativeAllocations);
     element.children[0].title = 'memory allocated from resulting calls: '
@@ -237,11 +242,14 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       ..classes = ['name'];
   }
 
-  bool _searchFunction(Pattern pattern, M.FunctionCallTreeNode item) =>
-      M.getFunctionFullName(item.profileFunction.function).contains(pattern);
+  bool _searchFunction(Pattern pattern, itemDynamic) {
+    M.FunctionCallTreeNode item = itemDynamic;
+    return M.getFunctionFullName(item.profileFunction.function).contains(pattern);
+  }
 
   void _updateCpuCodeRow(
-      HtmlElement element, M.CodeCallTreeNode item, int depth) {
+      HtmlElement element, itemDynamic, int depth) {
+    M.CodeCallTreeNode item = itemDynamic;
     element.children[0].text = Utils
         .formatPercentNormalized(item.profileCode.normalizedInclusiveTicks);
     element.children[1].text = Utils
@@ -260,7 +268,8 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
   }
 
   void _updateMemoryCodeRow(
-      HtmlElement element, M.CodeCallTreeNode item, int depth) {
+      HtmlElement element, itemDynamic, int depth) {
+    M.CodeCallTreeNode item = itemDynamic;
     element.children[0].text =
         Utils.formatSize(item.inclusiveNativeAllocations);
     element.children[0].title = 'memory allocated from resulting calls: '
@@ -282,8 +291,10 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
           ..classes = ['name'];
   }
 
-  bool _searchCode(Pattern pattern, M.CodeCallTreeNode item) =>
-      item.profileCode.code.name.contains(pattern);
+  bool _searchCode(Pattern pattern, itemDynamic) {
+    M.CodeCallTreeNode item = itemDynamic;
+    return item.profileCode.code.name.contains(pattern);
+  }
 
   static _updateLines(List<Element> lines, int n) {
     n = Math.max(0, n);

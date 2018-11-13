@@ -82,7 +82,7 @@ class ZoneAllocated {
 #if defined(DEBUG)
 class NoSafepointScope : public StackResource {
  public:
-  NoSafepointScope();
+  explicit NoSafepointScope(Thread* thread = nullptr);
   ~NoSafepointScope();
 
  private:
@@ -91,7 +91,7 @@ class NoSafepointScope : public StackResource {
 #else   // defined(DEBUG)
 class NoSafepointScope : public ValueObject {
  public:
-  NoSafepointScope() {}
+  explicit NoSafepointScope(Thread* thread = nullptr) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);

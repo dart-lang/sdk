@@ -6,13 +6,13 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
 
+import 'constants.dart';
 import 'mocks.dart';
 
 main() {
@@ -26,7 +26,6 @@ main() {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
-        new MockPackageMapProvider(),
         new AnalysisServerOptions(),
         new DartSdkManager('', false),
         InstrumentationService.NULL_SERVICE);
@@ -41,7 +40,7 @@ main() {
           response.toJson(),
           equals({
             Response.ID: '0',
-            Response.RESULT: {VERSION: AnalysisServer.VERSION}
+            Response.RESULT: {VERSION: PROTOCOL_VERSION}
           }));
     });
 

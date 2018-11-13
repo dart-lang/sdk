@@ -273,7 +273,7 @@ Comparator<K> _defaultCompare<K>() {
  * Non-comparable objects (including `null`) will not work as keys
  * in that case.
  *
- * To allow calling [[]], [remove] or [containsKey] with objects
+ * To allow calling [operator []], [remove] or [containsKey] with objects
  * that are not supported by the `compare` function, an extra `isValidKey`
  * predicate function can be supplied. This function is tested before
  * using the `compare` function on an argument value that may not be a [K]
@@ -281,7 +281,7 @@ Comparator<K> _defaultCompare<K>() {
  * value is a [K].
  */
 class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
-    implements Map<K, V> {
+    with MapMixin<K, V> {
   _SplayTreeMapNode<K, V> _root;
   final _SplayTreeMapNode<K, V> _dummy =
       new _SplayTreeMapNode<K, V>(null, null);
@@ -295,6 +295,9 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
 
   /**
    * Creates a [SplayTreeMap] that contains all key/value pairs of [other].
+   *
+   * The keys must all be instances of [K] and the values of [V].
+   * The [other] map itself can have any type.
    */
   factory SplayTreeMap.from(Map other,
       [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
@@ -304,6 +307,13 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     });
     return result;
   }
+
+  /**
+   * Creates a [SplayTreeMap] that contains all key/value pairs of [other].
+   */
+  factory SplayTreeMap.of(Map<K, V> other,
+          [int compare(K key1, K key2), bool isValidKey(potentialKey)]) =>
+      new SplayTreeMap<K, V>(compare, isValidKey)..addAll(other);
 
   /**
    * Creates a [SplayTreeMap] where the keys and values are computed from the
@@ -324,7 +334,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
       int compare(K key1, K key2),
       bool isValidKey(potentialKey)}) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
@@ -342,7 +352,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
       [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithIterables(map, keys, values);
+    MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
 
@@ -454,10 +464,6 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   Iterable<K> get keys => new _SplayTreeKeyIterable<K>(this);
 
   Iterable<V> get values => new _SplayTreeValueIterable<K, V>(this);
-
-  String toString() {
-    return Maps.mapToString(this);
-  }
 
   /**
    * Get the first key in the map. Returns [:null:] if the map is empty.
@@ -725,7 +731,15 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
    *
    * The set works as if created by `new SplayTreeSet<E>(compare, isValidKey)`.
    *
-   * All the [elements] should be valid as arguments to the [compare] function.
+   * All the [elements] should be instances of [E] and valid arguments to
+   * [compare].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Set`, for example as:
+   * ```dart
+   * Set<SuperType> superSet = ...;
+   * Set<SubType> subSet =
+   *     new SplayTreeSet<SubType>.from(superSet.whereType<SubType>());
+   * ```
    */
   factory SplayTreeSet.from(Iterable elements,
       [int compare(E key1, E key2), bool isValidKey(potentialKey)]) {
@@ -737,6 +751,21 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
     return result;
   }
 
+  /**
+   * Creates a [SplayTreeSet] from [elements].
+   *
+   * The set works as if created by `new SplayTreeSet<E>(compare, isValidKey)`.
+   *
+   * All the [elements] should be valid as arguments to the [compare] function.
+   */
+  factory SplayTreeSet.of(Iterable<E> elements,
+          [int compare(E key1, E key2), bool isValidKey(potentialKey)]) =>
+      new SplayTreeSet(compare, isValidKey)..addAll(elements);
+
+  Set<T> _newSet<T>() =>
+      new SplayTreeSet<T>((T a, T b) => _comparator(a as E, b as E), _validKey);
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
   int _compare(E e1, E e2) => _comparator(e1, e2);
 
   // From Iterable.

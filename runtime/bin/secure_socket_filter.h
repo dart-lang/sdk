@@ -49,6 +49,10 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 
   ~SSLFilter();
 
+  char* hostname() const { return hostname_; }
+  bool is_server() const { return is_server_; }
+  bool is_client() const { return !is_server_; }
+
   Dart_Handle Init(Dart_Handle dart_this);
   void Connect(const char* hostname,
                SSLCertContext* context,

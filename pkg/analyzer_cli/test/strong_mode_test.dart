@@ -16,7 +16,7 @@ main() {
   defineReflectiveTests(StrongModeTest);
 }
 
-/// End-to-end test for --strong checking.
+/// End-to-end test for strong checking.
 ///
 /// Most strong mode tests are in Analyzer, but this verifies the option is
 /// working and producing extra errors as expected.
@@ -26,11 +26,11 @@ main() {
 @reflectiveTest
 class StrongModeTest extends BaseTest {
   test_producesStricterErrors() async {
-    await drive('data/strong_example.dart', args: ['--strong']);
+    await drive('data/strong_example.dart');
 
     expect(exitCode, 3);
     var stdout = bulletToDash(outSink);
-    expect(stdout, contains('error - Invalid override'));
+    expect(stdout, contains("isn't a valid override of"));
     expect(stdout, contains('error - The list literal type'));
     expect(stdout, contains('2 errors found'));
   }

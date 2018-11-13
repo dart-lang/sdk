@@ -1,8 +1,6 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.parse_compilation_unit_test;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:test/test.dart';
@@ -36,6 +34,12 @@ void main() {
 
   test("allows you to specify whether or not to parse function bodies", () {
     var unit = parseCompilationUnit("void main() => print('Hello, world!');",
+        parseFunctionBodies: false);
+    expect(unit.toString(), equals("void main();"));
+  });
+
+  test("allows you to specify whether or not to parse function bodies 2", () {
+    var unit = parseCompilationUnit("void main() { print('Hello, world!'); }",
         parseFunctionBodies: false);
     expect(unit.toString(), equals("void main();"));
   });

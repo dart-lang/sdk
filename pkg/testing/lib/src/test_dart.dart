@@ -29,7 +29,9 @@ class TestDart extends Suite {
   factory TestDart.fromJsonMap(Uri base, Map json, String name, String kind) {
     String common = json["common"] ?? "";
     String processes = json["processes"] ?? "-j${Platform.numberOfProcessors}";
-    List<String> commandLines = json["command-lines"] ?? <String>[];
+    List<String> commandLines = json["command-lines"] == null
+        ? new List<String>.from(json["command-lines"])
+        : <String>[];
     return new TestDart(name, common, processes, commandLines);
   }
 
@@ -41,12 +43,10 @@ class TestDart extends Suite {
 
   void writeRunCommandOn(StringSink sink) {
     Uri dartVm;
-    if (Platform.isMacOS) {
-      dartVm = Uri.base.resolve("tools/sdks/mac/dart-sdk/bin/dart");
+    if (Platform.isMacOS || Platform.isLinux) {
+      dartVm = Uri.base.resolve("tools/sdks/dart-sdk/bin/dart");
     } else if (Platform.isWindows) {
-      dartVm = Uri.base.resolve("tools/sdks/win/dart-sdk/bin/dart.exe");
-    } else if (Platform.isLinux) {
-      dartVm = Uri.base.resolve("tools/sdks/linux/dart-sdk/bin/dart");
+      dartVm = Uri.base.resolve("tools/sdks/dart-sdk/bin/dart.exe");
     } else {
       throw "Operating system not supported: ${Platform.operatingSystem}";
     }

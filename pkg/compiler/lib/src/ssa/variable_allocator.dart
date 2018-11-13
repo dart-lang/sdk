@@ -550,9 +550,9 @@ class VariableNamer {
     if (instruction is HCheck) {
       // Special case this instruction to use the name of its
       // input if it has one.
-      var temp = instruction;
+      HInstruction temp = instruction;
       do {
-        temp = temp.checkedInput;
+        temp = (temp as HCheck).checkedInput;
         name = names.ownName[temp];
       } while (name == null && temp is HCheck);
       if (name != null) return addAllocatedName(instruction, name);

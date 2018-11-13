@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.context;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -11,8 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
@@ -23,14 +19,16 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/plugin/task.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/html.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/html.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 
 /**
@@ -153,14 +151,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * the corresponding PendingFuture objects.  These sources will be analyzed
    * in the same way as priority sources, except with higher priority.
    */
-  HashMap<AnalysisTarget, List<PendingFuture>> _pendingFutureTargets =
+  Map<AnalysisTarget, List<PendingFuture>> _pendingFutureTargets =
       new HashMap<AnalysisTarget, List<PendingFuture>>();
 
   /**
    * A table mapping sources to the change notices that are waiting to be
    * returned related to that source.
    */
-  HashMap<Source, ChangeNoticeImpl> _pendingNotices =
+  Map<Source, ChangeNoticeImpl> _pendingNotices =
       new HashMap<Source, ChangeNoticeImpl>();
 
   /**
@@ -278,7 +276,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.lint && !options.lint) ||
         _notEqual(this._options.lintRules, options.lintRules) ||
         this._options.preserveComments != options.preserveComments ||
-        this._options.strongMode != options.strongMode ||
         this._options.useFastaParser != options.useFastaParser ||
         this._options.enableLazyAssignmentOperators !=
             options.enableLazyAssignmentOperators ||
@@ -292,24 +289,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             ? this._options.implicitCasts != options.implicitCasts
             : false) ||
         ((options is AnalysisOptionsImpl)
-            ? this._options.nonnullableTypes != options.nonnullableTypes
-            : false) ||
-        ((options is AnalysisOptionsImpl)
             ? this._options.implicitDynamic != options.implicitDynamic
             : false) ||
-        this._options.enableStrictCallChecks !=
-            options.enableStrictCallChecks ||
-        this._options.enableSuperMixins != options.enableSuperMixins ||
         !_samePatchPaths(this._options.patchPaths, options.patchPaths);
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableLazyAssignmentOperators =
         options.enableLazyAssignmentOperators;
-    this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
     this._options.enabledPluginNames = options.enabledPluginNames;
     this._options.errorProcessors = options.errorProcessors;
@@ -318,10 +307,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.lintRules = options.lintRules;
     this._options.preserveComments = options.preserveComments;
-    if (this._options.strongMode != options.strongMode) {
-      _typeSystem = null;
-    }
-    this._options.strongMode = options.strongMode;
     this._options.useFastaParser = options.useFastaParser;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.disableCacheFlushing = options.disableCacheFlushing;
@@ -330,8 +315,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       this._options.strongModeHints = options.strongModeHints;
       this._options.declarationCasts = options.declarationCasts;
       this._options.implicitCasts = options.implicitCasts;
-      this._options.nonnullableTypes = options.nonnullableTypes;
       this._options.implicitDynamic = options.implicitDynamic;
+      this._options.isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {
@@ -343,13 +328,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void set analysisPriorityOrder(List<Source> sources) {
     if (sources == null || sources.isEmpty) {
-      _priorityOrder = Source.EMPTY_LIST;
+      _priorityOrder = const <Source>[];
     } else {
       while (sources.remove(null)) {
         // Nothing else to do.
       }
       if (sources.isEmpty) {
-        _priorityOrder = Source.EMPTY_LIST;
+        _priorityOrder = const <Source>[];
       } else {
         _priorityOrder = sources;
       }
@@ -370,6 +355,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  /**
+   * Set the declared variables to the give collection of declared [variables].
+   */
+  void set declaredVariables(DeclaredVariables variables) {
+    _declaredVariables = variables;
+  }
 
   @deprecated
   @override
@@ -446,7 +438,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Make _pendingFutureSources available to unit tests.
    */
-  HashMap<AnalysisTarget, List<PendingFuture>>
+  Map<AnalysisTarget, List<PendingFuture>>
       get pendingFutureSources_forTesting => _pendingFutureTargets;
 
   @override
@@ -899,7 +891,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
     if (!AnalysisEngine.isDartFileName(source.shortName)) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     List<Source> htmlSources = <Source>[];
     List<Source> librarySources = getLibrariesContaining(source);
@@ -913,7 +905,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (htmlSources.isEmpty) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     return htmlSources;
   }
@@ -953,7 +945,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (dependentLibraries.isEmpty) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     return dependentLibraries;
   }
@@ -964,7 +956,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (entry != null) {
       return entry.getValue(REFERENCED_LIBRARIES);
     }
-    return Source.EMPTY_LIST;
+    return const <Source>[];
   }
 
   @override
@@ -1061,7 +1053,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // Don't compare with old contents because the cache has already been
         // updated, and we know at this point that it changed.
         _sourceChanged(source, compareWithOld: false);
-        entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
+        entry.setValue(CONTENT, newContents, const <TargetedResult>[]);
       } else {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
@@ -1073,7 +1065,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         newContents = fileContents.data;
         entry.modificationTime = fileContents.modificationTime;
         if (newContents == originalContents) {
-          entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
+          entry.setValue(CONTENT, newContents, const <TargetedResult>[]);
           changed = false;
         }
       } catch (e) {}
@@ -1198,7 +1190,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       //
       CacheEntry entry = getCacheEntry(librarySource);
       setValue(ResultDescriptor result, value) {
-        entry.setValue(result, value, TargetedResult.EMPTY_LIST);
+        entry.setValue(result, value, const <TargetedResult>[]);
       }
 
       setValue(BUILD_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
@@ -1208,11 +1200,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // CONSTRUCTORS
       // CONSTRUCTORS_ERRORS
       entry.setState(CONTENT, CacheState.FLUSHED);
-      setValue(EXPORTED_LIBRARIES, Source.EMPTY_LIST);
+      setValue(EXPORTED_LIBRARIES, const <Source>[]);
       // EXPORT_SOURCE_CLOSURE
-      setValue(IMPORTED_LIBRARIES, Source.EMPTY_LIST);
+      setValue(IMPORTED_LIBRARIES, const <Source>[]);
       // IMPORT_SOURCE_CLOSURE
-      setValue(INCLUDED_PARTS, Source.EMPTY_LIST);
+      setValue(INCLUDED_PARTS, const <Source>[]);
       setValue(IS_LAUNCHABLE, false);
       setValue(LIBRARY_ELEMENT, library);
       setValue(LIBRARY_ELEMENT1, library);
@@ -1264,7 +1256,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     });
 
     CacheEntry entry = getCacheEntry(AnalysisContextTarget.request);
-    entry.setValue(TYPE_PROVIDER, typeProvider, TargetedResult.EMPTY_LIST);
+    entry.setValue(TYPE_PROVIDER, typeProvider, const <TargetedResult>[]);
   }
 
   @override
@@ -1422,7 +1414,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         CacheEntry entry = _cache.get(source);
         if (entry != null) {
           entry.modificationTime = _contentCache.getModificationStamp(source);
-          entry.setValue(CONTENT, contents, TargetedResult.EMPTY_LIST);
+          entry.setValue(CONTENT, contents, const <TargetedResult>[]);
         }
       }
     } else if (originalContents != null) {
@@ -1503,7 +1495,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (nullIfEmpty) {
         return null;
       }
-      return ChangeNoticeImpl.EMPTY_LIST;
+      return const <ChangeNoticeImpl>[];
     }
     List<ChangeNotice> notices = new List.from(_pendingNotices.values);
     _pendingNotices.clear();
@@ -1531,7 +1523,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (sources.isEmpty) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     return sources;
   }
@@ -1803,8 +1795,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(SOURCE_KIND, CacheState.INVALID);
     }
     for (WorkManager workManager in workManagers) {
-      workManager.applyChange(
-          Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
+      workManager
+          .applyChange(const <Source>[], <Source>[source], const <Source>[]);
     }
   }
 
@@ -1954,7 +1946,7 @@ class PartitionManager {
   /**
    * A table mapping SDK's to the partitions used for those SDK's.
    */
-  HashMap<DartSdk, SdkCachePartition> _sdkPartitions =
+  Map<DartSdk, SdkCachePartition> _sdkPartitions =
       new HashMap<DartSdk, SdkCachePartition>();
 
   /**

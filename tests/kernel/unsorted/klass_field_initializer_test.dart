@@ -21,8 +21,8 @@ class B extends A {
   var m;
 
   B(this.n, o)
-      : super(o),
-        m = "m";
+      : m = "m",
+        super(o);
 }
 
 main() {

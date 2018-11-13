@@ -20,7 +20,7 @@
 namespace dart {
 namespace bin {
 
-bool Stdin::ReadByte(int* byte) {
+bool Stdin::ReadByte(intptr_t fd, int* byte) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   uint8_t buffer[1];
   DWORD read = 0;
@@ -32,7 +32,7 @@ bool Stdin::ReadByte(int* byte) {
   return true;
 }
 
-bool Stdin::GetEchoMode(bool* enabled) {
+bool Stdin::GetEchoMode(intptr_t fd, bool* enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -42,7 +42,7 @@ bool Stdin::GetEchoMode(bool* enabled) {
   return true;
 }
 
-bool Stdin::SetEchoMode(bool enabled) {
+bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -56,7 +56,7 @@ bool Stdin::SetEchoMode(bool enabled) {
   return SetConsoleMode(h, mode);
 }
 
-bool Stdin::GetLineMode(bool* enabled) {
+bool Stdin::GetLineMode(intptr_t fd, bool* enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -66,7 +66,7 @@ bool Stdin::GetLineMode(bool* enabled) {
   return true;
 }
 
-bool Stdin::SetLineMode(bool enabled) {
+bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -80,7 +80,7 @@ bool Stdin::SetLineMode(bool enabled) {
   return SetConsoleMode(h, mode);
 }
 
-bool Stdin::AnsiSupported(bool* supported) {
+bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {
   ASSERT(supported != NULL);
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   if (h == INVALID_HANDLE_VALUE) {

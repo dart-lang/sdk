@@ -19,9 +19,13 @@ class Derived2<U, V>
 
 main() {
   var d = new Derived1<Derived1, Derived2>();
-  Expect.equals("Derived1<Derived1, Derived2>", d.u.toString());
   Expect.equals(
-      "Derived1<Derived2<Derived2, Derived1>, Derived2>", d.v.toString());
+      "Derived1<Derived1<dynamic, dynamic>, Derived2<dynamic, dynamic>>",
+      d.u.toString());
+  Expect.equals(
+      "Derived1<Derived2<Derived2<dynamic, dynamic>, "
+      "Derived1<dynamic, dynamic>>, Derived2<dynamic, dynamic>>",
+      d.v.toString());
   Expect.isTrue(d is Derived1<Derived1, Derived2>);
   Expect.isFalse(d is Derived1<Derived1, Derived1>);
   Expect.isTrue(d is Base<Derived1<Derived1, Derived2>,

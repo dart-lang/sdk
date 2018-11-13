@@ -19,16 +19,19 @@ class Error {
   @patch
   StackTrace get stackTrace => _stackTrace;
 
+  @pragma("vm:entry-point")
   StackTrace _stackTrace;
 }
 
 class _AssertionError extends Error implements AssertionError {
+  @pragma("vm:entry-point")
   _AssertionError._create(
       this._failedAssertion, this._url, this._line, this._column, this.message);
 
   // AssertionError_throwNew in errors.cc fishes the assertion source code
   // out of the script. It expects a Dart stack frame from class
   // _AssertionError. Thus we need a Dart stub that calls the native code.
+  @pragma("vm:entry-point")
   static _throwNew(int assertionStart, int assertionEnd, Object message) {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
@@ -36,12 +39,13 @@ class _AssertionError extends Error implements AssertionError {
   static _doThrowNew(int assertionStart, int assertionEnd, Object message)
       native "AssertionError_throwNew";
 
+  @pragma("vm:entry-point")
   static _evaluateAssertion(condition) {
     if (identical(condition, true) || identical(condition, false)) {
       return condition;
     }
     if (condition is _Closure) {
-      return condition();
+      return (condition as dynamic)();
     }
     if (condition is Function) {
       condition = condition();
@@ -77,6 +81,7 @@ class _AssertionError extends Error implements AssertionError {
 }
 
 class _TypeError extends _AssertionError implements TypeError {
+  @pragma("vm:entry-point")
   _TypeError._create(String url, int line, int column, String errorMsg)
       : super._create("is assignable", url, line, column, errorMsg);
 
@@ -99,6 +104,7 @@ class _TypeError extends _AssertionError implements TypeError {
 }
 
 class _CastError extends Error implements CastError {
+  @pragma("vm:entry-point")
   _CastError._create(this._url, this._line, this._column, this._errorMsg);
 
   // A CastError is allocated by TypeError._throwNew() when dst_name equals
@@ -116,6 +122,7 @@ class _CastError extends Error implements CastError {
 @patch
 class FallThroughError {
   @patch
+  @pragma("vm:entry-point")
   FallThroughError._create(String url, int line)
       : _url = url,
         _line = line;
@@ -134,12 +141,14 @@ class FallThroughError {
 }
 
 class _InternalError {
+  @pragma("vm:entry-point")
   const _InternalError(this._msg);
   String toString() => "InternalError: '${_msg}'";
   final String _msg;
 }
 
 @patch
+@pragma("vm:entry-point")
 class UnsupportedError {
   static _throwNew(String msg) {
     throw new UnsupportedError(msg);
@@ -155,6 +164,7 @@ class CyclicInitializationError {
 
 @patch
 class AbstractClassInstantiationError {
+  @pragma("vm:entry-point")
   AbstractClassInstantiationError._create(
       this._className, this._url, this._line);
 
@@ -175,8 +185,13 @@ class AbstractClassInstantiationError {
 
 @patch
 class NoSuchMethodError {
-  // TODO(regis): Move _receiver declaration here:
-  // final Object _receiver;
+  // Deprecated members to be removed.
+  Symbol _memberName;
+  List _arguments;
+  Map<Symbol, dynamic> _namedArguments;
+  List _existingArgumentNames;
+
+  final Object _receiver;
   final _InvocationMirror _invocation;
 
   @patch
@@ -184,9 +199,14 @@ class NoSuchMethodError {
       : _receiver = receiver,
         _invocation = invocation as _InvocationMirror;
 
+  static void _throwNewInvocation(Object receiver, Invocation invocation) {
+    throw new NoSuchMethodError.withInvocation(receiver, invocation);
+  }
+
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.
+  @pragma("vm:entry-point")
   static void _throwNew(Object receiver, String memberName, int invocation_type,
       Object typeArguments, List arguments, List argumentNames) {
     throw new NoSuchMethodError._withType(receiver, memberName, invocation_type,
@@ -211,7 +231,7 @@ class NoSuchMethodError {
   // Remember the type from the invocation mirror or static compilation
   // analysis when thrown directly with _throwNew. A negative value means
   // that no information is available.
-  final int _invocation_type;
+  int _invocation_type;
 
   // TODO(regis): Deprecated constructor still used by dart2js to be removed.
   @patch
@@ -219,6 +239,7 @@ class NoSuchMethodError {
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
       [List existingArgumentNames = null])
       : _receiver = receiver,
+        _invocation = null,
         _memberName = memberName,
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
@@ -241,6 +262,7 @@ class NoSuchMethodError {
   // _throwNew above, taking a TypeArguments object rather than an unpacked list
   // of types, as well as a list of all arguments and a list of names, rather
   // than a separate list of positional arguments and a map of named arguments.
+  @pragma("vm:entry-point")
   NoSuchMethodError._withType(
       this._receiver,
       String memberName,
@@ -252,7 +274,8 @@ class NoSuchMethodError {
             new Symbol(memberName),
             invocation_type,
             typeArguments != null
-                ? _InvocationMirror._unpackTypeArguments(typeArguments)
+                // TODO(33073): Use actual count of type arguments in place of 0.
+                ? _InvocationMirror._unpackTypeArguments(typeArguments, 0)
                 : null,
             argumentNames != null
                 ? arguments.sublist(0, arguments.length - argumentNames.length)
@@ -558,28 +581,11 @@ class NoSuchMethodError {
   }
 }
 
+@pragma("vm:entry-point")
 class _CompileTimeError extends Error {
   final String _errorMsg;
   _CompileTimeError(this._errorMsg);
   String toString() => _errorMsg;
-}
-
-dynamic _classRangeAssert(int position, dynamic instance, _Type type, int cid,
-    int lowerLimit, int upperLimit) {
-  if ((cid < lowerLimit || cid > upperLimit) && instance != null) {
-    _TypeError._throwNew(position, instance, type, " in type cast", null);
-  }
-
-  return instance;
-}
-
-dynamic _classIdEqualsAssert(
-    int position, dynamic instance, _Type type, int cid, int otherCid) {
-  if (cid != otherCid && instance != null) {
-    _TypeError._throwNew(position, instance, type, " in type cast", null);
-  }
-
-  return instance;
 }
 
 /// Used by Fasta to report a runtime error when a final field with an
@@ -593,10 +599,4 @@ class _DuplicatedFieldInitializerError extends Error {
   _DuplicatedFieldInitializerError(this._name);
 
   toString() => "Error: field '$_name' is already initialized.";
-}
-
-@patch
-class _ConstantExpressionError {
-  @patch
-  _throw(error) => throw error;
 }

@@ -390,11 +390,6 @@ functionality is publicly exposed.
     representation of JSInt31, JSArray, and other implementation-specific
     elements.
 
-* `lib/src/dart2js_resolver.dart`: a script to run the compiler up to resolution
-  and to generate a serialized json representation of the element model.
-
-  AI: delete.
-
 * `lib/src/deferred_load.dart`: general analysis for deferred loading. This is
   where we compute how to split the code in different JS chunks or fragments.
   This is run after resolution, but at a time when no code is generated yet, so
@@ -608,11 +603,6 @@ functionality is publicly exposed.
    * `lib/src/inferrer/map_tracer.dart`
    * `lib/src/inferrer/builder.dart`
 
-* Serialization (`lib/src/serialization/*`: the compiler had support to emit a
-  serialized form of the element model. This is likely going to be deleted in
-  the near future (it was created before we had the intent to use kernel as a
-  serialization format).
-
 ---------
 
 _TODO: complete the documentation for the following files_.
@@ -782,7 +772,6 @@ _TODO: complete the documentation for the following files_.
 `lib/src/js_backend/no_such_method_registry.dart`
 `lib/src/js_backend/constant_system_javascript.dart`
 `lib/src/js_backend/backend.dart`
-`lib/src/js_backend/backend_serialization.dart`
 `lib/src/js_backend/checked_mode_helpers.dart`
 `lib/src/js_backend/constant_handler_javascript.dart`
 

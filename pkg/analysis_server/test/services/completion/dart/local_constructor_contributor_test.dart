@@ -79,7 +79,7 @@ library A;
 bool hasLength(int expected) { }
 void baz() { }''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B { }
 String bar() => true;
 void main() {expect(^)}''');
@@ -91,7 +91,11 @@ void main() {expect(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('Object');
     assertNotSuggested('main');
     assertNotSuggested('baz');
@@ -106,7 +110,7 @@ bool hasLength(int expected) { }
 expect(arg) { }
 void baz() { }''');
     addTestSource('''
-import '/libA.dart'
+import 'libA.dart'
 class B { }
 String bar() => true;
 void main() {expect(^)}''');
@@ -118,7 +122,11 @@ void main() {expect(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('Object');
     assertNotSuggested('main');
     assertNotSuggested('baz');
@@ -134,7 +142,7 @@ bool hasLength(int expected) { }
 void baz() { }''');
     addTestSource('''
 import 'dart:async';
-import '/libA.dart';
+import 'libA.dart';
 class B { }
 String bar() => true;
 void main() {new A(^)}''');
@@ -146,7 +154,11 @@ void main() {new A(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('A');
     assertNotSuggested('Object');
     assertNotSuggested('main');
@@ -164,7 +176,7 @@ bool hasLength(int expected) { }
 void baz() { }''');
     addTestSource('''
 import 'dart:async';
-import '/libA.dart';
+import 'libA.dart';
 class B { }
 String bar() => true;
 void main() {new A(^)}''');
@@ -176,7 +188,11 @@ void main() {new A(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('A');
     assertNotSuggested('Object');
     assertNotSuggested('main');
@@ -191,7 +207,7 @@ library A;
 bool hasLength(int expected) { }
 void baz() { }''');
     addTestSource('''
-import '/libA.dart'
+import 'libA.dart'
 expect(arg) { }
 class B { }
 String bar() => true;
@@ -204,7 +220,11 @@ void main() {expect(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('Object');
     assertNotSuggested('main');
     assertNotSuggested('baz');
@@ -218,7 +238,7 @@ library A;
 bool hasLength(int expected) { }
 void baz() { }''');
     addTestSource('''
-import '/libA.dart'
+import 'libA.dart'
 class B {
   expect(arg) { }
   void foo() {expect(^)}}
@@ -231,7 +251,11 @@ String bar() => true;''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('Object');
     assertNotSuggested('main');
     assertNotSuggested('baz');
@@ -247,7 +271,7 @@ bool hasLength(int expected) { }
 void baz() { }''');
     addTestSource('''
 import 'dart:async';
-import '/libA.dart';
+import 'libA.dart';
 class B { }
 String bar(f()) => true;
 void main() {bar(^);}''');
@@ -259,7 +283,11 @@ void main() {bar(^);}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('A');
     assertNotSuggested('Object');
     assertNotSuggested('main');
@@ -276,7 +304,7 @@ bool hasLength(int expected) { }
 void baz() { }''');
     addTestSource('''
 import 'dart:async';
-import '/libA.dart';
+import 'libA.dart';
 class B { String bar(f()) => true; }
 void main() {new B().bar(^);}''');
     await computeSuggestions();
@@ -286,7 +314,11 @@ void main() {new B().bar(^);}''');
     assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    assertNotSuggested('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    } else {
+      assertNotSuggested('B');
+    }
     assertNotSuggested('A');
     assertNotSuggested('Object');
     assertNotSuggested('main');
@@ -301,7 +333,7 @@ void main() {new B().bar(^);}''');
 library A;
 bool hasLength(int expected) { }''');
     addTestSource('''
-import '/libA.dart'
+import 'libA.dart'
 String bar() => true;
 void main() {expect(foo: ^)}''');
     await computeSuggestions();
@@ -347,7 +379,11 @@ void main() {expect(foo: ^)}''');
     expect(replacementLength, 0);
     assertNotSuggested('a');
     assertNotSuggested('main');
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('Object');
   }
 
@@ -363,7 +399,11 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('int');
     // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
     // the user may be either (1) entering a type for the assignment
@@ -388,7 +428,11 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('int');
     // Allow non-types preceding an identifier on LHS of assignment
     // if newline follows first identifier
@@ -410,7 +454,11 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('int');
     // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
     // the user may be either (1) entering a type for the assignment
@@ -435,7 +483,11 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('int');
     // Allow non-types preceding an identifier on LHS of assignment
     // if newline follows first identifier
@@ -456,7 +508,11 @@ main() async {A a; await ^}''');
     expect(replacementLength, 0);
     assertNotSuggested('a');
     assertNotSuggested('main');
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('Object');
   }
 
@@ -508,10 +564,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -533,8 +589,13 @@ class Z { }''');
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
 
-    assertNotSuggested('X');
-    assertNotSuggested('Z');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('X');
+      assertSuggestConstructor('Z');
+    } else {
+      assertNotSuggested('X');
+      assertNotSuggested('Z');
+    }
     assertNotSuggested('a');
     assertNotSuggested('b');
     assertNotSuggested('localF');
@@ -601,10 +662,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -714,10 +775,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -813,10 +874,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -912,10 +973,10 @@ class D3 { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 Z D2() {int x;}
@@ -926,8 +987,13 @@ class Z { }''');
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
 
-    assertNotSuggested('X');
-    assertNotSuggested('Z');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('X');
+      assertSuggestConstructor('Z');
+    } else {
+      assertNotSuggested('X');
+      assertNotSuggested('Z');
+    }
     assertNotSuggested('a');
     assertNotSuggested('b');
     assertNotSuggested('f');
@@ -978,7 +1044,7 @@ class E extends F { var e1; e2() { } }
 class I { int i1; i2() { } }
 class M { var m1; int m2() { } }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A extends E implements I with M {a() {^}}''');
     await computeSuggestions();
 
@@ -1044,10 +1110,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -1096,7 +1162,7 @@ class Z { }''');
     addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A {var b; X _c;}
 class X{}
 // looks like a cascade to the parser
@@ -1121,7 +1187,7 @@ main() {A a; a.^.z}''');
     addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A {var b; X _c;}
 class X{}
 main() {A a; a..^z}''');
@@ -1144,7 +1210,7 @@ main() {A a; a..^z}''');
     addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A {var b; X _c;}
 class X{}
 main() {A a; a..^ return}''');
@@ -1175,8 +1241,13 @@ main() {A a; a^..b}''');
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('a');
-    assertNotSuggested('A');
-    assertNotSuggested('X');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+      assertSuggestConstructor('X');
+    } else {
+      assertNotSuggested('A');
+      assertNotSuggested('X');
+    }
     // top level results are partially filtered
     //assertNotSuggested('Object');
     assertNotSuggested('==');
@@ -1364,7 +1435,7 @@ A T;''');
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
 library libAB;
-part '/partAB.dart';
+part 'partAB.dart';
 class A { }
 class B { }''');
     addSource('/partAB.dart', '''
@@ -1376,8 +1447,8 @@ class PB { }''');
 class C { }
 class D { }''');
     addTestSource('''
-import "/testAB.dart" hide ^;
-import "/testCD.dart";
+import "testAB.dart" hide ^;
+import "testCD.dart";
 class X {}''');
     await computeSuggestions();
 
@@ -1388,7 +1459,7 @@ class X {}''');
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
 library libAB;
-part '/partAB.dart';
+part 'partAB.dart';
 class A { }
 class B { }''');
     addSource('/partAB.dart', '''
@@ -1402,8 +1473,8 @@ class PB { }''');
 class C { }
 class D { }''');
     addTestSource('''
-import "/testAB.dart" show ^;
-import "/testCD.dart";
+import "testAB.dart" show ^;
+import "testCD.dart";
 class X {}''');
     await computeSuggestions();
 
@@ -1417,7 +1488,7 @@ int T1;
 F1() { }
 class A {int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 class B {int x;}
@@ -1437,7 +1508,7 @@ int T1;
 F1() { }
 class A {int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 class B {int x;}
@@ -1447,7 +1518,11 @@ class C {foo(){var f; {var x;} return a ? T1 : ^}}''');
     assertNotSuggested('x');
     assertNotSuggested('f');
     assertNotSuggested('foo');
-    assertNotSuggested('C');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C');
+    } else {
+      assertNotSuggested('C');
+    }
     assertNotSuggested('F2');
     assertNotSuggested('T2');
     assertNotSuggested('A');
@@ -1463,7 +1538,7 @@ int T1;
 F1() { }
 class A {int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 class B {int x;}
@@ -1483,7 +1558,7 @@ int T1;
 F1() { }
 class A {int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 class B {int x;}
@@ -1493,7 +1568,11 @@ class C {foo(){var f; {var x;} return a ? ^}}''');
     assertNotSuggested('x');
     assertNotSuggested('f');
     assertNotSuggested('foo');
-    assertNotSuggested('C');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C');
+    } else {
+      assertNotSuggested('C');
+    }
     assertNotSuggested('F2');
     assertNotSuggested('T2');
     assertNotSuggested('A');
@@ -1509,7 +1588,7 @@ int T1;
 F1() { }
 class A {int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 class B {int x;}
@@ -1566,7 +1645,7 @@ int T1;
 F1() { }
 class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 var m;
 main() {new X.^}''');
     await computeSuggestions();
@@ -1591,7 +1670,7 @@ int T1;
 F1() { }
 class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 var m;
 main() {new X.^}''');
     await computeSuggestions();
@@ -1679,7 +1758,11 @@ class A {a(blat: ^) { }}''');
     expect(replacementLength, 0);
     assertNotSuggested('foo');
     assertNotSuggested('a');
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('String');
     assertNotSuggested('identical');
     assertNotSuggested('bar');
@@ -1708,7 +1791,7 @@ _B F1() { }
 class A {int x;}
 class _B { }''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 typedef int F2(int blat);
 class Clz = Object with Object;
 class C {foo(){^} void bar() {}}''');
@@ -1718,12 +1801,15 @@ class C {foo(){^} void bar() {}}''');
     expect(replacementLength, 0);
     assertNotSuggested('A');
     assertNotSuggested('F1');
-    assertNotSuggested('C');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C');
+    } else {
+      assertNotSuggested('C');
+    }
     assertNotSuggested('foo');
     assertNotSuggested('bar');
     assertNotSuggested('F2');
     assertNotSuggested('Clz');
-    assertNotSuggested('C');
     assertNotSuggested('x');
     assertNotSuggested('_B');
   }
@@ -1734,7 +1820,7 @@ class C {foo(){^} void bar() {}}''');
         B T1;
         class B{}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         class C {a() {C ^}}''');
     await computeSuggestions();
 
@@ -1746,7 +1832,7 @@ class C {foo(){^} void bar() {}}''');
     // FieldDeclaration
     addSource('/testA.dart', 'class A { }');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         class C {A ^}''');
     await computeSuggestions();
 
@@ -1758,7 +1844,7 @@ class C {foo(){^} void bar() {}}''');
     // FieldDeclaration
     addSource('/testA.dart', 'class A { }');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         class C {var ^}''');
     await computeSuggestions();
 
@@ -1994,7 +2080,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2024,7 +2110,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2054,7 +2140,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2104,7 +2190,11 @@ class C2 { }
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('Object');
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('==');
   }
 
@@ -2119,7 +2209,11 @@ main(){var a; if (^)}''');
     expect(replacementLength, 0);
     assertNotSuggested('a');
     assertNotSuggested('main');
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('Object');
   }
 
@@ -2134,7 +2228,11 @@ main(){var a; if (^)}''');
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('Object');
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('==');
   }
 
@@ -2208,7 +2306,7 @@ int T1;
 F1() { }
 class A {int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 class B {int x;}
@@ -2218,7 +2316,11 @@ class C {foo(){var f; {var x;} f[^]}}''');
     assertNotSuggested('x');
     assertNotSuggested('f');
     assertNotSuggested('foo');
-    assertNotSuggested('C');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C');
+    } else {
+      assertNotSuggested('C');
+    }
     assertNotSuggested('F2');
     assertNotSuggested('T2');
     assertNotSuggested('A');
@@ -2234,7 +2336,7 @@ int T1;
 F1() { }
 class A {int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 class B {int x;}
@@ -2289,6 +2391,36 @@ main() {new ^ String x = "hello";}''');
     expect(suggestion.hasNamedParameters, true);
   }
 
+  test_InstanceCreationExpression_abstractClass() async {
+    addTestSource('''
+abstract class A {
+  A();
+  A.generative();
+  factory A.factory() => null;
+}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+    assertNotSuggested('A.generative');
+    assertSuggestConstructor('A.factory');
+  }
+
+  test_InstanceCreationExpression_abstractClass_implicitConstructor() async {
+    addTestSource('''
+abstract class A {}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+  }
+
   test_InstanceCreationExpression_assignment_expression_filter() async {
     addTestSource('''
 class A {} class B extends A {} class C implements A {} class D {}
@@ -2300,12 +2432,14 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertNotSuggested('D');
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_assignment_expression_filter2() async {
@@ -2319,12 +2453,14 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertNotSuggested('D');
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_imported() async {
@@ -2334,7 +2470,7 @@ int T1;
 F1() { }
 class A {A(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 import "dart:async";
 int T2;
 F2() { }
@@ -2356,6 +2492,42 @@ class C {foo(){var f; {var x;} new ^}}''');
     assertNotSuggested('F2');
     assertNotSuggested('T1');
     assertNotSuggested('T2');
+  }
+
+  test_InstanceCreationExpression_invocationArgument() async {
+    addTestSource('''
+class A {} class B extends A {} class C {}
+void foo(A a) {}
+main() {
+  foo(new ^);
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C', elemOffset: -1);
+  }
+
+  test_InstanceCreationExpression_invocationArgument_named() async {
+    addTestSource('''
+class A {} class B extends A {} class C {}
+void foo({A a}) {}
+main() {
+  foo(a: new ^);
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_unimported() async {
@@ -2380,12 +2552,14 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertNotSuggested('D');
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_variable_declaration_filter2() async {
@@ -2398,12 +2572,14 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertNotSuggested('D');
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InterpolationExpression() async {
@@ -2414,7 +2590,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2432,7 +2608,11 @@ main() {String name; print("hello \$^");}''');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
-    assertNotSuggested('C2');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C2');
+    } else {
+      assertNotSuggested('C2');
+    }
     assertNotSuggested('name');
   }
 
@@ -2444,7 +2624,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2462,7 +2642,11 @@ main() {String name; print("hello \${^}");}''');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
-    assertNotSuggested('C2');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C2');
+    } else {
+      assertNotSuggested('C2');
+    }
     assertNotSuggested('name');
   }
 
@@ -2515,7 +2699,7 @@ lib B;
 foo() { }
 class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class Y {Y.c(); Y._d(); z() {}}
 main() {var x; if (x is ^) { }}''');
     await computeSuggestions();
@@ -2544,7 +2728,11 @@ main(){var a; if (^ is A)}''');
     assertNotSuggested('main');
     assertNotSuggested('foo');
     assertNotSuggested('bar');
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('Object');
   }
 
@@ -2586,7 +2774,7 @@ int T1;
 nowIsIt() { }
 class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 String newer() {}
 var m;
 main() {new^ X.c();}''');
@@ -2647,7 +2835,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2665,7 +2853,11 @@ foo = {^''');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
-    assertNotSuggested('C2');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C2');
+    } else {
+      assertNotSuggested('C2');
+    }
   }
 
   test_MapLiteralEntry1() async {
@@ -2676,7 +2868,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2698,7 +2890,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2811,7 +3003,7 @@ class C {
   static c3() {}
   static var c4;}''');
     addTestSource('''
-import "/testC.dart";
+import "testC.dart";
 class B extends C {
   b1() {}
   var b2;
@@ -2894,7 +3086,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2923,7 +3115,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2952,7 +3144,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -2981,7 +3173,7 @@ F1() { }
 typedef D1();
 class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 int T2;
 F2() { }
 typedef D2();
@@ -3090,8 +3282,8 @@ F1() { }
 class X {X.c(); X._d(); z() {}}''');
     addSource('/testA.dart', '''
 library libA;
-import "/testB.dart";
-part "$testFile";
+import "testB.dart";
+part "${resourceProvider.pathContext.basename(testFile)}";
 class A { }
 var m;''');
     addTestSource('''
@@ -3127,8 +3319,8 @@ part of libA;
 class B { }''');
     addTestSource('''
 library libA;
-import "/testB.dart";
-part "/testA.dart";
+import "testB.dart";
+part "testA.dart";
 class A { A({String boo: 'hoo'}) { } }
 main() {new ^}
 var m;''');
@@ -3164,7 +3356,7 @@ class B implements I {
   m(X x) {} I _n(X x) {}}
 class X{}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A extends B {
   static const String scA = 'foo';
   w() { }}
@@ -3208,7 +3400,7 @@ class A implements I {
   m(X x) {} I _n(X x) {}}
 class X{}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 main() {A a; a.^}''');
     await computeSuggestions();
 
@@ -3282,7 +3474,7 @@ var T1;
 class X { }
 class Y { }''');
     addTestSource('''
-import "/testB.dart" as b;
+import "testB.dart" as b;
 var T2;
 class A { }
 main() {b.^}''');
@@ -3309,7 +3501,7 @@ var T1;
 class X { }
 class Y { }''');
     addTestSource('''
-import "/testB.dart" as b;
+import "testB.dart" as b;
 var T2;
 class A { }
 foo(b.^ f) {}''');
@@ -3336,7 +3528,7 @@ var T1;
 class X { }
 class Y { }''');
     addTestSource('''
-import "/testB.dart" as b;
+import "testB.dart" as b;
 var T2;
 class A { }
 foo(b.^) {}''');
@@ -3363,7 +3555,7 @@ class _W {M y; var _z;}
 class X extends _W {}
 class M{}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 foo(X x) {x.^}''');
     await computeSuggestions();
 
@@ -3380,14 +3572,18 @@ foo(X x) {x.^}''');
 class A {static int bar = 10;}
 _B() {}''');
     addTestSource('''
-import "/testA.dart";
+import "testA.dart";
 class X {foo(){A^.bar}}''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('A');
-    assertNotSuggested('X');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('X');
+    } else {
+      assertNotSuggested('X');
+    }
     assertNotSuggested('foo');
     assertNotSuggested('bar');
     assertNotSuggested('_B');
@@ -3589,7 +3785,11 @@ class X {foo(){A^.bar}}''');
     addTestSource('class A {String g(int x) {var t; switch(x) {case 0: ^}}}');
     await computeSuggestions();
 
-    assertNotSuggested('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    } else {
+      assertNotSuggested('A');
+    }
     assertNotSuggested('g');
     assertNotSuggested('t');
     assertNotSuggested('String');
@@ -3849,7 +4049,7 @@ class C1 {int x;}
 F1() => 0;
 typedef String T1(int blat);''');
     addTestSource('''
-import "/testA.dart";'
+import "testA.dart";'
 class C2 {int x;}
 F2() => 0;
 typedef int T2(int blat);
@@ -3875,7 +4075,7 @@ class C1 {int x;}
 F1() => 0;
 typedef String T1(int blat);''');
     addTestSource('''
-import "/testA.dart";'
+import "testA.dart";'
 class C2 {int x;}
 F2() => 0;
 typedef int T2(int blat);
@@ -3898,7 +4098,7 @@ foo() { }
 class _B { }
 class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class Y {Y.c(); Y._d(); z() {}}
 main() {var ^}''');
     await computeSuggestions();
@@ -3925,7 +4125,7 @@ foo() { }
 class _B { }
 class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class Y {Y.c(); Y._d(); z() {}}
 class C {bar(){var f; {var x;} var e = ^}}''');
     await computeSuggestions();
@@ -3935,7 +4135,11 @@ class C {bar(){var f; {var x;} var e = ^}}''');
     assertNotSuggested('X');
     assertNotSuggested('_B');
     assertNotSuggested('Y');
-    assertNotSuggested('C');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C');
+    } else {
+      assertNotSuggested('C');
+    }
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
@@ -3951,7 +4155,7 @@ void bar1() { }
 class _B { }
 class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 foo2() { }
 void bar2() { }
 class Y {Y.c(); Y._d(); z() {}}
@@ -3967,7 +4171,11 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertNotSuggested('bar2');
     assertNotSuggested('_B');
     assertNotSuggested('Y');
-    assertNotSuggested('C');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C');
+    } else {
+      assertNotSuggested('C');
+    }
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');

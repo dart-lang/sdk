@@ -2,10 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart' show AnalysisError, ErrorSeverity;
+import 'package:analyzer/analyzer.dart'
+    show
+        AnalysisError,
+        ErrorSeverity,
+        ErrorType,
+        StrongModeCode,
+        StaticTypeWarningCode;
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:path/path.dart' as path;
+
+/// Sorts and formats errors, returning the error messages.
+List<String> formatErrors(AnalysisContext context, List<AnalysisError> errors) {
+  sortErrors(context, errors);
+  var result = <String>[];
+  for (var e in errors) {
+    var m = formatError(context, e);
+    if (m != null) result.add(m);
+  }
+  return result;
+}
 
 // TODO(jmesserly): this code was taken from analyzer_cli.
 // It really should be in some common place so we can share it.
@@ -43,7 +60,7 @@ String formatError(AnalysisContext context, AnalysisError error) {
   var location = lineInfo.getLocation(error.offset);
 
   // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
-  return (new StringBuffer()
+  return (StringBuffer()
         ..write('[${severity.displayName}] ')
         ..write(error.message)
         ..write(' (${path.prettyUri(error.source.uri)}')
@@ -52,6 +69,16 @@ String formatError(AnalysisContext context, AnalysisError error) {
 }
 
 ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
+  var errorCode = error.errorCode;
+  if (errorCode == StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK ||
+      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_GETTER ||
+      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_METHOD) {
+    // These are normally hints, but they should be errors when running DDC, so
+    // that users won't be surprised by behavioral differences between DDC and
+    // dart2js.
+    return ErrorSeverity.ERROR;
+  }
+
   // TODO(jmesserly): this Analyzer API totally bonkers, but it's what
   // analyzer_cli and server use.
   //
@@ -60,8 +87,33 @@ ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
   // * it can return null
   // * using AnalysisError directly is now suspect, it's a correctness trap
   // * it requires an AnalysisContext
-  return ErrorProcessor
-          .getProcessor(context.analysisOptions, error)
+  return ErrorProcessor.getProcessor(context.analysisOptions, error)
           ?.severity ??
-      error.errorCode.errorSeverity;
+      errorCode.errorSeverity;
 }
+
+bool isFatalError(AnalysisContext context, AnalysisError e, bool replCompile) {
+  if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
+
+  // These errors are not fatal in the REPL compile mode as we
+  // allow access to private members across library boundaries
+  // and those accesses will show up as undefined members unless
+  // additional analyzer changes are made to support them.
+  // TODO(jacobr): consider checking that the identifier name
+  // referenced by the error is private.
+  return !replCompile ||
+      (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
+          e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
+          e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
+}
+
+const invalidImportDartMirrors = StrongModeCode(
+    ErrorType.COMPILE_TIME_ERROR,
+    'IMPORT_DART_MIRRORS',
+    'Cannot import "dart:mirrors" in web applications (https://goo.gl/R1anEs).');
+
+const invalidJSInteger = StrongModeCode(
+    ErrorType.COMPILE_TIME_ERROR,
+    'INVALID_JS_INTEGER',
+    "The integer literal '{0}' can't be represented exactly in JavaScript. "
+    "The nearest value that can be represented exactly is '{1}'.");

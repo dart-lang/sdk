@@ -4,7 +4,9 @@
 
 // part of "core_patch.dart";
 
+@pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
+  @pragma("vm:exact-result-type", _List)
   factory _List(length) native "List_allocate";
 
   E operator [](int index) native "List_getIndexed";
@@ -15,6 +17,7 @@ class _List<E> extends FixedLengthListBase<E> {
 
   void _setIndexed(int index, E value) native "List_setIndexed";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "List_getLength";
 
   List _slice(int start, int count, bool needsTypeArgument) {
@@ -121,6 +124,7 @@ class _List<E> extends FixedLengthListBase<E> {
 // classes (and inline cache misses) versus a field in the native
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
+@pragma("vm:entry-point")
 class _ImmutableList<E> extends UnmodifiableListBase<E> {
   factory _ImmutableList._uninstantiable() {
     throw new UnsupportedError(
@@ -132,6 +136,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
 
   E operator [](int index) native "List_getIndexed";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "List_getLength";
 
   List<E> sublist(int start, [int end]) {
@@ -199,11 +204,11 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
   int _index;
   E _current;
 
-  _FixedSizeArrayIterator(List array)
+  _FixedSizeArrayIterator(List<E> array)
       : _array = array,
         _length = array.length,
         _index = 0 {
-    assert(array is _List || array is _ImmutableList);
+    assert(array is _List<E> || array is _ImmutableList<E>);
   }
 
   E get current => _current;

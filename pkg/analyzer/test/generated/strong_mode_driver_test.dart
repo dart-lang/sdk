@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'resolver_test_case.dart';
 import 'strong_mode_test.dart';
 
 main() {
@@ -22,9 +24,16 @@ class StrongModeLocalInferenceTest_Driver extends StrongModeLocalInferenceTest {
 
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test_Driver
-    extends StrongModeStaticTypeAnalyzer2Test {
+    extends StaticTypeAnalyzer2TestShared
+    with StrongModeStaticTypeAnalyzer2TestCases {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    resetWith(options: options);
+  }
 
   @failingTest
   @override
@@ -34,32 +43,68 @@ class StrongModeStaticTypeAnalyzer2Test_Driver
 
   @failingTest
   @override
-  test_genericMethod_functionExpressionInvocation_explicit() {
-    return super.test_genericMethod_functionExpressionInvocation_explicit();
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() {
+    return super
+        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit();
   }
 
   @failingTest
   @override
-  test_genericMethod_functionExpressionInvocation_inferred() {
-    return super.test_genericMethod_functionExpressionInvocation_inferred();
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() {
+    return super
+        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred();
   }
 
   @failingTest
   @override
-  test_genericMethod_functionInvocation_explicit() {
-    return super.test_genericMethod_functionInvocation_explicit();
+  test_genericMethod_functionInvocation_functionTypedParameter_explicit() {
+    return super
+        .test_genericMethod_functionInvocation_functionTypedParameter_explicit();
   }
 
   @failingTest
   @override
-  test_genericMethod_functionInvocation_inferred() {
-    return super.test_genericMethod_functionInvocation_inferred();
+  test_genericMethod_functionInvocation_functionTypedParameter_inferred() {
+    return super
+        .test_genericMethod_functionInvocation_functionTypedParameter_inferred();
   }
 
   @failingTest
   @override
-  test_genericMethod_tearoff() {
-    return super.test_genericMethod_tearoff();
+  test_genericMethod_functionTypedParameter_tearoff() {
+    return super.test_genericMethod_functionTypedParameter_tearoff();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_nestedCaptureBounds() {
+    // https://github.com/dart-lang/sdk/issues/30236
+    return super.test_genericMethod_nestedCaptureBounds();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_tearoff_instantiated() {
+    return super.test_genericMethod_tearoff_instantiated();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_extension_malbounded() {
+    return super.test_instantiateToBounds_class_error_extension_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_instantiation_malbounded() {
+    return super
+        .test_instantiateToBounds_class_error_instantiation_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_generic_function_error_malbounded() {
+    return super.test_instantiateToBounds_generic_function_error_malbounded();
   }
 }
 

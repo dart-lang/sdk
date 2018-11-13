@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,6 +20,12 @@ abstract class ChangeBuilder {
   factory ChangeBuilder() = ChangeBuilderImpl;
 
   /**
+   * Return the range of the selection for the change being built, or `null` if
+   * there is no selection.
+   */
+  SourceRange get selectionRange;
+
+  /**
    * Return the source change that was built. The source change will not be
    * complete until all of the futures returned by [addFileEdit] have completed.
    */
@@ -30,7 +36,7 @@ abstract class ChangeBuilder {
    * file with the given [path]. The edits will be added to the source change
    * that is being built.
    */
-  Future<Null> addFileEdit(
+  Future<void> addFileEdit(
       String path, void buildFileEdit(FileEditBuilder builder));
 
   /**
@@ -66,7 +72,12 @@ abstract class EditBuilder {
       {LinkedEditSuggestionKind kind, List<String> suggestions});
 
   /**
-   * Set the selection to the given location within the edit being built.
+   * Set the selection to cover all of the code written by the given [writer].
+   */
+  void selectAll(void writer());
+
+  /**
+   * Set the selection to the current location within the edit being built.
    */
   void selectHere();
 

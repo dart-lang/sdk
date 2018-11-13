@@ -6,35 +6,54 @@ library kernel.deferred_load_data;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../compiler.dart' show Compiler;
 import '../common_elements.dart';
-import '../constants/values.dart' show ConstantValue;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
 import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
-  KernelToElementMapForImpact _elementMap;
+  KernelToElementMap _elementMap;
   Map<ir.Library, Set<ir.NamedNode>> _additionalExportsSets =
       <ir.Library, Set<ir.NamedNode>>{};
 
   KernelDeferredLoadTask(Compiler compiler, this._elementMap) : super(compiler);
 
-  @override
-  Iterable<ImportEntity> importsTo(Entity element, LibraryEntity library) {
-    if (element is! MemberEntity) return const <ImportEntity>[];
+  Iterable<ImportEntity> _findImportsTo(ir.NamedNode node, String nodeName,
+      ir.Library enclosingLibrary, LibraryEntity library) {
     List<ImportEntity> imports = [];
     ir.Library source = _elementMap.getLibraryNode(library);
-    ir.Member member = _elementMap.getMemberDefinition(element).node;
     for (ir.LibraryDependency dependency in source.dependencies) {
       if (dependency.isExport) continue;
-      if (!_isVisible(dependency.combinators, member.name.name)) continue;
-      if (member.enclosingLibrary == dependency.targetLibrary ||
-          additionalExports(dependency.targetLibrary).contains(member)) {
+      if (!_isVisible(dependency.combinators, nodeName)) continue;
+      if (enclosingLibrary == dependency.targetLibrary ||
+          additionalExports(dependency.targetLibrary).contains(node)) {
         imports.add(_elementMap.getImport(dependency));
       }
     }
     return imports;
+  }
+
+  @override
+  Iterable<ImportEntity> classImportsTo(
+      ClassEntity element, LibraryEntity library) {
+    ir.Class node = _elementMap.getClassNode(element);
+    return _findImportsTo(node, node.name, node.enclosingLibrary, library);
+  }
+
+  @override
+  Iterable<ImportEntity> typedefImportsTo(
+      TypedefEntity element, LibraryEntity library) {
+    ir.Typedef node = _elementMap.getTypedefNode(element);
+    return _findImportsTo(node, node.name, node.enclosingLibrary, library);
+  }
+
+  @override
+  Iterable<ImportEntity> memberImportsTo(
+      Entity element, LibraryEntity library) {
+    ir.Member node = _elementMap.getMemberNode(element);
+    return _findImportsTo(node, node.name.name, node.enclosingLibrary, library);
   }
 
   @override
@@ -50,14 +69,13 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   }
 
   @override
-  void collectConstantsInBody(
-      covariant MemberEntity element, Set<ConstantValue> constants) {
-    ir.Member node = _elementMap.getMemberDefinition(element).node;
+  void collectConstantsInBody(MemberEntity element, Dependencies dependencies) {
+    ir.Member node = _elementMap.getMemberNode(element);
 
     // Fetch the internal node in order to skip annotations on the member.
     // TODO(sigmund): replace this pattern when the kernel-ast provides a better
     // way to skip annotations (issue 31565).
-    var visitor = new ConstantCollector(_elementMap, constants);
+    var visitor = new ConstantCollector(_elementMap, dependencies);
     if (node is ir.Field) {
       node.initializer?.accept(visitor);
       return;
@@ -107,15 +125,20 @@ bool _isVisible(List<ir.Combinator> combinators, String name) {
 }
 
 class ConstantCollector extends ir.RecursiveVisitor {
-  final KernelToElementMapForImpact elementMap;
-  final Set<ConstantValue> constants;
+  final KernelToElementMap elementMap;
+  final Dependencies dependencies;
 
-  ConstantCollector(this.elementMap, this.constants);
+  ConstantCollector(this.elementMap, this.dependencies);
 
   CommonElements get commonElements => elementMap.commonElements;
 
-  void add(ir.Expression node) =>
-      constants.add(elementMap.getConstantValue(node));
+  void add(ir.Expression node, {bool required: true}) {
+    ConstantValue constant =
+        elementMap.getConstantValue(node, requireConstant: required);
+    if (constant != null) {
+      dependencies.constants.add(constant);
+    }
+  }
 
   @override
   void visitIntLiteral(ir.IntLiteral literal) {}
@@ -163,17 +186,28 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   @override
-  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    // Do not recurse - closures are visited separately.
+  void visitTypeParameter(ir.TypeParameter node) {
+    // We avoid visiting metadata on the type parameter declaration. The bound
+    // cannot hold constants so we skip that as well.
   }
 
   @override
-  void visitFunctionExpression(ir.FunctionExpression node) {
-    // Do not recurse - closures are visited separately.
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
+    // We avoid visiting metadata on the parameter declaration by only visiting
+    // the initializer. The type cannot hold constants so can kan skip that
+    // as well.
+    node.initializer?.accept(this);
   }
 
   @override
   void visitTypeLiteral(ir.TypeLiteral node) {
     if (node.type is! ir.TypeParameterType) add(node);
+  }
+
+  @override
+  void visitInstantiation(ir.Instantiation node) {
+    // TODO(johnniwinther): The CFE should mark constant instantiations as
+    // constant.
+    add(node, required: false);
   }
 }

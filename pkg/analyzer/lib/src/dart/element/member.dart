@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.element.member;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -41,6 +39,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 
   @override
   bool get isConst => baseElement.isConst;
+
+  @override
+  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
 
   @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
@@ -158,6 +159,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isOperator => baseElement.isOperator;
 
   @override
+  bool get isSimplyBounded => baseElement.isSimplyBounded;
+
+  @override
   bool get isStatic => baseElement.isStatic;
 
   @override
@@ -244,13 +248,18 @@ class FieldMember extends VariableMember implements FieldElement {
       PropertyAccessorMember.from(baseElement.getter, definingType);
 
   @override
+  bool get isCovariant => baseElement.isCovariant;
+
+  @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
+  @deprecated
   @override
   bool get isVirtual => baseElement.isVirtual;
 
+  @deprecated
   @override
-  DartType get propagatedType => substituteFor(baseElement.propagatedType);
+  DartType get propagatedType => null;
 
   @override
   PropertyAccessorElement get setter =>
@@ -391,40 +400,76 @@ abstract class Member implements Element {
   String get documentationComment => _baseElement.documentationComment;
 
   @override
+  bool get hasAlwaysThrows => _baseElement.hasAlwaysThrows;
+
+  @override
+  bool get hasDeprecated => _baseElement.hasDeprecated;
+
+  @override
+  bool get hasFactory => _baseElement.hasFactory;
+
+  @override
+  bool get hasIsTest => _baseElement.hasIsTest;
+
+  @override
+  bool get hasIsTestGroup => _baseElement.hasIsTestGroup;
+
+  @override
+  bool get hasJS => _baseElement.hasJS;
+
+  @override
+  bool get hasOverride => _baseElement.hasOverride;
+
+  @override
+  bool get hasProtected => _baseElement.hasProtected;
+
+  @override
+  bool get hasRequired => _baseElement.hasRequired;
+
+  @override
+  bool get hasSealed => _baseElement.hasSealed;
+
+  @override
+  bool get hasVisibleForTemplate => _baseElement.hasVisibleForTemplate;
+
+  @override
+  bool get hasVisibleForTesting => _baseElement.hasVisibleForTesting;
+
+  @override
   int get id => _baseElement.id;
 
   @override
-  bool get isAlwaysThrows => _baseElement.isAlwaysThrows;
+  bool get isAlwaysThrows => _baseElement.hasAlwaysThrows;
 
   @override
-  bool get isDeprecated => _baseElement.isDeprecated;
+  bool get isDeprecated => _baseElement.hasDeprecated;
 
   @override
-  bool get isFactory => _baseElement.isFactory;
+  bool get isFactory => _baseElement.hasFactory;
 
   @override
-  bool get isJS => _baseElement.isJS;
+  bool get isJS => _baseElement.hasJS;
 
   @override
-  bool get isOverride => _baseElement.isOverride;
+  bool get isOverride => _baseElement.hasOverride;
 
   @override
   bool get isPrivate => _baseElement.isPrivate;
 
   @override
-  bool get isProtected => _baseElement.isProtected;
+  bool get isProtected => _baseElement.hasProtected;
 
   @override
   bool get isPublic => _baseElement.isPublic;
 
   @override
-  bool get isRequired => _baseElement.isRequired;
+  bool get isRequired => _baseElement.hasRequired;
 
   @override
   bool get isSynthetic => _baseElement.isSynthetic;
 
   @override
-  bool get isVisibleForTesting => _baseElement.isVisibleForTesting;
+  bool get isVisibleForTesting => _baseElement.hasVisibleForTesting;
 
   @override
   ElementKind get kind => _baseElement.kind;
@@ -578,6 +623,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
         buffer.write(", ");
       }
       ParameterElement parameter = parameters[i];
+      // ignore: deprecated_member_use
       ParameterKind parameterKind = parameter.parameterKind;
       if (parameterKind != kind) {
         if (closing != null) {
@@ -661,6 +707,7 @@ class ParameterMember extends VariableMember
   @override
   bool get isInitializingFormal => baseElement.isInitializingFormal;
 
+  @deprecated
   @override
   ParameterKind get parameterKind => baseElement.parameterKind;
 
@@ -670,7 +717,7 @@ class ParameterMember extends VariableMember
     if (type is FunctionType) {
       return type.parameters;
     }
-    return ParameterElement.EMPTY_LIST;
+    return const <ParameterElement>[];
   }
 
   @override
@@ -707,13 +754,13 @@ class ParameterMember extends VariableMember
     String left = "";
     String right = "";
     while (true) {
-      if (baseElement.parameterKind == ParameterKind.NAMED) {
+      if (baseElement.isNamed) {
         left = "{";
         right = "}";
-      } else if (baseElement.parameterKind == ParameterKind.POSITIONAL) {
+      } else if (baseElement.isOptionalPositional) {
         left = "[";
         right = "]";
-      } else if (baseElement.parameterKind == ParameterKind.REQUIRED) {}
+      }
       break;
     }
     return '$left$type ${baseElement.displayName}$right';
@@ -966,6 +1013,9 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isConst => baseElement.isConst;
+
+  @override
+  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
 
   @override
   bool get isFinal => baseElement.isFinal;

@@ -18,27 +18,16 @@ main() {
   var indexName = 'name_index';
   var db;
 
-  test('init', () {
-    return html.window.indexedDB.deleteDatabase(dbName).then((_) {
-      return html.window.indexedDB.open(dbName, version: 1,
-          onUpgradeNeeded: (e) {
-        var db = e.target.result;
-        var objectStore = db.createObjectStore(storeName, autoIncrement: true);
-        var index =
-            objectStore.createIndex(indexName, 'name_index', unique: false);
-      });
-    }).then((database) {
-      db = database;
+  test('init', () async {
+    await html.window.indexedDB.deleteDatabase(dbName);
+    db = await html.window.indexedDB.open(dbName, version: 1,
+        onUpgradeNeeded: (idb.VersionChangeEvent e) {
+      var db = e.target.result;
+      var objectStore = db.createObjectStore(storeName, autoIncrement: true);
+      var index =
+          objectStore.createIndex(indexName, 'name_index', unique: false);
     });
   });
-
-  if (html.window.indexedDB.supportsDatabaseNames) {
-    test('getDatabaseNames', () {
-      return html.window.indexedDB.getDatabaseNames().then((names) {
-        expect(names.contains(dbName), isTrue);
-      });
-    });
-  }
 
   var value = {'name_index': 'one', 'value': 'add_value'};
   test('add/delete', () {

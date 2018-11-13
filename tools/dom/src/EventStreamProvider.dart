@@ -31,7 +31,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
@@ -55,7 +56,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
     return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
@@ -73,7 +75,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {
@@ -136,6 +139,9 @@ class _EventStream<T extends Event> extends Stream<T> {
       this;
   bool get isBroadcast => true;
 
+  // TODO(9757): Inlining should be smart and inline only when inlining would
+  // enable scalar replacement of an immediately allocated receiver.
+  @ForceInline()
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return new _EventStreamSubscription<T>(

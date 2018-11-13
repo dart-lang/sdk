@@ -10,8 +10,8 @@ import 'package:package_resolver/package_resolver.dart';
 
 import 'configuration.dart';
 import 'repository.dart';
-import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
+import 'vendored_pkg/args/args.dart';
 
 class DispatchingServer {
   HttpServer server;
@@ -156,8 +156,11 @@ class TestingServers {
   }
 
   String get network => _serverList[0].address.address;
+
   int get port => _serverList[0].port;
+
   int get crossOriginPort => _serverList[1].port;
+
   DispatchingServer get server => _server;
 
   /**
@@ -246,29 +249,33 @@ class TestingServers {
     var response = request.response;
     response.headers
         .set("Cache-Control", "max-age=$_CACHE_EXPIRATION_IN_SECONDS");
-    var path = _getFileUriFromRequestUri(request.uri);
-    if (path != null) {
-      var file = new File.fromUri(path);
-      var directory = new Directory.fromUri(path);
-      if (await file.exists()) {
-        _sendFileContent(request, response, allowedPort, file);
-      } else if (await directory.exists()) {
-        _sendDirectoryListing(
-            await _listDirectory(directory), request, response);
+    try {
+      var path = _getFileUriFromRequestUri(request.uri);
+      if (path != null) {
+        var file = new File.fromUri(path);
+        var directory = new Directory.fromUri(path);
+        if (await file.exists()) {
+          _sendFileContent(request, response, allowedPort, file);
+        } else if (await directory.exists()) {
+          _sendDirectoryListing(
+              await _listDirectory(directory), request, response);
+        } else {
+          _sendNotFound(request);
+        }
       } else {
-        _sendNotFound(request);
+        if (request.uri.path == '/') {
+          var entries = [
+            new _Entry('root_dart', 'root_dart/'),
+            new _Entry('root_build', 'root_build/'),
+            new _Entry('echo', 'echo')
+          ];
+          _sendDirectoryListing(entries, request, response);
+        } else {
+          _sendNotFound(request);
+        }
       }
-    } else {
-      if (request.uri.path == '/') {
-        var entries = [
-          new _Entry('root_dart', 'root_dart/'),
-          new _Entry('root_build', 'root_build/'),
-          new _Entry('echo', 'echo')
-        ];
-        _sendDirectoryListing(entries, request, response);
-      } else {
-        _sendNotFound(request);
-      }
+    } catch (e) {
+      _sendNotFound(request);
     }
   }
 
@@ -290,7 +297,7 @@ class TestingServers {
         if (data == 'close-with-error') {
           // Note: according to the web-sockets spec, a reason longer than 123
           // bytes will produce a SyntaxError on the client.
-          websocket.close(WebSocketStatus.UNSUPPORTED_DATA, 'X' * 124);
+          websocket.close(WebSocketStatus.unsupportedData, 'X' * 124);
         } else {
           websocket.close();
         }
@@ -442,14 +449,14 @@ class TestingServers {
           '"${request.uri.path}"');
     }
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
 
     // Send a nice HTML page detailing the error message.  Most browsers expect
     // this, for example, Chrome will simply display a blank page if you don't
     // provide any information.  A nice side effect of this is to work around
     // Firefox bug 1016313
     // (https://bugzilla.mozilla.org/show_bug.cgi?id=1016313).
-    response.headers.set(HttpHeaders.CONTENT_TYPE, 'text/html');
+    response.headers.set(HttpHeaders.contentTypeHeader, 'text/html');
     String escapedPath = const HtmlEscape().convert(request.uri.path);
     response.write("""
 <!DOCTYPE html>

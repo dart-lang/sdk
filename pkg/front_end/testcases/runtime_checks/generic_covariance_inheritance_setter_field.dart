@@ -6,8 +6,8 @@
 library test;
 
 class C<T> {
-  void set x(T /*@covariance=genericInterface, genericImpl*/ t) {}
-  T /*@covariance=genericInterface, genericImpl*/ y;
+  void set x(T /*@covariance=genericImpl*/ t) {}
+  T /*@covariance=genericImpl*/ y;
 }
 
 class D implements C<num> {

@@ -27,8 +27,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   final OpType optype;
   CompletionSuggestionKind kind;
   final String prefix;
-  List<String> showNames;
-  List<String> hiddenNames;
 
   /**
    * The set of libraries that have been, or are currently being, visited.
@@ -55,10 +53,23 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       }
     }
     if (optype.includeConstructorSuggestions) {
-      int relevance = optype.constructorSuggestionsFilter(
+      int relevance = optype.returnValueSuggestionsFilter(
           element.type, DART_RELEVANCE_DEFAULT);
-      if (relevance != null) {
-        _addConstructorSuggestions(element, relevance);
+      _addConstructorSuggestions(element, relevance);
+    }
+    if (optype.includeReturnValueSuggestions) {
+      if (element.isEnum) {
+        String enumName = element.displayName;
+        int relevance = optype.returnValueSuggestionsFilter(
+            element.type, DART_RELEVANCE_DEFAULT);
+        for (var field in element.fields) {
+          if (field.isEnumConstant) {
+            addSuggestion(field,
+                prefix: prefix,
+                relevance: relevance,
+                elementCompletion: '$enumName.${field.name}');
+          }
+        }
       }
     }
   }
@@ -147,19 +158,24 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   void _addConstructorSuggestions(ClassElement classElem, int relevance) {
     String className = classElem.name;
     for (ConstructorElement constructor in classElem.constructors) {
-      if (!constructor.isPrivate) {
-        CompletionSuggestion suggestion =
-            createSuggestion(constructor, relevance: relevance);
-        if (suggestion != null) {
-          String name = suggestion.completion;
-          name = name.length > 0 ? '$className.$name' : className;
-          if (prefix != null && prefix.length > 0) {
-            name = '$prefix.$name';
-          }
-          suggestion.completion = name;
-          suggestion.selectionOffset = suggestion.completion.length;
-          suggestions.add(suggestion);
+      if (constructor.isPrivate) {
+        continue;
+      }
+      if (classElem.isAbstract && !constructor.isFactory) {
+        continue;
+      }
+
+      CompletionSuggestion suggestion =
+          createSuggestion(constructor, relevance: relevance);
+      if (suggestion != null) {
+        String name = suggestion.completion;
+        name = name.length > 0 ? '$className.$name' : className;
+        if (prefix != null && prefix.length > 0) {
+          name = '$prefix.$name';
         }
+        suggestion.completion = name;
+        suggestion.selectionOffset = suggestion.completion.length;
+        suggestions.add(suggestion);
       }
     }
   }
@@ -174,14 +190,16 @@ class LocalLibraryContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     List<CompilationUnitElement> libraryUnits =
-        request.result.unit.element.library.units;
+        request.result.unit.declaredElement.library.units;
     if (libraryUnits == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     OpType optype = (request as DartCompletionRequestImpl).opType;

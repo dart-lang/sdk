@@ -32,7 +32,7 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  test_fields_explicit() async {
+  Future<void> test_fields_explicit() async {
     addTestFile('''
 class A {
   var foo;
@@ -64,7 +64,7 @@ mainUnresolved(a, b) {
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_fields_implicit() async {
+  Future<void> test_fields_implicit() async {
     addTestFile('''
 class A {
   get foo => null;
@@ -88,7 +88,7 @@ mainUnresolved(a, b) {
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_methods() async {
+  Future<void> test_methods() async {
     addTestFile('''
 class A {
   foo() {}

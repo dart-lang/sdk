@@ -12,8 +12,8 @@ part of dart2js.js_emitter.program_builder;
  */
 class Collector {
   final CompilerOptions _options;
-  final CommonElements _commonElements;
-  final ElementEnvironment _elementEnvironment;
+  final JCommonElements _commonElements;
+  final JElementEnvironment _elementEnvironment;
   final OutputUnitData _outputUnitData;
   final CodegenWorldBuilder _worldBuilder;
   // TODO(floitsch): the code-emitter task should not need a namer.
@@ -23,8 +23,7 @@ class Collector {
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
-  final MirrorsData _mirrorsData;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final Set<ClassEntity> _rtiNeededClasses;
   final Map<MemberEntity, js.Expression> _generatedCode;
   final Sorter _sorter;
@@ -50,8 +49,6 @@ class Collector {
 
   final List<ClassEntity> nativeClassesAndSubclasses = <ClassEntity>[];
 
-  List<TypedefEntity> typedefsNeededForReflection;
-
   Collector(
       this._options,
       this._commonElements,
@@ -64,7 +61,6 @@ class Collector {
       this._nativeData,
       this._interceptorData,
       this._oneShotInterceptorData,
-      this._mirrorsData,
       this._closedWorld,
       this._rtiNeededClasses,
       this._generatedCode,
@@ -86,11 +82,7 @@ class Collector {
    * Return a function that returns true if its argument is a class
    * that needs to be emitted.
    */
-  Function computeClassFilter() {
-    if (_mirrorsData.isTreeShakingDisabled) {
-      return (ClassEntity cls) => true;
-    }
-
+  Function computeClassFilter(Iterable<ClassEntity> backendTypeHelpers) {
     Set<ClassEntity> unneededClasses = new Set<ClassEntity>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
@@ -117,60 +109,30 @@ class Collector {
     }
 
     // These classes are just helpers for the backend's type system.
-    unneededClasses.add(_commonElements.jsMutableArrayClass);
-    unneededClasses.add(_commonElements.jsFixedArrayClass);
-    unneededClasses.add(_commonElements.jsExtendableArrayClass);
-    unneededClasses.add(_commonElements.jsUInt32Class);
-    unneededClasses.add(_commonElements.jsUInt31Class);
-    unneededClasses.add(_commonElements.jsPositiveIntClass);
+    unneededClasses.addAll(backendTypeHelpers);
 
     return (ClassEntity cls) => !unneededClasses.contains(cls);
+  }
+
+  // Return the classes that are just helpers for the backend's type system.
+  static Iterable<ClassEntity> getBackendTypeHelpers(
+      JCommonElements commonElements) {
+    return <ClassEntity>[
+      commonElements.jsMutableArrayClass,
+      commonElements.jsFixedArrayClass,
+      commonElements.jsExtendableArrayClass,
+      // TODO(johnniwinther): Mark this as a backend type helper:
+      //commonElements.jsUnmodifiableArrayClass,
+      commonElements.jsUInt32Class,
+      commonElements.jsUInt31Class,
+      commonElements.jsPositiveIntClass
+    ];
   }
 
   /**
    * Compute all the constants that must be emitted.
    */
   void computeNeededConstants() {
-    // Make sure we retain all metadata of all elements. This could add new
-    // constants to the handler.
-    if (_mirrorsData.mustRetainMetadata) {
-      // TODO(floitsch): verify that we don't run through the same elements
-      // multiple times.
-      for (MemberEntity element in _generatedCode.keys) {
-        if (_mirrorsData.isMemberAccessibleByReflection(element)) {
-          _mirrorsData.retainMetadataOfMember(element);
-        }
-      }
-      for (ClassEntity cls in neededClasses) {
-        final onlyForRti = classesOnlyNeededForRti.contains(cls);
-        if (!onlyForRti) {
-          _mirrorsData.retainMetadataOfClass(cls);
-          new FieldVisitor(
-                  _options,
-                  _elementEnvironment,
-                  _commonElements,
-                  _worldBuilder,
-                  _nativeData,
-                  _mirrorsData,
-                  _namer,
-                  _closedWorld)
-              .visitFields((FieldEntity member,
-                  js.Name name,
-                  js.Name accessorName,
-                  bool needsGetter,
-                  bool needsSetter,
-                  bool needsCheckedSetter) {
-            bool needsAccessor = needsGetter || needsSetter;
-            if (needsAccessor &&
-                _mirrorsData.isMemberAccessibleByReflection(member)) {
-              _mirrorsData.retainMetadataOfMember(member);
-            }
-          }, cls: cls);
-        }
-      }
-      typedefsNeededForReflection.forEach(_mirrorsData.retainMetadataOfTypedef);
-    }
-
     List<ConstantValue> constants =
         _worldBuilder.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
@@ -193,17 +155,15 @@ class Collector {
 
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
-    // Compute needed typedefs.
-    typedefsNeededForReflection = _sorter.sortTypedefs(_closedWorld.allTypedefs
-        .where(_mirrorsData.isTypedefAccessibleByReflection)
-        .toList());
+    Set<ClassEntity> backendTypeHelpers =
+        getBackendTypeHelpers(_commonElements).toSet();
 
     // Compute needed classes.
     Set<ClassEntity> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.directlyInstantiatedClasses
-            .where(computeClassFilter())
+            .where(computeClassFilter(backendTypeHelpers))
             .toSet();
 
     void addClassWithSuperclasses(ClassEntity cls) {
@@ -240,6 +200,7 @@ class Collector {
     // fields, etc.
     classesOnlyNeededForRti = new Set<ClassEntity>();
     for (ClassEntity cls in _rtiNeededClasses) {
+      if (backendTypeHelpers.contains(cls)) continue;
       while (cls != null && !neededClasses.contains(cls)) {
         if (!classesOnlyNeededForRti.add(cls)) break;
         cls = _elementEnvironment.getSuperClass(cls);
@@ -318,14 +279,8 @@ class Collector {
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
-      if (!field.isConst) {
-        return field.isAssignable &&
-            _worldBuilder.hasConstantFieldInitializer(field);
-      } else {
-        // We also need to emit static const fields if they are available for
-        // reflection.
-        return _mirrorsData.isMemberAccessibleByReflection(field);
-      }
+      return field.isAssignable &&
+          _worldBuilder.hasConstantFieldInitializer(field);
     });
 
     _sorter.sortMembers(fields).forEach((MemberEntity e) => addToOutputUnit(e));

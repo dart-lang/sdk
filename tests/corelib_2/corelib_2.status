@@ -2,68 +2,68 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == app_jitk ]
+symbol_operator_test/03: RuntimeError
+symbol_reserved_word_test/06: RuntimeError
+symbol_reserved_word_test/09: RuntimeError
+symbol_reserved_word_test/12: RuntimeError
+symbol_test/none: RuntimeError
+unicode_test: RuntimeError
+
 [ $compiler == dart2analyzer ]
-int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
+num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
+bigint_from_test: RuntimeError # Issue 32589
+bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+core_runtime_types_test: RuntimeError # Issue 34147
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
-hash_set_test/01: RuntimeError # Issue 11551
-integer_to_radix_string_test: RuntimeError # Issue 29921
-string_static_test: MissingCompileTimeError
+date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_ceil_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_floor_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_round_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_truncate_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_ceil_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_ceil_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_floor_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_floor_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_test/01: RuntimeError
+int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_truncate_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_arith_vm_test/modPow: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_arith_vm_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_to_string_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+list_unmodifiable_test: Pass, RuntimeError # Issue 28712
+num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
-bool_from_environment2_test/01: MissingCompileTimeError
-bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: Crash
+int_modulo_arith_test/modPow: RuntimeError
+int_modulo_arith_test/none: RuntimeError
+string_from_environment3_test/03: Crash
+
+[ $compiler == fasta ]
 bool_from_environment2_test/03: MissingCompileTimeError
-bool_from_environment2_test/04: MissingCompileTimeError
-from_environment_const_type_test/01: Pass
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/05: Pass
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/10: Pass
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/15: Pass
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_test/none: Pass
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
-int_parse_radix_bad_handler_test: MissingCompileTimeError
-map_test: Crash # crash in front_end.
-string_from_environment3_test/01: MissingCompileTimeError
-string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
-string_from_environment3_test/04: MissingCompileTimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/01: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ $compiler == precompiler ]
+bigint_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
@@ -72,7 +72,7 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 regexp/pcre_test: Pass, Slow # Issue 22008
 
 [ $runtime == flutter ]
-apply3_test: CompileTimeError # mirrors not supported
+apply3_test: RuntimeError
 bool_from_environment_test: Fail # Flutter Issue 9111
 format_exception_test: RuntimeError # Flutter Issue 9111
 from_environment_const_type_test/01: Fail # Flutter Issue 9111
@@ -93,18 +93,33 @@ from_environment_const_type_test/15: Fail # Flutter Issue 9111
 from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111
 from_environment_const_type_test/none: Fail # Flutter Issue 9111
 int_from_environment2_test: Fail # Flutter Issue 9111
+int_from_environment_int64_test: Fail # Flutter Issue 9111
 int_from_environment_test: Fail # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
-string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $runtime == jsshell ]
-string_case_test/01: Fail, OK
+string_case_test/01: Fail, OK # German double S.
 unicode_test: Fail
 
-[ $runtime == vm ]
-string_case_test/01: RuntimeError
+[ $runtime != none ]
+nsm_invocation_generic_test: RuntimeError # Not implemented yet. Issue 27323.
+
+[ $runtime == safari ]
+double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
+[ $fasta ]
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+
+[ !$strong ]
+cast_test: SkipByDesign # Uses generic method parameters.
+iterable_where_type_test: SkipByDesign
+map_test: SkipByDesign
+regress_33166_test: SkipByDesign # Not a Dart 1 test
 
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow
@@ -113,7 +128,249 @@ integer_parsed_mul_div_vm_test: Pass, Slow
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
-[ $compiler == dart2analyzer && !$checked && !$strong ]
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+nsm_invocation_test: RuntimeError # Issue 35066
+
+[ $builder_tag == obfuscated && $runtime == dart_precompiled ]
+apply_generic_function_test: SkipByDesign # Function.apply with named args
+apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
+dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
+error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
+
+# All static_tests have expected compile-time errors.
+[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta && $strong ]
+core_runtime_types_static_test: MissingCompileTimeError
+splay_tree_test/01: MissingCompileTimeError
+splay_tree_test/02: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
+string_replace_static_test: MissingCompileTimeError
+string_static_test: MissingCompileTimeError
+
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta ]
+iterable_element_at_test/static: MissingCompileTimeError
+
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta && ($compiler != dart2analyzer || !$strong) ]
+iterable_mapping_test/01: MissingCompileTimeError
+
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
+map_keys2_test: RuntimeError # needs Dart 2 is checks
+
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk ]
+bigint_js_test: SkipByDesign # JavaScript-specific test
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
+[ $compiler == dart2js && $runtime == d8 ]
+uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
+
+[ $compiler == dart2js && $runtime != none ]
+regexp/pcre_test: Pass, Slow # Issue 21593
+
+[ $compiler == dart2js && $runtime != none && !$strong ]
+collection_of_test: RuntimeError # Strong mode test
+map_of_test: RuntimeError # Strong mode test
+
+[ $compiler == dart2js && $runtime == safari ]
+regexp/lookahead_test: RuntimeError
+regexp/no-extensions_test: RuntimeError
+regexp/overflow_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == safari && $strong ]
+regexp/no-extensions_test: Pass, RuntimeError
+
+[ $compiler == dart2js && !$browser ]
+package_resource_test: RuntimeError # Issue 26842
+
+[ $compiler == dart2js && $checked && $strong ]
+apply3_test: RuntimeError
+collection_of_test: RuntimeError
+error_stack_trace1_test: RuntimeError # Issue 12399
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+iterable_return_type_test/01: RuntimeError # Issue 20085
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
+iterable_to_list_test/01: Crash # Wrong number of template arguments, given 2, expected 1
+iterable_to_list_test/none: Crash # Wrong number of template arguments, given 2, expected 1
+list_replace_range_test: RuntimeError # Issue 32010
+list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
+map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
+symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
+
+[ $compiler == dart2js && $fast_startup && $strong ]
+error_stack_trace1_test: RuntimeError
+growable_list_test: RuntimeError
+integer_to_radix_string_test/01: RuntimeError
+integer_to_radix_string_test/02: RuntimeError
+integer_to_radix_string_test/none: RuntimeError
+integer_to_string_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
+list_concurrent_modify_test: RuntimeError
+main_test: RuntimeError
+nan_infinity_test/01: RuntimeError
+symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
+
+[ $compiler == dart2js && $minified && $strong ]
+dynamic_nosuchmethod_test: RuntimeError
+error_stack_trace1_test: RuntimeError # Issue 12399
+growable_list_test: RuntimeError # Concurrent modifications test always runs
+hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
+integer_to_radix_string_test/01: RuntimeError
+integer_to_radix_string_test/02: RuntimeError
+integer_to_radix_string_test/none: RuntimeError
+integer_to_string_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
+list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
+list_unmodifiable_test: RuntimeError
+main_test: RuntimeError
+nan_infinity_test/01: RuntimeError
+nsm_invocation_test: RuntimeError # Symbols don't match due to minifiaction.
+regexp/pcre_test: RuntimeError
+symbol_operator_test/03: RuntimeError
+symbol_operator_test/none: RuntimeError
+symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
+
+[ $compiler == dart2js && $strong ]
+error_stack_trace1_test: RuntimeError # Issue 12399
+growable_list_test: RuntimeError # Concurrent modifications test always runs
+integer_to_radix_string_test/01: RuntimeError
+integer_to_radix_string_test/02: RuntimeError
+integer_to_radix_string_test/none: RuntimeError
+integer_to_string_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
+list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
+list_unmodifiable_test: RuntimeError
+main_test: RuntimeError
+nan_infinity_test/01: RuntimeError
+regexp/pcre_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
+
+[ $compiler == dart2js && !$strong ]
+*: SkipByDesign
+
+[ $compiler == dartdevc && $runtime != none ]
+compare_to2_test: CompileTimeError # invalid test
+symbol_operator_test: RuntimeError # Issue 29921
+
+[ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
+core_runtime_types_static_test: MissingCompileTimeError
+splay_tree_test/01: MissingCompileTimeError
+splay_tree_test/02: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
+string_replace_static_test: MissingCompileTimeError
+string_static_test: MissingCompileTimeError
+
+[ $compiler != dartk && $runtime == vm && $checked ]
+apply_test/01: RuntimeError
+
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+iterable_fold_test/02: RuntimeError
+iterable_reduce_test/01: CompileTimeError # Issue 31533
+iterable_reduce_test/none: RuntimeError
+regexp/stack-overflow_test: RuntimeError
+symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+unicode_test: RuntimeError # Issue 18061: German double S.
+
+[ $compiler != fasta && !$strong ]
+core_runtime_types_test: SkipByDesign
+
+[ $compiler == none && $runtime == vm ]
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
+
+[ $compiler == none && ($runtime == flutter || $runtime == vm) ]
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
+
+[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
+iterable_generate_test/01: RuntimeError
+splay_tree_from_iterable_test: RuntimeError
+
+[ $mode == release && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+bigint_parse_radix_test: Crash
+
+[ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
+bit_twiddling_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+compare_to2_test: RuntimeError, OK # Requires fixed-size int64 support.
+double_ceil_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+double_floor_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+double_round_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+double_truncate_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+hash_set_test/01: RuntimeError # non JS number semantics - Issue 11551
+int_modulo_arith_test/modPow: RuntimeError # Issue 29921
+int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+integer_arith_vm_test/modPow: RuntimeError # Issues 10245, 30170
+integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
+integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
+integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
+regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
+typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+
+# ===== dartk + vm status lines =====
+[ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+iterable_fold_test/02: RuntimeError
+iterable_reduce_test/01: CompileTimeError # Issue 31533
+iterable_reduce_test/none: RuntimeError
+symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+unicode_test: RuntimeError # Issue 18061: German double S.
+
+[ $runtime == vm && !$strong ]
+collection_of_test: RuntimeError
+
+[ !$checked && !$strong ]
+core_runtime_types_static_test: MissingCompileTimeError
+splay_tree_test/01: MissingCompileTimeError
+splay_tree_test/02: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
+string_replace_static_test: MissingCompileTimeError
+string_static_test: MissingCompileTimeError
+
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
+[ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign
+
+[ $fasta && !$strong ]
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+bool_from_environment2_test/05: MissingCompileTimeError
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -138,71 +395,57 @@ from_environment_const_type_undefined_test/12: MissingCompileTimeError
 from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+iterable_element_at_test/static: MissingCompileTimeError
+iterable_mapping_test/01: MissingCompileTimeError
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+string_from_environment3_test/05: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_test/01: MissingCompileTimeError
 
-[ $compiler == dart2analyzer && $strong ]
-int_parse_radix_bad_handler_test: Pass
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
 
-[ $compiler == dart2analyzer && !$strong ]
-symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
+# Sections for dartk and dartkp.
+#
+# Note: these sections are normalized so we can update them with automated
+# tools. Please add any new status lines affecting those two compilers in the
+# existing sections, if possible keep the alphabetic ordering. If we are missing
+# a section you need, please reach out to sigmund@ to see the best way to add
+# them.
+# ===== Skip dartk and darkp in !$strong mode ====
+[ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
+*: SkipByDesign
 
-# All static_tests have expected compile-time errors.
-[ $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $strong ]
-core_runtime_types_static_test: MissingCompileTimeError
-splay_tree_test/01: MissingCompileTimeError
-splay_tree_test/02: MissingCompileTimeError
-string_base_vm_static_test: MissingCompileTimeError
-string_replace_static_test: MissingCompileTimeError
-string_static_test: MissingCompileTimeError
+[ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
+list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
-[ $compiler == dart2js && $runtime == chromeOnAndroid ]
-list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+[ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
+bigint_parse_radix_test: Skip # Issue 31659
+bigint_test: Skip # Issue 31659
 
-[ $compiler == dart2js && $runtime == d8 ]
-string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
-uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
+[ $arch == simdbc || $arch == simdbc64 ]
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
-[ $compiler == dart2js && $runtime == drt && $csp && $minified ]
-core_runtime_types_test: Pass, Fail # Issue 27913
+[ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+symbol_operator_test/03: Fail # Issue 11669
+symbol_reserved_word_test/02: CompileTimeError # Issue 20191
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/12: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_test/01: Fail, Pass # Issue 11669
+symbol_test/02: MissingCompileTimeError # Issue 11669
+symbol_test/03: MissingCompileTimeError # Issue 11669
+symbol_test/none: Fail # Issue 11669
+unicode_test: Fail # Issue 6706
 
-[ $compiler == dart2js && $runtime != none ]
-int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
-integer_to_string_test/01: RuntimeError
-iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
-list_test/*: RuntimeError # dart2js doesn't implement strong mode covariance checks
-nan_infinity_test/01: RuntimeError
-regexp/pcre_test: Pass, Slow # Issue 21593
-string_split_test: RuntimeError # does not return List<String>
-
-[ $compiler == dart2js && $runtime != none && !$checked ]
-growable_list_test: RuntimeError # Concurrent modifications test always runs
-splay_tree_from_iterable_test: RuntimeError
-
-[ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
-list_concurrent_modify_test: Crash # Issue 30559
-
-[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
-error_stack_trace1_test: RuntimeError # Issue 12399
-symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
-
-[ $compiler == dart2js && $runtime == safari ]
-regexp/lookahead_test: RuntimeError
-regexp/no-extensions_test: RuntimeError
-regexp/overflow_test: RuntimeError
-
-[ $compiler == dart2js && $runtime == safarimobilesim ]
-list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
-string_trimlr_test/01: Fail
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $compiler == dart2js && !$browser ]
-package_resource_test: RuntimeError # Issue 26842
-
-[ $compiler == dart2js && $checked && $dart2js_with_kernel ]
-apply3_test: RuntimeError
-error_stack_trace1_test: RuntimeError # Issue 12399
+[ $compiler == app_jit || $compiler == precompiler ]
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -221,119 +464,61 @@ from_environment_const_type_undefined_test/04: MissingCompileTimeError
 from_environment_const_type_undefined_test/06: MissingCompileTimeError
 from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
-list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
-symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
-list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
-symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-apply3_test: RuntimeError
-error_stack_trace1_test: RuntimeError # Issue 12399
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
-list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
-symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-apply3_test: RuntimeError
-dynamic_nosuchmethod_test: RuntimeError
-error_stack_trace1_test: RuntimeError
-hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
-iterable_element_at_test/static: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-iterable_mapping_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-iterable_to_set_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
-list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_test: Crash # tests/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
-splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
-splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
-splay_tree_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
-symbol_operator_test/03: RuntimeError
-symbol_operator_test/none: RuntimeError
-symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-
-[ $compiler == dart2js && !$dart2js_with_kernel ]
-iterable_return_type_test/01: RuntimeError # Issue 20085
-iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-iterable_to_list_test/01: RuntimeError # Issue 26501
-list_unmodifiable_test: Pass, RuntimeError # Issue 28712
-
-[ $compiler == dart2js && $fast_startup ]
-apply3_test: Fail # mirrors not supported
-dynamic_nosuchmethod_test: Fail # mirrors not supported
-
-[ $compiler == dartdevc && $runtime != none ]
-apply2_test: RuntimeError # Issue 29921
-apply3_test: RuntimeError # Issue 29921
-bigint_test: Pass, Slow
+[ $compiler == dartdevc || $compiler == dartdevk ]
+bigint_from_test: RuntimeError # Issue 32589
+bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 compare_to2_test: RuntimeError # Issue 30170
+compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 date_time10_test: RuntimeError # Issue 29921
+date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_ceil_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_floor_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_round_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_truncate_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
+growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 hash_set_test/01: RuntimeError # Issue 29921
+int_ceil_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_ceil_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_floor_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_floor_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_modulo_arith_test/none: RuntimeError # Issue 29921
+int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_int64_test/02: RuntimeError
+int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_test/01: RuntimeError # Issue 29921
-int_parse_radix_test/02: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_truncate_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_arith_vm_test/modPow: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_arith_vm_test/modPow: RuntimeError # Issue 30170
+integer_arith_vm_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_parsed_arith_vm_test: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
+integer_to_string_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_to_string_test/01: RuntimeError # Issue 29921
-iterable_fold_test/02: RuntimeError # different type inference problem
-iterable_reduce_test/none: RuntimeError
 iterable_return_type_test/02: RuntimeError # Issue 29921
-iterable_to_list_test/*: RuntimeError
-json_map_test: RuntimeError # Issue 29921
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 list_removeat_test: RuntimeError # Issue 29921
-list_replace_range_test: RuntimeError # Issue 29921
-list_set_all_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
-null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
+num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
 regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921
@@ -375,299 +560,39 @@ regexp/unicode-handling_test: RuntimeError # Issue 29921
 regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
-symbol_operator_test: RuntimeError # Issue 29921
 symbol_operator_test/03: RuntimeError # Issue 29921
 symbol_reserved_word_test/06: RuntimeError # Issue 29921
 symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
-typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+uri_parse_test: Pass, Slow
+uri_test: Pass, Slow
 
-[ $compiler != dartdevc && $compiler != dartk && $compiler != dartkp ]
-iterable_element_at_test/static: MissingCompileTimeError
+[ $compiler == dartkb || $compiler == dartkp ]
+bigint_parse_radix_test: Pass, Slow # --no_intrinsify
+bigint_test/03: SkipSlow # --no_intrinsify
+bigint_test/15: SkipSlow # --no_intrinsify
 
-[ $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none ]
-map_keys2_test: RuntimeError # needs Dart 2 is checks
-
-[ $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && ($compiler != dart2analyzer || !$strong) ]
-iterable_mapping_test/01: MissingCompileTimeError
-
-[ $compiler != dartdevc && $runtime != none && !$checked && !$strong ]
-null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
-
-[ $compiler != dartdevc && $checked && !$strong ]
-core_runtime_types_static_test: MissingCompileTimeError
-splay_tree_test/01: MissingCompileTimeError
-splay_tree_test/02: MissingCompileTimeError
-string_base_vm_static_test: MissingCompileTimeError
-string_replace_static_test: MissingCompileTimeError
-string_static_test: MissingCompileTimeError
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && $mode == debug && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-bigint_parse_radix_test: Pass, Timeout # Please triage.
-bigint_test: Pass, Timeout # Please triage.
-
-# ===== dartk + vm status lines =====
-[ $compiler == dartk && $runtime == vm && $strong ]
-apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
-bool_from_environment2_test/03: MissingCompileTimeError
-compare_to2_test: RuntimeError
-int_modulo_arith_test/modPow: CompileTimeError # Issue 31402 (Assert statement)
-int_modulo_arith_test/none: CompileTimeError # Issue 31402 (Assert statement)
-iterable_empty_test: RuntimeError
-iterable_fold_test/02: RuntimeError
-iterable_reduce_test/01: CompileTimeError # Issue 31533
-iterable_reduce_test/none: RuntimeError
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
-json_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_set_all_test: RuntimeError
-null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
-null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-splay_tree_from_iterable_test: RuntimeError
-string_case_test/01: RuntimeError
-string_from_environment3_test/03: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
-
-# ===== dartkp + dart_precompiled status lines =====
-[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-bool_from_environment2_test/03: MissingCompileTimeError
-compare_to2_test: RuntimeError
-int_modulo_arith_test/modPow: CompileTimeError # Issue 31402 (Assert statement)
-int_modulo_arith_test/none: CompileTimeError # Issue 31402 (Assert statement)
-iterable_empty_test: RuntimeError
-iterable_fold_test/02: RuntimeError
-iterable_reduce_test/01: CompileTimeError # Issue 31533
-iterable_reduce_test/none: RuntimeError
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
-json_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_set_all_test: RuntimeError
-null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
-null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-regexp/stack-overflow_test: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
-string_case_test/01: RuntimeError
-string_from_environment3_test/03: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
-
-[ $compiler == none && $runtime == drt ]
-string_from_environment2_test: Skip
-string_from_environment3_test: Skip
-string_from_environment_test: Skip
-
-[ $compiler == none && $runtime == vm ]
-string_static_test: MissingCompileTimeError
-
-[ $compiler == none && ($runtime == flutter || $runtime == vm) ]
-iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-string_trimlr_test/02: RuntimeError # Issue 29060
-
-[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
-iterable_generate_test/01: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
-
-[ $runtime == dart_precompiled && $minified ]
-apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
-error_stack_trace1_test: Skip # Expects unobfuscated stack trace
-
-[ $runtime == drt && ($compiler == dart2js || $compiler == dartdevc) ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $runtime != drt && ($compiler == app_jit || $compiler == none || $compiler == precompiler) ]
-symbol_test/02: MissingCompileTimeError # Issue 11669
-symbol_test/03: MissingCompileTimeError # Issue 11669
-
-[ $runtime != none && ($compiler == dart2js || $compiler == dartdevc) ]
-bit_twiddling_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
-compare_to2_test: RuntimeError, OK # Requires fixed-size int64 support.
-double_ceil_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
-double_floor_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
-double_round_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
-double_truncate_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
-hash_set_test/01: RuntimeError # Issue 11551
-int_modulo_arith_test/modPow: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
-integer_arith_vm_test/modPow: RuntimeError # Issues 10245, 30170
-integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
-integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
-integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
-json_map_test: RuntimeError
-regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
-typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
-
-[ $runtime == vm && !$checked && ($compiler == app_jit || $compiler == none) ]
-iterable_generate_test/01: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
-
-[ !$checked && !$strong ]
-core_runtime_types_static_test: MissingCompileTimeError
-splay_tree_test/01: MissingCompileTimeError
-splay_tree_test/02: MissingCompileTimeError
-string_base_vm_static_test: MissingCompileTimeError
-string_replace_static_test: MissingCompileTimeError
-string_static_test: MissingCompileTimeError
-
-[ !$checked && ($compiler == dart2js || $compiler == none && $runtime == vm) ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-iterable_generate_test/01: RuntimeError
-
-# Sections for dartk and dartkp.
-#
-# Note: these sections are normalized so we can update them with automated
-# tools. Please add any new status lines affecting those two compilers in the
-# existing sections, if possible keep the alphabetic ordering. If we are missing
-# a section you need, please reach out to sigmund@ to see the best way to add
-# them.
-# ===== Skip dartk and darkp in !$strong mode ====
-[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
-*: SkipByDesign
-
-[ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
-list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
-
-[ $arch == simdbc || $arch == simdbc64 ]
-regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-
-[ $compiler == app_jit || $compiler == dart2js || $compiler == none || $compiler == precompiler ]
-int_parse_radix_bad_handler_test: MissingCompileTimeError
-
-[ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
-compare_to2_test: Fail # Issue 4018
-string_case_test/01: Fail # Bug 18061
-symbol_operator_test/03: Fail # Issue 11669
-symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/12: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_test/01: Fail, Pass # Issue 11669
-symbol_test/none: Fail # Issue 11669
-unicode_test: Fail # Issue 6706
-
-# void should be a valid symbol.
-[ $compiler == app_jit || $compiler == none || $compiler == precompiler || $compiler == dart2js && !$dart2js_with_kernel ]
-symbol_reserved_word_test/02: CompileTimeError # Issue 20191
-symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-
-[ $compiler == app_jit || $compiler == precompiler ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
-iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-string_trimlr_test/02: RuntimeError # Issue 29060
-
-[ $compiler == dart2js || $compiler == none && $runtime == vm ]
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
-string_base_vm_static_test: MissingCompileTimeError
-
-[ $compiler == dartdevc || $compiler == dart2analyzer && $strong ]
-double_parse_test/01: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/02: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/03: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/04: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/none: Skip # Temporarily disable the following tests until we figure out why they started failing.
-iterable_reduce_test/01: CompileTimeError
-
-[ $compiler == dartkp || $compiler == precompiler ]
-apply3_test: SkipByDesign
-dynamic_nosuchmethod_test: SkipByDesign
-
-[ $compiler == precompiler || $compiler == dart2js && !$checked || $runtime == vm && !$checked && !$strong ]
+[ $compiler == precompiler || $runtime == vm && !$checked && !$strong ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
+
+[ $compiler == precompiler || $runtime == vm && !$strong ]
+apply3_test: RuntimeError
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 regexp/global_test: Skip # Issue 21709
 regexp/pcre_test: Pass, Slow, Timeout
 
 [ $runtime == dart_precompiled || $runtime == vm ]
-integer_parsed_arith_vm_test/01: RuntimeError # Issue 31346
-integer_parsed_arith_vm_test/02: RuntimeError # Issue 31346
-integer_parsed_div_rem_vm_test/01: RuntimeError # Issue 31346
-integer_to_radix_string_test/01: RuntimeError # Issue 31346
-string_split_test: RuntimeError # does not return List<String>
+string_case_test/01: RuntimeError # Issue 18061: German double S.
 
 [ $runtime == ff || $runtime == jsshell ]
-double_parse_test/02: Fail, OK # Issue 30468
+double_parse_test: Fail, OK # Issue 30468
+double_try_parse_test: Fail, OK # Issue 30468
 regexp/UC16_test: RuntimeError
 
-[ $runtime == safari || $runtime == safarimobilesim ]
-double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
 [ $hot_reload || $hot_reload_rollback ]
-bigint_parse_radix_test: Pass, Timeout # Issue 31659
-bigint_test: Pass, Crash # Issue 31660
+bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.
+bigint_test: Skip # Issue 31659
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
-

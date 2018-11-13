@@ -34,32 +34,22 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     } catch (_) { return false;}
     return false;
   }
-  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createOffer(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); }, mediaConstraints);
-    return completer.future;
-  }
 
-  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createAnswer(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); }, mediaConstraints);
-    return completer.future;
-  }
-
-  @DomName('RTCPeerConnection.getStats')
-  Future<RtcStatsResponse> getStats(MediaStreamTrack selector) {
+  /**
+  * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
+  * new getStats API.
+  */
+  Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack selector]) {
     var completer = new Completer<RtcStatsResponse>();
-    _getStats((value) { completer.complete(value); }, selector);
+    _getStats((value) {
+      completer.complete(value);
+    }, selector);
     return completer.future;
   }
+  @JSName('getStats')
+  Future _getStats(
+      [RtcStatsCallback successCallback, MediaStreamTrack selector]) native;
 
-  @DomName('RTCPeerConnection.generateCertificate')
-  @DocsEditable()
-  @Experimental() // untriaged
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
 

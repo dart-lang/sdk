@@ -211,13 +211,13 @@ class Server {
    * The completer that will be completed the next time a 'server.status'
    * notification is received from the server with 'analyzing' set to false.
    */
-  Completer<Null> _analysisFinishedCompleter;
+  Completer<void> _analysisFinishedCompleter;
 
   /**
    * The completer that will be completed the next time a 'server.connected'
    * notification is received from the server.
    */
-  Completer<Null> _serverConnectedCompleter;
+  Completer<void> _serverConnectedCompleter;
 
   /**
    * A table mapping the ids of requests that have been sent to the server to
@@ -251,7 +251,7 @@ class Server {
    */
   Future get analysisFinished {
     if (_analysisFinishedCompleter == null) {
-      _analysisFinishedCompleter = new Completer();
+      _analysisFinishedCompleter = new Completer<void>();
     }
     return _analysisFinishedCompleter.future;
   }
@@ -619,7 +619,7 @@ class Server {
    * If [useAnalysisHighlight2] is `true`, the server will use the new highlight
    * APIs.
    */
-  Future<Null> start(
+  Future<void> start(
       {bool checked: true,
       int diagnosticPort,
       bool profileServer: false,
@@ -647,9 +647,6 @@ class Server {
       arguments.add('--pause-isolates-on-exit');
     } else if (servicesPort != null) {
       arguments.add('--enable-vm-service=$servicesPort');
-    }
-    if (Platform.packageRoot != null) {
-      arguments.add('--package-root=${Platform.packageRoot}');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
@@ -683,7 +680,7 @@ class Server {
       }
     });
     _listenToOutput();
-    _serverConnectedCompleter = new Completer();
+    _serverConnectedCompleter = new Completer<void>();
     return _serverConnectedCompleter.future;
   }
 
@@ -887,7 +884,7 @@ class Server {
       return;
     }
     logger?.log(fromServer, '$trimmedLine');
-    Map message = asMap(JSON.decoder.convert(trimmedLine));
+    Map message = asMap(json.decoder.convert(trimmedLine));
     if (message.containsKey('id')) {
       // The message is a response.
       Response response = new Response.fromJson(message);
@@ -935,8 +932,8 @@ class Server {
     if (params != null) {
       command['params'] = params;
     }
-    String line = JSON.encode(command);
-    _process.stdin.add(UTF8.encoder.convert('$line\n'));
+    String line = json.encode(command);
+    _process.stdin.add(utf8.encoder.convert('$line\n'));
     logger?.log(fromClient, '$line');
     return requestData;
   }

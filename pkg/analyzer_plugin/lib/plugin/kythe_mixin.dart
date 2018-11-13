@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,6 +27,8 @@ abstract class DartEntryMixin implements EntryMixin {
   @override
   Future<EntryRequest> getEntryRequest(
       KytheGetKytheEntriesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     ResolveResult result = await getResolveResult(path);
     return new DartEntryRequestImpl(resourceProvider, result);
@@ -58,11 +60,13 @@ abstract class EntryMixin implements ServerPlugin {
   @override
   Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
       KytheGetKytheEntriesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     EntryRequest request = await getEntryRequest(parameters);
     EntryGenerator generator = new EntryGenerator(getEntryContributors(path));
-    GeneratorResult result =
-        await generator.generateGetEntriesResponse(request);
+    GeneratorResult<KytheGetKytheEntriesResult> result =
+        generator.generateGetEntriesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

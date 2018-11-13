@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindMemberDeclarationsTest);
-    defineReflectiveTests(FindMemberDeclarationsTest_PreviewDart2);
   });
 }
 
@@ -49,11 +48,4 @@ class Foo {
     expect(result.kind.name, SearchResultKind.DECLARATION.name);
     expect(result.path.first.name, 'bar');
   }
-}
-
-@reflectiveTest
-class FindMemberDeclarationsTest_PreviewDart2
-    extends FindMemberDeclarationsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

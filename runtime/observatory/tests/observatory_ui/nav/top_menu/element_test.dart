@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
 main() {
@@ -16,7 +16,7 @@ main() {
   group('elements', () {
     test('created', () async {
       final e = new NavTopMenuElement();
-      e.content = [document.createElement('content')];
+      e.content = <Element>[document.createElement('content')];
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');

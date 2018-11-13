@@ -11,11 +11,7 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -25,7 +21,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../src/utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -43,6 +38,8 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   String resultCode;
   LinkedEditGroup linkedPositionGroup;
 
+  bool get omitNew => true;
+
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
    * produces the [expected] code when applied to [testCode].
@@ -50,6 +47,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   assertHasAssist(AssistKind kind, String expected) async {
     assist = await _assertHasAssist(kind);
     change = assist.change;
+    expect(change.id, kind.id);
     // apply to "file"
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
@@ -74,7 +72,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
-        throw fail('Unexpected assist $kind in\n${assists.join('\n')}');
+        fail('Unexpected assist $kind in\n${assists.join('\n')}');
       }
     }
   }
@@ -85,19 +83,6 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   assertNoAssistAt(String offsetSearch, AssistKind kind) async {
     offset = findOffset(offsetSearch);
     await assertNoAssist(kind);
-  }
-
-  Position expectedPosition(String search) {
-    int offset = resultCode.indexOf(search);
-    return new Position(testFile, offset);
-  }
-
-  List<Position> expectedPositions(List<String> patterns) {
-    List<Position> positions = <Position>[];
-    patterns.forEach((String search) {
-      positions.add(expectedPosition(search));
-    });
-    return positions;
   }
 
   List<LinkedEditSuggestion> expectedSuggestions(
@@ -119,7 +104,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   test_addTypeAnnotation_BAD_privateType_closureParameter() async {
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -135,7 +120,7 @@ main() {
   }
 
   test_addTypeAnnotation_BAD_privateType_declaredIdentifier() async {
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -156,7 +141,7 @@ class A<T> {
   test_addTypeAnnotation_BAD_privateType_list() async {
     // This is now failing because we're suggesting "List" rather than nothing.
     // Is it really better to produce nothing?
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -177,7 +162,7 @@ main() {
   }
 
   test_addTypeAnnotation_BAD_privateType_variable() async {
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -294,7 +279,7 @@ main(List<String> items) {
   }
 
   test_addTypeAnnotation_declaredIdentifier_OK_addImport_dartUri() async {
-    addSource('/my_lib.dart', r'''
+    addSource('/project/my_lib.dart', r'''
 import 'dart:async';
 List<Future<int>> getFutures() => null;
 ''');
@@ -431,7 +416,7 @@ class A<T> {
   }
 
   test_addTypeAnnotation_local_OK_addImport_dartUri() async {
-    addSource('/my_lib.dart', r'''
+    addSource('/project/my_lib.dart', r'''
 import 'dart:async';
 Future<int> getFutureInt() => null;
 ''');
@@ -453,7 +438,7 @@ main() {
 
   test_addTypeAnnotation_local_OK_addImport_notLibraryUnit() async {
     // prepare library
-    addSource('/my_lib.dart', r'''
+    addSource('/project/my_lib.dart', r'''
 import 'dart:async';
 Future<int> getFutureInt() => null;
 ''');
@@ -470,8 +455,8 @@ main() {
 }
 ''';
     // add sources
-    addSource('/app.dart', appCode);
-    testSource = addSource('/test.dart', testCode);
+    addSource('/project/app.dart', appCode);
+    testSource = addSource('/project/test.dart', testCode);
     // resolve
     await resolveTestUnit(testCode);
     // prepare the assist
@@ -480,7 +465,7 @@ main() {
     change = assist.change;
     // verify
     {
-      var testFileEdit = change.getFileEdit('/app.dart');
+      var testFileEdit = change.getFileEdit(convertPath('/project/app.dart'));
       var resultCode = SourceEdit.applySequence(appCode, testFileEdit.edits);
       expect(resultCode, '''
 library my_app;
@@ -491,7 +476,7 @@ part 'test.dart';
 ''');
     }
     {
-      var testFileEdit = change.getFileEdit('/test.dart');
+      var testFileEdit = change.getFileEdit(convertPath('/project/test.dart'));
       var resultCode = SourceEdit.applySequence(testCode, testFileEdit.edits);
       expect(resultCode, '''
 part of my_app;
@@ -503,10 +488,10 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_addImport_relUri() async {
-    addSource('/aa/bbb/lib_a.dart', r'''
+    addSource('/project/aa/bbb/lib_a.dart', r'''
 class MyClass {}
 ''');
-    addSource('/ccc/lib_b.dart', r'''
+    addSource('/project/ccc/lib_b.dart', r'''
 import '../aa/bbb/lib_a.dart';
 MyClass newMyClass() => null;
 ''');
@@ -533,7 +518,7 @@ main() {
 ''');
     await assertHasAssistAt('v =', DartAssistKind.ADD_TYPE_ANNOTATION, '''
 main() {
-  Function v = () => 1;
+  int Function() v = () => 1;
 }
 ''');
   }
@@ -761,6 +746,397 @@ void f() {}
     await assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  test_convertClassToMixin_abstract() async {
+    await resolveTestUnit('''
+abstract class A {}
+''');
+    await assertHasAssistAt('A', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_extends_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B extends A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_extends_super() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B extends A {
+  b() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+mixin B on A {
+  b() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extends_superSuper() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B extends A {}
+class C extends B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B extends A {}
+mixin C on B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsImplements_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C extends A implements B {}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+mixin C implements A, B {}
+''');
+  }
+
+  test_convertClassToMixin_extendsImplements_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {}
+class C extends A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {}
+mixin C on A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C extends A with B {}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+mixin C implements A, B {}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_both() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.a();
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on A, B {
+  c() {
+    super.a();
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_with() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on B implements A {
+  c() {
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+class D extends A with B implements C {}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+class C {}
+mixin D implements A, B, C {}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_both() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on A, B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on A implements B, C {
+  d() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_with() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on B implements A, C {
+  d() {
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_implements() async {
+    await resolveTestUnit('''
+class A {}
+class B implements A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_noClauses_invalidSelection() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertNoAssistAt(
+      '{}',
+      DartAssistKind.CONVERT_CLASS_TO_MIXIN,
+    );
+  }
+
+  test_convertClassToMixin_noClauses_selectKeyword() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertHasAssistAt('class', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_noClauses_selectName() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertHasAssistAt('A', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_with_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B with A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_with_super() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B with A {
+  b() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+mixin B on A {
+  b() {
+    super.a();
+  }
+}
+''');
+  }
+
   test_convertDocumentationIntoBlock_BAD_alreadyBlock() async {
     await resolveTestUnit('''
 /**
@@ -916,129 +1292,12 @@ class A {
 ''');
   }
 
-  test_convertFlutterChild_OK_multiLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/child: new Container(
-        width: 200.0,
-        height: 300.0,
-      ),
-      key: null,
-    ),
-// end
-  );
-}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/children: <Widget>[
-        new Container(
-          width: 200.0,
-          height: 300.0,
-        ),
-      ],
-      key: null,
-    ),
-// end
-  );
-}
-''');
-  }
-
-  test_convertFlutterChild_OK_newlineChild() async {
-    // This case could occur with deeply nested constructors, common in Flutter.
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/child:
-          new Container(
-        width: 200.0,
-        height: 300.0,
-      ),
-      key: null,
-    ),
-// end
-  );
-}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/children: <Widget>[
-        new Container(
-          width: 200.0,
-          height: 300.0,
-        ),
-      ],
-      key: null,
-    ),
-// end
-  );
-}
-''');
-  }
-
-  test_convertFlutterChild_OK_singleLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/child: new GestureDetector(),
-      key: null,
-    ),
-// end
-  );
-}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      /*caret*/children: <Widget>[new GestureDetector()],
-      key: null,
-    ),
-// end
-  );
-}
-''');
-  }
-
   test_convertPartOfToUri_file_nonSibling() async {
     addSource('/pkg/lib/foo.dart', '''
 library foo;
 part 'src/bar.dart';
 ''');
-    testFile = provider.convertPath('/pkg/lib/src/bar.dart');
+    testFile = resourceProvider.convertPath('/pkg/lib/src/bar.dart');
     await resolveTestUnit('''
 part of foo;
 ''');
@@ -1052,12 +1311,155 @@ part of '../foo.dart';
 library foo;
 part 'bar.dart';
 ''');
-    testFile = provider.convertPath('/pkg/bar.dart');
+    testFile = resourceProvider.convertPath('/pkg/bar.dart');
     await resolveTestUnit('''
 part of foo;
 ''');
     await assertHasAssistAt('foo', DartAssistKind.CONVERT_PART_OF_TO_URI, '''
 part of 'foo.dart';
+''');
+  }
+
+  test_convertToAsyncBody_BAD_async() async {
+    await resolveTestUnit('''
+import 'dart:async';
+Future<String> f() async => '';
+''');
+    await assertNoAssistAt('=>', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_asyncStar() async {
+    await resolveTestUnit('''
+import 'dart:async';
+Stream<String> f() async* {}
+''');
+    await assertNoAssistAt('{}', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_constructor() async {
+    await resolveTestUnit('''
+class C {
+  C() {}
+}
+''');
+    await assertNoAssistAt('{}', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_inBody_block() async {
+    await resolveTestUnit('''
+class C {
+  void foo() {
+    print(42);
+  }
+}
+''');
+    await assertNoAssistAt('print', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_inBody_expression() async {
+    await resolveTestUnit('''
+class C {
+  void foo() => print(42);
+}
+''');
+    await assertNoAssistAt('print', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_syncStar() async {
+    await resolveTestUnit('''
+Iterable<String> f() sync* {}
+''');
+    await assertNoAssistAt('{}', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_OK_closure() async {
+    await resolveTestUnit('''
+main() {
+  f(() => 123);
+}
+f(g) {}
+''');
+    await assertHasAssistAt('=>', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+main() {
+  f(() async => 123);
+}
+f(g) {}
+''');
+  }
+
+  test_convertToAsyncBody_OK_function() async {
+    // TODO(brianwilkerson) Remove the "class C {}" when the bug in the builder
+    // is fixed that causes the import to be incorrectly inserted when the first
+    // character in the file is also being modified.
+    await resolveTestUnit('''
+class C {}
+String f() => '';
+''');
+    await assertHasAssistAt('=>', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {}
+Future<String> f() async => '';
+''');
+  }
+
+  test_convertToAsyncBody_OK_getter_expression_noSpace() async {
+    await resolveTestUnit('''
+class C {
+  int get g=>0;
+}
+''');
+    await assertHasAssistAt('get g', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {
+  Future<int> get g async =>0;
+}
+''');
+  }
+
+  test_convertToAsyncBody_OK_method() async {
+    await resolveTestUnit('''
+class C {
+  int m() { return 0; }
+}
+''');
+    await assertHasAssistAt(
+        '{ return', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {
+  Future<int> m() async { return 0; }
+}
+''');
+  }
+
+  test_convertToAsyncBody_OK_method_abstract() async {
+    await resolveTestUnit('''
+abstract class C {
+  int m();
+}
+''');
+    await assertHasAssistAt('m()', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+abstract class C {
+  Future<int> m();
+}
+''');
+  }
+
+  test_convertToAsyncBody_OK_method_noReturnType() async {
+    await resolveTestUnit('''
+class C {
+  m() { return 0; }
+}
+''');
+    await assertHasAssistAt(
+        '{ return', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+class C {
+  m() async { return 0; }
+}
 ''');
   }
 
@@ -1195,6 +1597,153 @@ fff() => 123;
     await assertHasAssistAt('fff()', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
 fff() {
   return 123;
+}
+''');
+  }
+
+  test_convertToBlockBody_OK_throw() async {
+    await resolveTestUnit('''
+class A {
+  mmm() => throw 'error';
+}
+''');
+    await assertHasAssistAt('mmm()', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
+class A {
+  mmm() {
+    throw 'error';
+  }
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_BAD_one_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print('a"b"c');
+}
+''');
+    await assertNoAssistAt(
+        "'a", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_one_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("abc");
+}
+''');
+    await assertNoAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_three_embeddedTarget() async {
+    await resolveTestUnit("""
+main() {
+  print('''a""\"c''');
+}
+""");
+    await assertNoAssistAt(
+        "'a", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_three_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("""abc""");
+}
+''');
+    await assertNoAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_OK_one_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b-${c} d');
+}
+''');
+    await assertHasAssistAt(
+        r"'a $b", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b-${c} d");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_one_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r'abc');
+}
+''');
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print(r"abc");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_one_simple() async {
+    await resolveTestUnit('''
+main() {
+  print('abc');
+}
+''');
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print("abc");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_interpolation() async {
+    await resolveTestUnit(r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('''a $b-${c} d''');
+}
+""");
+    await assertHasAssistAt(
+        r"'a $b", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("""a $b-${c} d""");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_raw() async {
+    await resolveTestUnit("""
+main() {
+  print(r'''abc''');
+}
+""");
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print(r"""abc""");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_simple() async {
+    await resolveTestUnit("""
+main() {
+  print('''abc''');
+}
+""");
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print("""abc""");
 }
 ''');
   }
@@ -1552,6 +2101,34 @@ class B extends A {
 ''');
   }
 
+  test_convertToFinalField_OK_noReturnType() async {
+    await resolveTestUnit('''
+class A {
+  get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD, '''
+class A {
+  final foo = 42;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_noReturnType_static() async {
+    await resolveTestUnit('''
+class A {
+  static get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD, '''
+class A {
+  static final foo = 42;
+}
+''');
+  }
+
   test_convertToFinalField_OK_notNull() async {
     await resolveTestUnit('''
 class A {
@@ -1777,6 +2354,98 @@ main(List<String> items) {
 ''');
   }
 
+  test_convertToFunctionSyntax_BAD_functionTypeAlias_insideParameterList() async {
+    await resolveTestUnit('''
+typedef String F(int x, int y);
+''');
+    await assertNoAssistAt(
+        'x,', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_BAD_functionTypeAlias_noParameterTypes() async {
+    await resolveTestUnit('''
+typedef String F(x);
+''');
+    await assertNoAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_BAD_functionTypedParameter_insideParameterList() async {
+    await resolveTestUnit('''
+g(String f(int x, int y)) {}
+''');
+    await assertNoAssistAt(
+        'x,', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_BAD_functionTypedParameter_noParameterTypes() async {
+    await resolveTestUnit('''
+g(String f(x)) {}
+''');
+    await assertNoAssistAt(
+        'f(', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_noReturnType_noTypeParameters() async {
+    await resolveTestUnit('''
+typedef String F(int x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F = String Function(int x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_noReturnType_typeParameters() async {
+    await resolveTestUnit('''
+typedef F<P, R>(P x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F<P, R> = Function(P x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_returnType_noTypeParameters() async {
+    await resolveTestUnit('''
+typedef String F(int x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F = String Function(int x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_returnType_typeParameters() async {
+    await resolveTestUnit('''
+typedef R F<P, R>(P x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F<P, R> = R Function(P x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypedParameter_noReturnType_noTypeParameters() async {
+    await resolveTestUnit('''
+g(f(int x)) {}
+''');
+    await assertHasAssistAt(
+        'f(', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+g(Function(int x) f) {}
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypedParameter_returnType() async {
+    await resolveTestUnit('''
+g(String f(int x)) {}
+''');
+    await assertHasAssistAt(
+        'f(', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+g(String Function(int x) f) {}
+''');
+  }
+
   test_convertToGetter_BAD_noInitializer() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
@@ -1833,6 +2502,38 @@ class A {
   get foo => 42;
 }
 ''');
+  }
+
+  test_convertToIntLiteral() async {
+    await resolveTestUnit('''
+const double myDouble = 42.0;
+''');
+    await assertHasAssistAt('42.0', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_e() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e1;
+''');
+    await assertHasAssistAt('4.2e1', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_eBig() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e99999;
+''');
+    await assertNoAssistAt('4.2e99999', DartAssistKind.CONVERT_TO_INT_LITERAL);
+  }
+
+  test_convertToIntLiteral_notDouble() async {
+    await resolveTestUnit('''
+const double myDouble = 42;
+''');
+    await assertNoAssistAt('42', DartAssistKind.CONVERT_TO_INT_LITERAL);
   }
 
   test_convertToIsNot_BAD_is_alreadyIsNot() async {
@@ -2148,6 +2849,138 @@ class A {
 ''');
   }
 
+  test_convertToSingleQuotedString_BAD_one_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("a'b'c");
+}
+''');
+    await assertNoAssistAt(
+        '"a', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_one_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print('abc');
+}
+''');
+    await assertNoAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_three_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("""a''\'bc""");
+}
+''');
+    await assertNoAssistAt(
+        '"a', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_three_enclosingTarget() async {
+    await resolveTestUnit("""
+main() {
+  print('''abc''');
+}
+""");
+    await assertNoAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_OK_one_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b-${c} d");
+}
+''');
+    await assertHasAssistAt(
+        r'"a $b', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b-${c} d');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_one_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r"abc");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, '''
+main() {
+  print(r'abc');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_one_simple() async {
+    await resolveTestUnit('''
+main() {
+  print("abc");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, '''
+main() {
+  print('abc');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_three_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("""a $b-${c} d""");
+}
+''');
+    await assertHasAssistAt(
+        r'"a $b', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('''a $b-${c} d''');
+}
+""");
+  }
+
+  test_convertToSingleQuotedString_OK_three_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r"""abc""");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, """
+main() {
+  print(r'''abc''');
+}
+""");
+  }
+
+  test_convertToSingleQuotedString_OK_three_simple() async {
+    await resolveTestUnit('''
+main() {
+  print("""abc""");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, """
+main() {
+  print('''abc''');
+}
+""");
+  }
+
   test_encapsulateField_BAD_alreadyPrivate() async {
     await resolveTestUnit('''
 class A {
@@ -2212,6 +3045,33 @@ class A {
     await assertNoAssistAt('test =', DartAssistKind.ENCAPSULATE_FIELD);
   }
 
+  test_encapsulateField_OK_documentation() async {
+    await resolveTestUnit('''
+class A {
+  /// AAA
+  /// BBB
+  int test;
+}
+''');
+    await assertHasAssistAt('test;', DartAssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  /// AAA
+  /// BBB
+  int _test;
+
+  /// AAA
+  /// BBB
+  int get test => _test;
+
+  /// AAA
+  /// BBB
+  set test(int test) {
+    _test = test;
+  }
+}
+''');
+  }
+
   test_encapsulateField_OK_hasType() async {
     await resolveTestUnit('''
 class A {
@@ -2228,7 +3088,7 @@ class A {
 
   int get test => _test;
 
-  void set test(int test) {
+  set test(int test) {
     _test = test;
   }
   A(this._test);
@@ -2254,7 +3114,7 @@ class A {
 
   get test => _test;
 
-  void set test(test) {
+  set test(test) {
     _test = test;
   }
 }
@@ -2418,6 +3278,1931 @@ main() {
   2 + 1;
 }
 ''');
+  }
+
+  test_flutterConvertToChildren_BAD_childUnresolved() async {
+    addFlutterPackage();
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Row(
+    /*caret*/child: new Container()
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN);
+  }
+
+  test_flutterConvertToChildren_BAD_notOnChild() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+    body: /*caret*/new Center(
+      child: new Container(),
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN);
+  }
+
+  test_flutterConvertToChildren_OK_multiLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/child: new Container(
+        width: 200.0,
+        height: 300.0,
+      ),
+      key: null,
+    ),
+// end
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN, '''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/children: <Widget>[
+        new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ],
+      key: null,
+    ),
+// end
+  );
+}
+''');
+  }
+
+  test_flutterConvertToChildren_OK_newlineChild() async {
+    // This case could occur with deeply nested constructors, common in Flutter.
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/child:
+          new Container(
+        width: 200.0,
+        height: 300.0,
+      ),
+      key: null,
+    ),
+// end
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN, '''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/children: <Widget>[
+        new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ],
+      key: null,
+    ),
+// end
+  );
+}
+''');
+  }
+
+  test_flutterConvertToChildren_OK_singleLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/child: new GestureDetector(),
+      key: null,
+    ),
+// end
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN, '''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/children: <Widget>[new GestureDetector()],
+      key: null,
+    ),
+// end
+  );
+}
+''');
+  }
+
+  test_flutterConvertToStatefulWidget_BAD_notClass() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+/*caret*/main() {}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_flutterConvertToStatefulWidget_BAD_notStatelessWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+class /*caret*/MyWidget extends Text {
+  MyWidget() : super('');
+}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_flutterConvertToStatefulWidget_BAD_notWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+class /*caret*/MyWidget {}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_flutterConvertToStatefulWidget_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  final String aaa;
+  final String bbb;
+
+  const MyWidget(this.aaa, this.bbb);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(aaa),
+        new Text(bbb),
+        new Text('$aaa'),
+        new Text('${bbb}'),
+      ],
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  final String aaa;
+  final String bbb;
+
+  const MyWidget(this.aaa, this.bbb);
+
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+}
+
+class MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(widget.aaa),
+        new Text(widget.bbb),
+        new Text('${widget.aaa}'),
+        new Text('${widget.bbb}'),
+      ],
+    );
+  }
+}
+''');
+  }
+
+  test_flutterConvertToStatefulWidget_OK_empty() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+}
+
+class MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+  }
+
+  test_flutterConvertToStatefulWidget_OK_fields() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  static String staticField1;
+  final String instanceField1;
+  final String instanceField2;
+  String instanceField3;
+  static String staticField2;
+  String instanceField4;
+  String instanceField5;
+  static String staticField3;
+
+  MyWidget(this.instanceField1) : instanceField2 = '' {
+    instanceField3 = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    instanceField4 = instanceField1;
+    return new Row(
+      children: [
+        new Text(instanceField1),
+        new Text(instanceField2),
+        new Text(instanceField3),
+        new Text(instanceField4),
+        new Text(instanceField5),
+        new Text(staticField1),
+        new Text(staticField2),
+        new Text(staticField3),
+      ],
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  static String staticField1;
+  final String instanceField1;
+  final String instanceField2;
+  String instanceField3;
+  static String staticField2;
+  static String staticField3;
+
+  MyWidget(this.instanceField1) : instanceField2 = '' {
+    instanceField3 = '';
+  }
+
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+}
+
+class MyWidgetState extends State<MyWidget> {
+  String instanceField4;
+
+  String instanceField5;
+
+  @override
+  Widget build(BuildContext context) {
+    instanceField4 = widget.instanceField1;
+    return new Row(
+      children: [
+        new Text(widget.instanceField1),
+        new Text(widget.instanceField2),
+        new Text(widget.instanceField3),
+        new Text(instanceField4),
+        new Text(instanceField5),
+        new Text(MyWidget.staticField1),
+        new Text(MyWidget.staticField2),
+        new Text(MyWidget.staticField3),
+      ],
+    );
+  }
+}
+''');
+  }
+
+  test_flutterConvertToStatefulWidget_OK_getters() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(staticGetter1),
+        new Text(staticGetter2),
+        new Text(instanceGetter1),
+        new Text(instanceGetter2),
+      ],
+    );
+  }
+
+  static String get staticGetter1 => '';
+
+  String get instanceGetter1 => '';
+
+  static String get staticGetter2 => '';
+
+  String get instanceGetter2 => '';
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+
+  static String get staticGetter1 => '';
+
+  static String get staticGetter2 => '';
+}
+
+class MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(MyWidget.staticGetter1),
+        new Text(MyWidget.staticGetter2),
+        new Text(instanceGetter1),
+        new Text(instanceGetter2),
+      ],
+    );
+  }
+
+  String get instanceGetter1 => '';
+
+  String get instanceGetter2 => '';
+}
+''');
+  }
+
+  test_flutterConvertToStatefulWidget_OK_methods() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  static String staticField;
+  final String instanceField1;
+  String instanceField2;
+
+  MyWidget(this.instanceField1);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(instanceField1),
+        new Text(instanceField2),
+        new Text(staticField),
+      ],
+    );
+  }
+
+  void instanceMethod1() {
+    instanceMethod1();
+    instanceMethod2();
+    staticMethod1();
+  }
+
+  static void staticMethod1() {
+    print('static 1');
+  }
+
+  void instanceMethod2() {
+    print('instance 2');
+  }
+
+  static void staticMethod2() {
+    print('static 2');
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  static String staticField;
+  final String instanceField1;
+
+  MyWidget(this.instanceField1);
+
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+
+  static void staticMethod1() {
+    print('static 1');
+  }
+
+  static void staticMethod2() {
+    print('static 2');
+  }
+}
+
+class MyWidgetState extends State<MyWidget> {
+  String instanceField2;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(widget.instanceField1),
+        new Text(instanceField2),
+        new Text(MyWidget.staticField),
+      ],
+    );
+  }
+
+  void instanceMethod1() {
+    instanceMethod1();
+    instanceMethod2();
+    MyWidget.staticMethod1();
+  }
+
+  void instanceMethod2() {
+    print('instance 2');
+  }
+}
+''');
+  }
+
+  test_flutterConvertToStatefulWidget_OK_tail() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+}
+
+class MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+  }
+
+  test_flutterMoveWidgetDown_BAD_last() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      new Text('bbb'),
+      /*caret*/new Text('ccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_DOWN);
+  }
+
+  test_flutterMoveWidgetDown_BAD_notInList() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Text('aaa'),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_DOWN);
+  }
+
+  test_flutterMoveWidgetDown_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      /*caret*/new Text('bbbbbb'),
+      new Text('ccccccccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_MOVE_DOWN, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      /*caret*/new Text('ccccccccc'),
+      new Text('bbbbbb'),
+    ],
+  );
+}
+''');
+    _assertExitPosition(before: "new Text('bbbbbb')");
+  }
+
+  test_flutterMoveWidgetUp_BAD_first() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      /*caret*/new Text('aaa'),
+      new Text('bbb'),
+      new Text('ccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_UP);
+  }
+
+  test_flutterMoveWidgetUp_BAD_notInList() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Text('aaa'),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_UP);
+  }
+
+  test_flutterMoveWidgetUp_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      /*caret*/new Text('bbbbbb'),
+      new Text('ccccccccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_MOVE_UP, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('bbbbbb'),
+      /*caret*/new Text('aaa'),
+      new Text('ccccccccc'),
+    ],
+  );
+}
+''');
+    _assertExitPosition(before: "new Text('bbbbbb')");
+  }
+
+  test_flutterRemoveWidget_BAD_childrenMultipleIntoChild() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: new /*caret*/Row(
+      children: [
+        new Text('aaa'),
+        new Text('bbb'),
+      ],
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET);
+  }
+
+  test_flutterRemoveWidget_OK_childIntoChild_multiLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Center(
+        child: new /*caret*/Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: new Center(
+            heightFactor: 0.5,
+            child: new Text('foo'),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Center(
+        child: new Center(
+          heightFactor: 0.5,
+          child: new Text('foo'),
+        ),
+      ),
+    ],
+  );
+}
+''');
+  }
+
+  test_flutterRemoveWidget_OK_childIntoChild_singleLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: new /*caret*/Center(
+      heightFactor: 0.5,
+      child: new Text('foo'),
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  new Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: new Text('foo'),
+  );
+}
+''');
+  }
+
+  test_flutterRemoveWidget_OK_childIntoChildren() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('foo'),
+      new /*caret*/Center(
+        heightFactor: 0.5,
+        child: new Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: new Text('bar'),
+        ),
+      ),
+      new Text('baz'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('foo'),
+      new Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: new Text('bar'),
+      ),
+      new Text('baz'),
+    ],
+  );
+}
+''');
+  }
+
+  test_flutterRemoveWidget_OK_childrenOneIntoChild() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Column(
+      children: [
+        new Text('foo'),
+      ],
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Text('foo'),
+  );
+}
+''');
+  }
+
+  test_flutterRemoveWidget_OK_childrenOneIntoReturn() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  return /*caret*/new Column(
+    children: [
+      new Text('foo'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  return /*caret*/new Text('foo');
+}
+''');
+  }
+
+  test_flutterRemoveWidget_OK_intoChildren() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      new /*caret*/Column(
+        children: [
+          new Row(
+            children: [
+              new Text('bbb'),
+              new Text('ccc'),
+            ],
+          ),
+          new Row(
+            children: [
+              new Text('ddd'),
+              new Text('eee'),
+            ],
+          ),
+        ],
+      ),
+      new Text('fff'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      new Row(
+        children: [
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+      new Row(
+        children: [
+          new Text('ddd'),
+          new Text('eee'),
+        ],
+      ),
+      new Text('fff'),
+    ],
+  );
+}
+''');
+  }
+
+  test_flutterSwapWithChild_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new /*caret*/GestureDetector(
+      onTap: () => startResize(),
+      child: new Center(
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+        key: null,
+      ),
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_CHILD, '''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      key: null,
+      child: new /*caret*/GestureDetector(
+        onTap: () => startResize(),
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ),
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+  }
+
+  test_flutterSwapWithChild_OK_notFormatted() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new /*caret*/Expanded(
+      flex: 2,
+      child: new GestureDetector(
+        child: new Text(
+          'foo',
+        ), onTap: () {
+          print(42);
+      },
+      ),
+    );
+  }
+}''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_CHILD, '''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      onTap: () {
+        print(42);
+    },
+      child: new /*caret*/Expanded(
+        flex: 2,
+        child: new Text(
+          'foo',
+        ),
+      ),
+    );
+  }
+}''');
+  }
+
+  test_flutterSwapWithParent_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      child: new /*caret*/GestureDetector(
+        onTap: () => startResize(),
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ),
+      key: null,
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_PARENT, '''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new /*caret*/GestureDetector(
+      onTap: () => startResize(),
+      child: new Center(
+        key: null,
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ),
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+  }
+
+  test_flutterSwapWithParent_OK_notFormatted() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new /*caret*/Expanded(
+        child: new Text(
+          'foo',
+        ),
+        flex: 2,
+      ), onTap: () {
+        print(42);
+    },
+    );
+  }
+}''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_PARENT, '''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new /*caret*/Expanded(
+      flex: 2,
+      child: new GestureDetector(
+        onTap: () {
+          print(42);
+      },
+        child: new Text(
+          'foo',
+        ),
+      ),
+    );
+  }
+}''');
+  }
+
+  test_flutterSwapWithParent_OK_outerIsInChildren() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: [
+      new Column(
+        children: [
+          new Padding(
+            padding: new EdgeInsets.all(16.0),
+            child: new /*caret*/Center(
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_PARENT, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: [
+      new Column(
+        children: [
+          new /*caret*/Center(
+            child: new Padding(
+              padding: new EdgeInsets.all(16.0),
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+''');
+  }
+
+  test_flutterWrapCenter_BAD_onCenter() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Center();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_CENTER);
+  }
+
+  test_flutterWrapCenter_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Container();
+  }
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Center(child: new Container());
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Center(child: new Container());
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapCenter_OK_implicitNew() async {
+    configurePreviewDart2();
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Container();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Center(child: Container());
+  }
+}
+''');
+  }
+
+  test_flutterWrapCenter_OK_namedConstructor() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return MyWidget./*caret*/named();
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return Center(child: MyWidget./*caret*/named());
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return new Center(child: MyWidget./*caret*/named());
+}
+''');
+    }
+  }
+
+  test_flutterWrapColumn_OK_coveredByWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: new /*caret*/Text('aaa'),
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: Column(
+        children: <Widget>[
+          new /*caret*/Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: new Column(
+        children: <Widget>[
+          new /*caret*/Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapColumn_OK_coversWidgets() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      new Text('bbb'),
+      new Text('ccc'),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    _setStartEndSelection();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      Column(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      new Column(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapColumn_OK_implicitNew() async {
+    configurePreviewDart2();
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  return Container(
+    child: /*caret*/Text('aaa'),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+main() {
+  return Container(
+    child: /*caret*/Column(
+      children: <Widget>[
+        Text('aaa'),
+      ],
+    ),
+  );
+}
+''');
+  }
+
+  test_flutterWrapContainer_BAD_onContainer() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  return /*caret*/new Container();
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER);
+  }
+
+  test_flutterWrapContainer_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Text('a');
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/Container(child: new Text('a'));
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Center(child: new Text('a'));
+}
+''');
+    }
+  }
+
+  test_flutterWrapPadding_BAD_onPadding() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Padding();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_PADDING);
+  }
+
+  test_flutterWrapPadding_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Container();
+  }
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Container(),
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Container(),
+    );
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapRow_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      new Text('bbb'),
+      new Text('ccc'),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    _setStartEndSelection();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      Row(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      new Row(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapWidget_BAD_minimal() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+/*caret*/x(){}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_GENERIC);
+  }
+
+  test_flutterWrapWidget_BAD_multiLine() async {
+    verifyNoTestUnitErrors = false;
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Container(
+    child: new Row(
+      children: [/*caret*/
+// start
+        new Transform(),
+        new Object(),
+        new AspectRatio(),
+// end
+      ],
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_GENERIC);
+  }
+
+  test_flutterWrapWidget_BAD_singleLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+  var obj;
+// start
+    return new Row(children: [/*caret*/ new Container()]);
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_GENERIC);
+  }
+
+  test_flutterWrapWidget_OK_multiLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Container(
+    child: new Row(
+// start
+      children: [/*caret*/
+        new Text('111'),
+        new Text('222'),
+        new Container(),
+      ],
+// end
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Container(
+    child: new Row(
+// start
+      children: [
+        new widget(
+          children: [/*caret*/
+            new Text('111'),
+            new Text('222'),
+            new Container(),
+          ],
+        ),
+      ],
+// end
+    ),
+  );
+}
+''');
+  }
+
+  test_flutterWrapWidget_OK_multiLines() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: new /*caret*/DefaultTextStyle(
+        child: new Row(
+          children: <Widget>[
+            new Container(
+            ),
+          ],
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: widget(
+        child: new /*caret*/DefaultTextStyle(
+          child: new Row(
+            children: <Widget>[
+              new Container(
+              ),
+            ],
+          ),
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: new widget(
+        child: new /*caret*/DefaultTextStyle(
+          child: new Row(
+            children: <Widget>[
+              new Container(
+              ),
+            ],
+          ),
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapWidget_OK_multiLines_eol2() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: new /*caret*/DefaultTextStyle(\r
+        child: new Row(\r
+          children: <Widget>[\r
+            new Container(\r
+            ),\r
+          ],\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: widget(\r
+        child: new /*caret*/DefaultTextStyle(\r
+          child: new Row(\r
+            children: <Widget>[\r
+              new Container(\r
+              ),\r
+            ],\r
+          ),\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: new widget(\r
+        child: new /*caret*/DefaultTextStyle(\r
+          child: new Row(\r
+            children: <Widget>[\r
+              new Container(\r
+              ),\r
+            ],\r
+          ),\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+    }
+  }
+
+  test_flutterWrapWidget_OK_prefixedIdentifier_identifier() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return foo./*caret*/bar;
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return widget(child: foo./*caret*/bar);
+}
+''');
+  }
+
+  test_flutterWrapWidget_OK_prefixedIdentifier_prefix() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return /*caret*/foo.bar;
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return /*caret*/widget(child: foo.bar);
+}
+''');
+  }
+
+  test_flutterWrapWidget_OK_singleLine1() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/new Container();
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/widget(child: new Container());
+// end
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/new widget(child: new Container());
+// end
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapWidget_OK_singleLine2() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return new ClipRect./*caret*/rect();
+  }
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return widget(child: new ClipRect./*caret*/rect());
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return new widget(child: new ClipRect./*caret*/rect());
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapWidget_OK_variable() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/container;
+  }
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/widget(child: container);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/new widget(child: container);
+  }
+}
+''');
+    }
   }
 
   test_importAddShow_BAD_hasShow() async {
@@ -3331,100 +6116,6 @@ main() {
 ''');
   }
 
-  test_moveFlutterWidgetDown_OK() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new /*caret*/GestureDetector(
-      onTap: () => startResize(),
-      child: new Center(
-        child: new Container(
-          width: 200.0,
-          height: 300.0,
-        ),
-        key: null,
-      ),
-    ),
-// end
-  );
-}
-startResize() {}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.MOVE_FLUTTER_WIDGET_DOWN, '''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      child: new /*caret*/GestureDetector(
-        onTap: () => startResize(),
-        child: new Container(
-          width: 200.0,
-          height: 300.0,
-        ),
-      ),
-      key: null,
-    ),
-// end
-  );
-}
-startResize() {}
-''');
-  }
-
-  test_moveFlutterWidgetUp_OK() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new Center(
-      child: new /*caret*/GestureDetector(
-        onTap: () => startResize(),
-        child: new Container(
-          width: 200.0,
-          height: 300.0,
-        ),
-      ),
-      key: null,
-    ),
-// end
-  );
-}
-startResize() {}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.MOVE_FLUTTER_WIDGET_UP, '''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Scaffold(
-// start
-    body: new /*caret*/GestureDetector(
-      onTap: () => startResize(),
-      child: new Center(
-        child: new Container(
-          width: 200.0,
-          height: 300.0,
-        ),
-        key: null,
-      ),
-    ),
-// end
-  );
-}
-startResize() {}
-''');
-  }
-
   test_removeTypeAnnotation_classField_OK() async {
     await resolveTestUnit('''
 class A {
@@ -3548,271 +6239,6 @@ final int V = 1;
 ''');
     await assertHasAssistAt('int ', DartAssistKind.REMOVE_TYPE_ANNOTATION, '''
 final V = 1;
-''');
-  }
-
-  test_reparentFlutterList_BAD_multiLine() async {
-    verifyNoTestUnitErrors = false;
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Container(
-    child: new Row(
-      children: [/*caret*/
-// start
-        new Transform(),
-        new Object(),
-        new AspectRatio(),
-// end
-      ],
-    ),
-  );
-}
-''');
-    _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_LIST);
-  }
-
-  test_reparentFlutterList_BAD_singleLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-  var obj;
-// start
-    return new Row(children: [/*caret*/ new Transform()]);
-// end
-  }
-}
-''');
-    _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_LIST);
-  }
-
-  test_reparentFlutterList_OK_multiLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Container(
-    child: new Row(
-// start
-      children: [/*caret*/
-        new Transform(),
-        new Transform(),
-        new AspectRatio(),
-      ],
-// end
-    ),
-  );
-}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_LIST, '''
-import 'package:flutter/src/widgets/framework.dart';
-build() {
-  return new Container(
-    child: new Row(
-// start
-      children: [
-        new widget(
-          children: [/*caret*/
-            new Transform(),
-            new Transform(),
-            new AspectRatio(),
-          ],
-        ),
-      ],
-// end
-    ),
-  );
-}
-''');
-  }
-
-  test_reparentFlutterWidget_BAD_minimal() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-/*caret*/x(){}
-''');
-    _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
-  }
-
-  test_reparentFlutterWidget_BAD_singleLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-  var obj;
-// start
-    return new Container(child: obj.xyz./*caret*/abc);
-// end
-  }
-}
-''');
-    _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
-  }
-
-  test_reparentFlutterWidget_OK_multiLines() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-    return new Container(
-// start
-      child: new /*caret*/DefaultTextStyle(
-        child: new Row(
-          children: <Widget>[
-            new Container(
-            ),
-          ],
-        ),
-      ),
-// end
-    );
-  }
-}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-    return new Container(
-// start
-      child: new widget(
-        child: new /*caret*/DefaultTextStyle(
-          child: new Row(
-            children: <Widget>[
-              new Container(
-              ),
-            ],
-          ),
-        ),
-      ),
-// end
-    );
-  }
-}
-''');
-  }
-
-  test_reparentFlutterWidget_OK_multiLines_eol2() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';\r
-class FakeFlutter {\r
-  main() {\r
-    return new Container(\r
-// start\r
-      child: new /*caret*/DefaultTextStyle(\r
-        child: new Row(\r
-          children: <Widget>[\r
-            new Container(\r
-            ),\r
-          ],\r
-        ),\r
-      ),\r
-// end\r
-    );\r
-  }\r
-}\r
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';\r
-class FakeFlutter {\r
-  main() {\r
-    return new Container(\r
-// start\r
-      child: new widget(\r
-        child: new /*caret*/DefaultTextStyle(\r
-          child: new Row(\r
-            children: <Widget>[\r
-              new Container(\r
-              ),\r
-            ],\r
-          ),\r
-        ),\r
-      ),\r
-// end\r
-    );\r
-  }\r
-}\r
-''');
-  }
-
-  test_reparentFlutterWidget_OK_singleLine1() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-// start
-    return /*caret*/new Container();
-// end
-  }
-}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-// start
-    return /*caret*/new widget(child: new Container());
-// end
-  }
-}
-''');
-  }
-
-  test_reparentFlutterWidget_OK_singleLine2() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-    await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-// start
-    return new ClipRect./*caret*/rect();
-// end
-  }
-}
-''');
-    _setCaretLocation();
-    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';
-class FakeFlutter {
-  main() {
-// start
-    return new widget(child: new ClipRect./*caret*/rect());
-// end
-  }
-}
 ''');
   }
 
@@ -4205,6 +6631,8 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['condition);']);
+    _assertExitPosition(after: 'condition);');
   }
 
   test_surroundWith_for() async {
@@ -4227,6 +6655,11 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['v =']);
+    _assertLinkedGroup(change.linkedEditGroups[1], ['init;']);
+    _assertLinkedGroup(change.linkedEditGroups[2], ['condition;']);
+    _assertLinkedGroup(change.linkedEditGroups[3], ['increment']);
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_forIn() async {
@@ -4249,6 +6682,9 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['item']);
+    _assertLinkedGroup(change.linkedEditGroups[1], ['iterable']);
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_if() async {
@@ -4271,6 +6707,8 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_tryCatch() async {
@@ -4295,6 +6733,10 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Exception']);
+    _assertLinkedGroup(change.linkedEditGroups[1], ['e) {']);
+    _assertLinkedGroup(change.linkedEditGroups[2], ['// TODO']);
+    _assertExitPosition(after: '// TODO');
   }
 
   test_surroundWith_tryFinally() async {
@@ -4319,6 +6761,8 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['// TODO']);
+    _assertExitPosition(after: '// TODO');
   }
 
   test_surroundWith_while() async {
@@ -4341,6 +6785,21 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
+    _assertExitPosition(after: '  }');
+  }
+
+  void _assertExitPosition({String before, String after}) {
+    Position exitPosition = change.selection;
+    expect(exitPosition, isNotNull);
+    expect(exitPosition.file, testFile);
+    if (before != null) {
+      expect(exitPosition.offset, resultCode.indexOf(before));
+    } else if (after != null) {
+      expect(exitPosition.offset, resultCode.indexOf(after) + after.length);
+    } else {
+      fail("One of 'before' or 'after' expected.");
+    }
   }
 
   /**
@@ -4353,7 +6812,7 @@ main() {
         return assist;
       }
     }
-    throw fail('Expected to find assist $kind in\n${assists.join('\n')}');
+    fail('Expected to find assist $kind in\n${assists.join('\n')}');
   }
 
   void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
@@ -4369,34 +6828,10 @@ main() {
     CompilationUnitElement testUnitElement =
         resolutionMap.elementDeclaredByCompilationUnit(testUnit);
     DartAssistContext assistContext;
-    assistContext = new _DartAssistContextForValues(testUnitElement.source,
-        offset, length, driver, new AstProviderForDriver(driver), testUnit);
+    assistContext = new _DartAssistContextForValues(
+        testUnitElement.source, offset, length, driver, testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
-  }
-
-  /**
-   * Configures the [SourceFactory] to have the `flutter` package in
-   * `/packages/flutter/lib` folder.
-   */
-  void _configureFlutterPkg(Map<String, String> pathToCode) {
-    pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
-    });
-    // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'flutter': [myPkgFolder]
-    });
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    driver.configure(sourceFactory: sourceFactory);
-    // force 'flutter' resolution
-    addSource(
-        '/tmp/other.dart',
-        pathToCode.keys
-            .map((path) => "import 'package:flutter/$path';")
-            .join('\n'));
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {
@@ -4433,11 +6868,8 @@ class _DartAssistContextForValues implements DartAssistContext {
   final AnalysisDriver analysisDriver;
 
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisDriver, this.astProvider, this.unit);
+      this.selectionLength, this.analysisDriver, this.unit);
 }

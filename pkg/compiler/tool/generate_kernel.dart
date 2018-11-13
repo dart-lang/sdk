@@ -13,17 +13,19 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/util/relativize.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show
+        CompilerOptions,
+        computePlatformBinariesLocation,
+        kernelForProgram,
+        relativizeUri;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 
 main(List<String> args) async {
   ArgResults flags = _argParser.parse(args);
   var options = new CompilerOptions()
-    ..target = new Dart2jsTarget(new TargetFlags())
+    ..target = new Dart2jsTarget("dart2js", new TargetFlags(legacyMode: true))
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..setExitCodeOnProblem = true
     ..linkedDependencies = [
@@ -39,9 +41,9 @@ main(List<String> args) async {
     exit(1);
   }
 
-  Uri entry = Uri.base.resolve(flags.rest.first);
-  var program = await kernelForProgram(entry, options);
-  await writeProgramToBinary(program, flags['out']);
+  Uri entry = Uri.base.resolve(nativeToUriPath(flags.rest.first));
+  var component = await kernelForProgram(entry, options);
+  await writeComponentToBinary(component, flags['out']);
 }
 
 ArgParser _argParser = new ArgParser()
@@ -53,4 +55,4 @@ ArgParser _argParser = new ArgParser()
 
 String _defaultPlatform = computePlatformBinariesLocation()
     .resolve('dart2js_platform.dill')
-    .toString();
+    .toFilePath();

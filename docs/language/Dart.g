@@ -471,7 +471,11 @@ mixinApplication
     ;
 
 enumType
-    :    ENUM typeIdentifier LBRACE identifier (',' identifier)* (',')? RBRACE
+    :    ENUM typeIdentifier LBRACE enumEntry (',' enumEntry)* (',')? RBRACE
+    ;
+
+enumEntry
+    :    metadata identifier
     ;
 
 typeParameter
@@ -802,7 +806,13 @@ awaitExpression
 postfixExpression
     :    (assignableExpression postfixOperator) =>
          assignableExpression postfixOperator
+    |    (typeName typeArguments '.') =>
+         constructorInvocation ((selector) => selector)*
     |    primary ((selector) => selector)*
+    ;
+
+constructorInvocation
+    :    typeName typeArguments '.' identifier arguments
     ;
 
 postfixOperator
@@ -834,8 +844,11 @@ assignableExpression
     :    (SUPER unconditionalAssignableSelector
             ~('<' | '(' | '[' | '.' | '?.')) =>
          SUPER unconditionalAssignableSelector
+    |    (typeName typeArguments '.' identifier '(') =>
+         constructorInvocation
+         ((assignableSelectorPart) => assignableSelectorPart)+
     |    (identifier ~('<' | '(' | '[' | '.' | '?.')) => identifier
-    |    (primary argumentPart* assignableSelector) =>
+    |    (primary assignableSelectorPart) =>
          primary ((assignableSelectorPart) => assignableSelectorPart)+
     |    identifier
     ;
@@ -947,7 +960,8 @@ nonLabelledStatement
     |    breakStatement
     |    continueStatement
     |    returnStatement
-    |    (functionSignature functionBodyPrefix) => localFunctionDeclaration
+    |    (metadata functionSignature functionBodyPrefix) =>
+         localFunctionDeclaration
     |    assertStatement
     |    (YIELD ~'*') => yieldStatement
     |    yieldEachStatement
@@ -967,7 +981,7 @@ initializedVariableDeclaration
     ;
 
 localFunctionDeclaration
-    :    functionSignature functionBody
+    :    metadata functionSignature functionBody
     ;
 
 ifStatement

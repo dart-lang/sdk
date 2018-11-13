@@ -131,23 +131,6 @@ class DateTime implements Comparable<DateTime> {
   static const int sunday = 7;
   static const int daysPerWeek = 7;
 
-  /** Deprecated, use [monday] instead. */
-  static const int MONDAY = monday;
-  /** Deprecated, use [tuesday] instead. */
-  static const int TUESDAY = tuesday;
-  /** Deprecated, use [wednesday] instead. */
-  static const int WEDNESDAY = wednesday;
-  /** Deprecated, use [thursday] instead. */
-  static const int THURSDAY = thursday;
-  /** Deprecated, use [friday] instead. */
-  static const int FRIDAY = friday;
-  /** Deprecated, use [saturday] instead. */
-  static const int SATURDAY = saturday;
-  /** Deprecated, use [sunday] instead. */
-  static const int SUNDAY = sunday;
-  /** Deprecated, use [daysPerWeek] instead. */
-  static const int DAYS_PER_WEEK = daysPerWeek;
-
   // Month constants that are returned by the [month] getter.
   static const int january = 1;
   static const int february = 2;
@@ -162,33 +145,6 @@ class DateTime implements Comparable<DateTime> {
   static const int november = 11;
   static const int december = 12;
   static const int monthsPerYear = 12;
-
-  /** Deprecated, use [january] instead. */
-  static const int JANUARY = january;
-  /** Deprecated, use [february] instead. */
-  static const int FEBRUARY = february;
-  /** Deprecated, use [march] instead. */
-  static const int MARCH = march;
-  /** Deprecated, use [april] instead. */
-  static const int APRIL = april;
-  /** Deprecated, use [may] instead. */
-  static const int MAY = may;
-  /** Deprecated, use [june] instead. */
-  static const int JUNE = june;
-  /** Deprecated, use [july] instead. */
-  static const int JULY = july;
-  /** Deprecated, use [august] instead. */
-  static const int AUGUST = august;
-  /** Deprecated, use [september] instead. */
-  static const int SEPTEMBER = september;
-  /** Deprecated, use [october] instead. */
-  static const int OCTOBER = october;
-  /** Deprecated, use [november] instead. */
-  static const int NOVEMBER = november;
-  /** Deprecated, use [december] instead. */
-  static const int DECEMBER = december;
-  /** Deprecated, use [monthsPerYear] instead. */
-  static const int MONTHS_PER_YEAR = monthsPerYear;
 
   /**
    * The value of this DateTime.
@@ -317,28 +273,7 @@ class DateTime implements Comparable<DateTime> {
   // TODO(lrn): restrict incorrect values like  2003-02-29T50:70:80.
   // Or not, that may be a breaking change.
   static DateTime parse(String formattedString) {
-    /*
-     * date ::= yeardate time_opt timezone_opt
-     * yeardate ::= year colon_opt month colon_opt day
-     * year ::= sign_opt digit{4,6}
-     * colon_opt :: <empty> | ':'
-     * sign ::= '+' | '-'
-     * sign_opt ::=  <empty> | sign
-     * month ::= digit{2}
-     * day ::= digit{2}
-     * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
-     * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
-     * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
-     * micros_opt ::= <empty> | '.' digit{1,6}
-     * timezone_opt ::= <empty> | space_opt timezone
-     * space_opt :: ' ' | <empty>
-     * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
-     * timezonemins_opt ::= <empty> | colon_opt digit{2}
-     */
-    final RegExp re = new RegExp(r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-        r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
-        r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
-
+    var re = _parseFormat;
     Match match = re.firstMatch(formattedString);
     if (match != null) {
       int parseIntOrZero(String matched) {
@@ -397,6 +332,15 @@ class DateTime implements Comparable<DateTime> {
       return new DateTime._withValue(value, isUtc: isUtc);
     } else {
       throw new FormatException("Invalid date format", formattedString);
+    }
+  }
+
+  static DateTime tryParse(String formattedString) {
+    // TODO: Optimize to avoid throwing.
+    try {
+      return parse(formattedString);
+    } on FormatException {
+      return null;
     }
   }
 
@@ -460,10 +404,7 @@ class DateTime implements Comparable<DateTime> {
    * See [isAtSameMomentAs] for a comparison that compares moments in time
    * independently of their zones.
    */
-  bool operator ==(other) {
-    if (!(other is DateTime)) return false;
-    return (_value == other._value && isUtc == other.isUtc);
-  }
+  external bool operator ==(dynamic other);
 
   /**
    * Returns true if [this] occurs before [other].
@@ -485,9 +426,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(!now.isBefore(now.toUtc()));
    * ```
    */
-  bool isBefore(DateTime other) {
-    return _value < other._value;
-  }
+  external bool isBefore(DateTime other);
 
   /**
    * Returns true if [this] occurs after [other].
@@ -509,9 +448,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(!now.isBefore(now.toUtc()));
    * ```
    */
-  bool isAfter(DateTime other) {
-    return _value > other._value;
-  }
+  external bool isAfter(DateTime other);
 
   /**
    * Returns true if [this] occurs at the same moment as [other].
@@ -533,9 +470,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(now.isAtSameMomentAs(now.toUtc()));
    * ```
    */
-  bool isAtSameMomentAs(DateTime other) {
-    return _value == other._value;
-  }
+  external bool isAtSameMomentAs(DateTime other);
 
   /**
    * Compares this DateTime object to [other],
@@ -545,7 +480,7 @@ class DateTime implements Comparable<DateTime> {
    * if it [isAtSameMomentAs] [other], and returns a positive value otherwise
    * (when this [isAfter] [other]).
    */
-  int compareTo(DateTime other) => _value.compareTo(other._value);
+  external int compareTo(DateTime other);
 
   int get hashCode => (_value ^ (_value >> 30)) & 0x3FFFFFFF;
 
@@ -904,4 +839,27 @@ class DateTime implements Comparable<DateTime> {
    * ```
    */
   external int get weekday;
+
+  /*
+   * date ::= yeardate time_opt timezone_opt
+   * yeardate ::= year colon_opt month colon_opt day
+   * year ::= sign_opt digit{4,6}
+   * colon_opt :: <empty> | ':'
+   * sign ::= '+' | '-'
+   * sign_opt ::=  <empty> | sign
+   * month ::= digit{2}
+   * day ::= digit{2}
+   * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
+   * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
+   * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
+   * micros_opt ::= <empty> | '.' digit{1,6}
+   * timezone_opt ::= <empty> | space_opt timezone
+   * space_opt :: ' ' | <empty>
+   * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
+   * timezonemins_opt ::= <empty> | colon_opt digit{2}
+   */
+  static final RegExp _parseFormat = new RegExp(
+      r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
+      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
+      r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }

@@ -6,8 +6,12 @@ library fasta.kernel_interface_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
+import '../fasta_codes.dart' show LocatedMessage;
+
 import '../messages.dart'
-    show templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
+    show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
+
+import '../severity.dart' show Severity;
 
 import 'kernel_builder.dart'
     show
@@ -17,7 +21,9 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder,
-        TypeVariableBuilder;
+        TypeDeclarationBuilder,
+        TypeVariableBuilder,
+        flattenName;
 
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
@@ -25,40 +31,72 @@ class KernelNamedTypeBuilder
   KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
       : super(name, arguments);
 
-  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri) {
+  KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message,
+      {List<LocatedMessage> context}) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
-    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri);
+    return new KernelInvalidTypeBuilder(
+        flattenName(name, message.charOffset, message.uri), message,
+        context: context);
   }
 
   Supertype handleInvalidSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    var template = builder.isTypeVariable
+    var template = declaration.isTypeVariable
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
-    library.addCompileTimeError(
-        template.withArguments("$name"), charOffset, fileUri);
+    library.addProblem(
+        template.withArguments(flattenName(name, charOffset, fileUri)),
+        charOffset,
+        noLength,
+        fileUri);
     return null;
   }
 
   DartType build(LibraryBuilder library) {
-    return builder.buildType(library, arguments);
+    return declaration.buildType(library, arguments);
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    if (builder is KernelClassBuilder) {
-      KernelClassBuilder builder = this.builder;
-      return builder.buildSupertype(library, arguments);
+    TypeDeclarationBuilder declaration = this.declaration;
+    if (declaration is KernelClassBuilder) {
+      return declaration.buildSupertype(library, arguments);
+    } else if (declaration is KernelInvalidTypeBuilder) {
+      library.addProblem(
+          declaration.message.messageObject,
+          declaration.message.charOffset,
+          declaration.message.length,
+          declaration.message.uri,
+          severity: Severity.error);
+      return null;
+    } else {
+      return handleInvalidSupertype(library, charOffset, fileUri);
+    }
+  }
+
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    TypeDeclarationBuilder declaration = this.declaration;
+    if (declaration is KernelClassBuilder) {
+      return declaration.buildMixedInType(library, arguments);
+    } else if (declaration is KernelInvalidTypeBuilder) {
+      library.addProblem(
+          declaration.message.messageObject,
+          declaration.message.charOffset,
+          declaration.message.length,
+          declaration.message.uri,
+          severity: Severity.error);
+      return null;
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
-    TypeBuilder result = substitution[builder];
+    TypeBuilder result = substitution[declaration];
     if (result != null) {
-      assert(builder is TypeVariableBuilder);
+      assert(declaration is TypeVariableBuilder);
       return result;
     } else if (arguments != null) {
       List<KernelTypeBuilder> arguments;
@@ -72,9 +110,23 @@ class KernelNamedTypeBuilder
         i++;
       }
       if (arguments != null) {
-        return new KernelNamedTypeBuilder(name, arguments)..bind(builder);
+        return new KernelNamedTypeBuilder(name, arguments)..bind(declaration);
       }
     }
     return this;
+  }
+
+  KernelNamedTypeBuilder clone(List<TypeBuilder> newTypes) {
+    List<KernelTypeBuilder> clonedArguments;
+    if (arguments != null) {
+      clonedArguments = new List<KernelTypeBuilder>(arguments.length);
+      for (int i = 0; i < clonedArguments.length; i++) {
+        clonedArguments[i] = arguments[i].clone(newTypes);
+      }
+    }
+    KernelNamedTypeBuilder newType =
+        new KernelNamedTypeBuilder(name, clonedArguments);
+    newTypes.add(newType);
+    return newType;
   }
 }

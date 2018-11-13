@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -11,6 +12,7 @@ import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
@@ -40,6 +42,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
         searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params =
         new protocol.SearchFindElementReferencesParams.fromRequest(request);
     String file = params.file;
@@ -72,6 +76,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberDeclarations(protocol.Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params =
         new protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     await server.onAnalysisComplete;
@@ -87,6 +93,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberReferences(protocol.Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params =
         new protocol.SearchFindMemberReferencesParams.fromRequest(request);
     await server.onAnalysisComplete;
@@ -102,6 +110,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findTopLevelDeclarations(protocol.Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params =
         new protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     try {
@@ -126,9 +136,103 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   /**
+   * Implement the `search.getDeclarations` request.
+   */
+  Future getDeclarations(protocol.Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var params =
+        new protocol.SearchGetElementDeclarationsParams.fromRequest(request);
+
+    RegExp regExp;
+    if (params.pattern != null) {
+      try {
+        regExp = new RegExp(params.pattern);
+      } on FormatException catch (exception) {
+        server.sendResponse(new protocol.Response.invalidParameter(
+            request, 'pattern', exception.message));
+        return;
+      }
+    }
+
+    var files = new LinkedHashSet<String>();
+    var declarations = <search.Declaration>[];
+
+    protocol.ElementKind getElementKind(search.DeclarationKind kind) {
+      switch (kind) {
+        case search.DeclarationKind.CLASS:
+          return protocol.ElementKind.CLASS;
+        case search.DeclarationKind.CLASS_TYPE_ALIAS:
+          return protocol.ElementKind.CLASS_TYPE_ALIAS;
+        case search.DeclarationKind.CONSTRUCTOR:
+          return protocol.ElementKind.CONSTRUCTOR;
+        case search.DeclarationKind.ENUM:
+          return protocol.ElementKind.ENUM;
+        case search.DeclarationKind.ENUM_CONSTANT:
+          return protocol.ElementKind.ENUM_CONSTANT;
+        case search.DeclarationKind.FIELD:
+          return protocol.ElementKind.FIELD;
+        case search.DeclarationKind.FUNCTION:
+          return protocol.ElementKind.FUNCTION;
+        case search.DeclarationKind.FUNCTION_TYPE_ALIAS:
+          return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+        case search.DeclarationKind.GETTER:
+          return protocol.ElementKind.GETTER;
+        case search.DeclarationKind.METHOD:
+          return protocol.ElementKind.METHOD;
+        case search.DeclarationKind.MIXIN:
+          return protocol.ElementKind.MIXIN;
+        case search.DeclarationKind.SETTER:
+          return protocol.ElementKind.SETTER;
+        case search.DeclarationKind.VARIABLE:
+          return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+        default:
+          return protocol.ElementKind.CLASS;
+      }
+    }
+
+    int remainingMaxResults = params.maxResults;
+    for (var driver in server.driverMap.values.toList()) {
+      var driverDeclarations = await driver.search.declarations(
+          regExp, remainingMaxResults, files,
+          onlyForFile: params.file);
+      declarations.addAll(driverDeclarations);
+
+      if (remainingMaxResults != null) {
+        remainingMaxResults -= driverDeclarations.length;
+        if (remainingMaxResults <= 0) {
+          break;
+        }
+      }
+    }
+
+    List<protocol.ElementDeclaration> elementDeclarations =
+        declarations.map((declaration) {
+      return new protocol.ElementDeclaration(
+          declaration.name,
+          getElementKind(declaration.kind),
+          declaration.fileIndex,
+          declaration.offset,
+          declaration.line,
+          declaration.column,
+          declaration.codeOffset,
+          declaration.codeLength,
+          className: declaration.className,
+          mixinName: declaration.mixinName,
+          parameters: declaration.parameters);
+    }).toList();
+
+    server.sendResponse(new protocol.SearchGetElementDeclarationsResult(
+            elementDeclarations, files.toList())
+        .toResponse(request.id));
+  }
+
+  /**
    * Implement the `search.getTypeHierarchy` request.
    */
   Future getTypeHierarchy(protocol.Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     String file = params.file;
     // prepare element
@@ -173,6 +277,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
         return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_REQUEST_FIND_TOP_LEVEL_DECLARATIONS) {
         findTopLevelDeclarations(request);
+        return protocol.Response.DELAYED_RESPONSE;
+      } else if (requestName == SEARCH_REQUEST_GET_ELEMENT_DECLARATIONS) {
+        getDeclarations(request);
         return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_REQUEST_GET_TYPE_HIERARCHY) {
         getTypeHierarchy(request);

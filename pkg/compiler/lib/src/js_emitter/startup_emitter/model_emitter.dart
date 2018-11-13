@@ -9,34 +9,31 @@ import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
-        CLASS_FIELDS_EXTRACTOR,
-        CLASS_ID_EXTRACTOR,
-        CREATE_NEW_ISOLATE,
         DEFERRED_INITIALIZED,
-        DEFERRED_LIBRARY_URIS,
-        DEFERRED_LIBRARY_HASHES,
+        DEFERRED_LIBRARY_PARTS,
+        DEFERRED_PART_URIS,
+        DEFERRED_PART_HASHES,
         GET_TYPE_FROM_NAME,
-        INITIALIZE_EMPTY_INSTANCE,
         INITIALIZE_LOADED_HUNK,
-        INSTANCE_FROM_CLASS_ID,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
+        JsGetName,
         LEAF_TAGS,
         MANGLED_GLOBAL_NAMES,
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
-        STATIC_FUNCTION_NAME_TO_CLOSURE,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
+
+import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../common_elements.dart' show CommonElements;
-import '../../elements/elements.dart' show ClassElement;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -45,7 +42,7 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/interceptor_data.dart';
+import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
@@ -55,7 +52,6 @@ import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
 import '../sorter.dart' show Sorter;
 
-part 'deferred_fragment_hash.dart';
 part 'fragment_emitter.dart';
 
 class ModelEmitter {
@@ -64,11 +60,13 @@ class ModelEmitter {
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
   final bool shouldGenerateSourceMap;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final ConstantOrdering _constantOrdering;
 
   // The full code that is written to each hunk part-file.
-  final Map<Fragment, CodeOutput> outputBuffers = <Fragment, CodeOutput>{};
+  final Map<Fragment, CodeOutput> outputBuffers = {};
+
+  Set<Fragment> omittedFragments = Set();
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -90,7 +88,7 @@ class ModelEmitter {
         compiler.codegenWorldBuilder,
         _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
-        namer,
+        _closedWorld.allocatorAnalysis,
         task,
         this.generateConstantReference,
         constantListGenerator);
@@ -172,23 +170,22 @@ class ModelEmitter {
     FragmentEmitter fragmentEmitter = new FragmentEmitter(
         compiler, namer, backend, constantEmitter, this, _closedWorld);
 
-    Map<DeferredFragment, _DeferredFragmentHash> deferredHashTokens =
-        new Map<DeferredFragment, _DeferredFragmentHash>();
-    for (DeferredFragment fragment in deferredFragments) {
-      deferredHashTokens[fragment] = new _DeferredFragmentHash(fragment);
-    }
-
+    var deferredLoadingState = new DeferredLoadingState();
     js.Statement mainCode =
-        fragmentEmitter.emitMainFragment(program, deferredHashTokens);
+        fragmentEmitter.emitMainFragment(program, deferredLoadingState);
 
-    Map<DeferredFragment, js.Expression> deferredFragmentsCode =
-        <DeferredFragment, js.Expression>{};
+    Map<DeferredFragment, js.Expression> deferredFragmentsCode = {};
 
     for (DeferredFragment fragment in deferredFragments) {
       js.Expression types =
           program.metadataTypesForOutputUnit(fragment.outputUnit);
-      deferredFragmentsCode[fragment] = fragmentEmitter.emitDeferredFragment(
+      js.Expression fragmentCode = fragmentEmitter.emitDeferredFragment(
           fragment, types, program.holders);
+      if (fragmentCode != null) {
+        deferredFragmentsCode[fragment] = fragmentCode;
+      } else {
+        omittedFragments.add(fragment);
+      }
     }
 
     js.TokenCounter counter = new js.TokenCounter();
@@ -197,15 +194,17 @@ class ModelEmitter {
 
     program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
 
+    // TODO(sra): This is where we know if the types (and potentially other
+    // deferred ASTs inside the parts) have any contents. We shoudl wait until
+    // this point to decide if a part is empty.
+
     Map<DeferredFragment, String> hunkHashes =
         writeDeferredFragments(deferredFragmentsCode);
 
-    // Now that we have written the deferred hunks, we can update the hash
-    // tokens in the main-fragment.
-    deferredHashTokens
-        .forEach((DeferredFragment key, _DeferredFragmentHash token) {
-      token.setHash(hunkHashes[key]);
-    });
+    // Now that we have written the deferred hunks, we can create the deferred
+    // loading data.
+    fragmentEmitter.finalizeDeferredLoadingData(
+        program.loadMap, hunkHashes, deferredLoadingState);
 
     writeMainFragment(mainFragment, mainCode,
         isSplit: program.deferredFragments.isNotEmpty ||
@@ -227,10 +226,17 @@ class ModelEmitter {
 
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
-    String flavor = compiler.options.useContentSecurityPolicy
-        ? 'fast startup, CSP'
-        : 'fast startup';
-    return new js.Comment(generatedBy(compiler, flavor: flavor));
+    StringBuffer flavor = new StringBuffer();
+    flavor.write('fast startup emitter');
+    // TODO(johnniwinther): Remove this flavor.
+    flavor.write(', strong');
+    if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
+    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
+    if (compiler.options.laxRuntimeTypeToString) {
+      flavor.write(', lax runtime type');
+    }
+    if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
+    return new js.Comment(generatedBy(compiler, flavor: '$flavor'));
   }
 
   /// Writes all deferred fragment's code into files.
@@ -241,7 +247,7 @@ class ModelEmitter {
   /// Updates the shared [outputBuffers] field with the output.
   Map<DeferredFragment, String> writeDeferredFragments(
       Map<DeferredFragment, js.Expression> fragmentsCode) {
-    Map<DeferredFragment, String> hunkHashes = <DeferredFragment, String>{};
+    Map<DeferredFragment, String> hunkHashes = {};
 
     fragmentsCode.forEach((DeferredFragment fragment, js.Expression code) {
       hunkHashes[fragment] = writeDeferredFragment(fragment, code);
@@ -296,6 +302,8 @@ class ModelEmitter {
       SourceMapBuilder.outputSourceMap(
           mainOutput,
           locationCollector,
+          namer.createMinifiedGlobalNameMap(),
+          namer.createMinifiedInstanceNameMap(),
           '',
           compiler.options.sourceMapUri,
           compiler.options.outputUri,
@@ -309,7 +317,7 @@ class ModelEmitter {
   //
   // Updates the shared [outputBuffers] field with the output.
   String writeDeferredFragment(DeferredFragment fragment, js.Expression code) {
-    List<CodeOutputListener> outputListeners = <CodeOutputListener>[];
+    List<CodeOutputListener> outputListeners = [];
     Hasher hasher = new Hasher();
     outputListeners.add(hasher);
 
@@ -380,8 +388,8 @@ class ModelEmitter {
 
       output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
       output.close();
-      SourceMapBuilder.outputSourceMap(output, locationCollector, partName,
-          mapUri, partUri, compiler.outputProvider);
+      SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
+          partName, mapUri, partUri, compiler.outputProvider);
     } else {
       output.close();
     }
@@ -394,12 +402,15 @@ class ModelEmitter {
   /// The output is written into a separate file that can be used by outside
   /// tools.
   void writeDeferredMap() {
-    Map<String, dynamic> mapping = new Map<String, dynamic>();
+    Map<String, dynamic> mapping = {};
     // Json does not support comments, so we embed the explanation in the
     // data.
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
-    mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
+    mapping.addAll(_closedWorld.outputUnitData.computeDeferredMap(
+        compiler.options, _closedWorld.elementEnvironment,
+        omittedUnits:
+            omittedFragments.map((fragemnt) => fragemnt.outputUnit).toSet()));
     compiler.outputProvider.createOutputSink(
         compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))

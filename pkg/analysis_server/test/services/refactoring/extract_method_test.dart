@@ -779,6 +779,22 @@ main() {
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not be empty.");
+    // incorrect casing
+    refactoring.name = 'Aaa';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.WARNING,
+        expectedMessage: "Method name should start with a lowercase letter.");
+    // starts with digit
+    refactoring.name = '0aa';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "Method name must begin with a lowercase letter or underscore.");
+    // invalid name (quote)
+    refactoring.name = '"';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Method name must not contain '\"'.");
     // OK
     refactoring.name = 'res';
     assertRefactoringStatusOK(refactoring.checkName());
@@ -1230,6 +1246,30 @@ main() {
 }
 
 String res(String s) => s..length;
+''');
+  }
+
+  test_singleExpression_coveringExpression() async {
+    await indexTestUnit('''
+main(int n) {
+  var v = new FooBar(n);
+}
+
+class FooBar {
+  FooBar(int count);
+}
+''');
+    _createRefactoringForStringOffset('Bar(n);');
+    return _assertSuccessfulRefactoring('''
+main(int n) {
+  var v = res(n);
+}
+
+FooBar res(int n) => new FooBar(n);
+
+class FooBar {
+  FooBar(int count);
+}
 ''');
   }
 
@@ -2797,7 +2837,7 @@ void res() {
   }
 
   void _addLibraryReturningAsync() {
-    addSource('/asyncLib.dart', r'''
+    addSource('/project/asyncLib.dart', r'''
 library asyncLib;
 import 'dart:async';
 Future<int> newFuture() => null;
@@ -2840,7 +2880,7 @@ Future<int> newFuture() => null;
 
   void _createRefactoring(int offset, int length) {
     refactoring = new ExtractMethodRefactoring(
-        searchEngine, astProvider, testUnit, offset, length);
+        searchEngine, astProvider, testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 
@@ -2865,6 +2905,15 @@ Future<int> newFuture() => null;
     int offset = findOffset(search);
     int length = search.length;
     _createRefactoring(offset, length);
+  }
+
+  /**
+   * Creates a new refactoring in [refactoring] at the offset of the given
+   * [search] pattern, and with `0` length.
+   */
+  void _createRefactoringForStringOffset(String search) {
+    int offset = findOffset(search);
+    _createRefactoring(offset, 0);
   }
 
   void _createRefactoringWithSuffix(String selectionSearch, String suffix) {

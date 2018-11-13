@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -22,6 +21,7 @@ main() {
 class KeywordContributorTest extends DartCompletionContributorTest {
   static const List<Keyword> CLASS_BODY_KEYWORDS = const [
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.FACTORY,
     Keyword.FINAL,
@@ -37,6 +37,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.FINAL,
     Keyword.TYPEDEF,
@@ -48,6 +49,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.EXPORT,
     Keyword.FINAL,
@@ -63,6 +65,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.EXPORT,
     Keyword.FINAL,
@@ -218,13 +221,15 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
-    expectedCompletions.addAll(expectedKeywords.map((k) => k.lexeme));
-    ['import', 'export', 'part'].forEach((s) {
-      if (expectedCompletions.contains(s)) {
-        expectedCompletions.remove(s);
-        expectedCompletions.add('$s \'\';');
+    expectedCompletions.addAll(expectedKeywords.map((keyword) {
+      String text = keyword.lexeme;
+      if (['import', 'export', 'part'].contains(text)) {
+        return '$text \'\';';
+      } else if (text == 'default') {
+        return '$text:';
       }
-    });
+      return text;
+    }));
 
     expectedCompletions.addAll(pseudoKeywords);
     for (CompletionSuggestion s in suggestions) {
@@ -768,7 +773,7 @@ class C {
 }
 ''');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.CONST, Keyword.FINAL]);
+    assertSuggestKeywords([Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL]);
   }
 
   test_class_member_final_afterStatic() async {
@@ -778,7 +783,7 @@ class C {
 }
 ''');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.CONST, Keyword.FINAL]);
+    assertSuggestKeywords([Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL]);
   }
 
   test_class_name() async {
@@ -830,6 +835,18 @@ class C {
     addTestSource('class A extends foo with ^');
     await computeSuggestions();
     assertSuggestKeywords([]);
+  }
+
+  test_constructor_initializers_first() async {
+    addTestSource('class A { int f; A() : ^, f = 1; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT]);
+  }
+
+  test_constructor_initializers_last() async {
+    addTestSource('class A { A() : ^; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT, Keyword.SUPER, Keyword.THIS]);
   }
 
   test_constructor_param() async {
@@ -1406,6 +1423,18 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_integerLiteral_inArgumentList() async {
+    addTestSource('main() { print(42^); }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
+  test_integerLiteral_inListLiteral() async {
+    addTestSource('main() { var items = [42^]; }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
   test_is_expression() async {
     addTestSource('main() {if (x is^)}');
     await computeSuggestions();
@@ -1452,14 +1481,8 @@ class A {
   test_method_async() async {
     addTestSource('class A { foo() ^}');
     await computeSuggestions();
-    if (usingFastaParser) {
-      assertSuggestKeywords([],
-          pseudoKeywords: ['async', 'async*', 'sync*'],
-          relevance: DART_RELEVANCE_HIGH);
-    } else {
-      assertSuggestKeywords(CLASS_BODY_KEYWORDS,
-          pseudoKeywords: ['async', 'async*', 'sync*']);
-    }
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_async2() async {
@@ -1643,6 +1666,19 @@ class A {
     await computeSuggestions();
     expect(suggestions, isNotEmpty);
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_mixin() async {
+    addTestSource('mixin M o^ { }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ON, Keyword.IMPLEMENTS],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_mixin_afterOnClause() async {
+    addTestSource('mixin M on A i^ { } class A {}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.IMPLEMENTS], relevance: DART_RELEVANCE_HIGH);
   }
 
   test_named_constructor_invocation() async {

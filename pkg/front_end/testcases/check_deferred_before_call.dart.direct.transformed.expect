@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "./deferred_lib.dart" as def;
+
+static method main() → dynamic {}
+static method test() → dynamic {
+  let final dynamic #t1 = CheckLibraryIsLoaded(lib) in def::m(3);
+}

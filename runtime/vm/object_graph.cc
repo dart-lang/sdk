@@ -34,7 +34,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   // Marks and pushes. Used to initialize this stack with roots.
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
-      if ((*current)->IsHeapObject() && !(*current)->IsMarked()) {
+      if ((*current)->IsHeapObject() && !(*current)->IsGraphMarked()) {
         if (!include_vm_objects_) {
           intptr_t cid = (*current)->GetClassId();
           if (((cid < kInstanceCid) || (cid == kTypeArgumentsCid)) &&
@@ -42,7 +42,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
             continue;
           }
         }
-        (*current)->SetMarkBit();
+        (*current)->SetGraphMarked();
         Node node;
         node.ptr = current;
         node.obj = *current;
@@ -149,8 +149,8 @@ class Unmarker : public ObjectVisitor {
   Unmarker() {}
 
   void VisitObject(RawObject* obj) {
-    if (obj->IsMarked()) {
-      obj->ClearMarkBit();
+    if (obj->IsGraphMarked()) {
+      obj->ClearGraphMarked();
     }
   }
 
@@ -207,7 +207,7 @@ ObjectGraph::~ObjectGraph() {}
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   Stack stack(isolate());
-  isolate()->VisitObjectPointers(&stack, false);
+  isolate()->VisitObjectPointers(&stack, ValidationPolicy::kDontValidateFrames);
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -501,6 +501,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
 intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
   HeapIterationScope iteration(Thread::Current());
+  NoSafepointScope no_safepoint;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
   iteration.IterateObjects(&visitor);
   return visitor.length();
@@ -642,7 +643,8 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
     // Write root "object".
     WriteHeader(kRootAddress, 0, kRootCid, stream);
     WritePointerVisitor ptr_writer(isolate(), stream, false);
-    isolate()->VisitObjectPointers(&ptr_writer, false);
+    isolate()->VisitObjectPointers(&ptr_writer,
+                                   ValidationPolicy::kDontValidateFrames);
     stream->WriteUnsigned(0);
   } else {
     {
@@ -658,7 +660,8 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
       // Write stack "object".
       WriteHeader(kStackAddress, 0, kStackCid, stream);
       WritePointerVisitor ptr_writer(isolate(), stream, true);
-      isolate()->VisitStackPointers(&ptr_writer, false);
+      isolate()->VisitStackPointers(&ptr_writer,
+                                    ValidationPolicy::kDontValidateFrames);
       stream->WriteUnsigned(0);
     }
   }

@@ -1,0 +1,24 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  operator []=(core::int index, dynamic value) → dynamic
+    ;
+}
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+  operator []=(core::int index, dynamic value) → void
+    ;
+}
+class D extends self::C implements self::I {
+  synthetic constructor •() → self::D
+    ;
+  operator []=(core::int index, dynamic value) → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

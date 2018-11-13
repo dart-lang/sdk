@@ -6,7 +6,7 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
 class A { foo() => 499; }
@@ -89,17 +89,15 @@ main() {
   // { a: true, }. Make sure this doesn't happen again.
   RegExp danglingComma = new RegExp(r',[ \n]*}');
 
-  Future runTests(CompileMode compileMode) async {
+  Future runTests() async {
     for (String test in [TEST_ONE, TEST_TWO, TEST_THREE, TEST_FOUR]) {
-      String generated = await compileAll(test, compileMode: compileMode);
+      String generated = await compileAll(test);
       Expect.isFalse(danglingComma.hasMatch(generated));
     }
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
-    await runTests(CompileMode.kernel);
+    await runTests();
   });
 }

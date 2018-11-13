@@ -85,4 +85,3 @@ package/scenarios/packages_dir_only/packages_dir_only_test: Fail # Unable to par
 package/scenarios/packages_file_in_parent/sub/packages_file_in_parent_test: Fail # Unable to parse package files Flutter Issue 9115
 package/scenarios/packages_file_only/packages_file_only_test: Fail # Unable to parse package files Flutter Issue 9115
 package/scenarios/packages_option_only/packages_option_only_test: Fail # Unable to parse package files Flutter Issue 9115
-

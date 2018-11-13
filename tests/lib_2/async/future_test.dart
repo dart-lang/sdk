@@ -636,7 +636,6 @@ void testCompleteWithFutureError2() {
     Expect.equals("ERROR-tcwfe2", e);
     asyncEnd();
   });
-
 }
 
 void testCompleteErrorWithFuture() {
@@ -688,7 +687,8 @@ void testCompleteErrorWithCustomFuture() {
   completer.completeError(future);
   completer.future.then((_) {
     Expect.fail("Shouldn't happen");
-  }, onError: (Future f) {
+  }, onError: (e) {
+    Future f = e;
     f.then((v) {
       Expect.equals(42, v);
       asyncEnd();
@@ -888,7 +888,8 @@ void testWaitCleanUpError() {
       Expect.equals(e, 1);
       asyncEnd();
     });
-  }, onError: (int index, s) {
+  }, onError: (e, s) {
+    int index = e;
     Expect.isTrue(index == 0 || index == 2, "$index");
     Expect.isFalse(uncaughts[index]);
     uncaughts[index] = true;
@@ -977,7 +978,7 @@ void testBadFuture() {
 void testTypes() {
   // Test that future is a Future<int> and not something less precise.
   testType(name, future, [depth = 2]) {
-    var desc = "$name${".whenComplete"*(2-depth)}";
+    var desc = "$name${".whenComplete" * (2 - depth)}";
     Expect.isTrue(future is Future<int>, "$desc is Future<int>");
     Expect.isFalse(future is Future<String>, "$desc is! Future<String>");
     var stream = future.asStream();
@@ -995,12 +996,9 @@ void testTypes() {
         new Future<int>.delayed(Duration.zero, () => value));
     testType(
         "Future.microtask($value)", new Future<int>.microtask(() => value));
-    testType( //# 01: ok
-        "Future.sync($value)", new Future<int>.sync(() => value)); //# 01: continued
-    testType( //# 01: continued
-        "Future.sync(future($value))", //# 01: continued
-        new Future<int>.sync(//# 01: continued
-            () => new Future<int>.value(value))); //# 01: continued
+    testType("Future.sync($value)", new Future<int>.sync(() => value));
+    testType("Future.sync(future($value))",
+        new Future<int>.sync(() => new Future<int>.value(value)));
     testType("Future.value($value)", new Future<int>.value(value));
   }
   testType("Completer.future", new Completer<int>().future);
@@ -1100,6 +1098,33 @@ void testFutureResult() {
   }();
 }
 
+void testFutureOfFuture() async {
+  // Plain Future.
+  asyncStart();
+  var future = Future<Future<int>>.value(Future<int>.value(42));
+  Expect.type<Future<Future<int>>>(future);
+  future.then((innerFuture) {
+    Expect.type<Future<int>>(innerFuture);
+    innerFuture.then((number) {
+      Expect.equals(42, number);
+      asyncEnd();
+    });
+  });
+
+  // With completer.
+  asyncStart();
+  var completer = Completer<Future<int>>();
+  Expect.type<Future<Future<int>>>(completer.future);
+  completer.future.then((innerFuture) {
+    Expect.type<Future<int>>(innerFuture);
+    innerFuture.then((number) {
+      Expect.equals(42, number);
+      asyncEnd();
+    });
+  });
+  completer.complete(Future<int>.value(42));
+}
+
 main() {
   asyncStart();
 
@@ -1172,6 +1197,8 @@ main() {
   testAnyIgnoreError();
 
   testFutureResult();
+
+  testFutureOfFuture();
 
   asyncEnd();
 }

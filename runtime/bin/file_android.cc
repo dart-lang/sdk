@@ -236,8 +236,19 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
+      ? uri + 7 : uri;
+  UriDecoder uri_decoder(path);
+  if (uri_decoder.decoded() == NULL) {
+    errno = EINVAL;
+    return NULL;
+  }
+  return File::Open(namespc, uri_decoder.decoded(), mode);
+}
+
 File* File::OpenStdio(int fd) {
-  return ((fd < 0) || (2 < fd)) ? NULL : new File(new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
@@ -626,7 +637,6 @@ const char* File::StringEscapedPathSeparator() {
 }
 
 File::StdioHandleType File::GetStdioHandleType(int fd) {
-  ASSERT((0 <= fd) && (fd <= 2));
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {

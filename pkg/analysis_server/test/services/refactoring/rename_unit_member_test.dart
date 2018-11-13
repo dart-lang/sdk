@@ -69,7 +69,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit(convertPath('/project/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 
@@ -109,7 +109,7 @@ class A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit(convertPath('/project/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -214,44 +214,6 @@ class B {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkInitialConditions_inPubCache_posix() async {
-    addSource('/.pub-cache/lib.dart', r'''
-class A {}
-''');
-    await indexTestUnit('''
-import '/.pub-cache/lib.dart';
-main() {
-  A a;
-}
-''');
-    createRenameRefactoringAtString('A a');
-    // check status
-    refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "The class 'A' is defined in a pub package, so cannot be renamed.");
-  }
-
-  test_checkInitialConditions_inPubCache_windows() async {
-    addSource('/Pub/Cache/lib.dart', r'''
-class A {}
-''');
-    await indexTestUnit('''
-import '/Pub/Cache/lib.dart';
-main() {
-  A a;
-}
-''');
-    createRenameRefactoringAtString('A a');
-    // check status
-    refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "The class 'A' is defined in a pub package, so cannot be renamed.");
-  }
-
   test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
@@ -265,6 +227,25 @@ main() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "The class 'String' is defined in the SDK, so cannot be renamed.");
+  }
+
+  test_checkInitialConditions_outsideOfProject() async {
+    addSource('/other/lib.dart', r'''
+class A {}
+''');
+    await indexTestUnit('''
+import "${convertAbsolutePathToUri('/other/lib.dart')}";
+main() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'A' is defined outside of the project, so cannot be renamed.");
   }
 
   test_checkNewName_ClassElement() async {
@@ -386,6 +367,129 @@ main() {
 ''');
   }
 
+  test_createChange_ClassElement_flutterWidget() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class TestPage extends StatefulWidget {
+  const TestPage();
+
+  @override
+  TestPageState createState() => new TestPageState();
+}
+
+class TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'TestPage');
+    refactoring.newName = 'NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class NewPage extends StatefulWidget {
+  const NewPage();
+
+  @override
+  NewPageState createState() => new NewPageState();
+}
+
+class NewPageState extends State<NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
+  test_createChange_ClassElement_flutterWidget_privateBoth() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class _TestPage extends StatefulWidget {
+  const _TestPage();
+
+  @override
+  _TestPageState createState() => new _TestPageState();
+}
+
+class _TestPageState extends State<_TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('_TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, '_TestPage');
+    refactoring.newName = '_NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class _NewPage extends StatefulWidget {
+  const _NewPage();
+
+  @override
+  _NewPageState createState() => new _NewPageState();
+}
+
+class _NewPageState extends State<_NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
+  test_createChange_ClassElement_flutterWidget_privateState() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class TestPage extends StatefulWidget {
+  const TestPage();
+
+  @override
+  _TestPageState createState() => new _TestPageState();
+}
+
+class _TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'TestPage');
+    refactoring.newName = 'NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class NewPage extends StatefulWidget {
+  const NewPage();
+
+  @override
+  _NewPageState createState() => new _NewPageState();
+}
+
+class _NewPageState extends State<NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
   test_createChange_ClassElement_invocation() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''
@@ -483,7 +587,7 @@ main() {
   }
 
   test_createChange_FunctionElement_imported() async {
-    await indexUnit('/foo.dart', r'''
+    await indexUnit('/project/foo.dart', r'''
 test() {}
 foo() {}
 ''');
@@ -510,9 +614,33 @@ main() {
   foo();
 }
 ''');
-    assertFileChangeResult('/foo.dart', '''
+    assertFileChangeResult('/project/foo.dart', '''
 newName() {}
 foo() {}
+''');
+  }
+
+  test_createChange_FunctionTypeAliasElement() async {
+    await indexTestUnit('''
+typedef void F();
+void foo<T>() {}
+void main() {
+  foo<F>();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('F()');
+    expect(refactoring.refactoringName, 'Rename Function Type Alias');
+    expect(refactoring.elementKindName, 'function type alias');
+    expect(refactoring.oldName, 'F');
+    refactoring.newName = 'G';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef void G();
+void foo<T>() {}
+void main() {
+  foo<G>();
+}
 ''');
   }
 

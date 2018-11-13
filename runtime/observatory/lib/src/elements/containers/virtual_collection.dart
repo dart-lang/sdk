@@ -54,7 +54,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     assert(update != null);
     assert(items != null);
     VirtualCollectionElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<VirtualCollectionElement>(e, queue: queue);
     e._create = create;
     e._createHeader = createHeader;
     e._update = update;
@@ -126,12 +126,12 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
 
   void render() {
     if (children.isEmpty) {
-      children = [
+      children = <Element>[
         _viewport
-          ..children = [
+          ..children = <Element>[
             _spacer
-              ..children = [
-                _buffer..children = [_create()]
+              ..children = <Element>[
+                _buffer..children = <Element>[_create()]
               ],
           ]
       ];
@@ -151,7 +151,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
         final rect = _header.getBoundingClientRect();
         _header.classes.add('attached');
         _viewport.style.top = '${rect.height}px';
-        final width = _header.children.fold(0, _foldWidth);
+        final width = _header.children.fold(0.0, _foldWidth);
         _buffer.style.minWidth = '${width}px';
       }
       _itemHeight = _buffer.children[0].getBoundingClientRect().height;
@@ -216,7 +216,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _updateHeader();
   }
 
-  double _foldWidth(double value, HtmlElement child) {
+  double _foldWidth(double value, Element child) {
     return math.max(value, child.getBoundingClientRect().width);
   }
 
@@ -246,7 +246,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     }
   }
 
-  Iterable<dynamic> _doSearch(String search) {
+  Iterable<dynamic> _doSearch(Pattern search) {
     return _items.where((item) => _search(search, item));
   }
 }

@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library testing.mock_sdk;
 
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
@@ -22,7 +20,7 @@ import 'dart:async';
 import 'dart:_internal';
 
 class Object {
-  const Object() {}
+  const Object();
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
@@ -120,6 +118,10 @@ class Deprecated extends Object {
 }
 const Object deprecated = const Deprecated("next release");
 
+class Exception {
+  factory Exception([var message]);
+}
+
 class Iterator<E> {
   bool moveNext();
   E get current;
@@ -128,18 +130,22 @@ class Iterator<E> {
 abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
+  void forEach(void f(E element));
   Iterable<T> map<T>(T f(E e)) => null;
   T fold<T>(T initialValue, T combine(T previousValue, E element));
+  List<E> toList({bool growable: true});
 }
 
 class List<E> implements Iterable<E> {
   List();
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
+  List<R> cast<R>();
   E operator [](int index) => null;
   void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
   void clear() {}
+  Iterable<E> where(bool test(E element)) {}
 
   bool get isEmpty => false;
   E get first => null;
@@ -147,13 +153,22 @@ class List<E> implements Iterable<E> {
 }
 
 abstract class Map<K, V> extends Object {
-  bool containsKey(Object key);
   Iterable<K> get keys;
+  int get length;
+  Iterable<V> get values;
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
+  Map<RK, RV> cast<RK, RV>();
+  bool containsKey(Object key);
 }
 
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+class Set<E> implements Iterable<E> {
+  Set<R> cast<R>();
+}
 
 class Uri {
   static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
@@ -163,8 +178,10 @@ class Uri {
     return null;
   }
 }
-''');
 
+class _Override { const _Override(); }
+const Object override = const _Override();
+''');
   static const MockSdkLibrary LIB_ASYNC =
       const MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
 library dart.async;
@@ -272,7 +289,8 @@ const Map<String, LibraryInfo> libraries = const {
       resource.ResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
-      provider.newFile(library.path, (library as MockSdkLibrary).content);
+      provider.newFile(provider.convertPath(library.path),
+          (library as MockSdkLibrary).content);
     });
     provider.newFile(
         provider.convertPath(
@@ -280,8 +298,6 @@ const Map<String, LibraryInfo> libraries = const {
         librariesContent);
     if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
-      provider.newFileWithBytes(
-          provider.convertPath('/lib/_internal/spec.sum'), bytes);
       provider.newFileWithBytes(
           provider.convertPath('/lib/_internal/strong.sum'), bytes);
     }
@@ -349,7 +365,7 @@ const Map<String, LibraryInfo> libraries = const {
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
       resource.File summaryFile =
-          provider.getFile(provider.convertPath('/lib/_internal/spec.sum'));
+          provider.getFile(provider.convertPath('/lib/_internal/strong.sum'));
       List<int> bytes;
       if (summaryFile.exists) {
         bytes = summaryFile.readAsBytesSync();
@@ -383,7 +399,7 @@ const Map<String, LibraryInfo> libraries = const {
 
     String path = uriToPath[dartUri];
     if (path != null) {
-      resource.File file = provider.getResource(path);
+      resource.File file = provider.getResource(provider.convertPath(path));
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }
@@ -400,9 +416,7 @@ const Map<String, LibraryInfo> libraries = const {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return new SummaryBuilder(
-            librarySources, context, context.analysisOptions.strongMode)
-        .build();
+    return new SummaryBuilder(librarySources, context).build();
   }
 }
 

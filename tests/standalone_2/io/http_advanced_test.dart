@@ -106,7 +106,7 @@ class TestServer {
   // Return a 404.
   void _notFoundHandler(HttpRequest request) {
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.write("Page not found");
     response.close();
@@ -119,7 +119,7 @@ class TestServer {
     Expect.equals("www.dartlang.org:1234", request.headers["Host"][0]);
     Expect.equals("www.dartlang.org", request.headers.host);
     Expect.equals(1234, request.headers.port);
-    response.statusCode = HttpStatus.OK;
+    response.statusCode = HttpStatus.ok;
     response.close();
   }
 
@@ -161,7 +161,7 @@ class TestServer {
     Expect.equals("utf-8", request.headers.contentType.parameters["charset"]);
 
     response.headers
-        .set(HttpHeaders.CONTENT_TYPE, "text/html;  charset = utf-8");
+        .set(HttpHeaders.contentTypeHeader, "text/html;  charset = utf-8");
     response.close();
   }
 
@@ -260,21 +260,21 @@ Future testHost() {
       request.headers.port = 1234;
       Expect.equals("www.dartlang.com:1234", request.headers["host"][0]);
       Expect.equals(1234, request.headers.port);
-      request.headers.port = HttpClient.DEFAULT_HTTP_PORT;
-      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      request.headers.port = HttpClient.defaultHttpPort;
+      Expect.equals(HttpClient.defaultHttpPort, request.headers.port);
       Expect.equals("www.dartlang.com", request.headers["host"][0]);
       request.headers.set("Host", "www.dartlang.org");
       Expect.equals("www.dartlang.org", request.headers.host);
-      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      Expect.equals(HttpClient.defaultHttpPort, request.headers.port);
       request.headers.set("Host", "www.dartlang.org:");
       Expect.equals("www.dartlang.org", request.headers.host);
-      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      Expect.equals(HttpClient.defaultHttpPort, request.headers.port);
       request.headers.set("Host", "www.dartlang.org:1234");
       Expect.equals("www.dartlang.org", request.headers.host);
       Expect.equals(1234, request.headers.port);
       return request.close();
     }).then((response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       response.listen((_) {}, onDone: () {
         httpClient.close();
         server.shutdown();
@@ -294,7 +294,7 @@ Future testExpires() {
     HttpClient httpClient = new HttpClient();
 
     void processResponse(HttpClientResponse response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       Expect.equals(
           "Fri, 11 Jun 1999 18:46:53 GMT", response.headers["expires"][0]);
       Expect.equals(new DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0),
@@ -330,7 +330,7 @@ Future testContentType() {
     HttpClient httpClient = new HttpClient();
 
     void processResponse(HttpClientResponse response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       Expect.equals(
           "text/html; charset=utf-8", response.headers.contentType.toString());
       Expect.equals("text/html", response.headers.contentType.value);
@@ -356,7 +356,7 @@ Future testContentType() {
 
     httpClient.get("127.0.0.1", port, "/contenttype2").then((request) {
       request.headers
-          .set(HttpHeaders.CONTENT_TYPE, "text/html;  charset = utf-8");
+          .set(HttpHeaders.contentTypeHeader, "text/html;  charset = utf-8");
       return request.close();
     }).then(processResponse);
   });

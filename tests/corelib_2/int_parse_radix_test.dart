@@ -65,7 +65,7 @@ void main() {
     }
   }
 
-  final max = 9223372036854775807;
+  final max = 0x1FFFFFFFFFFFFF;
   for (int i = 2; i <= 36; i++) { //             //# 02: ok
     // Test with bignums. //                     //# 02: continued
     final n = (log(max) / log(i)).truncate(); // //# 02: continued
@@ -78,8 +78,9 @@ void main() {
   Expect.equals(0xABCD, int.parse("ABCD", radix: 16));
   Expect.equals(0xABCD, int.parse("abcd", radix: 16));
   Expect.equals(15628859, int.parse("09azAZ", radix: 36));
-  // Big number.
-  Expect.equals(9223372036854775807, int.parse("9223372036854775807"));
+  // Big-ish number. (2^53)
+  Expect.equals(9007199254740991, int.parse("9007199254740991"));
+  Expect.equals(-9007199254740991, int.parse("-9007199254740991"));
   Expect.equals(-9223372036854775808, int.parse("-9223372036854775808"));
   // Allow whitespace before and after the number.
   Expect.equals(1, int.parse(" 1", radix: 2));

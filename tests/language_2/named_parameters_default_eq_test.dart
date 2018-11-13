@@ -18,12 +18,14 @@ class A {
   int y;
   int z;
   A({this.x = 3, this.y: 5, z}) : z = z ?? 2;
-  A.redirect({x = 3, y: 5, z}) : this(x: x, y: y, z: z);
-  factory A.factory({x = 3, y: 5, z}) => new A(x: x, y: y, z: z ?? 2);
-  factory A.redirectFactory({x, y, z}) = A;
+  A.redirect({int x = 3, int y: 5, int z}) : this(x: x, y: y, z: z);
+  factory A.factory({int x = 3, int y: 5, int z}) =>
+      new A(x: x, y: y, z: z ?? 2);
+  factory A.redirectFactory({int x, int y, int z}) = A;
 
   // Default values are not allowed on redirecting factory constructors.
-  factory A.badRedirectFactory({x = 3, y}) = A; //# 02: compile-time error
+  factory A.badRedirectFactory({int x = 3, int y}) = //# 02: compile-time error
+      A; //# 02: compile-time error
 
   int get value => x * y * z;
 

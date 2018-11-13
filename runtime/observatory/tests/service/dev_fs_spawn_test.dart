@@ -1,7 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:convert';
@@ -102,7 +101,7 @@ main(args, msg) {
 
     // Write three scripts to the fs.
     for (int i = 0; i < 3; i++) {
-      var fileContents = BASE64.encode(UTF8.encode(scripts[i]));
+      var fileContents = base64Encode(utf8.encode(scripts[i]));
       result = await vm.invokeRpcNoUpgrade('_writeDevFSFile', {
         'fsName': fsName,
         'path': filePaths[i],
@@ -156,7 +155,7 @@ main(args, msg) {
     result = await vm.invokeRpcNoUpgrade('_spawnUri', {
       'token': 'mySpawnToken1',
       'uri': '${fsUri}${filePaths[1]}',
-      'args': ['one', 'two', 'three']
+      'args': <String>['one', 'two', 'three']
     });
     expect(result['type'], equals('Success'));
     spawnedIsolate = await completer.future;

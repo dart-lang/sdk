@@ -21,8 +21,8 @@ class C<T> {
 confuse(x) => x;
 
 main() {
-  var c = new C();
-  var a = 12;
-  if (confuse(true)) a = {};
+  dynamic c = new C();
+  dynamic a = 12;
+  if (confuse(true)) a = <String, ItemListFilter>{};
   c.f = a;
 }

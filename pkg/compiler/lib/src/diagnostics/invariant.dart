@@ -6,12 +6,6 @@ library dart2js.diagnostics.invariant;
 
 import 'spannable.dart';
 
-/**
- * If true, print a warning for each method that was resolved, but not
- * compiled.
- */
-const bool REPORT_EXCESS_RESOLUTION = false;
-
 /// Flag that can be used in assertions to assert that a code path is only
 /// executed as part of development.
 ///

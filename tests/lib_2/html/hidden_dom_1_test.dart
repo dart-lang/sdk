@@ -11,7 +11,7 @@ main() {
 <div id='div1'>
 Hello World!
 </div>'''));
-    Element e = document.query('#div1');
+    Element e = document.querySelector('#div1');
     expect(e, isNotNull);
 
     expect(() {

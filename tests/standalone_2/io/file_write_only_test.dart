@@ -10,7 +10,7 @@ import 'dart:io';
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-Future withTempDir(String prefix, void test(Directory dir)) async {
+Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
   try {
     await test(tempDir);
@@ -34,7 +34,7 @@ Future expectThrowsAsync(Future future, String message) {
 
 Future write(Directory dir) async {
   var f = new File("${dir.path}${Platform.pathSeparator}write");
-  var raf = await f.open(mode: WRITE_ONLY);
+  var raf = await f.open(mode: FileMode.writeOnly);
   await raf.writeString('Hello');
   await raf.setPosition(0);
   await raf.writeString('Hello');
@@ -42,7 +42,7 @@ Future write(Directory dir) async {
   await expectThrowsAsync(
       raf.readByte(), 'Read from write only file succeeded');
   await raf.close();
-  raf = await f.open(mode: WRITE_ONLY_APPEND);
+  raf = await f.open(mode: FileMode.writeOnlyAppend);
   await raf.writeString('Hello');
   await expectThrowsAsync(
       raf.readByte(), 'Read from write only file succeeded');
@@ -54,7 +54,7 @@ Future write(Directory dir) async {
 
 void writeSync(Directory dir) {
   var f = new File("${dir.path}${Platform.pathSeparator}write_sync");
-  var raf = f.openSync(mode: WRITE_ONLY);
+  var raf = f.openSync(mode: FileMode.writeOnly);
   raf.writeStringSync('Hello');
   raf.setPositionSync(0);
   raf.writeStringSync('Hello');
@@ -65,10 +65,10 @@ void writeSync(Directory dir) {
 
 Future openWrite(Directory dir) async {
   var f = new File("${dir.path}${Platform.pathSeparator}open_write");
-  var sink = f.openWrite(mode: WRITE_ONLY);
+  var sink = f.openWrite(mode: FileMode.writeOnly);
   sink.write('Hello');
   await sink.close();
-  sink = await f.openWrite(mode: WRITE_ONLY_APPEND);
+  sink = await f.openWrite(mode: FileMode.writeOnlyAppend);
   sink.write('Hello');
   await sink.close();
   Expect.equals(f.lengthSync(), 10);

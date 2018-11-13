@@ -5,16 +5,16 @@
 import 'dart:io';
 import 'package:analyzer/src/command_line/arguments.dart'
     show defineAnalysisArguments, ignoreUnrecognizedFlagsFlag;
-import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show ConflictingSummaryException, InSummarySource;
+    show ConflictingSummaryException;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
-import '../compiler/module_builder.dart';
+import '../compiler/shared_command.dart' show CompilerResult;
 import 'context.dart' show AnalyzerOptions;
-import 'module_compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
+import 'driver.dart';
+import 'module_compiler.dart';
 
 const _binaryName = 'dartdevc';
 
@@ -25,9 +25,8 @@ bool _verbose = false;
 /// This handles argument parsing, usage, error handling.
 /// See bin/dartdevc.dart for the actual entry point, which includes Bazel
 /// worker support.
-int compile(List<String> args, {void printFn(Object obj)}) {
-  printFn ??= print;
-
+CompilerResult compile(List<String> args,
+    {CompilerAnalysisDriver compilerState}) {
   ArgResults argResults;
   AnalyzerOptions analyzerOptions;
   try {
@@ -36,38 +35,38 @@ int compile(List<String> args, {void printFn(Object obj)}) {
       args = filterUnknownArguments(args, parser);
     }
     argResults = parser.parse(args);
-    analyzerOptions = new AnalyzerOptions.fromArguments(argResults);
+    analyzerOptions = AnalyzerOptions.fromArguments(argResults);
   } on FormatException catch (error) {
-    printFn('$error\n\n$_usageMessage');
-    return 64;
+    print('$error\n\n$_usageMessage');
+    return CompilerResult(64);
   }
 
-  _verbose = argResults['verbose'];
-  if (argResults['help'] || args.isEmpty) {
-    printFn(_usageMessage);
-    return 0;
+  _verbose = argResults['verbose'] as bool;
+  if (argResults['help'] as bool || args.isEmpty) {
+    print(_usageMessage);
+    return CompilerResult(0);
   }
 
-  if (argResults['version']) {
-    printFn('$_binaryName version ${_getVersion()}');
-    return 0;
+  if (argResults['version'] as bool) {
+    print('$_binaryName version ${_getVersion()}');
+    return CompilerResult(0);
   }
 
   try {
-    _compile(argResults, analyzerOptions, printFn);
-    return 0;
+    var driver = _compile(argResults, analyzerOptions);
+    return CompilerResult(0, analyzerState: driver);
   } on UsageException catch (error) {
     // Incorrect usage, input file not found, etc.
-    printFn(error);
-    return 64;
+    print('${error.message}\n\n$_usageMessage');
+    return CompilerResult(64);
   } on ConflictingSummaryException catch (error) {
     // Same input file appears in multiple provided summaries.
-    printFn(error);
-    return 65;
+    print(error);
+    return CompilerResult(65);
   } on CompileErrorException catch (error) {
     // Code has error(s) and failed to compile.
-    printFn(error);
-    return 1;
+    print(error);
+    return CompilerResult(1);
   } catch (error, stackTrace) {
     // Anything else is likely a compiler bug.
     //
@@ -75,7 +74,7 @@ int compile(List<String> args, {void printFn(Object obj)}) {
     // crash while compiling
     // (of course, output code may crash, if it had errors).
     //
-    printFn('''
+    print('''
 We're sorry, you've found a bug in our compiler.
 You can report this bug at:
     https://github.com/dart-lang/sdk/issues/labels/area-dev-compiler
@@ -87,35 +86,32 @@ any other information that may help us track it down. Thanks!
 $error
 $stackTrace
 ```''');
-    return 70;
+    return CompilerResult(70);
   }
 }
 
-ArgParser ddcArgParser({bool hide: true}) {
-  var argParser = new ArgParser(allowTrailingOptions: true)
-    ..addFlag('help',
+ArgParser ddcArgParser(
+    {bool hide = true, bool help = true, ArgParser argParser}) {
+  argParser ??= ArgParser(allowTrailingOptions: true);
+  if (help) {
+    argParser.addFlag('help',
         abbr: 'h',
-        help: 'Display this message. Add --verbose to show hidden options.',
-        negatable: false)
-    ..addFlag('verbose', abbr: 'v', help: 'Verbose output.')
+        help: 'Display this message. Add -v to show hidden options.',
+        negatable: false);
+  }
+  argParser
+    ..addFlag('verbose',
+        abbr: 'v', negatable: false, help: 'Verbose help output.', hide: hide)
     ..addFlag('version',
-        negatable: false, help: 'Print the $_binaryName version.')
+        negatable: false, help: 'Print the $_binaryName version.', hide: hide)
     ..addFlag(ignoreUnrecognizedFlagsFlag,
         help: 'Ignore unrecognized command line flags.',
         defaultsTo: false,
-        negatable: false)
-    ..addOption('out',
-        abbr: 'o', allowMultiple: true, help: 'Output file (required).')
-    ..addOption('module-root',
-        help: 'Root module directory. '
-            'Generated module paths are relative to this root.')
-    ..addOption('library-root',
-        help: 'Root of source files. '
-            'Generated library names are relative to this root.');
-  defineAnalysisArguments(argParser, hide: hide, ddc: true);
-  addModuleFormatOptions(argParser, allowMultiple: true, hide: hide);
-  AnalyzerOptions.addArguments(argParser, hide: hide);
+        hide: hide)
+    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).');
   CompilerOptions.addArguments(argParser, hide: hide);
+  defineAnalysisArguments(argParser, hide: hide, ddc: true);
+  AnalyzerOptions.addArguments(argParser, hide: hide);
   return argParser;
 }
 
@@ -128,77 +124,49 @@ bool _changed(List<int> list1, List<int> list2) {
   return false;
 }
 
-void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
-    void printFn(Object obj)) {
-  var compiler = new ModuleCompiler(analyzerOptions);
-  var compilerOpts = new CompilerOptions.fromArguments(argResults);
+CompilerAnalysisDriver _compile(
+    ArgResults argResults, AnalyzerOptions analyzerOptions,
+    {CompilerAnalysisDriver compilerDriver}) {
+  var compilerOpts = CompilerOptions.fromArguments(argResults);
+  var summaryPaths = compilerOpts.summaryModules.keys.toList();
+  if (compilerDriver == null ||
+      !compilerDriver.isCompatibleWith(analyzerOptions, summaryPaths)) {
+    compilerDriver =
+        CompilerAnalysisDriver(analyzerOptions, summaryPaths: summaryPaths);
+  }
   var outPaths = argResults['out'] as List<String>;
-  var moduleFormats = parseModuleFormatOption(argResults);
-  bool singleOutFile = argResults['single-out-file'];
-  if (singleOutFile) {
-    for (var format in moduleFormats) {
-      if (format != ModuleFormat.amd && format != ModuleFormat.legacy) {
-        _usageException('Format $format cannot be combined with '
-            'single-out-file. Only amd and legacy modes are supported.');
-      }
-    }
-  }
-
+  var moduleFormats = compilerOpts.moduleFormats;
   if (outPaths.isEmpty) {
-    _usageException('Please include the output file location. For example:\n'
-        '    -o PATH/TO/OUTPUT_FILE.js');
+    throw UsageException(
+        'Please specify the output file location. For example:\n'
+        '    -o PATH/TO/OUTPUT_FILE.js',
+        '');
   } else if (outPaths.length != moduleFormats.length) {
-    _usageException('Number of output files (${outPaths.length}) must match '
-        'number of module formats (${moduleFormats.length}).');
+    throw UsageException(
+        'Number of output files (${outPaths.length}) must match '
+        'number of module formats (${moduleFormats.length}).',
+        '');
   }
 
-  // TODO(jmesserly): for now the first one is special. This will go away once
-  // we've removed the "root" and "module name" variables.
-  var firstOutPath = outPaths[0];
-
-  var libraryRoot = argResults['library-root'] as String;
-  if (libraryRoot != null) {
-    libraryRoot = path.absolute(libraryRoot);
-  } else {
-    libraryRoot = Directory.current.path;
-  }
-  var moduleRoot = argResults['module-root'] as String;
-  String modulePath;
-  if (moduleRoot != null) {
-    moduleRoot = path.absolute(moduleRoot);
-    if (!path.isWithin(moduleRoot, firstOutPath)) {
-      _usageException('Output file $firstOutPath must be within the module '
-          'root directory $moduleRoot');
-    }
-    modulePath =
-        path.withoutExtension(path.relative(firstOutPath, from: moduleRoot));
-  } else {
-    moduleRoot = path.dirname(firstOutPath);
-    modulePath = path.basenameWithoutExtension(firstOutPath);
-  }
-
-  var unit = new BuildUnit(
-      modulePath,
-      libraryRoot,
-      argResults.rest,
-      (source) =>
-          _moduleForLibrary(moduleRoot, source, analyzerOptions, compilerOpts));
-
-  var module = compiler.compile(unit, compilerOpts);
-  module.errors.forEach(printFn);
+  var module = compileWithAnalyzer(
+    compilerDriver,
+    argResults.rest,
+    analyzerOptions,
+    compilerOpts,
+  );
+  module.errors.forEach(print);
 
   if (!module.isValid) {
     throw compilerOpts.unsafeForceCompile
-        ? new ForceCompileErrorException()
-        : new CompileErrorException();
+        ? ForceCompileErrorException()
+        : CompileErrorException();
   }
 
   // Write JS file, as well as source map and summary (if requested).
   for (var i = 0; i < outPaths.length; i++) {
-    module.writeCodeSync(moduleFormats[i], outPaths[i],
-        singleOutFile: singleOutFile);
+    module.writeCodeSync(moduleFormats[i], outPaths[i]);
   }
-  if (module.summaryBytes != null) {
+  if (compilerOpts.summarizeApi) {
     var summaryPaths = compilerOpts.summaryOutPath != null
         ? [compilerOpts.summaryOutPath]
         : outPaths.map((p) =>
@@ -208,7 +176,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     for (var summaryPath in summaryPaths) {
       // Only overwrite if summary changed.  This plays better with timestamp
       // based build systems.
-      var file = new File(summaryPath);
+      var file = File(summaryPath);
       if (!file.existsSync() ||
           _changed(file.readAsBytesSync(), module.summaryBytes)) {
         if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
@@ -216,34 +184,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
       }
     }
   }
-}
-
-String _moduleForLibrary(String moduleRoot, Source source,
-    AnalyzerOptions analyzerOptions, CompilerOptions compilerOpts) {
-  if (source is InSummarySource) {
-    var summaryPath = source.summaryPath;
-
-    if (analyzerOptions.customSummaryModules.containsKey(summaryPath)) {
-      return analyzerOptions.customSummaryModules[summaryPath];
-    }
-
-    var ext = '.${compilerOpts.summaryExtension}';
-    if (path.isWithin(moduleRoot, summaryPath) && summaryPath.endsWith(ext)) {
-      var buildUnitPath =
-          summaryPath.substring(0, summaryPath.length - ext.length);
-      return path.url
-          .joinAll(path.split(path.relative(buildUnitPath, from: moduleRoot)));
-    }
-
-    _usageException('Imported file ${source.uri} is not within the module root '
-        'directory $moduleRoot');
-  }
-
-  _usageException(
-      'Imported file "${source.uri}" was not found as a summary or source '
-      'file. Please pass in either the summary or the source file '
-      'for this import.');
-  return null; // unreachable
+  return compilerDriver;
 }
 
 String get _usageMessage =>
@@ -256,16 +197,12 @@ String _getVersion() {
   try {
     // This is relative to bin/snapshot, so ../..
     String versionPath = Platform.script.resolve('../../version').toFilePath();
-    File versionFile = new File(versionPath);
+    File versionFile = File(versionPath);
     return versionFile.readAsStringSync().trim();
   } catch (_) {
     // This happens when the script is not running in the context of an SDK.
     return "<unknown>";
   }
-}
-
-void _usageException(String message) {
-  throw new UsageException(message, _usageMessage);
 }
 
 /// Thrown when the input source code has errors.
@@ -281,11 +218,11 @@ class ForceCompileErrorException extends CompileErrorException {
 
 // TODO(jmesserly): fix this function in analyzer
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
-  Set<String> knownOptions = new Set<String>();
-  Set<String> knownAbbreviations = new Set<String>();
+  Set<String> knownOptions = Set<String>();
+  Set<String> knownAbbreviations = Set<String>();
   parser.options.forEach((String name, option) {
     knownOptions.add(name);
-    String abbreviation = option.abbreviation;
+    String abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }

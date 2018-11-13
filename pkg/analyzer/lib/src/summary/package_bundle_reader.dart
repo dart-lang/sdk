@@ -13,11 +13,10 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
-import 'package:front_end/src/base/source.dart';
 
 /**
  * A [ConflictingSummaryException] indicates that two different summaries
@@ -189,7 +188,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
 
     if (result == TYPE_PROVIDER) {
       entry.setValue(result as ResultDescriptor<TypeProvider>,
-          _resynthesizer.typeProvider, TargetedResult.EMPTY_LIST);
+          _resynthesizer.typeProvider, const <TargetedResult>[]);
       return true;
     }
 
@@ -202,7 +201,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         if (lineStarts.isNotEmpty) {
           LineInfo lineInfo = new LineInfo(lineStarts);
           entry.setValue(result as ResultDescriptor<LineInfo>, lineInfo,
-              TargetedResult.EMPTY_LIST);
+              const <TargetedResult>[]);
           return true;
         }
       }
@@ -217,7 +216,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
     if (result == CONSTANT_EXPRESSION_RESOLVED &&
         target is ConstantEvaluationTarget) {
       entry.setValue(
-          result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
+          result as ResultDescriptor<bool>, true, const <TargetedResult>[]);
       return true;
     }
     // Provide results for Source.
@@ -237,17 +236,17 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         LibraryElement libraryElement =
             resynthesizer.getLibraryElement(uriString);
         entry.setValue(result as ResultDescriptor<LibraryElement>,
-            libraryElement, TargetedResult.EMPTY_LIST);
+            libraryElement, const <TargetedResult>[]);
         return true;
       } else if (result == READY_LIBRARY_ELEMENT2 ||
           result == READY_LIBRARY_ELEMENT6 ||
           result == READY_LIBRARY_ELEMENT7) {
         entry.setValue(
-            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
+            result as ResultDescriptor<bool>, true, const <TargetedResult>[]);
         return true;
       } else if (result == MODIFICATION_TIME) {
         entry.setValue(
-            result as ResultDescriptor<int>, 0, TargetedResult.EMPTY_LIST);
+            result as ResultDescriptor<int>, 0, const <TargetedResult>[]);
         return true;
       } else if (result == SOURCE_KIND) {
         UnlinkedUnit unlinked = _dataStore.unlinkedMap[uriString];
@@ -255,7 +254,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           entry.setValue(
               result as ResultDescriptor<SourceKind>,
               unlinked.isPartOf ? SourceKind.PART : SourceKind.LIBRARY,
-              TargetedResult.EMPTY_LIST);
+              const <TargetedResult>[]);
           return true;
         }
         return false;
@@ -268,7 +267,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
                   context.sourceFactory.resolveUri(target, libraryUriString))
               .toList(growable: false);
           entry.setValue(result as ResultDescriptor<List<Source>>,
-              librarySources, TargetedResult.EMPTY_LIST);
+              librarySources, const <TargetedResult>[]);
           return true;
         }
         return false;
@@ -286,7 +285,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == CREATED_RESOLVED_UNIT10 ||
           result == CREATED_RESOLVED_UNIT11) {
         entry.setValue(
-            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
+            result as ResultDescriptor<bool>, true, const <TargetedResult>[]);
         return true;
       }
       if (result == COMPILATION_UNIT_ELEMENT) {
@@ -296,14 +295,14 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
             new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
         if (unit != null) {
           entry.setValue(result as ResultDescriptor<CompilationUnitElement>,
-              unit, TargetedResult.EMPTY_LIST);
+              unit, const <TargetedResult>[]);
           return true;
         }
       }
     } else if (target is VariableElement) {
       if (result == INFERRED_STATIC_VARIABLE) {
         entry.setValue(result as ResultDescriptor<VariableElement>, target,
-            TargetedResult.EMPTY_LIST);
+            const <TargetedResult>[]);
         return true;
       }
     }
@@ -317,8 +316,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    * Subclasses must call this method in their constructors.
    */
   void createResynthesizer() {
-    _resynthesizer = new StoreBasedSummaryResynthesizer(context,
-        context.sourceFactory, context.analysisOptions.strongMode, _dataStore);
+    _resynthesizer = new StoreBasedSummaryResynthesizer(
+        context, context.sourceFactory, true, _dataStore);
   }
 
   /**
@@ -336,8 +335,8 @@ class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
   final SummaryDataStore _dataStore;
 
   StoreBasedSummaryResynthesizer(AnalysisContext context,
-      SourceFactory sourceFactory, bool strongMode, this._dataStore)
-      : super(context, sourceFactory, strongMode);
+      SourceFactory sourceFactory, bool _, this._dataStore)
+      : super(context, sourceFactory, true);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {
@@ -472,6 +471,14 @@ class SummaryDataStore {
       }
     });
     return libraryUriStrings.isNotEmpty ? libraryUriStrings : null;
+  }
+
+  /**
+   * Return `true` if the store contains the linked summary for the library
+   * with the given absolute [uri].
+   */
+  bool hasLinkedLibrary(String uri) {
+    return linkedMap.containsKey(uri);
   }
 
   /**

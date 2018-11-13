@@ -122,18 +122,17 @@ SimulatorDebugger::SimulatorDebugger(Simulator* sim) {
 SimulatorDebugger::~SimulatorDebugger() {}
 
 void SimulatorDebugger::Stop(Instr* instr, const char* message) {
-  OS::Print("Simulator hit %s\n", message);
+  OS::PrintErr("Simulator hit %s\n", message);
   Debug();
 }
 
 static Register LookupCpuRegisterByName(const char* name) {
-  static const char* kNames[] = {"r0",  "r1",  "r2",  "r3",  "r4",  "r5",
-                                 "r6",  "r7",  "r8",  "r9",  "r10", "r11",
-                                 "r12", "r13", "r14", "r15", "pc",  "lr",
-                                 "sp",  "ip",  "fp",  "pp",  "ctx"};
+  static const char* kNames[] = {
+      "r0",  "r1",  "r2",  "r3",  "r4",  "r5", "r6", "r7", "r8", "r9", "r10",
+      "r11", "r12", "r13", "r14", "r15", "pc", "lr", "sp", "ip", "fp", "pp"};
   static const Register kRegisters[] = {R0, R1, R2,  R3,  R4,  R5,  R6,  R7,
                                         R8, R9, R10, R11, R12, R13, R14, R15,
-                                        PC, LR, SP,  IP,  FP,  PP,  CTX};
+                                        PC, LR, SP,  IP,  FP,  PP};
   ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
   for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
     if (strcmp(kNames[i], name) == 0) {
@@ -258,7 +257,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc,
   if (token_pos.IsReal()) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
-  OS::Print(
+  OS::PrintErr(
       "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")\n", pc,
       fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
       func_name.ToCString(), url.ToCString(), line, column);
@@ -267,7 +266,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc,
 void SimulatorDebugger::PrintBacktrace() {
   StackFrameIterator frames(
       sim_->get_register(FP), sim_->get_register(SP), sim_->get_pc(),
-      StackFrameIterator::kDontValidateFrames, Thread::Current(),
+      ValidationPolicy::kDontValidateFrames, Thread::Current(),
       StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
@@ -303,13 +302,13 @@ void SimulatorDebugger::PrintBacktrace() {
                      GetApproximateTokenIndex(code, frame->pc()),
                      code.is_optimized(), false);
     } else {
-      OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
-                frame->pc(), frame->fp(), frame->sp(),
-                frame->IsEntryFrame()
-                    ? "entry"
-                    : frame->IsExitFrame()
-                          ? "exit"
-                          : frame->IsStubFrame() ? "stub" : "invalid");
+      OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
+                   frame->pc(), frame->fp(), frame->sp(),
+                   frame->IsEntryFrame()
+                       ? "entry"
+                       : frame->IsExitFrame()
+                             ? "exit"
+                             : frame->IsStubFrame() ? "stub" : "invalid");
     }
     frame = frames.NextFrame();
   }
@@ -378,12 +377,12 @@ void SimulatorDebugger::Debug() {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
       if (Simulator::IsIllegalAddress(last_pc)) {
-        OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
+        OS::PrintErr("pc is out of bounds: 0x%" Px "\n", last_pc);
       } else {
         if (FLAG_support_disassembler) {
           Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
         } else {
-          OS::Print("Disassembler not supported in this mode.\n");
+          OS::PrintErr("Disassembler not supported in this mode.\n");
         }
       }
     }
@@ -399,7 +398,7 @@ void SimulatorDebugger::Debug() {
                         "%" XSTR(ARG_SIZE) "s",
                         cmd, arg1, arg2);
       if ((strcmp(cmd, "h") == 0) || (strcmp(cmd, "help") == 0)) {
-        OS::Print(
+        OS::PrintErr(
             "c/cont -- continue execution\n"
             "disasm -- disassemble instrs at current pc location\n"
             "  other variants are:\n"
@@ -421,7 +420,7 @@ void SimulatorDebugger::Debug() {
             "unstop -- if current pc is a stop instr make it a nop\n"
             "q/quit -- Quit the debugger and exit the program\n");
       } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
-        OS::Print("Quitting\n");
+        OS::PrintErr("Quitting\n");
         OS::Exit(0);
       } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
         sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
@@ -435,14 +434,14 @@ void SimulatorDebugger::Debug() {
           uint32_t value;
           if (strcmp(arg1, "icount") == 0) {
             const uint64_t icount = sim_->get_icount();
-            OS::Print("icount: %" Pu64 " 0x%" Px64 "\n", icount, icount);
+            OS::PrintErr("icount: %" Pu64 " 0x%" Px64 "\n", icount, icount);
           } else if (GetValue(arg1, &value)) {
-            OS::Print("%s: %u 0x%x\n", arg1, value, value);
+            OS::PrintErr("%s: %u 0x%x\n", arg1, value, value);
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("print <reg or icount or value or *addr>\n");
+          OS::PrintErr("print <reg or icount or value or *addr>\n");
         }
       } else if ((strcmp(cmd, "ps") == 0) ||
                  (strcmp(cmd, "printsingle") == 0)) {
@@ -450,12 +449,12 @@ void SimulatorDebugger::Debug() {
           float fvalue;
           if (GetFValue(arg1, &fvalue)) {
             uint32_t value = bit_cast<uint32_t, float>(fvalue);
-            OS::Print("%s: 0%u 0x%x %.8g\n", arg1, value, value, fvalue);
+            OS::PrintErr("%s: 0%u 0x%x %.8g\n", arg1, value, value, fvalue);
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printfloat <sreg or *addr>\n");
+          OS::PrintErr("printfloat <sreg or *addr>\n");
         }
       } else if ((strcmp(cmd, "pd") == 0) ||
                  (strcmp(cmd, "printdouble") == 0)) {
@@ -463,13 +462,13 @@ void SimulatorDebugger::Debug() {
           double dvalue;
           if (GetDValue(arg1, &dvalue)) {
             uint64_t long_value = bit_cast<uint64_t, double>(dvalue);
-            OS::Print("%s: %llu 0x%llx %.8g\n", arg1, long_value, long_value,
-                      dvalue);
+            OS::PrintErr("%s: %llu 0x%llx %.8g\n", arg1, long_value, long_value,
+                         dvalue);
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printdouble <dreg or *addr>\n");
+          OS::PrintErr("printdouble <dreg or *addr>\n");
         }
       } else if ((strcmp(cmd, "po") == 0) ||
                  (strcmp(cmd, "printobject") == 0)) {
@@ -479,20 +478,20 @@ void SimulatorDebugger::Debug() {
           if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
               GetValue(arg1, &value)) {
             if (Isolate::Current()->heap()->Contains(value)) {
-              OS::Print("%s: \n", arg1);
+              OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
               const Object& obj =
                   Object::Handle(reinterpret_cast<RawObject*>(value));
               obj.Print();
 #endif  // defined(DEBUG)
             } else {
-              OS::Print("0x%x is not an object reference\n", value);
+              OS::PrintErr("0x%x is not an object reference\n", value);
             }
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printobject <*reg or *addr>\n");
+          OS::PrintErr("printobject <*reg or *addr>\n");
         }
       } else if (strcmp(cmd, "disasm") == 0) {
         uint32_t start = 0;
@@ -505,8 +504,9 @@ void SimulatorDebugger::Debug() {
             // No length parameter passed, assume 10 instructions.
             if (Simulator::IsIllegalAddress(start)) {
               // If start isn't a valid address, warn and use PC instead.
-              OS::Print("First argument yields invalid address: 0x%x\n", start);
-              OS::Print("Using PC instead\n");
+              OS::PrintErr("First argument yields invalid address: 0x%x\n",
+                           start);
+              OS::PrintErr("Using PC instead\n");
               start = sim_->get_pc();
             }
             end = start + (10 * Instr::kInstrSize);
@@ -516,8 +516,9 @@ void SimulatorDebugger::Debug() {
           if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
             if (Simulator::IsIllegalAddress(start)) {
               // If start isn't a valid address, warn and use PC instead.
-              OS::Print("First argument yields invalid address: 0x%x\n", start);
-              OS::Print("Using PC instead\n");
+              OS::PrintErr("First argument yields invalid address: 0x%x\n",
+                           start);
+              OS::PrintErr("Using PC instead\n");
               start = sim_->get_pc();
             }
             end = start + (length * Instr::kInstrSize);
@@ -527,63 +528,63 @@ void SimulatorDebugger::Debug() {
           if (FLAG_support_disassembler) {
             Disassembler::Disassemble(start, end);
           } else {
-            OS::Print("Disassembler not supported in this mode.\n");
+            OS::PrintErr("Disassembler not supported in this mode.\n");
           }
         } else {
-          OS::Print("disasm [<address> [<number_of_instructions>]]\n");
+          OS::PrintErr("disasm [<address> [<number_of_instructions>]]\n");
         }
       } else if (strcmp(cmd, "gdb") == 0) {
-        OS::Print("relinquishing control to gdb\n");
+        OS::PrintErr("relinquishing control to gdb\n");
         OS::DebugBreak();
-        OS::Print("regaining control from gdb\n");
+        OS::PrintErr("regaining control from gdb\n");
       } else if (strcmp(cmd, "break") == 0) {
         if (args == 2) {
           uint32_t addr;
           if (GetValue(arg1, &addr)) {
             if (!SetBreakpoint(reinterpret_cast<Instr*>(addr))) {
-              OS::Print("setting breakpoint failed\n");
+              OS::PrintErr("setting breakpoint failed\n");
             }
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("break <addr>\n");
+          OS::PrintErr("break <addr>\n");
         }
       } else if (strcmp(cmd, "del") == 0) {
         if (!DeleteBreakpoint(NULL)) {
-          OS::Print("deleting breakpoint failed\n");
+          OS::PrintErr("deleting breakpoint failed\n");
         }
       } else if (strcmp(cmd, "flags") == 0) {
-        OS::Print("APSR: ");
-        OS::Print("N flag: %d; ", sim_->n_flag_);
-        OS::Print("Z flag: %d; ", sim_->z_flag_);
-        OS::Print("C flag: %d; ", sim_->c_flag_);
-        OS::Print("V flag: %d\n", sim_->v_flag_);
-        OS::Print("FPSCR: ");
-        OS::Print("N flag: %d; ", sim_->fp_n_flag_);
-        OS::Print("Z flag: %d; ", sim_->fp_z_flag_);
-        OS::Print("C flag: %d; ", sim_->fp_c_flag_);
-        OS::Print("V flag: %d\n", sim_->fp_v_flag_);
+        OS::PrintErr("APSR: ");
+        OS::PrintErr("N flag: %d; ", sim_->n_flag_);
+        OS::PrintErr("Z flag: %d; ", sim_->z_flag_);
+        OS::PrintErr("C flag: %d; ", sim_->c_flag_);
+        OS::PrintErr("V flag: %d\n", sim_->v_flag_);
+        OS::PrintErr("FPSCR: ");
+        OS::PrintErr("N flag: %d; ", sim_->fp_n_flag_);
+        OS::PrintErr("Z flag: %d; ", sim_->fp_z_flag_);
+        OS::PrintErr("C flag: %d; ", sim_->fp_c_flag_);
+        OS::PrintErr("V flag: %d\n", sim_->fp_v_flag_);
       } else if (strcmp(cmd, "unstop") == 0) {
         intptr_t stop_pc = sim_->get_pc() - Instr::kInstrSize;
         Instr* stop_instr = reinterpret_cast<Instr*>(stop_pc);
         if (stop_instr->IsSvc() || stop_instr->IsBkpt()) {
           stop_instr->SetInstructionBits(Instr::kNopInstruction);
         } else {
-          OS::Print("Not at debugger stop.\n");
+          OS::PrintErr("Not at debugger stop.\n");
         }
       } else if (strcmp(cmd, "trace") == 0) {
         if (FLAG_trace_sim_after == ULLONG_MAX) {
           FLAG_trace_sim_after = sim_->get_icount();
-          OS::Print("execution tracing on\n");
+          OS::PrintErr("execution tracing on\n");
         } else {
           FLAG_trace_sim_after = ULLONG_MAX;
-          OS::Print("execution tracing off\n");
+          OS::PrintErr("execution tracing off\n");
         }
       } else if (strcmp(cmd, "bt") == 0) {
         PrintBacktrace();
       } else {
-        OS::Print("Unknown command: %s\n", cmd);
+        OS::PrintErr("Unknown command: %s\n", cmd);
       }
     }
     delete[] line;
@@ -605,7 +606,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   char line_buf[256];
   intptr_t offset = 0;
   bool keep_going = true;
-  OS::Print("%s", prompt);
+  OS::PrintErr("%s", prompt);
   while (keep_going) {
     if (fgets(line_buf, sizeof(line_buf), stdin) == NULL) {
       // fgets got an error. Just give up.
@@ -658,8 +659,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   return result;
 }
 
-void Simulator::InitOnce() {
-}
+void Simulator::Init() {}
 
 Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   // Setup simulator support first. Some of this information is needed to
@@ -681,7 +681,6 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   break_pc_ = NULL;
   break_instr_ = 0;
   last_setjmp_buffer_ = NULL;
-  top_exit_frame_info_ = 0;
 
   // Setup architecture state.
   // All registers are initialized to zero to start with.
@@ -747,11 +746,27 @@ class Redirection {
   static Redirection* Get(uword external_function,
                           Simulator::CallKind call_kind,
                           int argument_count) {
-    Redirection* current;
-    for (current = list_; current != NULL; current = current->next_) {
+    MutexLocker ml(mutex_);
+
+    for (Redirection* current = list_; current != NULL;
+         current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
-    return new Redirection(external_function, call_kind, argument_count);
+
+    Redirection* redirection =
+        new Redirection(external_function, call_kind, argument_count);
+    redirection->next_ = list_;
+
+    // Use a memory fence to ensure all pending writes are written at the time
+    // of updating the list head, so the profiling thread always has a valid
+    // list to look at.
+    Redirection* old_head = list_;
+    Redirection* replaced_list_head =
+        AtomicOperations::CompareAndSwapPointer<Redirection>(&list_, old_head,
+                                                             redirection);
+    ASSERT(old_head == replaced_list_head);
+
+    return redirection;
   }
 
   static Redirection* FromSvcInstruction(Instr* svc_instruction) {
@@ -761,6 +776,10 @@ class Redirection {
     return reinterpret_cast<Redirection*>(addr_of_redirection);
   }
 
+  // Please note that this function is called by the signal handler of the
+  // profiling thread.  It can therefore run at any point in time and is not
+  // allowed to hold any locks - which is precisely the reason why the list is
+  // prepend-only and a memory fence is used when writing the list head [list_]!
   static uword FunctionForRedirect(uword address_of_svc) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
@@ -778,18 +797,8 @@ class Redirection {
       : external_function_(external_function),
         call_kind_(call_kind),
         argument_count_(argument_count),
-        svc_instruction_(Instr::kSimulatorRedirectInstruction) {
-    // Atomically prepend this element to the front of the global list.
-    // Note: Since elements are never removed, there is no ABA issue.
-    Redirection* list_head = list_;
-    do {
-      next_ = list_head;
-      list_head =
-          reinterpret_cast<Redirection*>(AtomicOperations::CompareAndSwapWord(
-              reinterpret_cast<uword*>(&list_), reinterpret_cast<uword>(next_),
-              reinterpret_cast<uword>(this)));
-    } while (list_head != next_);
-  }
+        svc_instruction_(Instr::kSimulatorRedirectInstruction),
+        next_(NULL) {}
 
   uword external_function_;
   Simulator::CallKind call_kind_;
@@ -797,9 +806,11 @@ class Redirection {
   uint32_t svc_instruction_;
   Redirection* next_;
   static Redirection* list_;
+  static Mutex* mutex_;
 };
 
 Redirection* Redirection::list_ = NULL;
+Mutex* Redirection::mutex_ = new Mutex();
 
 uword Simulator::RedirectExternalReference(uword function,
                                            CallKind call_kind,
@@ -825,7 +836,7 @@ Simulator* Simulator::Current() {
 
 // Sets the register in the architecture state. It will also deal with updating
 // Simulator internal state for special registers such as PC.
-void Simulator::set_register(Register reg, int32_t value) {
+DART_FORCE_INLINE void Simulator::set_register(Register reg, int32_t value) {
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
   if (reg == PC) {
     pc_modified_ = true;
@@ -833,44 +844,32 @@ void Simulator::set_register(Register reg, int32_t value) {
   registers_[reg] = value;
 }
 
-// Get the register from the architecture state. This function does handle
-// the special case of accessing the PC register.
-int32_t Simulator::get_register(Register reg) const {
-  ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
-  return registers_[reg] + ((reg == PC) ? Instr::kPCReadOffset : 0);
-}
-
 // Raw access to the PC register.
-void Simulator::set_pc(int32_t value) {
+DART_FORCE_INLINE void Simulator::set_pc(int32_t value) {
   pc_modified_ = true;
   registers_[PC] = value;
 }
 
-// Raw access to the PC register without the special adjustment when reading.
-int32_t Simulator::get_pc() const {
-  return registers_[PC];
-}
-
 // Accessors for VFP register state.
-void Simulator::set_sregister(SRegister reg, float value) {
+DART_FORCE_INLINE void Simulator::set_sregister(SRegister reg, float value) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   sregisters_[reg] = bit_cast<int32_t, float>(value);
 }
 
-float Simulator::get_sregister(SRegister reg) const {
+DART_FORCE_INLINE float Simulator::get_sregister(SRegister reg) const {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   return bit_cast<float, int32_t>(sregisters_[reg]);
 }
 
-void Simulator::set_dregister(DRegister reg, double value) {
+DART_FORCE_INLINE void Simulator::set_dregister(DRegister reg, double value) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   dregisters_[reg] = bit_cast<int64_t, double>(value);
 }
 
-double Simulator::get_dregister(DRegister reg) const {
+DART_FORCE_INLINE double Simulator::get_dregister(DRegister reg) const {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return bit_cast<double, int64_t>(dregisters_[reg]);
@@ -960,7 +959,7 @@ void Simulator::UnimplementedInstruction(Instr* instr) {
   FATAL("Cannot continue execution after unimplemented instruction.");
 }
 
-intptr_t Simulator::ReadW(uword addr, Instr* instr) {
+DART_FORCE_INLINE intptr_t Simulator::ReadW(uword addr, Instr* instr) {
   if ((addr & 3) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     return *ptr;
@@ -969,7 +968,9 @@ intptr_t Simulator::ReadW(uword addr, Instr* instr) {
   return 0;
 }
 
-void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
+DART_FORCE_INLINE void Simulator::WriteW(uword addr,
+                                         intptr_t value,
+                                         Instr* instr) {
   if ((addr & 3) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     *ptr = value;
@@ -978,7 +979,7 @@ void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
   UnalignedAccess("write", addr, instr);
 }
 
-uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
+DART_FORCE_INLINE uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
   if ((addr & 1) == 0) {
     uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
     return *ptr;
@@ -987,7 +988,7 @@ uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
   return 0;
 }
 
-int16_t Simulator::ReadH(uword addr, Instr* instr) {
+DART_FORCE_INLINE int16_t Simulator::ReadH(uword addr, Instr* instr) {
   if ((addr & 1) == 0) {
     int16_t* ptr = reinterpret_cast<int16_t*>(addr);
     return *ptr;
@@ -996,7 +997,9 @@ int16_t Simulator::ReadH(uword addr, Instr* instr) {
   return 0;
 }
 
-void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
+DART_FORCE_INLINE void Simulator::WriteH(uword addr,
+                                         uint16_t value,
+                                         Instr* instr) {
   if ((addr & 1) == 0) {
     uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
     *ptr = value;
@@ -1005,17 +1008,17 @@ void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
   UnalignedAccess("halfword write", addr, instr);
 }
 
-uint8_t Simulator::ReadBU(uword addr) {
+DART_FORCE_INLINE uint8_t Simulator::ReadBU(uword addr) {
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   return *ptr;
 }
 
-int8_t Simulator::ReadB(uword addr) {
+DART_FORCE_INLINE int8_t Simulator::ReadB(uword addr) {
   int8_t* ptr = reinterpret_cast<int8_t*>(addr);
   return *ptr;
 }
 
-void Simulator::WriteB(uword addr, uint8_t value) {
+DART_FORCE_INLINE void Simulator::WriteB(uword addr, uint8_t value) {
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   *ptr = value;
 }
@@ -1055,14 +1058,14 @@ bool Simulator::IsTracingExecution() const {
 
 // Unsupported instructions use Format to print an error and stop execution.
 void Simulator::Format(Instr* instr, const char* format) {
-  OS::Print("Simulator found unsupported instruction:\n 0x%p: %s\n", instr,
-            format);
+  OS::PrintErr("Simulator found unsupported instruction:\n 0x%p: %s\n", instr,
+               format);
   UNIMPLEMENTED();
 }
 
 // Checks if the current instruction should be executed based on its
 // condition bits.
-bool Simulator::ConditionallyExecute(Instr* instr) {
+DART_FORCE_INLINE bool Simulator::ConditionallyExecute(Instr* instr) {
   switch (instr->ConditionField()) {
     case EQ:
       return z_flag_;
@@ -1101,23 +1104,25 @@ bool Simulator::ConditionallyExecute(Instr* instr) {
 }
 
 // Calculate and set the Negative and Zero flags.
-void Simulator::SetNZFlags(int32_t val) {
+DART_FORCE_INLINE void Simulator::SetNZFlags(int32_t val) {
   n_flag_ = (val < 0);
   z_flag_ = (val == 0);
 }
 
 // Set the Carry flag.
-void Simulator::SetCFlag(bool val) {
+DART_FORCE_INLINE void Simulator::SetCFlag(bool val) {
   c_flag_ = val;
 }
 
 // Set the oVerflow flag.
-void Simulator::SetVFlag(bool val) {
+DART_FORCE_INLINE void Simulator::SetVFlag(bool val) {
   v_flag_ = val;
 }
 
 // Calculate C flag value for additions (and subtractions with adjusted args).
-bool Simulator::CarryFrom(int32_t left, int32_t right, int32_t carry) {
+DART_FORCE_INLINE bool Simulator::CarryFrom(int32_t left,
+                                            int32_t right,
+                                            int32_t carry) {
   uint64_t uleft = static_cast<uint32_t>(left);
   uint64_t uright = static_cast<uint32_t>(right);
   uint64_t ucarry = static_cast<uint32_t>(carry);
@@ -1125,7 +1130,9 @@ bool Simulator::CarryFrom(int32_t left, int32_t right, int32_t carry) {
 }
 
 // Calculate V flag value for additions (and subtractions with adjusted args).
-bool Simulator::OverflowFrom(int32_t left, int32_t right, int32_t carry) {
+DART_FORCE_INLINE bool Simulator::OverflowFrom(int32_t left,
+                                               int32_t right,
+                                               int32_t carry) {
   int64_t result = static_cast<int64_t>(left) + right + carry;
   return (result >> 31) != (result >> 32);
 }
@@ -1274,7 +1281,7 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
 
 // Addressing Mode 1 - Data-processing operands:
 // Get the value based on the shifter_operand with immediate.
-int32_t Simulator::GetImm(Instr* instr, bool* carry_out) {
+DART_FORCE_INLINE int32_t Simulator::GetImm(Instr* instr, bool* carry_out) {
   int rotate = instr->RotateField() * 2;
   int immed8 = instr->Immed8Field();
   int imm = (immed8 >> rotate) | (immed8 << (32 - rotate));
@@ -1282,23 +1289,12 @@ int32_t Simulator::GetImm(Instr* instr, bool* carry_out) {
   return imm;
 }
 
-static int count_bits(int bit_vector) {
-  int count = 0;
-  while (bit_vector != 0) {
-    if ((bit_vector & 1) != 0) {
-      count++;
-    }
-    bit_vector >>= 1;
-  }
-  return count;
-}
-
 // Addressing Mode 4 - Load and Store Multiple
 void Simulator::HandleRList(Instr* instr, bool load) {
   Register rn = instr->RnField();
   int32_t rn_val = get_register(rn);
   int rlist = instr->RlistField();
-  int num_regs = count_bits(rlist);
+  int num_regs = Utils::CountOneBits32(static_cast<uint32_t>(rlist));
 
   uword address = 0;
   uword end_address = 0;
@@ -1388,15 +1384,8 @@ void Simulator::SupervisorCall(Instr* instr) {
         if (IsTracingExecution()) {
           THR_Print("Call to host function at 0x%" Pd "\n", external);
         }
-
-        if ((redirection->call_kind() == kRuntimeCall) ||
-            (redirection->call_kind() == kBootstrapNativeCall) ||
-            (redirection->call_kind() == kNativeCall)) {
-          // Set the top_exit_frame_info of this simulator to the native stack.
-          set_top_exit_frame_info(OSThread::GetCurrentStackPointer());
-        }
         if (redirection->call_kind() == kRuntimeCall) {
-          NativeArguments arguments;
+          NativeArguments arguments(NULL, 0, NULL, NULL);
           ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
           arguments.thread_ = reinterpret_cast<Thread*>(get_register(R0));
           arguments.argc_tag_ = get_register(R1);
@@ -1468,7 +1457,6 @@ void Simulator::SupervisorCall(Instr* instr) {
           set_register(R0, icount_);  // Zap result register from void function.
           set_register(R1, icount_);
         }
-        set_top_exit_frame_info(0);
 
         // Zap caller-saved registers, since the actual runtime call could have
         // used them.
@@ -1495,7 +1483,6 @@ void Simulator::SupervisorCall(Instr* instr) {
         set_pc(saved_lr);
       } else {
         // Coming via long jump from a throw. Continue to exception handler.
-        set_top_exit_frame_info(0);
       }
 
       break;
@@ -1516,7 +1503,7 @@ void Simulator::SupervisorCall(Instr* instr) {
 
 // Instruction types 0 and 1 are both rolled into one function because they
 // only differ in the handling of the shifter_operand.
-void Simulator::DecodeType01(Instr* instr) {
+DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
   if (!instr->IsDataProcessing()) {
     // miscellaneous, multiply, sync primitives, extra loads and stores.
     if (instr->IsMiscellaneous()) {
@@ -1562,8 +1549,11 @@ void Simulator::DecodeType01(Instr* instr) {
             SimulatorDebugger dbg(this);
             int32_t imm = instr->BkptField();
             if (imm == Instr::kStopMessageCode) {
-              const char* message = *reinterpret_cast<const char**>(
-                  reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+              const char* message = "Stop messages not enabled";
+              if (FLAG_print_stop_message) {
+                message = *reinterpret_cast<const char**>(
+                    reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+              }
               set_pc(get_pc() + Instr::kInstrSize);
               dbg.Stop(instr, message);
             } else {
@@ -1601,8 +1591,8 @@ void Simulator::DecodeType01(Instr* instr) {
             // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             // Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
             rd_val = get_register(rd);
-            // fall through
           }
+          /* Falls through */
           case 0: {
             // Registers rd, rn, rm are encoded as rn, rm, rs.
             // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
@@ -1659,6 +1649,7 @@ void Simulator::DecodeType01(Instr* instr) {
               // umaal is only in ARMv6 and above.
               UnimplementedInstruction(instr);
             }
+            /* Falls through */
           case 5:
           // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
           // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
@@ -2136,7 +2127,7 @@ void Simulator::DecodeType01(Instr* instr) {
   }
 }
 
-void Simulator::DecodeType2(Instr* instr) {
+DART_FORCE_INLINE void Simulator::DecodeType2(Instr* instr) {
   Register rd = instr->RdField();
   Register rn = instr->RnField();
   int32_t rn_val = get_register(rn);
@@ -3454,18 +3445,8 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
 }
 
 // Executes the current instruction.
-void Simulator::InstructionDecode(Instr* instr) {
+DART_FORCE_INLINE void Simulator::InstructionDecodeImpl(Instr* instr) {
   pc_modified_ = false;
-  if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    const uword start = reinterpret_cast<uword>(instr);
-    const uword end = start + Instr::kInstrSize;
-    if (FLAG_support_disassembler) {
-      Disassembler::Disassemble(start, end);
-    } else {
-      THR_Print("Disassembler not supported in this mode.\n");
-    }
-  }
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       // Format(instr, "clrex");
@@ -3520,12 +3501,26 @@ void Simulator::InstructionDecode(Instr* instr) {
   }
 }
 
+void Simulator::InstructionDecode(Instr* instr) {
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    const uword start = reinterpret_cast<uword>(instr);
+    const uword end = start + Instr::kInstrSize;
+    if (FLAG_support_disassembler) {
+      Disassembler::Disassemble(start, end);
+    } else {
+      THR_Print("Disassembler not supported in this mode.\n");
+    }
+  }
+  InstructionDecodeImpl(instr);
+}
+
 void Simulator::Execute() {
   // Get the PC to simulate. Cannot use the accessor here as we need the
   // raw PC value and not the one used as input to arithmetic instructions.
   uword program_counter = get_pc();
 
-  if (FLAG_stop_sim_at == ULLONG_MAX) {
+  if (FLAG_stop_sim_at == ULLONG_MAX && FLAG_trace_sim_after == ULLONG_MAX) {
     // Fast version of the dispatch loop without checking whether the simulator
     // should be stopping at a particular executed instruction.
     while (program_counter != kEndSimulatingPC) {
@@ -3534,7 +3529,7 @@ void Simulator::Execute() {
       if (IsIllegalAddress(program_counter)) {
         HandleIllegalAccess(program_counter, instr);
       } else {
-        InstructionDecode(instr);
+        InstructionDecodeImpl(instr);
       }
       program_counter = get_pc();
     }
@@ -3741,7 +3736,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_register(FP, static_cast<int32_t>(fp));
   set_register(THR, reinterpret_cast<uword>(thread));
   // Set the tag.
-  thread->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartCompiledTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
   // Restore pool pointer.

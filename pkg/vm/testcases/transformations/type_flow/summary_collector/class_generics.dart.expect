@@ -1,0 +1,40 @@
+------------ #lib::C:: ------------
+%this = _Parameter #0 [_T (#lib::C<dynamic>)+]
+t1 = _Call direct [dart.core::Object::] (%this)
+RESULT: _T {}?
+------------ #lib::C::foo ------------
+%this = _Parameter #0 [_T (#lib::C<dynamic>)+]
+t1 = _Extract (%this[#lib::C/0])
+t2 = _Instantiate (#lib::D @ [t1])
+t3 = _Call direct [#lib::D::] (t2)
+RESULT: t2
+------------ #lib::D:: ------------
+%this = _Parameter #0 [_T (#lib::D<dynamic>)+]
+t1 = _Call direct [dart.core::Object::] (%this)
+RESULT: _T {}?
+------------ #lib::E:: ------------
+%this = _Parameter #0 [_T (#lib::E<dynamic, dynamic>)+]
+t1 = _Call direct [#lib::C::] (%this)
+RESULT: _T {}?
+------------ #lib::E::foo ------------
+%this = _Parameter #0 [_T (#lib::E<dynamic, dynamic>)+]
+t1* = _Call direct [#lib::C::foo] (%this)
+RESULT: t1
+------------ #lib::E::bar ------------
+%this = _Parameter #0 [_T (#lib::E<dynamic, dynamic>)+]
+t1 = _Extract (%this[#lib::E/1])
+t2 = _Instantiate (#lib::D @ [t1])
+t3 = _Call direct [#lib::D::] (t2)
+RESULT: t2
+------------ #lib::E::baz ------------
+%this = _Parameter #0 [_T (#lib::E<dynamic, dynamic>)+]
+t1 = _Extract (%this[#lib::E/2])
+t2 = _Instantiate (#lib::D @ [t1])
+t3 = _Call direct [#lib::D::] (t2)
+RESULT: t2
+------------ #lib::main ------------
+t0 = _Call direct [#lib::C::] (_T (#lib::C<_TS (dart.core::int)>))
+t1 = _Call [#lib::C::foo] (_T (#lib::C<_TS (dart.core::int)>))
+t2 = _Call direct [#lib::E::] (_T (#lib::E<_TS (dart.core::String), _TS (dart.core::int), _TS (dart.core::String)>))
+t3 = _Call [#lib::E::foo] (_T (#lib::E<_TS (dart.core::String), _TS (dart.core::int), _TS (dart.core::String)>))
+RESULT: _T {}?

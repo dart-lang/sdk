@@ -10,10 +10,10 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x, Object y);
+  void f(T /*@covariance=genericImpl*/ x, Object y);
 }
 
-class
+abstract class
 /*@forwardingStub=void f(covariance=(genericImpl) int x, covariance=() Object y)*/
     C extends B implements I<int> {}
 

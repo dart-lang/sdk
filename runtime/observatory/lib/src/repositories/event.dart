@@ -37,23 +37,44 @@ class EventRepository implements M.EventRepository {
   final Stream<M.ServiceRegisteredEvent> onServiceRegistered;
   final Stream<M.ServiceUnregisteredEvent> onServiceUnregistered;
 
-  EventRepository() : this._(new StreamController.broadcast());
+  static Stream<T> where<T extends M.Event>(
+      Stream<M.Event> stream, bool predicate(M.Event event)) {
+    var controller = new StreamController<T>.broadcast();
+    stream.listen(
+      (M.Event event) {
+        if (predicate(event)) {
+          controller.add(event as T);
+        }
+      },
+      onError: (error) => controller.addError(error),
+      onDone: () => controller.close(),
+    );
+    return controller.stream;
+  }
 
-  EventRepository._(StreamController controller)
+  EventRepository() : this._(new StreamController<M.Event>.broadcast());
+
+  EventRepository._(StreamController<M.Event> controller)
       : this.__(
             controller,
-            controller.stream.where((e) => e is M.VMEvent),
-            controller.stream.where((e) => e is M.IsolateEvent),
-            controller.stream.where((e) => e is M.DebugEvent),
-            controller.stream.where((e) => e is M.GCEvent),
-            controller.stream.where((e) => e is M.LoggingEvent),
-            controller.stream.where((e) => e is M.ExtensionEvent),
-            controller.stream.where((e) => e is M.TimelineEventsEvent),
-            controller.stream.where((e) => e is M.ConnectionClosedEvent),
-            controller.stream.where((e) => e is M.ServiceEvent));
+            where<M.VMEvent>(controller.stream, (e) => e is M.VMEvent),
+            where<M.IsolateEvent>(
+                controller.stream, (e) => e is M.IsolateEvent),
+            where<M.DebugEvent>(controller.stream, (e) => e is M.DebugEvent),
+            where<M.GCEvent>(controller.stream, (e) => e is M.GCEvent),
+            where<M.LoggingEvent>(
+                controller.stream, (e) => e is M.LoggingEvent),
+            where<M.ExtensionEvent>(
+                controller.stream, (e) => e is M.ExtensionEvent),
+            where<M.TimelineEventsEvent>(
+                controller.stream, (e) => e is M.TimelineEventsEvent),
+            where<M.ConnectionClosedEvent>(
+                controller.stream, (e) => e is M.ConnectionClosedEvent),
+            where<M.ServiceEvent>(
+                controller.stream, (e) => e is M.ServiceEvent));
 
   EventRepository.__(
-      StreamController controller,
+      StreamController<M.Event> controller,
       Stream<M.VMEvent> onVMEvent,
       Stream<M.IsolateEvent> onIsolateEvent,
       Stream<M.DebugEvent> onDebugEvent,
@@ -65,45 +86,52 @@ class EventRepository implements M.EventRepository {
       Stream<M.ServiceEvent> onServiceEvent)
       : _onEvent = controller,
         onVMEvent = onVMEvent,
-        onVMUpdate = onVMEvent.where((e) => e is M.VMUpdateEvent),
+        onVMUpdate =
+            where<M.VMUpdateEvent>(onVMEvent, (e) => e is M.VMUpdateEvent),
         onIsolateEvent = onIsolateEvent,
-        onIsolateStart = onIsolateEvent.where((e) => e is M.IsolateStartEvent),
-        onIsolateRunnable =
-            onIsolateEvent.where((e) => e is M.IsolateRunnableEvent),
-        onIsolateExit = onIsolateEvent.where((e) => e is M.IsolateExitEvent),
-        onIsolateUpdate =
-            onIsolateEvent.where((e) => e is M.IsolateUpdateEvent),
-        onIsolateReload =
-            onIsolateEvent.where((e) => e is M.IsolateReloadEvent),
-        onServiceExtensionAdded =
-            onIsolateEvent.where((e) => e is M.IsolateReloadEvent),
+        onIsolateStart = where<M.IsolateStartEvent>(
+            onIsolateEvent, (e) => e is M.IsolateStartEvent),
+        onIsolateRunnable = where<M.IsolateRunnableEvent>(
+            onIsolateEvent, (e) => e is M.IsolateRunnableEvent),
+        onIsolateExit = where<M.IsolateExitEvent>(
+            onIsolateEvent, (e) => e is M.IsolateExitEvent),
+        onIsolateUpdate = where<M.IsolateUpdateEvent>(
+            onIsolateEvent, (e) => e is M.IsolateUpdateEvent),
+        onIsolateReload = where<M.IsolateReloadEvent>(
+            onIsolateEvent, (e) => e is M.IsolateReloadEvent),
+        onServiceExtensionAdded = where<M.ServiceExtensionAddedEvent>(
+            onIsolateEvent, (e) => e is M.ServiceExtensionAddedEvent),
         onDebugEvent = onDebugEvent,
-        onPauseStart = onDebugEvent.where((e) => e is M.PauseStartEvent),
-        onPauseExit = onDebugEvent.where((e) => e is M.PauseExitEvent),
-        onPauseBreakpoint =
-            onDebugEvent.where((e) => e is M.PauseBreakpointEvent),
-        onPauseInterrupted =
-            onDebugEvent.where((e) => e is M.PauseInterruptedEvent),
-        onPauseException =
-            onDebugEvent.where((e) => e is M.PauseExceptionEvent),
-        onResume = onDebugEvent.where((e) => e is M.ResumeEvent),
-        onBreakpointAdded =
-            onDebugEvent.where((e) => e is M.BreakpointAddedEvent),
-        onBreakpointResolved =
-            onDebugEvent.where((e) => e is M.BreakpointResolvedEvent),
-        onBreakpointRemoved =
-            onDebugEvent.where((e) => e is M.BreakpointRemovedEvent),
-        onInspect = onDebugEvent.where((e) => e is M.InspectEvent),
+        onPauseStart = where<M.PauseStartEvent>(
+            onDebugEvent, (e) => e is M.PauseStartEvent),
+        onPauseExit =
+            where<M.PauseExitEvent>(onDebugEvent, (e) => e is M.PauseExitEvent),
+        onPauseBreakpoint = where<M.PauseBreakpointEvent>(
+            onDebugEvent, (e) => e is M.PauseBreakpointEvent),
+        onPauseInterrupted = where<M.PauseInterruptedEvent>(
+            onDebugEvent, (e) => e is M.PauseInterruptedEvent),
+        onPauseException = where<M.PauseExceptionEvent>(
+            onDebugEvent, (e) => e is M.PauseExceptionEvent),
+        onResume =
+            where<M.ResumeEvent>(onDebugEvent, (e) => e is M.ResumeEvent),
+        onBreakpointAdded = where<M.BreakpointAddedEvent>(
+            onDebugEvent, (e) => e is M.BreakpointAddedEvent),
+        onBreakpointResolved = where<M.BreakpointResolvedEvent>(
+            onDebugEvent, (e) => e is M.BreakpointResolvedEvent),
+        onBreakpointRemoved = where<M.BreakpointRemovedEvent>(
+            onDebugEvent, (e) => e is M.BreakpointRemovedEvent),
+        onInspect =
+            where<M.InspectEvent>(onDebugEvent, (e) => e is M.InspectEvent),
         onGCEvent = onGCEvent,
         onLoggingEvent = onLoggingEvent,
         onExtensionEvent = onExtensionEvent,
         onTimelineEvents = onTimelineEvents,
         onConnectionClosed = onConnectionClosed,
         onServiceEvent = onServiceEvent,
-        onServiceRegistered =
-            onServiceEvent.where((e) => e is M.ServiceRegisteredEvent),
-        onServiceUnregistered =
-            onServiceEvent.where((e) => e is M.ServiceUnregisteredEvent);
+        onServiceRegistered = where<M.ServiceRegisteredEvent>(
+            onServiceEvent, (e) => e is M.ServiceRegisteredEvent),
+        onServiceUnregistered = where<M.ServiceUnregisteredEvent>(
+            onServiceEvent, (e) => e is M.ServiceUnregisteredEvent);
 
   void add(M.Event e) {
     _onEvent.add(e);

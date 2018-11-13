@@ -1,12 +1,33 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/regress/issue_29983.dart:7:10: Warning: Getter not found: 'missing'.
+//   return missing;
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_29983.dart:7:3: Error: 'sync*' and 'async*' can't return a value.
+//   return missing;
+//   ^
+//
+// pkg/front_end/testcases/regress/issue_29983.dart:11:14: Warning: Getter not found: 'dummy'.
+// g() sync* => dummy;
+//              ^^^^^
+//
+// pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.
+// g() sync* => dummy;
+//              ^
+
 library;
 import self as self;
-import "dart:core" as core;
 
 static method f() → dynamic sync* {
-  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_29983.dart:7:3: Error: 'sync*' and 'async*' can't return a value.\n  return missing;\n  ^"));
+  invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:7:3: Error: 'sync*' and 'async*' can't return a value.
+  return missing;
+  ^";
 }
 static method g() → dynamic sync* 
-  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.\ng() sync* => dummy;\n             ^"));
+  invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.
+g() sync* => dummy;
+             ^";
 static method h() → dynamic sync* {
   (() → dynamic => "return").call();
 }

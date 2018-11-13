@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/error/listener.dart'
     show AnalysisErrorListener, ErrorReporter;
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -60,7 +60,7 @@ bool isPotentiallyMutated(FunctionBody function, VariableElement e,
   if (function.isPotentiallyMutatedInScope(e)) {
     // Need to visit the context looking for assignment to this local.
     if (context != null) {
-      var visitor = new _AssignmentFinder(e);
+      var visitor = _AssignmentFinder(e);
       context.accept(visitor);
       return visitor._potentiallyMutated;
     }
@@ -102,12 +102,12 @@ class _AssignmentFinder extends RecursiveAstVisitor {
 class ConstFieldVisitor {
   final ConstantVisitor constantVisitor;
 
-  ConstFieldVisitor(AnalysisContext context, {Source dummySource})
-      : constantVisitor = new ConstantVisitor(
-            new ConstantEvaluationEngine(
-                context.typeProvider, context.declaredVariables),
-            new ErrorReporter(
-                AnalysisErrorListener.NULL_LISTENER, dummySource));
+  ConstFieldVisitor(
+      TypeProvider typeProvider, DeclaredVariables declaredVariables,
+      {Source dummySource})
+      : constantVisitor = ConstantVisitor(
+            ConstantEvaluationEngine(typeProvider, declaredVariables),
+            ErrorReporter(AnalysisErrorListener.NULL_LISTENER, dummySource));
 
   // TODO(jmesserly): this is used to determine if the field initialization is
   // side effect free. We should make the check more general, as things like
@@ -118,7 +118,7 @@ class ConstFieldVisitor {
 
   DartObject computeConstant(VariableDeclaration field) {
     // If the constant is already computed by ConstantEvaluator, just return it.
-    VariableElement element = field.element;
+    VariableElement element = field.declaredElement;
     var result = element.computeConstantValue();
     if (result != null) return result;
 

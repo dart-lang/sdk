@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Hest<TypeX extends self::Hest<self::Hest::TypeX> = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hest<self::Hest::TypeX>
+    ;
+}
+class Fisk<TypeY extends self::Hest<dynamic> = dynamic, TypeZ extends self::Hest<dynamic> = dynamic> extends core::Object {
+  synthetic constructor •() → self::Fisk<self::Fisk::TypeY, self::Fisk::TypeZ>
+    ;
+}
+static method main() → dynamic
+  ;

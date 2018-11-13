@@ -35,7 +35,7 @@ void _printDartStackTrace() {
 // in the middle of a GC or interested in stub frames.
 DART_EXPORT
 void _printStackTrace() {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
@@ -60,7 +60,7 @@ class PrintObjectPointersVisitor : public ObjectPointerVisitor {
 DART_EXPORT
 void _printStackTraceWithLocals() {
   PrintObjectPointersVisitor visitor;
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();

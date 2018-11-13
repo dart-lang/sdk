@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -30,7 +31,6 @@ main() {
       server = new AnalysisServer(
           new MockServerChannel(),
           provider,
-          new MockPackageMapProvider(),
           new AnalysisServerOptions(),
           new DartSdkManager('', false),
           InstrumentationService.NULL_SERVICE);
@@ -177,19 +177,54 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
     super.tearDown();
   }
 
+  test_getSuggestions() async {
+    var code = r'''
+class A {
+  int foo;
+}
+
+void contextFunction() {
+  var a = new A();
+  // context line
+}
+''';
+
+    String path = newFile('/test.dart').path;
+    newFile(path, content: code);
+
+    Request request = new ExecutionGetSuggestionsParams(
+        'a.',
+        2,
+        path,
+        code.indexOf('// context line'),
+        <RuntimeCompletionVariable>[]).toRequest('0');
+    Response response = await waitResponse(request);
+
+    var result = new ExecutionGetSuggestionsResult.fromResponse(response);
+//    expect(result.suggestions, isNotEmpty);
+//
+//    expect(
+//        result.suggestions,
+//        contains(
+//            predicate<CompletionSuggestion>((s) => s.completion == 'foo')));
+
+    // TODO(brianwilkerson) Restore the expectations above (and delete the line
+    // below) after the functionality has been re-enabled.
+    expect(result.suggestions, isEmpty);
+  }
+
   void test_mapUri_file() {
-    String path = '/a/b.dart';
-    resourceProvider.newFile(path, '');
+    String path = newFile('/a/b.dart').path;
     // map the file
     ExecutionMapUriResult result = _mapUri(file: path);
     expect(result.file, isNull);
-    expect(result.uri, 'file:///a/b.dart');
+    expect(result.uri, new Uri.file(path).toString());
   }
 
   void test_mapUri_file_dartUriKind() {
     String path = server.findSdk().mapDartUri('dart:async').fullName;
     // hack - pretend that the SDK file exists in the project FS
-    resourceProvider.newFile(path, '// hack');
+    newFile(path, content: '// hack');
     // map file
     ExecutionMapUriResult result = _mapUri(file: path);
     expect(result.file, isNull);
@@ -197,11 +232,10 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   }
 
   void test_mapUri_uri() {
-    String path = '/a/b.dart';
-    resourceProvider.newFile(path, '');
+    String path = newFile('/a/b.dart').path;
     // map the uri
-    ExecutionMapUriResult result = _mapUri(uri: 'file://$path');
-    expect(result.file, '/a/b.dart');
+    ExecutionMapUriResult result = _mapUri(uri: new Uri.file(path).toString());
+    expect(result.file, convertPath('/a/b.dart'));
     expect(result.uri, isNull);
   }
 

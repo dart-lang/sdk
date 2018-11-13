@@ -9,6 +9,7 @@
 #include "bin/io_buffer.h"
 #include "bin/isolate_data.h"
 #include "bin/lockers.h"
+#include "bin/process.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
@@ -43,7 +44,7 @@ void ListeningSocketRegistry::Cleanup() {
 
 ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByPort(
     intptr_t port) {
-  HashMap::Entry* entry = sockets_by_port_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_port_.Lookup(
       GetHashmapKeyFromIntptr(port), GetHashmapHashFromIntptr(port), false);
   if (entry == NULL) {
     return NULL;
@@ -52,7 +53,7 @@ ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByPort(
 }
 
 void ListeningSocketRegistry::InsertByPort(intptr_t port, OSSocket* socket) {
-  HashMap::Entry* entry = sockets_by_port_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_port_.Lookup(
       GetHashmapKeyFromIntptr(port), GetHashmapHashFromIntptr(port), true);
   ASSERT(entry != NULL);
   entry->value = reinterpret_cast<void*>(socket);
@@ -65,7 +66,7 @@ void ListeningSocketRegistry::RemoveByPort(intptr_t port) {
 
 ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByFd(
     Socket* fd) {
-  HashMap::Entry* entry = sockets_by_fd_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_fd_.Lookup(
       GetHashmapKeyFromIntptr(reinterpret_cast<intptr_t>(fd)),
       GetHashmapHashFromIntptr(reinterpret_cast<intptr_t>(fd)), false);
   if (entry == NULL) {
@@ -75,7 +76,7 @@ ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByFd(
 }
 
 void ListeningSocketRegistry::InsertByFd(Socket* fd, OSSocket* socket) {
-  HashMap::Entry* entry = sockets_by_fd_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_fd_.Lookup(
       GetHashmapKeyFromIntptr(reinterpret_cast<intptr_t>(fd)),
       GetHashmapHashFromIntptr(reinterpret_cast<intptr_t>(fd)), true);
   ASSERT(entry != NULL);
@@ -233,7 +234,7 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
 void ListeningSocketRegistry::CloseAllSafe() {
   MutexLocker ml(mutex_);
 
-  for (HashMap::Entry* cursor = sockets_by_fd_.Start(); cursor != NULL;
+  for (SimpleHashMap::Entry* cursor = sockets_by_fd_.Start(); cursor != NULL;
        cursor = sockets_by_fd_.Next(cursor)) {
     CloseOneSafe(reinterpret_cast<OSSocket*>(cursor->value), false);
   }
@@ -295,7 +296,10 @@ void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
   SocketAddress::SetAddrPort(&addr, port);
   bool reuse_addr = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
-  intptr_t socket = Socket::CreateBindDatagram(addr, reuse_addr);
+  bool reuse_port = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
+  int ttl = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 5));
+  intptr_t socket =
+      Socket::CreateBindDatagram(addr, reuse_addr, reuse_port, ttl);
   if (socket >= 0) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket,
                                    Socket::kFinalizerNormal);
@@ -601,8 +605,16 @@ void FUNCTION_NAME(Socket_GetSocketId)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_SetSocketId)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  intptr_t type_flag =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  Socket::SocketFinalizer finalizer;
+  if (Socket::IsSignalSocketFlag(type_flag)) {
+    finalizer = Socket::kFinalizerSignal;
+  } else {
+    finalizer = Socket::kFinalizerNormal;
+  }
   Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), id,
-                                 Socket::kFinalizerNormal);
+                                 finalizer);
 }
 
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
@@ -931,6 +943,21 @@ static void StdioSocketFinalizer(void* isolate_data,
   socket->Release();
 }
 
+static void SignalSocketFinalizer(void* isolate_data,
+                                  Dart_WeakPersistentHandle handle,
+                                  void* data) {
+  Socket* socket = reinterpret_cast<Socket*>(data);
+  if (socket->fd() >= 0) {
+    Process::ClearSignalHandler(socket->fd(), socket->isolate_port());
+    const int64_t flags = 1 << kCloseCommand;
+    socket->Retain();
+    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                                 socket->port(), flags);
+  }
+
+  socket->Release();
+}
+
 void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
                                       Socket* socket,
                                       SocketFinalizer finalizer) {
@@ -949,6 +976,9 @@ void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
       break;
     case kFinalizerStdio:
       callback = StdioSocketFinalizer;
+      break;
+    case kFinalizerSignal:
+      callback = SignalSocketFinalizer;
       break;
     default:
       callback = NULL;

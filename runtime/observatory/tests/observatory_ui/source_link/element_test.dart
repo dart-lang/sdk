@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/source_link.dart';
 import '../mocks.dart';
 
@@ -30,7 +30,7 @@ main() {
   test('elements created after attachment', () async {
     bool rendered = false;
     final repository = new ScriptRepositoryMock(
-        getter: expectAsync((isolate, id) async {
+        getter: expectAsync2((isolate, id) async {
       expect(rendered, isFalse);
       expect(id, equals(script_id));
       return script;

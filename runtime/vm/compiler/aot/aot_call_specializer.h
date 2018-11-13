@@ -23,16 +23,15 @@ class AotCallSpecializer : public CallSpecializer {
   // TODO(dartbug.com/30633) these method has nothing to do with
   // specialization of calls. They are here for historical reasons.
   // Find a better place for them.
-  void ReplaceArrayBoundChecks();
+  static void ReplaceArrayBoundChecks(FlowGraph* flow_graph);
 
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
+  virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitPolymorphicInstanceCall(
       PolymorphicInstanceCallInstr* instr);
 
   virtual bool TryReplaceInstanceOfWithRangeCheck(InstanceCallInstr* call,
                                                   const AbstractType& type);
-  virtual bool TryReplaceTypeCastWithRangeCheck(InstanceCallInstr* call,
-                                                const AbstractType& type);
 
  private:
   // Attempt to build ICData for call using propagated class-ids.
@@ -41,10 +40,12 @@ class AotCallSpecializer : public CallSpecializer {
   bool TryCreateICDataForUniqueTarget(InstanceCallInstr* call);
 
   bool RecognizeRuntimeTypeGetter(InstanceCallInstr* call);
-  bool TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call);
+  bool TryReplaceWithHaveSameRuntimeType(TemplateDartCall<0>* call);
 
   bool TryInlineFieldAccess(InstanceCallInstr* call);
+  bool TryInlineFieldAccess(StaticCallInstr* call);
 
+  bool IsSupportedIntOperandForStaticDoubleOp(CompileType* operand_type);
   Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
 
   Value* PrepareReceiverOfDevirtualizedCall(Value* input, intptr_t cid);

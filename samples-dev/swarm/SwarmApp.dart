@@ -23,9 +23,7 @@ class Swarm extends App {
   /** Observable UI state. */
   SwarmState state;
 
-  Swarm({bool useCannedData: false})
-      : super(),
-        onLoadFired = false {
+  Swarm({bool useCannedData: false}) : onLoadFired = false {
     Sections.initializeFromUrl(useCannedData, (currSections) {
       sections = currSections;
       state = new SwarmState(sections);

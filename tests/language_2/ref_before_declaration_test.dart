@@ -66,7 +66,7 @@ void testTypeRef() {
 }
 
 void testLibPrefix() {
-  var pie = math.PI;
+  var pie = math.pi;
   final math = 0; // //# 05: compile-time error
 }
 

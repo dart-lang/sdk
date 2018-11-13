@@ -10,6 +10,12 @@
 
 namespace dart {
 
+DEFINE_NATIVE_ENTRY(List_new, 2) {
+  // This function is handled by flow-graph builder.
+  UNREACHABLE();
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(List_allocate, 2) {
   // Implemented in FlowGraphBuilder::VisitNativeBody.
   UNREACHABLE();
@@ -17,7 +23,7 @@ DEFINE_NATIVE_ENTRY(List_allocate, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
-  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
+  const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
@@ -26,9 +32,10 @@ DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
-  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
+  const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
-  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(2));
+  const Instance& value =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(2));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
   }
@@ -37,13 +44,13 @@ DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
 }
 
 DEFINE_NATIVE_ENTRY(List_getLength, 1) {
-  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
+  const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
 // ObjectArray src, int start, int count, bool needTypeArgument.
 DEFINE_NATIVE_ENTRY(List_slice, 4) {
-  const Array& src = Array::CheckedHandle(arguments->NativeArgAt(0));
+  const Array& src = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, needs_type_arg, arguments->NativeArgAt(3));
@@ -65,9 +72,10 @@ DEFINE_NATIVE_ENTRY(List_slice, 4) {
 // Private factory, expects correct arguments.
 DEFINE_NATIVE_ENTRY(ImmutableList_from, 4) {
   // Ignore first argument of a thsi factory (type argument).
-  const Array& from_array = Array::CheckedHandle(arguments->NativeArgAt(1));
-  const Smi& smi_offset = Smi::CheckedHandle(arguments->NativeArgAt(2));
-  const Smi& smi_length = Smi::CheckedHandle(arguments->NativeArgAt(3));
+  const Array& from_array =
+      Array::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const Smi& smi_offset = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Smi& smi_length = Smi::CheckedHandle(zone, arguments->NativeArgAt(3));
   const intptr_t length = smi_length.Value();
   const intptr_t offset = smi_offset.Value();
   const Array& result = Array::Handle(Array::New(length));

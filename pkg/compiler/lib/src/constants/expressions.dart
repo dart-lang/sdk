@@ -11,18 +11,19 @@ import '../elements/entities.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../util/util.dart';
 import 'constructors.dart';
 import 'evaluation.dart';
 import 'values.dart';
 
 enum ConstantExpressionKind {
+  AS,
   BINARY,
   BOOL,
   BOOL_FROM_ENVIRONMENT,
   CONCATENATE,
   CONDITIONAL,
   CONSTRUCTED,
-  DEFERRED,
   DOUBLE,
   ERRONEOUS,
   FUNCTION,
@@ -37,12 +38,13 @@ enum ConstantExpressionKind {
   STRING_FROM_ENVIRONMENT,
   STRING_LENGTH,
   SYMBOL,
-  SYNTHETIC,
   TYPE,
   UNARY,
   LOCAL_VARIABLE,
   POSITIONAL_REFERENCE,
   NAMED_REFERENCE,
+  ASSERT,
+  INSTANTIATION,
 }
 
 /// An expression that is a compile-time constant.
@@ -158,52 +160,11 @@ class ErroneousConstantExpression extends ConstantExpression {
   bool _equals(ErroneousConstantExpression other) => true;
 }
 
-// TODO(johnniwinther): Avoid the need for this class.
-class SyntheticConstantExpression extends ConstantExpression {
-  final SyntheticConstantValue value;
-
-  SyntheticConstantExpression(this.value);
-
-  @override
-  ConstantValue evaluate(
-      EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return value;
-  }
-
-  @override
-  void _createStructuredText(StringBuffer sb) {
-    sb.write('Synthetic(value=${value.toStructuredText()})');
-  }
-
-  @override
-  int _computeHashCode() => 13 * value.hashCode;
-
-  accept(ConstantExpressionVisitor visitor, [context]) {
-    throw "unsupported";
-  }
-
-  @override
-  bool _equals(SyntheticConstantExpression other) {
-    return value == other.value;
-  }
-
-  ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
-
-  @override
-  bool get isImplicit => false;
-}
-
-/// A boolean, int, double, string, or null constant.
-abstract class PrimitiveConstantExpression extends ConstantExpression {
-  /// The primitive value of this constant expression.
-  get primitiveValue;
-}
-
 /// Boolean literal constant.
-class BoolConstantExpression extends PrimitiveConstantExpression {
-  final bool primitiveValue;
+class BoolConstantExpression extends ConstantExpression {
+  final bool boolValue;
 
-  BoolConstantExpression(this.primitiveValue);
+  BoolConstantExpression(this.boolValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.BOOL;
 
@@ -213,21 +174,21 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('Bool(value=${primitiveValue})');
+    sb.write('Bool(value=${boolValue})');
   }
 
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return constantSystem.createBool(primitiveValue);
+    return constantSystem.createBool(boolValue);
   }
 
   @override
-  int _computeHashCode() => 13 * primitiveValue.hashCode;
+  int _computeHashCode() => 13 * boolValue.hashCode;
 
   @override
   bool _equals(BoolConstantExpression other) {
-    return primitiveValue == other.primitiveValue;
+    return boolValue == other.boolValue;
   }
 
   @override
@@ -236,10 +197,10 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
 }
 
 /// Integer literal constant.
-class IntConstantExpression extends PrimitiveConstantExpression {
-  final int primitiveValue;
+class IntConstantExpression extends ConstantExpression {
+  final BigInt intValue;
 
-  IntConstantExpression(this.primitiveValue);
+  IntConstantExpression(this.intValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.INT;
 
@@ -249,21 +210,21 @@ class IntConstantExpression extends PrimitiveConstantExpression {
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('Int(value=${primitiveValue})');
+    sb.write('Int(value=${intValue})');
   }
 
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return constantSystem.createInt(primitiveValue);
+    return constantSystem.createInt(intValue);
   }
 
   @override
-  int _computeHashCode() => 17 * primitiveValue.hashCode;
+  int _computeHashCode() => 17 * intValue.hashCode;
 
   @override
   bool _equals(IntConstantExpression other) {
-    return primitiveValue == other.primitiveValue;
+    return intValue == other.intValue;
   }
 
   @override
@@ -272,10 +233,10 @@ class IntConstantExpression extends PrimitiveConstantExpression {
 }
 
 /// Double literal constant.
-class DoubleConstantExpression extends PrimitiveConstantExpression {
-  final double primitiveValue;
+class DoubleConstantExpression extends ConstantExpression {
+  final double doubleValue;
 
-  DoubleConstantExpression(this.primitiveValue);
+  DoubleConstantExpression(this.doubleValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.DOUBLE;
 
@@ -285,21 +246,21 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('Double(value=${primitiveValue})');
+    sb.write('Double(value=${doubleValue})');
   }
 
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return constantSystem.createDouble(primitiveValue);
+    return constantSystem.createDouble(doubleValue);
   }
 
   @override
-  int _computeHashCode() => 19 * primitiveValue.hashCode;
+  int _computeHashCode() => 19 * doubleValue.hashCode;
 
   @override
   bool _equals(DoubleConstantExpression other) {
-    return primitiveValue == other.primitiveValue;
+    return doubleValue == other.doubleValue;
   }
 
   @override
@@ -308,10 +269,10 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
 }
 
 /// String literal constant.
-class StringConstantExpression extends PrimitiveConstantExpression {
-  final String primitiveValue;
+class StringConstantExpression extends ConstantExpression {
+  final String stringValue;
 
-  StringConstantExpression(this.primitiveValue);
+  StringConstantExpression(this.stringValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.STRING;
 
@@ -321,21 +282,21 @@ class StringConstantExpression extends PrimitiveConstantExpression {
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('String(value=${primitiveValue})');
+    sb.write('String(value=${stringValue})');
   }
 
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return constantSystem.createString(primitiveValue);
+    return constantSystem.createString(stringValue);
   }
 
   @override
-  int _computeHashCode() => 23 * primitiveValue.hashCode;
+  int _computeHashCode() => 23 * stringValue.hashCode;
 
   @override
   bool _equals(StringConstantExpression other) {
-    return primitiveValue == other.primitiveValue;
+    return stringValue == other.stringValue;
   }
 
   @override
@@ -344,7 +305,7 @@ class StringConstantExpression extends PrimitiveConstantExpression {
 }
 
 /// Null literal constant.
-class NullConstantExpression extends PrimitiveConstantExpression {
+class NullConstantExpression extends ConstantExpression {
   NullConstantExpression();
 
   ConstantExpressionKind get kind => ConstantExpressionKind.NULL;
@@ -363,8 +324,6 @@ class NullConstantExpression extends PrimitiveConstantExpression {
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem.createNull();
   }
-
-  get primitiveValue => null;
 
   @override
   int _computeHashCode() => 29;
@@ -485,7 +444,7 @@ class MapConstantExpression extends ConstantExpression {
         return new NonConstantValue();
       }
       if (map.containsKey(key)) {
-        environment.reportWarning(keys[i], MessageKind.EQUAL_MAP_ENTRY_KEY, {});
+        environment.reportError(keys[i], MessageKind.EQUAL_MAP_ENTRY_KEY, {});
       }
       map[key] = value;
     }
@@ -564,13 +523,12 @@ class ConstructedConstantExpression extends ConstantExpression {
     sb.write('])');
   }
 
-  Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      EvaluationEnvironment environment) {
+  InstanceData computeInstanceData(EvaluationEnvironment environment) {
     ConstantConstructor constantConstructor =
         environment.getConstructorConstant(target);
     assert(constantConstructor != null,
         failedAt(target, "No constant constructor computed for $target."));
-    return constantConstructor.computeInstanceFields(
+    return constantConstructor.computeInstanceData(
         environment, arguments, callStructure);
   }
 
@@ -588,16 +546,17 @@ class ConstructedConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return environment.evaluateConstructor(target, () {
-      Map<FieldEntity, ConstantExpression> fieldMap =
-          computeInstanceFields(environment);
-      if (fieldMap == null) {
+    InterfaceType instanceType = computeInstanceType(environment);
+    return environment.evaluateConstructor(target, instanceType, () {
+      InstanceData instanceData = computeInstanceData(environment);
+      if (instanceData == null) {
         return new NonConstantValue();
       }
       bool isValidAsConstant = true;
       Map<FieldEntity, ConstantValue> fieldValues =
           <FieldEntity, ConstantValue>{};
-      fieldMap.forEach((FieldEntity field, ConstantExpression constant) {
+      instanceData.fieldMap
+          .forEach((FieldEntity field, ConstantExpression constant) {
         ConstantValue value = constant.evaluate(environment, constantSystem);
         assert(
             value != null,
@@ -609,9 +568,13 @@ class ConstructedConstantExpression extends ConstantExpression {
           isValidAsConstant = false;
         }
       });
+      for (AssertConstantExpression assertion in instanceData.assertions) {
+        if (!assertion.evaluate(environment, constantSystem).isConstant) {
+          isValidAsConstant = false;
+        }
+      }
       if (isValidAsConstant) {
-        return new ConstructedConstantValue(
-            computeInstanceType(environment), fieldValues);
+        return new ConstructedConstantValue(instanceType, fieldValues);
       } else {
         return new NonConstantValue();
       }
@@ -691,8 +654,17 @@ class ConcatenateConstantExpression extends ConstantExpression {
         continue;
       }
       if (value.isPrimitive) {
-        PrimitiveConstantValue primitive = value;
-        sb.write(primitive.primitiveValue);
+        if (value is StringConstantValue) {
+          sb.write(value.stringValue);
+        } else if (value is IntConstantValue) {
+          sb.write(value.intValue);
+        } else if (value is DoubleConstantValue) {
+          sb.write(value.doubleValue);
+        } else if (value is BoolConstantValue) {
+          sb.write(value.boolValue);
+        } else if (value is NullConstantValue) {
+          sb.write(null);
+        }
       } else {
         environment.reportError(
             expression, MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE, {
@@ -814,6 +786,87 @@ class TypeConstantExpression extends ConstantExpression {
   @override
   InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.typeType;
+}
+
+/// Cast expressions: these may be from either explicit or implicit `as`
+/// checks.
+class AsConstantExpression extends ConstantExpression {
+  final ConstantExpression expression;
+  final DartType type;
+
+  AsConstantExpression(this.expression, this.type);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.AS;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitAs(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('As(value=');
+    expression._createStructuredText(sb);
+    sb.write(',type=$type)');
+  }
+
+  @override
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    // Running example for comments:
+    //
+    //     class A<T> {
+    //       final T t;
+    //       const A(dynamic t) : this.t = t; // implicitly `t as A.T`
+    //     }
+    //     class B<S> extends A<S> {
+    //       const B(dynamic s) : super(s);
+    //     }
+    //     main() => const B<num>(0);
+    //
+    // We visit `t as A.T` while evaluating `const B<num>(0)`.
+
+    // The expression value is `0`.
+    ConstantValue expressionValue =
+        expression.evaluate(environment, constantSystem);
+
+    if (!environment.checkCasts) return expressionValue;
+
+    // The expression type is `int`.
+    DartType expressionType =
+        expressionValue.getType(environment.commonElements);
+
+    // The `as` type `A.T` in the context of `B<num>` is `num`.
+    DartType typeInContext = environment.getTypeInContext(type);
+
+    // Check that the expression type, `int`, is a subtype of the type in
+    // context, `num`.
+    if (!constantSystem.isSubtype(
+        environment.types, expressionType, typeInContext)) {
+      // TODO(sigmund): consider reporting different messages and error
+      // locations for implicit vs explicit casts.
+      environment.reportError(expression, MessageKind.INVALID_CONSTANT_CAST,
+          {'constant': expression, 'type': expressionType, 'castType': type});
+      return new NonConstantValue();
+    }
+    return expressionValue;
+  }
+
+  @override
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new AsConstantExpression(expression.apply(arguments), type);
+  }
+
+  @override
+  int _computeHashCode() => 13 * type.hashCode + 17 * expression.hashCode;
+
+  @override
+  bool _equals(AsConstantExpression other) {
+    return expression == other.expression && type == other.type;
+  }
+
+  @override
+  InterfaceType getKnownType(CommonElements commonElements) =>
+      expression.getKnownType(commonElements);
 }
 
 /// Reference to a constant top-level or static field.
@@ -963,22 +1016,26 @@ class BinaryConstantExpression extends ConstantExpression {
       case BinaryOperatorKind.EQ:
       case BinaryOperatorKind.NOT_EQ:
         if (!leftValue.isPrimitive) {
-          environment.reportError(
-              left, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
-            'constant': left,
-            'type': leftValue.getType(environment.commonElements),
-            'operator': operator
-          });
-          isValid = false;
+          if (!rightValue.isNull) {
+            environment.reportError(
+                left, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
+              'constant': left,
+              'type': leftValue.getType(environment.commonElements),
+              'operator': operator
+            });
+            isValid = false;
+          }
         }
         if (!rightValue.isPrimitive) {
-          environment.reportError(
-              right, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
-            'constant': right,
-            'type': rightValue.getType(environment.commonElements),
-            'operator': operator
-          });
-          isValid = false;
+          if (!leftValue.isNull) {
+            environment.reportError(
+                right, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
+              'constant': right,
+              'type': rightValue.getType(environment.commonElements),
+              'operator': operator
+            });
+            isValid = false;
+          }
         }
         break;
       case BinaryOperatorKind.ADD:
@@ -1056,6 +1113,15 @@ class BinaryConstantExpression extends ConstantExpression {
           });
           isValid = false;
         }
+        if (isValid &&
+            (operator.kind == BinaryOperatorKind.IDIV ||
+                operator.kind == BinaryOperatorKind.MOD)) {
+          if (rightValue.isZero) {
+            environment.reportError(right, MessageKind.INVALID_CONSTANT_DIV,
+                {'left': left, 'right': right, 'operator': operator});
+            isValid = false;
+          }
+        }
         break;
       case BinaryOperatorKind.SHL:
       case BinaryOperatorKind.SHR:
@@ -1079,6 +1145,16 @@ class BinaryConstantExpression extends ConstantExpression {
             'operator': operator
           });
           isValid = false;
+        }
+        if (isValid &&
+            (operator.kind == BinaryOperatorKind.SHL ||
+                operator.kind == BinaryOperatorKind.SHR)) {
+          IntConstantValue shift = rightValue;
+          if (shift.intValue < BigInt.zero) {
+            environment.reportError(right, MessageKind.INVALID_CONSTANT_SHIFT,
+                {'left': left, 'right': right, 'operator': operator});
+            isValid = false;
+          }
         }
         break;
       case BinaryOperatorKind.LOGICAL_AND:
@@ -1141,6 +1217,8 @@ class BinaryConstantExpression extends ConstantExpression {
           if (value != null) {
             return value;
           }
+          environment
+              .reportError(this, MessageKind.NOT_A_COMPILE_TIME_CONSTANT, {});
       }
     }
     return new NonConstantValue();
@@ -1445,7 +1523,8 @@ class StringLengthConstantExpression extends ConstantExpression {
       return new NonConstantValue();
     } else {
       StringConstantValue stringValue = value;
-      return constantSystem.createInt(stringValue.primitiveValue.length);
+      return constantSystem
+          .createInt(new BigInt.from(stringValue.stringValue.length));
     }
   }
 
@@ -1738,8 +1817,8 @@ class BoolFromEnvironmentConstantExpression
     }
     if (isValid) {
       StringConstantValue nameStringConstantValue = nameConstantValue;
-      String text = environment
-          .readFromEnvironment(nameStringConstantValue.primitiveValue);
+      String text =
+          environment.readFromEnvironment(nameStringConstantValue.stringValue);
       if (text == 'true') {
         return constantSystem.createBool(true);
       } else if (text == 'false') {
@@ -1817,11 +1896,11 @@ class IntFromEnvironmentConstantExpression
     }
     if (isValid) {
       StringConstantValue nameStringConstantValue = nameConstantValue;
-      String text = environment
-          .readFromEnvironment(nameStringConstantValue.primitiveValue);
-      int value;
+      String text =
+          environment.readFromEnvironment(nameStringConstantValue.stringValue);
+      BigInt value;
       if (text != null) {
-        value = int.parse(text, onError: (_) => null);
+        value = BigInt.tryParse(text);
       }
       if (value == null) {
         return defaultConstantValue;
@@ -1898,8 +1977,8 @@ class StringFromEnvironmentConstantExpression
     }
     if (isValid) {
       StringConstantValue nameStringConstantValue = nameConstantValue;
-      String text = environment
-          .readFromEnvironment(nameStringConstantValue.primitiveValue);
+      String text =
+          environment.readFromEnvironment(nameStringConstantValue.stringValue);
       if (text == null) {
         return defaultConstantValue;
       } else {
@@ -1919,19 +1998,96 @@ class StringFromEnvironmentConstantExpression
       commonElements.stringType;
 }
 
-/// A constant expression referenced with a deferred prefix.
-/// For example `lib.C`.
-class DeferredConstantExpression extends ConstantExpression {
-  final ConstantExpression expression;
-  final ImportEntity import;
+class AssertConstantExpression extends ConstantExpression {
+  final ConstantExpression condition;
+  final ConstantExpression message;
 
-  DeferredConstantExpression(this.expression, this.import);
+  AssertConstantExpression(this.condition, this.message);
 
-  ConstantExpressionKind get kind => ConstantExpressionKind.DEFERRED;
+  @override
+  ConstantExpressionKind get kind => ConstantExpressionKind.ASSERT;
+
+  @override
+  bool _equals(AssertConstantExpression other) {
+    return condition == other.condition && message == other.message;
+  }
+
+  @override
+  int _computeHashCode() {
+    return 13 * condition.hashCode + 17 * message.hashCode;
+  }
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('Deferred(import=$import,expression=');
+    sb.write('assert(');
+    condition._createStructuredText(sb);
+    sb.write(',message=');
+    if (message != null) {
+      message._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
+    sb.write(')');
+  }
+
+  @override
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue conditionValue =
+        condition.evaluate(environment, constantSystem);
+    bool validAssert;
+    if (environment.enableAssertions) {
+      // Boolean conversion:
+      validAssert =
+          conditionValue is BoolConstantValue && conditionValue.boolValue;
+    } else {
+      validAssert = true;
+    }
+    if (!validAssert) {
+      if (message != null) {
+        ConstantValue value = message.evaluate(environment, constantSystem);
+        if (value is StringConstantValue) {
+          String text = '${value.stringValue}';
+          environment.reportError(this,
+              MessageKind.INVALID_ASSERT_VALUE_MESSAGE, {'message': text});
+        } else {
+          environment.reportError(this, MessageKind.INVALID_ASSERT_VALUE,
+              {'assertion': condition.toDartText()});
+          // TODO(johnniwinther): Report invalid constant message?
+        }
+      } else {
+        environment.reportError(this, MessageKind.INVALID_ASSERT_VALUE,
+            {'assertion': condition.toDartText()});
+      }
+      return new NonConstantValue();
+    }
+
+    // Return a valid constant value to signal that assertion didn't fail.
+    return new NullConstantValue();
+  }
+
+  @override
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitAssert(this, context);
+  }
+
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new AssertConstantExpression(
+        condition.apply(arguments), message?.apply(arguments));
+  }
+}
+
+class InstantiationConstantExpression extends ConstantExpression {
+  final List<DartType> typeArguments;
+  final ConstantExpression expression;
+
+  InstantiationConstantExpression(this.typeArguments, this.expression);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.INSTANTIATION;
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Instantiation(typeArguments=$typeArguments,expression=');
     expression._createStructuredText(sb);
     sb.write(')');
   }
@@ -1939,27 +2095,31 @@ class DeferredConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return new DeferredConstantValue(
-        expression.evaluate(environment, constantSystem), import);
+    List<DartType> typeArgumentsInContext =
+        typeArguments.map(environment.getTypeInContext).toList();
+    return new InstantiationConstantValue(typeArgumentsInContext,
+        expression.evaluate(environment, constantSystem));
   }
 
   @override
   int _computeHashCode() {
-    return 13 * expression.hashCode;
+    return Hashing.objectHash(expression, Hashing.listHash(typeArguments));
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
-    return new DeferredConstantExpression(expression.apply(arguments), import);
+    return new InstantiationConstantExpression(
+        typeArguments, expression.apply(arguments));
   }
 
   @override
-  bool _equals(DeferredConstantExpression other) {
-    return expression == other.expression;
+  bool _equals(InstantiationConstantExpression other) {
+    return equalElements(typeArguments, other.typeArguments) &&
+        expression == other.expression;
   }
 
   @override
   accept(ConstantExpressionVisitor visitor, [context]) {
-    return visitor.visitDeferred(this, context);
+    return visitor.visitInstantiation(this, context);
   }
 
   @override
@@ -1975,6 +2135,7 @@ abstract class ConstantExpressionVisitor<R, A> {
     return constant.accept(this, context);
   }
 
+  R visitAs(AsConstantExpression exp, A context);
   R visitBool(BoolConstantExpression exp, A context);
   R visitInt(IntConstantExpression exp, A context);
   R visitDouble(DoubleConstantExpression exp, A context);
@@ -2000,7 +2161,8 @@ abstract class ConstantExpressionVisitor<R, A> {
       IntFromEnvironmentConstantExpression exp, A context);
   R visitStringFromEnvironment(
       StringFromEnvironmentConstantExpression exp, A context);
-  R visitDeferred(DeferredConstantExpression exp, A context);
+  R visitAssert(AssertConstantExpression exp, A context);
+  R visitInstantiation(InstantiationConstantExpression exp, A context);
 
   R visitPositional(PositionalArgumentReference exp, A context);
   R visitNamed(NamedArgumentReference exp, A context);
@@ -2040,34 +2202,37 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     return constant.accept(this, null);
   }
 
-  void visitPrimitive(PrimitiveConstantExpression exp) {
-    sb.write(exp.primitiveValue);
+  @override
+  void visitAs(AsConstantExpression exp, [_]) {
+    visit(exp.expression);
+    sb.write(' as ');
+    sb.write(exp.type);
   }
 
   @override
   void visitBool(BoolConstantExpression exp, [_]) {
-    visitPrimitive(exp);
+    sb.write(exp.boolValue);
   }
 
   @override
   void visitDouble(DoubleConstantExpression exp, [_]) {
-    visitPrimitive(exp);
+    sb.write(exp.doubleValue);
   }
 
   @override
   void visitInt(IntConstantExpression exp, [_]) {
-    visitPrimitive(exp);
+    sb.write(exp.intValue);
   }
 
   @override
   void visitNull(NullConstantExpression exp, [_]) {
-    visitPrimitive(exp);
+    sb.write(null);
   }
 
   @override
   void visitString(StringConstantExpression exp, [_]) {
     // TODO(johnniwinther): Ensure correct escaping.
-    sb.write('"${exp.primitiveValue}"');
+    sb.write('"${exp.stringValue}"');
   }
 
   @override
@@ -2141,7 +2306,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
       if (expression.kind == ConstantExpressionKind.STRING) {
         StringConstantExpression string = expression;
         // TODO(johnniwinther): Ensure correct escaping.
-        sb.write('${string.primitiveValue}');
+        sb.write('${string.stringValue}');
       } else {
         sb.write(r"${");
         visit(expression);
@@ -2237,13 +2402,6 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   }
 
   @override
-  void visitDeferred(DeferredConstantExpression exp, context) {
-    sb.write(exp.import.name);
-    sb.write('.');
-    write(exp, exp.expression);
-  }
-
-  @override
   void visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp,
       [_]) {
     sb.write('const bool.fromEnvironment(');
@@ -2275,6 +2433,26 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
       sb.write(', defaultValue: ');
       visit(exp.defaultValue);
     }
+    sb.write(')');
+  }
+
+  @override
+  void visitAssert(AssertConstantExpression exp, [_]) {
+    sb.write('assert(');
+    visit(exp.condition);
+    if (exp.message != null) {
+      sb.write(', ');
+      visit(exp.message);
+    }
+    sb.write(')');
+  }
+
+  @override
+  void visitInstantiation(InstantiationConstantExpression exp, [_]) {
+    sb.write('<');
+    sb.write(exp.typeArguments.join(', '));
+    sb.write('>(');
+    visit(exp.expression);
     sb.write(')');
   }
 

@@ -57,49 +57,49 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   test_fileNotInAnalysisRoot() async {
     String path = '/other/file.dart';
-    addFile(path, '');
+    newFile(path);
     await _setPriorityFile(path);
     _verifyPriorityFiles(path);
   }
 
   test_ignoredInAnalysisOptions() async {
     String sampleFile = '$projectPath/samples/sample.dart';
-    addFile('$projectPath/.analysis_options', r'''
+    newFile('$projectPath/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    addFile(sampleFile, '');
+    newFile(sampleFile);
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);
   }
 
   test_ignoredInAnalysisOptions_inChildContext() async {
-    addFile('$projectPath/.packages', '');
-    addFile('$projectPath/child/.packages', '');
+    newFile('$projectPath/.packages');
+    newFile('$projectPath/child/.packages');
     String sampleFile = '$projectPath/child/samples/sample.dart';
-    addFile('$projectPath/child/.analysis_options', r'''
+    newFile('$projectPath/child/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    addFile(sampleFile, '');
+    newFile(sampleFile);
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);
   }
 
   test_ignoredInAnalysisOptions_inRootContext() async {
-    addFile('$projectPath/.packages', '');
-    addFile('$projectPath/child/.packages', '');
+    newFile('$projectPath/.packages');
+    newFile('$projectPath/child/.packages');
     String sampleFile = '$projectPath/child/samples/sample.dart';
-    addFile('$projectPath/.analysis_options', r'''
+    newFile('$projectPath/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'child/samples/**'
 ''');
-    addFile(sampleFile, '');
+    newFile(sampleFile);
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);

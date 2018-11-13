@@ -91,7 +91,7 @@ void doTestSync() {
   Expect.isFalse(dir4.existsSync());
   // stat.
   FileStat dirstat = dir2.statSync();
-  Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
+  Expect.equals(FileSystemEntityType.directory, dirstat.type);
 }
 
 doTestAsync() async {
@@ -177,7 +177,7 @@ doTestAsync() async {
   Expect.isFalse(await dir4.exists());
   // stat.
   FileStat dirstat = await dir2.stat();
-  Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
+  Expect.equals(FileSystemEntityType.directory, dirstat.type);
 }
 
 List<String> packageOptions() {

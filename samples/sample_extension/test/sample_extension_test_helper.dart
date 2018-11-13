@@ -33,7 +33,7 @@ Future copyFileToDirectory(String file, String directory) async {
   }
 }
 
-Future run(String program, List arguments) async {
+Future run(String program, List<String> arguments) async {
   print("+ $program ${arguments.join(' ')}");
   ProcessResult result = await Process.run(program, arguments);
   if (result.exitCode != 0) {
@@ -73,13 +73,18 @@ Future testNativeExtensions(String snapshotKind) async {
         snapshot = script;
       } else {
         snapshot = join(testDirectory, "$test.snapshot");
-        await run(Platform.executable,
-            ['--snapshot=$snapshot', '--snapshot-kind=$snapshotKind', script]);
+        List<String> args = new List<String>.from(Platform.executableArguments);
+        args.add('--snapshot=$snapshot');
+        args.add('--snapshot-kind=$snapshotKind');
+        args.add(script);
+        await run(Platform.executable, args);
       }
 
-      await run(Platform.executable, [snapshot]);
+      List<String> args = new List<String>.from(Platform.executableArguments);
+      args.add(snapshot);
+      await run(Platform.executable, args);
     }
   } finally {
-    await tempDirectory.deleteSync(recursive: true);
+    tempDirectory.deleteSync(recursive: true);
   }
 }

@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -17,8 +19,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 
 /**
  * Context information necessary to analyze one or more libraries within an
@@ -78,11 +78,8 @@ class LibraryContext {
 
           libraries[library.uriStr] = library;
 
-          // Append the defining unit.
-          store.addUnlinkedUnit(library.uriStr, library.unlinked);
-
-          // Append parts.
-          for (FileState part in library.partedFiles) {
+          // Append library units.
+          for (FileState part in library.libraryFiles) {
             store.addUnlinkedUnit(part.uriStr, part.unlinked);
           }
 
@@ -93,10 +90,11 @@ class LibraryContext {
       }
 
       logger.run('Append library files', () {
-        return appendLibraryFiles(targetLibrary);
+        appendLibraryFiles(targetLibrary);
       });
 
-      Set<String> libraryUrisToLink = new Set<String>();
+      var libraryUrisToLink = new Set<String>();
+      var libraryFilesToLink = new Set<FileState>();
       logger.run('Load linked bundles', () {
         for (FileState library in libraries.values) {
           if (library.exists || library == targetLibrary) {
@@ -107,6 +105,7 @@ class LibraryContext {
               store.addLinkedLibrary(library.uriStr, linked);
             } else {
               libraryUrisToLink.add(library.uriStr);
+              libraryFilesToLink.add(library);
             }
           }
         }
@@ -115,25 +114,26 @@ class LibraryContext {
       });
 
       Map<String, LinkedLibraryBuilder> linkedLibraries = {};
-      logger.run('Link bundles', () {
+      logger.run('Link libraries', () {
         linkedLibraries = link(libraryUrisToLink, (String uri) {
           LinkedLibrary linkedLibrary = store.linkedMap[uri];
           return linkedLibrary;
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
           return unlinkedUnit;
-        }, (_) => null, options.strongMode);
-        logger.writeln('Linked ${linkedLibraries.length} bundles.');
+        }, (_) => null);
+        logger.writeln('Linked ${linkedLibraries.length} libraries.');
       });
 
-      linkedLibraries.forEach((uri, linkedBuilder) {
+      for (String uri in linkedLibraries.keys) {
+        LinkedLibraryBuilder linkedBuilder = linkedLibraries[uri];
         FileState library = libraries[uri];
         String key = '${library.transitiveSignature}.linked';
         List<int> bytes = linkedBuilder.toBuffer();
         LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
         store.addLinkedLibrary(uri, linked);
         byteStore.put(key, bytes);
-      });
+      }
 
       var resynthesizingContext = _createResynthesizingContext(
           options, declaredVariables, sourceFactory, store);
@@ -203,7 +203,7 @@ class LibraryContext {
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.useSdkCachePartition = false;
     analysisContext.analysisOptions = analysisOptions;
-    analysisContext.declaredVariables.addAll(declaredVariables);
+    analysisContext.declaredVariables = declaredVariables;
     analysisContext.sourceFactory = sourceFactory.clone();
     var provider = new InputPackagesResultProvider(analysisContext, store);
     analysisContext.resultProvider = provider;

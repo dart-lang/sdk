@@ -4,12 +4,13 @@
 
 library kernel.class_hierarchy_basic;
 
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/ast.dart';
 
 /// A simple implementation of the class hierarchy interface using
 /// hash tables for everything.
-class BasicClassHierarchy {
+class BasicClassHierarchy implements ClassHierarchy {
   final Map<Class, Set<Class>> superclasses = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> superMixtures = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> supertypes = <Class, Set<Class>>{};
@@ -25,8 +26,8 @@ class BasicClassHierarchy {
   final List<Class> classes = <Class>[];
   final Map<Class, int> classIndex = <Class, int>{};
 
-  BasicClassHierarchy(Program program) {
-    for (var library in program.libraries) {
+  BasicClassHierarchy(Component component) {
+    for (var library in component.libraries) {
       for (var classNode in library.classes) {
         buildSuperTypeSets(classNode);
         buildSuperTypeInstantiations(classNode);
@@ -215,7 +216,7 @@ class BasicClassHierarchy {
     return setter ? setters[class_][name] : gettersAndCalls[class_][name];
   }
 
-  Iterable<Member> getDispatchTargets(Class class_, {bool setters: false}) {
+  List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
     return setters
         ? this.setters[class_].values
         : gettersAndCalls[class_].values;
@@ -237,7 +238,7 @@ class BasicClassHierarchy {
     return iterable == null ? const <Member>[] : iterable;
   }
 
-  Iterable<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
+  List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return setters
         ? interfaceSetters[class_].values.expand((x) => x)
         : interfaceGettersAndCalls[class_].values.expand((x) => x);

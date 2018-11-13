@@ -5,7 +5,7 @@
 library dart2js.js_emitter.startup_emitter;
 
 import 'package:js_runtime/shared/embedded_names.dart'
-    show JsBuiltin, METADATA, STATIC_FUNCTION_NAME_TO_CLOSURE, TYPES;
+    show JsBuiltin, METADATA, TYPES;
 
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
@@ -14,7 +14,7 @@ import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
 import '../model.dart';
@@ -32,7 +32,7 @@ class EmitterFactory implements emitterTask.EmitterFactory {
 
   @override
   Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      ClosedWorld closedWorld, Sorter sorter) {
+      JClosedWorld closedWorld, Sorter sorter) {
     return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
         sorter, task, generateSourceMap);
   }
@@ -40,7 +40,7 @@ class EmitterFactory implements emitterTask.EmitterFactory {
 
 class Emitter extends emitterTask.EmitterBase {
   final Compiler _compiler;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final Namer namer;
   final ModelEmitter _emitter;
 
@@ -61,7 +61,10 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programForTesting = programBuilder.buildProgram();
+    Program program = programBuilder.buildProgram();
+    if (retainDataForTesting) {
+      programForTesting = program;
+    }
     return _emitter.emitProgram(program);
   }
 
@@ -126,14 +129,23 @@ class Emitter extends emitterTask.EmitterBase {
       case JsBuiltin.isFunctionType:
         return _backend.rtiEncoder.templateForIsFunctionType;
 
+      case JsBuiltin.isFutureOrType:
+        return _backend.rtiEncoder.templateForIsFutureOrType;
+
+      case JsBuiltin.isVoidType:
+        return _backend.rtiEncoder.templateForIsVoidType;
+
+      case JsBuiltin.isDynamicType:
+        return _backend.rtiEncoder.templateForIsDynamicType;
+
+      case JsBuiltin.isJsInteropTypeArgument:
+        return _backend.rtiEncoder.templateForIsJsInteropTypeArgument;
+
       case JsBuiltin.rawRtiToJsConstructorName:
         return js.js.expressionTemplateFor("#.name");
 
       case JsBuiltin.rawRuntimeType:
         return js.js.expressionTemplateFor("#.constructor");
-
-      case JsBuiltin.createFunctionTypeRti:
-        return _backend.rtiEncoder.templateForCreateFunctionType;
 
       case JsBuiltin.isSubtype:
         // TODO(floitsch): move this closer to where is-check properties are
@@ -153,11 +165,6 @@ class Emitter extends emitterTask.EmitterBase {
         String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
         return js.js.expressionTemplateFor("$typesAccess[#]");
 
-      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
-        String functionAccess = _emitter.generateEmbeddedGlobalAccessString(
-            STATIC_FUNCTION_NAME_TO_CLOSURE);
-        return js.js.expressionTemplateFor("$functionAccess(#)");
-
       default:
         reporter.internalError(
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
@@ -167,6 +174,9 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   int generatedSize(OutputUnit unit) {
+    if (_emitter.omittedFragments.any((f) => f.outputUnit == unit)) {
+      return 0;
+    }
     Fragment key = _emitter.outputBuffers.keys
         .firstWhere((Fragment fragment) => fragment.outputUnit == unit);
     return _emitter.outputBuffers[key].length;

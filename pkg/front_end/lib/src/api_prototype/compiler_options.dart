@@ -4,22 +4,15 @@
 
 library front_end.compiler_options;
 
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../fasta/fasta_codes.dart' show LocatedMessage;
-import '../fasta/severity.dart' show Severity;
+import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
-import 'compilation_message.dart';
-import 'file_system.dart';
-import 'physical_file_system.dart';
+import 'file_system.dart' show FileSystem;
 
-/// Callback used to report errors encountered during compilation.
-typedef void ErrorHandler(CompilationMessage error);
+import 'standard_file_system.dart' show StandardFileSystem;
 
-typedef void ProblemHandler(LocatedMessage problem, Severity severity,
-    String formatted, int line, int column);
+export 'diagnostic_message.dart' show DiagnosticMessage;
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -43,25 +36,7 @@ class CompilerOptions {
   /// `lib/libraries.json`.
   Uri librariesSpecificationUri;
 
-  /// Callback to which compilation errors should be delivered.
-  ///
-  /// By default, when no callback is provided, the compiler will report
-  /// messages on the console and will throw when fatal errors are discovered.
-  ErrorHandler onError;
-
-  ProblemHandler onProblem;
-
-  /// Whether messages should be reported using the compiler's internal
-  /// reporting mechanism.
-  ///
-  /// If no [onError] handler is provided, the default is true. If an [onError]
-  /// handler is provided, the default is false. Setting this to true will
-  /// ensure that error messages are printed in the console and that fatal
-  /// errors cause an exception.
-  // TODO(sigmund): add also an API for formatting errors and provide a default
-  // formatter. This way user can configure error style in the console and in
-  // generated code that contains error messages.
-  bool reportMessages;
+  DiagnosticMessageHandler onDiagnostic;
 
   /// URI of the ".packages" file (typically a "file:" URI).
   ///
@@ -83,7 +58,7 @@ class CompilerOptions {
   /// of [inputSummaries] or [sdkSummary].
   List<Uri> inputSummaries = [];
 
-  /// URIs of other kernel programs to link.
+  /// URIs of other kernel components to link.
   ///
   /// Commonly used to link the code for the SDK libraries that was compiled
   /// separately. For example, dart2js needs to link the SDK so it can
@@ -91,9 +66,9 @@ class CompilerOptions {
   /// always embeds the SDK internally and doesn't need it as part of the
   /// program.
   ///
-  /// The programs provided here should be closed and acyclic: any libraries
-  /// that they reference should be defined in a program in [linkedDependencies]
-  /// or any of the [inputSummaries] or [sdkSummary].
+  /// The components provided here should be closed and acyclic: any libraries
+  /// that they reference should be defined in a component in
+  /// [linkedDependencies] or any of the [inputSummaries] or [sdkSummary].
   List<Uri> linkedDependencies = [];
 
   /// URI of the SDK summary file (typically a "file:" URI).
@@ -115,37 +90,19 @@ class CompilerOptions {
   /// mechanism, with one exception: if no value is specified for
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
-  FileSystem fileSystem = PhysicalFileSystem.instance;
-
-  /// The byte storage to access serialized data.
-  ByteStore byteStore = new NullByteStore();
-
-  /// The logger to report compilation progress.
-  PerformanceLog logger = new PerformanceLog(new StringBuffer());
+  FileSystem fileSystem = StandardFileSystem.instance;
 
   /// Whether to generate code for the SDK.
   ///
-  /// By default the front end resolves programs using a prebuilt SDK summary.
+  /// By default the front end resolves components using a prebuilt SDK summary.
   /// When this option is `true`, [sdkSummary] must be null.
   bool compileSdk = false;
 
-  /// Whether the compiler should read files that are discovered as
-  /// dependencies, or only access the files listed explicitly.
-  ///
-  /// This option has different defaults depending on the API.
-  ///
-  /// For modular APIs like `kernelForBuildUnit` and `summaryFor` the default
-  /// behavior is `false`. These APIs want to ensure that builds are hermetic,
-  /// where all files that will be compiled are listed explicitly and all other
-  /// dependencies are covered by summary files.
-  ///
-  /// For whole-program APIs like `kernelForProgram`, this option is true by
-  /// default, so they can treat any dependency that is not described in a
-  /// summary as if it was explicitly listed as an input.
+  @deprecated
   bool chaseDependencies;
 
-  /// Whether to interpret Dart sources in strong-mode.
-  bool strongMode = true;
+  /// True if enabling legacy mode (Dart 1 compatibility).
+  bool legacyMode = false;
 
   /// Patch files to apply on the core libraries for a specific target platform.
   ///
@@ -169,7 +126,7 @@ class CompilerOptions {
   ///   * the set of libraries are part of a platform's SDK (e.g. dart:html for
   ///     dart2js, dart:ui for flutter).
   ///
-  ///   * what kernel transformations should be applied to the program
+  ///   * what kernel transformations should be applied to the component
   ///     (async/await, mixin inlining, etc).
   ///
   ///   * how to deal with non-standard features like `native` extensions.
@@ -185,14 +142,13 @@ class CompilerOptions {
   // verbose data (Issue #30056)
   bool verbose = false;
 
-  /// Whether to run extra verification steps to validate that compiled programs
-  /// are well formed.
+  /// Whether to run extra verification steps to validate that compiled
+  /// components are well formed.
   ///
-  /// Errors are reported via the [onError] callback.
-  // TODO(sigmund): ensure we don't print errors to stdout (Issue #30056)
+  /// Errors are reported via the [onDiagnostic] callback.
   bool verify = false;
 
-  /// Whether to dump generated programs in a text format (also mainly for
+  /// Whether to dump generated components in a text format (also mainly for
   /// debugging).
   ///
   /// Dumped data is printed in stdout.
@@ -202,9 +158,9 @@ class CompilerOptions {
   /// warning, etc.) is encountered during compilation.
   bool setExitCodeOnProblem = false;
 
-  /// Whether to embed the input sources in generated kernel programs.
+  /// Whether to embed the input sources in generated kernel components.
   ///
-  /// The kernel `Program` API includes a `uriToSource` map field that is used
+  /// The kernel `Component` API includes a `uriToSource` map field that is used
   /// to embed the entire contents of the source files. This part of the kernel
   /// API is in flux and it is not necessary for some tools. Today it is used
   /// for translating error locations and stack traces in the VM.
@@ -223,9 +179,6 @@ class CompilerOptions {
   /// Typically used by developers to debug internals of the compiler.
   bool throwOnWarningsForDebugging = false;
 
-  /// Whether the compiler should throw as soon as it encounters a
-  /// compilation nit.
-  ///
-  /// Typically used by developers to debug internals of the compiler.
-  bool throwOnNitsForDebugging = false;
+  /// Whether to generate bytecode.
+  bool bytecode = false;
 }

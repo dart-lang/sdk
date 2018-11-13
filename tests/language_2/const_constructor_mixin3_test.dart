@@ -8,9 +8,7 @@ class A {
   const A();
 }
 
-class B extends A
-    with Mixin //# 01: compile-time error
-{
+class B extends A with Mixin {
   const B();
 }
 

@@ -146,14 +146,14 @@ var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
   test_initializer_functionLiteral_expressionBody() async {
     var content = r'''
 var a = 0;
-var t = (int p) => (a = 1);
+var t = /*info:INFERRED_TYPE_CLOSURE*/(int p) => (a = 1);
 ''';
     await checkFile(content);
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
     var content = r'''
-var t = (int a, b,int c, d) => 0;
+var t = /*info:INFERRED_TYPE_CLOSURE*/(int a, b,int c, d) => 0;
 ''';
     await checkFile(content);
   }
@@ -332,7 +332,7 @@ abstract class B {
   String aaa;
 }
 class C implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/var aaa;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/var aaa;
 }
 ''';
     await checkFile(content);
@@ -697,7 +697,7 @@ var t1 = x;
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-int t1;
+dynamic t1;
 ''');
   }
 
@@ -798,7 +798,6 @@ Future<int> vFuture;
 ''');
   }
 
-  @failingTest
   test_initializer_functionExpressionInvocation_noTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 var v = (() => 42)();

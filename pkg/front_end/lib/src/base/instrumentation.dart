@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/problems.dart';
 import 'package:kernel/ast.dart';
+
+import '../fasta/problems.dart';
 
 /// Convert '→' to '->' because '→' doesn't show up in some terminals.
 /// Remove prefixes that are used very often in tests.
@@ -46,9 +47,6 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
     var buffer = new StringBuffer();
     void writeParameter(VariableDeclaration parameter) {
       var covariances = <String>[];
-      if (parameter.isGenericCovariantInterface) {
-        covariances.add('genericInterface');
-      }
       if (parameter.isGenericCovariantImpl) {
         covariances.add('genericImpl');
       }
@@ -65,9 +63,6 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
       buffer.write('abstract ');
     }
     var function = procedure.function;
-    if (procedure.isGenericContravariant) {
-      buffer.write('genericContravariant ');
-    }
     buffer.write(function.returnType);
     buffer.write(' ');
     switch (procedure.kind) {
@@ -94,9 +89,6 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
         if (i != 0) buffer.write(', ');
         var typeParameter = function.typeParameters[i];
         var covariances = <String>[];
-        if (typeParameter.isGenericCovariantInterface) {
-          covariances.add('genericInterface');
-        }
         if (typeParameter.isGenericCovariantImpl) {
           covariances.add('genericImpl');
         }

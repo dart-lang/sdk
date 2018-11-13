@@ -1,3 +1,9 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/expressions.dart:74:16: Warning: Method not found: 'int.toString'.
+//     print(int?.toString());
+//                ^^^^^^^^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -42,7 +48,7 @@ static method main() → dynamic {
   core::print(let final dynamic #t3 = i in let final dynamic #t4 = i = #t3.+(1) in #t3);
   core::print(new core::Object::•());
   core::print(const core::Object::•());
-  core::print(core::List::_internal<core::String>(2).runtimeType);
+  core::print(core::List::•<core::String>(2).runtimeType);
   self::foo(fisk: "Blorp gulp");
   function f() → dynamic {
     core::print("f was called");
@@ -69,7 +75,7 @@ static method main() → dynamic {
   core::print(core::int);
   core::print(let final dynamic #t5 = core::int in let final dynamic #t6 = #t5.toString() in #t5);
   try {
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#toString, 32, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{}))));
+    core::print(let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#int.toString, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
     throw "Shouldn't work";
   }
   on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {

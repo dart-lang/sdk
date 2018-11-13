@@ -26,7 +26,7 @@ main() {
   testSymbol(#==, new Symbol("=="), "=="); // Can't hit noSuchMethod.
   testSymbol(#[], $[$], "[]");
   testSymbol(#[]=, ($[$] = $).lastMember, "[]=");
-  testSymbol(const Symbol("unary-"), -$, "unary-");
+  testSymbol(Symbol.unaryMinus, -$, "unary-");
 
   testSymbolThrows(">>>"); // //# 03: ok
   testSymbolThrows("!"); //   //# 03: continued

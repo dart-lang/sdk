@@ -12,7 +12,7 @@ import 'package:expect/expect.dart';
 
 main() {
   var a = new List.generate(100, (i) => i);
-  a.sort((a, b) => 1000000000000000000000 * a.compareTo(b));
+  a.sort((a, b) => 10000000000000 * a.compareTo(b));
   Expect.equals(0, a.first);
   Expect.equals(99, a.last);
 }

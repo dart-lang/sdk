@@ -10,7 +10,7 @@ part of touch;
  * touch events are created from the actual mouse events.
  */
 EventListener mouseToTouchCallback(EventListener callback) {
-  return (MouseEvent e) {
+  return (Event e) {
     var touches = <Touch>[];
     var targetTouches = <Touch>[];
     var changedTouches = <Touch>[];
@@ -239,14 +239,40 @@ class MockTouch implements Touch {
   }
 }
 
+class MockTouchList extends Object
+    with ListMixin<Touch>, ImmutableListMixin<Touch>
+    implements TouchList {
+  final List<Touch> values;
+
+  MockTouchList(this.values);
+
+  static bool get supported => true;
+
+  int get length => values.length;
+
+  Touch operator [](int index) => values[index];
+
+  void operator []=(int index, Touch value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+
+  set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  Touch item(int index) => values[index];
+}
+
 class MockTouchEvent implements TouchEvent {
-  MouseEvent wrapped;
-  // TODO(jacobr): these are currently Lists instead of a TouchList.
-  final List<Touch> touches;
-  final List<Touch> targetTouches;
-  final List<Touch> changedTouches;
-  MockTouchEvent(MouseEvent this.wrapped, List<Touch> this.touches,
-      List<Touch> this.targetTouches, List<Touch> this.changedTouches) {}
+  dynamic /*MouseEvent*/ wrapped;
+  final TouchList touches;
+  final TouchList targetTouches;
+  final TouchList changedTouches;
+  MockTouchEvent(MouseEvent this.wrapped, List<Touch> touches,
+      List<Touch> targetTouches, List<Touch> changedTouches)
+      : touches = new MockTouchList(touches),
+        targetTouches = new MockTouchList(targetTouches),
+        changedTouches = new MockTouchList(changedTouches);
 
   bool get bubbles => wrapped.bubbles;
 
@@ -340,7 +366,7 @@ class MockTouchEvent implements TouchEvent {
     throw new UnimplementedError();
   }
 
-  List get path {
+  List<EventTarget> get path {
     throw new UnimplementedError();
   }
 
@@ -357,6 +383,14 @@ class MockTouchEvent implements TouchEvent {
   }
 
   /*InputDevice*/ get sourceDevice {
+    throw new UnimplementedError();
+  }
+
+  bool get composed {
+    throw new UnimplementedError();
+  }
+
+  List<EventTarget> composedPath() {
     throw new UnimplementedError();
   }
 }

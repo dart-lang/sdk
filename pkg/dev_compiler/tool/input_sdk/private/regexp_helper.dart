@@ -50,7 +50,7 @@ class JSSyntaxRegExp implements RegExp {
   String toString() => "RegExp/$pattern/";
 
   JSSyntaxRegExp(String source,
-      {bool multiLine: false, bool caseSensitive: true})
+      {bool multiLine = false, bool caseSensitive = true})
       : this.pattern = source,
         this._nativeRegExp =
             makeNative(source, multiLine, caseSensitive, false);
@@ -100,13 +100,13 @@ class JSSyntaxRegExp implements RegExp {
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
     String errorMessage = JS('String', r'String(#)', regexp);
-    throw new FormatException("Illegal RegExp pattern: $source, $errorMessage");
+    throw FormatException("Illegal RegExp pattern: $source, $errorMessage");
   }
 
   Match firstMatch(@nullCheck String string) {
     List m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp, string);
     if (m == null) return null;
-    return new _MatchImplementation(this, new JSArray<String>.of(m));
+    return _MatchImplementation(this, JSArray<String>.of(m));
   }
 
   @notNull
@@ -123,9 +123,9 @@ class JSSyntaxRegExp implements RegExp {
   Iterable<Match> allMatches(@nullCheck String string,
       [@nullCheck int start = 0]) {
     if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+      throw RangeError.range(start, 0, string.length);
     }
-    return new _AllMatchesIterable(this, string, start);
+    return _AllMatchesIterable(this, string, start);
   }
 
   Match _execGlobal(String string, int start) {
@@ -133,7 +133,7 @@ class JSSyntaxRegExp implements RegExp {
     JS("void", "#.lastIndex = #", regexp, start);
     List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
     if (match == null) return null;
-    return new _MatchImplementation(this, new JSArray<String>.of(match));
+    return _MatchImplementation(this, JSArray<String>.of(match));
   }
 
   Match _execAnchored(String string, int start) {
@@ -145,12 +145,12 @@ class JSSyntaxRegExp implements RegExp {
     // match at the start position.
     if (match[match.length - 1] != null) return null;
     match.length -= 1;
-    return new _MatchImplementation(this, new JSArray<String>.of(match));
+    return _MatchImplementation(this, JSArray<String>.of(match));
   }
 
   Match matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+      throw RangeError.range(start, 0, string.length);
     }
     return _execAnchored(string, start);
   }
@@ -194,7 +194,7 @@ class _AllMatchesIterable extends IterableBase<Match> {
 
   _AllMatchesIterable(this._re, this._string, this._start);
 
-  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _string, _start);
+  Iterator<Match> get iterator => _AllMatchesIterator(_re, _string, _start);
 }
 
 class _AllMatchesIterator implements Iterator<Match> {

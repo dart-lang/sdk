@@ -22,6 +22,7 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 class StubEntry;
+class RegisterSet;
 
 class Immediate : public ValueObject {
  public:
@@ -39,47 +40,6 @@ class Immediate : public ValueObject {
   int64_t value() const { return value_; }
 
   friend class Assembler;
-};
-
-class Label : public ValueObject {
- public:
-  Label() : position_(0) {}
-
-  ~Label() {
-    // Assert if label is being destroyed with unresolved branches pending.
-    ASSERT(!IsLinked());
-  }
-
-  // Returns the position for bound and linked labels. Cannot be used
-  // for unused labels.
-  intptr_t Position() const {
-    ASSERT(!IsUnused());
-    return IsBound() ? -position_ - kWordSize : position_ - kWordSize;
-  }
-
-  bool IsBound() const { return position_ < 0; }
-  bool IsUnused() const { return position_ == 0; }
-  bool IsLinked() const { return position_ > 0; }
-
- private:
-  intptr_t position_;
-
-  void Reinitialize() { position_ = 0; }
-
-  void BindTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = -position - kWordSize;
-    ASSERT(IsBound());
-  }
-
-  void LinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = position + kWordSize;
-    ASSERT(IsLinked());
-  }
-
-  friend class Assembler;
-  DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
 class Arm64Encode : public AllStatic {
@@ -296,8 +256,7 @@ class Address : public ValueObject {
         return kUnsignedWord;
       case kTypedDataInt64ArrayCid:
       case kTypedDataUint64ArrayCid:
-        UNREACHABLE();
-        return kByte;
+        return kDWord;
       case kTypedDataFloat32ArrayCid:
         return kSWord;
       case kTypedDataFloat64ArrayCid:
@@ -464,39 +423,39 @@ class Operand : public ValueObject {
   friend class Assembler;
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(bool use_far_branches = false);
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
+  void PushRegisters(const RegisterSet& registers);
+  void PopRegisters(const RegisterSet& registers);
+
+  void MoveRegister(Register rd, Register rn) {
+    if (rd != rn) {
+      mov(rd, rn);
+    }
+  }
+
   void Drop(intptr_t stack_elements) {
-    add(SP, SP, Operand(stack_elements * kWordSize));
+    ASSERT(stack_elements >= 0);
+    if (stack_elements > 0) {
+      add(SP, SP, Operand(stack_elements * kWordSize));
+    }
   }
 
   void Bind(Label* label);
   void Jump(Label* label) { b(label); }
 
-  // Misc. functionality
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
+  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
 
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.  On ARM64 there are no pointers in code.
-  intptr_t CountPointerOffsets() const { return 0; }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
+  void CompareWithFieldValue(Register value, FieldAddress address) {
+    ldr(TMP, address);
+    cmp(value, Operand(TMP));
   }
 
   bool use_far_branches() const {
@@ -505,23 +464,11 @@ class Assembler : public ValueObject {
 
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
-
   // Debugging and bringup support.
   void Breakpoint() { brk(0); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
 
@@ -690,8 +637,9 @@ class Assembler : public ValueObject {
              int width,
              OperandSize size = kDoubleWord) {
     int wordsize = size == kDoubleWord ? 64 : 32;
-    EmitBitfieldOp(UBFM, rd, rn, (width - low_bit) & (wordsize - 1),
-                   wordsize - 1, size);
+    ASSERT(width > 0);
+    ASSERT(low_bit < wordsize);
+    EmitBitfieldOp(UBFM, rd, rn, (-low_bit) & (wordsize - 1), width - 1, size);
   }
 
   // Unsigned bitfield extract.  Takes the width bits, starting at low_bit and
@@ -727,6 +675,11 @@ class Assembler : public ValueObject {
   // Zero/unsigned extend halfword->64 bit.
   void uxth(Register rd, Register rn) {
     EmitBitfieldOp(UBFM, rd, rn, 0, 15, kDoubleWord);
+  }
+
+  // Zero/unsigned extend word->64 bit.
+  void uxtw(Register rd, Register rn) {
+    EmitBitfieldOp(UBFM, rd, rn, 0, 31, kDoubleWord);
   }
 
   // Logical immediate operations.
@@ -778,6 +731,9 @@ class Assembler : public ValueObject {
   void orn(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(ORN, rd, rn, o, kDoubleWord);
   }
+  void ornw(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(ORN, rd, rn, o, kWord);
+  }
   void eor(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(EOR, rd, rn, o, kDoubleWord);
   }
@@ -815,20 +771,66 @@ class Assembler : public ValueObject {
   void asrv(Register rd, Register rn, Register rm) {
     EmitMiscDP2Source(ASRV, rd, rn, rm, kDoubleWord);
   }
-  void madd(Register rd, Register rn, Register rm, Register ra) {
-    EmitMiscDP3Source(MADD, rd, rn, rm, ra, kDoubleWord);
+  void lslvw(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(LSLV, rd, rn, rm, kWord);
   }
-  void msub(Register rd, Register rn, Register rm, Register ra) {
-    EmitMiscDP3Source(MSUB, rd, rn, rm, ra, kDoubleWord);
+  void lsrvw(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(LSRV, rd, rn, rm, kWord);
   }
-  void smulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(SMULH, rd, rn, rm, R0, kDoubleWord);
+  void asrvw(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(ASRV, rd, rn, rm, kWord);
   }
-  void umulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(UMULH, rd, rn, rm, R0, kDoubleWord);
+  void madd(Register rd,
+            Register rn,
+            Register rm,
+            Register ra,
+            OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(MADD, rd, rn, rm, ra, sz);
   }
-  void umaddl(Register rd, Register rn, Register rm, Register ra) {
-    EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, kDoubleWord);
+  void msub(Register rd,
+            Register rn,
+            Register rm,
+            Register ra,
+            OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(MSUB, rd, rn, rm, ra, sz);
+  }
+  void smulh(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(SMULH, rd, rn, rm, R31, sz);
+  }
+  void umulh(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(UMULH, rd, rn, rm, R31, sz);
+  }
+  void umaddl(Register rd,
+              Register rn,
+              Register rm,
+              Register ra,
+              OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, sz);
+  }
+  void umull(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(UMADDL, rd, rn, rm, ZR, sz);
+  }
+  void smaddl(Register rd,
+              Register rn,
+              Register rm,
+              Register ra,
+              OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(SMADDL, rd, rn, rm, ra, sz);
+  }
+  void smull(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(SMADDL, rd, rn, rm, ZR, sz);
   }
 
   // Move wide immediate.
@@ -944,6 +946,7 @@ class Assembler : public ValueObject {
   // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
   void cmp(Register rn, Operand o) { subs(ZR, rn, o); }
+  void cmpw(Register rn, Operand o) { subsw(ZR, rn, o); }
   // rn cmp -o.
   void cmn(Register rn, Operand o) { adds(ZR, rn, o); }
 
@@ -1240,9 +1243,16 @@ class Assembler : public ValueObject {
   }
   void vmov(VRegister vd, VRegister vn) { vorr(vd, vn, vn); }
   void mvn(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
+  void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
   void neg(Register rd, Register rm) { sub(rd, ZR, Operand(rm)); }
   void negs(Register rd, Register rm) { subs(rd, ZR, Operand(rm)); }
-  void mul(Register rd, Register rn, Register rm) { madd(rd, rn, rm, ZR); }
+  void negsw(Register rd, Register rm) { subsw(rd, ZR, Operand(rm)); }
+  void mul(Register rd, Register rn, Register rm) {
+    madd(rd, rn, rm, ZR, kDoubleWord);
+  }
+  void mulw(Register rd, Register rn, Register rm) {
+    madd(rd, rn, rm, ZR, kWord);
+  }
   void Push(Register reg) {
     ASSERT(reg != PP);  // Only push PP with TagAndPushPP().
     str(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
@@ -1298,12 +1308,26 @@ class Assembler : public ValueObject {
   void tsti(Register rn, const Immediate& imm) { andis(ZR, rn, imm); }
 
   // We use an alias of add, where ARM recommends an alias of ubfm.
-  void LslImmediate(Register rd, Register rn, int shift) {
-    add(rd, ZR, Operand(rn, LSL, shift));
+  void LslImmediate(Register rd,
+                    Register rn,
+                    int shift,
+                    OperandSize sz = kDoubleWord) {
+    if (sz == kDoubleWord) {
+      add(rd, ZR, Operand(rn, LSL, shift));
+    } else {
+      addw(rd, ZR, Operand(rn, LSL, shift));
+    }
   }
   // We use an alias of add, where ARM recommends an alias of ubfm.
-  void LsrImmediate(Register rd, Register rn, int shift) {
-    add(rd, ZR, Operand(rn, LSR, shift));
+  void LsrImmediate(Register rd,
+                    Register rn,
+                    int shift,
+                    OperandSize sz = kDoubleWord) {
+    if (sz == kDoubleWord) {
+      add(rd, ZR, Operand(rn, LSR, shift));
+    } else {
+      addw(rd, ZR, Operand(rn, LSR, shift));
+    }
   }
   // We use an alias of add, where ARM recommends an alias of sbfm.
   void AsrImmediate(Register rd, Register rn, int shift) {
@@ -1328,14 +1352,17 @@ class Assembler : public ValueObject {
 
   void Branch(const StubEntry& stub_entry,
               Register pp,
-              Patchability patchable = kNotPatchable);
+              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
   void BranchPatchable(const StubEntry& stub_entry);
 
-  void BranchLink(const StubEntry& stub_entry,
-                  Patchability patchable = kNotPatchable);
+  void BranchLink(
+      const StubEntry& stub_entry,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
   void BranchLinkToRuntime();
+
+  void CallNullErrorShared(bool save_fpu_registers);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -1351,8 +1378,14 @@ class Assembler : public ValueObject {
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
   void AddImmediate(Register dest, Register rn, int64_t imm);
-  void AddImmediateSetFlags(Register dest, Register rn, int64_t imm);
-  void SubImmediateSetFlags(Register dest, Register rn, int64_t imm);
+  void AddImmediateSetFlags(Register dest,
+                            Register rn,
+                            int64_t imm,
+                            OperandSize sz = kDoubleWord);
+  void SubImmediateSetFlags(Register dest,
+                            Register rn,
+                            int64_t imm,
+                            OperandSize sz = kDoubleWord);
   void AndImmediate(Register rd, Register rn, int64_t imm);
   void OrImmediate(Register rd, Register rn, int64_t imm);
   void XorImmediate(Register rd, Register rn, int64_t imm);
@@ -1397,15 +1430,32 @@ class Assembler : public ValueObject {
     StoreQToOffset(src, base, offset - kHeapObjectTag);
   }
 
-  // Storing into an object.
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
+  // Store into a heap object and apply the generational and incremental write
+  // barriers. All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variants.
+  // Preserves object and value registers.
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       bool can_value_be_smi = true);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       bool lr_reserved = false);
+  void StoreIntoArray(Register object,
+                      Register slot,
+                      Register value,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      bool lr_reserved = false);
+
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             bool can_value_be_smi = true);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             bool lr_reserved = false);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
@@ -1427,17 +1477,24 @@ class Assembler : public ValueObject {
 
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadNativeEntry(Register dst, const ExternalLabel* label);
+  void LoadNativeEntry(Register dst,
+                       const ExternalLabel* label,
+                       ObjectPool::Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
-  void LoadDecodableImmediate(Register reg, int64_t imm);
-  void LoadImmediateFixed(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm);
   void LoadDImmediate(VRegister reg, double immd);
+
+  // Load word from pool from the given offset using encoding that
+  // InstructionPattern::DecodeLoadWordFromPool can decode.
+  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+  void LoadDoubleWordFromPoolOffset(Register lower,
+                                    Register upper,
+                                    uint32_t offset);
 
   void PushObject(const Object& object) {
     LoadObject(TMP, object);
@@ -1446,8 +1503,8 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
+  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object);
   void CompareClassId(Register object,
                       intptr_t class_id,
                       Register scratch = kNoRegister);
@@ -1459,6 +1516,7 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
+  void Ret() { ret(LR); }
 
   void CheckCodePointer();
   void RestoreCodePointer();
@@ -1492,10 +1550,14 @@ class Assembler : public ValueObject {
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
   // Only the tags field of the object is initialized.
+  // Result:
+  //   * [instance_reg] will contain allocated new-space object
+  //   * [top_reg] will contain Thread::top_offset()
   void TryAllocate(const Class& cls,
                    Label* failure,
                    Register instance_reg,
-                   Register temp_reg);
+                   Register top_reg,
+                   bool tag_result = true);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
@@ -1504,6 +1566,19 @@ class Assembler : public ValueObject {
                         Register end_address,
                         Register temp1,
                         Register temp2);
+
+  // This emits an PC-relative call of the form "bl <offset>".  The offset
+  // is not yet known and needs therefore relocation to the right place before
+  // the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
 
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
@@ -1536,33 +1611,22 @@ class Assembler : public ValueObject {
                       Register tmp,
                       OperandSize sz);
 
+  static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
+    const int32_t imm32 = static_cast<int32_t>(imm);
+    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
+    return (instr & ~kImm26Mask) | off;
+  }
+
+  static int64_t DecodeImm26BranchOffset(int32_t instr) {
+    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
+    return static_cast<int64_t>(off);
+  }
+
  private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
-  int32_t prologue_offset_;
-  bool has_single_entry_point_;
   bool use_far_branches_;
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
 
-  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
   void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
 
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
@@ -1762,26 +1826,17 @@ class Assembler : public ValueObject {
     return (instr & ~B24) | (cond == EQ ? B24 : 0);  // tbz : tbnz
   }
 
-  int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
-    const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
-    return (instr & ~kImm26Mask) | off;
-  }
-
-  int64_t DecodeImm26BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
-    return static_cast<int64_t>(off);
-  }
-
   void EmitCompareAndBranchOp(CompareAndBranchOp op,
                               Register rt,
                               int64_t imm,
                               OperandSize sz) {
+    // EncodeImm19BranchOffset will longjump out if the offset does not fit in
+    // 19 bits.
+    const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding = op | size | Arm64Encode::Rt(rt) | encoded_offset;
     Emit(encoding);
   }
@@ -1790,14 +1845,18 @@ class Assembler : public ValueObject {
                            Register rt,
                            intptr_t bit_number,
                            int64_t imm) {
+    // EncodeImm14BranchOffset will longjump out if the offset does not fit in
+    // 14 bits.
+    const int32_t encoded_offset = EncodeImm14BranchOffset(imm, 0);
     ASSERT((bit_number >= 0) && (bit_number <= 63));
     ASSERT(Utils::IsInt(16, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
-    const int32_t encoded_offset = EncodeImm14BranchOffset(imm, 0);
-    const int32_t encoding = op | (static_cast<int32_t>(bit_number) << 19) |
-                             (static_cast<int32_t>(crt) << kRtShift) |
-                             encoded_offset;
+    int32_t bit_number_low = bit_number & 0x1f;
+    int32_t bit_number_hi = (bit_number & 0x20) >> 5;
+    const int32_t encoding =
+        op | (bit_number_low << 19) | (bit_number_hi << 31) |
+        (static_cast<int32_t>(crt) << kRtShift) | encoded_offset;
     Emit(encoding);
   }
 
@@ -1833,6 +1892,9 @@ class Assembler : public ValueObject {
         } else {
           EmitConditionalBranchOp(op, InvertCondition(cond),
                                   2 * Instr::kInstrSize);
+          // Make a new dest that takes the new position into account after the
+          // inverted test.
+          const int64_t dest = label->Position() - buffer_.Size();
           b(dest);
         }
       } else {
@@ -1863,6 +1925,9 @@ class Assembler : public ValueObject {
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
         EmitCompareAndBranchOp(op == CBZ ? CBNZ : CBZ, rt,
                                2 * Instr::kInstrSize, sz);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
         b(dest);
       } else {
         EmitCompareAndBranchOp(op, rt, dest, sz);
@@ -1889,12 +1954,15 @@ class Assembler : public ValueObject {
       if (use_far_branches() && !CanEncodeImm14BranchOffset(dest)) {
         EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
                             2 * Instr::kInstrSize);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
         b(dest);
       } else {
         EmitTestAndBranchOp(op, rt, bit_number, dest);
       }
     } else {
-      const int64_t position = buffer_.Size();
+      int64_t position = buffer_.Size();
       if (use_far_branches()) {
         EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
                             2 * Instr::kInstrSize);
@@ -1960,7 +2028,8 @@ class Assembler : public ValueObject {
     ASSERT((rt != kNoRegister) && (rt != ZR));
 
     const int32_t encoding = op | size | Arm64Encode::Rs(rs) |
-                             Arm64Encode::Rn(rn) | Arm64Encode::Rt(rt);
+                             Arm64Encode::Rt2(R31) | Arm64Encode::Rn(rn) |
+                             Arm64Encode::Rt(rt);
 
     Emit(encoding);
   }
@@ -2148,12 +2217,21 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  enum BarrierFilterMode {
+    // Filter falls through into the barrier update code. Target label
+    // is a "after-store" label.
+    kJumpToNoUpdate,
 
-  // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+    // Filter falls through to the "after-store" code. Target label
+    // is barrier update code label.
+    kJumpToBarrier,
+  };
+
+  void StoreIntoObjectFilter(Register object,
+                             Register value,
+                             Label* label,
+                             CanBeSmi can_be_smi,
+                             BarrierFilterMode barrier_filter_mode);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

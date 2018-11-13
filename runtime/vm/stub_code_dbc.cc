@@ -10,7 +10,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"
@@ -27,7 +27,6 @@ DEFINE_FLAG(bool,
             use_slow_path,
             false,
             "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, trace_optimized_ic_calls);
 
 void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Compile();
@@ -83,11 +82,49 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Trap();
 }
 
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateTopTypeTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateTypeRefTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateLazySpecializeTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ Trap();
 }
 
 void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
+  __ Trap();
+}
+
+void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
+  __ Trap();
+}
+
+void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ Trap();
 }
 

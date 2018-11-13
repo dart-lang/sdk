@@ -25,7 +25,7 @@ void main(List<String> args) {
 }
 
 Future makeServer() {
-  return HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  return HttpServer.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((request) {
       request.pipe(request.response);
     });

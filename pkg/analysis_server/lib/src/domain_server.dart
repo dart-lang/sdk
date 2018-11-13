@@ -28,8 +28,7 @@ class ServerDomainHandler implements RequestHandler {
    * Return the version number of the analysis server.
    */
   Response getVersion(Request request) {
-    return new ServerGetVersionResult(AnalysisServer.VERSION)
-        .toResponse(request.id);
+    return new ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
   }
 
   @override
@@ -66,7 +65,7 @@ class ServerDomainHandler implements RequestHandler {
   /**
    * Cleanly shutdown the analysis server.
    */
-  Future<Null> shutdown(Request request) async {
+  Future<void> shutdown(Request request) async {
     await server.shutdown();
     Response response = new ServerShutdownResult().toResponse(request.id);
     server.sendResponse(response);

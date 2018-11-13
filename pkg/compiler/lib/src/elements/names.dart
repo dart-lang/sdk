@@ -4,7 +4,8 @@
 
 library dart2js.elements.names;
 
-import 'package:front_end/src/fasta/scanner/characters.dart' show $_;
+import 'package:front_end/src/api_unstable/dart2js.dart' show $_;
+
 import 'entities.dart' show LibraryEntity;
 
 /// A [Name] represents the abstraction of a Dart identifier which takes privacy

@@ -23,7 +23,7 @@ Iterable id(Iterable x) => x;
 
 main() {
   // Test functionality.
-  for (var iterable in [
+  for (dynamic iterable in [
     const [1, 2, 3],
     [1, 2, 3],
     new List(3)
@@ -36,10 +36,10 @@ main() {
     new List.generate(3, (x) => x + 1),
     [0, 1, 2, 3].where((x) => x > 0),
     [0, 1, 2].map((x) => x + 1),
-    [ //# 01: ok
-      [1, 2], //# 01: ok
-      [3]  //# 01: ok
-    ].expand(id), //# 01: ok
+    [
+      [1, 2],
+      [3]
+    ].expand(id),
     [3, 2, 1].reversed,
     [0, 1, 2, 3].skip(1),
     [1, 2, 3, 4].take(3),
@@ -75,12 +75,13 @@ main() {
     new MyList([1, 2, 3]),
   ]) {
     int callCount = 0;
-    var result = iterable.reduce((x, y) { //# 01: ok
-      callCount++; //# 01: ok
-      return x + y; //# 01: ok
-    }); //# 01: ok
-    Expect.equals(6, result, "${iterable.runtimeType}"); //# 01: ok
-    Expect.equals(2, callCount); //# 01: ok
+    var result = iterable.reduce((x, y) {
+      callCount++;
+      // Return type of reduce() callback should match element type.
+      return (x + y) as int;
+    });
+    Expect.equals(6, result, "${iterable.runtimeType}");
+    Expect.equals(2, callCount);
   }
 
   // Empty iterables not allowed.
@@ -94,7 +95,7 @@ main() {
     new List.generate(0, (x) => x + 1),
     [0, 1, 2, 3].where((x) => false),
     [].map((x) => x + 1),
-    [[], []].expand(id), //# 01: ok
+    [[], []].expand(id),
     [].reversed,
     [0, 1, 2, 3].skip(4),
     [1, 2, 3, 4].take(0),
@@ -110,12 +111,12 @@ main() {
     "".runes,
     new MyList([]),
   ]) {
-    Expect.throwsStateError(
-        () => iterable.reduce((x, y) => throw "Unreachable"));
+    Expect
+        .throwsStateError(() => iterable.reduce((x, y) => throw "Unreachable"));
   }
 
   // Singleton iterables not calling reduce function.
-  for (var iterable in [
+  for (dynamic iterable in [
     const [1],
     [1],
     new List(1)..[0] = 1,
@@ -125,10 +126,10 @@ main() {
     new List.generate(1, (x) => x + 1),
     [0, 1, 2, 3].where((x) => x == 1),
     [0].map((x) => x + 1),
-    [ //# 01: ok
-      [], //# 01: ok
-      [1] //# 01: ok
-    ].expand(id), //# 01: ok
+    [
+      [],
+      [1]
+    ].expand(id),
     [1].reversed,
     [0, 1].skip(1),
     [1, 2, 3, 4].take(1),
@@ -144,7 +145,7 @@ main() {
     "\x01".runes,
     new MyList([1]),
   ]) {
-    Expect.equals(1, iterable.reduce((x, y) => throw "Unreachable")); //# 01: ok
+    Expect.equals(1, iterable.reduce((x, y) => throw "Unreachable"));
   }
 
   // Concurrent modifications not allowed.
@@ -153,13 +154,18 @@ main() {
     Expect.throws(() {
       iterable.reduce((x, y) {
         modify(base);
-        return x + y;
+        // Return type of reduce() callback should match element type.
+        return (x + y) as int;
       });
     }, (e) => e is ConcurrentModificationError);
   }
 
   void add4(collection) {
     collection.add(4);
+  }
+
+  void addListOf4(collection) {
+    collection.add([4]);
   }
 
   void put4(map) {
@@ -172,12 +178,12 @@ main() {
   testModification(new SplayTreeSet()..add(1)..add(2)..add(3), add4, id);
   testModification(new MyList([1, 2, 3]), add4, id);
 
-  testModification([0, 1, 2, 3], add4, (x) => x.where((x) => x > 0));
+  testModification([0, 1, 2, 3], add4, (x) => x.where((int x) => x > 0));
   testModification([0, 1, 2], add4, (x) => x.map((x) => x + 1));
   testModification([
     [1, 2],
     [3]
-  ], add4, (x) => x.expand((x) => x));
+  ], addListOf4, (x) => x.expand((List<int> x) => x));
   testModification([3, 2, 1], add4, (x) => x.reversed);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.keys);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.values);

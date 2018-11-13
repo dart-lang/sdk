@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.generated.checked_mode_compile_time_error_code_test;
 
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -20,8 +18,20 @@ main() {
 @reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
   @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      new AnalysisOptionsImpl()..strongMode = true;
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+
+  test_assertion_throws() async {
+    Source source = addSource(r'''
+class A {
+  const A(int x, int y) : assert(x < y);
+}
+var v = const A(3, 2);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    verify([source]);
+  }
 
   test_fieldFormalParameterAssignableToField_extends() async {
     // According to checked-mode type checking rules, a value of type B is
@@ -407,10 +417,13 @@ const int y = 1;
 var v = const C<String>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-      StaticTypeWarningCode.INVALID_ASSIGNMENT
-    ]);
+    assertErrors(
+      source,
+      [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT
+      ],
+    );
     verify([source]);
   }
 
@@ -439,7 +452,10 @@ const int y = 1;
 var v = const C<int>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    assertErrors(
+      source,
+      [StaticTypeWarningCode.INVALID_ASSIGNMENT],
+    );
     verify([source]);
   }
 
@@ -479,6 +495,17 @@ var v = const A(null);''');
     verify([source]);
   }
 
+  test_listLiteral_inferredElementType() async {
+    Source source = addSource('''
+const Object x = [1];
+const List<String> y = x;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
   test_mapKeyTypeNotAssignable() async {
     Source source = addSource("var v = const <String, int > {1 : 2};");
     await computeAnalysisResult(source);
@@ -486,6 +513,28 @@ var v = const A(null);''');
       CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE
     ]);
+    verify([source]);
+  }
+
+  test_mapLiteral_inferredKeyType() async {
+    Source source = addSource('''
+const Object x = {1: 1};
+const Map<String, dynamic> y = x;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  test_mapLiteral_inferredValueType() async {
+    Source source = addSource('''
+const Object x = {1: 1};
+const Map<dynamic, String> y = x;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
     verify([source]);
   }
 
@@ -599,7 +648,7 @@ class C {
 class D extends C {
   const D(d) : super(d);
 }
-const f = const D(0);
+const f = const D('0.0');
 ''');
     await computeAnalysisResult(source);
     assertErrors(

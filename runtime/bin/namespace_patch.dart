@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@pragma("vm:entry-point")
 class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
   _NamespaceImpl._();
 
@@ -33,6 +34,7 @@ class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
 @patch
 class _Namespace {
   @patch
+  @pragma("vm:entry-point")
   static void _setupNamespace(var namespace) {
     _NamespaceImpl._setupNamespace(namespace);
   }

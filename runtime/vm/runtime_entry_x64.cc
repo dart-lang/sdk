@@ -34,7 +34,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
     __ movq(RBX, Address(THR, Thread::OffsetFromThread(this)));
-    __ movq(R10, Immediate(argument_count));
+    __ LoadImmediate(R10, Immediate(argument_count));
     __ CallToRuntime();
   }
 }

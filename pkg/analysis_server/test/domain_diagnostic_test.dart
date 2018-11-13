@@ -26,11 +26,10 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   }
 
   test_getDiagnostics() async {
-    String file = '/project/bin/test.dart';
-    resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
-    resourceProvider.newFile(file, 'main() {}');
+    newFile('/project/pubspec.yaml', content: 'name: project');
+    newFile('/project/bin/test.dart', content: 'main() {}');
 
-    server.setAnalysisRoots('0', ['/project/'], [], {});
+    server.setAnalysisRoots('0', [convertPath('/project')], [], {});
 
     await server.onAnalysisComplete;
 
@@ -41,7 +40,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     expect(result.contexts, hasLength(1));
 
     ContextData context = result.contexts[0];
-    expect(context.name, '/project');
+    expect(context.name, convertPath('/project'));
     expect(context.explicitFileCount, 1); /* test.dart */
 
     expect(context.implicitFileCount, 4);

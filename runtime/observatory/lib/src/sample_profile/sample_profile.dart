@@ -134,7 +134,8 @@ class FunctionCallTreeNodeCode {
   FunctionCallTreeNodeCode(this.code, this.ticks);
 }
 
-class FunctionCallTreeNode extends CallTreeNode {
+class FunctionCallTreeNode extends CallTreeNode<FunctionCallTreeNode>
+    implements M.FunctionCallTreeNode {
   final ProfileFunction profileFunction;
   final codes = new List<FunctionCallTreeNodeCode>();
   int _totalCodeTicks = 0;
@@ -210,7 +211,7 @@ class FunctionCallTreeNode extends CallTreeNode {
 typedef bool CallTreeNodeFilter(CallTreeNode node);
 
 /// Build a filter version of a FunctionCallTree.
-abstract class _FilteredCallTreeBuilder {
+abstract class _FilteredCallTreeBuilder<NodeT extends CallTreeNode> {
   /// The filter.
   final CallTreeNodeFilter filter;
 
@@ -235,14 +236,14 @@ abstract class _FilteredCallTreeBuilder {
 
   CallTreeNode _findInChildren(CallTreeNode current, CallTreeNode needle) {
     for (var child in current.children) {
-      if (child.profileData == needle.profileData) {
+      if ((child as CallTreeNode).profileData == needle.profileData) {
         return child;
       }
     }
     return null;
   }
 
-  CallTreeNode _copyNode(CallTreeNode node);
+  NodeT _copyNode(NodeT node);
 
   /// Add all nodes in [_currentPath].
   FunctionCallTreeNode _addCurrentPath() {
@@ -320,7 +321,8 @@ abstract class _FilteredCallTreeBuilder {
   }
 }
 
-class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
+class _FilteredFunctionCallTreeBuilder
+    extends _FilteredCallTreeBuilder<FunctionCallTreeNode> {
   _FilteredFunctionCallTreeBuilder(
       CallTreeNodeFilter filter, FunctionCallTree tree)
       : super(
@@ -340,7 +342,8 @@ class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
   }
 }
 
-class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
+class _FilteredCodeCallTreeBuilder
+    extends _FilteredCallTreeBuilder<CodeCallTreeNode> {
   _FilteredCodeCallTreeBuilder(CallTreeNodeFilter filter, CodeCallTree tree)
       : super(
             filter,
@@ -359,7 +362,8 @@ class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
   }
 }
 
-class FunctionCallTree extends CallTree implements M.FunctionCallTree {
+class FunctionCallTree extends CallTree<FunctionCallTreeNode>
+    implements M.FunctionCallTree {
   FunctionCallTree(bool inclusive, FunctionCallTreeNode root)
       : super(inclusive, root) {
     if ((root.inclusiveNativeAllocations != null) &&
@@ -858,7 +862,7 @@ class SampleProfile extends M.SampleProfile {
 
         sampleCount = profile['sampleCount'];
         samplePeriod = profile['samplePeriod'];
-        sampleRate = (Duration.MICROSECONDS_PER_SECOND / samplePeriod);
+        sampleRate = (Duration.microsecondsPerSecond / samplePeriod);
         stackDepth = profile['stackDepth'];
         timeSpan = profile['timeSpan'];
 
@@ -885,13 +889,13 @@ class SampleProfile extends M.SampleProfile {
         }
 
         tries['exclusiveCodeTrie'] =
-            new Uint32List.fromList(profile['exclusiveCodeTrie']);
+            new Uint32List.fromList(profile['exclusiveCodeTrie'].cast<int>());
         tries['inclusiveCodeTrie'] =
-            new Uint32List.fromList(profile['inclusiveCodeTrie']);
-        tries['exclusiveFunctionTrie'] =
-            new Uint32List.fromList(profile['exclusiveFunctionTrie']);
-        tries['inclusiveFunctionTrie'] =
-            new Uint32List.fromList(profile['inclusiveFunctionTrie']);
+            new Uint32List.fromList(profile['inclusiveCodeTrie'].cast<int>());
+        tries['exclusiveFunctionTrie'] = new Uint32List.fromList(
+            profile['exclusiveFunctionTrie'].cast<int>());
+        tries['inclusiveFunctionTrie'] = new Uint32List.fromList(
+            profile['inclusiveFunctionTrie'].cast<int>());
       } finally {
         progress.close();
       }
@@ -1080,10 +1084,10 @@ class SampleProfile extends M.SampleProfile {
   }
 
   int approximateMillisecondsForCount(count) {
-    return (count * samplePeriod) ~/ Duration.MICROSECONDS_PER_MILLISECOND;
+    return (count * samplePeriod) ~/ Duration.microsecondsPerMillisecond;
   }
 
   double approximateSecondsForCount(count) {
-    return (count * samplePeriod) / Duration.MICROSECONDS_PER_SECOND;
+    return (count * samplePeriod) / Duration.microsecondsPerSecond;
   }
 }

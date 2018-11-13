@@ -7,11 +7,11 @@
 
 import "package:expect/expect.dart";
 
-typedef Fun(a, b);
+typedef Fun(Null a, Null b);
 
-typedef int IntFun(a, b);
+typedef int IntFun(Null a, Null b);
 
-typedef bool BoolFun(a, b);
+typedef bool BoolFun(Null a, Null b);
 
 typedef int CompareObj(Object a, Object b);
 

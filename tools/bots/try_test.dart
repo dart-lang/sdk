@@ -107,7 +107,7 @@ String getStepInput(String information) {
 int getIntegerStepInput(String information) {
   print("$information:");
   var input = stdin.readLineSync();
-  var value = int.parse(input, onError: (source) => null);
+  var value = int.tryParse(input);
   if (value == null) {
     print("Input could not be parsed as an integer.");
     return getIntegerStepInput(information);

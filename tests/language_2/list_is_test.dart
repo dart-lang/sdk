@@ -9,9 +9,11 @@ class A<T> {
 }
 
 main() {
-  check(new List(), true, true, true);
+  check(new List(), true, false, false);
   check(new List<int>(), true, true, false);
-  check(new A().bar(), true, true, true);
+  check(new List<double>(), true, false, true);
+  check(new A().bar(), true, false, false);
+  check(new A<int>().bar(), true, true, false);
   check(new A<double>().bar(), true, false, true);
   check(new Object(), false, false, false);
 }

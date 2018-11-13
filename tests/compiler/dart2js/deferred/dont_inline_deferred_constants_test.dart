@@ -7,19 +7,16 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
-import '../output_collector.dart';
+import '../helpers/memory_compiler.dart';
+import '../helpers/output_collector.dart';
 
 void main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     OutputCollector collector = new OutputCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        outputProvider: collector,
-        options: useKernel ? [Flags.useKernel] : []);
+        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
     var closedWorld = compiler.backendClosedWorldForTesting;
     var elementEnvironment = closedWorld.elementEnvironment;
@@ -28,20 +25,19 @@ void main() {
       return elementEnvironment.lookupLibrary(Uri.parse(name));
     }
 
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+    var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
 
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var foo1 = elementEnvironment.lookupLibraryMember(lib1, "foo");
-    var ou_lib1 = outputUnitForEntity(foo1);
+    var ou_lib1 = outputUnitForMember(foo1);
 
     dynamic lib2 = lookupLibrary("memory:lib2.dart");
     var foo2 = elementEnvironment.lookupLibraryMember(lib2, "foo");
-    var ou_lib2 = outputUnitForEntity(foo2);
+    var ou_lib2 = outputUnitForMember(foo2);
 
     dynamic mainApp = elementEnvironment.mainLibrary;
     var fooMain = elementEnvironment.lookupLibraryMember(mainApp, "foo");
-    var ou_lib1_lib2 = outputUnitForEntity(fooMain);
+    var ou_lib1_lib2 = outputUnitForMember(fooMain);
 
     String mainOutput = collector.getOutput("", OutputType.js);
     String lib1Output =
@@ -88,16 +84,13 @@ void main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
-    // TODO(sigmund): Handle this for kernel.
-    //print('--test from kernel------------------------------------------------');
-    //await runTest(useKernel: true);
+    print('--test from kernel------------------------------------------------');
+    await runTest();
   });
 }
 
 // Make sure that deferred constants are not inlined into the main hunk.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "dart:async";
 

@@ -275,77 +275,10 @@ class FieldAddress : public Address {
   }
 };
 
-class Label : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
-  Label() : position_(0), unresolved_(0) {
-#ifdef DEBUG
-    for (int i = 0; i < kMaxUnresolvedBranches; i++) {
-      unresolved_near_positions_[i] = -1;
-    }
-#endif  // DEBUG
-  }
-
-  ~Label() {
-    // Assert if label is being destroyed with unresolved branches pending.
-    ASSERT(!IsLinked());
-    ASSERT(!HasNear());
-  }
-
-  // Returns the position for bound labels. Cannot be used for unused or linked
-  // labels.
-  intptr_t Position() const {
-    ASSERT(IsBound());
-    return -position_ - kWordSize;
-  }
-
-  intptr_t LinkPosition() const {
-    ASSERT(IsLinked());
-    return position_ - kWordSize;
-  }
-
-  intptr_t NearPosition() {
-    ASSERT(HasNear());
-    return unresolved_near_positions_[--unresolved_];
-  }
-
-  bool IsBound() const { return position_ < 0; }
-  bool IsUnused() const { return (position_ == 0) && (unresolved_ == 0); }
-  bool IsLinked() const { return position_ > 0; }
-  bool HasNear() const { return unresolved_ != 0; }
-
- private:
-  void BindTo(intptr_t position) {
-    ASSERT(!IsBound());
-    ASSERT(!HasNear());
-    position_ = -position - kWordSize;
-    ASSERT(IsBound());
-  }
-
-  void LinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = position + kWordSize;
-    ASSERT(IsLinked());
-  }
-
-  void NearLinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    ASSERT(unresolved_ < kMaxUnresolvedBranches);
-    unresolved_near_positions_[unresolved_++] = position;
-  }
-
-  static const int kMaxUnresolvedBranches = 20;
-
-  intptr_t position_;
-  intptr_t unresolved_;
-  intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
-
-  friend class Assembler;
-  DISALLOW_COPY_AND_ASSIGN(Label);
-};
-
-class Assembler : public ValueObject {
- public:
-  explicit Assembler(bool use_far_branches = false);
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false);
 
   ~Assembler() {}
 
@@ -359,8 +292,6 @@ class Assembler : public ValueObject {
   void call(const Address& address) { EmitUnaryL(address, 0xFF, 2); }
   void call(Label* label);
   void call(const ExternalLabel* label);
-
-  static const intptr_t kCallExternalLabelSize = 15;
 
   void pushq(Register reg);
   void pushq(const Address& address) { EmitUnaryL(address, 0xFF, 6); }
@@ -552,6 +483,9 @@ class Assembler : public ValueObject {
   void cvttsd2siq(Register dst, XmmRegister src) {
     EmitQ(dst, src, 0x2C, 0x0F, 0xF2);
   }
+  void cvttsd2sil(Register dst, XmmRegister src) {
+    EmitL(dst, src, 0x2C, 0x0F, 0xF2);
+  }
   void movmskpd(Register dst, XmmRegister src) {
     EmitL(dst, src, 0x50, 0x0F, 0x66);
   }
@@ -582,9 +516,13 @@ class Assembler : public ValueObject {
 
   void CompareImmediate(Register reg, const Immediate& imm);
   void CompareImmediate(const Address& address, const Immediate& imm);
+  void CompareImmediate(Register reg, int32_t immediate) {
+    return CompareImmediate(reg, Immediate(immediate));
+  }
 
   void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
   void testb(const Address& address, const Immediate& imm);
+  void testb(const Address& address, Register reg);
 
   void testq(Register reg, const Immediate& imm);
   void TestImmediate(Register dst, const Immediate& imm);
@@ -644,10 +582,16 @@ class Assembler : public ValueObject {
   REGULAR_UNARY(dec, 0xFF, 1)
 #undef REGULAR_UNARY
 
+  // We could use kWord, kDoubleWord, and kQuadWord here, but it is rather
+  // confusing since the same sizes mean something different on ARM.
+  enum OperandWidth { k32Bit, k64Bit };
+
   void imull(Register reg, const Immediate& imm);
 
   void imulq(Register dst, const Immediate& imm);
-  void MulImmediate(Register reg, const Immediate& imm);
+  void MulImmediate(Register reg,
+                    const Immediate& imm,
+                    OperandWidth width = k64Bit);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -707,6 +651,7 @@ class Assembler : public ValueObject {
   }
 
   // Methods for High-level operations and implemented on all architectures.
+  void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
 
@@ -718,9 +663,13 @@ class Assembler : public ValueObject {
   // Methods for adding/subtracting an immediate value that may be loaded from
   // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
-  void AddImmediate(Register reg, const Immediate& imm);
+  void AddImmediate(Register reg,
+                    const Immediate& imm,
+                    OperandWidth width = k64Bit);
   void AddImmediate(const Address& address, const Immediate& imm);
-  void SubImmediate(Register reg, const Immediate& imm);
+  void SubImmediate(Register reg,
+                    const Immediate& imm,
+                    OperandWidth width = k64Bit);
   void SubImmediate(const Address& address, const Immediate& imm);
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
@@ -736,31 +685,51 @@ class Assembler : public ValueObject {
   void LoadUniqueObject(Register dst, const Object& obj);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       Patchability patchable);
+                       ObjectPool::Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
   void JmpPatchable(const StubEntry& stub_entry, Register pp);
   void Jmp(const StubEntry& stub_entry, Register pp = PP);
   void J(Condition condition, const StubEntry& stub_entry, Register pp);
-  void CallPatchable(const StubEntry& stub_entry);
+  void CallPatchable(const StubEntry& stub_entry,
+                     Code::EntryKind entry_kind = Code::EntryKind::kNormal);
   void Call(const StubEntry& stub_entry);
   void CallToRuntime();
+
+  void CallNullErrorShared(bool save_fpu_registers);
+
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void CallWithEquivalence(const StubEntry& stub_entry,
-                           const Object& equivalence);
+  void CallWithEquivalence(
+      const StubEntry& stub_entry,
+      const Object& equivalence,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
   void StoreObject(const Address& dst, const Object& obj);
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
 
-  // Destroys value.
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
+  // Store into a heap object and apply the generational and incremental write
+  // barriers. All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variants.
+  // Preserves object and value registers.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       bool can_value_be_smi = true);
+                       CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreIntoArray(Register object,  // Object we are storing into.
+                      Register slot,    // Where we are storing into.
+                      Register value,   // Value we are storing.
+                      CanBeSmi can_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -804,6 +773,8 @@ class Assembler : public ValueObject {
   void LeaveCallRuntimeFrame();
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntimeSavingRegisters(const RuntimeEntry& entry,
+                                  intptr_t argument_count);
 
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that. Does not restore RSP after the call itself.
@@ -812,9 +783,8 @@ class Assembler : public ValueObject {
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
 
+  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
-
-  void LoadClass(Register result, Register object);
 
   void CompareClassId(Register object,
                       intptr_t class_id,
@@ -846,34 +816,10 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
+  void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
 
-  const Code::Comments& GetCodeComments() const;
-
-  // Address of code at offset.
-  uword CodeAddress(intptr_t offset) { return buffer_.Address(offset); }
-
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.
-  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
-  }
-
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
+  void CompareWithFieldValue(Register value, FieldAddress address) {
+    cmpq(value, address);
   }
 
   void RestoreCodePointer();
@@ -955,12 +901,22 @@ class Assembler : public ValueObject {
                         Register end_address,
                         Register temp);
 
+  // This emits an PC-relative call of the form "callq *[rip+<offset>]".  The
+  // offset is not yet known and needs therefore relocation to the right place
+  // before the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   // Debugging and bringup support.
   void Breakpoint() { int3(); }
-  void Stop(const char* message, bool fixed_length_encoding = false);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
@@ -989,29 +945,6 @@ class Assembler : public ValueObject {
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
  private:
-  AssemblerBuffer buffer_;
-
-  ObjectPoolWrapper object_pool_wrapper_;
-
-  intptr_t prologue_offset_;
-  bool has_single_entry_point_;
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
   bool constant_pool_allowed_;
 
   intptr_t FindImmediate(int64_t imm);
@@ -1089,12 +1022,22 @@ class Assembler : public ValueObject {
   void EmitGenericShift(bool wide, int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(bool wide, int rm, Register operand, Register shifter);
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  enum BarrierFilterMode {
+    // Filter falls through into the barrier update code. Target label
+    // is a "after-store" label.
+    kJumpToNoUpdate,
 
-  // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+    // Filter falls through to the "after-store" code. Target label
+    // is barrier update code label.
+    kJumpToBarrier,
+  };
+
+  void StoreIntoObjectFilter(Register object,
+                             Register value,
+                             Label* label,
+                             CanBeSmi can_be_smi,
+                             BarrierFilterMode barrier_filter_mode);
+
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   void MoveImmediate(const Address& dst, const Immediate& imm);
 

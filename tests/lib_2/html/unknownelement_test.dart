@@ -19,8 +19,8 @@ main() {
   test('type-check', () {
     expect(foo, isUnknownElement);
     expect(bar, isUnknownElement);
-    expect(query('#foo'), equals(foo));
-    expect(query('#bar'), equals(bar));
+    expect(querySelector('#foo'), equals(foo));
+    expect(querySelector('#bar'), equals(bar));
   });
 
   test('dispatch-fail', () {

@@ -8,6 +8,15 @@ import 'dart:async';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
+import 'package:unittest/src/expected_function.dart' show ExpectedFunction;
+
+T Function() expectAsync0<T>(T Function() callback,
+        {int count: 1, int max: 0}) =>
+    new ExpectedFunction<T>(callback, count, max).max0;
+
+T Function(A) expectAsync1<T, A>(T Function(A) callback,
+        {int count: 1, int max: 0}) =>
+    new ExpectedFunction<T>(callback, count, max).max1;
 
 main() {
   useHtmlConfiguration();
@@ -97,7 +106,7 @@ main() {
 
     // runZoned executes the function synchronously, but we don't want to
     // rely on this. We therefore wrap it into an expectAsync.
-    runZoned(expectAsync(() {
+    runZoned(expectAsync0(() {
       var zone = Zone.current;
       expect(zone, isNot(equals(Zone.root)));
 
@@ -106,13 +115,13 @@ main() {
       void handler(Event e) {
         expect(Zone.current, equals(zone));
 
-        scheduleMicrotask(expectAsync(() {
+        scheduleMicrotask(expectAsync0(() {
           expect(Zone.current, equals(zone));
           sub.cancel();
         }));
       }
 
-      sub = element.on['test'].listen(expectAsync(handler));
+      sub = element.on['test'].listen(expectAsync1(handler));
     }));
     element.dispatchEvent(new Event('test'));
   });

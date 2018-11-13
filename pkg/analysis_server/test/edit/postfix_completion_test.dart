@@ -78,7 +78,7 @@ main() {
     var params = new EditGetPostfixCompletionParams(testFile, key, offset);
     var request =
         new Request('0', "edit.isPostfixCompletionApplicable", params.toJson());
-    Response response = await waitResponse(request);
+    Response response = await waitResponse(request, throwOnError: false);
     var isApplicable =
         new EditIsPostfixCompletionApplicableResult.fromResponse(response);
     if (!isApplicable.value) {
@@ -86,7 +86,7 @@ main() {
     }
     request = new EditGetPostfixCompletionParams(testFile, key, offset)
         .toRequest('1');
-    response = await waitResponse(request);
+    response = await waitResponse(request, throwOnError: false);
     var result = new EditGetPostfixCompletionResult.fromResponse(response);
     change = result.change;
   }

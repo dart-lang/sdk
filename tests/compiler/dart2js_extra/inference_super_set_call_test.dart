@@ -10,14 +10,12 @@ import 'package:expect/expect.dart';
 abstract class A {
   set x(v) {}
   set z(v) {}
-  set y(v) {
-    return 'hi';
-  }
+  set y(v) => 'hi';
 }
 
 class S extends A {
   var _x; //      was bad: inferred as null, than [null | int]
-  var _y = ''; // was bad: inferred as String, rather than [String | int]
+  dynamic _y = ''; // was bad: inferred as String, rather than [String | int]
   var _z; //      was ok : inferred as [null | int]
 
   set x(v) {

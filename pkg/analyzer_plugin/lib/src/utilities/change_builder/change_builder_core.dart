@@ -1,8 +1,9 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/source.dart';
@@ -31,9 +32,24 @@ class ChangeBuilderImpl implements ChangeBuilder {
       <String, LinkedEditGroup>{};
 
   /**
+   * The range of the selection for the change being built, or `null` if there
+   * is no selection.
+   */
+  SourceRange _selectionRange;
+
+  /**
+   * The set of [Position]s that belong to the current [EditBuilderImpl] and
+   * should not be updated in result of inserting this builder.
+   */
+  final Set<Position> _lockedPositions = new HashSet<Position>.identity();
+
+  /**
    * Initialize a newly created change builder.
    */
   ChangeBuilderImpl();
+
+  @override
+  SourceRange get selectionRange => _selectionRange;
 
   @override
   SourceChange get sourceChange {
@@ -45,12 +61,16 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
-  Future<Null> addFileEdit(
+  Future<void> addFileEdit(
       String path, void buildFileEdit(FileEditBuilder builder)) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     FileEditBuilderImpl builder = await createFileEditBuilder(path);
     buildFileEdit(builder);
-    _change.addFileEdit(builder.fileEdit);
-    await builder.finalize();
+    if (builder.hasEdits) {
+      _change.addFileEdit(builder.fileEdit);
+      await builder.finalize();
+    }
   }
 
   /**
@@ -58,6 +78,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
    * the file with the given [path] and [timeStamp].
    */
   Future<FileEditBuilderImpl> createFileEditBuilder(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return new FileEditBuilderImpl(this, path, 0);
   }
 
@@ -79,6 +101,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     _change.selection = position;
   }
 
+  void _setSelectionRange(SourceRange range) {
+    _selectionRange = range;
+  }
+
   /**
    * Update the offsets of any positions that occur at or after the given
    * [offset] such that the positions are offset by the given [delta]. Positions
@@ -86,7 +112,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
    */
   void _updatePositions(int offset, int delta) {
     void _updatePosition(Position position) {
-      if (position.offset >= offset) {
+      if (position.offset >= offset && !_lockedPositions.contains(position)) {
         position.offset = position.offset + delta;
       }
     }
@@ -124,10 +150,10 @@ class EditBuilderImpl implements EditBuilder {
   final int length;
 
   /**
-   * The offset of the selection for the change being built, or `-1` if the
+   * The range of the selection for the change being built, or `null` if the
    * selection is not inside the change being built.
    */
-  int _selectionOffset = -1;
+  SourceRange _selectionRange;
 
   /**
    * The end-of-line marker used in the file being edited, or `null` if the
@@ -164,12 +190,15 @@ class EditBuilderImpl implements EditBuilder {
     } finally {
       int end = offset + _buffer.length;
       int length = end - start;
-      Position position = new Position(fileEditBuilder.fileEdit.file, start);
-      LinkedEditGroup group =
-          fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
-      group.addPosition(position, length);
-      for (LinkedEditSuggestion suggestion in builder.suggestions) {
-        group.addSuggestion(suggestion);
+      if (length != 0) {
+        Position position = new Position(fileEditBuilder.fileEdit.file, start);
+        fileEditBuilder.changeBuilder._lockedPositions.add(position);
+        LinkedEditGroup group =
+            fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
+        group.addPosition(position, length);
+        for (LinkedEditSuggestion suggestion in builder.suggestions) {
+          group.addSuggestion(suggestion);
+        }
       }
     }
   }
@@ -195,8 +224,16 @@ class EditBuilderImpl implements EditBuilder {
   }
 
   @override
+  void selectAll(void writer()) {
+    int rangeOffset = _buffer.length;
+    writer();
+    int rangeLength = _buffer.length - rangeOffset;
+    _selectionRange = new SourceRange(offset + rangeOffset, rangeLength);
+  }
+
+  @override
   void selectHere() {
-    _selectionOffset = offset + _buffer.length;
+    _selectionRange = new SourceRange(offset + _buffer.length, 0);
   }
 
   @override
@@ -239,6 +276,11 @@ class FileEditBuilderImpl implements FileEditBuilder {
    */
   FileEditBuilderImpl(this.changeBuilder, String path, int timeStamp)
       : fileEdit = new SourceFileEdit(path, timeStamp);
+
+  /**
+   * Return `true` if this builder has edits to be applied.
+   */
+  bool get hasEdits => fileEdit.edits.isNotEmpty;
 
   @override
   void addDeletion(SourceRange range) {
@@ -301,7 +343,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /**
    * Finalize the source file edit that is being built.
    */
-  Future<Null> finalize() async {
+  Future<void> finalize() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // Nothing to do.
   }
 
@@ -313,7 +357,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
     SourceEdit edit = builder.sourceEdit;
     fileEdit.add(edit);
     int delta = _editDelta(edit);
-    changeBuilder._updatePositions(edit.offset + math.max(0, delta), delta);
+    changeBuilder._updatePositions(
+        edit.offset + math.max<int>(0, delta), delta);
+    changeBuilder._lockedPositions.clear();
     _captureSelection(builder, edit);
   }
 
@@ -321,11 +367,12 @@ class FileEditBuilderImpl implements FileEditBuilder {
    * Capture the selection offset if one was set.
    */
   void _captureSelection(EditBuilderImpl builder, SourceEdit edit) {
-    int offset = builder._selectionOffset;
-    if (offset >= 0) {
+    SourceRange range = builder._selectionRange;
+    if (range != null) {
       Position position =
-          new Position(fileEdit.file, offset + _deltaToEdit(edit));
+          new Position(fileEdit.file, range.offset + _deltaToEdit(edit));
       changeBuilder.setSelection(position);
+      changeBuilder._setSelectionRange(range);
     }
   }
 

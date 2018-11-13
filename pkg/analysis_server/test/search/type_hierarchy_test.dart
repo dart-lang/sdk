@@ -51,7 +51,7 @@ main() {
     expect(items, isNull);
   }
 
-  test_bad_recursion() async {
+  Future<void> test_bad_recursion() async {
     addTestFile('''
 class A extends B {
 }
@@ -102,7 +102,7 @@ class B extends A<int> {
     expect(itemA.displayName, 'A<int>');
   }
 
-  test_class_double_subclass() async {
+  Future<void> test_class_double_subclass() async {
     addTestFile('''
 class AAA {} // A
 
@@ -162,28 +162,26 @@ class CCC extends BBB implements AAA {}
     ]);
   }
 
-  test_class_extends_fileAndPackageUris() async {
+  Future<void> test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
-    resourceProvider.newFile(
-        '/packages/pkgA/.packages', 'pkgA:file:///packages/pkgA/lib');
+    newFile('/packages/pkgA/.packages',
+        content: 'pkgA:file:///packages/pkgA/lib');
     // reference the package from a project
-    resourceProvider.newFile(
-        '$projectPath/.packages', 'pkgA:file:///packages/pkgA/lib');
+    newFile('$projectPath/.packages',
+        content: 'pkgA:file:///packages/pkgA/lib');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}
 ''');
     await waitForTasksFinished();
     // configure roots
-    Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath, '/packages/pkgA'], [])
-            .toRequest('0');
+    Request request = new AnalysisSetAnalysisRootsParams(
+        [projectPath, convertPath('/packages/pkgA')], []).toRequest('0');
     handleSuccessfulRequest(request);
     // test A type hierarchy
     List<TypeHierarchyItem> items = await _getTypeHierarchy('A {}');
@@ -193,7 +191,7 @@ class C extends A {}
     expect(names, contains('C'));
   }
 
-  test_class_extendsTypeA() async {
+  Future<void> test_class_extendsTypeA() async {
     addTestFile('''
 class A {}
 class B extends A {
@@ -253,7 +251,7 @@ class C extends B {
     ]);
   }
 
-  test_class_extendsTypeB() async {
+  Future<void> test_class_extendsTypeB() async {
     addTestFile('''
 class A {
 }
@@ -497,7 +495,7 @@ class T extends Object with MA, MB {
     ]);
   }
 
-  test_fromField_toMixinGetter() async {
+  Future<void> test_fromField_toMixinGetter() async {
     addTestFile('''
 abstract class A {
   var test = 1;
@@ -518,7 +516,7 @@ class B extends A with Mixin {}
     expect(memberB.location.offset, findOffset('test => 2;'));
   }
 
-  test_fromField_toMixinSetter() async {
+  Future<void> test_fromField_toMixinSetter() async {
     addTestFile('''
 abstract class A {
   var test = 1;
@@ -629,7 +627,7 @@ class B extends A {
     expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
   }
 
-  test_member_getter() async {
+  Future<void> test_member_getter() async {
     addTestFile('''
 class A {
   get test => null; // in A
@@ -662,7 +660,7 @@ class D extends C {
         findOffset('test => null; // in D'));
   }
 
-  test_member_method() async {
+  Future<void> test_member_method() async {
     addTestFile('''
 class A {
   test() {} // in A
@@ -695,8 +693,8 @@ class D extends C {
         itemD.memberElement.location.offset, findOffset('test() {} // in D'));
   }
 
-  test_member_method_private_differentLib() async {
-    addFile('$testFolder/lib.dart', r'''
+  Future<void> test_member_method_private_differentLib() async {
+    newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class A {
   void _m() {}
@@ -729,7 +727,7 @@ class D extends C {
     expect(itemD.memberElement, isNotNull);
   }
 
-  test_member_method_private_sameLib() async {
+  Future<void> test_member_method_private_sameLib() async {
     addTestFile('''
 class A {
   _m() {} // in A
@@ -753,7 +751,7 @@ class C extends B {
     expect(itemC.memberElement.location.offset, findOffset('_m() {} // in C'));
   }
 
-  test_member_ofMixin2_method() async {
+  Future<void> test_member_ofMixin2_method() async {
     addTestFile('''
 class M1 {
   void test() {} // in M1
@@ -803,7 +801,7 @@ class D4 extends Object with M2, M1 {
     }
   }
 
-  test_member_ofMixin_getter() async {
+  Future<void> test_member_ofMixin_getter() async {
     addTestFile('''
 abstract class Base {
   get test; // in Base
@@ -831,7 +829,7 @@ class Derived2 extends Base {
     expect(member2.location.offset, findOffset('test => null; // in Derived2'));
   }
 
-  test_member_ofMixin_method() async {
+  Future<void> test_member_ofMixin_method() async {
     addTestFile('''
 abstract class Base {
   void test(); // in Base
@@ -860,7 +858,7 @@ class Derived2 extends Base {
     expect(member2.location.offset, findOffset('test() {} // in Derived2'));
   }
 
-  test_member_ofMixin_setter() async {
+  Future<void> test_member_ofMixin_setter() async {
     addTestFile('''
 abstract class Base {
   set test(x); // in Base
@@ -889,7 +887,64 @@ class Derived2 extends Base {
     expect(member2.location.offset, findOffset('test(x) {} // in Derived2'));
   }
 
-  test_member_operator() async {
+  Future<void> test_member_ofSuperclassConstraint_getter() async {
+    addTestFile('''
+class A {
+  get test => 0; // in A
+}
+
+mixin M on A {
+  get test => 0; // in M
+}
+''');
+    var items = await _getTypeHierarchy('test => 0; // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test => 0; // in A');
+    _assertMember(inM, 'test => 0; // in M');
+  }
+
+  Future<void> test_member_ofSuperclassConstraint_method() async {
+    addTestFile('''
+class A {
+  void test() {} // in A
+}
+
+mixin M on A {
+  void test() {} // in M
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test() {} // in A');
+    _assertMember(inM, 'test() {} // in M');
+  }
+
+  Future<void> test_member_ofSuperclassConstraint_setter() async {
+    addTestFile('''
+class A {
+  set test(x) {} // in A
+}
+
+mixin M on A {
+  set test(x) {} // in M
+}
+''');
+    var items = await _getTypeHierarchy('test(x) {} // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test(x) {} // in A');
+    _assertMember(inM, 'test(x) {} // in M');
+  }
+
+  Future<void> test_member_operator() async {
     addTestFile('''
 class A {
   operator ==(x) => null; // in A
@@ -922,7 +977,7 @@ class D extends C {
         findOffset('==(x) => null; // in D'));
   }
 
-  test_member_setter() async {
+  Future<void> test_member_setter() async {
     addTestFile('''
 class A {
   set test(x) {} // in A
@@ -1015,15 +1070,19 @@ class D extends C {}
     ]);
   }
 
-  test_superOnly_fileDoesNotExist() async {
+  Future<void> test_superOnly_fileDoesNotExist() async {
     Request request = new SearchGetTypeHierarchyParams(
-            '/does/not/exist.dart', 0,
+            convertPath('/does/not/exist.dart'), 0,
             superOnly: true)
         .toRequest(requestId);
     Response response = await serverChannel.sendRequest(request);
     List<TypeHierarchyItem> items =
         new SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
     expect(items, isNull);
+  }
+
+  void _assertMember(TypeHierarchyItem item, String search) {
+    expect(item.memberElement.location.offset, findOffset(search));
   }
 
   Request _createGetTypeHierarchyRequest(String search, {bool superOnly}) {

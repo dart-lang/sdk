@@ -34,7 +34,7 @@ void testChunkedBufferSizeMsg() {
     });
     var client = new HttpClient();
     client.get('127.0.0.1', server.port, '/').then((request) {
-      request.headers.set(HttpHeaders.ACCEPT_ENCODING, "");
+      request.headers.set(HttpHeaders.acceptEncodingHeader, "");
       return request.close();
     }).then((response) {
       var buffer = [];

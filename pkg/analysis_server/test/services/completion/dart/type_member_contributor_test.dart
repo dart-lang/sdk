@@ -118,7 +118,7 @@ void main() {new A().f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -144,7 +144,7 @@ void main() {new A().f^}''');
         expect(arg) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -171,7 +171,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -200,7 +200,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -226,7 +226,7 @@ void main() {new A().f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         expect(arg) { }
         class B { }
         String bar() => true;
@@ -252,7 +252,7 @@ void main() {new A().f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         class B {
           expect(arg) { }
           void foo() {expect(^)}}
@@ -280,7 +280,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar(f()) => true;
         void main() {bar(^);}''');
@@ -308,7 +308,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { String bar(f()) => true; }
         void main() {new B().bar(^);}''');
     await computeSuggestions();
@@ -332,7 +332,7 @@ void main() {new A().f^}''');
         library A;
         bool hasLength(int expected) { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         String bar() => true;
         void main() {expect(foo: ^)}''');
     await computeSuggestions();
@@ -1088,7 +1088,7 @@ void main() {new A().f^}''');
     addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = provider.convertPath('/proj/completionTest.dart');
+    testFile = resourceProvider.convertPath('/proj/completionTest.dart');
     addTestSource('class C {foo(){F^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -1376,7 +1376,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
         library libAB;
-        part '/partAB.dart';
+        part 'partAB.dart';
         class A { }
         class B { }''');
     addSource('/partAB.dart', '''
@@ -1399,7 +1399,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
         library libAB;
-        part '/partAB.dart';
+        part 'partAB.dart';
         class A { }
         class B { }''');
     addSource('/partAB.dart', '''
@@ -2456,7 +2456,7 @@ void f(C<int> c) {
 
   test_libraryPrefix_with_exports() async {
     addSource('/libA.dart', 'library libA; class A { }');
-    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
+    addSource('/libB.dart', 'library libB; export "libA.dart"; class B { }');
     addTestSource('import "libB.dart" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     // Suggested by LibraryMemberContributor
@@ -3059,7 +3059,7 @@ void main() {C.^ print("something");}''');
     addSource('/testA.dart', '''
         library libA;
         import "testB.dart";
-        part "$testFile";
+        part "${resourceProvider.pathContext.basename(testFile)}";
         class A { }
         var m;''');
     addTestSource('''
@@ -3094,7 +3094,7 @@ void main() {C.^ print("something");}''');
     addTestSource('''
         library libA;
         import "testB.dart";
-        part "/testA.dart";
+        part "${convertAbsolutePathToUri('/testA.dart')}";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');
@@ -3643,6 +3643,23 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('fs3');
     assertNotSuggested('mi3');
     assertNotSuggested('ms3');
+  }
+
+  test_super_withMixin() async {
+    addTestSource('''
+mixin M {
+  void m() {}
+}
+
+class C with M {
+  void c() {
+    super.^;
+  }
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('c');
+    assertSuggestMethod('m', 'M', 'void');
   }
 
   test_SwitchStatement_c() async {

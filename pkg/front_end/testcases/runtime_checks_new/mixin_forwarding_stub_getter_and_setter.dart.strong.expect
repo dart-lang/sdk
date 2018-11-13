@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object> = (T) → T;
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get x() → (core::int) → core::int {
@@ -15,14 +15,14 @@ class B extends core::Object {
   }
 }
 abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract generic-contravariant get x() → (self::I::T) → self::I::T;
   abstract set x(generic-covariant-impl generic-covariant-interface (self::I::T) → self::I::T value) → void;
 }
 class M extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get x() → (core::int) → core::int

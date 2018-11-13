@@ -7,7 +7,7 @@
 
 class Klass {
   Klass(var v) : field_ = v {}
-  final uninitializedFinalField_; // //# 01: static type warning
+  final uninitializedFinalField_; // //# 01: compile-time error
   var field_;
 }
 

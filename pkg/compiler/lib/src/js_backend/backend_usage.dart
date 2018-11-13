@@ -4,13 +4,22 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../frontend_strategy.dart';
+import '../serialization/serialization.dart';
+import '../universe/feature.dart';
 import '../util/util.dart' show Setlet;
 import 'backend_impact.dart';
 
 abstract class BackendUsage {
+  /// Deserializes a [BackendUsage] object from [source].
+  factory BackendUsage.readFromDataSource(DataSource source) =
+      BackendUsageImpl.readFromDataSource;
+
+  /// Serializes this [BackendUsage] to [sink].
+  void writeToDataSink(DataSink sink);
+
   bool needToInitializeIsolateAffinityTag;
   bool needToInitializeDispatchProperty;
 
@@ -27,17 +36,13 @@ abstract class BackendUsage {
 
   Iterable<ClassEntity> get helperClassesUsed;
 
+  Iterable<RuntimeTypeUse> get runtimeTypeUses;
+
   /// `true` if a core-library function requires the preamble file to function.
   bool get requiresPreamble;
 
-  /// `true` if [CommonElements.invokeOnMethod] is used.
-  bool get isInvokeOnUsed;
-
   /// `true` of `Object.runtimeType` is used.
   bool get isRuntimeTypeUsed;
-
-  /// `true` if the `dart:isolate` library is in use.
-  bool get isIsolateInUse;
 
   /// `true` if `Function.apply` is used.
   bool get isFunctionApplyUsed;
@@ -75,11 +80,8 @@ abstract class BackendUsageBuilder {
 
   void registerUsedMember(MemberEntity member);
 
-  /// `true` of `Object.runtimeType` is used.
-  bool isRuntimeTypeUsed;
-
-  /// `true` if the `dart:isolate` library is in use.
-  bool isIsolateInUse;
+  /// Register use of `runtimeType`.
+  void registerRuntimeTypeUse(RuntimeTypeUse runtimeTypeUse);
 
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed;
@@ -91,7 +93,7 @@ abstract class BackendUsageBuilder {
 }
 
 class BackendUsageBuilderImpl implements BackendUsageBuilder {
-  final CommonElements _commonElements;
+  FrontendStrategy _frontendStrategy;
   // TODO(johnniwinther): Remove the need for these.
   Setlet<FunctionEntity> _globalFunctionDependencies;
   Setlet<ClassEntity> _globalClassDependencies;
@@ -102,20 +104,13 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// List of classes that the backend may use.
   final Set<ClassEntity> _helperClassesUsed = new Set<ClassEntity>();
 
+  final Set<RuntimeTypeUse> _runtimeTypeUses = new Set<RuntimeTypeUse>();
+
   bool _needToInitializeIsolateAffinityTag = false;
   bool _needToInitializeDispatchProperty = false;
 
   /// `true` if a core-library function requires the preamble file to function.
   bool requiresPreamble = false;
-
-  /// `true` if [CommonElements.invokeOnMethod] is used.
-  bool isInvokeOnUsed = false;
-
-  /// `true` of `Object.runtimeType` is used.
-  bool isRuntimeTypeUsed = false;
-
-  /// `true` if the `dart:isolate` library is in use.
-  bool isIsolateInUse = false;
 
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed = false;
@@ -126,52 +121,41 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
 
-  BackendUsageBuilderImpl(this._commonElements);
+  BackendUsageBuilderImpl(this._frontendStrategy);
+
+  KCommonElements get _commonElements => _frontendStrategy.commonElements;
 
   @override
   void registerBackendFunctionUse(FunctionEntity element) {
-    assert(_isValidBackendUse(element),
+    assert(_isValidBackendUse(element, element.library),
         failedAt(element, "Backend use of $element is not allowed."));
     _helperFunctionsUsed.add(element);
   }
 
   @override
   void registerBackendClassUse(ClassEntity element) {
-    assert(_isValidBackendUse(element),
+    assert(_isValidBackendUse(element, element.library),
         failedAt(element, "Backend use of $element is not allowed."));
     _helperClassesUsed.add(element);
   }
 
-  bool _isValidBackendUse(Entity element) {
+  bool _isValidBackendUse(Entity element, LibraryEntity library) {
     if (_isValidEntity(element)) return true;
-    if (element is Element) {
-      assert(element.isDeclaration,
-          failedAt(element, "Backend use $element must be the declaration."));
-      if (element.implementationLibrary.isPatch ||
-          // Needed to detect deserialized injected elements, that is
-          // element declared in patch files.
-          (element.library.isPlatformLibrary &&
-              element.sourcePosition.uri.path
-                  .contains('_internal/js_runtime/lib/')) ||
-          element.library == _commonElements.jsHelperLibrary ||
-          element.library == _commonElements.interceptorsLibrary ||
-          element.library == _commonElements.isolateHelperLibrary) {
-        // TODO(johnniwinther): We should be more precise about these.
-        return true;
-      } else {
-        return false;
-      }
+    SourceSpan span = _frontendStrategy.spanFromSpannable(element, element);
+    if (library.canonicalUri.scheme == 'dart' &&
+        span.uri.path.contains('_internal/js_runtime/lib/')) {
+      // TODO(johnniwinther): We should be more precise about these.
+      return true;
+    } else {
+      return false;
     }
-    // TODO(redemption): Support remaining checks on [Entity]s.
-    return true;
   }
 
   bool _isValidEntity(Entity element) {
     if (element is ConstructorEntity &&
         (element == _commonElements.streamIteratorConstructor ||
             _commonElements.isSymbolConstructor(element) ||
-            _commonElements.isSymbolValidatedConstructor(element) ||
-            element == _commonElements.syncCompleterConstructor)) {
+            _commonElements.isSymbolValidatedConstructor(element))) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
     } else if (element == _commonElements.symbolImplementationClass ||
@@ -183,10 +167,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         element == _commonElements.functionClass ||
         element == _commonElements.stringClass) {
       // TODO(johnniwinther): Avoid these.
-      return true;
-    } else if (element == _commonElements.genericNoSuchMethod ||
-        element == _commonElements.unresolvedConstructorError ||
-        element == _commonElements.malformedTypeError) {
       return true;
     }
     return false;
@@ -245,8 +225,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
       _needToInitializeIsolateAffinityTag = true;
     } else if (member == _commonElements.requiresPreambleMarker) {
       requiresPreamble = true;
-    } else if (member == _commonElements.invokeOnMethod) {
-      isInvokeOnUsed = true;
     } else if (_commonElements.isFunctionApplyMethod(member)) {
       isFunctionApplyUsed = true;
     } else if (member.library == _commonElements.mirrorsLibrary) {
@@ -270,6 +248,11 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     _globalClassDependencies.add(element);
   }
 
+  @override
+  void registerRuntimeTypeUse(RuntimeTypeUse runtimeTypeUse) {
+    _runtimeTypeUses.add(runtimeTypeUse);
+  }
+
   BackendUsage close() {
     return new BackendUsageImpl(
         globalFunctionDependencies: _globalFunctionDependencies,
@@ -279,9 +262,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         needToInitializeIsolateAffinityTag: _needToInitializeIsolateAffinityTag,
         needToInitializeDispatchProperty: _needToInitializeDispatchProperty,
         requiresPreamble: requiresPreamble,
-        isInvokeOnUsed: isInvokeOnUsed,
-        isRuntimeTypeUsed: isRuntimeTypeUsed,
-        isIsolateInUse: isIsolateInUse,
+        runtimeTypeUses: _runtimeTypeUses,
         isFunctionApplyUsed: isFunctionApplyUsed,
         isMirrorsUsed: isMirrorsUsed,
         isNoSuchMethodUsed: isNoSuchMethodUsed);
@@ -289,6 +270,10 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 }
 
 class BackendUsageImpl implements BackendUsage {
+  /// Tag used for identifying serialized [BackendUsage] objects in a
+  /// debugging data stream.
+  static const String tag = 'backend-usage';
+
   // TODO(johnniwinther): Remove the need for these.
   final Set<FunctionEntity> _globalFunctionDependencies;
   final Set<ClassEntity> _globalClassDependencies;
@@ -299,20 +284,13 @@ class BackendUsageImpl implements BackendUsage {
   /// Set of classes instantiated by the backend.
   final Set<ClassEntity> _helperClassesUsed;
 
+  final Set<RuntimeTypeUse> _runtimeTypeUses;
+
   bool needToInitializeIsolateAffinityTag;
   bool needToInitializeDispatchProperty;
 
   /// `true` if a core-library function requires the preamble file to function.
   final bool requiresPreamble;
-
-  /// `true` if [CommonElements.invokeOnMethod] is used.
-  final bool isInvokeOnUsed;
-
-  /// `true` of `Object.runtimeType` is used.
-  final bool isRuntimeTypeUsed;
-
-  /// `true` if the `dart:isolate` library is in use.
-  final bool isIsolateInUse;
 
   /// `true` if `Function.apply` is used.
   final bool isFunctionApplyUsed;
@@ -331,16 +309,70 @@ class BackendUsageImpl implements BackendUsage {
       this.needToInitializeIsolateAffinityTag,
       this.needToInitializeDispatchProperty,
       this.requiresPreamble,
-      this.isInvokeOnUsed,
-      this.isRuntimeTypeUsed,
-      this.isIsolateInUse,
+      Set<RuntimeTypeUse> runtimeTypeUses,
       this.isFunctionApplyUsed,
       this.isMirrorsUsed,
       this.isNoSuchMethodUsed})
       : this._globalFunctionDependencies = globalFunctionDependencies,
         this._globalClassDependencies = globalClassDependencies,
         this._helperFunctionsUsed = helperFunctionsUsed,
-        this._helperClassesUsed = helperClassesUsed;
+        this._helperClassesUsed = helperClassesUsed,
+        this._runtimeTypeUses = runtimeTypeUses;
+
+  factory BackendUsageImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    Set<FunctionEntity> globalFunctionDependencies =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<ClassEntity> globalClassDependencies = source.readClasses().toSet();
+    Set<FunctionEntity> helperFunctionsUsed =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<ClassEntity> helperClassesUsed = source.readClasses().toSet();
+    Set<RuntimeTypeUse> runtimeTypeUses = source.readList(() {
+      RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
+      DartType receiverType = source.readDartType();
+      DartType argumentType = source.readDartType(allowNull: true);
+      return new RuntimeTypeUse(kind, receiverType, argumentType);
+    }).toSet();
+    bool needToInitializeIsolateAffinityTag = source.readBool();
+    bool needToInitializeDispatchProperty = source.readBool();
+    bool requiresPreamble = source.readBool();
+    bool isFunctionApplyUsed = source.readBool();
+    bool isMirrorsUsed = source.readBool();
+    bool isNoSuchMethodUsed = source.readBool();
+    source.end(tag);
+    return new BackendUsageImpl(
+        globalFunctionDependencies: globalFunctionDependencies,
+        globalClassDependencies: globalClassDependencies,
+        helperFunctionsUsed: helperFunctionsUsed,
+        helperClassesUsed: helperClassesUsed,
+        runtimeTypeUses: runtimeTypeUses,
+        needToInitializeIsolateAffinityTag: needToInitializeIsolateAffinityTag,
+        needToInitializeDispatchProperty: needToInitializeDispatchProperty,
+        requiresPreamble: requiresPreamble,
+        isFunctionApplyUsed: isFunctionApplyUsed,
+        isMirrorsUsed: isMirrorsUsed,
+        isNoSuchMethodUsed: isNoSuchMethodUsed);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeMembers(_globalFunctionDependencies);
+    sink.writeClasses(_globalClassDependencies);
+    sink.writeMembers(_helperFunctionsUsed);
+    sink.writeClasses(_helperClassesUsed);
+    sink.writeList(runtimeTypeUses, (RuntimeTypeUse runtimeTypeUse) {
+      sink.writeEnum(runtimeTypeUse.kind);
+      sink.writeDartType(runtimeTypeUse.receiverType);
+      sink.writeDartType(runtimeTypeUse.argumentType, allowNull: true);
+    });
+    sink.writeBool(needToInitializeIsolateAffinityTag);
+    sink.writeBool(needToInitializeDispatchProperty);
+    sink.writeBool(requiresPreamble);
+    sink.writeBool(isFunctionApplyUsed);
+    sink.writeBool(isMirrorsUsed);
+    sink.writeBool(isNoSuchMethodUsed);
+    sink.end(tag);
+  }
 
   @override
   bool isFunctionUsedByBackend(FunctionEntity element) {
@@ -364,4 +396,10 @@ class BackendUsageImpl implements BackendUsage {
 
   @override
   Iterable<ClassEntity> get helperClassesUsed => _helperClassesUsed;
+
+  @override
+  bool get isRuntimeTypeUsed => _runtimeTypeUses.isNotEmpty;
+
+  @override
+  Iterable<RuntimeTypeUse> get runtimeTypeUses => _runtimeTypeUses;
 }

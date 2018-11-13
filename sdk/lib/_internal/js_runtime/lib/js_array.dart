@@ -119,6 +119,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
+  List<R> cast<R>() => List.castFrom<E, R>(this);
   void add(E value) {
     checkGrowable('add');
     JS('void', r'#.push(#)', this, value);
@@ -130,7 +131,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (index < 0 || index >= length) {
       throw new RangeError.value(index);
     }
-    return JS('var', r'#.splice(#, 1)[0]', this, index);
+    return JS('', r'#.splice(#, 1)[0]', this, index);
   }
 
   void insert(int index, E value) {
@@ -166,14 +167,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   E removeLast() {
     checkGrowable('removeLast');
     if (length == 0) throw diagnoseIndexError(this, -1);
-    return JS('var', r'#.pop()', this);
+    return JS('', r'#.pop()', this);
   }
 
   bool remove(Object element) {
     checkGrowable('remove');
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
-        JS('var', r'#.splice(#, 1)', this, i);
+        JS('', r'#.splice(#, 1)', this, i);
         return true;
       }
     }
@@ -206,7 +207,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       // !test() ensures bool conversion in checked mode.
       if (!test(element) == removeMatching) {
         retained.add(element);
@@ -248,7 +249,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       f(element);
       if (this.length != end) throw new ConcurrentModificationError(this);
     }
@@ -289,7 +290,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = 1; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       value = combine(value, element);
       if (length != this.length) throw new ConcurrentModificationError(this);
     }
@@ -302,7 +303,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       value = combine(value, element);
       if (this.length != length) throw new ConcurrentModificationError(this);
     }
@@ -314,7 +315,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = 0; i < end; ++i) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return element;
       if (this.length != end) throw new ConcurrentModificationError(this);
     }
@@ -327,7 +328,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = length - 1; i >= 0; i--) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return element;
       if (length != this.length) {
         throw new ConcurrentModificationError(this);
@@ -337,14 +338,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     E match = null;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) {
         if (matchFound) {
           throw IterableElementError.tooMany();
@@ -357,6 +358,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
       }
     }
     if (matchFound) return match;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -419,7 +421,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, 'skipCount');
 
-    List otherList;
+    List<E> otherList;
     int otherStart;
     // TODO(floitsch): Make this accept more.
     if (iterable is List) {
@@ -492,7 +494,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return true;
       if (this.length != end) throw new ConcurrentModificationError(this);
     }
@@ -504,7 +506,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (!test(element)) return false;
       if (this.length != end) throw new ConcurrentModificationError(this);
     }
@@ -515,7 +517,13 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void sort([int compare(E a, E b)]) {
     checkMutable('sort');
-    Sort.sort(this, compare == null ? Comparable.compare : compare);
+    Sort.sort(this, compare ?? _compareAny);
+  }
+
+  static int _compareAny(a, b) {
+    // In strong mode Comparable.compare requires an implicit cast to ensure
+    // `a` and `b` are Comparable.
+    return Comparable.compare(a, b);
   }
 
   void shuffle([Random random]) {
@@ -613,7 +621,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   E operator [](int index) {
     if (index is! int) throw diagnoseIndexError(this, index);
     if (index >= length || index < 0) throw diagnoseIndexError(this, index);
-    return JS('var', '#[#]', this, index);
+    return JS('', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {
@@ -625,6 +633,47 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   Map<int, E> asMap() {
     return new ListMapView<E>(this);
+  }
+
+  Iterable<E> followedBy(Iterable<E> other) =>
+      new FollowedByIterable<E>.firstEfficient(this, other);
+
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
+  List<E> operator +(List<E> other) {
+    int totalLength = this.length + other.length;
+    return <E>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
+
+  int indexWhere(bool test(E element), [int start = 0]) {
+    if (start >= this.length) return -1;
+    if (start < 0) start = 0;
+    for (int i = start; i < this.length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(E element), [int start]) {
+    if (start == null) start = this.length - 1;
+    if (start < 0) return -1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  void set first(E element) {
+    if (this.isEmpty) throw IterableElementError.noElement();
+    this[0] = element;
+  }
+
+  void set last(E element) {
+    if (this.isEmpty) throw IterableElementError.noElement();
+    this[this.length - 1] = element;
   }
 }
 

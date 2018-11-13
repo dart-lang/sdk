@@ -17,18 +17,20 @@
 namespace dart {
 
 static const char* test_output_ = NULL;
+
+PRINTF_ATTRIBUTE(1, 2)
 static void TestPrinter(const char* format, ...) {
   // Measure.
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
   // Print string to buffer.
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   va_list args2;
   va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
+  Utils::VSNPrint(buffer, (len + 1), format, args2);
   va_end(args2);
 
   if (test_output_ != NULL) {
@@ -38,7 +40,7 @@ static void TestPrinter(const char* format, ...) {
   test_output_ = buffer;
 
   // Also print to stdout to see the overall result.
-  OS::Print("%s", test_output_);
+  OS::PrintErr("%s", test_output_);
 }
 
 class LogTestHelper : public AllStatic {

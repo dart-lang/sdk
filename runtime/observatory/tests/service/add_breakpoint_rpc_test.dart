@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -78,7 +77,8 @@ var tests = <IsolateTest>[
     expect(await futureBpt2.location.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('0'));
+    expect(((await rootLib.evaluate('value')) as Instance).valueAsString,
+        equals('0'));
 
     stream = await isolate.vm.getEventStream(VM.kDebugStream);
     completer = new Completer();
@@ -92,7 +92,8 @@ var tests = <IsolateTest>[
     await completer.future;
 
     // The second breakpoint hits after value has been modified once.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('1'));
+    expect(((await rootLib.evaluate('value')) as Instance).valueAsString,
+        equals('1'));
 
     // Remove the breakpoints.
     expect(
@@ -148,7 +149,9 @@ var tests = <IsolateTest>[
     expect(await latentBpt2.location.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
-    expect((await rootLib.evaluate('deferredLib.value')).valueAsString,
+    expect(
+        ((await rootLib.evaluate('deferredLib.value')) as Instance)
+            .valueAsString,
         equals('0'));
 
     stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -163,7 +166,9 @@ var tests = <IsolateTest>[
     await completer.future;
 
     // The second breakpoint hits after value has been modified once.
-    expect((await rootLib.evaluate('deferredLib.value')).valueAsString,
+    expect(
+        ((await rootLib.evaluate('deferredLib.value')) as Instance)
+            .valueAsString,
         equals('-1'));
 
     // Remove the breakpoints.

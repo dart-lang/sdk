@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::List<core::int> x;
+  dynamic y = let final dynamic #t1 = x in #t1.==(null) ? <dynamic>[] : #t1;
+  core::List<core::int> z = y;
+}

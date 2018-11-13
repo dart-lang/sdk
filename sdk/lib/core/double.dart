@@ -23,20 +23,10 @@ part of dart.core;
  * double.
  */
 abstract class double extends num {
-  /** Deprecated, use [nan] instead. */
-  static const double NAN = nan;
   static const double nan = 0.0 / 0.0;
-  /** Deprecated, use [infinity] instead. */
-  static const double INFINITY = infinity;
   static const double infinity = 1.0 / 0.0;
-  /** Deprecated, use [negativeInfinity] instead. */
-  static const double NEGATIVE_INFINITY = negativeInfinity;
   static const double negativeInfinity = -infinity;
-  /** Deprecated, use [minPositive] instead. */
-  static const double MIN_POSITIVE = minPositive;
   static const double minPositive = 5e-324;
-  /** Deprecated, use [maxFinite] instead. */
-  static const double MAX_FINITE = maxFinite;
   static const double maxFinite = 1.7976931348623157e+308;
 
   double remainder(num other);
@@ -210,6 +200,19 @@ abstract class double extends num {
    *     "1234E+7"
    *     "+.12e-9"
    *     "-NaN"
+   *
+   * The [onError] parameter is deprecated and will be removed.
+   * Instead of `double.parse(string, (string) { ... })`,
+   * you should use `double.tryParse(string) ?? (...)`.
    */
-  external static double parse(String source, [double onError(String source)]);
+  external static double parse(String source,
+      [@deprecated double onError(String source)]);
+
+  /**
+   * Parse [source] as an double literal and return its value.
+   *
+   * Like [parse] except that this function returns `null` for invalid inputs
+   * instead of throwing.
+   */
+  external static double tryParse(String source);
 }

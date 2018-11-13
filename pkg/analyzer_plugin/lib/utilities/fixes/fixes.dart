@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -92,7 +92,8 @@ class FixGenerator {
    * by the given [request]. If any of the contributors throws an exception,
    * also create a non-fatal 'plugin.error' notification.
    */
-  GeneratorResult generateFixesResponse(FixesRequest request) {
+  GeneratorResult<EditGetFixesResult> generateFixesResponse(
+      FixesRequest request) {
     List<Notification> notifications = <Notification>[];
     FixCollectorImpl collector = new FixCollectorImpl();
     for (FixContributor contributor in contributors) {
@@ -126,7 +127,8 @@ class FixKind {
   final String name;
 
   /**
-   * The priority of this kind of fix for the kind of error being addressed.
+   * The priority of this kind of fix for the kind of error being addressed
+   * where a higher integer value indicates a higher priority and relevance.
    */
   final int priority;
 
@@ -139,11 +141,30 @@ class FixKind {
   final String message;
 
   /**
-   * Initialize a newly created kind of fix to have the given [name],
-   * [priority] and [message].
+   * A human-readable description of the changes that will be applied by this
+   * kind of 'applied together' fix.
    */
-  const FixKind(this.name, this.priority, this.message);
+  final String appliedTogetherMessage;
+
+  /**
+   * The change can be made with other fixes of this [FixKind].
+   */
+  bool canBeAppliedTogether() => appliedTogetherMessage != null;
+
+  /**
+   * Initialize a newly created kind of fix to have the given [name],
+   * [priority], [message], and optionally [canBeAppliedTogether] and
+   * [appliedTogetherMessage].
+   */
+  const FixKind(this.name, this.priority, this.message,
+      {this.appliedTogetherMessage: null});
 
   @override
   String toString() => name;
+
+  @override
+  bool operator ==(o) => o is FixKind && o.name == name;
+
+  @override
+  int get hashCode => name.hashCode;
 }

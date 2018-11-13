@@ -79,8 +79,8 @@ main() {
   setUp(() => customElementsReady.then((_) {
         if (registeredTypes) return;
         registeredTypes = true;
-        document.registerElement('x-a', Foo);
-        document.registerElement('x-a-old', FooOldCallbacks);
+        document.registerElement2('x-a', {'prototype': Foo});
+        document.registerElement2('x-a-old', {'prototype': FooOldCallbacks});
       }));
 
   group('standard_events', () {

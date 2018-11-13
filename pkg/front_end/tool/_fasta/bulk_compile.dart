@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -12,8 +12,8 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
-import 'package:front_end/src/api_prototype/physical_file_system.dart'
-    show PhysicalFileSystem;
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -35,16 +35,16 @@ class BulkCompiler {
 
   BulkCompiler(CompilerOptions options)
       : options = new ProcessedOptions(
-            options
+            options: options
               ..packagesFileUri ??= Uri.base.resolve(".packages")
               ..linkedDependencies = <Uri>[
-                computePlatformBinariesLocation().resolve("vm_platform.dill")
+                computePlatformBinariesLocation(forceBuildDir: true)
+                    .resolve("vm_platform.dill")
               ]
               ..fileSystem = (new FileBackedMemoryFileSystem()
                 ..entities[mainUri.path] =
                     (new MemoryFileSystemEntity(mainUri)..bytes = <int>[])),
-            false,
-            <Uri>[mainUri]);
+            inputs: <Uri>[mainUri]);
 
   Future<Null> compile(String source) {
     defineSource(mainUri.path, source);
@@ -52,7 +52,7 @@ class BulkCompiler {
         (CompilerContext context) async {
       (await context.options.loadSdkSummary(null))?.computeCanonicalNames();
       CompilerResult result = await generateKernelInternal();
-      result?.program?.unbindCanonicalNames();
+      result?.component?.unbindCanonicalNames();
       return null;
     });
   }
@@ -63,7 +63,7 @@ class BulkCompiler {
     }
     Uri uri = new Uri(scheme: customScheme, host: "", path: path);
     MemoryFileSystemEntity entity = options.fileSystem.entityForUri(uri);
-    entity.bytes = UTF8.encode(source);
+    entity.bytes = utf8.encode(source);
   }
 }
 
@@ -80,7 +80,7 @@ class FileBackedMemoryFileSystem implements FileSystem {
       }
       return entity;
     } else {
-      return PhysicalFileSystem.instance.entityForUri(uri);
+      return StandardFileSystem.instance.entityForUri(uri);
     }
   }
 }

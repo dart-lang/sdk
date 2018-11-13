@@ -307,7 +307,6 @@ testNoSuchMethodErrors() {
   Expect.throwsNoSuchMethodError(() => o.toString(42));
   Expect.throwsNoSuchMethodError(() => o.toString(x: 37));
   Expect.throwsNoSuchMethodError(() => o.hashCode = 42);
-  Expect.throwsNoSuchMethodError(() => o.hashCode()); // Thrown by int.noSuchMethod.
   Expect.throwsNoSuchMethodError(() => (n.flif)()); // Extracted method has no noSuchMethod.
 }
 

@@ -19,12 +19,14 @@ io/http_response_deadline_test: Skip
 io/http_server_close_response_after_error_test: Skip
 io/https_unauthorized_test: Skip
 io/named_pipe_script_test: Skip
+io/namespace_test: Skip # Issue 33168
 io/platform_resolved_executable_test: Skip
 io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'
 io/print_sync_test: Skip
 io/process_check_arguments_test: Skip
 io/process_detached_test: Skip
 io/process_environment_test: Skip
+io/process_inherit_stdio_test: Skip
 io/process_non_ascii_test: Skip
 io/process_run_output_test: Skip
 io/process_set_exit_code_test: Skip
@@ -47,6 +49,7 @@ io/test_extension_test: Skip
 io/windows_environment_test: Skip
 
 [ $arch == arm && $mode == release && $runtime == dart_precompiled && $system == android ]
+io/socket_cancel_connect_test: RuntimeError # Issue 34142
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
 
 [ $mode == product && $runtime == dart_precompiled ]
@@ -75,4 +78,3 @@ package/scenarios/packages_option_only/packages_option_only_test: Skip
 [ $mode == product || $runtime == dart_precompiled ]
 io/code_collection_test: Skip # Incompatible flags
 no_assert_test: SkipByDesign # Requires checked mode.
-

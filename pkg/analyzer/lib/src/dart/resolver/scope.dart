@@ -1,16 +1,12 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.resolver.scope;
 
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -49,10 +45,10 @@ class BlockScope extends EnclosedScope {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].element;
+          yield variables[j].declaredElement;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.element;
+        yield statement.functionDeclaration.declaredElement;
       }
     }
   }
@@ -72,28 +68,6 @@ class ClassScope extends EnclosedScope {
       throw new ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
-  }
-
-  @override
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    if (existing is PropertyAccessorElement && duplicate is MethodElement) {
-      if (existing.nameOffset < duplicate.nameOffset) {
-        return new AnalysisError(
-            duplicate.source,
-            duplicate.nameOffset,
-            duplicate.nameLength,
-            CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
-            [existing.displayName]);
-      } else {
-        return new AnalysisError(
-            existing.source,
-            existing.nameOffset,
-            existing.nameLength,
-            CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
-            [existing.displayName]);
-      }
-    }
-    return super.getErrorForDuplicate(existing, duplicate);
   }
 
   /**
@@ -373,13 +347,6 @@ class LabelScope {
  */
 class LibraryImportScope extends Scope {
   /**
-   * The name of the property containing a list of the elements from the SDK
-   * that conflict with the single name imported from non-SDK libraries. The
-   * value of the property is always of type `List<Element>`.
-   */
-  static const String conflictingSdkElements = 'conflictingSdkElements';
-
-  /**
    * The element representing the library in which this scope is enclosed.
    */
   final LibraryElement _definingLibrary;
@@ -488,13 +455,11 @@ class LibraryImportScope extends Scope {
    * later reference.
    */
   void _createImportedNamespaces() {
-    NamespaceBuilder builder = new NamespaceBuilder();
     List<ImportElement> imports = _definingLibrary.imports;
     int count = imports.length;
     _importedNamespaces = new List<Namespace>(count);
     for (int i = 0; i < count; i++) {
-      _importedNamespaces[i] =
-          builder.createImportNamespaceForDirective(imports[i]);
+      _importedNamespaces[i] = imports[i].namespace;
     }
   }
 
@@ -541,38 +506,48 @@ class LibraryImportScope extends Scope {
 
   Element _lookupInImportedNamespaces(
       Identifier identifier, Element lookup(Namespace namespace)) {
-    Set<Element> sdkElements = new HashSet<Element>();
-    Set<Element> nonSdkElements = new HashSet<Element>();
+    Element result;
+
+    bool hasPotentialConflict = false;
     for (int i = 0; i < _importedNamespaces.length; i++) {
       Element element = lookup(_importedNamespaces[i]);
       if (element != null) {
-        if (element.library.isInSdk) {
-          sdkElements.add(element);
+        if (result == null || result == element) {
+          result = element;
         } else {
-          nonSdkElements.add(element);
+          hasPotentialConflict = true;
         }
       }
     }
-    int nonSdkCount = nonSdkElements.length;
-    int sdkCount = sdkElements.length;
-    if (nonSdkCount == 0) {
-      if (sdkCount == 0) {
-        return null;
-      } else if (sdkCount == 1) {
-        return sdkElements.first;
+
+    if (hasPotentialConflict) {
+      var sdkElements = new Set<Element>();
+      var nonSdkElements = new Set<Element>();
+      for (int i = 0; i < _importedNamespaces.length; i++) {
+        Element element = lookup(_importedNamespaces[i]);
+        if (element != null) {
+          if (element.library.isInSdk) {
+            sdkElements.add(element);
+          } else {
+            nonSdkElements.add(element);
+          }
+        }
+      }
+      if (sdkElements.length > 1 || nonSdkElements.length > 1) {
+        var conflictingElements = <Element>[]
+          ..addAll(sdkElements)
+          ..addAll(nonSdkElements);
+        return new MultiplyDefinedElementImpl(_definingLibrary.context,
+            conflictingElements.first.name, conflictingElements);
+      }
+      if (nonSdkElements.isNotEmpty) {
+        result = nonSdkElements.first;
+      } else if (sdkElements.isNotEmpty) {
+        result = sdkElements.first;
       }
     }
-    if (nonSdkCount == 1) {
-      if (sdkCount > 0) {
-        identifier.setProperty(
-            conflictingSdkElements, sdkElements.toList(growable: false));
-      }
-      return nonSdkElements.first;
-    }
-    return new MultiplyDefinedElementImpl(
-        _definingLibrary.context,
-        sdkElements.toList(growable: false),
-        nonSdkElements.toList(growable: false));
+
+    return result;
   }
 }
 
@@ -587,28 +562,14 @@ class LibraryScope extends EnclosedScope {
   LibraryScope(LibraryElement definingLibrary)
       : super(new LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
-  }
 
-  @override
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    if (existing is PrefixElement) {
-      // TODO(scheglov) consider providing actual 'nameOffset' from the
-      // synthetic accessor
-      int offset = duplicate.nameOffset;
-      if (duplicate is PropertyAccessorElement) {
-        PropertyAccessorElement accessor = duplicate;
-        if (accessor.isSynthetic) {
-          offset = accessor.variable.nameOffset;
-        }
-      }
-      return new AnalysisError(
-          duplicate.source,
-          offset,
-          duplicate.nameLength,
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
-          [existing.displayName]);
+    // For `dart:core` to be able to pass analysis, it has to have `dynamic`
+    // added to its library scope. Note that this is not true of, for instance,
+    // `Object`, because `Object` has a source definition which is not possible
+    // for `dynamic`.
+    if (definingLibrary.isDartCore) {
+      define(DynamicElementImpl.instance);
     }
-    return super.getErrorForDuplicate(existing, duplicate);
   }
 
   /**
@@ -627,6 +588,9 @@ class LibraryScope extends EnclosedScope {
     }
     for (FunctionTypeAliasElement element
         in compilationUnit.functionTypeAliases) {
+      define(element);
+    }
+    for (ClassElement element in compilationUnit.mixins) {
       define(element);
     }
     for (ClassElement element in compilationUnit.types) {
@@ -707,7 +671,7 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> exportedNames = _getExportMapping(exportedLibrary);
+    Map<String, Element> exportedNames = _getExportMapping(exportedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     return new Namespace(exportedNames);
   }
@@ -716,7 +680,7 @@ class NamespaceBuilder {
    * Create a namespace representing the export namespace of the given [library].
    */
   Namespace createExportNamespaceForLibrary(LibraryElement library) {
-    HashMap<String, Element> exportedNames = _getExportMapping(library);
+    Map<String, Element> exportedNames = _getExportMapping(library);
     return new Namespace(exportedNames);
   }
 
@@ -732,7 +696,7 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> exportedNames = _getExportMapping(importedLibrary);
+    Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     PrefixElement prefix = element.prefix;
     if (prefix != null) {
@@ -746,11 +710,20 @@ class NamespaceBuilder {
    * [library].
    */
   Namespace createPublicNamespaceForLibrary(LibraryElement library) {
-    HashMap<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = new HashMap<String, Element>();
     _addPublicNames(definedNames, library.definingCompilationUnit);
     for (CompilationUnitElement compilationUnit in library.parts) {
       _addPublicNames(definedNames, compilationUnit);
     }
+
+    // For libraries that import `dart:core` with a prefix, we have to add
+    // `dynamic` to the `dart:core` [Namespace] specially. Note that this is not
+    // true of, for instance, `Object`, because `Object` has a source definition
+    // which is not possible for `dynamic`.
+    if (library.isDartCore) {
+      definedNames['dynamic'] = DynamicElementImpl.instance;
+    }
+
     return new Namespace(definedNames);
   }
 
@@ -796,6 +769,9 @@ class NamespaceBuilder {
         in compilationUnit.functionTypeAliases) {
       _addIfPublic(definedNames, element);
     }
+    for (ClassElement element in compilationUnit.mixins) {
+      _addIfPublic(definedNames, element);
+    }
     for (ClassElement element in compilationUnit.types) {
       _addIfPublic(definedNames, element);
     }
@@ -805,8 +781,7 @@ class NamespaceBuilder {
    * Apply the given [combinators] to all of the names in the given table of
    * [definedNames].
    */
-  HashMap<String, Element> _applyCombinators(
-      HashMap<String, Element> definedNames,
+  Map<String, Element> _applyCombinators(Map<String, Element> definedNames,
       List<NamespaceCombinator> combinators) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator is HideElementCombinator) {
@@ -829,11 +804,11 @@ class NamespaceBuilder {
    * library because all of the names defined by them will be added by another
    * library.
    */
-  HashMap<String, Element> _computeExportMapping(
+  Map<String, Element> _computeExportMapping(
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
     visitedElements.add(library);
     try {
-      HashMap<String, Element> definedNames = new HashMap<String, Element>();
+      Map<String, Element> definedNames = new HashMap<String, Element>();
       for (ExportElement element in library.exports) {
         LibraryElement exportedLibrary = element.exportedLibrary;
         if (exportedLibrary != null &&
@@ -842,7 +817,7 @@ class NamespaceBuilder {
           // The exported library will be null if the URI does not reference a
           // valid library.
           //
-          HashMap<String, Element> exportedNames =
+          Map<String, Element> exportedNames =
               _computeExportMapping(exportedLibrary, visitedElements);
           exportedNames = _applyCombinators(exportedNames, element.combinators);
           definedNames.addAll(exportedNames);
@@ -858,12 +833,12 @@ class NamespaceBuilder {
     }
   }
 
-  HashMap<String, Element> _getExportMapping(LibraryElement library) {
+  Map<String, Element> _getExportMapping(LibraryElement library) {
     if (library.exportNamespace != null) {
       return library.exportNamespace.definedNames;
     }
     if (library is LibraryElementImpl) {
-      HashMap<String, Element> exportMapping =
+      Map<String, Element> exportMapping =
           _computeExportMapping(library, new HashSet<LibraryElement>());
       library.exportNamespace = new Namespace(exportMapping);
       return exportMapping;
@@ -876,8 +851,8 @@ class NamespaceBuilder {
    * with exception of [hiddenNames].
    */
   Map<String, Element> _hide(
-      HashMap<String, Element> definedNames, List<String> hiddenNames) {
-    HashMap<String, Element> newNames =
+      Map<String, Element> definedNames, List<String> hiddenNames) {
+    Map<String, Element> newNames =
         new HashMap<String, Element>.from(definedNames);
     for (String name in hiddenNames) {
       newNames.remove(name);
@@ -889,9 +864,9 @@ class NamespaceBuilder {
   /**
    * Return a new map of names which has only [shownNames] from [definedNames].
    */
-  HashMap<String, Element> _show(
-      HashMap<String, Element> definedNames, List<String> shownNames) {
-    HashMap<String, Element> newNames = new HashMap<String, Element>();
+  Map<String, Element> _show(
+      Map<String, Element> definedNames, List<String> shownNames) {
+    Map<String, Element> newNames = new HashMap<String, Element>();
     for (String name in shownNames) {
       Element element = definedNames[name];
       if (element != null) {
@@ -926,7 +901,7 @@ class PrefixedNamespace implements Namespace {
    * A table mapping names that are defined in this namespace to the element
    * representing the thing declared with that name.
    */
-  final HashMap<String, Element> _definedNames;
+  final Map<String, Element> _definedNames;
 
   /**
    * Initialize a newly created namespace to have the names resulting from
@@ -992,7 +967,7 @@ abstract class Scope {
    * A table mapping names that are defined in this scope to the element
    * representing the thing declared with that name.
    */
-  HashMap<String, Element> _definedNames = null;
+  Map<String, Element> _definedNames = null;
 
   /**
    * Return the scope in which this scope is lexically enclosed.
@@ -1031,22 +1006,6 @@ abstract class Scope {
   }
 
   /**
-   * Return the error code to be used when reporting that a name being defined
-   * locally conflicts with another element of the same name in the local scope.
-   * [existing] is the first element to be declared with the conflicting name,
-   * while [duplicate] another element declared with the conflicting name.
-   */
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    // TODO(brianwilkerson) Customize the error message based on the types of
-    // elements that share the same name.
-    // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being
-    // generated.
-    Source source = duplicate.source;
-    return new AnalysisError(source, duplicate.nameOffset, duplicate.nameLength,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION, [existing.displayName]);
-  }
-
-  /**
    * Return the source that contains the given [identifier], or the source
    * associated with this scope if the source containing the identifier could
    * not be determined.
@@ -1055,7 +1014,7 @@ abstract class Scope {
     CompilationUnit unit =
         identifier.getAncestor((node) => node is CompilationUnit);
     if (unit != null) {
-      CompilationUnitElement unitElement = unit.element;
+      CompilationUnitElement unitElement = unit.declaredElement;
       if (unitElement != null) {
         return unitElement.source;
       }

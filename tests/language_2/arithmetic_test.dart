@@ -403,10 +403,8 @@ class ArithmeticTest {
 
     Expect.equals(12, int.parse("12"));
     Expect.equals(-12, int.parse("-12"));
-    Expect.equals(1234567890123456789, int.parse("1234567890123456789"));
-    Expect.equals(-1234567890123456789, int.parse("-1234567890123456789"));
-    Expect.equals(9223372036854775807, int.parse("9223372036854775807"));
-    Expect.equals(-9223372036854775808, int.parse("-9223372036854775808"));
+    Expect.equals(9007199254740991, int.parse("9007199254740991"));
+    Expect.equals(-9007199254740991, int.parse("-9007199254740991"));
     // Type checks.
     {
       int i = int.parse("12");

@@ -5,16 +5,23 @@
 // VMOptions=--optimization-counter-threshold=5
 
 import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 
 var X = 0;
 
 foo() async {
-  Expect.equals(X, 10); // foo runs after main returns.
-  return await 5;
+  Expect.equals(X, 0);
+  await 5;
+  Expect.equals(X, 10);
+  return await 499;
 }
 
 main() {
+  asyncStart();
   var f = foo();
-  f.then((res) => print("f completed with $res"));
+  f.then((res) {
+    Expect.equals(499, res);
+    asyncEnd();
+  });
   X = 10;
 }

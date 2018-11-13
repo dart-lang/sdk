@@ -23,8 +23,8 @@ test() async {
   await for (a in stream) {}
   for (b in iterable) {}
   await for (b in stream) {}
-  for (i /*@error=InvalidAssignment*/ in iterable) {}
-  await for (i /*@error=InvalidAssignment*/ in stream) {}
+  for (i /*@error=ForInLoopElementTypeNotAssignable*/ in iterable) {}
+  await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
   for (a in /*@typeArgs=Iterable<A>*/ f()) {}
   await for (a in /*@typeArgs=Stream<A>*/ f()) {}
 }

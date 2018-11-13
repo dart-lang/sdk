@@ -2,9 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<U extends core::Object, V extends core::Object> = (U) → V;
-class Foo<T extends core::Object> extends core::Object {
-  default constructor •() → void
+typedef F<U extends core::Object = dynamic, V extends core::Object = dynamic> = (U) → V;
+class Foo<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T>
     ;
   get v1() → self::Bar<self::Foo::T>
     ;
@@ -25,8 +25,8 @@ class Foo<T extends core::Object> extends core::Object {
   get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
     ;
 }
-class Bar<T extends core::Object> extends core::Object {
-  const constructor •() → void
+class Bar<T extends core::Object = dynamic> extends core::Object {
+  const constructor •() → self::Bar<self::Bar::T>
     ;
 }
 static method main() → dynamic

@@ -30,7 +30,7 @@ test5() {
 }
 
 test6() {
-  return 1405006117752879898543142606244511569936384000000000;
+  return 1405006117752879898543142606244511569936384000000000; //# 01: compile-time error
 }
 
 main() {
@@ -40,6 +40,6 @@ main() {
   Expect.isTrue(test3() == 6.022e23);
   Expect.isTrue(test4());
   Expect.isTrue(test5() == false);
-  Expect
-      .isTrue(test6() == 1405006117752879898543142606244511569936384000000000);
+  Expect.isTrue(test6() == //                                //# 01: continued
+      1405006117752879898543142606244511569936384000000000); //# 01: continued
 }

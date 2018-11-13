@@ -11,7 +11,6 @@ import 'testing/suite.dart';
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[ENABLE_FULL_COMPILE] = "";
-  environment[AST_KIND_INDEX] = "${AstKind.Kernel.index}";
   return FastaContext.create(suite, environment);
 }
 

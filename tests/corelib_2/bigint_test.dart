@@ -5,7 +5,7 @@
 // Testing Bigints with and without intrinsics.
 // VMOptions=
 // VMOptions=--no_intrinsify
-// VMOptions=--optimization_counter_threshold=10 --no-background_compilation
+// VMOptions=--optimization_counter_threshold=5 --no-background_compilation
 
 import "package:expect/expect.dart";
 
@@ -109,6 +109,66 @@ testModPow() {
       BigInt.parse("123456789012345678901234567890"),
       BigInt.parse("123456789012345678901234567899"),
       BigInt.parse("40128068573873018143207285483"));
+  test(
+      BigInt.parse(
+          "-7003a3cac2bac4e494d749ae101f7ede8f11dac594fea5f51e15826021d734df6ec"
+          "b6f67d74e2bb0f47ee39cb79fae059734c95d1eacb0340af64c05b83a4f70a737363"
+          "c3799d38c23b7833622d89036b4649bcc7b749037f4954dac6abe5566c97cb6ac81f"
+          "f8a09f8c71c7f08061720483b592517a608088ddb4c2e460ad1a73abbadbda077922"
+          "1751cf22f1191e3be531505c833fede908a17581a9ae96f3c0258edcfe71786b7cf3"
+          "07f67eb9ecd8656d0fd397b0215bfb79efb314299d3e9db70b31a34f5f67e6c5e166"
+          "cfa3e0bf45837c5d64fa3930a91a06b94840b4773d81280ed2af141747a6ac99d882"
+          "a59f47b15ce8c1d716ead646b139b928869902225c85ea220b90e290181f271ed087"
+          "bb6972dfe7d674b09e44c268128340d9172182732990a70af51d589c89f39d8f5dac"
+          "659161aa0a32774728e15e25bad2960b4eacb8b670581b1c431201192c8bdbcc9256"
+          "ef9e863b589f22813158050cdaf5da69f83819639f5a183c7ffe61ba1582d6ace35c"
+          "8318dfdc597d016e70b7bb115fc1a7a3481c3a6296f1504e5ccd9b14e641acb2aa32"
+          "9c3d69b5e8f1609eec8b5b5a2b0192e9f21e7e3960c52975a70cf934c32e67799c40"
+          "863b23c9579a551df4b179e6e2094f86c9fffa4bb5634202e094d380565b44cec833"
+          "db25721010dd5df766204ae8d1e8680075f261801aee047d0ac576b9b10710de54e6"
+          "eaa94648a7fba1576e66ea44f4bb7f6b941268a8d920bfc2727f82457f92cc2a016c"
+          "b",
+          radix: 16),
+      BigInt.parse(
+          "73ac14b30fe9cb8275a7410a06ce5de8a60fe0a02e236197182996ca5886fd4e6937"
+          "555f1f02ed4183ff7f097f76051f286dbb1b24751795cb793b1b81ac259",
+          radix: 16),
+      BigInt.parse(
+          "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020b"
+          "bea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d"
+          "6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a89"
+          "9fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a"
+          "69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c"
+          "354e4abc9804f1746c08ca18217c32905e462e36ce3be39e772c180e86039b2783a2"
+          "ec07a28fb5c55df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa"
+          "051015728e5a8aaac42dad33170d04507a33a85521abdf1cba64ecfb850458dbef0a"
+          "8aea71575d060c7db3970f85a6e1e4c7abf5ae8cdb0933d71e8c94e04a25619dcee3"
+          "d2261ad2ee6bf12ffa06d98a0864d87602733ec86a64521f2b18177b200cbbe11757"
+          "7a615d6c770988c0bad946e208e24fa074e5ab3143db5bfce0fd108e4b82d120a921"
+          "08011a723c12a787e6d788719a10bdba5b2699c327186af4e23c1a946834b6150bda"
+          "2583e9ca2ad44ce8dbbbc2db04de8ef92e8efc141fbecaa6287c59474e6bc05d99b2"
+          "964fa090c3a2233ba186515be7ed1f612970cee2d7afb81bdd762170481cd0069127"
+          "d5b05aa993b4ea988d8fddc186ffb7dc90a6c08f4df435c934063199ffffffffffff"
+          "ffff",
+          radix: 16),
+      BigInt.parse(
+          "b1b35af289290c92fcd3d22fca66016f6db7aa21508991c97f0e53fddc2f7ece7088"
+          "5e935259c28d317be14c0378e2ebd103600e2e1f55b111703fc75217836e24f9bfd8"
+          "63d47cdb26882f491949b1906c2cb016c0e9e9d77c3a9c4a3e85b9ac34057eeb993d"
+          "d048d8ed90b1eea78f84ee48febb1281384c739b1c60dda475395e3928b7081af890"
+          "d2c58eac70d11d7f14c0e98fd168735425d233b7c07506b54149482261067079f82a"
+          "b531a072ede523aca1765c1a587c160f638aa3ccab8cd1f3358c5bac3ed0a6062e92"
+          "94df2322864f6a8e58b4a2d40b600a0f09065d34bd49e60b5656d2c6dcb3af751f4a"
+          "9c10dc7df46215f3043b4077fc2be7f648d388843db9cf94f31b2eb376cf22033a23"
+          "e8984b5b1702f9e5af99507ad3d8d624a104c18af275949e7e88c16651103a2a7620"
+          "c5c8356f1f2311a9cab2c61d30b0af22d7961e42cb13679bf0d52f35b41a0f7c341a"
+          "c414a76a9a85408c39836657594180ffbb4d5a38e4b6eeea125fcde370478f6b7cd8"
+          "903fc8a822075f6e766d83337e6db2eb6605d514327294ec1e076d576eee08220acd"
+          "f4f9ffa31f1aa7b4639eb11797c8f39956b5e4dbca98a0a15eb29136b66917cfdbfb"
+          "dd8ba20475ad401a6f1022a04bed3c8d5227cd7385e9b67096261fcc2ccf2632a4c2"
+          "f5ef640b1f37966f855f8314c97c8ef7a136e54565e95bfe253e579753f5a14c2a01"
+          "6c1",
+          radix: 16));
 }
 
 testModInverse() {
@@ -280,6 +340,33 @@ testSmiOverflow() {
   Expect.equals(-BigInt.parse("1000000001000000000"), a * b);
 }
 
+testBigintAnd() {
+  var a = BigInt.parse("0x55555555555555555555");
+  var b = BigInt.parse("0x33333333333333333333");
+  var c = BigInt.parse("0x11111111111111111111");
+  Expect.equals(BigInt.zero, BigInt.zero & a);
+  Expect.equals(BigInt.zero, a & BigInt.zero);
+  Expect.equals(c, a & b);
+}
+
+testBigintOr() {
+  var a = BigInt.parse("0x33333333333333333333");
+  var b = BigInt.parse("0x55555555555555555555");
+  var c = BigInt.parse("0x77777777777777777777");
+  Expect.equals(a, BigInt.zero | a);
+  Expect.equals(a, a | BigInt.zero);
+  Expect.equals(c, a | b);
+}
+
+testBigintXor() {
+  var a = BigInt.parse("0x33333333333333333333");
+  var b = BigInt.parse("0x55555555555555555555");
+  var c = BigInt.parse("0x66666666666666666666");
+  Expect.equals(a, BigInt.zero ^ a);
+  Expect.equals(a, a ^ BigInt.zero);
+  Expect.equals(c, a ^ b);
+}
+
 testBigintAdd() {
   // Bigint and Smi.
   var a = BigInt.parse("12345678901234567890");
@@ -289,6 +376,8 @@ testBigintAdd() {
   // Bigint and Bigint.
   a = BigInt.parse("10000000000000000001");
   Expect.equals(BigInt.parse("20000000000000000002"), a + a);
+  Expect.equals(a, BigInt.zero + a);
+  Expect.equals(a, a + BigInt.zero);
 }
 
 testBigintSub() {
@@ -300,6 +389,8 @@ testBigintSub() {
   // Bigint and Bigint.
   a = BigInt.parse("10000000000000000001");
   Expect.equals(BigInt.parse("20000000000000000002"), a + a);
+  Expect.equals(-a, BigInt.zero - a);
+  Expect.equals(a, a - BigInt.zero);
 }
 
 testBigintMul() {
@@ -322,10 +413,19 @@ testBigintTruncDiv() {
   Expect.equals(BigInt.zero, b ~/ a);
   Expect.equals(new BigInt.from(123456789),
       BigInt.parse("123456789012345678") ~/ new BigInt.from(1000000000));
+  // TruncDiv as used in toString().
+  a = BigInt.parse("4503599627370496"); // 0x10000000000000
+  b = new BigInt.from(10000);
+  Expect.equals(new BigInt.from(450359962737), a ~/ b);
+  b = new BigInt.from(1000000000);
+  Expect.equals(new BigInt.from(4503599), a ~/ b);
   // Bigint and Bigint.
   a = BigInt.parse("12345678901234567890");
   b = BigInt.parse("10000000000000000");
   Expect.equals(new BigInt.from(1234), a ~/ b);
+  a = BigInt.parse("9173112362840293939050000000000000000");
+  b = BigInt.parse("50000000000000000");
+  Expect.equals(BigInt.parse("183462247256805878781"), a ~/ b);
 }
 
 testBigintDiv() {
@@ -348,11 +448,21 @@ testBigintModulo() {
   var b = new BigInt.from(10);
   Expect.equals(new BigInt.from(5), a % b);
   Expect.equals(new BigInt.from(10), b % a);
+  // Modulo as used in toString().
+  a = BigInt.parse("4503599627370496"); // 0x10000000000000
+  b = new BigInt.from(10000);
+  Expect.equals(new BigInt.from(496), a % b);
+  b = new BigInt.from(1000000000);
+  Expect.equals(new BigInt.from(627370496), a % b);
   // Bigint & Bigint
   a = BigInt.parse("10000000000000000001");
   b = BigInt.parse("10000000000000000000");
   Expect.equals(BigInt.one, a % b);
   Expect.equals(BigInt.parse("10000000000000000000"), b % a);
+  a = BigInt.parse("2432363650");
+  b = BigInt.parse("2201792050");
+  Expect.equals(BigInt.parse("230571600"), a % b);
+  Expect.equals(BigInt.parse("2201792050"), b % a);
 }
 
 testBigintModPow() {
@@ -437,6 +547,29 @@ testBigintModPow() {
   e = BigInt.parse("123456789012345678901234567890");
   m = BigInt.parse("123456789012345678901234567899");
   Expect.equals(BigInt.parse("40128068573873018143207285483"), x.modPow(e, m));
+  x = BigInt.parse(
+      "142223781135477974841804437037182877109549636480215350570761436386728140"
+      "00321219503871352719175100865184619168128345594681547640115731246638");
+  e = BigInt.parse(
+      "688057170495263083245752731085731160016625265771524738691797062279575950"
+      "919479651156310413084174304361991240273181430924411258203766946639349880"
+      "404106504114953688890200429043051936362182997575167191584461538746041795"
+      "019663740246921124383173799957296515067912829778249931473903780958741032"
+      "64534184571632120755");
+  m = BigInt.parse(
+      "144173682842817587002196172066264549138375068078359231382946906898412792"
+      "452632726597279520229873489736777248181678202636100459215718497240474064"
+      "366927544074501134727745837254834206456400508719134610847814227274992298"
+      "238973375146473350157304285346424982280927848339601514720098577525635486"
+      "320547905945936448443");
+  Expect.equals(
+      BigInt.parse(
+          "41228476947144730491819644448449646627743926889389391986712371102685"
+          "14984467753960109321610008533258676279344318597060690521027646613453"
+          "25674994677820913027869835916005689276806408148698486814119894325284"
+          "18918299321385420296108046942018595594076729397423805685944237555128"
+          "652606412065971965116137839721723231"),
+      x.modPow(e, m));
 }
 
 testBigintModInverse() {
@@ -622,6 +755,12 @@ testBigintNegate() {
 }
 
 testShiftAmount() {
+  Expect.equals(BigInt.zero, BigInt.zero << 0);
+  Expect.equals(BigInt.zero, BigInt.zero >> 0);
+  Expect.equals(BigInt.zero, BigInt.zero << 1234567890);
+  Expect.equals(BigInt.zero, BigInt.zero >> 1234567890);
+  Expect.equals(BigInt.two.pow(999), BigInt.one << 999);
+  Expect.equals(BigInt.one, BigInt.two.pow(999) >> 999);
   Expect.equals(BigInt.zero, new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
   Expect.equals(-BigInt.one, -new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
   bool exceptionCaught = false;
@@ -820,7 +959,7 @@ void testFromToInt() {
     if (i != 0) test(-i);
   }
 
-  const minInt64 = -9223372036854775807 - 1;
+  const minInt64 = -0x80000000 * 0x100000000;
   test(minInt64);
 }
 
@@ -891,36 +1030,39 @@ void testFromToDouble() {
 }
 
 main() {
-  for (int i = 0; i < 10; i++) {
-    Expect.equals(BigInt.parse("1234567890123456789"), foo());
-    Expect.equals(BigInt.parse("12345678901234567890"), bar());
-    testModPow();
-    testModInverse();
-    testGcd();
-    testSmiOverflow();
-    testBigintAdd();
-    testBigintSub();
-    testBigintMul();
-    testBigintTruncDiv();
-    testBigintDiv();
-    testBigintModulo();
-    testBigintModPow();
-    testBigintModInverse();
-    testBigintGcd();
-    testBigintNegate();
-    testShiftAmount();
-    testPow();
-    testToRadixString();
-    testToString();
-    testFromToInt();
-    testFromToDouble();
-    Expect.equals(BigInt.parse("12345678901234567890"),
-        BigInt.parse("12345678901234567890").abs());
-    Expect.equals(BigInt.parse("12345678901234567890"),
-        BigInt.parse("-12345678901234567890").abs());
-    var a = BigInt.parse("10000000000000000000");
-    var b = BigInt.parse("10000000000000000001");
-    Expect.equals(false, a.hashCode == b.hashCode);
-    Expect.equals(true, a.hashCode == (b - BigInt.one).hashCode);
+  for (int i = 0; i < 8; i++) {
+    Expect.equals(BigInt.parse("1234567890123456789"), foo()); /// 01: ok
+    Expect.equals(BigInt.parse("12345678901234567890"), bar()); /// 02: ok
+    testModPow(); /// 03: ok
+    testModInverse(); /// 04: ok
+    testGcd(); /// 05: ok
+    testSmiOverflow(); /// 06: ok
+    testBigintAnd(); /// 07: ok
+    testBigintOr(); /// 08: ok
+    testBigintXor(); /// 09: ok
+    testBigintAdd(); /// 10: ok
+    testBigintSub(); /// 11: ok
+    testBigintMul(); /// 12: ok
+    testBigintTruncDiv(); /// 12: ok
+    testBigintDiv(); /// 13: ok
+    testBigintModulo(); /// 14: ok
+    testBigintModPow(); /// 15: ok
+    testBigintModInverse(); /// 16: ok
+    testBigintGcd(); /// 17: ok
+    testBigintNegate(); /// 18: ok
+    testShiftAmount(); /// 19: ok
+    testPow(); /// 20: ok
+    testToRadixString(); /// 21: ok
+    testToString(); /// 22: ok
+    testFromToInt(); /// 23: ok
+    testFromToDouble(); /// 24: ok
+    Expect.equals(BigInt.parse("12345678901234567890"), /// 25: ok
+        BigInt.parse("12345678901234567890").abs()); /// 25: ok
+    Expect.equals(BigInt.parse("12345678901234567890"), /// 26: ok
+        BigInt.parse("-12345678901234567890").abs()); /// 26: ok
+    var a = BigInt.parse("10000000000000000000"); /// 27: ok
+    var b = BigInt.parse("10000000000000000001"); /// 27: ok
+    Expect.equals(false, a.hashCode == b.hashCode); /// 27: ok
+    Expect.equals(true, a.hashCode == (b - BigInt.one).hashCode); /// 27: ok
   }
 }

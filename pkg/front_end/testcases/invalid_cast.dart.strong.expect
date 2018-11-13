@@ -1,16 +1,63 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/invalid_cast.dart:22:60: Error: The list literal type 'dart.core::List<dart.core::Object>' isn't of expected type 'dart.core::List<dart.core::int>'.
+// Change the type of the list literal or the context in which it is used.
+//   List<int> a = <Object> /*@error=InvalidCastLiteralList*/ [];
+//                                                            ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:23:74: Error: The map literal type 'dart.core::Map<dart.core::Object, dart.core::String>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+// Change the type of the map literal or the context in which it is used.
+//   Map<int, String> b = <Object, String> /*@error=InvalidCastLiteralMap*/ {};
+//                                                                          ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:24:71: Error: The map literal type 'dart.core::Map<dart.core::int, dart.core::Object>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+// Change the type of the map literal or the context in which it is used.
+//   Map<int, String> c = <int, Object> /*@error=InvalidCastLiteralMap*/ {};
+//                                                                       ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:25:63: Error: The function expression type '(dart.core::int) → dart.core::int' isn't of expected type '(dart.core::Object) → dart.core::int'.
+// Change the type of the function expression or the context in which it is used.
+//   int Function(Object) d = /*@error=InvalidCastFunctionExpr*/ (int i) => i;
+//                                                               ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:28:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.
+// Change the type of the object being constructed or the context in which it is used.
+//   D g = new /*@error=InvalidCastNewExpr*/ C.nonFact();
+//                                           ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:29:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.
+// Change the type of the object being constructed or the context in which it is used.
+//   D h = new /*@error=InvalidCastNewExpr*/ C.nonFact2();
+//                                           ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:31:45: Error: The static method has type '(dart.core::int) → void' that isn't of expected type '(dart.core::Object) → void'.
+// Change the type of the method or the context in which it is used.
+//       C. /*@error=InvalidCastStaticMethod*/ staticFunction;
+//                                             ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:33:50: Error: The top level function has type '(dart.core::int) → void' that isn't of expected type '(dart.core::Object) → void'.
+// Change the type of the function or the context in which it is used.
+//       j = /*@error=InvalidCastTopLevelFunction*/ topLevelFunction;
+//                                                  ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:34:65: Error: The local function has type '(dart.core::int) → void' that isn't of expected type '(dart.core::Object) → void'.
+// Change the type of the function or the context in which it is used.
+//   void Function(Object) k = /*@error=InvalidCastLocalFunction*/ localFunction;
+//                                                                 ^
+
 library;
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::fact2];
-  constructor •() → void
+  constructor •() → self::C
     : super core::Object::•()
     ;
-  constructor nonFact() → void
+  constructor nonFact() → self::C
     : super core::Object::•()
     ;
-  constructor nonFact2() → void
+  constructor nonFact2() → self::C
     : this self::C::nonFact()
     ;
   static factory fact() → self::C
@@ -20,24 +67,51 @@ class C extends core::Object {
   static method staticFunction(core::int i) → void {}
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
 }
 static method topLevelFunction(core::int i) → void {}
 static method bad() → dynamic {
   function localFunction(core::int i) → void {}
-  core::List<core::int> a = let final dynamic #t1 = <core::Object>[] in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:22:60: Error: The list literal type 'dart.core::List<dart.core::Object>' isn't of expected type 'dart.core::List<dart.core::int>'.\nChange the type of the list literal or the context in which it is used.\n  List<int> a = <Object> /*@error=InvalidCastLiteralList*/ [];\n                                                           ^"));
-  core::Map<core::int, core::String> b = let final dynamic #t2 = <core::Object, core::String>{} in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:23:74: Error: The map literal type 'dart.core::Map<dart.core::Object, dart.core::String>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.\nChange the type of the map literal or the context in which it is used.\n  Map<int, String> b = <Object, String> /*@error=InvalidCastLiteralMap*/ {};\n                                                                         ^"));
-  core::Map<core::int, core::String> c = let final dynamic #t3 = <core::int, core::Object>{} in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:24:71: Error: The map literal type 'dart.core::Map<dart.core::int, dart.core::Object>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.\nChange the type of the map literal or the context in which it is used.\n  Map<int, String> c = <int, Object> /*@error=InvalidCastLiteralMap*/ {};\n                                                                      ^"));
-  (core::Object) → core::int d = let final dynamic #t4 = (core::int i) → core::int => i in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:25:63: Error: The function expression type '(dart.core::int) \u8594 dart.core::int' isn't of expected type '(dart.core::Object) \u8594 dart.core::int'.\nChange the type of the function expression or the context in which it is used.\n  int Function(Object) d = /*@error=InvalidCastFunctionExpr*/ (int i) => i;\n                                                              ^"));
+  core::List<core::int> a = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:22:60: Error: The list literal type 'dart.core::List<dart.core::Object>' isn't of expected type 'dart.core::List<dart.core::int>'.
+Change the type of the list literal or the context in which it is used.
+  List<int> a = <Object> /*@error=InvalidCastLiteralList*/ [];
+                                                           ^" in <core::Object>[];
+  core::Map<core::int, core::String> b = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:23:74: Error: The map literal type 'dart.core::Map<dart.core::Object, dart.core::String>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+Change the type of the map literal or the context in which it is used.
+  Map<int, String> b = <Object, String> /*@error=InvalidCastLiteralMap*/ {};
+                                                                         ^" in <core::Object, core::String>{};
+  core::Map<core::int, core::String> c = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:24:71: Error: The map literal type 'dart.core::Map<dart.core::int, dart.core::Object>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+Change the type of the map literal or the context in which it is used.
+  Map<int, String> c = <int, Object> /*@error=InvalidCastLiteralMap*/ {};
+                                                                      ^" in <core::int, core::Object>{};
+  (core::Object) → core::int d = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:25:63: Error: The function expression type '(dart.core::int) \u8594 dart.core::int' isn't of expected type '(dart.core::Object) \u8594 dart.core::int'.
+Change the type of the function expression or the context in which it is used.
+  int Function(Object) d = /*@error=InvalidCastFunctionExpr*/ (int i) => i;
+                                                              ^" in (core::int i) → core::int => i;
   self::D e = self::C::fact() as{TypeError} self::D;
   self::D f = new self::D::•() as{TypeError} self::D;
-  self::D g = let final dynamic #t5 = new self::C::nonFact() in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:28:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.\nChange the type of the object being constructed or the context in which it is used.\n  D g = new /*@error=InvalidCastNewExpr*/ C.nonFact();\n                                          ^"));
-  self::D h = let final dynamic #t6 = new self::C::nonFact2() in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:29:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.\nChange the type of the object being constructed or the context in which it is used.\n  D h = new /*@error=InvalidCastNewExpr*/ C.nonFact2();\n                                          ^"));
-  (core::Object) → void i = let final dynamic #t7 = self::C::staticFunction in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:31:45: Error: The static method has type '(dart.core::int) \u8594 void' that isn't of expected type '(dart.core::Object) \u8594 void'.\nChange the type of the method or the context in which it is used.\n      C. /*@error=InvalidCastStaticMethod*/ staticFunction;\n                                            ^"));
-  (core::Object) → void j = let final dynamic #t8 = self::topLevelFunction in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:33:50: Error: The top level function has type '(dart.core::int) \u8594 void' that isn't of expected type '(dart.core::Object) \u8594 void'.\nChange the type of the function or the context in which it is used.\n      j = /*@error=InvalidCastTopLevelFunction*/ topLevelFunction;\n                                                 ^"));
-  (core::Object) → void k = let final dynamic #t9 = localFunction in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_cast.dart:34:65: Error: The local function has type '(dart.core::int) \u8594 void' that isn't of expected type '(dart.core::Object) \u8594 void'.\nChange the type of the function or the context in which it is used.\n  void Function(Object) k = /*@error=InvalidCastLocalFunction*/ localFunction;\n                                                                ^"));
+  self::D g = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:28:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.
+Change the type of the object being constructed or the context in which it is used.
+  D g = new /*@error=InvalidCastNewExpr*/ C.nonFact();
+                                          ^" in new self::C::nonFact();
+  self::D h = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:29:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.
+Change the type of the object being constructed or the context in which it is used.
+  D h = new /*@error=InvalidCastNewExpr*/ C.nonFact2();
+                                          ^" in new self::C::nonFact2();
+  (core::Object) → void i = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:31:45: Error: The static method has type '(dart.core::int) \u8594 void' that isn't of expected type '(dart.core::Object) \u8594 void'.
+Change the type of the method or the context in which it is used.
+      C. /*@error=InvalidCastStaticMethod*/ staticFunction;
+                                            ^" in self::C::staticFunction;
+  (core::Object) → void j = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:33:50: Error: The top level function has type '(dart.core::int) \u8594 void' that isn't of expected type '(dart.core::Object) \u8594 void'.
+Change the type of the function or the context in which it is used.
+      j = /*@error=InvalidCastTopLevelFunction*/ topLevelFunction;
+                                                 ^" in self::topLevelFunction;
+  (core::Object) → void k = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/invalid_cast.dart:34:65: Error: The local function has type '(dart.core::int) \u8594 void' that isn't of expected type '(dart.core::Object) \u8594 void'.
+Change the type of the function or the context in which it is used.
+  void Function(Object) k = /*@error=InvalidCastLocalFunction*/ localFunction;
+                                                                ^" in localFunction;
 }
 static method ok() → dynamic {
   function localFunction(core::int i) → void {}

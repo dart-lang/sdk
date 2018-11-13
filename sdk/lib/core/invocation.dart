@@ -12,22 +12,77 @@ part of dart.core;
  * on it.
  */
 abstract class Invocation {
+  Invocation();
+
+  /**
+   * Creates an invocation corresponding to a method invocation.
+   *
+   * The method invocation has no type arguments.
+   * If the named arguments are omitted, they default to no named arguments.
+   */
+  factory Invocation.method(
+          Symbol memberName, Iterable<Object> positionalArguments,
+          [Map<Symbol, Object> namedArguments]) =>
+      new _Invocation.method(
+          memberName, null, positionalArguments, namedArguments);
+
+  /**
+   * Creates an invocation corresponding to a generic method invocation.
+   *
+   * If [typeArguments] is `null` or empty, the constructor is equivalent to
+   * calling [Invocation.method] with the remaining arguments.
+   * All the individual type arguments must be non-null.
+   *
+   * If the named arguments are omitted, they default to no named arguments.
+   */
+  factory Invocation.genericMethod(Symbol memberName,
+          Iterable<Type> typeArguments, Iterable<Object> positionalArguments,
+          [Map<Symbol, Object> namedArguments]) =>
+      new _Invocation.method(
+          memberName, typeArguments, positionalArguments, namedArguments);
+
+  /**
+   * Creates an invocation corresponding to a getter invocation.
+   */
+  factory Invocation.getter(Symbol name) = _Invocation.getter;
+
+  /**
+   * Creates an invocation corresponding to a setter invocation.
+   *
+   * This constructor accepts any [Symbol] as [memberName], but remember that
+   * *actual setter names* end in `=`, so the invocation corresponding
+   * to `object.member = value` is
+   * ```dart
+   * Invocation.setter(const Symbol("member="), value)
+   * ```
+   */
+  factory Invocation.setter(Symbol memberName, Object argument) =
+      _Invocation.setter;
+
   /** The name of the invoked member. */
   Symbol get memberName;
+
+  /**
+   * An unmodifiable view of the type arguments of the call.
+   *
+   * If the member is a getter, setter or operator,
+   * the type argument list is always empty.
+   */
+  List<Type> get typeArguments => const <Type>[];
 
   /**
    * An unmodifiable view of the positional arguments of the call.
    *
    * If the member is a getter, the positional arguments list is
-   * empty.
+   * always empty.
    */
-  List get positionalArguments;
+  List<dynamic> get positionalArguments;
 
   /**
    * An unmodifiable view of the named arguments of the call.
    *
-   * If the member is a getter, setter or operator, the named
-   * arguments map is empty.
+   * If the member is a getter, setter or operator,
+   * the named arguments map is always empty.
    */
   Map<Symbol, dynamic> get namedArguments;
 
@@ -51,4 +106,58 @@ abstract class Invocation {
 
   /** Whether the invocation was a getter or a setter call. */
   bool get isAccessor => isGetter || isSetter;
+}
+
+/** Implementation of [Invocation] used by its factory constructors. */
+class _Invocation implements Invocation {
+  final Symbol memberName;
+  final List<Type> typeArguments;
+  // Positional arguments is `null` for getters only.
+  final List<Object> _positional;
+  // Named arguments is `null` for accessors only.
+  final Map<Symbol, Object> _named;
+
+  _Invocation.method(this.memberName, Iterable<Type> types,
+      Iterable<Object> positional, Map<Symbol, Object> named)
+      : typeArguments = _ensureNonNullTypes(_makeUnmodifiable<Type>(types)),
+        _positional = _makeUnmodifiable<Object>(positional) ?? const <Object>[],
+        _named = (named == null || named.isEmpty)
+            ? const <Symbol, Object>{}
+            : new Map<Symbol, Object>.unmodifiable(named);
+
+  _Invocation.getter(this.memberName)
+      : typeArguments = const <Type>[],
+        _positional = null,
+        _named = null;
+
+  _Invocation.setter(this.memberName, Object argument)
+      : typeArguments = const <Type>[],
+        _positional = new List<Object>.unmodifiable([argument]),
+        _named = null;
+
+  List<dynamic> get positionalArguments => _positional ?? const <Object>[];
+
+  Map<Symbol, dynamic> get namedArguments => _named ?? const <Symbol, Object>{};
+
+  bool get isMethod => _named != null;
+  bool get isGetter => _positional == null;
+  bool get isSetter => _positional != null && _named == null;
+  bool get isAccessor => _named == null;
+
+  /// Checks that the elements of [types] are not null.
+  static List<Type> _ensureNonNullTypes(List<Type> types) {
+    if (types == null) return const <Type>[];
+    for (int i = 0; i < types.length; i++) {
+      if (types[i] == null) {
+        throw new ArgumentError(
+            "Type arguments must be non-null, was null at index $i.");
+      }
+    }
+    return types;
+  }
+
+  static List<T> _makeUnmodifiable<T>(Iterable<T> elements) {
+    if (elements == null) return null;
+    return new List<T>.unmodifiable(elements);
+  }
 }

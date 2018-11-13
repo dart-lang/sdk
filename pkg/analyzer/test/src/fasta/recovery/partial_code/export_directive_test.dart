@@ -12,36 +12,23 @@ main() {
 
 class ExportDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = <String>[
-      'import',
-      'export',
-      'part',
-      'class',
-      'typedef',
-      'functionVoid',
-      'functionNonVoid',
-      'var',
-      'const',
-      'final',
-      'getter',
-      'setter'
-    ];
-    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'export_directive',
         [
           new TestDescriptor(
               'keyword',
               'export',
-              [/*ParserErrorCode.MISSING_URI,*/ ParserErrorCode.EXPECTED_TOKEN],
-              "export '';",
-              allFailing: true),
+              [
+                // TODO(danrubel): Consider an improved error message
+                // ParserErrorCode.MISSING_URI,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "export '';"),
           new TestDescriptor('emptyUri', "export ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "export '';",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "export '';"),
           new TestDescriptor('uri', "export 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart';",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart';"),
           new TestDescriptor(
               'hide',
               "export 'a.dart' hide",
@@ -50,10 +37,9 @@ class ExportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "export 'a.dart' hide _s_;",
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor('hideName', "export 'a.dart' hide A",
-              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' hide A;",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' hide A;"),
           new TestDescriptor(
               'hideComma',
               "export 'a.dart' hide A,",
@@ -62,10 +48,9 @@ class ExportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "export 'a.dart' hide A, _s_;",
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor('hideCommaName', "export 'a.dart' hide A, B",
-              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' hide A, B;",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' hide A, B;"),
           new TestDescriptor(
               'hideShow',
               "export 'a.dart' hide A show",
@@ -74,7 +59,7 @@ class ExportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "export 'a.dart' hide A show _s_;",
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor(
               'show',
               "export 'a.dart' show",
@@ -83,10 +68,9 @@ class ExportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "export 'a.dart' show _s_;",
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor('showName', "export 'a.dart' show A",
-              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' show A;",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' show A;"),
           new TestDescriptor(
               'showComma',
               "export 'a.dart' show A,",
@@ -95,10 +79,9 @@ class ExportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "export 'a.dart' show A, _s_;",
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor('showCommaName', "export 'a.dart' show A, B",
-              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' show A, B;",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' show A, B;"),
           new TestDescriptor(
               'showHide',
               "export 'a.dart' show A hide",
@@ -107,7 +90,7 @@ class ExportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "export 'a.dart' show A hide _s_;",
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
         ],
         PartialCodeTest.prePartSuffixes);
   }

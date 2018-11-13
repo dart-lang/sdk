@@ -23,6 +23,8 @@ class ElementReferencesComputer {
    */
   Future<List<SearchResult>> compute(
       Element element, bool withPotential) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchResult> results = <SearchResult>[];
 
     // Add element references.
@@ -45,6 +47,8 @@ class ElementReferencesComputer {
    * to the corresponding hierarchy [Element]s.
    */
   Future<List<SearchResult>> _findElementsReferences(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchResult> allResults = <SearchResult>[];
     Iterable<Element> refElements = await _getRefElements(element);
     for (Element refElement in refElements) {
@@ -60,6 +64,8 @@ class ElementReferencesComputer {
    */
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     matches = SearchMatch.withNotNullElement(matches);
     return matches.map(toResult).toList();
@@ -68,12 +74,15 @@ class ElementReferencesComputer {
   /**
    * Returns a [Future] completing with [Element]s to search references to.
    *
-   * If a [ClassMemberElement] is given, each corresponding [Element] in the
-   * hierarchy is returned.
+   * If a [ClassMemberElement] or a named [ParameterElement] is given, each
+   * corresponding [Element] in the hierarchy is returned.
    *
    * Otherwise, only references to [element] should be searched.
    */
   Future<Iterable<Element>> _getRefElements(Element element) {
+    if (element is ParameterElement && element.isNamed) {
+      return getHierarchyNamedParameters(searchEngine, element);
+    }
     if (element is ClassMemberElement) {
       return getHierarchyMembers(searchEngine, element);
     }

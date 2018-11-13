@@ -10,7 +10,7 @@ main() {
 
 @NoInline()
 test(c) {
-  /*ast.2:test*/ c. /*kernel.2:test*/ field.method();
+  c. /*2:test*/ field.method();
 }
 
 class Class {

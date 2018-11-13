@@ -43,7 +43,7 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(scripts != null);
     IsolateSummaryElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<IsolateSummaryElement>(e, queue: queue);
     e._isolate = isolate;
     e._isolates = isolates;
     e._events = events;
@@ -63,30 +63,30 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
     if (_loadedIsolate == null) {
-      children = [
+      children = <Element>[
         new SpanElement()..text = 'loading ',
         new IsolateRefElement(_isolate, _events, queue: _r.queue)
       ];
     } else {
-      children = [
+      children = <Element>[
         new DivElement()
           ..classes = ['flex-row']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['isolate-ref-container']
-              ..children = [
+              ..children = <Element>[
                 new IsolateRefElement(_isolate, _events, queue: _r.queue)
               ],
             new DivElement()..style.flex = '1',
             new DivElement()
               ..classes = ['flex-row', 'isolate-state-container']
-              ..children = [
+              ..children = <Element>[
                 new IsolateRunStateElement(_isolate, _events, queue: _r.queue),
                 new IsolateLocationElement(_isolate, _events, _scripts,
                     queue: _r.queue),

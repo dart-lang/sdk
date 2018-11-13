@@ -13,7 +13,6 @@ import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Determine the number of arguments.
@@ -23,7 +22,7 @@ int _argCount(DartCompletionRequest request) {
   if (node is ArgumentList) {
     if (request.target.entity == node.rightParenthesis) {
       // Parser ignores trailing commas
-      if (node.rightParenthesis.previous?.lexeme == ',') {
+      if (node.findPrevious(node.rightParenthesis)?.lexeme == ',') {
         return node.arguments.length + 1;
       }
     }
@@ -63,7 +62,16 @@ SimpleIdentifier _getTargetId(AstNode node) {
       }
     }
     if (parent is Annotation) {
-      return parent.constructorName ?? parent.name;
+      SimpleIdentifier name = parent.constructorName;
+      if (name == null) {
+        Identifier parentName = parent.name;
+        if (parentName is SimpleIdentifier) {
+          return parentName;
+        } else if (parentName is PrefixedIdentifier) {
+          return parentName.identifier;
+        }
+      }
+      return name;
     }
   }
   return null;
@@ -180,6 +188,8 @@ class ArgListContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     this.request = request;
     this.suggestions = <CompletionSuggestion>[];
 
@@ -187,11 +197,11 @@ class ArgListContributor extends DartCompletionContributor {
     // for a method or a constructor or an annotation
     SimpleIdentifier targetId = _getTargetId(request.target.containingNode);
     if (targetId == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
-    Element elem = targetId.bestElement;
+    Element elem = targetId.staticElement;
     if (elem == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Generate argument list suggestion based upon the type of element
@@ -211,7 +221,7 @@ class ArgListContributor extends DartCompletionContributor {
       _addSuggestions(elem.parameters);
       return suggestions;
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
@@ -219,7 +229,7 @@ class ArgListContributor extends DartCompletionContributor {
     bool appendColon = !_isInNamedExpression(request);
     Iterable<String> namedArgs = _namedArgs(request);
     for (ParameterElement parameter in parameters) {
-      if (parameter.parameterKind == ParameterKind.NAMED) {
+      if (parameter.isNamed) {
         _addNamedParameterSuggestion(
             namedArgs, parameter, appendColon, appendComma);
       }
@@ -253,7 +263,7 @@ class ArgListContributor extends DartCompletionContributor {
         completion += ',';
       }
 
-      final int relevance = parameter.isRequired
+      final int relevance = parameter.hasRequired
           ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
           : DART_RELEVANCE_NAMED_PARAMETER;
 
@@ -280,8 +290,8 @@ class ArgListContributor extends DartCompletionContributor {
     if (parameters == null || parameters.length == 0) {
       return;
     }
-    Iterable<ParameterElement> requiredParam = parameters.where(
-        (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
+    Iterable<ParameterElement> requiredParam =
+        parameters.where((ParameterElement p) => p.isNotOptional);
     int requiredCount = requiredParam.length;
     // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,

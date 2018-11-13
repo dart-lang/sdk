@@ -43,7 +43,7 @@ class RenameRefactoringTest extends RefactoringTest {
    */
   void createRenameRefactoringAtString(String search) {
     SimpleIdentifier identifier = findIdentifier(search);
-    Element element = identifier.bestElement;
+    Element element = identifier.staticElement;
     if (element is PrefixElement) {
       element = getImportElement(identifier);
     }
@@ -55,7 +55,8 @@ class RenameRefactoringTest extends RefactoringTest {
    * Fails if no [RenameRefactoring] can be created.
    */
   void createRenameRefactoringForElement(Element element) {
-    refactoring = new RenameRefactoring(searchEngine, astProvider, element);
+    var workspace = new RefactoringWorkspace([driver], searchEngine);
+    refactoring = new RenameRefactoring(workspace, astProvider, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }
 

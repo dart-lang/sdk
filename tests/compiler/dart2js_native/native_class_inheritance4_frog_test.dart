@@ -111,7 +111,7 @@ testBasicB_typed() {
 testAB_dynamic() {
   setup(); // Fresh constructors.
 
-  var things = [makeA(), makeB()];
+  var things = <dynamic>[makeA(), makeB()];
   var a = things[0];
   var b = things[1];
 

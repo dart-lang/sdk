@@ -49,7 +49,7 @@ abstract class CompilerTask {
   }
 
   Duration get duration {
-    if (_isDisabled) return Duration.ZERO;
+    if (_isDisabled) return Duration.zero;
     Duration total = _watch.elapsed;
     for (GenericTask subtask in _subtasks.values) {
       total += subtask.duration;
@@ -60,7 +60,7 @@ abstract class CompilerTask {
   /// Perform [action] and measure its runtime (including any asynchronous
   /// callbacks, such as, [Future.then], but excluding code measured by other
   /// tasks).
-  measure(action()) => _isDisabled ? action() : _measureZoned(action);
+  T measure<T>(T action()) => _isDisabled ? action() : _measureZoned(action);
 
   /// Helper method that starts measuring with this [CompilerTask], that is,
   /// make this task the currently measured task.
@@ -91,7 +91,7 @@ abstract class CompilerTask {
     measurer.currentTask = previous;
   }
 
-  _measureZoned(action()) {
+  T _measureZoned<T>(T action()) {
     // Using zones, we're able to track asynchronous operations correctly, as
     // our zone will be asked to invoke `then` blocks. Then blocks (the closure
     // passed to runZoned, and other closures) are run via the `run` functions
@@ -156,7 +156,7 @@ abstract class CompilerTask {
   /// Note: we assume that this method is used only by the compiler input
   /// provider, but it could be used by other tasks as long as the input
   /// provider will not be called by those tasks.
-  measureIo(Future action()) {
+  Future<T> measureIo<T>(Future<T> action()) {
     if (_isDisabled) return action();
 
     if (measurer.currentAsyncTask == null) {
@@ -174,15 +174,31 @@ abstract class CompilerTask {
 
   /// Measure the time spent in [action] (if in verbose mode) and accumulate it
   /// under a subtask with the given name.
-  measureSubtask(String name, action()) {
+  T measureSubtask<T>(String name, T action()) {
     if (_isDisabled) return action();
 
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
     // calls work correctly. The subtasks will never themselves have nested
     // subtasks because they are not accessible outside.
-    GenericTask subtask =
-        _subtasks.putIfAbsent(name, () => new GenericTask(name, measurer));
+    GenericTask subtask = _subtasks[name] ??= new GenericTask(name, measurer);
     return subtask.measure(action);
+  }
+
+  /// Asynchronous version of [measureSubtask]. Use this when action returns a
+  /// future that's truly asynchronous, such I/O. Only one task can use this
+  /// concurrently.
+  ///
+  /// Note: we assume that this method is used only by the compiler input
+  /// provider, but it could be used by other tasks as long as the input
+  /// provider will not be called by those tasks.
+  Future<T> measureIoSubtask<T>(String name, Future<T> action()) {
+    if (_isDisabled) return action();
+
+    // Use a nested CompilerTask for the measurement to ensure nested [measure]
+    // calls work correctly. The subtasks will never themselves have nested
+    // subtasks because they are not accessible outside.
+    GenericTask subtask = _subtasks[name] ??= new GenericTask(name, measurer);
+    return subtask.measureIo(action);
   }
 
   Iterable<String> get subtasks => _subtasks.keys;

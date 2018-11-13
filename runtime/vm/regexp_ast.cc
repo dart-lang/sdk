@@ -134,76 +134,76 @@ class RegExpUnparser : public RegExpVisitor {
 };
 
 void* RegExpUnparser::VisitDisjunction(RegExpDisjunction* that, void* data) {
-  OS::Print("(|");
+  OS::PrintErr("(|");
   for (intptr_t i = 0; i < that->alternatives()->length(); i++) {
-    OS::Print(" ");
+    OS::PrintErr(" ");
     (*that->alternatives())[i]->Accept(this, data);
   }
-  OS::Print(")");
+  OS::PrintErr(")");
   return NULL;
 }
 
 void* RegExpUnparser::VisitAlternative(RegExpAlternative* that, void* data) {
-  OS::Print("(:");
+  OS::PrintErr("(:");
   for (intptr_t i = 0; i < that->nodes()->length(); i++) {
-    OS::Print(" ");
+    OS::PrintErr(" ");
     (*that->nodes())[i]->Accept(this, data);
   }
-  OS::Print(")");
+  OS::PrintErr(")");
   return NULL;
 }
 
 void RegExpUnparser::VisitCharacterRange(CharacterRange that) {
   PrintUtf16(that.from());
   if (!that.IsSingleton()) {
-    OS::Print("-");
+    OS::PrintErr("-");
     PrintUtf16(that.to());
   }
 }
 
 void* RegExpUnparser::VisitCharacterClass(RegExpCharacterClass* that,
                                           void* data) {
-  if (that->is_negated()) OS::Print("^");
-  OS::Print("[");
+  if (that->is_negated()) OS::PrintErr("^");
+  OS::PrintErr("[");
   for (intptr_t i = 0; i < that->ranges()->length(); i++) {
-    if (i > 0) OS::Print(" ");
+    if (i > 0) OS::PrintErr(" ");
     VisitCharacterRange((*that->ranges())[i]);
   }
-  OS::Print("]");
+  OS::PrintErr("]");
   return NULL;
 }
 
 void* RegExpUnparser::VisitAssertion(RegExpAssertion* that, void* data) {
   switch (that->assertion_type()) {
     case RegExpAssertion::START_OF_INPUT:
-      OS::Print("@^i");
+      OS::PrintErr("@^i");
       break;
     case RegExpAssertion::END_OF_INPUT:
-      OS::Print("@$i");
+      OS::PrintErr("@$i");
       break;
     case RegExpAssertion::START_OF_LINE:
-      OS::Print("@^l");
+      OS::PrintErr("@^l");
       break;
     case RegExpAssertion::END_OF_LINE:
-      OS::Print("@$l");
+      OS::PrintErr("@$l");
       break;
     case RegExpAssertion::BOUNDARY:
-      OS::Print("@b");
+      OS::PrintErr("@b");
       break;
     case RegExpAssertion::NON_BOUNDARY:
-      OS::Print("@B");
+      OS::PrintErr("@B");
       break;
   }
   return NULL;
 }
 
 void* RegExpUnparser::VisitAtom(RegExpAtom* that, void* data) {
-  OS::Print("'");
+  OS::PrintErr("'");
   ZoneGrowableArray<uint16_t>* chardata = that->data();
   for (intptr_t i = 0; i < chardata->length(); i++) {
     PrintUtf16(chardata->At(i));
   }
-  OS::Print("'");
+  OS::PrintErr("'");
   return NULL;
 }
 
@@ -211,50 +211,50 @@ void* RegExpUnparser::VisitText(RegExpText* that, void* data) {
   if (that->elements()->length() == 1) {
     (*that->elements())[0].tree()->Accept(this, data);
   } else {
-    OS::Print("(!");
+    OS::PrintErr("(!");
     for (intptr_t i = 0; i < that->elements()->length(); i++) {
-      OS::Print(" ");
+      OS::PrintErr(" ");
       (*that->elements())[i].tree()->Accept(this, data);
     }
-    OS::Print(")");
+    OS::PrintErr(")");
   }
   return NULL;
 }
 
 void* RegExpUnparser::VisitQuantifier(RegExpQuantifier* that, void* data) {
-  OS::Print("(# %" Pd " ", that->min());
+  OS::PrintErr("(# %" Pd " ", that->min());
   if (that->max() == RegExpTree::kInfinity) {
-    OS::Print("- ");
+    OS::PrintErr("- ");
   } else {
-    OS::Print("%" Pd " ", that->max());
+    OS::PrintErr("%" Pd " ", that->max());
   }
-  OS::Print(that->is_greedy() ? "g " : that->is_possessive() ? "p " : "n ");
+  OS::PrintErr(that->is_greedy() ? "g " : that->is_possessive() ? "p " : "n ");
   that->body()->Accept(this, data);
-  OS::Print(")");
+  OS::PrintErr(")");
   return NULL;
 }
 
 void* RegExpUnparser::VisitCapture(RegExpCapture* that, void* data) {
-  OS::Print("(^ ");
+  OS::PrintErr("(^ ");
   that->body()->Accept(this, data);
-  OS::Print(")");
+  OS::PrintErr(")");
   return NULL;
 }
 
 void* RegExpUnparser::VisitLookahead(RegExpLookahead* that, void* data) {
-  OS::Print("(-> %s", (that->is_positive() ? "+ " : "- "));
+  OS::PrintErr("(-> %s", (that->is_positive() ? "+ " : "- "));
   that->body()->Accept(this, data);
-  OS::Print(")");
+  OS::PrintErr(")");
   return NULL;
 }
 
 void* RegExpUnparser::VisitBackReference(RegExpBackReference* that, void*) {
-  OS::Print("(<- %" Pd ")", that->index());
+  OS::PrintErr("(<- %" Pd ")", that->index());
   return NULL;
 }
 
 void* RegExpUnparser::VisitEmpty(RegExpEmpty*, void*) {
-  OS::Print("%%");
+  OS::PrintErr("%%");
   return NULL;
 }
 

@@ -2,77 +2,67 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test to ensure that StringBuffer and string interpolation behaves
-// the same and fail fast.
+// Interpolation calls `toString`.
+// The evaluation of the interpolation fails if `toString` throws or returns
+// null. In Dart 2, any method overriding `Object.toString` must return a
+// `String` or `null`. In particular, if `object.toString()` returns null, then
+// `"$object"` must not evaluate to the string `"null"`.
+//
+// The specification states that the expression of an interpolation is
+// evaluated as follows:
+//
+// 1. Evaluate $e_i$ to an object $o_i$.
+// 2. Invoke the `toString` method on *o<sub>i</sub>* with no arguments,
+//    and let *r<sub>i</sub>*$ be the returned value.
+// 3. If *r<sub>i</sub>* is not an instance of the built-in type `String`,
+//    throw an `Error`.
+//
+// (Then the resulting strings are concatenated with the literal string parts).
+//
+//
+// Adding an object to a `StringBuffer` behaves the same as evaluating
+// an expression in an interpolation. It must immediately fail if the
+// object's toString throws or returns `null`.
+//
+// This ensures that implementing interpolation via a `StringBuffer`is
+// a valid implementation choice.
 
 import "package:expect/expect.dart";
 
-class ToStringWrapper {
-  final value;
-
-  ToStringWrapper(this.value);
-
-  toString() => value;
+class ToStringString {
+  String toString() => "String";
 }
 
-wrap(value) => new ToStringWrapper(value);
+class ToStringNull {
+  String toString() => null;
+}
 
-main() {
-  interpolate(object) {
-    var result;
-    try {
-      result = '${wrap(object)}';
-    } on ArgumentError {
-      return 'Error';
-    }
-    Expect.isTrue(result is String);
-    return 'Success';
-  }
+class ToStringThrows {
+  String toString() => throw "Throw";
+}
 
-  buffer(object) {
-    var sb;
-    try {
-      sb = new StringBuffer()..write(wrap(object));
-    } on ArgumentError {
-      return 'Error';
-    }
-    if (object == null) {
-      Expect.isTrue(sb.toString() is String);
-    }
-    return 'Success';
-  }
+void main() {
+  var s = ToStringString();
+  var n = ToStringNull();
+  var t = ToStringThrows();
 
-  initBuffer(object) {
-    var sb;
-    try {
-      sb = new StringBuffer(wrap(object));
-    } on ArgumentError {
-      return 'Error';
-    }
-    if (object == null) {
-      Expect.isTrue(sb.toString() is String);
-    }
-    return 'Success';
-  }
+  Expect.equals("$s$s", "StringString");
+  // Throws immediately when evaluating the first interpolated expression.
+  Expect.throws<String>(() => "$t${throw "unreachable"}", (e) => e == "Throw");
+  Expect.throws<Error>(() => "$n${throw "unreachable"}");
 
-  Expect.equals('Error', interpolate(null));
-  Expect.equals('Success', interpolate(""));
-  Expect.equals('Success', interpolate("string"));
-  Expect.equals('Error', interpolate([]));
-  Expect.equals('Error', interpolate([1]));
-  Expect.equals('Error', interpolate(new Object()));
+  // Throws immediately when adding object that doesn't return a String.
+  Expect.equals(
+      (StringBuffer()..write(s)..write(s)).toString(), "StringString");
+  Expect.throws<String>(
+      () => StringBuffer()..write(t)..write(throw "unreachable"),
+      (e) => e == "Throw");
+  Expect.throws<Error>(
+      () => StringBuffer()..write(n)..write(throw "unreachable"));
 
-  Expect.equals('Error', buffer(null));
-  Expect.equals('Success', buffer(""));
-  Expect.equals('Success', buffer("string"));
-  Expect.equals('Error', buffer([]));
-  Expect.equals('Error', buffer([1]));
-  Expect.equals('Error', buffer(new Object()));
-
-  Expect.equals('Error', initBuffer(null));
-  Expect.equals('Success', initBuffer(""));
-  Expect.equals('Success', initBuffer("string"));
-  Expect.equals('Error', initBuffer([]));
-  Expect.equals('Error', initBuffer([1]));
-  Expect.equals('Error', initBuffer(new Object()));
+  // Same behavior for constructor argument as if adding it to buffer later.
+  Expect.equals((StringBuffer(s)..write(s)).toString(), "StringString");
+  Expect.throws<String>(
+      () => StringBuffer(t)..write(throw "unreachable"), (e) => e == "Throw");
+  Expect.throws<Error>(() => StringBuffer(n)..write(throw "unreachable"));
 }

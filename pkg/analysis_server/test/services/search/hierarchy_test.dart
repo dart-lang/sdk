@@ -254,6 +254,95 @@ class E {
     return Future.wait([futureA, futureB, futureD]);
   }
 
+  test_getHierarchyNamedParameters() async {
+    await _indexTestUnit('''
+class A {
+  foo({p}) {}
+}
+class B extends A {
+  foo({p}) {}
+}
+class C extends B {
+  foo({p}) {}
+}
+class D {
+  foo({p}) {}
+}
+class E extends D {
+  foo({p}) {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassElement classC = findElement('C');
+    ClassElement classD = findElement('D');
+    ClassElement classE = findElement('E');
+    ParameterElement parameterA = classA.methods[0].parameters[0];
+    ParameterElement parameterB = classB.methods[0].parameters[0];
+    ParameterElement parameterC = classC.methods[0].parameters[0];
+    ParameterElement parameterD = classD.methods[0].parameters[0];
+    ParameterElement parameterE = classE.methods[0].parameters[0];
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterA);
+      expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterB);
+      expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterC);
+      expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterD);
+      expect(result, unorderedEquals([parameterD, parameterE]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterE);
+      expect(result, unorderedEquals([parameterD, parameterE]));
+    }
+  }
+
+  test_getHierarchyNamedParameters_invalid_missing() async {
+    verifyNoTestUnitErrors = false;
+    await _indexTestUnit('''
+class A {
+  foo({p}) {}
+}
+class B extends A {
+  foo() {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ParameterElement parameterA = classA.methods[0].parameters[0];
+
+    var result = await getHierarchyNamedParameters(searchEngine, parameterA);
+    expect(result, unorderedEquals([parameterA]));
+  }
+
+  test_getHierarchyNamedParameters_invalid_notNamed() async {
+    verifyNoTestUnitErrors = false;
+    await _indexTestUnit('''
+class A {
+  foo({p}) {}
+}
+class B extends A {
+  foo(p) {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ParameterElement parameterA = classA.methods[0].parameters[0];
+
+    var result = await getHierarchyNamedParameters(searchEngine, parameterA);
+    expect(result, unorderedEquals([parameterA]));
+  }
+
   test_getMembers() async {
     await _indexTestUnit('''
 class A {
@@ -356,7 +445,46 @@ class F implements A {}
     }
   }
 
-  Future<Null> _indexTestUnit(String code) async {
+  test_getSuperClasses_superclassConstraints() async {
+    await _indexTestUnit('''
+class A {}
+class B extends A {}
+class C {}
+
+mixin M1 on A {}
+mixin M2 on B {}
+mixin M3 on M1 {}
+mixin M4 on M2 {}
+mixin M5 on A, C {}
+''');
+    ClassElement a = findElement('A');
+    ClassElement b = findElement('B');
+    ClassElement c = findElement('C');
+    ClassElement m1 = findElement('M1');
+    ClassElement m2 = findElement('M2');
+    ClassElement m3 = findElement('M3');
+    ClassElement m4 = findElement('M4');
+    ClassElement m5 = findElement('M5');
+    ClassElement object = a.supertype.element;
+
+    _assertSuperClasses(object, []);
+    _assertSuperClasses(a, [object]);
+    _assertSuperClasses(b, [object, a]);
+    _assertSuperClasses(c, [object]);
+
+    _assertSuperClasses(m1, [object, a]);
+    _assertSuperClasses(m2, [object, a, b]);
+    _assertSuperClasses(m3, [object, a, m1]);
+    _assertSuperClasses(m4, [object, a, b, m2]);
+    _assertSuperClasses(m5, [object, a, c]);
+  }
+
+  void _assertSuperClasses(ClassElement element, List<ClassElement> expected) {
+    var supers = getSuperClasses(element);
+    expect(supers, unorderedEquals(expected));
+  }
+
+  Future<void> _indexTestUnit(String code) async {
     await resolveTestUnit(code);
   }
 }

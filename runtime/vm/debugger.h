@@ -7,8 +7,10 @@
 
 #include "include/dart_tools_api.h"
 
+#include "vm/kernel_isolate.h"
 #include "vm/object.h"
 #include "vm/port.h"
+#include "vm/scopes.h"
 #include "vm/service_event.h"
 #include "vm/simulator.h"
 
@@ -285,6 +287,7 @@ class ActivationFrame : public ZoneAllocated {
     ASSERT(!code_.IsNull());
     return code_;
   }
+  bool is_interpreted() const { return is_interpreted_; }
 
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
@@ -325,9 +328,16 @@ class ActivationFrame : public ZoneAllocated {
   const Context& GetSavedCurrentContext();
   RawObject* GetAsyncOperation();
 
-  RawObject* Evaluate(const String& expr,
-                      const GrowableObjectArray& names,
-                      const GrowableObjectArray& values);
+  RawTypeArguments* BuildParameters(
+      const GrowableObjectArray& param_names,
+      const GrowableObjectArray& param_values,
+      const GrowableObjectArray& type_params_names);
+
+  RawObject* EvaluateCompiledExpression(const uint8_t* kernel_bytes,
+                                        intptr_t kernel_length,
+                                        const Array& arguments,
+                                        const Array& type_definitions,
+                                        const TypeArguments& type_arguments);
 
   // Print the activation frame into |jsobj|. if |full| is false, script
   // and local variable objects are only references. if |full| is true,
@@ -380,7 +390,7 @@ class ActivationFrame : public ZoneAllocated {
     }
   }
 
-  RawObject* GetStackVar(intptr_t slot_index);
+  RawObject* GetStackVar(VariableIndex var_index);
   RawObject* GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
 
   uword pc_;
@@ -407,6 +417,7 @@ class ActivationFrame : public ZoneAllocated {
 
   Kind kind_;
 
+  bool is_interpreted_;  // Running under kernel bytecode interpreter.
   bool vars_initialized_;
   LocalVarDescriptors& var_descriptors_;
   ZoneGrowableArray<intptr_t> desc_indices_;
@@ -489,7 +500,6 @@ class Debugger {
   Breakpoint* SetBreakpointAtLineCol(const String& script_url,
                                      intptr_t line_number,
                                      intptr_t column_number);
-  RawError* OneTimeBreakAtEntry(const Function& target_function);
 
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,
@@ -652,7 +662,8 @@ class Debugger {
                                     TokenPosition token_pos,
                                     TokenPosition last_token_pos,
                                     intptr_t requested_line,
-                                    intptr_t requested_column);
+                                    intptr_t requested_column,
+                                    const Function& function);
   bool RemoveBreakpointFromTheList(intptr_t bp_id, BreakpointLocation** list);
   Breakpoint* GetBreakpointByIdInTheList(intptr_t id, BreakpointLocation* list);
   void RemoveUnlinkedCodeBreakpoints();

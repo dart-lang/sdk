@@ -4,28 +4,29 @@
 
 library fasta.source_class_builder;
 
-import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
-
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show ShadowClass;
-
 import 'package:kernel/ast.dart'
-    show Class, Constructor, Member, Supertype, TreeNode, setParents;
+    show Class, Constructor, Member, Supertype, TreeNode;
+
+import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
     show
+        noLength,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
-        templateConflictsWithSetter;
+        templateConflictsWithMemberWarning,
+        templateConflictsWithSetter,
+        templateConflictsWithSetterWarning,
+        templateSupertypeIsIllegal;
 
 import '../kernel/kernel_builder.dart'
     show
-        Builder,
-        ClassBuilder,
         ConstructorReferenceBuilder,
+        Declaration,
+        FieldBuilder,
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelFunctionBuilder,
@@ -38,31 +39,32 @@ import '../kernel/kernel_builder.dart'
         TypeVariableBuilder,
         compareProcedures;
 
-import '../problems.dart' show unexpected, unhandled;
+import '../kernel/kernel_shadow_ast.dart' show ShadowClass;
 
-import 'source_library_builder.dart' show SourceLibraryBuilder;
+import '../problems.dart' show unexpected, unhandled;
 
 ShadowClass initializeClass(
     ShadowClass cls,
     List<TypeVariableBuilder> typeVariables,
     String name,
     KernelLibraryBuilder parent,
+    int startCharOffset,
     int charOffset,
     int charEndOffset) {
-  cls ??= new ShadowClass(name: name);
+  cls ??= new ShadowClass(
+      name: name,
+      typeParameters:
+          KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
+              typeVariables));
   cls.fileUri ??= parent.fileUri;
+  if (cls.startFileOffset == TreeNode.noOffset) {
+    cls.startFileOffset = startCharOffset;
+  }
   if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
   }
   if (cls.fileEndOffset == TreeNode.noOffset) {
     cls.fileEndOffset = charEndOffset;
-  }
-
-  if (typeVariables != null) {
-    for (KernelTypeVariableBuilder t in typeVariables) {
-      cls.typeParameters.add(t.parameter);
-    }
-    setParents(cls.typeParameters, cls);
   }
 
   return cls;
@@ -76,6 +78,8 @@ class SourceClassBuilder extends KernelClassBuilder {
 
   KernelTypeBuilder mixedInType;
 
+  bool isMixinDeclaration;
+
   SourceClassBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -87,51 +91,77 @@ class SourceClassBuilder extends KernelClassBuilder {
       Scope constructors,
       LibraryBuilder parent,
       this.constructorReferences,
+      int startCharOffset,
       int charOffset,
       int charEndOffset,
-      [ShadowClass cls,
-      this.mixedInType])
-      : actualCls = initializeClass(
-            cls, typeVariables, name, parent, charOffset, charEndOffset),
+      {Class cls,
+      this.mixedInType,
+      this.isMixinDeclaration = false})
+      : actualCls = initializeClass(cls, typeVariables, name, parent,
+            startCharOffset, charOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset) {
     ShadowClass.setBuilder(this.cls, this);
   }
 
-  Class get cls => origin.actualCls;
+  @override
+  ShadowClass get cls => origin.actualCls;
+
+  @override
+  KernelLibraryBuilder get library => super.library;
 
   Class build(KernelLibraryBuilder library, LibraryBuilder coreLibrary) {
-    void buildBuilders(String name, Builder builder) {
+    void buildBuilders(String name, Declaration declaration) {
       do {
-        if (builder.parent != this) {
-          unexpected(
-              "$fileUri", "${builder.parent.fileUri}", charOffset, fileUri);
-        } else if (builder is KernelFieldBuilder) {
+        if (declaration.parent != this) {
+          if (fileUri != declaration.parent.fileUri) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          } else {
+            unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
+                charOffset, fileUri);
+          }
+        } else if (declaration is KernelFieldBuilder) {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.
-          Member field = builder.build(library);
-          if (!builder.isPatch) {
+          Member field = declaration.build(library);
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(field);
           }
-        } else if (builder is KernelFunctionBuilder) {
-          Member function = builder.build(library);
-          if (!builder.isPatch) {
+        } else if (declaration is KernelFunctionBuilder) {
+          Member function = declaration.build(library);
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(function);
           }
         } else {
-          unhandled("${builder.runtimeType}", "buildBuilders",
-              builder.charOffset, builder.fileUri);
+          unhandled("${declaration.runtimeType}", "buildBuilders",
+              declaration.charOffset, declaration.fileUri);
         }
-        builder = builder.next;
-      } while (builder != null);
+        declaration = declaration.next;
+      } while (declaration != null);
     }
 
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
     actualCls.supertype =
         supertype?.buildSupertype(library, charOffset, fileUri);
+    if (!isMixinDeclaration &&
+        actualCls.supertype != null &&
+        actualCls.superclass.isMixinDeclaration) {
+      // Declared mixins have interfaces that can be implemented, but they
+      // cannot be extended.  However, a mixin declaration with a single
+      // superclass constraint is encoded with the constraint as the supertype,
+      // and that is allowed to be a mixin's interface.
+      library.addProblem(
+          templateSupertypeIsIllegal.withArguments(actualCls.superclass.name),
+          charOffset,
+          noLength,
+          fileUri);
+      actualCls.supertype = null;
+    }
     actualCls.mixedInType =
-        mixedInType?.buildSupertype(library, charOffset, fileUri);
+        mixedInType?.buildMixedInType(library, charOffset, fileUri);
+    actualCls.isMixinDeclaration = isMixinDeclaration;
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
@@ -146,35 +176,56 @@ class SourceClassBuilder extends KernelClassBuilder {
       }
     }
 
-    constructors.forEach((String name, Builder constructor) {
-      Builder member = scopeBuilder[name];
+    constructors.forEach((String name, Declaration constructor) {
+      Declaration member = scopeBuilder[name];
       if (member == null) return;
-      // TODO(ahe): charOffset is missing.
-      addCompileTimeError(templateConflictsWithMember.withArguments(name),
-          constructor.charOffset);
+      if (!member.isStatic) return;
+      // TODO(ahe): Revisit these messages. It seems like the last two should
+      // be `context` parameter to this message.
+      addProblem(templateConflictsWithMember.withArguments(name),
+          constructor.charOffset, noLength);
       if (constructor.isFactory) {
-        addCompileTimeError(
+        addProblem(
             templateConflictsWithFactory.withArguments("${this.name}.${name}"),
-            member.charOffset);
+            member.charOffset,
+            noLength);
       } else {
-        addCompileTimeError(
+        addProblem(
             templateConflictsWithConstructor
                 .withArguments("${this.name}.${name}"),
-            member.charOffset);
+            member.charOffset,
+            noLength);
       }
     });
 
-    scope.setters.forEach((String name, Builder setter) {
-      Builder member = scopeBuilder[name];
-      if (member == null || !member.isField || member.isFinal) return;
-      // TODO(ahe): charOffset is missing.
-      var report = member.isInstanceMember != setter.isInstanceMember
-          ? addWarning
-          : addCompileTimeError;
-      report(
-          templateConflictsWithMember.withArguments(name), setter.charOffset);
-      report(
-          templateConflictsWithSetter.withArguments(name), member.charOffset);
+    scope.setters.forEach((String name, Declaration setter) {
+      Declaration member = scopeBuilder[name];
+      if (member == null ||
+          !(member.isField && !member.isFinal ||
+              member.isRegularMethod && member.isStatic && setter.isStatic))
+        return;
+      if (member.isInstanceMember == setter.isInstanceMember) {
+        addProblem(templateConflictsWithMember.withArguments(name),
+            setter.charOffset, noLength);
+        // TODO(ahe): Context argument to previous message?
+        addProblem(templateConflictsWithSetter.withArguments(name),
+            member.charOffset, noLength);
+      } else {
+        addProblem(templateConflictsWithMemberWarning.withArguments(name),
+            setter.charOffset, noLength);
+        // TODO(ahe): Context argument to previous message?
+        addProblem(templateConflictsWithSetterWarning.withArguments(name),
+            member.charOffset, noLength);
+      }
+    });
+
+    scope.setters.forEach((String name, Declaration setter) {
+      Declaration constructor = constructorScopeBuilder[name];
+      if (constructor == null || !setter.isStatic) return;
+      addProblem(templateConflictsWithConstructor.withArguments(name),
+          setter.charOffset, noLength);
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          constructor.charOffset, noLength);
     });
 
     cls.procedures.sort(compareProcedures);
@@ -191,17 +242,19 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 
   @override
-  void prepareTopLevelInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
-    scope.forEach((name, builder) {
-      builder.prepareTopLevelInference(library, this);
+  void prepareTopLevelInference() {
+    scope.forEach((String name, Declaration declaration) {
+      if (declaration is FieldBuilder) {
+        declaration.prepareTopLevelInference();
+      }
     });
+    cls.setupApiMembers(library.loader.interfaceResolver);
   }
 
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
-    scope.forEach((name, builder) {
-      builder.instrumentTopLevelInference(instrumentation);
+    scope.forEach((name, declaration) {
+      declaration.instrumentTopLevelInference(instrumentation);
     });
   }
 
@@ -214,11 +267,11 @@ class SourceClassBuilder extends KernelClassBuilder {
     cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
 
     int count = 0;
-    scope.forEach((String name, Builder builder) {
-      count += builder.finishPatch();
+    scope.forEach((String name, Declaration declaration) {
+      count += declaration.finishPatch();
     });
-    constructors.forEach((String name, Builder builder) {
-      count += builder.finishPatch();
+    constructors.forEach((String name, Declaration declaration) {
+      count += declaration.finishPatch();
     });
     return count;
   }

@@ -1,0 +1,7 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Setter not found: 'z'.
+  z = 2
+  ^
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:1: Error: Setter not found: 'z'.\nz = 2\n^";

@@ -5,8 +5,8 @@
 #ifndef RUNTIME_PLATFORM_TEXT_BUFFER_H_
 #define RUNTIME_PLATFORM_TEXT_BUFFER_H_
 
-#include "vm/allocation.h"
-#include "vm/globals.h"
+#include "platform/allocation.h"
+#include "platform/globals.h"
 
 namespace dart {
 

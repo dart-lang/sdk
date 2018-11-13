@@ -58,7 +58,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
-
   String get innerHtml {
     final e = new DivElement();
     e.append(this.clone(true));
@@ -90,31 +89,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this document fragment.
    */
-  void appendHtml(String text, {NodeValidator validator,
-      NodeTreeSanitizer, treeSanitizer}) {
+  void appendHtml(String text,
+        {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
     this.append(new DocumentFragment.html(text, validator: validator,
         treeSanitizer: treeSanitizer));
   }
-
-  /** 
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelector')
-  Element query(String relativeSelectors) {
-    return querySelector(relativeSelectors);
-  }
-
-  /** 
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelectorAll')
-  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
-    querySelectorAll(relativeSelectors);
 $!MEMBERS
 }

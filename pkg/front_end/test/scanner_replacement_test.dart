@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'package:front_end/src/fasta/scanner/recover.dart'
     show defaultRecoveryStrategy;
@@ -37,15 +37,13 @@ class ScannerTest_Replacement extends ScannerTestBase {
 
   @override
   analyzer.Token scanWithListener(String source, ErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
+      {bool lazyAssignmentOperators: false}) {
     // Process the source similar to
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
 
     fasta.ScannerResult result = fasta.scanString(source,
         includeComments: true,
-        scanGenericMethodComments: genericMethodComments,
         scanLazyAssignmentOperators: lazyAssignmentOperators,
         recover: ((List<int> bytes, fasta.Token tokens, List<int> lineStarts) {
       // perform recovery as a separate step
@@ -57,7 +55,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     assertValidTokenStream(tokens);
     assertValidBeginTokens(tokens);
     if (result.hasErrors) {
-      List<int> bytes = UTF8.encode(source);
+      List<int> bytes = utf8.encode(source);
       tokens = defaultRecoveryStrategy(bytes, tokens, result.lineStarts);
       assertValidTokenStream(tokens, errorsFirst: true);
     }
@@ -86,7 +84,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(open.isSynthetic, isFalse);
     expect(close.isSynthetic, isTrue);
     listener.assertErrors([
-      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, [expectedCloser]),
+      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [expectedCloser]),
     ]);
   }
 
@@ -176,8 +174,8 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(closeParen2.isSynthetic, isTrue);
     expect(eof.isEof, isTrue);
     listener.assertErrors([
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(6, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 
@@ -200,18 +198,15 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(eof.isEof, true);
 
     listener.assertErrors([
-      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
     ]);
   }
 
-  analyzer.Token _scan(String source,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
+  analyzer.Token _scan(String source, {bool lazyAssignmentOperators: false}) {
     ErrorListener listener = new ErrorListener();
     analyzer.Token token = scanWithListener(source, listener,
-        genericMethodComments: genericMethodComments,
         lazyAssignmentOperators: lazyAssignmentOperators);
     listener.assertNoErrors();
     return token;
@@ -229,9 +224,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
       token = token.next;
     }
     if (!token.previous.isEof) {
-      var head = new analyzer.Token.eof(-1);
-      token.previous = head;
-      head.next = token;
+      new analyzer.Token.eof(-1).setNext(token);
     }
     return token;
   }

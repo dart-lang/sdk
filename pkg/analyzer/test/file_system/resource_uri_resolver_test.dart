@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.file_system.resource_uri_resolver_test;
-
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -44,7 +42,9 @@ class ResourceUriResolverTest {
   void test_resolveAbsolute_folder() {
     var uri = provider.pathContext.toUri(provider.convertPath('/folder'));
     Source source = resolver.resolveAbsolute(uri);
-    expect(source, isNull);
+    expect(source, isNotNull);
+    expect(source.exists(), isFalse);
+    expect(source.fullName, provider.convertPath('/folder'));
   }
 
   void test_resolveAbsolute_notFile_dartUri() {

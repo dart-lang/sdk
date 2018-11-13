@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.utilities_test;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -29,7 +28,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstClonerTest);
     defineReflectiveTests(BooleanArrayTest);
-    defineReflectiveTests(DirectedGraphTest);
     defineReflectiveTests(ExceptionHandlingDelegatingAstVisitorTest);
     defineReflectiveTests(LineInfoTest);
     defineReflectiveTests(MultipleMapIteratorTest);
@@ -50,7 +48,6 @@ class AstCloneComparator extends AstComparator {
   bool isEqualNodes(AstNode first, AstNode second) {
     if (first != null && identical(first, second)) {
       fail('Failed to copy node: $first (${first.offset})');
-      return false;
     }
     return super.isEqualNodes(first, second);
   }
@@ -59,7 +56,6 @@ class AstCloneComparator extends AstComparator {
   bool isEqualTokens(Token first, Token second) {
     if (expectTokensCopied && first != null && identical(first, second)) {
       fail('Failed to copy token: ${first.lexeme} (${first.offset})');
-      return false;
     }
     if (first?.precedingComments != null) {
       CommentToken comment = first.precedingComments;
@@ -392,7 +388,7 @@ library l;''');
   }
 
   void test_visitDefaultFormalParameter_named_value() {
-    _assertCloneUnitMember('main({p : 0}) {}');
+    _assertCloneUnitMember('main({p: 0}) {}');
   }
 
   void test_visitDefaultFormalParameter_positional_noValue() {
@@ -912,7 +908,7 @@ library l;''');
   }
 
   void test_visitRethrowExpression() {
-    _assertCloneExpression('rethrow');
+    _assertCloneStatement('rethrow;');
   }
 
   void test_visitReturnStatement_expression() {
@@ -1187,7 +1183,7 @@ library l;''');
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(null, reader, listener);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = new Parser(NonExistingSource.unknown, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     listener.assertNoErrors();
@@ -1239,7 +1235,7 @@ library l;''');
       }
       // next tokens
       if (original is CommentToken) {
-        expect(clone, new isInstanceOf<CommentToken>());
+        expect(clone, new TypeMatcher<CommentToken>());
         skipOriginalComment = original;
         skipCloneComment = clone;
         original = (original as CommentToken).parent;
@@ -1331,271 +1327,6 @@ class BooleanArrayTest {
     expect(BooleanArray.set(1 << 30, 30, true), 1 << 30);
   }
 }
-
-@reflectiveTest
-class DirectedGraphTest extends EngineTestCase {
-  void test_addEdge() {
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    expect(graph.isEmpty, isTrue);
-    graph.addEdge(new DirectedGraphTest_Node(), new DirectedGraphTest_Node());
-    expect(graph.isEmpty, isFalse);
-  }
-
-  void test_addNode() {
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    expect(graph.isEmpty, isTrue);
-    graph.addNode(new DirectedGraphTest_Node());
-    expect(graph.isEmpty, isFalse);
-  }
-
-  void test_containsPath_noCycles() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node2, node3);
-    expect(graph.containsPath(node1, node1), isTrue);
-    expect(graph.containsPath(node1, node2), isTrue);
-    expect(graph.containsPath(node1, node3), isTrue);
-    expect(graph.containsPath(node2, node1), isFalse);
-    expect(graph.containsPath(node2, node2), isTrue);
-    expect(graph.containsPath(node2, node3), isTrue);
-    expect(graph.containsPath(node3, node1), isFalse);
-    expect(graph.containsPath(node3, node2), isFalse);
-    expect(graph.containsPath(node3, node3), isTrue);
-  }
-
-  void test_containsPath_withCycles() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node4 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node2, node1);
-    graph.addEdge(node1, node3);
-    graph.addEdge(node3, node4);
-    graph.addEdge(node4, node3);
-    expect(graph.containsPath(node1, node1), isTrue);
-    expect(graph.containsPath(node1, node2), isTrue);
-    expect(graph.containsPath(node1, node3), isTrue);
-    expect(graph.containsPath(node1, node4), isTrue);
-    expect(graph.containsPath(node2, node1), isTrue);
-    expect(graph.containsPath(node2, node2), isTrue);
-    expect(graph.containsPath(node2, node3), isTrue);
-    expect(graph.containsPath(node2, node4), isTrue);
-    expect(graph.containsPath(node3, node1), isFalse);
-    expect(graph.containsPath(node3, node2), isFalse);
-    expect(graph.containsPath(node3, node3), isTrue);
-    expect(graph.containsPath(node3, node4), isTrue);
-    expect(graph.containsPath(node4, node1), isFalse);
-    expect(graph.containsPath(node4, node2), isFalse);
-    expect(graph.containsPath(node4, node3), isTrue);
-    expect(graph.containsPath(node4, node4), isTrue);
-  }
-
-  void test_creation() {
-    expect(new DirectedGraph<DirectedGraphTest_Node>(), isNotNull);
-  }
-
-  void test_findCycleContaining_complexCycle() {
-    // Two overlapping loops: (1, 2, 3) and (3, 4, 5)
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node4 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node5 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node2, node3);
-    graph.addEdge(node3, node1);
-    graph.addEdge(node3, node4);
-    graph.addEdge(node4, node5);
-    graph.addEdge(node5, node3);
-    List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
-    expect(cycle, hasLength(5));
-    expect(cycle.contains(node1), isTrue);
-    expect(cycle.contains(node2), isTrue);
-    expect(cycle.contains(node3), isTrue);
-    expect(cycle.contains(node4), isTrue);
-    expect(cycle.contains(node5), isTrue);
-  }
-
-  void test_findCycleContaining_cycle() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node2, node3);
-    graph.addEdge(node2, new DirectedGraphTest_Node());
-    graph.addEdge(node3, node1);
-    graph.addEdge(node3, new DirectedGraphTest_Node());
-    List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
-    expect(cycle, hasLength(3));
-    expect(cycle.contains(node1), isTrue);
-    expect(cycle.contains(node2), isTrue);
-    expect(cycle.contains(node3), isTrue);
-  }
-
-  void test_findCycleContaining_notInGraph() {
-    DirectedGraphTest_Node node = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node);
-    expect(cycle, hasLength(1));
-    expect(cycle[0], node);
-  }
-
-  void test_findCycleContaining_null() {
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    expect(() => graph.findCycleContaining(null), throwsArgumentError);
-  }
-
-  void test_findCycleContaining_singleton() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node2, node3);
-    List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
-    expect(cycle, hasLength(1));
-    expect(cycle[0], node1);
-  }
-
-  void test_getNodeCount() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    expect(graph.nodeCount, 0);
-    graph.addNode(node1);
-    expect(graph.nodeCount, 1);
-    graph.addNode(node2);
-    expect(graph.nodeCount, 2);
-    graph.removeNode(node1);
-    expect(graph.nodeCount, 1);
-  }
-
-  void test_getTails() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    expect(graph.getTails(node1), hasLength(0));
-    graph.addEdge(node1, node2);
-    expect(graph.getTails(node1), hasLength(1));
-    graph.addEdge(node1, node3);
-    expect(graph.getTails(node1), hasLength(2));
-  }
-
-  void test_removeAllNodes() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    List<DirectedGraphTest_Node> nodes = new List<DirectedGraphTest_Node>();
-    nodes.add(node1);
-    nodes.add(node2);
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node2, node1);
-    expect(graph.isEmpty, isFalse);
-    graph.removeAllNodes(nodes);
-    expect(graph.isEmpty, isTrue);
-  }
-
-  void test_removeEdge() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node1, node3);
-    expect(graph.getTails(node1), hasLength(2));
-    graph.removeEdge(node1, node2);
-    expect(graph.getTails(node1), hasLength(1));
-  }
-
-  void test_removeNode() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node1, node3);
-    expect(graph.getTails(node1), hasLength(2));
-    graph.removeNode(node2);
-    expect(graph.getTails(node1), hasLength(1));
-  }
-
-  void test_removeSink() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    expect(graph.removeSink(), same(node2));
-    expect(graph.removeSink(), same(node1));
-    expect(graph.isEmpty, isTrue);
-  }
-
-  void test_topologicalSort_noCycles() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node1, node3);
-    graph.addEdge(node2, node3);
-    List<List<DirectedGraphTest_Node>> topologicalSort =
-        graph.computeTopologicalSort();
-    expect(topologicalSort, hasLength(3));
-    expect(topologicalSort[0], hasLength(1));
-    expect(topologicalSort[0][0], node3);
-    expect(topologicalSort[1], hasLength(1));
-    expect(topologicalSort[1][0], node2);
-    expect(topologicalSort[2], hasLength(1));
-    expect(topologicalSort[2][0], node1);
-  }
-
-  void test_topologicalSort_withCycles() {
-    DirectedGraphTest_Node node1 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
-    DirectedGraphTest_Node node4 = new DirectedGraphTest_Node();
-    DirectedGraph<DirectedGraphTest_Node> graph =
-        new DirectedGraph<DirectedGraphTest_Node>();
-    graph.addEdge(node1, node2);
-    graph.addEdge(node2, node1);
-    graph.addEdge(node1, node3);
-    graph.addEdge(node3, node4);
-    graph.addEdge(node4, node3);
-    List<List<DirectedGraphTest_Node>> topologicalSort =
-        graph.computeTopologicalSort();
-    expect(topologicalSort, hasLength(2));
-    expect(topologicalSort[0], unorderedEquals([node3, node4]));
-    expect(topologicalSort[1], unorderedEquals([node1, node2]));
-  }
-}
-
-/**
- * Instances of the class `Node` represent simple nodes used for testing purposes.
- */
-class DirectedGraphTest_Node {}
 
 @reflectiveTest
 class ExceptionHandlingDelegatingAstVisitorTest extends EngineTestCase {
@@ -2549,25 +2280,42 @@ class LineInfoTest {
     }, throwsArgumentError);
   }
 
-  void test_firstLine() {
+  void test_getLocation_firstLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(4);
+    CharacterLocation location = info.getLocation(4);
     expect(location.lineNumber, 1);
     expect(location.columnNumber, 5);
   }
 
-  void test_lastLine() {
+  void test_getLocation_lastLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(36);
+    CharacterLocation location = info.getLocation(36);
     expect(location.lineNumber, 3);
     expect(location.columnNumber, 3);
   }
 
-  void test_middleLine() {
+  void test_getLocation_middleLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(12);
+    CharacterLocation location = info.getLocation(12);
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
+  }
+
+  void test_getOffsetOfLine() {
+    LineInfo info = new LineInfo(<int>[0, 12, 34]);
+    expect(0, info.getOffsetOfLine(0));
+    expect(12, info.getOffsetOfLine(1));
+    expect(34, info.getOffsetOfLine(2));
+  }
+
+  void test_getOffsetOfLineAfter() {
+    LineInfo info = new LineInfo(<int>[0, 12, 34]);
+
+    expect(info.getOffsetOfLineAfter(0), 12);
+    expect(info.getOffsetOfLineAfter(11), 12);
+
+    expect(info.getOffsetOfLineAfter(12), 34);
+    expect(info.getOffsetOfLineAfter(33), 34);
   }
 }
 
@@ -2905,7 +2653,7 @@ class MultipleMapIteratorTest extends EngineTestCase {
 
   void test_singleMap_empty() {
     Map<String, String> map = new HashMap<String, String>();
-    MultipleMapIterator<String, String> iterator = _iterator(<Map>[map]);
+    MultipleMapIterator<String, String> iterator = _iterator([map]);
     expect(iterator.moveNext(), isFalse);
     expect(() => iterator.key, throwsStateError);
     expect(() => iterator.value, throwsStateError);
@@ -2941,7 +2689,8 @@ class MultipleMapIteratorTest extends EngineTestCase {
     expect(iterator.moveNext(), isFalse);
   }
 
-  MultipleMapIterator<String, String> _iterator(List<Map> maps) {
+  MultipleMapIterator<String, String> _iterator(
+      List<Map<String, String>> maps) {
     return new MultipleMapIterator<String, String>(maps);
   }
 }
@@ -3173,8 +2922,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_constructorFieldInitializer() {
-    ConstructorFieldInitializer node = AstTestFactory
-        .constructorFieldInitializer(false, "f", AstTestFactory.integer(0));
+    ConstructorFieldInitializer node =
+        AstTestFactory.constructorFieldInitializer(
+            false, "f", AstTestFactory.integer(0));
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_constructorFieldInitializer());
     _assertReplace(
@@ -3327,8 +3077,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_formalParameterList() {
-    FormalParameterList node = AstTestFactory
-        .formalParameterList([AstTestFactory.simpleFormalParameter3("p")]);
+    FormalParameterList node = AstTestFactory.formalParameterList(
+        [AstTestFactory.simpleFormalParameter3("p")]);
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_formalParameterList(0));
   }
@@ -3410,8 +3160,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_functionExpressionInvocation() {
-    FunctionExpressionInvocation node = AstTestFactory
-        .functionExpressionInvocation(
+    FunctionExpressionInvocation node =
+        AstTestFactory.functionExpressionInvocation(
             AstTestFactory.identifier3("f"), [AstTestFactory.integer(0)]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_functionExpressionInvocation());
@@ -3439,8 +3189,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_functionTypedFormalParameter() {
-    FunctionTypedFormalParameter node = AstTestFactory
-        .functionTypedFormalParameter(AstTestFactory.typeName4("R"), "f",
+    FunctionTypedFormalParameter node =
+        AstTestFactory.functionTypedFormalParameter(
+            AstTestFactory.typeName4("R"),
+            "f",
             [AstTestFactory.simpleFormalParameter3("p")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
@@ -3496,9 +3248,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_instanceCreationExpression() {
-    InstanceCreationExpression node = AstTestFactory
-        .instanceCreationExpression3(null, AstTestFactory.typeName4("C"), "c",
-            [AstTestFactory.integer(2)]);
+    InstanceCreationExpression node =
+        AstTestFactory.instanceCreationExpression3(null,
+            AstTestFactory.typeName4("C"), "c", [AstTestFactory.integer(2)]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_instanceCreationExpression_2());
     _assertReplace(
@@ -3524,8 +3276,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_labeledStatement() {
-    LabeledStatement node = AstTestFactory
-        .labeledStatement([AstTestFactory.label2("l")], AstTestFactory.block());
+    LabeledStatement node = AstTestFactory.labeledStatement(
+        [AstTestFactory.label2("l")], AstTestFactory.block());
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_labeledStatement(0));
     _assertReplace(node, new Getter_NodeReplacerTest_test_labeledStatement());
@@ -3634,8 +3386,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_partOfDirective() {
-    PartOfDirective node = AstTestFactory
-        .partOfDirective(AstTestFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective node = AstTestFactory.partOfDirective(
+        AstTestFactory.libraryIdentifier2(["lib"]));
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3670,8 +3422,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_redirectingConstructorInvocation() {
-    RedirectingConstructorInvocation node = AstTestFactory
-        .redirectingConstructorInvocation2("c", [AstTestFactory.integer(0)]);
+    RedirectingConstructorInvocation node =
+        AstTestFactory.redirectingConstructorInvocation2(
+            "c", [AstTestFactory.integer(0)]);
     _assertReplace(node,
         new Getter_NodeReplacerTest_test_redirectingConstructorInvocation());
     _assertReplace(node,
@@ -3710,8 +3463,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_superConstructorInvocation() {
-    SuperConstructorInvocation node = AstTestFactory
-        .superConstructorInvocation2("s", [AstTestFactory.integer(1)]);
+    SuperConstructorInvocation node =
+        AstTestFactory.superConstructorInvocation2(
+            "s", [AstTestFactory.integer(1)]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_superConstructorInvocation());
     _assertReplace(
@@ -3726,8 +3480,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_switchDefault() {
-    SwitchDefault node = AstTestFactory
-        .switchDefault([AstTestFactory.label2("l")], [AstTestFactory.block()]);
+    SwitchDefault node = AstTestFactory.switchDefault(
+        [AstTestFactory.label2("l")], [AstTestFactory.block()]);
     _testSwitchMember(node);
   }
 
@@ -3736,8 +3490,8 @@ class NodeReplacerTest extends EngineTestCase {
         AstTestFactory.switchStatement(AstTestFactory.identifier3("x"), [
       AstTestFactory.switchCase2([AstTestFactory.label2("l")],
           AstTestFactory.integer(0), [AstTestFactory.block()]),
-      AstTestFactory
-          .switchDefault([AstTestFactory.label2("l")], [AstTestFactory.block()])
+      AstTestFactory.switchDefault(
+          [AstTestFactory.label2("l")], [AstTestFactory.block()])
     ]);
     _assertReplace(node, new Getter_NodeReplacerTest_test_switchStatement());
     _assertReplace(
@@ -3751,8 +3505,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_topLevelVariableDeclaration() {
-    TopLevelVariableDeclaration node = AstTestFactory
-        .topLevelVariableDeclaration(null, AstTestFactory.typeName4("T"),
+    TopLevelVariableDeclaration node =
+        AstTestFactory.topLevelVariableDeclaration(
+            null,
+            AstTestFactory.typeName4("T"),
             [AstTestFactory.variableDeclaration("t")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
@@ -3830,8 +3586,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_variableDeclarationStatement() {
-    VariableDeclarationStatement node = AstTestFactory
-        .variableDeclarationStatement(null, AstTestFactory.typeName4("T"),
+    VariableDeclarationStatement node =
+        AstTestFactory.variableDeclarationStatement(
+            null,
+            AstTestFactory.typeName4("T"),
             [AstTestFactory.variableDeclaration("a")]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_variableDeclarationStatement());
@@ -4233,8 +3991,8 @@ class StringUtilitiesTest {
 
   void test_printListOfQuotedNames_five() {
     expect(
-        StringUtilities
-            .printListOfQuotedNames(<String>["a", "b", "c", "d", "e"]),
+        StringUtilities.printListOfQuotedNames(
+            <String>["a", "b", "c", "d", "e"]),
         "'a', 'b', 'c', 'd' and 'e'");
   }
 

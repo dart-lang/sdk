@@ -38,13 +38,13 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             client.read();
             break;
-          case RawSocketEvent.READ_CLOSED:
-            client.shutdown(SocketDirection.SEND);
+          case RawSocketEvent.readClosed:
+            client.shutdown(SocketDirection.send);
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.fail("No write event expected");
             break;
         }
@@ -71,19 +71,19 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
         var subscription;
         subscription = socket.listen((event) {
           switch (event) {
-            case RawSocketEvent.READ:
+            case RawSocketEvent.read:
               Expect.fail("No read event expected");
               break;
-            case RawSocketEvent.READ_CLOSED:
+            case RawSocketEvent.readClosed:
               done = true;
               doneCount++;
               checkDone();
               break;
-            case RawSocketEvent.WRITE:
+            case RawSocketEvent.write:
               // We don't care if this write succeeds, so we don't check
               // the return value (number of bytes written).
               socket.write([1, 2, 3]);
-              socket.shutdown(SocketDirection.SEND);
+              socket.shutdown(SocketDirection.send);
               break;
           }
         }, onDone: () {

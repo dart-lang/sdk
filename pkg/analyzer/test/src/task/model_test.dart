@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.model_test;
-
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,14 +28,14 @@ class AnalysisTaskTest extends EngineTestCase {
     AnalysisTask task = new TestAnalysisTask(null, target);
     task.inputs = {'a': 'b'};
     expect(() => task.getRequiredInput('c'),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   test_getRequiredInput_noInputs() {
     AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
     expect(() => task.getRequiredInput('x'),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   test_getRequiredInput_valid() {
@@ -105,8 +103,8 @@ class SimpleResultCachingPolicyTest extends EngineTestCase {
 class TaskDescriptorImplTest extends EngineTestCase {
   test_create_noOptionalArgs() {
     String name = 'name';
-    BuildTask buildTask = (context, target) {};
-    CreateTaskInputs createTaskInputs = (target) {};
+    BuildTask buildTask = (context, target) => null;
+    CreateTaskInputs createTaskInputs = (target) => null;
     List<ResultDescriptor> results = <ResultDescriptor>[];
     TaskDescriptorImpl descriptor =
         new TaskDescriptorImpl(name, buildTask, createTaskInputs, results);
@@ -120,8 +118,8 @@ class TaskDescriptorImplTest extends EngineTestCase {
 
   test_create_withIsAppropriateFor() {
     String name = 'name';
-    BuildTask buildTask = (context, target) {};
-    CreateTaskInputs createTaskInputs = (target) {};
+    BuildTask buildTask = (context, target) => null;
+    CreateTaskInputs createTaskInputs = (target) => null;
     List<ResultDescriptor> results = <ResultDescriptor>[];
     SuitabilityFor suitabilityFor = (target) => TaskSuitability.NONE;
     TaskDescriptorImpl descriptor = new TaskDescriptorImpl(
@@ -138,7 +136,7 @@ class TaskDescriptorImplTest extends EngineTestCase {
   test_createTask() {
     BuildTask buildTask =
         (context, target) => new TestAnalysisTask(context, target);
-    CreateTaskInputs createTaskInputs = (target) {};
+    CreateTaskInputs createTaskInputs = (target) => null;
     List<ResultDescriptor> results = <ResultDescriptor>[];
     TaskDescriptorImpl descriptor =
         new TaskDescriptorImpl('name', buildTask, createTaskInputs, results);

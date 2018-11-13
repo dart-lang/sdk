@@ -4,6 +4,7 @@
 
 #include "vm/code_descriptors.h"
 
+#include "vm/compiler/compiler_state.h"
 #include "vm/log.h"
 
 namespace dart {
@@ -14,8 +15,7 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    TokenPosition token_pos,
                                    intptr_t try_index) {
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
-         (kind == RawPcDescriptors::kOther) ||
-         (deopt_id != Thread::kNoDeoptId));
+         (kind == RawPcDescriptors::kOther) || (deopt_id != DeoptId::kNone));
 
   // When precompiling, we only use pc descriptors for exceptions.
   if (!FLAG_precompiled_mode || try_index != -1) {
@@ -24,13 +24,15 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
 
     PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
     PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
-    PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
-    PcDescriptors::EncodeInteger(&encoded_data_,
-                                 token_pos.value() - prev_token_pos);
-
     prev_pc_offset = pc_offset;
-    prev_deopt_id = deopt_id;
-    prev_token_pos = token_pos.value();
+
+    if (!FLAG_precompiled_mode) {
+      PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
+      PcDescriptors::EncodeInteger(&encoded_data_,
+                                   token_pos.value() - prev_token_pos);
+      prev_deopt_id = deopt_id;
+      prev_token_pos = token_pos.value();
+    }
   }
 }
 
@@ -110,18 +112,19 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
   return handlers.raw();
 }
 
-static uint8_t* zone_allocator(uint8_t* ptr,
-                               intptr_t old_size,
-                               intptr_t new_size) {
+static uint8_t* ZoneAllocator(uint8_t* ptr,
+                              intptr_t old_size,
+                              intptr_t new_size) {
   Zone* zone = Thread::Current()->zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
-class CatchEntryStateMapBuilder::TrieNode : public ZoneAllocated {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class CatchEntryMovesMapBuilder::TrieNode : public ZoneAllocated {
  public:
-  TrieNode() : pair_(), entry_state_offset_(-1) {}
-  TrieNode(CatchEntryStatePair pair, intptr_t index)
-      : pair_(pair), entry_state_offset_(index) {}
+  TrieNode() : move_(), entry_state_offset_(-1) {}
+  TrieNode(CatchEntryMove move, intptr_t index)
+      : move_(move), entry_state_offset_(index) {}
 
   intptr_t Offset() { return entry_state_offset_; }
 
@@ -130,42 +133,36 @@ class CatchEntryStateMapBuilder::TrieNode : public ZoneAllocated {
     return node;
   }
 
-  TrieNode* Follow(CatchEntryStatePair next) {
+  TrieNode* Follow(CatchEntryMove next) {
     for (intptr_t i = 0; i < children_.length(); i++) {
-      if (children_[i]->pair_ == next) return children_[i];
+      if (children_[i]->move_ == next) return children_[i];
     }
     return NULL;
   }
 
  private:
-  CatchEntryStatePair pair_;
+  CatchEntryMove move_;
   const intptr_t entry_state_offset_;
   GrowableArray<TrieNode*> children_;
 };
 
-CatchEntryStateMapBuilder::CatchEntryStateMapBuilder()
+CatchEntryMovesMapBuilder::CatchEntryMovesMapBuilder()
     : zone_(Thread::Current()->zone()),
       root_(new TrieNode()),
       current_pc_offset_(0),
       buffer_(NULL),
-      stream_(&buffer_, zone_allocator, 64) {}
+      stream_(&buffer_, ZoneAllocator, 64) {}
 
-void CatchEntryStateMapBuilder::AppendMove(intptr_t src_slot,
-                                           intptr_t dest_slot) {
-  moves_.Add(CatchEntryStatePair::FromMove(src_slot, dest_slot));
+void CatchEntryMovesMapBuilder::Append(const CatchEntryMove& move) {
+  moves_.Add(move);
 }
 
-void CatchEntryStateMapBuilder::AppendConstant(intptr_t pool_id,
-                                               intptr_t dest_slot) {
-  moves_.Add(CatchEntryStatePair::FromConstant(pool_id, dest_slot));
-}
-
-void CatchEntryStateMapBuilder::NewMapping(intptr_t pc_offset) {
+void CatchEntryMovesMapBuilder::NewMapping(intptr_t pc_offset) {
   moves_.Clear();
   current_pc_offset_ = pc_offset;
 }
 
-void CatchEntryStateMapBuilder::EndMapping() {
+void CatchEntryMovesMapBuilder::EndMapping() {
   intptr_t suffix_length = 0;
   TrieNode* suffix = root_;
   // Find the largest common suffix, get the last node of the path.
@@ -187,8 +184,7 @@ void CatchEntryStateMapBuilder::EndMapping() {
   // Write the unshared part, adding it to the trie.
   TrieNode* node = suffix;
   for (intptr_t i = length - 1; i >= 0; i--) {
-    Writer::Write(&stream_, moves_[i].src);
-    Writer::Write(&stream_, moves_[i].dest);
+    moves_[i].WriteTo(&stream_);
 
     TrieNode* child = new (zone_) TrieNode(moves_[i], current_offset);
     node->Insert(child);
@@ -196,7 +192,7 @@ void CatchEntryStateMapBuilder::EndMapping() {
   }
 }
 
-RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
+RawTypedData* CatchEntryMovesMapBuilder::FinalizeCatchEntryMovesMap() {
   TypedData& td = TypedData::Handle(TypedData::New(
       kTypedDataInt8ArrayCid, stream_.bytes_written(), Heap::kOld));
   NoSafepointScope no_safepoint;
@@ -207,6 +203,7 @@ RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
   }
   return td.raw();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 const TokenPosition CodeSourceMapBuilder::kInitialPosition =
     TokenPosition(TokenPosition::kDartCodeProloguePos);
@@ -228,7 +225,7 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
       inlined_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld))),
       buffer_(NULL),
-      stream_(&buffer_, zone_allocator, 64),
+      stream_(&buffer_, ZoneAllocator, 64),
       stack_traces_only_(stack_traces_only) {
   buffered_inline_id_stack_.Add(0);
   buffered_token_pos_stack_.Add(kInitialPosition);
@@ -366,6 +363,15 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
   }
 }
 
+void CodeSourceMapBuilder::NoteNullCheck(int32_t pc_offset,
+                                         TokenPosition pos,
+                                         intptr_t name_index) {
+  BufferChangePosition(pos);
+  BufferAdvancePC(pc_offset - buffered_pc_offset_);
+  FlushBuffer();
+  WriteNullCheck(name_index);
+}
+
 intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
   const Function& function = *inline_id_to_function_[inline_id];
   for (intptr_t i = 0; i < inlined_functions_.Length(); i++) {
@@ -373,6 +379,7 @@ intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
       return i;
     }
   }
+  RELEASE_ASSERT(!function.IsNull());
   inlined_functions_.Add(function, Heap::kOld);
   return inlined_functions_.Length() - 1;
 }
@@ -458,6 +465,10 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
         token_positions->RemoveLast();
         break;
       }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
+        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -515,6 +526,10 @@ void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
         function_stack.RemoveLast();
         break;
       }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
+        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -560,6 +575,10 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
         // We never pop the root function.
         ASSERT(function_stack.length() > 1);
         function_stack.RemoveLast();
+        break;
+      }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
         break;
       }
       default:
@@ -616,11 +635,60 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
         token_positions.RemoveLast();
         break;
       }
+      case CodeSourceMapBuilder::kNullCheck: {
+        const intptr_t name_index = stream.Read<int32_t>();
+        THR_Print("%" Px "-%" Px ": null check PP#%" Pd "\n",
+                  start + current_pc_offset, start + current_pc_offset,
+                  name_index);
+        break;
+      }
       default:
         UNREACHABLE();
     }
   }
   THR_Print("}\n");
+}
+
+intptr_t CodeSourceMapReader::GetNullCheckNameIndexAt(int32_t pc_offset) {
+  NoSafepointScope no_safepoint;
+  ReadStream stream(map_.Data(), map_.Length());
+
+  int32_t current_pc_offset = 0;
+
+  while (stream.PendingBytes() > 0) {
+    uint8_t opcode = stream.Read<uint8_t>();
+    switch (opcode) {
+      case CodeSourceMapBuilder::kChangePosition: {
+        stream.Read<int32_t>();
+        break;
+      }
+      case CodeSourceMapBuilder::kAdvancePC: {
+        int32_t delta = stream.Read<int32_t>();
+        current_pc_offset += delta;
+        RELEASE_ASSERT(current_pc_offset <= pc_offset);
+        break;
+      }
+      case CodeSourceMapBuilder::kPushFunction: {
+        stream.Read<int32_t>();
+        break;
+      }
+      case CodeSourceMapBuilder::kPopFunction: {
+        break;
+      }
+      case CodeSourceMapBuilder::kNullCheck: {
+        const int32_t name_index = stream.Read<int32_t>();
+        if (current_pc_offset == pc_offset) {
+          return name_index;
+        }
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  UNREACHABLE();
+  return -1;
 }
 
 }  // namespace dart

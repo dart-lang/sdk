@@ -155,9 +155,13 @@ class String{}class List{}class test <X extends !1String!2> {}''',
 class String{}class List{}class DateTime{}typedef T Y<T extends !1>(List input);''',
         <String>["1+DateTime", "1+String"]);
 
-    buildTests('testCommentSnippets029', '''
+    // https://github.com/dart-lang/sdk/issues/33992
+    buildTests(
+        'testCommentSnippets029',
+        '''
 interface A<X> default B<X extends !1List!2> {}''',
-        <String>["1+DateTime", "2+List"]);
+        <String>["1+DateTime", "2+List"],
+        failingTests: '12');
 
     buildTests(
         'testCommentSnippets030',
@@ -294,27 +298,6 @@ void r() {
   }
 }''', <String>["1+toUpperCase", "2-getKeys"]);
 
-    // Type propagation.
-    buildTests('testCommentSnippets053', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void r() {
-  var v;
-  while (v is String) {
-    v.!1toUpperCase;
-    v.!2getKeys;
-  }
-}''', <String>["1+toUpperCase", "2-getKeys"]);
-
-    buildTests('testCommentSnippets054', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void r() {
-  var v;
-  for (; v is String; v.!1isEmpty) {
-    v.!2toUpperCase;
-    v.!3getKeys;
-  }
-}''', <String>["1+isEmpty", "2+toUpperCase", "3-getKeys"]);
-
     buildTests('testCommentSnippets055', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
@@ -323,25 +306,6 @@ void r() {
     v.!1toUpperCase;
   }
 }''', <String>["1+toUpperCase"]);
-
-    // Type propagation.
-    buildTests('testCommentSnippets056', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void f(var v) {
-  if (v is!! String) {
-    return;
-  }
-  v.!1toUpperCase;
-}''', <String>["1+toUpperCase"]);
-
-    // Type propagation.
-    buildTests('testCommentSnippets057', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void f(var v) {
-  if ((v as String).!2length == 0) {
-    v.!1toUpperCase;
-  }
-}''', <String>["1+toUpperCase", "2+length"]);
 
     buildTests(
         'testCommentSnippets058',
@@ -371,15 +335,6 @@ class Z {
     buildTests('testCommentSnippets061', '''
 class A{m(){!1f(3);!2}}n(){!3f(3);!4}f(x)=>x*3;''',
         <String>["1+f", "1+n", "2+f", "2+n", "3+f", "3+n", "4+f", "4+n"]);
-
-    // Type propagation.
-    buildTests('testCommentSnippets063', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void r(var v) {
-  v.!1toUpperCase;
-  assert(v is String);
-  v.!2toUpperCase;
-}''', <String>["1-toUpperCase", "2+toUpperCase"]);
 
     buildTests('testCommentSnippets064', '''
 class Spline {
@@ -643,12 +598,17 @@ class Foo {this.!1}''',
         <String>["1-Object"],
         failingTests: '1');
 
-    buildTests('testCommentSnippets082', '''
+    // https://github.com/dart-lang/sdk/issues/33992
+    buildTests(
+        'testCommentSnippets082',
+        '''
         class HttpRequest {}
         class HttpResponse {}
         main() {
           var v = (HttpRequest req, HttpResp!1)
-        }''', <String>["1+HttpResponse"]);
+        }''',
+        <String>["1+HttpResponse"],
+        failingTests: '1');
 
     buildTests('testCommentSnippets083', '''
 main() {(.!1)}''', <String>["1-toString"]);
@@ -781,21 +741,17 @@ main() {
         <String>["1+fooConst", "1-fooNotConst", "1-bar"],
         failingTests: '1');
 
-    buildTests(
-        'testCompletion_annotation_type',
-        '''
+    buildTests('testCompletion_annotation_type', '''
 class AAA {
   const AAA({int a, int b});
   const AAA.nnn(int c, int d);
 }
 @AAA!1
 main() {
-}''',
-        <String>[
-          "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
-          "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
-        ],
-        failingTests: '1');
+}''', <String>[
+      "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
+      "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
+    ]);
 
     buildTests('testCompletion_annotation_type_inClass_withoutMember', '''
 class AAA {
@@ -804,7 +760,9 @@ class AAA {
 
 class C {
   @A!1
-}''', <String>["1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/]);
+}''', <String>[
+      "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/
+    ]);
 
     buildTests('testCompletion_argument_typeName', '''
 class Enum {
@@ -1069,9 +1027,13 @@ class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}''',
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}''',
         <String>["1+String"]);
 
-    buildTests('testCompletion_function_partial', '''
+    // https://github.com/dart-lang/sdk/issues/33992
+    buildTests(
+        'testCompletion_function_partial',
+        '''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1)); }}''',
-        <String>["1+String"]);
+        <String>["1+String"],
+        failingTests: '1');
 
     buildTests(
         'testCompletion_functionTypeParameter_namedArgument',
@@ -1247,12 +1209,17 @@ main(p) {
       "4-isVariable"
     ]);
 
-    buildTests('testCompletion_is_asIdentifierStart', '''
+    // https://github.com/dart-lang/sdk/issues/33992
+    buildTests(
+        'testCompletion_is_asIdentifierStart',
+        '''
 main(p) {
   var isVisible;
   var v1 = is!1;
   var v2 = is!2
-}''', <String>["1+isVisible", "2+isVisible"]);
+}''',
+        <String>["1+isVisible", "2+isVisible"],
+        failingTests: '12');
 
     buildTests('testCompletion_is_asPrefixedIdentifierStart', '''
 class A {
@@ -1655,25 +1622,17 @@ main() {
         extraFiles: sources,
         failingTests: '1');
 
-    buildTests(
-        'test_importPrefix_hideCombinator',
-        '''
+    buildTests('test_importPrefix_hideCombinator', '''
 import 'dart:math' as math hide PI;
 main() {
   math.!1
-}''',
-        <String>["1-PI", "1+LN10"],
-        failingTests: '1');
+}''', <String>["1-PI", "1+LN10"]);
 
-    buildTests(
-        'test_importPrefix_showCombinator',
-        '''
+    buildTests('test_importPrefix_showCombinator', '''
 import 'dart:math' as math show PI;
 main() {
   math.!1
-}''',
-        <String>["1+PI", "1-LN10"],
-        failingTests: '1');
+}''', <String>["1+PI", "1-LN10"]);
 
     sources.clear();
     sources["/lib.dart"] = '''
@@ -2153,7 +2112,7 @@ class Q {
           "6+for",
           "7+switch",
           "8+case",
-          "9+default",
+          "9+default:",
           "A+try",
           "B+on",
           "C+catch",
@@ -2291,7 +2250,9 @@ class T {
     buildTests(
         'test027', '''m(){try{}catch(eeee,ssss){s!1}''', <String>["1+ssss"]);
 
-    buildTests('test028', '''m(){var isX=3;if(is!1)''', <String>["1+isX"]);
+    // https://github.com/dart-lang/sdk/issues/33992
+    buildTests('test028', '''m(){var isX=3;if(is!1)''', <String>["1+isX"],
+        failingTests: '1');
 
     buildTests('test029', '''m(){[1].forEach((x)=>!1x);}''', <String>["1+x"]);
 
@@ -2367,8 +2328,7 @@ class A {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test035', '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"],
-        failingTests: '1');
+        <String>["1+length"]);
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
@@ -2469,7 +2429,7 @@ class A<Z extends X> {
    *
    * Optional argument [failingTests], if given, is a string, each character of
    * which corresponds to an X in the [originalSource] for which the test is
-   * expected to fail.  This sould be used to mark known completion bugs that
+   * expected to fail.  This should be used to mark known completion bugs that
    * have not yet been fixed.
    */
   void buildTests(String baseName, String originalSource, List<String> results,

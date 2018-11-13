@@ -8,23 +8,23 @@ library test;
 class B {
   Object _x;
   void f([num x = 10]) {
-    /*@callKind=this*/ _x = x;
+    _x = x;
   }
 
   void g({num x = 20}) {
-    /*@callKind=this*/ _x = x;
+    _x = x;
   }
 
   void check(Object expectedValue) {
-    if (/*@callKind=this*/ _x != expectedValue) {
-      throw 'Expected _x == $expectedValue; got ${/*@callKind=this*/_x}';
+    if (_x != expectedValue) {
+      throw 'Expected _x == $expectedValue; got ${_x}';
     }
   }
 }
 
 abstract class I<T> {
-  void f([T /*@covariance=genericInterface, genericImpl*/ x]);
-  void g({T /*@covariance=genericInterface, genericImpl*/ x});
+  void f([T /*@covariance=genericImpl*/ x]);
+  void g({T /*@covariance=genericImpl*/ x});
 }
 
 class

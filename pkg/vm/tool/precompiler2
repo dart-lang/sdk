@@ -9,19 +9,34 @@
 
 # Parse incoming arguments and extract the value of --packages option if any
 # was passed. Split options (--xyz) and non-options into two separate arrays.
-# All options will be passed to dart_bootstrap, while --packages will be
+# All options will be passed to gen_snapshot, while --packages will be
 # passed to Fasta.
 
 set -e
+set -x
 
 OPTIONS=()
+GEN_KERNEL_OPTIONS=()
 PACKAGES=
+BUILD_ELF=0
 
 ARGV=()
 for arg in "$@"; do
   case $arg in
     --packages=*)
     PACKAGES="$arg"
+    ;;
+    --enable-asserts)
+    GEN_KERNEL_OPTIONS+=("$arg")
+    OPTIONS+=("$arg")
+    ;;
+    --tfa | \
+    --no-tfa | \
+    -D* )
+    GEN_KERNEL_OPTIONS+=("$arg")
+    ;;
+    --build-elf)
+    BUILD_ELF=1
     ;;
     --*)
     OPTIONS+=("$arg")
@@ -39,6 +54,14 @@ fi
 
 SOURCE_FILE="${ARGV[0]}"
 SNAPSHOT_FILE="${ARGV[1]}"
+
+if [ $BUILD_ELF -eq 1 ]; then
+  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-assembly"
+  GEN_SNAPSHOT_FILENAME="--assembly=${SNAPSHOT_FILE}.S"
+else
+  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-blobs"
+  GEN_SNAPSHOT_FILENAME="--blobs_container_filename=${SNAPSHOT_FILE}"
+fi
 
 function follow_links() {
   file="$1"
@@ -68,21 +91,22 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 # Step 1: Generate Kernel binary from the input Dart source.
 "$BIN_DIR"/dart                                                                \
-     --limit-ints-to-64-bits                                                   \
      "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
      --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
      --aot                                                                     \
+     "${GEN_KERNEL_OPTIONS[@]}"                                                \
      $PACKAGES                                                                 \
      -o "$SNAPSHOT_FILE.dill"                                                  \
      "$SOURCE_FILE"
 
 # Step 2: Generate snapshot from the Kernel binary.
-exec "$BIN_DIR"/dart_bootstrap                                                 \
-     --strong                                                                  \
-     --reify-generic-functions                                                 \
-     --limit-ints-to-64-bits                                                   \
-     --snapshot-kind=app-aot                                                   \
-     --use-blobs                                                               \
-     --snapshot="$SNAPSHOT_FILE"                                               \
+"$BIN_DIR"/gen_snapshot                                                        \
+     "$GEN_SNAPSHOT_OPTION"                                                    \
+     "$GEN_SNAPSHOT_FILENAME"                                                  \
      "${OPTIONS[@]}"                                                           \
      "$SNAPSHOT_FILE.dill"
+
+# Step 3: Assemble the assembly file into an ELF object.
+if [ $BUILD_ELF -eq 1 ]; then
+    gcc -shared -o "$SNAPSHOT_FILE" "${SNAPSHOT_FILE}.S"
+fi

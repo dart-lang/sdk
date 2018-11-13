@@ -256,7 +256,7 @@ main() {
       final cy = 20;
       // Arc centered at (20, 20) with radius 10 will go clockwise
       // from (20 + r, 20) to (20, 20 + r), which is 1/4 of a circle.
-      context.arc(cx, cy, r, 0, PI / 2);
+      context.arc(cx, cy, r, 0, pi / 2);
 
       context.strokeStyle = 'green';
       context.lineWidth = 2;
@@ -276,19 +276,19 @@ main() {
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be filled.
       expectPixelFilled(
-          (cx + r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), true);
+          (cx + r / sqrt2).toInt(), (cy + r / sqrt2).toInt(), true);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be empty.
       expectPixelFilled(
-          (cx - r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), false);
+          (cx - r / sqrt2).toInt(), (cy + r / sqrt2).toInt(), false);
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be empty.
       expectPixelFilled(
-          (cx - r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), false);
+          (cx - r / sqrt2).toInt(), (cy - r / sqrt2).toInt(), false);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be empty.
       expectPixelFilled(
-          (cx + r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), false);
+          (cx + r / sqrt2).toInt(), (cy - r / sqrt2).toInt(), false);
     });
 
     test('arc anticlockwise', () {
@@ -303,7 +303,7 @@ main() {
       // Because of the way arc work, when going anti-clockwise, the end points
       // are not included, so small values are added to radius to make a little
       // more than a 3/4 circle.
-      context.arc(cx, cy, r, .1, PI / 2 - .1, true);
+      context.arc(cx, cy, r, .1, pi / 2 - .1, true);
 
       context.strokeStyle = 'green';
       context.lineWidth = 2;
@@ -323,19 +323,19 @@ main() {
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be empty.
       expectPixelFilled(
-          (cx + r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), false);
+          (cx + r / sqrt2).toInt(), (cy + r / sqrt2).toInt(), false);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be filled.
       expectPixelFilled(
-          (cx - r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), true);
+          (cx - r / sqrt2).toInt(), (cy + r / sqrt2).toInt(), true);
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be filled.
       expectPixelFilled(
-          (cx - r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), true);
+          (cx - r / sqrt2).toInt(), (cy - r / sqrt2).toInt(), true);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be filled.
       expectPixelFilled(
-          (cx + r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), true);
+          (cx + r / sqrt2).toInt(), (cy - r / sqrt2).toInt(), true);
     });
   });
 
@@ -431,8 +431,8 @@ main() {
   //   avconv -i small.mp4 small.webm
   //   python -m base64 -e small.mp4
   //   python -m base64 -e small.webm
-  var mp4VideoUrl = '/root_dart/tests/html/small.mp4';
-  var webmVideoUrl = '/root_dart/tests/html/small.webm';
+  var mp4VideoUrl = '/root_dart/tests/lib_2/html/small.mp4';
+  var webmVideoUrl = '/root_dart/tests/lib_2/html/small.webm';
   var mp4VideoDataUrl =
       'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAA'
       'AIZnJlZQAAAsdtZGF0AAACmwYF//+X3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlID'

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:path/path.dart' show join;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetGeneralSubscriptionsTest);
-    defineReflectiveTests(SetGeneralSubscriptionsTest_PreviewDart2);
   });
 }
 
@@ -35,14 +35,8 @@ class Foo {
     expect(lastAnalyzedFiles, isNotEmpty);
     expect(lastAnalyzedFiles, contains(pathname));
     expect(
-        lastAnalyzedFiles.any((String file) => file.endsWith('core/core.dart')),
+        lastAnalyzedFiles
+            .any((String file) => file.endsWith(join('core', 'core.dart'))),
         true);
   }
-}
-
-@reflectiveTest
-class SetGeneralSubscriptionsTest_PreviewDart2
-    extends SetGeneralSubscriptionsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

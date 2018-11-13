@@ -37,7 +37,7 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
     assert(vm != null);
     assert(events != null);
     NavVMMenuElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavVMMenuElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     return e;
@@ -58,17 +58,19 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _updatesSubscription.cancel();
   }
 
   void render() {
-    final content = (_vm.isolates.map((isolate) {
+    final content = (_vm.isolates.map<Element>((isolate) {
       return new NavMenuItemElement(isolate.name,
           queue: _r.queue, link: Uris.inspect(isolate));
     }).toList()
       ..addAll(_content));
-    children = [navMenu(vm.displayName, link: Uris.vm(), content: content)];
+    children = <Element>[
+      navMenu(vm.displayName, link: Uris.vm(), content: content)
+    ];
   }
 }

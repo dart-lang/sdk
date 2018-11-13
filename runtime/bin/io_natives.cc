@@ -19,6 +19,7 @@ namespace bin {
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
+  V(CLI_WaitForEvent, 1)                                                       \
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(Directory_Create, 2)                                                       \
   V(Directory_CreateTemp, 2)                                                   \
@@ -130,7 +131,7 @@ namespace bin {
   V(SocketBase_IsBindError, 2)                                                 \
   V(Socket_Available, 1)                                                       \
   V(Socket_CreateBindConnect, 4)                                               \
-  V(Socket_CreateBindDatagram, 4)                                              \
+  V(Socket_CreateBindDatagram, 6)                                              \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
@@ -145,14 +146,14 @@ namespace bin {
   V(Socket_RecvFrom, 1)                                                        \
   V(Socket_SendTo, 6)                                                          \
   V(Socket_SetOption, 4)                                                       \
-  V(Socket_SetSocketId, 2)                                                     \
+  V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
-  V(Stdin_ReadByte, 0)                                                         \
-  V(Stdin_GetEchoMode, 0)                                                      \
-  V(Stdin_SetEchoMode, 1)                                                      \
-  V(Stdin_GetLineMode, 0)                                                      \
-  V(Stdin_SetLineMode, 1)                                                      \
-  V(Stdin_AnsiSupported, 0)                                                    \
+  V(Stdin_ReadByte, 1)                                                         \
+  V(Stdin_GetEchoMode, 1)                                                      \
+  V(Stdin_SetEchoMode, 2)                                                      \
+  V(Stdin_GetLineMode, 1)                                                      \
+  V(Stdin_SetLineMode, 2)                                                      \
+  V(Stdin_AnsiSupported, 1)                                                    \
   V(Stdout_GetTerminalSize, 1)                                                 \
   V(Stdout_AnsiSupported, 1)                                                   \
   V(StringToSystemEncoding, 1)                                                 \
@@ -168,6 +169,9 @@ namespace bin {
   V(SynchronousSocket_ReadList, 4)                                             \
   V(SynchronousSocket_WriteList, 4)                                            \
   V(SystemEncodingToString, 1)                                                 \
+  V(X509_Der, 1)                                                               \
+  V(X509_Pem, 1)                                                               \
+  V(X509_Sha1, 1)                                                              \
   V(X509_Subject, 1)                                                           \
   V(X509_Issuer, 1)                                                            \
   V(X509_StartValidity, 1)                                                     \

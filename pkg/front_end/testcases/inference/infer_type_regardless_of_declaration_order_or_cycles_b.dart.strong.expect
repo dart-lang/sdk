@@ -1,9 +1,16 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//   String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C::x*/ x;
+//                                                                     ^
+
 library;
 import self as self;
 import "./infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
 
 class B extends test::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B
     : super test::A::•()
     ;
 }

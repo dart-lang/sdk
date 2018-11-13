@@ -4,8 +4,7 @@
 
 library fasta.kernel_formal_parameter_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show ShadowVariableDeclaration;
+import 'package:kernel/ast.dart' show VariableDeclaration;
 
 import '../modifier.dart' show finalMask;
 
@@ -16,13 +15,11 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         MetadataBuilder;
 
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
+import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
-  ShadowVariableDeclaration declaration;
-  final int charOffset;
+  VariableDeclaration declaration;
 
   KernelFormalParameterBuilder(
       List<MetadataBuilder> metadata,
@@ -31,25 +28,22 @@ class KernelFormalParameterBuilder
       String name,
       bool hasThis,
       KernelLibraryBuilder compilationUnit,
-      this.charOffset)
+      int charOffset)
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
-  ShadowVariableDeclaration get target => declaration;
+  VariableDeclaration get target => declaration;
 
-  ShadowVariableDeclaration build(SourceLibraryBuilder library) {
+  VariableDeclaration build(
+      KernelLibraryBuilder library, int functionNestingLevel) {
     if (declaration == null) {
-      declaration = new ShadowVariableDeclaration(name, 0,
+      declaration = new VariableDeclarationJudgment(name, functionNestingLevel,
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,
           isFieldFormal: hasThis,
           isCovariant: isCovariant)
         ..fileOffset = charOffset;
-      if (type == null && hasThis) {
-        library.loader.typeInferenceEngine
-            .recordInitializingFormal(declaration);
-      }
     }
     return declaration;
   }

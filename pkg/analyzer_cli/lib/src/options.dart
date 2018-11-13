@@ -20,6 +20,8 @@ const _binaryName = 'dartanalyzer';
 /// *Visible for testing.*
 ExitHandler exitHandler = exit;
 
+T cast<T>(dynamic value) => value as T;
+
 /// Print the given [message] to stderr and exit with the given [exitCode].
 void printAndFail(String message, {int exitCode: 15}) {
   errorSink.writeln(message);
@@ -33,8 +35,6 @@ typedef void ExitHandler(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
-  final bool enableNewAnalysisDriver = true;
-
   /// Whether declaration casts are enabled (in strong mode)
   final bool declarationCasts;
 
@@ -93,10 +93,6 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
-  /// Whether to treat type mismatches found during constant evaluation as
-  /// errors.
-  final bool enableTypeChecks;
-
   /// Whether to ignore unrecognized flags
   final bool ignoreUnrecognizedFlags;
 
@@ -113,8 +109,8 @@ class CommandLineOptions {
   /// (Or null if not enabled.)
   final String perfReport;
 
-  /// Whether to enable the Dart 2.0 Front End.
-  final bool previewDart2;
+  /// Whether to enable parsing via the Fasta parser.
+  final bool useFastaParser;
 
   /// Batch mode (for unit testing)
   final bool batchMode;
@@ -138,7 +134,9 @@ class CommandLineOptions {
   final bool infosAreFatal;
 
   /// Whether to use strong static checking.
-  final bool strongMode;
+  ///
+  /// This flag is deprecated and hard-coded to `true`.
+  final bool strongMode = true;
 
   /// Whether implicit casts are enabled (in strong mode)
   final bool implicitCasts;
@@ -146,65 +144,65 @@ class CommandLineOptions {
   /// Whether implicit dynamic is enabled (mainly for strong mode users)
   final bool implicitDynamic;
 
-  // TODO(devoncarew): Deprecate and remove this flag.
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
-  /// Whether to use memory byte store for analysis driver.
-  final bool useAnalysisDriverMemoryByteStore;
-
+  // TODO(devoncarew): Deprecate and remove this flag.
   /// Emit output in a verbose mode.
   final bool verbose;
 
   /// Use ANSI color codes for output.
   final bool color;
 
+  /// Whether we should analyze the given source for the purposes of training a
+  /// Dart analyzer snapshot.
+  final bool trainSnapshot;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
-      : buildAnalysisOutput = args['build-analysis-output'],
-        buildMode = args['build-mode'],
-        buildModePersistentWorker = args['persistent_worker'],
-        buildSummaryInputs = args['build-summary-input'] as List<String>,
+      : buildAnalysisOutput = cast(args['build-analysis-output']),
+        buildMode = cast(args['build-mode']),
+        buildModePersistentWorker = cast(args['persistent_worker']),
+        buildSummaryInputs =
+            (args['build-summary-input'] as List).cast<String>(),
         buildSummaryUnlinkedInputs =
-            args['build-summary-unlinked-input'] as List<String>,
-        buildSummaryOnly = args['build-summary-only'],
-        buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
-        buildSummaryOutput = args['build-summary-output'],
-        buildSummaryOutputSemantic = args['build-summary-output-semantic'],
-        buildSuppressExitCode = args['build-suppress-exit-code'],
+            (args['build-summary-unlinked-input'] as List).cast<String>(),
+        buildSummaryOnly = cast(args['build-summary-only']),
+        buildSummaryOnlyUnlinked = cast(args['build-summary-only-unlinked']),
+        buildSummaryOutput = cast(args['build-summary-output']),
+        buildSummaryOutputSemantic =
+            cast(args['build-summary-output-semantic']),
+        buildSuppressExitCode = cast(args['build-suppress-exit-code']),
         contextBuilderOptions = createContextBuilderOptions(args),
-        dartSdkPath = args['dart-sdk'],
-        dartSdkSummaryPath = args['dart-sdk-summary'],
+        dartSdkPath = cast(args['dart-sdk']),
+        dartSdkSummaryPath = cast(args['dart-sdk-summary']),
         declarationCasts = args.wasParsed(declarationCastsFlag)
-            ? args[declarationCastsFlag]
-            : args[implicitCastsFlag],
-        disableCacheFlushing = args['disable-cache-flushing'],
-        disableHints = args['no-hints'],
-        displayVersion = args['version'],
-        enableTypeChecks = args['enable_type_checks'],
-        ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
-        lints = args[lintsFlag],
-        log = args['log'],
+            ? cast(args[declarationCastsFlag])
+            : cast(args[implicitCastsFlag]),
+        disableCacheFlushing = cast(args['disable-cache-flushing']),
+        disableHints = cast(args['no-hints']),
+        displayVersion = cast(args['version']),
+        ignoreUnrecognizedFlags = cast(args['ignore-unrecognized-flags']),
+        lints = cast(args[lintsFlag]),
+        log = cast(args['log']),
         machineFormat = args['format'] == 'machine',
-        perfReport = args['x-perf-report'],
-        previewDart2 = args['preview-dart-2'],
-        batchMode = args['batch'],
-        showPackageWarnings = args['show-package-warnings'] ||
-            args['package-warnings'] ||
+        perfReport = cast(args['x-perf-report']),
+        useFastaParser = cast(args['use-fasta-parser']),
+        batchMode = cast(args['batch']),
+        showPackageWarnings = cast(args['show-package-warnings']) ||
+            cast(args['package-warnings']) ||
             args['x-package-warnings-prefix'] != null,
-        showPackageWarningsPrefix = args['x-package-warnings-prefix'],
-        showSdkWarnings = args['sdk-warnings'],
+        showPackageWarningsPrefix = cast(args['x-package-warnings-prefix']),
+        showSdkWarnings = cast(args['sdk-warnings']),
         _sourceFiles = args.rest,
-        infosAreFatal = args['fatal-infos'] || args['fatal-hints'],
-        warningsAreFatal = args['fatal-warnings'],
-        lintsAreFatal = args['fatal-lints'],
-        strongMode = args['strong'],
-        implicitCasts = args[implicitCastsFlag],
-        implicitDynamic = !args['no-implicit-dynamic'],
-        useAnalysisDriverMemoryByteStore =
-            args['use-analysis-driver-memory-byte-store'],
-        verbose = args['verbose'],
-        color = args['color'];
+        infosAreFatal = cast(args['fatal-infos']) || cast(args['fatal-hints']),
+        warningsAreFatal = cast(args['fatal-warnings']),
+        lintsAreFatal = cast(args['fatal-lints']),
+        implicitCasts = cast(args[implicitCastsFlag]),
+        implicitDynamic = !cast<bool>(args['no-implicit-dynamic']),
+        trainSnapshot = cast(args['train-snapshot']),
+        verbose = cast(args['verbose']),
+        color = cast(args['color']);
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -214,21 +212,17 @@ class CommandLineOptions {
   Map<String, String> get definedVariables =>
       contextBuilderOptions.declaredVariables;
 
-  /// Whether to strictly follow the specification when generating warnings on
-  /// "call" methods (fixes dartbug.com/21938).
-  bool get enableStrictCallChecks =>
-      contextBuilderOptions.defaultOptions.enableStrictCallChecks;
-
-  /// Whether to relax restrictions on mixins (DEP 34).
-  bool get enableSuperMixins =>
-      contextBuilderOptions.defaultOptions.enableSuperMixins;
-
   /// The path to a `.packages` configuration file
   String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
 
   /// The path to the package root
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
+
+  /// Whether to enable the Dart 2.0 Preview.
+  ///
+  /// This flag is deprecated and hard-coded to `true`.
+  bool get previewDart2 => true;
 
   /// The source files to analyze
   List<String> get sourceFiles => _sourceFiles;
@@ -366,10 +360,9 @@ class CommandLineOptions {
           help: 'Verbose output.',
           negatable: false);
 
-    if (telemetry.SHOW_ANALYTICS_UI) {
-      parser.addFlag('analytics',
-          help: 'Enable or disable sending analytics information to Google.');
-    }
+    parser.addFlag('analytics',
+        help: 'Enable or disable sending analytics information to Google.',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
 
     // Build mode options.
     if (!hide) {
@@ -383,24 +376,22 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addOption('build-analysis-output',
-          help:
-              'Specifies the path to the file where analysis results should be written.',
+          help: 'Specifies the path to the file where analysis results should '
+              'be written.',
           hide: hide)
       ..addFlag('build-mode',
-          // TODO(paulberry): add more documentation.
-          help: 'Enable build mode.',
+          help: 'Run in build mode; '
+              'this is used to generate analyzer summaries for build systems.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption('build-summary-input',
+      ..addMultiOption('build-summary-input',
           help: 'Path to a linked summary file that contains information from '
               'a previous analysis run; may be specified multiple times.',
-          allowMultiple: true,
           hide: hide)
-      ..addOption('build-summary-unlinked-input',
+      ..addMultiOption('build-summary-unlinked-input',
           help: 'Path to an unlinked summary file that contains information '
               'from a previous analysis run; may be specified multiple times.',
-          allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the full summary '
@@ -452,7 +443,7 @@ class CommandLineOptions {
           hide: hide)
       ..addOption('x-package-warnings-prefix',
           help:
-              'Show warnings from package: imports that match the given prefix.',
+              'Show warnings from package: imports that match the given prefix (deprecated).',
           hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
@@ -466,7 +457,7 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('sdk-warnings',
-          help: 'Show warnings from SDK imports.',
+          help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -476,14 +467,15 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('enable_type_checks',
-          help: 'Check types in constant evaluation.',
+          help: 'Check types in constant evaluation (deprecated).',
           defaultsTo: false,
           negatable: false,
-          hide: hide)
+          hide: true)
       // TODO(brianwilkerson) Remove the following option after we're sure that
       // it's no longer being used.
       ..addFlag('enable-assert-initializers',
-          help: 'Enable parsing of asserts in constructor initializers.',
+          help:
+              'Enable parsing of asserts in constructor initializers (deprecated).',
           defaultsTo: null,
           negatable: false,
           hide: hide)
@@ -503,22 +495,30 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('package-warnings',
-          help: 'Show warnings from package: imports.',
+          help: 'Show warnings from package: imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption('url-mapping',
+      ..addMultiOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
               'analyzer to use "library.dart" as the source for an import '
               'of "libraryUri".',
-          allowMultiple: true,
           splitCommas: false,
           hide: hide)
+      ..addFlag('use-fasta-parser',
+          help: 'Whether to enable parsing via the Fasta parser.',
+          defaultsTo: true,
+          hide: hide)
       ..addFlag('preview-dart-2',
-          help: 'Enable the Dart 2.0 Front End implementation.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide);
+          help: 'Enable the Dart 2.0 preview.',
+          defaultsTo: true,
+          hide: hide,
+          negatable: true)
+      ..addFlag('train-snapshot',
+          help: "Analyze the given source for the purposes of training a "
+              "dartanalyzer snapshot.",
+          hide: hide,
+          negatable: false);
 
     try {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
@@ -542,7 +542,7 @@ class CommandLineOptions {
       }
 
       // Help requests.
-      if (results['help']) {
+      if (cast(results['help'])) {
         _showUsage(parser, analytics, fromHelp: true);
         exitHandler(0);
         return null; // Only reachable in testing.
@@ -551,7 +551,7 @@ class CommandLineOptions {
       // Enable / disable analytics.
       if (telemetry.SHOW_ANALYTICS_UI) {
         if (results.wasParsed('analytics')) {
-          analytics.enabled = results['analytics'];
+          analytics.enabled = cast(results['analytics']);
           outSink.writeln(
               telemetry.createAnalyticsStatusMessage(analytics.enabled));
           exitHandler(0);
@@ -560,14 +560,14 @@ class CommandLineOptions {
       }
 
       // Batch mode and input files.
-      if (results['batch']) {
+      if (cast(results['batch'])) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln('No source files expected in the batch mode.');
           _showUsage(parser, analytics);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
-      } else if (results['persistent_worker']) {
+      } else if (cast(results['persistent_worker'])) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln(
               'No source files expected in the persistent worker mode.');
@@ -575,17 +575,24 @@ class CommandLineOptions {
           exitHandler(15);
           return null; // Only reachable in testing.
         }
-      } else if (results['version']) {
+      } else if (cast(results['version'])) {
         outSink.writeln('$_binaryName version ${_getVersion()}');
         exitHandler(0);
         return null; // Only reachable in testing.
       } else {
-        if (results.rest.isEmpty && !results['build-mode']) {
+        if (results.rest.isEmpty && !cast<bool>(results['build-mode'])) {
           _showUsage(parser, analytics, fromHelp: true);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
       }
+
+      if (results.wasParsed('strong')) {
+        errorSink.writeln(
+            'Note: the --strong flag is deprecated and will be removed in an '
+            'future release.\n');
+      }
+
       return new CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);

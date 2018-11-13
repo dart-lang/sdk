@@ -15,12 +15,25 @@ abstract class IterableMixin<E> implements Iterable<E> {
   // - SetMixin
   // If changing a method here, also change the other copies.
 
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
   Iterable<T> map<T>(T f(E element)) => new MappedIterable<E, T>(this, f);
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
       new ExpandIterable<E, T>(this, f);
+
+  Iterable<E> followedBy(Iterable<E> other) {
+    // Type workaround because IterableMixin<E> doesn't promote
+    // to EfficientLengthIterable<E>.
+    Iterable<E> self = this;
+    if (self is EfficientLengthIterable<E>) {
+      return new FollowedByIterable<E>.firstEfficient(self, other);
+    }
+    return new FollowedByIterable<E>(this, other);
+  }
 
   bool contains(Object element) {
     for (E e in this) {
@@ -168,7 +181,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E value)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -181,6 +194,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -201,7 +215,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
 /**
  * Base class for implementing [Iterable].
  *
- * This class implements all methods of [Iterable] except [Iterable.iterator]
+ * This class implements all methods of [Iterable], except [Iterable.iterator],
  * in terms of `iterator`.
  */
 abstract class IterableBase<E> extends Iterable<E> {
@@ -224,7 +238,7 @@ abstract class IterableBase<E> extends Iterable<E> {
       }
       return "$leftDelimiter...$rightDelimiter";
     }
-    List parts = [];
+    List<String> parts = <String>[];
     _toStringVisiting.add(iterable);
     try {
       _iterablePartsToStrings(iterable, parts);
@@ -268,7 +282,7 @@ abstract class IterableBase<E> extends Iterable<E> {
   }
 }
 
-/** A set used to identify cyclic lists during toString() calls. */
+/** A collection used to identify cyclic lists during toString() calls. */
 final List _toStringVisiting = [];
 
 /** Check if we are currently visiting `o` in a toString call. */
@@ -282,7 +296,7 @@ bool _isToStringVisiting(Object o) {
 /**
  * Convert elements of [iterable] to strings and store them in [parts].
  */
-void _iterablePartsToStrings(Iterable iterable, List parts) {
+void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
   /*
    * This is the complicated part of [iterableToShortString].
    * It is extracted as a separate function to avoid having too much code
@@ -323,8 +337,8 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
 
   // Find last two elements. One or more of them may already be in the
   // parts array. Include their length in `length`.
-  var penultimate = null;
-  var ultimate = null;
+  Object penultimate = null;
+  Object ultimate = null;
   if (!it.moveNext()) {
     if (count <= headCount + tailCount) return;
     ultimateString = parts.removeLast();

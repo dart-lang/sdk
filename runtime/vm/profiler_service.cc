@@ -49,7 +49,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
     if ((size_before > 0) && FLAG_trace_profiler) {
       intptr_t length_before = previous_.Length();
       intptr_t length_after = current_.Length();
-      OS::Print(
+      OS::PrintErr(
           "Updating isolate deoptimized code array: "
           "%" Pd " -> %" Pd " [%" Pd " -> %" Pd "]\n",
           size_before, size_after, length_before, length_after);
@@ -163,9 +163,9 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
     ProfileFunctionSourcePosition& position = source_position_ticks_[i];
     if (position.token_pos().value() == token_position.value()) {
       if (FLAG_trace_profiler_verbose) {
-        OS::Print("Ticking source position %s %s\n",
-                  exclusive ? "exclusive" : "inclusive",
-                  token_position.ToCString());
+        OS::PrintErr("Ticking source position %s %s\n",
+                     exclusive ? "exclusive" : "inclusive",
+                     token_position.ToCString());
       }
       // Found existing position, tick it.
       position.Tick(exclusive);
@@ -179,9 +179,9 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
   // Add new one, sorted by token position value.
   ProfileFunctionSourcePosition pfsp(token_position);
   if (FLAG_trace_profiler_verbose) {
-    OS::Print("Ticking source position %s %s\n",
-              exclusive ? "exclusive" : "inclusive",
-              token_position.ToCString());
+    OS::PrintErr("Ticking source position %s %s\n",
+                 exclusive ? "exclusive" : "inclusive",
+                 token_position.ToCString());
   }
   pfsp.Tick(exclusive);
 
@@ -339,8 +339,8 @@ void ProfileCode::SetName(const char* name) {
 void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {
   const intptr_t kBuffSize = 512;
   char buff[kBuffSize];
-  OS::SNPrint(&buff[0], kBuffSize - 1, "%s [%" Px ", %" Px ")", prefix, start(),
-              end());
+  Utils::SNPrint(&buff[0], kBuffSize - 1, "%s [%" Px ", %" Px ")", prefix,
+                 start(), end());
   SetName(buff);
 }
 
@@ -626,7 +626,19 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   } else if (kind() == kNativeCode) {
     if (name() == NULL) {
       // Lazily set generated name.
-      GenerateAndSetSymbolName("[Native]");
+      const intptr_t kBuffSize = 512;
+      char buff[kBuffSize];
+      uword dso_base;
+      char* dso_name;
+      if (NativeSymbolResolver::LookupSharedObject(start(), &dso_base,
+                                                   &dso_name)) {
+        uword dso_offset = start() - dso_base;
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %s+0x%" Px, dso_name,
+                       dso_offset);
+      } else {
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %" Px, start());
+      }
+      SetName(buff);
     }
     function = table->AddNative(start(), name());
   } else if (kind() == kTagCode) {
@@ -1027,8 +1039,8 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
   ~ProfileCodeInlinedFunctionsCache() {
     if (FLAG_trace_profiler) {
       intptr_t total = cache_hit_ + cache_miss_;
-      OS::Print("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n", total,
-                cache_hit_, cache_miss_);
+      OS::PrintErr("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n", total,
+                   cache_hit_, cache_miss_);
     }
   }
 
@@ -2396,6 +2408,8 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   }
 }
 
+static const intptr_t kRootFrameId = 0;
+
 void Profile::PrintTimelineFrameJSON(JSONObject* frames,
                                      ProfileTrieNode* current,
                                      ProfileTrieNode* parent,
@@ -2406,7 +2420,7 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
   current->set_frame_id(id);
   ASSERT(current->frame_id() != -1);
 
-  {
+  if (id != kRootFrameId) {
     // The samples from many isolates may be merged into a single timeline,
     // so prefix frames id with the isolate.
     intptr_t isolate_id = reinterpret_cast<intptr_t>(isolate_);
@@ -2416,7 +2430,7 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
     frame.AddProperty("category", "Dart");
     ProfileFunction* func = GetFunction(current->table_index());
     frame.AddProperty("name", func->Name());
-    if (parent != NULL) {
+    if ((parent != NULL) && (parent->frame_id() != kRootFrameId)) {
       ASSERT(parent->frame_id() != -1);
       frame.AddPropertyF("parent", "%" Pd "-%" Pd, isolate_id,
                          parent->frame_id());
@@ -2437,7 +2451,7 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
   {
     JSONObject frames(&obj, "stackFrames");
     ProfileTrieNode* root = GetTrieRoot(kInclusiveFunction);
-    intptr_t next_id = 0;
+    intptr_t next_id = kRootFrameId;
     PrintTimelineFrameJSON(&frames, root, NULL, &next_id);
   }
   {
@@ -2641,14 +2655,7 @@ const char* ProfileTrieWalker::CurrentToken() {
     script.GetTokenLocation(token_pos, &line, &column, &token_len);
     str = script.GetSnippet(line, column, line, column + token_len);
   } else {
-    const TokenStream& token_stream =
-        TokenStream::Handle(zone, script.tokens());
-    if (token_stream.IsNull()) {
-      // No token position.
-      return NULL;
-    }
-    TokenStream::Iterator iterator(zone, token_stream, token_pos);
-    str = iterator.CurrentLiteral();
+    UNREACHABLE();
   }
   return str.IsNull() ? NULL : str.ToCString();
 }

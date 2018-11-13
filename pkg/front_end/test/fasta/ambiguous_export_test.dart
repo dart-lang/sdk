@@ -17,7 +17,7 @@ import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:kernel/ast.dart'
-    show Field, Library, Name, Program, StringLiteral;
+    show Field, Library, Name, Component, StringLiteral;
 
 main() async {
   await asyncTest(() async {
@@ -25,11 +25,11 @@ main() async {
     Field field = new Field(new Name("_exports#", library),
         initializer: new StringLiteral('{"main":"Problem with main"}'));
     library.addMember(field);
-    Program program = new Program(libraries: <Library>[library]);
+    Component component = new Component(libraries: <Library>[library]);
     await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
       DillTarget target =
           new DillTarget(c.options.ticker, null, c.options.target);
-      target.loader.appendLibraries(program);
+      target.loader.appendLibraries(component);
       DillLibraryBuilder builder = target.loader.read(library.importUri, -1);
       await target.loader.buildOutline(builder);
       builder.finalizeExports();

@@ -27,7 +27,7 @@ Future setupFiles() async {
 
   Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
     closeDown();
-    var result = JSON.encode({'type': 'foobar'});
+    var result = jsonEncode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
@@ -35,7 +35,7 @@ Future setupFiles() async {
     try {
       var filePath = dir.path + io.Platform.pathSeparator + "file";
       var f = new io.File(filePath);
-      writingFile = await f.open(mode: io.FileMode.WRITE);
+      writingFile = await f.open(mode: io.FileMode.write);
       await writingFile.writeByte(42);
       await writingFile.writeByte(42);
       await writingFile.writeByte(42);
@@ -60,7 +60,7 @@ Future setupFiles() async {
       closeDown();
       throw e;
     }
-    var result = JSON.encode({'type': 'foobar'});
+    var result = jsonEncode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 

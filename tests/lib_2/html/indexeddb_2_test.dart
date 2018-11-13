@@ -15,35 +15,34 @@ const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
 testReadWrite(key, value, check,
-    [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) {
-  createObjectStore(e) {
-    var store = e.target.result.createObjectStore(storeName);
+    [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) async {
+  void createObjectStore(e) {
+    idb.ObjectStore store = e.target.result.createObjectStore(storeName);
     expect(store, isNotNull);
   }
 
-  var db;
+  idb.Database db;
   // Delete any existing DBs.
-  return html.window.indexedDB.deleteDatabase(dbName).then(expectAsync((_) {
-    return html.window.indexedDB
+  try {
+    await html.window.indexedDB.deleteDatabase(dbName);
+    idb.Database db = await html.window.indexedDB
         .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
-  })).then(expectAsync((result) {
-    db = result;
-    var transaction = db.transactionList([storeName], 'readwrite');
+
+    idb.Transaction transaction = db.transactionList([storeName], 'readwrite');
     transaction.objectStore(storeName).put(value, key);
 
-    return transaction.completed;
-  })).then(expectAsync((db) {
-    var transaction = db.transaction(storeName, 'readonly');
-    return transaction.objectStore(storeName).getObject(key);
-  })).then(expectAsync((object) {
+    db = await transaction.completed;
+    transaction = db.transaction(storeName, 'readonly');
+    var object = await transaction.objectStore(storeName).getObject(key);
+
     db.close();
     check(value, object);
-  })).catchError((e) {
+  } catch (error) {
     if (db != null) {
       db.close();
     }
-    throw e;
-  });
+    throw error;
+  }
 }
 
 List<String> get nonNativeListData {

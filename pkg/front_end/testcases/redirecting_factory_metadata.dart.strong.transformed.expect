@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::Foo::•];
+  constructor named(dynamic p) → self::Foo
+    : super core::Object::•()
+    ;
+  @self::forFactoryItself
+  static factory •(@self::forParameter @self::anotherForParameter dynamic p) → self::Foo
+    let<BottomType> #redirecting_factory = self::Foo::named in invalid-expression;
+}
+static const field core::int forParameter = 1;
+static const field core::int forFactoryItself = 2;
+static const field core::int anotherForParameter = 3;
+static method main() → dynamic {}

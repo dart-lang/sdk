@@ -39,10 +39,11 @@ class PresentFailures extends WorkflowStep {
   }
 
   @override
-  Future<WorkflowAction> input(String input) {
+  Future<WorkflowAction> input(String input) async {
     if (input == "y") {
-      return new Future.value(new BackWorkflowAction());
+      return new BackWorkflowAction();
     }
+    return null;
   }
 
   @override

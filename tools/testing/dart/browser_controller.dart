@@ -84,9 +84,6 @@ abstract class Browser {
       case Runtime.safari:
         browser = new Safari();
         break;
-      case Runtime.safariMobileSim:
-        browser = new SafariMobileSimulator();
-        break;
       case Runtime.ie9:
       case Runtime.ie10:
       case Runtime.ie11:
@@ -145,7 +142,7 @@ abstract class Browser {
   Future close() {
     _logEvent("Close called on browser");
     if (process != null) {
-      if (process.kill(ProcessSignal.SIGKILL)) {
+      if (process.kill(ProcessSignal.sigkill)) {
         _logEvent("Successfully sent kill signal to process.");
       } else {
         _logEvent("Sending kill signal failed.");
@@ -163,8 +160,7 @@ abstract class Browser {
    */
   Future<bool> startBrowserProcess(String command, List<String> arguments,
       {Map<String, String> environment}) {
-    return Process
-        .start(command, arguments, environment: environment)
+    return Process.start(command, arguments, environment: environment)
         .then((startedProcess) {
       _logEvent("Started browser using $command ${arguments.join(' ')}");
       process = startedProcess;
@@ -209,7 +205,7 @@ abstract class Browser {
       }
 
       stdoutSubscription =
-          process.stdout.transform(UTF8.decoder).listen((data) {
+          process.stdout.transform(utf8.decoder).listen((data) {
         _addStdout(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
@@ -218,7 +214,7 @@ abstract class Browser {
       }, onDone: closeStdout);
 
       stderrSubscription =
-          process.stderr.transform(UTF8.decoder).listen((data) {
+          process.stderr.transform(utf8.decoder).listen((data) {
         _addStderr(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
@@ -231,8 +227,8 @@ abstract class Browser {
 
         if (!stdoutIsDone || !stderrIsDone) {
           watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
-            DebugLogger
-                .warning("$MAX_STDIO_DELAY_PASSED_MESSAGE (browser: $this)");
+            DebugLogger.warning(
+                "$MAX_STDIO_DELAY_PASSED_MESSAGE (browser: $this)");
             watchdogTimer = null;
             stdoutSubscription.cancel();
             stderrSubscription.cancel();
@@ -373,7 +369,7 @@ class Safari extends Browser {
 
   Future<Null> _createLaunchHTML(String path, String url) async {
     var file = new File("$path/launch.html");
-    var randomFile = await file.open(mode: FileMode.WRITE);
+    var randomFile = await file.open(mode: FileMode.write);
     var content = '<script language="JavaScript">location = "$url"</script>';
     await randomFile.writeString(content);
     await randomFile.close();
@@ -517,69 +513,6 @@ class Chrome extends Browser {
   String toString() => "Chrome";
 }
 
-class SafariMobileSimulator extends Safari {
-  /**
-   * Directories where safari simulator stores state. We delete these if the
-   * resetBrowserConfiguration is set
-   */
-  static const List<String> CACHE_DIRECTORIES = const [
-    "Library/Application Support/iPhone Simulator/7.1/Applications"
-  ];
-
-  // Helper function to delete many directories recursively.
-  Future<bool> deleteIfExists(Iterable<String> paths) async {
-    for (var path in paths) {
-      Directory directory = new Directory(path);
-      if (await directory.exists()) {
-        _logEvent("Deleting $path");
-        try {
-          await directory.delete(recursive: true);
-        } catch (error) {
-          _logEvent("Failure trying to delete $path: $error");
-          return false;
-        }
-      } else {
-        _logEvent("$path is not present");
-      }
-    }
-    return true;
-  }
-
-  // Clears the cache if the static resetBrowserConfiguration flag is set.
-  // Returns false if the command to actually clear the cache did not complete.
-  Future<bool> resetConfiguration() {
-    if (!Browser.resetBrowserConfiguration) return new Future.value(true);
-    var home = Platform.environment['HOME'];
-    var paths = CACHE_DIRECTORIES.map((s) => "$home/$s");
-    return deleteIfExists(paths);
-  }
-
-  Future<bool> start(String url) {
-    _logEvent("Starting safari mobile simulator browser on: $url");
-    return resetConfiguration().then((success) {
-      if (!success) {
-        _logEvent("Could not clear cache, exiting");
-        return false;
-      }
-      var args = [
-        "-SimulateApplication",
-        "/Applications/Xcode.app/Contents/Developer/Platforms/"
-            "iPhoneSimulator.platform/Developer/SDKs/"
-            "iPhoneSimulator7.1.sdk/Applications/MobileSafari.app/"
-            "MobileSafari",
-        "-u",
-        url
-      ];
-      return startBrowserProcess(_binary, args).catchError((e) {
-        _logEvent("Running $_binary --version failed with $e");
-        return false;
-      });
-    });
-  }
-
-  String toString() => "SafariMobileSimulator";
-}
-
 class IE extends Browser {
   Future<String> getVersion() {
     var args = [
@@ -605,12 +538,24 @@ class IE extends Browser {
     });
   }
 
-  // Clears the recovery cache if the static resetBrowserConfiguration flag is
-  // set.
-  Future<bool> resetConfiguration() {
-    if (!Browser.resetBrowserConfiguration) return new Future.value(true);
-    var localAppData = Platform.environment['LOCALAPPDATA'];
+  // Clears the recovery cache and allows popups on localhost if the static
+  // resetBrowserConfiguration flag is set.
+  Future<bool> resetConfiguration() async {
+    if (!Browser.resetBrowserConfiguration) return true;
+    // todo(athom) Move this into the puppet configuration
+    var args = [
+      "add",
+      r"HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\New Windows\Allow",
+      "/v",
+      "127.0.0.1",
+      "/f"
+    ];
+    var result = await Process.run("reg", args);
+    if (result.exitCode != 0) {
+      _logEvent("Failed to override user popup blocker settings");
+    }
 
+    var localAppData = Platform.environment['LOCALAPPDATA'];
     Directory dir = new Directory("$localAppData\\Microsoft\\"
         "Internet Explorer\\Recovery");
     return dir.delete(recursive: true).then((_) {
@@ -630,71 +575,6 @@ class IE extends Browser {
   }
 
   String toString() => "IE";
-}
-
-class AndroidBrowserConfig {
-  final String name;
-  final String package;
-  final String activity;
-  final String action;
-  AndroidBrowserConfig(this.name, this.package, this.activity, this.action);
-}
-
-final contentShellOnAndroidConfig = new AndroidBrowserConfig(
-    'ContentShellOnAndroid',
-    'org.chromium.content_shell_apk',
-    '.ContentShellActivity',
-    'android.intent.action.VIEW');
-
-class AndroidBrowser extends Browser {
-  final bool checkedMode;
-  AdbDevice _adbDevice;
-  AndroidBrowserConfig _config;
-
-  AndroidBrowser(
-      this._adbDevice, this._config, this.checkedMode, String apkPath) {
-    _binary = apkPath;
-  }
-
-  Future<bool> start(String url) {
-    var intent =
-        new Intent(_config.action, _config.package, _config.activity, url);
-    return _adbDevice.waitForBootCompleted().then((_) {
-      return _adbDevice.forceStop(_config.package);
-    }).then((_) {
-      return _adbDevice.killAll();
-    }).then((_) {
-      return _adbDevice.adbRoot();
-    }).then((_) {
-      return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
-    }).then((_) {
-      if (checkedMode) {
-        return _adbDevice.setProp("DART_FLAGS", "--checked");
-      } else {
-        return _adbDevice.setProp("DART_FLAGS", "");
-      }
-    }).then((_) {
-      return _adbDevice.installApk(new Path(_binary));
-    }).then((_) {
-      return _adbDevice.startActivity(intent).then((_) => true);
-    });
-  }
-
-  Future<bool> close() {
-    if (_adbDevice != null) {
-      return _adbDevice.forceStop(_config.package).then((_) {
-        return _adbDevice.killAll().then((_) => true);
-      });
-    }
-    return new Future.value(true);
-  }
-
-  void logBrowserInfoToTestBrowserOutput() {
-    _testBrowserOutput.stdout
-        .write('Android device id: ${_adbDevice.deviceId}\n');
-  }
-
-  String toString() => _config.name;
 }
 
 class AndroidChrome extends Browser {
@@ -779,7 +659,7 @@ class Firefox extends Browser {
 
   void _createPreferenceFile(String path) {
     var file = new File("$path/user.js");
-    var randomFile = file.openSync(mode: FileMode.WRITE);
+    var randomFile = file.openSync(mode: FileMode.write);
     randomFile.writeStringSync(enablePopUp);
     randomFile.writeStringSync(disableDefaultCheck);
     randomFile.writeStringSync(disableScriptTimeLimit);
@@ -868,25 +748,7 @@ class BrowserTest {
     id = _idCounter++;
   }
 
-  String toJSON() => JSON.encode({'url': url, 'id': id, 'isHtmlTest': false});
-}
-
-/**
- * Describes a test with a custom HTML page to be run in the browser.
- */
-class HtmlTest extends BrowserTest {
-  List<String> expectedMessages;
-
-  HtmlTest(String url, BrowserDoneCallback doneCallback, int timeout,
-      this.expectedMessages)
-      : super(url, doneCallback, timeout) {}
-
-  String toJSON() => JSON.encode({
-        'url': url,
-        'id': id,
-        'isHtmlTest': true,
-        'expectedMessages': expectedMessages
-      });
+  String toJSON() => jsonEncode({'url': url, 'id': id});
 }
 
 /* Describes the output of running the test in a browser */
@@ -921,7 +783,7 @@ class BrowserTestRunner {
   /// If the queue was recently empty, don't start another browser.
   static const Duration MIN_NONEMPTY_QUEUE_TIME = const Duration(seconds: 1);
 
-  final Configuration configuration;
+  final TestConfiguration configuration;
   final BrowserTestingServer testingServer;
 
   final String localIp;
@@ -973,7 +835,7 @@ class BrowserTestRunner {
   }
 
   BrowserTestRunner(
-      Configuration configuration, String localIp, this.maxNumBrowsers)
+      TestConfiguration configuration, String localIp, this.maxNumBrowsers)
       : configuration = configuration,
         localIp = localIp,
         testingServer = new BrowserTestingServer(configuration, localIp,
@@ -1249,8 +1111,8 @@ class BrowserTestRunner {
   }
 
   void handleNextTestTimeout(BrowserStatus status) {
-    DebugLogger
-        .warning("Browser timed out before getting next test. Restarting");
+    DebugLogger.warning(
+        "Browser timed out before getting next test. Restarting");
     if (status.timeout) return;
     numBrowserGetTestTimeouts++;
     if (numBrowserGetTestTimeouts >= MAX_NEXT_TEST_TIMEOUTS) {
@@ -1315,7 +1177,7 @@ class BrowserTestRunner {
 }
 
 class BrowserTestingServer {
-  final Configuration configuration;
+  final TestConfiguration configuration;
 
   /// Interface of the testing server:
   ///
@@ -1353,8 +1215,7 @@ class BrowserTestingServer {
   BrowserTestingServer(this.configuration, this.localIp, this.requiresFocus);
 
   Future start() {
-    return HttpServer
-        .bind(localIp, configuration.testDriverErrorPort)
+    return HttpServer.bind(localIp, configuration.testDriverErrorPort)
         .then(setupErrorServer)
         .then(setupDispatchingServer);
   }
@@ -1363,7 +1224,7 @@ class BrowserTestingServer {
     errorReportingServer = server;
     void errorReportingHandler(HttpRequest request) {
       StringBuffer buffer = new StringBuffer();
-      request.transform(UTF8.decoder).listen((data) {
+      request.transform(utf8.decoder).listen((data) {
         buffer.write(data);
       }, onDone: () {
         String back = buffer.toString();
@@ -1430,13 +1291,12 @@ class BrowserTestingServer {
       } else {
         textResponse = new Future<String>.value("");
       }
-      request.response.done.catchError((error) {
+      request.response.done.catchError((error) async {
         if (!underTermination) {
-          return textResponse.then((String text) {
-            print("URI ${request.uri}");
-            print("textResponse $textResponse");
-            throw "Error returning content to browser: $error";
-          });
+          String text = await textResponse;
+          print("URI ${request.uri}");
+          print("text $text");
+          throw "Error returning content to browser: $error";
         }
       });
       textResponse.then((String text) async {
@@ -1455,7 +1315,7 @@ class BrowserTestingServer {
   void handleReport(HttpRequest request, String browserId, int testId,
       {bool isStatusUpdate}) {
     StringBuffer buffer = new StringBuffer();
-    request.transform(UTF8.decoder).listen((data) {
+    request.transform(utf8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       String back = buffer.toString();
@@ -1476,7 +1336,7 @@ class BrowserTestingServer {
     // If an error occurs while receiving the data from the request stream,
     // we don't handle it specially. We can safely ignore it, since the started
     // events are not crucial.
-    request.transform(UTF8.decoder).listen((data) {
+    request.transform(utf8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       String back = buffer.toString();
@@ -1558,9 +1418,6 @@ body div {
       var use_iframe = ${configuration.runtime.requiresIFrame};
       var start = new Date();
 
-      // Object that holds the state of an HTML test
-      var html_test;
-
       function newTaskHandler() {
         if (this.readyState == this.DONE) {
           if (this.status == 200) {
@@ -1573,20 +1430,6 @@ body div {
               var nextTask = JSON.parse(this.responseText);
               var url = nextTask.url;
               next_id = nextTask.id;
-              if (nextTask.isHtmlTest) {
-                html_test = {
-                  expected_messages: nextTask.expectedMessages,
-                  found_message_count: 0,
-                  double_received_messages: [],
-                  unexpected_messages: [],
-                  found_messages: {}
-                };
-                for (var i = 0; i < html_test.expected_messages.length; ++i) {
-                  html_test.found_messages[html_test.expected_messages[i]] = 0;
-                }
-              } else {
-                html_test = null;
-              }
               run(url);
             }
           } else {
@@ -1631,37 +1474,12 @@ body div {
         return true;
       }
 
-      function setChildHandlers(e) {
-        embedded_iframe.contentWindow.addEventListener('message',
-                                                       childMessageHandler,
-                                                       false);
-        embedded_iframe.contentWindow.onerror = childError;
-        reportMessage("First message from html test", true, false);
-        html_test.handlers_installed = true;
-        sendRepeatingStatusUpdate();
-      }
-
-      function checkChildHandlersInstalled() {
-        if (!html_test.handlers_installed) {
-          reportMessage("First message from html test", true, false);
-          reportMessage(
-              'FAIL: Html test did not call ' +
-              'window.parent.dispatchEvent(new Event("detect_errors")) ' +
-              'as its first action', false, false);
-        }
-      }
-
       function run(url) {
         number_of_tests++;
         number_div.innerHTML = number_of_tests;
         executing_div.innerHTML = url;
         if (use_iframe) {
-          if (html_test) {
-            window.addEventListener('detect_errors', setChildHandlers, false);
-            embedded_iframe.onload = checkChildHandlersInstalled;
-          } else {
-            embedded_iframe.onload = null;
-          }
+          embedded_iframe.onload = null;
           embedded_iframe_div.removeChild(embedded_iframe);
           embedded_iframe = document.createElement('iframe');
           embedded_iframe.id = "embedded_iframe";
@@ -1793,13 +1611,6 @@ body div {
         var dom =
             embedded_iframe.contentWindow.document.documentElement.innerHTML;
         var message = 'Status:\\n';
-        if (html_test != null) {
-          message +=
-            '  Messages received multiple times:\\n' +
-            '    ' + html_test.double_received_messages + '\\n' +
-            '  Unexpected messages:\\n' +
-            '    ' + html_test.unexpected_messages + '\\n';
-        }
         message += '  DOM:\\n' +
                    '    ' + dom;
         reportMessage(message, false, true);
@@ -1810,35 +1621,8 @@ body div {
         setTimeout(sendRepeatingStatusUpdate, STATUS_UPDATE_INTERVAL);
       }
 
-      // HTML tests post messages to their own window, handled by this handler.
-      // This handler is installed on the child window when it sends the
-      // 'detect_errors' event.  Every HTML test must send 'detect_errors' to
-      // its parent window as its first action, so all errors will be caught.
-      function childMessageHandler(e) {
-        var msg = e.data;
-        if (typeof msg != 'string') return;
-        if (msg in html_test.found_messages) {
-          html_test.found_messages[msg]++;
-          if (html_test.found_messages[msg] == 1) {
-            html_test.found_message_count++;
-          } else {
-            html_test.double_received_messages.push(msg);
-            sendStatusUpdate();
-          }
-        } else {
-          html_test.unexpected_messages.push(msg);
-          sendStatusUpdate();
-        }
-        if (html_test.found_message_count ==
-            html_test.expected_messages.length) {
-          reportMessage('Test done: PASS', false, false);
-        }
-      }
-
-      if (!html_test) {
-        window.addEventListener('message', messageHandler, false);
-        waitForDone = false;
-      }
+      window.addEventListener('message', messageHandler, false);
+      waitForDone = false;
       getNextTask();
     }
   </script>
@@ -1904,9 +1688,12 @@ Future captureInternetExplorerScreenshot(String message) async {
         'stdout: ${result.stdout}\n'
         'stderr: ${result.stderr}');
   } else {
+    final gsutilScript = Platform.script
+        .resolve('../../../third_party/gsutil/gsutil.py')
+        .toFilePath();
     final storageUrl = 'gs://dart-temp-crash-archive/$screenshotName';
     final args = [
-      r'e:\b\depot_tools\gsutil.py',
+      gsutilScript,
       'cp',
       screenshotFile,
       storageUrl,

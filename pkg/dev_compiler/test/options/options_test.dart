@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 import '../../lib/src/analyzer/context.dart';
 import '../../lib/src/analyzer/command.dart';
+import '../../lib/src/analyzer/driver.dart';
 import '../../lib/src/analyzer/module_compiler.dart';
 import '../testing.dart' show repoDirectory, testDirectory;
 
@@ -24,21 +25,21 @@ final sdkSummaryArgs = ['--$sdkSummaryPathOption', sdkSummaryFile];
 
 main() {
   test('basic', () {
-    var options = new AnalyzerOptions.basic();
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
-    var processors = compiler.context.analysisOptions.errorProcessors;
+    var options = AnalyzerOptions.basic()..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
   });
 
   test('basic sdk summary', () {
-    expect(new File(sdkSummaryFile).existsSync(), isTrue);
-    var options = new AnalyzerOptions.basic(dartSdkSummaryPath: sdkSummaryFile);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
-    var context = compiler.context;
-    var sdk = context.sourceFactory.dartSdk;
-    expect(sdk, new isInstanceOf<SummaryBasedDartSdk>());
-    var processors = context.analysisOptions.errorProcessors;
+    expect(File(sdkSummaryFile).existsSync(), isTrue);
+    var options = AnalyzerOptions.basic(dartSdkSummaryPath: sdkSummaryFile)
+      ..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var sdk = driver.dartSdk;
+    expect(sdk, const TypeMatcher<SummaryBasedDartSdk>());
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
   });
@@ -48,36 +49,27 @@ main() {
     //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
     args.addAll(sdkSummaryArgs);
     var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
-    var processors = compiler.context.analysisOptions.errorProcessors;
+    var options = AnalyzerOptions.fromArguments(argResults)
+      ..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
   });
 
   test('fromArgs options file 2', () {
     var optionsFile2 = path.join(optionsDir, 'analysis_options_2.yaml');
-    expect(new File(optionsFile2).existsSync(), isTrue);
+    expect(File(optionsFile2).existsSync(), isTrue);
     var args = <String>['--$analysisOptionsFileOption', optionsFile2];
     //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
     args.addAll(sdkSummaryArgs);
     var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
-    var processors = compiler.context.analysisOptions.errorProcessors;
+    var options = AnalyzerOptions.fromArguments(argResults)
+      ..analysisRoot = optionsDir;
+    var driver = CompilerAnalysisDriver(options);
+    var processors = driver.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.DUPLICATE_DEFINITION.name);
-  });
-
-  test('fromArgs options flag', () {
-    var args = <String>['--$enableStrictCallChecksFlag'];
-    //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
-    args.addAll(sdkSummaryArgs);
-    var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
-    var analysisOptions = compiler.context.analysisOptions;
-    expect(analysisOptions.enableStrictCallChecks, isTrue);
   });
 
   test('custom module name for summary', () {
@@ -89,11 +81,11 @@ main() {
     ];
 
     var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
-    expect(options.summaryPaths,
+    var options = CompilerOptions.fromArguments(argResults);
+    expect(options.summaryModules.keys.toList(),
         orderedEquals(['normal', 'custom/path', 'another', 'custom/path2']));
-    expect(options.customSummaryModules['custom/path'], equals('module'));
-    expect(options.customSummaryModules['custom/path2'], equals('module2'));
-    expect(options.customSummaryModules.containsKey('normal'), isFalse);
+    expect(options.summaryModules['custom/path'], equals('module'));
+    expect(options.summaryModules['custom/path2'], equals('module2'));
+    expect(options.summaryModules.containsKey('normal'), isFalse);
   });
 }

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/base/errors.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/scanner/error_token.dart';
-import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
+import '../base/errors.dart';
+import '../fasta/fasta_codes.dart';
+import '../fasta/scanner/error_token.dart';
+import 'token.dart' show Token, TokenType;
+import '../fasta/scanner/token_constants.dart';
 
 /**
  * The error codes used for errors detected by the scanner.
@@ -30,7 +30,7 @@ class ScannerErrorCode extends ErrorCode {
       const ScannerErrorCode('MISSING_DIGIT', "Decimal digit expected.");
 
   static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
-      'MISSING_HEX_DIGIT', "Hexidecimal digit expected.");
+      'MISSING_HEX_DIGIT', "Hexadecimal digit expected.");
 
   static const ScannerErrorCode MISSING_IDENTIFIER =
       const ScannerErrorCode('MISSING_IDENTIFIER', "Expected an identifier.");
@@ -45,12 +45,26 @@ class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
       'UNABLE_GET_CONTENT', "Unable to get content of '{0}'.");
 
+  static const ScannerErrorCode UNEXPECTED_DOLLAR_IN_STRING =
+      const ScannerErrorCode(
+          'UNEXPECTED_DOLLAR_IN_STRING',
+          "A '\$' has special meaning inside a string, and must be followed by "
+          "an identifier or an expression in curly braces ({}).",
+          correction: "Try adding a backslash (\\) to escape the '\$'.");
+
+  /**
+   * Parameters:
+   * 0: the unsupported operator
+   */
+  static const ScannerErrorCode UNSUPPORTED_OPERATOR = const ScannerErrorCode(
+      'UNSUPPORTED_OPERATOR', "The '{0}' operator is not supported.");
+
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
-          'UNTERMINATED_MULTI_LINE_COMMENT',
-          "Unterminated multi-line comment.",
-          "Try terminating the comment with '*/', or "
-          "removing any unbalanced occurances of '/*' (because comments nest in Dart).");
+          'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
+          correction: "Try terminating the comment with '*/', or "
+              "removing any unbalanced occurances of '/*'"
+              " (because comments nest in Dart).");
 
   static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
       const ScannerErrorCode(
@@ -62,8 +76,8 @@ class ScannerErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ScannerErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const ScannerErrorCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -100,12 +114,15 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   }
 
   var errorCode = token.errorCode;
-  switch (errorCode.analyzerCode) {
+  switch (errorCode.analyzerCodes?.first) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
-      charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
+      // TODO(danrubel): Remove this once all analyzer clients
+      // can process errors via the scanner's errors list.
+      reportError(
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL, endOffset - 1, null);
+      return;
 
     case "UNTERMINATED_MULTI_LINE_COMMENT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
@@ -128,8 +145,13 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "ILLEGAL_CHARACTER":
       return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
 
+    case "UNSUPPORTED_OPERATOR":
+      return _makeError(ScannerErrorCode.UNSUPPORTED_OPERATOR,
+          [(token as UnsupportedOperator).token.lexeme]);
+
     default:
       if (errorCode == codeUnmatchedToken) {
+        charOffset = token.begin.endToken.charOffset;
         TokenType type = token.begin?.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
@@ -147,7 +169,24 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       } else if (errorCode == codeUnexpectedDollarInString) {
         return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }
-      throw new UnimplementedError('$errorCode');
+      throw new UnimplementedError(
+          '$errorCode "${errorCode.analyzerCodes?.first}"');
+  }
+}
+
+void translateScanError(
+    Code errorCode, int charOffset, int length, ReportError reportError) {
+  switch (errorCode.analyzerCodes?.first) {
+    case "UNTERMINATED_STRING_LITERAL":
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // string; analyzer expects the end of the string.
+      reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          charOffset + length - 1, null);
+      break;
+
+    default:
+      throw new UnimplementedError(
+          '$errorCode "${errorCode.analyzerCodes?.first}"');
   }
 }
 

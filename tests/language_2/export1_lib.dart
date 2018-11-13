@@ -4,6 +4,6 @@
 
 library export1_lib;
 
-export "dart:math" show LN10, LN2, E;
+export "dart:math" show ln10, ln2, e;
 
-var E = "E"; // Hides constant E from math lib.
+var e = "E"; // Hides constant E from math lib.

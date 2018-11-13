@@ -134,7 +134,7 @@ TEST_CASE(PortMap_PostMessage) {
 
   EXPECT(PortMap::PostMessage(
       new Message(port, reinterpret_cast<uint8_t*>(strdup(message)),
-                  message_len, Message::kNormalPriority)));
+                  message_len, NULL, Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
   EXPECT_EQ(1, handler.notify_count);
@@ -178,7 +178,7 @@ TEST_CASE(PortMap_PostMessageClosedPort) {
 
   EXPECT(!PortMap::PostMessage(
       new Message(port, reinterpret_cast<uint8_t*>(strdup(message)),
-                  message_len, Message::kNormalPriority)));
+                  message_len, NULL, Message::kNormalPriority)));
 }
 
 }  // namespace dart

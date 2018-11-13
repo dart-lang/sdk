@@ -8,7 +8,13 @@
 /// To use this library in your code:
 ///
 ///     import 'dart:typed_data';
+///
+/// {@category Core}
 library dart.typed_data;
+
+import "dart:_internal" show UnmodifiableListBase;
+
+part "unmodifiable_typed_data.dart";
 
 /**
  * A sequence of bytes underlying a typed data object.
@@ -383,23 +389,35 @@ abstract class TypedData {
   ByteBuffer get buffer;
 }
 
-// TODO(lrn): Remove class for Dart 2.0.
-/** Deprecated, use [Endian] instead. */
-abstract class Endianness {
-  Endianness._(); // prevent construction.
-  /** Deprecated, use [Endian.big] instead. */
-  static const Endian BIG_ENDIAN = Endian.big;
-  /** Deprecated, use [Endian.little] instead. */
-  static const Endian LITTLE_ENDIAN = Endian.little;
-  /** Deprecated, use [Endian.host] instead. */
-  static Endian get HOST_ENDIAN => Endian.host;
+abstract class _TypedIntList extends TypedData {
+  /**
+   * Returns the concatenation of this list and [other].
+   *
+   * If other is also a typed-data integer list, the returned list will
+   * be a type-data integer list capable of containing all the elements of
+   * this list and of [other].
+   * Otherwise the returned list will be a normal growable `List<int>`.
+   */
+  List<int> operator +(List<int> other);
+}
+
+abstract class _TypedFloatList extends TypedData {
+  /**
+   * Returns the concatenation of this list and [other].
+   *
+   * If other is also a typed-data floating point number list,
+   * the returned list will be a type-data float list capable of containing
+   * all the elements of this list and of [other].
+   * Otherwise the returned list will be a normal growable `List<double>`.
+   */
+  List<double> operator +(List<double> other);
 }
 
 /**
  * Describes endianness to be used when accessing or updating a
  * sequence of bytes.
  */
-class Endian implements Endianness {
+class Endian {
   final bool _littleEndian;
   const Endian._(this._littleEndian);
 
@@ -437,6 +455,7 @@ abstract class ByteData implements TypedData {
    * Creates a [ByteData] of the specified length (in elements), all of
    * whose bytes are initially zero.
    */
+  @pragma("vm:entry-point")
   external factory ByteData(int length);
 
   /**
@@ -718,7 +737,7 @@ abstract class ByteData implements TypedData {
  * interpreted as a signed 8-bit two's complement integer with values in the
  * range -128 to +127.
  */
-abstract class Int8List implements List<int>, TypedData {
+abstract class Int8List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -753,8 +772,6 @@ abstract class Int8List implements List<int>, TypedData {
     return buffer.asInt8List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 1;
 }
 
@@ -768,7 +785,7 @@ abstract class Int8List implements List<int>, TypedData {
  * interpreted as an unsigned 8-bit integer with values in the
  * range 0 to 255.
  */
-abstract class Uint8List implements List<int>, TypedData {
+abstract class Uint8List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint8List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -803,8 +820,15 @@ abstract class Uint8List implements List<int>, TypedData {
     return buffer.asUint8List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
+  /**
+   * Returns a concatenation of this list and [other].
+   *
+   * If [other] is also a typed-data list, then the return list will be a
+   * typed data list capable of holding both unsigned 8-bit integers and
+   * the elements of [other], otherwise it'll be a normal list of integers.
+   */
+  List<int> operator +(List<int> other);
+
   static const int bytesPerElement = 1;
 }
 
@@ -818,7 +842,7 @@ abstract class Uint8List implements List<int>, TypedData {
  * That is, all values below zero are stored as zero
  * and all values above 255 are stored as 255.
  */
-abstract class Uint8ClampedList implements List<int>, TypedData {
+abstract class Uint8ClampedList implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -854,8 +878,6 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
     return buffer.asUint8ClampedList(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 1;
 }
 
@@ -870,7 +892,7 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
  * interpreted as a signed 16-bit two's complement integer with values in the
  * range -32768 to +32767.
  */
-abstract class Int16List implements List<int>, TypedData {
+abstract class Int16List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -908,8 +930,6 @@ abstract class Int16List implements List<int>, TypedData {
     return buffer.asInt16List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 2;
 }
 
@@ -924,7 +944,7 @@ abstract class Int16List implements List<int>, TypedData {
  * interpreted as an unsigned 16-bit integer with values in the
  * range 0 to 65535.
  */
-abstract class Uint16List implements List<int>, TypedData {
+abstract class Uint16List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -963,8 +983,6 @@ abstract class Uint16List implements List<int>, TypedData {
     return buffer.asUint16List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 2;
 }
 
@@ -979,7 +997,7 @@ abstract class Uint16List implements List<int>, TypedData {
  * interpreted as a signed 32-bit two's complement integer with values in the
  * range -2147483648 to 2147483647.
  */
-abstract class Int32List implements List<int>, TypedData {
+abstract class Int32List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1017,8 +1035,6 @@ abstract class Int32List implements List<int>, TypedData {
     return buffer.asInt32List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 4;
 }
 
@@ -1033,7 +1049,7 @@ abstract class Int32List implements List<int>, TypedData {
  * interpreted as an unsigned 32-bit integer with values in the
  * range 0 to 4294967295.
  */
-abstract class Uint32List implements List<int>, TypedData {
+abstract class Uint32List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -1072,8 +1088,6 @@ abstract class Uint32List implements List<int>, TypedData {
     return buffer.asUint32List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 4;
 }
 
@@ -1088,7 +1102,7 @@ abstract class Uint32List implements List<int>, TypedData {
  * interpreted as a signed 64-bit two's complement integer with values in the
  * range -9223372036854775808 to +9223372036854775807.
  */
-abstract class Int64List implements List<int>, TypedData {
+abstract class Int64List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1126,8 +1140,6 @@ abstract class Int64List implements List<int>, TypedData {
     return buffer.asInt64List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 8;
 }
 
@@ -1142,7 +1154,7 @@ abstract class Int64List implements List<int>, TypedData {
  * interpreted as an unsigned 64-bit integer with values in the
  * range 0 to 18446744073709551615.
  */
-abstract class Uint64List implements List<int>, TypedData {
+abstract class Uint64List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -1181,8 +1193,6 @@ abstract class Uint64List implements List<int>, TypedData {
     return buffer.asUint64List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 8;
 }
 
@@ -1198,7 +1208,7 @@ abstract class Uint64List implements List<int>, TypedData {
  * single-precision value. Values read are converted to a double
  * value with the same value.
  */
-abstract class Float32List implements List<double>, TypedData {
+abstract class Float32List implements List<double>, _TypedFloatList {
   /**
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1236,8 +1246,6 @@ abstract class Float32List implements List<double>, TypedData {
     return buffer.asFloat32List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 4;
 }
 
@@ -1249,7 +1257,7 @@ abstract class Float32List implements List<double>, TypedData {
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-abstract class Float64List implements List<double>, TypedData {
+abstract class Float64List implements List<double>, _TypedFloatList {
   /**
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1284,8 +1292,6 @@ abstract class Float64List implements List<double>, TypedData {
     return buffer.asFloat64List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 8;
 }
 
@@ -1331,8 +1337,14 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
     return buffer.asFloat32x4List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
+  /**
+   * Returns the concatenation of this list and [other].
+   *
+   * If [other] is also a [Float32x4List], the result is a new [Float32x4List],
+   * otherwise the result is a normal growable `List<Float32x4>`.
+   */
+  List<Float32x4> operator +(List<Float32x4> other);
+
   static const int bytesPerElement = 16;
 }
 
@@ -1378,8 +1390,14 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
     return buffer.asInt32x4List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
+  /**
+   * Returns the concatenation of this list and [other].
+   *
+   * If [other] is also a [Int32x4List], the result is a new [Int32x4List],
+   * otherwise the result is a normal growable `List<Int32x4>`.
+   */
+  List<Int32x4> operator +(List<Int32x4> other);
+
   static const int bytesPerElement = 16;
 }
 
@@ -1404,6 +1422,14 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
   external factory Float64x2List.fromList(List<Float64x2> elements);
 
   /**
+   * Returns the concatenation of this list and [other].
+   *
+   * If [other] is also a [Float64x2List], the result is a new [Float64x2List],
+   * otherwise the result is a normal growable `List<Float64x2>`.
+   */
+  List<Float64x2> operator +(List<Float64x2> other);
+
+  /**
    * Creates a [Float64x2List] _view_ of the specified region in [buffer].
    *
    * Changes in the [Float64x2List] will be visible in the byte
@@ -1425,8 +1451,6 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
     return buffer.asFloat64x2List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
-  static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 16;
 }
 
@@ -1765,518 +1789,6 @@ abstract class Float32x4 {
   static const int wwwy = 0x7F;
   static const int wwwz = 0xBF;
   static const int wwww = 0xFF;
-  /** Deprecated, use [xxxx] instead. */
-  static const int XXXX = xxxx;
-  /** Deprecated, use [xxxy] instead. */
-  static const int XXXY = xxxy;
-  /** Deprecated, use [xxxz] instead. */
-  static const int XXXZ = xxxz;
-  /** Deprecated, use [xxxw] instead. */
-  static const int XXXW = xxxw;
-  /** Deprecated, use [xxyx] instead. */
-  static const int XXYX = xxyx;
-  /** Deprecated, use [xxyy] instead. */
-  static const int XXYY = xxyy;
-  /** Deprecated, use [xxyz] instead. */
-  static const int XXYZ = xxyz;
-  /** Deprecated, use [xxyw] instead. */
-  static const int XXYW = xxyw;
-  /** Deprecated, use [xxzx] instead. */
-  static const int XXZX = xxzx;
-  /** Deprecated, use [xxzy] instead. */
-  static const int XXZY = xxzy;
-  /** Deprecated, use [xxzz] instead. */
-  static const int XXZZ = xxzz;
-  /** Deprecated, use [xxzw] instead. */
-  static const int XXZW = xxzw;
-  /** Deprecated, use [xxwx] instead. */
-  static const int XXWX = xxwx;
-  /** Deprecated, use [xxwy] instead. */
-  static const int XXWY = xxwy;
-  /** Deprecated, use [xxwz] instead. */
-  static const int XXWZ = xxwz;
-  /** Deprecated, use [xxww] instead. */
-  static const int XXWW = xxww;
-  /** Deprecated, use [xyxx] instead. */
-  static const int XYXX = xyxx;
-  /** Deprecated, use [xyxy] instead. */
-  static const int XYXY = xyxy;
-  /** Deprecated, use [xyxz] instead. */
-  static const int XYXZ = xyxz;
-  /** Deprecated, use [xyxw] instead. */
-  static const int XYXW = xyxw;
-  /** Deprecated, use [xyyx] instead. */
-  static const int XYYX = xyyx;
-  /** Deprecated, use [xyyy] instead. */
-  static const int XYYY = xyyy;
-  /** Deprecated, use [xyyz] instead. */
-  static const int XYYZ = xyyz;
-  /** Deprecated, use [xyyw] instead. */
-  static const int XYYW = xyyw;
-  /** Deprecated, use [xyzx] instead. */
-  static const int XYZX = xyzx;
-  /** Deprecated, use [xyzy] instead. */
-  static const int XYZY = xyzy;
-  /** Deprecated, use [xyzz] instead. */
-  static const int XYZZ = xyzz;
-  /** Deprecated, use [xyzw] instead. */
-  static const int XYZW = xyzw;
-  /** Deprecated, use [xywx] instead. */
-  static const int XYWX = xywx;
-  /** Deprecated, use [xywy] instead. */
-  static const int XYWY = xywy;
-  /** Deprecated, use [xywz] instead. */
-  static const int XYWZ = xywz;
-  /** Deprecated, use [xyww] instead. */
-  static const int XYWW = xyww;
-  /** Deprecated, use [xzxx] instead. */
-  static const int XZXX = xzxx;
-  /** Deprecated, use [xzxy] instead. */
-  static const int XZXY = xzxy;
-  /** Deprecated, use [xzxz] instead. */
-  static const int XZXZ = xzxz;
-  /** Deprecated, use [xzxw] instead. */
-  static const int XZXW = xzxw;
-  /** Deprecated, use [xzyx] instead. */
-  static const int XZYX = xzyx;
-  /** Deprecated, use [xzyy] instead. */
-  static const int XZYY = xzyy;
-  /** Deprecated, use [xzyz] instead. */
-  static const int XZYZ = xzyz;
-  /** Deprecated, use [xzyw] instead. */
-  static const int XZYW = xzyw;
-  /** Deprecated, use [xzzx] instead. */
-  static const int XZZX = xzzx;
-  /** Deprecated, use [xzzy] instead. */
-  static const int XZZY = xzzy;
-  /** Deprecated, use [xzzz] instead. */
-  static const int XZZZ = xzzz;
-  /** Deprecated, use [xzzw] instead. */
-  static const int XZZW = xzzw;
-  /** Deprecated, use [xzwx] instead. */
-  static const int XZWX = xzwx;
-  /** Deprecated, use [xzwy] instead. */
-  static const int XZWY = xzwy;
-  /** Deprecated, use [xzwz] instead. */
-  static const int XZWZ = xzwz;
-  /** Deprecated, use [xzww] instead. */
-  static const int XZWW = xzww;
-  /** Deprecated, use [xwxx] instead. */
-  static const int XWXX = xwxx;
-  /** Deprecated, use [xwxy] instead. */
-  static const int XWXY = xwxy;
-  /** Deprecated, use [xwxz] instead. */
-  static const int XWXZ = xwxz;
-  /** Deprecated, use [xwxw] instead. */
-  static const int XWXW = xwxw;
-  /** Deprecated, use [xwyx] instead. */
-  static const int XWYX = xwyx;
-  /** Deprecated, use [xwyy] instead. */
-  static const int XWYY = xwyy;
-  /** Deprecated, use [xwyz] instead. */
-  static const int XWYZ = xwyz;
-  /** Deprecated, use [xwyw] instead. */
-  static const int XWYW = xwyw;
-  /** Deprecated, use [xwzx] instead. */
-  static const int XWZX = xwzx;
-  /** Deprecated, use [xwzy] instead. */
-  static const int XWZY = xwzy;
-  /** Deprecated, use [xwzz] instead. */
-  static const int XWZZ = xwzz;
-  /** Deprecated, use [xwzw] instead. */
-  static const int XWZW = xwzw;
-  /** Deprecated, use [xwwx] instead. */
-  static const int XWWX = xwwx;
-  /** Deprecated, use [xwwy] instead. */
-  static const int XWWY = xwwy;
-  /** Deprecated, use [xwwz] instead. */
-  static const int XWWZ = xwwz;
-  /** Deprecated, use [xwww] instead. */
-  static const int XWWW = xwww;
-  /** Deprecated, use [yxxx] instead. */
-  static const int YXXX = yxxx;
-  /** Deprecated, use [yxxy] instead. */
-  static const int YXXY = yxxy;
-  /** Deprecated, use [yxxz] instead. */
-  static const int YXXZ = yxxz;
-  /** Deprecated, use [yxxw] instead. */
-  static const int YXXW = yxxw;
-  /** Deprecated, use [yxyx] instead. */
-  static const int YXYX = yxyx;
-  /** Deprecated, use [yxyy] instead. */
-  static const int YXYY = yxyy;
-  /** Deprecated, use [yxyz] instead. */
-  static const int YXYZ = yxyz;
-  /** Deprecated, use [yxyw] instead. */
-  static const int YXYW = yxyw;
-  /** Deprecated, use [yxzx] instead. */
-  static const int YXZX = yxzx;
-  /** Deprecated, use [yxzy] instead. */
-  static const int YXZY = yxzy;
-  /** Deprecated, use [yxzz] instead. */
-  static const int YXZZ = yxzz;
-  /** Deprecated, use [yxzw] instead. */
-  static const int YXZW = yxzw;
-  /** Deprecated, use [yxwx] instead. */
-  static const int YXWX = yxwx;
-  /** Deprecated, use [yxwy] instead. */
-  static const int YXWY = yxwy;
-  /** Deprecated, use [yxwz] instead. */
-  static const int YXWZ = yxwz;
-  /** Deprecated, use [yxww] instead. */
-  static const int YXWW = yxww;
-  /** Deprecated, use [yyxx] instead. */
-  static const int YYXX = yyxx;
-  /** Deprecated, use [yyxy] instead. */
-  static const int YYXY = yyxy;
-  /** Deprecated, use [yyxz] instead. */
-  static const int YYXZ = yyxz;
-  /** Deprecated, use [yyxw] instead. */
-  static const int YYXW = yyxw;
-  /** Deprecated, use [yyyx] instead. */
-  static const int YYYX = yyyx;
-  /** Deprecated, use [yyyy] instead. */
-  static const int YYYY = yyyy;
-  /** Deprecated, use [yyyz] instead. */
-  static const int YYYZ = yyyz;
-  /** Deprecated, use [yyyw] instead. */
-  static const int YYYW = yyyw;
-  /** Deprecated, use [yyzx] instead. */
-  static const int YYZX = yyzx;
-  /** Deprecated, use [yyzy] instead. */
-  static const int YYZY = yyzy;
-  /** Deprecated, use [yyzz] instead. */
-  static const int YYZZ = yyzz;
-  /** Deprecated, use [yyzw] instead. */
-  static const int YYZW = yyzw;
-  /** Deprecated, use [yywx] instead. */
-  static const int YYWX = yywx;
-  /** Deprecated, use [yywy] instead. */
-  static const int YYWY = yywy;
-  /** Deprecated, use [yywz] instead. */
-  static const int YYWZ = yywz;
-  /** Deprecated, use [yyww] instead. */
-  static const int YYWW = yyww;
-  /** Deprecated, use [yzxx] instead. */
-  static const int YZXX = yzxx;
-  /** Deprecated, use [yzxy] instead. */
-  static const int YZXY = yzxy;
-  /** Deprecated, use [yzxz] instead. */
-  static const int YZXZ = yzxz;
-  /** Deprecated, use [yzxw] instead. */
-  static const int YZXW = yzxw;
-  /** Deprecated, use [yzyx] instead. */
-  static const int YZYX = yzyx;
-  /** Deprecated, use [yzyy] instead. */
-  static const int YZYY = yzyy;
-  /** Deprecated, use [yzyz] instead. */
-  static const int YZYZ = yzyz;
-  /** Deprecated, use [yzyw] instead. */
-  static const int YZYW = yzyw;
-  /** Deprecated, use [yzzx] instead. */
-  static const int YZZX = yzzx;
-  /** Deprecated, use [yzzy] instead. */
-  static const int YZZY = yzzy;
-  /** Deprecated, use [yzzz] instead. */
-  static const int YZZZ = yzzz;
-  /** Deprecated, use [yzzw] instead. */
-  static const int YZZW = yzzw;
-  /** Deprecated, use [yzwx] instead. */
-  static const int YZWX = yzwx;
-  /** Deprecated, use [yzwy] instead. */
-  static const int YZWY = yzwy;
-  /** Deprecated, use [yzwz] instead. */
-  static const int YZWZ = yzwz;
-  /** Deprecated, use [yzww] instead. */
-  static const int YZWW = yzww;
-  /** Deprecated, use [ywxx] instead. */
-  static const int YWXX = ywxx;
-  /** Deprecated, use [ywxy] instead. */
-  static const int YWXY = ywxy;
-  /** Deprecated, use [ywxz] instead. */
-  static const int YWXZ = ywxz;
-  /** Deprecated, use [ywxw] instead. */
-  static const int YWXW = ywxw;
-  /** Deprecated, use [ywyx] instead. */
-  static const int YWYX = ywyx;
-  /** Deprecated, use [ywyy] instead. */
-  static const int YWYY = ywyy;
-  /** Deprecated, use [ywyz] instead. */
-  static const int YWYZ = ywyz;
-  /** Deprecated, use [ywyw] instead. */
-  static const int YWYW = ywyw;
-  /** Deprecated, use [ywzx] instead. */
-  static const int YWZX = ywzx;
-  /** Deprecated, use [ywzy] instead. */
-  static const int YWZY = ywzy;
-  /** Deprecated, use [ywzz] instead. */
-  static const int YWZZ = ywzz;
-  /** Deprecated, use [ywzw] instead. */
-  static const int YWZW = ywzw;
-  /** Deprecated, use [ywwx] instead. */
-  static const int YWWX = ywwx;
-  /** Deprecated, use [ywwy] instead. */
-  static const int YWWY = ywwy;
-  /** Deprecated, use [ywwz] instead. */
-  static const int YWWZ = ywwz;
-  /** Deprecated, use [ywww] instead. */
-  static const int YWWW = ywww;
-  /** Deprecated, use [zxxx] instead. */
-  static const int ZXXX = zxxx;
-  /** Deprecated, use [zxxy] instead. */
-  static const int ZXXY = zxxy;
-  /** Deprecated, use [zxxz] instead. */
-  static const int ZXXZ = zxxz;
-  /** Deprecated, use [zxxw] instead. */
-  static const int ZXXW = zxxw;
-  /** Deprecated, use [zxyx] instead. */
-  static const int ZXYX = zxyx;
-  /** Deprecated, use [zxyy] instead. */
-  static const int ZXYY = zxyy;
-  /** Deprecated, use [zxyz] instead. */
-  static const int ZXYZ = zxyz;
-  /** Deprecated, use [zxyw] instead. */
-  static const int ZXYW = zxyw;
-  /** Deprecated, use [zxzx] instead. */
-  static const int ZXZX = zxzx;
-  /** Deprecated, use [zxzy] instead. */
-  static const int ZXZY = zxzy;
-  /** Deprecated, use [zxzz] instead. */
-  static const int ZXZZ = zxzz;
-  /** Deprecated, use [zxzw] instead. */
-  static const int ZXZW = zxzw;
-  /** Deprecated, use [zxwx] instead. */
-  static const int ZXWX = zxwx;
-  /** Deprecated, use [zxwy] instead. */
-  static const int ZXWY = zxwy;
-  /** Deprecated, use [zxwz] instead. */
-  static const int ZXWZ = zxwz;
-  /** Deprecated, use [zxww] instead. */
-  static const int ZXWW = zxww;
-  /** Deprecated, use [zyxx] instead. */
-  static const int ZYXX = zyxx;
-  /** Deprecated, use [zyxy] instead. */
-  static const int ZYXY = zyxy;
-  /** Deprecated, use [zyxz] instead. */
-  static const int ZYXZ = zyxz;
-  /** Deprecated, use [zyxw] instead. */
-  static const int ZYXW = zyxw;
-  /** Deprecated, use [zyyx] instead. */
-  static const int ZYYX = zyyx;
-  /** Deprecated, use [zyyy] instead. */
-  static const int ZYYY = zyyy;
-  /** Deprecated, use [zyyz] instead. */
-  static const int ZYYZ = zyyz;
-  /** Deprecated, use [zyyw] instead. */
-  static const int ZYYW = zyyw;
-  /** Deprecated, use [zyzx] instead. */
-  static const int ZYZX = zyzx;
-  /** Deprecated, use [zyzy] instead. */
-  static const int ZYZY = zyzy;
-  /** Deprecated, use [zyzz] instead. */
-  static const int ZYZZ = zyzz;
-  /** Deprecated, use [zyzw] instead. */
-  static const int ZYZW = zyzw;
-  /** Deprecated, use [zywx] instead. */
-  static const int ZYWX = zywx;
-  /** Deprecated, use [zywy] instead. */
-  static const int ZYWY = zywy;
-  /** Deprecated, use [zywz] instead. */
-  static const int ZYWZ = zywz;
-  /** Deprecated, use [zyww] instead. */
-  static const int ZYWW = zyww;
-  /** Deprecated, use [zzxx] instead. */
-  static const int ZZXX = zzxx;
-  /** Deprecated, use [zzxy] instead. */
-  static const int ZZXY = zzxy;
-  /** Deprecated, use [zzxz] instead. */
-  static const int ZZXZ = zzxz;
-  /** Deprecated, use [zzxw] instead. */
-  static const int ZZXW = zzxw;
-  /** Deprecated, use [zzyx] instead. */
-  static const int ZZYX = zzyx;
-  /** Deprecated, use [zzyy] instead. */
-  static const int ZZYY = zzyy;
-  /** Deprecated, use [zzyz] instead. */
-  static const int ZZYZ = zzyz;
-  /** Deprecated, use [zzyw] instead. */
-  static const int ZZYW = zzyw;
-  /** Deprecated, use [zzzx] instead. */
-  static const int ZZZX = zzzx;
-  /** Deprecated, use [zzzy] instead. */
-  static const int ZZZY = zzzy;
-  /** Deprecated, use [zzzz] instead. */
-  static const int ZZZZ = zzzz;
-  /** Deprecated, use [zzzw] instead. */
-  static const int ZZZW = zzzw;
-  /** Deprecated, use [zzwx] instead. */
-  static const int ZZWX = zzwx;
-  /** Deprecated, use [zzwy] instead. */
-  static const int ZZWY = zzwy;
-  /** Deprecated, use [zzwz] instead. */
-  static const int ZZWZ = zzwz;
-  /** Deprecated, use [zzww] instead. */
-  static const int ZZWW = zzww;
-  /** Deprecated, use [zwxx] instead. */
-  static const int ZWXX = zwxx;
-  /** Deprecated, use [zwxy] instead. */
-  static const int ZWXY = zwxy;
-  /** Deprecated, use [zwxz] instead. */
-  static const int ZWXZ = zwxz;
-  /** Deprecated, use [zwxw] instead. */
-  static const int ZWXW = zwxw;
-  /** Deprecated, use [zwyx] instead. */
-  static const int ZWYX = zwyx;
-  /** Deprecated, use [zwyy] instead. */
-  static const int ZWYY = zwyy;
-  /** Deprecated, use [zwyz] instead. */
-  static const int ZWYZ = zwyz;
-  /** Deprecated, use [zwyw] instead. */
-  static const int ZWYW = zwyw;
-  /** Deprecated, use [zwzx] instead. */
-  static const int ZWZX = zwzx;
-  /** Deprecated, use [zwzy] instead. */
-  static const int ZWZY = zwzy;
-  /** Deprecated, use [zwzz] instead. */
-  static const int ZWZZ = zwzz;
-  /** Deprecated, use [zwzw] instead. */
-  static const int ZWZW = zwzw;
-  /** Deprecated, use [zwwx] instead. */
-  static const int ZWWX = zwwx;
-  /** Deprecated, use [zwwy] instead. */
-  static const int ZWWY = zwwy;
-  /** Deprecated, use [zwwz] instead. */
-  static const int ZWWZ = zwwz;
-  /** Deprecated, use [zwww] instead. */
-  static const int ZWWW = zwww;
-  /** Deprecated, use [wxxx] instead. */
-  static const int WXXX = wxxx;
-  /** Deprecated, use [wxxy] instead. */
-  static const int WXXY = wxxy;
-  /** Deprecated, use [wxxz] instead. */
-  static const int WXXZ = wxxz;
-  /** Deprecated, use [wxxw] instead. */
-  static const int WXXW = wxxw;
-  /** Deprecated, use [wxyx] instead. */
-  static const int WXYX = wxyx;
-  /** Deprecated, use [wxyy] instead. */
-  static const int WXYY = wxyy;
-  /** Deprecated, use [wxyz] instead. */
-  static const int WXYZ = wxyz;
-  /** Deprecated, use [wxyw] instead. */
-  static const int WXYW = wxyw;
-  /** Deprecated, use [wxzx] instead. */
-  static const int WXZX = wxzx;
-  /** Deprecated, use [wxzy] instead. */
-  static const int WXZY = wxzy;
-  /** Deprecated, use [wxzz] instead. */
-  static const int WXZZ = wxzz;
-  /** Deprecated, use [wxzw] instead. */
-  static const int WXZW = wxzw;
-  /** Deprecated, use [wxwx] instead. */
-  static const int WXWX = wxwx;
-  /** Deprecated, use [wxwy] instead. */
-  static const int WXWY = wxwy;
-  /** Deprecated, use [wxwz] instead. */
-  static const int WXWZ = wxwz;
-  /** Deprecated, use [wxww] instead. */
-  static const int WXWW = wxww;
-  /** Deprecated, use [wyxx] instead. */
-  static const int WYXX = wyxx;
-  /** Deprecated, use [wyxy] instead. */
-  static const int WYXY = wyxy;
-  /** Deprecated, use [wyxz] instead. */
-  static const int WYXZ = wyxz;
-  /** Deprecated, use [wyxw] instead. */
-  static const int WYXW = wyxw;
-  /** Deprecated, use [wyyx] instead. */
-  static const int WYYX = wyyx;
-  /** Deprecated, use [wyyy] instead. */
-  static const int WYYY = wyyy;
-  /** Deprecated, use [wyyz] instead. */
-  static const int WYYZ = wyyz;
-  /** Deprecated, use [wyyw] instead. */
-  static const int WYYW = wyyw;
-  /** Deprecated, use [wyzx] instead. */
-  static const int WYZX = wyzx;
-  /** Deprecated, use [wyzy] instead. */
-  static const int WYZY = wyzy;
-  /** Deprecated, use [wyzz] instead. */
-  static const int WYZZ = wyzz;
-  /** Deprecated, use [wyzw] instead. */
-  static const int WYZW = wyzw;
-  /** Deprecated, use [wywx] instead. */
-  static const int WYWX = wywx;
-  /** Deprecated, use [wywy] instead. */
-  static const int WYWY = wywy;
-  /** Deprecated, use [wywz] instead. */
-  static const int WYWZ = wywz;
-  /** Deprecated, use [wyww] instead. */
-  static const int WYWW = wyww;
-  /** Deprecated, use [wzxx] instead. */
-  static const int WZXX = wzxx;
-  /** Deprecated, use [wzxy] instead. */
-  static const int WZXY = wzxy;
-  /** Deprecated, use [wzxz] instead. */
-  static const int WZXZ = wzxz;
-  /** Deprecated, use [wzxw] instead. */
-  static const int WZXW = wzxw;
-  /** Deprecated, use [wzyx] instead. */
-  static const int WZYX = wzyx;
-  /** Deprecated, use [wzyy] instead. */
-  static const int WZYY = wzyy;
-  /** Deprecated, use [wzyz] instead. */
-  static const int WZYZ = wzyz;
-  /** Deprecated, use [wzyw] instead. */
-  static const int WZYW = wzyw;
-  /** Deprecated, use [wzzx] instead. */
-  static const int WZZX = wzzx;
-  /** Deprecated, use [wzzy] instead. */
-  static const int WZZY = wzzy;
-  /** Deprecated, use [wzzz] instead. */
-  static const int WZZZ = wzzz;
-  /** Deprecated, use [wzzw] instead. */
-  static const int WZZW = wzzw;
-  /** Deprecated, use [wzwx] instead. */
-  static const int WZWX = wzwx;
-  /** Deprecated, use [wzwy] instead. */
-  static const int WZWY = wzwy;
-  /** Deprecated, use [wzwz] instead. */
-  static const int WZWZ = wzwz;
-  /** Deprecated, use [wzww] instead. */
-  static const int WZWW = wzww;
-  /** Deprecated, use [wwxx] instead. */
-  static const int WWXX = wwxx;
-  /** Deprecated, use [wwxy] instead. */
-  static const int WWXY = wwxy;
-  /** Deprecated, use [wwxz] instead. */
-  static const int WWXZ = wwxz;
-  /** Deprecated, use [wwxw] instead. */
-  static const int WWXW = wwxw;
-  /** Deprecated, use [wwyx] instead. */
-  static const int WWYX = wwyx;
-  /** Deprecated, use [wwyy] instead. */
-  static const int WWYY = wwyy;
-  /** Deprecated, use [wwyz] instead. */
-  static const int WWYZ = wwyz;
-  /** Deprecated, use [wwyw] instead. */
-  static const int WWYW = wwyw;
-  /** Deprecated, use [wwzx] instead. */
-  static const int WWZX = wwzx;
-  /** Deprecated, use [wwzy] instead. */
-  static const int WWZY = wwzy;
-  /** Deprecated, use [wwzz] instead. */
-  static const int WWZZ = wwzz;
-  /** Deprecated, use [wwzw] instead. */
-  static const int WWZW = wwzw;
-  /** Deprecated, use [wwwx] instead. */
-  static const int WWWX = wwwx;
-  /** Deprecated, use [wwwy] instead. */
-  static const int WWWY = wwwy;
-  /** Deprecated, use [wwwz] instead. */
-  static const int WWWZ = wwwz;
-  /** Deprecated, use [wwww] instead. */
-  static const int WWWW = wwww;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Float32x4 shuffle(int mask);
@@ -2616,518 +2128,6 @@ abstract class Int32x4 {
   static const int wwwy = 0x7F;
   static const int wwwz = 0xBF;
   static const int wwww = 0xFF;
-  /** Deprecated, use [xxxx] instead. */
-  static const int XXXX = xxxx;
-  /** Deprecated, use [xxxy] instead. */
-  static const int XXXY = xxxy;
-  /** Deprecated, use [xxxz] instead. */
-  static const int XXXZ = xxxz;
-  /** Deprecated, use [xxxw] instead. */
-  static const int XXXW = xxxw;
-  /** Deprecated, use [xxyx] instead. */
-  static const int XXYX = xxyx;
-  /** Deprecated, use [xxyy] instead. */
-  static const int XXYY = xxyy;
-  /** Deprecated, use [xxyz] instead. */
-  static const int XXYZ = xxyz;
-  /** Deprecated, use [xxyw] instead. */
-  static const int XXYW = xxyw;
-  /** Deprecated, use [xxzx] instead. */
-  static const int XXZX = xxzx;
-  /** Deprecated, use [xxzy] instead. */
-  static const int XXZY = xxzy;
-  /** Deprecated, use [xxzz] instead. */
-  static const int XXZZ = xxzz;
-  /** Deprecated, use [xxzw] instead. */
-  static const int XXZW = xxzw;
-  /** Deprecated, use [xxwx] instead. */
-  static const int XXWX = xxwx;
-  /** Deprecated, use [xxwy] instead. */
-  static const int XXWY = xxwy;
-  /** Deprecated, use [xxwz] instead. */
-  static const int XXWZ = xxwz;
-  /** Deprecated, use [xxww] instead. */
-  static const int XXWW = xxww;
-  /** Deprecated, use [xyxx] instead. */
-  static const int XYXX = xyxx;
-  /** Deprecated, use [xyxy] instead. */
-  static const int XYXY = xyxy;
-  /** Deprecated, use [xyxz] instead. */
-  static const int XYXZ = xyxz;
-  /** Deprecated, use [xyxw] instead. */
-  static const int XYXW = xyxw;
-  /** Deprecated, use [xyyx] instead. */
-  static const int XYYX = xyyx;
-  /** Deprecated, use [xyyy] instead. */
-  static const int XYYY = xyyy;
-  /** Deprecated, use [xyyz] instead. */
-  static const int XYYZ = xyyz;
-  /** Deprecated, use [xyyw] instead. */
-  static const int XYYW = xyyw;
-  /** Deprecated, use [xyzx] instead. */
-  static const int XYZX = xyzx;
-  /** Deprecated, use [xyzy] instead. */
-  static const int XYZY = xyzy;
-  /** Deprecated, use [xyzz] instead. */
-  static const int XYZZ = xyzz;
-  /** Deprecated, use [xyzw] instead. */
-  static const int XYZW = xyzw;
-  /** Deprecated, use [xywx] instead. */
-  static const int XYWX = xywx;
-  /** Deprecated, use [xywy] instead. */
-  static const int XYWY = xywy;
-  /** Deprecated, use [xywz] instead. */
-  static const int XYWZ = xywz;
-  /** Deprecated, use [xyww] instead. */
-  static const int XYWW = xyww;
-  /** Deprecated, use [xzxx] instead. */
-  static const int XZXX = xzxx;
-  /** Deprecated, use [xzxy] instead. */
-  static const int XZXY = xzxy;
-  /** Deprecated, use [xzxz] instead. */
-  static const int XZXZ = xzxz;
-  /** Deprecated, use [xzxw] instead. */
-  static const int XZXW = xzxw;
-  /** Deprecated, use [xzyx] instead. */
-  static const int XZYX = xzyx;
-  /** Deprecated, use [xzyy] instead. */
-  static const int XZYY = xzyy;
-  /** Deprecated, use [xzyz] instead. */
-  static const int XZYZ = xzyz;
-  /** Deprecated, use [xzyw] instead. */
-  static const int XZYW = xzyw;
-  /** Deprecated, use [xzzx] instead. */
-  static const int XZZX = xzzx;
-  /** Deprecated, use [xzzy] instead. */
-  static const int XZZY = xzzy;
-  /** Deprecated, use [xzzz] instead. */
-  static const int XZZZ = xzzz;
-  /** Deprecated, use [xzzw] instead. */
-  static const int XZZW = xzzw;
-  /** Deprecated, use [xzwx] instead. */
-  static const int XZWX = xzwx;
-  /** Deprecated, use [xzwy] instead. */
-  static const int XZWY = xzwy;
-  /** Deprecated, use [xzwz] instead. */
-  static const int XZWZ = xzwz;
-  /** Deprecated, use [xzww] instead. */
-  static const int XZWW = xzww;
-  /** Deprecated, use [xwxx] instead. */
-  static const int XWXX = xwxx;
-  /** Deprecated, use [xwxy] instead. */
-  static const int XWXY = xwxy;
-  /** Deprecated, use [xwxz] instead. */
-  static const int XWXZ = xwxz;
-  /** Deprecated, use [xwxw] instead. */
-  static const int XWXW = xwxw;
-  /** Deprecated, use [xwyx] instead. */
-  static const int XWYX = xwyx;
-  /** Deprecated, use [xwyy] instead. */
-  static const int XWYY = xwyy;
-  /** Deprecated, use [xwyz] instead. */
-  static const int XWYZ = xwyz;
-  /** Deprecated, use [xwyw] instead. */
-  static const int XWYW = xwyw;
-  /** Deprecated, use [xwzx] instead. */
-  static const int XWZX = xwzx;
-  /** Deprecated, use [xwzy] instead. */
-  static const int XWZY = xwzy;
-  /** Deprecated, use [xwzz] instead. */
-  static const int XWZZ = xwzz;
-  /** Deprecated, use [xwzw] instead. */
-  static const int XWZW = xwzw;
-  /** Deprecated, use [xwwx] instead. */
-  static const int XWWX = xwwx;
-  /** Deprecated, use [xwwy] instead. */
-  static const int XWWY = xwwy;
-  /** Deprecated, use [xwwz] instead. */
-  static const int XWWZ = xwwz;
-  /** Deprecated, use [xwww] instead. */
-  static const int XWWW = xwww;
-  /** Deprecated, use [yxxx] instead. */
-  static const int YXXX = yxxx;
-  /** Deprecated, use [yxxy] instead. */
-  static const int YXXY = yxxy;
-  /** Deprecated, use [yxxz] instead. */
-  static const int YXXZ = yxxz;
-  /** Deprecated, use [yxxw] instead. */
-  static const int YXXW = yxxw;
-  /** Deprecated, use [yxyx] instead. */
-  static const int YXYX = yxyx;
-  /** Deprecated, use [yxyy] instead. */
-  static const int YXYY = yxyy;
-  /** Deprecated, use [yxyz] instead. */
-  static const int YXYZ = yxyz;
-  /** Deprecated, use [yxyw] instead. */
-  static const int YXYW = yxyw;
-  /** Deprecated, use [yxzx] instead. */
-  static const int YXZX = yxzx;
-  /** Deprecated, use [yxzy] instead. */
-  static const int YXZY = yxzy;
-  /** Deprecated, use [yxzz] instead. */
-  static const int YXZZ = yxzz;
-  /** Deprecated, use [yxzw] instead. */
-  static const int YXZW = yxzw;
-  /** Deprecated, use [yxwx] instead. */
-  static const int YXWX = yxwx;
-  /** Deprecated, use [yxwy] instead. */
-  static const int YXWY = yxwy;
-  /** Deprecated, use [yxwz] instead. */
-  static const int YXWZ = yxwz;
-  /** Deprecated, use [yxww] instead. */
-  static const int YXWW = yxww;
-  /** Deprecated, use [yyxx] instead. */
-  static const int YYXX = yyxx;
-  /** Deprecated, use [yyxy] instead. */
-  static const int YYXY = yyxy;
-  /** Deprecated, use [yyxz] instead. */
-  static const int YYXZ = yyxz;
-  /** Deprecated, use [yyxw] instead. */
-  static const int YYXW = yyxw;
-  /** Deprecated, use [yyyx] instead. */
-  static const int YYYX = yyyx;
-  /** Deprecated, use [yyyy] instead. */
-  static const int YYYY = yyyy;
-  /** Deprecated, use [yyyz] instead. */
-  static const int YYYZ = yyyz;
-  /** Deprecated, use [yyyw] instead. */
-  static const int YYYW = yyyw;
-  /** Deprecated, use [yyzx] instead. */
-  static const int YYZX = yyzx;
-  /** Deprecated, use [yyzy] instead. */
-  static const int YYZY = yyzy;
-  /** Deprecated, use [yyzz] instead. */
-  static const int YYZZ = yyzz;
-  /** Deprecated, use [yyzw] instead. */
-  static const int YYZW = yyzw;
-  /** Deprecated, use [yywx] instead. */
-  static const int YYWX = yywx;
-  /** Deprecated, use [yywy] instead. */
-  static const int YYWY = yywy;
-  /** Deprecated, use [yywz] instead. */
-  static const int YYWZ = yywz;
-  /** Deprecated, use [yyww] instead. */
-  static const int YYWW = yyww;
-  /** Deprecated, use [yzxx] instead. */
-  static const int YZXX = yzxx;
-  /** Deprecated, use [yzxy] instead. */
-  static const int YZXY = yzxy;
-  /** Deprecated, use [yzxz] instead. */
-  static const int YZXZ = yzxz;
-  /** Deprecated, use [yzxw] instead. */
-  static const int YZXW = yzxw;
-  /** Deprecated, use [yzyx] instead. */
-  static const int YZYX = yzyx;
-  /** Deprecated, use [yzyy] instead. */
-  static const int YZYY = yzyy;
-  /** Deprecated, use [yzyz] instead. */
-  static const int YZYZ = yzyz;
-  /** Deprecated, use [yzyw] instead. */
-  static const int YZYW = yzyw;
-  /** Deprecated, use [yzzx] instead. */
-  static const int YZZX = yzzx;
-  /** Deprecated, use [yzzy] instead. */
-  static const int YZZY = yzzy;
-  /** Deprecated, use [yzzz] instead. */
-  static const int YZZZ = yzzz;
-  /** Deprecated, use [yzzw] instead. */
-  static const int YZZW = yzzw;
-  /** Deprecated, use [yzwx] instead. */
-  static const int YZWX = yzwx;
-  /** Deprecated, use [yzwy] instead. */
-  static const int YZWY = yzwy;
-  /** Deprecated, use [yzwz] instead. */
-  static const int YZWZ = yzwz;
-  /** Deprecated, use [yzww] instead. */
-  static const int YZWW = yzww;
-  /** Deprecated, use [ywxx] instead. */
-  static const int YWXX = ywxx;
-  /** Deprecated, use [ywxy] instead. */
-  static const int YWXY = ywxy;
-  /** Deprecated, use [ywxz] instead. */
-  static const int YWXZ = ywxz;
-  /** Deprecated, use [ywxw] instead. */
-  static const int YWXW = ywxw;
-  /** Deprecated, use [ywyx] instead. */
-  static const int YWYX = ywyx;
-  /** Deprecated, use [ywyy] instead. */
-  static const int YWYY = ywyy;
-  /** Deprecated, use [ywyz] instead. */
-  static const int YWYZ = ywyz;
-  /** Deprecated, use [ywyw] instead. */
-  static const int YWYW = ywyw;
-  /** Deprecated, use [ywzx] instead. */
-  static const int YWZX = ywzx;
-  /** Deprecated, use [ywzy] instead. */
-  static const int YWZY = ywzy;
-  /** Deprecated, use [ywzz] instead. */
-  static const int YWZZ = ywzz;
-  /** Deprecated, use [ywzw] instead. */
-  static const int YWZW = ywzw;
-  /** Deprecated, use [ywwx] instead. */
-  static const int YWWX = ywwx;
-  /** Deprecated, use [ywwy] instead. */
-  static const int YWWY = ywwy;
-  /** Deprecated, use [ywwz] instead. */
-  static const int YWWZ = ywwz;
-  /** Deprecated, use [ywww] instead. */
-  static const int YWWW = ywww;
-  /** Deprecated, use [zxxx] instead. */
-  static const int ZXXX = zxxx;
-  /** Deprecated, use [zxxy] instead. */
-  static const int ZXXY = zxxy;
-  /** Deprecated, use [zxxz] instead. */
-  static const int ZXXZ = zxxz;
-  /** Deprecated, use [zxxw] instead. */
-  static const int ZXXW = zxxw;
-  /** Deprecated, use [zxyx] instead. */
-  static const int ZXYX = zxyx;
-  /** Deprecated, use [zxyy] instead. */
-  static const int ZXYY = zxyy;
-  /** Deprecated, use [zxyz] instead. */
-  static const int ZXYZ = zxyz;
-  /** Deprecated, use [zxyw] instead. */
-  static const int ZXYW = zxyw;
-  /** Deprecated, use [zxzx] instead. */
-  static const int ZXZX = zxzx;
-  /** Deprecated, use [zxzy] instead. */
-  static const int ZXZY = zxzy;
-  /** Deprecated, use [zxzz] instead. */
-  static const int ZXZZ = zxzz;
-  /** Deprecated, use [zxzw] instead. */
-  static const int ZXZW = zxzw;
-  /** Deprecated, use [zxwx] instead. */
-  static const int ZXWX = zxwx;
-  /** Deprecated, use [zxwy] instead. */
-  static const int ZXWY = zxwy;
-  /** Deprecated, use [zxwz] instead. */
-  static const int ZXWZ = zxwz;
-  /** Deprecated, use [zxww] instead. */
-  static const int ZXWW = zxww;
-  /** Deprecated, use [zyxx] instead. */
-  static const int ZYXX = zyxx;
-  /** Deprecated, use [zyxy] instead. */
-  static const int ZYXY = zyxy;
-  /** Deprecated, use [zyxz] instead. */
-  static const int ZYXZ = zyxz;
-  /** Deprecated, use [zyxw] instead. */
-  static const int ZYXW = zyxw;
-  /** Deprecated, use [zyyx] instead. */
-  static const int ZYYX = zyyx;
-  /** Deprecated, use [zyyy] instead. */
-  static const int ZYYY = zyyy;
-  /** Deprecated, use [zyyz] instead. */
-  static const int ZYYZ = zyyz;
-  /** Deprecated, use [zyyw] instead. */
-  static const int ZYYW = zyyw;
-  /** Deprecated, use [zyzx] instead. */
-  static const int ZYZX = zyzx;
-  /** Deprecated, use [zyzy] instead. */
-  static const int ZYZY = zyzy;
-  /** Deprecated, use [zyzz] instead. */
-  static const int ZYZZ = zyzz;
-  /** Deprecated, use [zyzw] instead. */
-  static const int ZYZW = zyzw;
-  /** Deprecated, use [zywx] instead. */
-  static const int ZYWX = zywx;
-  /** Deprecated, use [zywy] instead. */
-  static const int ZYWY = zywy;
-  /** Deprecated, use [zywz] instead. */
-  static const int ZYWZ = zywz;
-  /** Deprecated, use [zyww] instead. */
-  static const int ZYWW = zyww;
-  /** Deprecated, use [zzxx] instead. */
-  static const int ZZXX = zzxx;
-  /** Deprecated, use [zzxy] instead. */
-  static const int ZZXY = zzxy;
-  /** Deprecated, use [zzxz] instead. */
-  static const int ZZXZ = zzxz;
-  /** Deprecated, use [zzxw] instead. */
-  static const int ZZXW = zzxw;
-  /** Deprecated, use [zzyx] instead. */
-  static const int ZZYX = zzyx;
-  /** Deprecated, use [zzyy] instead. */
-  static const int ZZYY = zzyy;
-  /** Deprecated, use [zzyz] instead. */
-  static const int ZZYZ = zzyz;
-  /** Deprecated, use [zzyw] instead. */
-  static const int ZZYW = zzyw;
-  /** Deprecated, use [zzzx] instead. */
-  static const int ZZZX = zzzx;
-  /** Deprecated, use [zzzy] instead. */
-  static const int ZZZY = zzzy;
-  /** Deprecated, use [zzzz] instead. */
-  static const int ZZZZ = zzzz;
-  /** Deprecated, use [zzzw] instead. */
-  static const int ZZZW = zzzw;
-  /** Deprecated, use [zzwx] instead. */
-  static const int ZZWX = zzwx;
-  /** Deprecated, use [zzwy] instead. */
-  static const int ZZWY = zzwy;
-  /** Deprecated, use [zzwz] instead. */
-  static const int ZZWZ = zzwz;
-  /** Deprecated, use [zzww] instead. */
-  static const int ZZWW = zzww;
-  /** Deprecated, use [zwxx] instead. */
-  static const int ZWXX = zwxx;
-  /** Deprecated, use [zwxy] instead. */
-  static const int ZWXY = zwxy;
-  /** Deprecated, use [zwxz] instead. */
-  static const int ZWXZ = zwxz;
-  /** Deprecated, use [zwxw] instead. */
-  static const int ZWXW = zwxw;
-  /** Deprecated, use [zwyx] instead. */
-  static const int ZWYX = zwyx;
-  /** Deprecated, use [zwyy] instead. */
-  static const int ZWYY = zwyy;
-  /** Deprecated, use [zwyz] instead. */
-  static const int ZWYZ = zwyz;
-  /** Deprecated, use [zwyw] instead. */
-  static const int ZWYW = zwyw;
-  /** Deprecated, use [zwzx] instead. */
-  static const int ZWZX = zwzx;
-  /** Deprecated, use [zwzy] instead. */
-  static const int ZWZY = zwzy;
-  /** Deprecated, use [zwzz] instead. */
-  static const int ZWZZ = zwzz;
-  /** Deprecated, use [zwzw] instead. */
-  static const int ZWZW = zwzw;
-  /** Deprecated, use [zwwx] instead. */
-  static const int ZWWX = zwwx;
-  /** Deprecated, use [zwwy] instead. */
-  static const int ZWWY = zwwy;
-  /** Deprecated, use [zwwz] instead. */
-  static const int ZWWZ = zwwz;
-  /** Deprecated, use [zwww] instead. */
-  static const int ZWWW = zwww;
-  /** Deprecated, use [wxxx] instead. */
-  static const int WXXX = wxxx;
-  /** Deprecated, use [wxxy] instead. */
-  static const int WXXY = wxxy;
-  /** Deprecated, use [wxxz] instead. */
-  static const int WXXZ = wxxz;
-  /** Deprecated, use [wxxw] instead. */
-  static const int WXXW = wxxw;
-  /** Deprecated, use [wxyx] instead. */
-  static const int WXYX = wxyx;
-  /** Deprecated, use [wxyy] instead. */
-  static const int WXYY = wxyy;
-  /** Deprecated, use [wxyz] instead. */
-  static const int WXYZ = wxyz;
-  /** Deprecated, use [wxyw] instead. */
-  static const int WXYW = wxyw;
-  /** Deprecated, use [wxzx] instead. */
-  static const int WXZX = wxzx;
-  /** Deprecated, use [wxzy] instead. */
-  static const int WXZY = wxzy;
-  /** Deprecated, use [wxzz] instead. */
-  static const int WXZZ = wxzz;
-  /** Deprecated, use [wxzw] instead. */
-  static const int WXZW = wxzw;
-  /** Deprecated, use [wxwx] instead. */
-  static const int WXWX = wxwx;
-  /** Deprecated, use [wxwy] instead. */
-  static const int WXWY = wxwy;
-  /** Deprecated, use [wxwz] instead. */
-  static const int WXWZ = wxwz;
-  /** Deprecated, use [wxww] instead. */
-  static const int WXWW = wxww;
-  /** Deprecated, use [wyxx] instead. */
-  static const int WYXX = wyxx;
-  /** Deprecated, use [wyxy] instead. */
-  static const int WYXY = wyxy;
-  /** Deprecated, use [wyxz] instead. */
-  static const int WYXZ = wyxz;
-  /** Deprecated, use [wyxw] instead. */
-  static const int WYXW = wyxw;
-  /** Deprecated, use [wyyx] instead. */
-  static const int WYYX = wyyx;
-  /** Deprecated, use [wyyy] instead. */
-  static const int WYYY = wyyy;
-  /** Deprecated, use [wyyz] instead. */
-  static const int WYYZ = wyyz;
-  /** Deprecated, use [wyyw] instead. */
-  static const int WYYW = wyyw;
-  /** Deprecated, use [wyzx] instead. */
-  static const int WYZX = wyzx;
-  /** Deprecated, use [wyzy] instead. */
-  static const int WYZY = wyzy;
-  /** Deprecated, use [wyzz] instead. */
-  static const int WYZZ = wyzz;
-  /** Deprecated, use [wyzw] instead. */
-  static const int WYZW = wyzw;
-  /** Deprecated, use [wywx] instead. */
-  static const int WYWX = wywx;
-  /** Deprecated, use [wywy] instead. */
-  static const int WYWY = wywy;
-  /** Deprecated, use [wywz] instead. */
-  static const int WYWZ = wywz;
-  /** Deprecated, use [wyww] instead. */
-  static const int WYWW = wyww;
-  /** Deprecated, use [wzxx] instead. */
-  static const int WZXX = wzxx;
-  /** Deprecated, use [wzxy] instead. */
-  static const int WZXY = wzxy;
-  /** Deprecated, use [wzxz] instead. */
-  static const int WZXZ = wzxz;
-  /** Deprecated, use [wzxw] instead. */
-  static const int WZXW = wzxw;
-  /** Deprecated, use [wzyx] instead. */
-  static const int WZYX = wzyx;
-  /** Deprecated, use [wzyy] instead. */
-  static const int WZYY = wzyy;
-  /** Deprecated, use [wzyz] instead. */
-  static const int WZYZ = wzyz;
-  /** Deprecated, use [wzyw] instead. */
-  static const int WZYW = wzyw;
-  /** Deprecated, use [wzzx] instead. */
-  static const int WZZX = wzzx;
-  /** Deprecated, use [wzzy] instead. */
-  static const int WZZY = wzzy;
-  /** Deprecated, use [wzzz] instead. */
-  static const int WZZZ = wzzz;
-  /** Deprecated, use [wzzw] instead. */
-  static const int WZZW = wzzw;
-  /** Deprecated, use [wzwx] instead. */
-  static const int WZWX = wzwx;
-  /** Deprecated, use [wzwy] instead. */
-  static const int WZWY = wzwy;
-  /** Deprecated, use [wzwz] instead. */
-  static const int WZWZ = wzwz;
-  /** Deprecated, use [wzww] instead. */
-  static const int WZWW = wzww;
-  /** Deprecated, use [wwxx] instead. */
-  static const int WWXX = wwxx;
-  /** Deprecated, use [wwxy] instead. */
-  static const int WWXY = wwxy;
-  /** Deprecated, use [wwxz] instead. */
-  static const int WWXZ = wwxz;
-  /** Deprecated, use [wwxw] instead. */
-  static const int WWXW = wwxw;
-  /** Deprecated, use [wwyx] instead. */
-  static const int WWYX = wwyx;
-  /** Deprecated, use [wwyy] instead. */
-  static const int WWYY = wwyy;
-  /** Deprecated, use [wwyz] instead. */
-  static const int WWYZ = wwyz;
-  /** Deprecated, use [wwyw] instead. */
-  static const int WWYW = wwyw;
-  /** Deprecated, use [wwzx] instead. */
-  static const int WWZX = wwzx;
-  /** Deprecated, use [wwzy] instead. */
-  static const int WWZY = wwzy;
-  /** Deprecated, use [wwzz] instead. */
-  static const int WWZZ = wwzz;
-  /** Deprecated, use [wwzw] instead. */
-  static const int WWZW = wwzw;
-  /** Deprecated, use [wwwx] instead. */
-  static const int WWWX = wwwx;
-  /** Deprecated, use [wwwy] instead. */
-  static const int WWWY = wwwy;
-  /** Deprecated, use [wwwz] instead. */
-  static const int WWWZ = wwwz;
-  /** Deprecated, use [wwww] instead. */
-  static const int WWWW = wwww;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Int32x4 shuffle(int mask);

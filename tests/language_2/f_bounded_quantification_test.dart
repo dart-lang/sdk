@@ -19,5 +19,5 @@ main() {
   FBound<SubBar> fsb = new FBound<SubBar>(); // //# 01: compile-time error
 
   FBound<Baz<Bar>> fbb = new FBound<Baz<Bar>>();
-  FBound<SubBaz<Bar>> fsb = new FBound<SubBaz<Bar>>(); // //# 02: compile-time error
+  FBound<SubBaz<Bar>> fsbb = new FBound<SubBaz<Bar>>(); // //# 02: compile-time error
 }

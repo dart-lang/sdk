@@ -3,20 +3,20 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::B
     ;
   operator []=(core::int x, core::String y) → void
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::C
     ;
   operator []=(core::Object x, core::Object y) → void
     ;
   method h() → void
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   ;
 static method main() → dynamic
   ;

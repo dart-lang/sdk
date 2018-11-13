@@ -77,7 +77,7 @@ void testInputStreamTruncate() {
     if (streamedBytes == 0) {
       subscription.pause();
       // Truncate the file by opening it for writing.
-      file.open(mode: FileMode.WRITE).then((opened) {
+      file.open(mode: FileMode.write).then((opened) {
         opened.close().then((_) {
           Expect.equals(0, file.lengthSync());
           subscription.resume();
@@ -141,7 +141,7 @@ void testInputStreamAppend() {
       subscription.pause();
       // Double the length of the underlying file.
       file.readAsBytes().then((bytes) {
-        file.writeAsBytes(bytes, mode: FileMode.APPEND).then((_) {
+        file.writeAsBytes(bytes, mode: FileMode.append).then((_) {
           Expect.equals(2 * originalLength, file.lengthSync());
           subscription.resume();
         });

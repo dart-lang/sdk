@@ -28,7 +28,11 @@ class ScopedCFType {
  public:
   explicit ScopedCFType(T obj) : obj_(obj) {}
 
-  ~ScopedCFType() { CFRelease(obj_); }
+  ~ScopedCFType() {
+    if (obj_ != NULL) {
+      CFRelease(obj_);
+    }
+  }
 
   T get() { return obj_; }
   T* ptr() { return &obj_; }
@@ -45,6 +49,7 @@ class ScopedCFType {
 
 typedef ScopedCFType<CFMutableArrayRef> ScopedCFMutableArrayRef;
 typedef ScopedCFType<CFDataRef> ScopedCFDataRef;
+typedef ScopedCFType<CFStringRef> ScopedCFStringRef;
 typedef ScopedCFType<SecPolicyRef> ScopedSecPolicyRef;
 typedef ScopedCFType<SecCertificateRef> ScopedSecCertificateRef;
 typedef ScopedCFType<SecTrustRef> ScopedSecTrustRef;
@@ -53,14 +58,20 @@ static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
   if (cert == NULL) {
     return NULL;
   }
-  unsigned char* deb_cert = NULL;
-  int length = i2d_X509(cert, &deb_cert);
+  int length = i2d_X509(cert, NULL);
   if (length < 0) {
     return 0;
   }
-  ASSERT(deb_cert != NULL);
-  ScopedCFDataRef cert_buf(
-      CFDataCreateWithBytesNoCopy(NULL, deb_cert, length, kCFAllocatorNull));
+  auto deb_cert = std::unique_ptr<unsigned char[]>(new unsigned char[length]);
+  unsigned char* temp = deb_cert.get();
+  if (i2d_X509(cert, &temp) != length) {
+    return NULL;
+  }
+  // TODO(bkonyi): we create a copy of the deb_cert here since it's unclear
+  // whether or not SecCertificateCreateWithData takes ownership of the CFData.
+  // Implementation here:
+  // https://opensource.apple.com/source/libsecurity_keychain/libsecurity_keychain-55050.2/lib/SecCertificate.cpp.auto.html
+  ScopedCFDataRef cert_buf(CFDataCreate(NULL, deb_cert.get(), length));
   SecCertificateRef auth_cert =
       SecCertificateCreateWithData(NULL, cert_buf.get());
   if (auth_cert == NULL) {
@@ -112,8 +123,19 @@ static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
     }
   }
 
-  // Generate a generic X509 verification policy.
-  ScopedSecPolicyRef policy(SecPolicyCreateBasicX509());
+  // Generate a policy for validating chains for SSL.
+  const int ssl_index = SSL_get_ex_data_X509_STORE_CTX_idx();
+  SSL* ssl = static_cast<SSL*>(X509_STORE_CTX_get_ex_data(ctx, ssl_index));
+  SSLFilter* filter = static_cast<SSLFilter*>(
+      SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
+  CFStringRef cfhostname = NULL;
+  if (filter->hostname() != NULL) {
+    cfhostname = CFStringCreateWithCString(NULL, filter->hostname(),
+                                           kCFStringEncodingUTF8);
+  }
+  ScopedCFStringRef hostname(cfhostname);
+  ScopedSecPolicyRef policy(
+      SecPolicyCreateSSL(filter->is_client(), hostname.get()));
 
   // Create the trust object with the certificates provided by the user.
   ScopedSecTrustRef trust(NULL);

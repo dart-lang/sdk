@@ -7,34 +7,30 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/treeshaker.dart' show ProgramRoot;
-import 'flutter.dart' show FlutterTarget;
-import 'vm.dart' show VmTarget;
-import 'vmcc.dart' show VmClosureConvertedTarget;
-import 'vmreify.dart' show VmGenericTypesReifiedTarget;
 
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
-  bool strongMode;
-  bool treeShake;
-  List<ProgramRoot> programRoots;
-  Uri kernelRuntime;
+  final bool legacyMode;
+  final bool treeShake;
+
+  /// Whether `async` functions start synchronously.
+  final bool syncAsync;
+  final List<ProgramRoot> programRoots;
+  final Uri kernelRuntime;
 
   TargetFlags(
-      {this.strongMode: false,
+      {this.legacyMode: false,
       this.treeShake: false,
+      this.syncAsync: false,
       this.programRoots: const <ProgramRoot>[],
-      this.kernelRuntime}) {}
+      this.kernelRuntime});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
 
 final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
-  'vm': (TargetFlags flags) => new VmTarget(flags),
-  'vmcc': (TargetFlags flags) => new VmClosureConvertedTarget(flags),
-  'vmreify': (TargetFlags flags) => new VmGenericTypesReifiedTarget(flags),
-  'flutter': (TargetFlags flags) => new FlutterTarget(flags),
 };
 
 Target getTarget(String name, TargetFlags flags) {
@@ -63,7 +59,7 @@ abstract class Target {
   /// transformations.
   Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
 
-  bool get strongMode;
+  bool get legacyMode;
 
   /// A derived class may change this to `true` to disable type inference and
   /// type promotion phases of analysis.
@@ -72,47 +68,54 @@ abstract class Target {
   /// promotion do not slow down compilation too much.
   bool get disableTypeInference => false;
 
-  /// Perform target-specific modular transformations on the given program.
+  /// A derived class may change this to `true` to enable forwarders to
+  /// user-defined `noSuchMethod` that are generated for each abstract member
+  /// if such `noSuchMethod` is present.
   ///
-  /// These transformations should not be whole-program transformations.  They
-  /// should expect that the program will contain external libraries.
-  void performModularTransformationsOnProgram(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
-      {void logger(String msg)}) {
-    performModularTransformationsOnLibraries(
-        coreTypes, hierarchy, program.libraries,
-        logger: logger);
-  }
+  /// The forwarders are abstract [Procedure]s with [isNoSuchMethodForwarder]
+  /// bit set.  The implementation of the behavior of such forwarders is up
+  /// for the target backend.
+  bool get enableNoSuchMethodForwarders => false;
+
+  /// A derived class may change this to `true` to enable Flutter specific
+  /// "super-mixins" semantics.
+  ///
+  /// This semantics relaxes a number of constraint previously imposed on
+  /// mixins. Importantly it imposes the following change:
+  ///
+  ///     An abstract class may contain a member with a super-invocation that
+  ///     corresponds to a member of the superclass interface, but where the
+  ///     actual superclass does not declare or inherit a matching method.
+  ///     Since no amount of overriding can change this property, such a class
+  ///     cannot be extended to a class that is not abstract, it can only be
+  ///     used to derive a mixin from.
+  ///
+  /// See dartbug.com/31542 for details of the semantics.
+  bool get enableSuperMixins => false;
+
+  /// Perform target-specific transformations on the outlines stored in
+  /// [Component] when generating summaries.
+  ///
+  /// This transformation is used to add metadata on outlines and to filter
+  /// unnecessary information before generating program summaries. This
+  /// transformation is not applied when compiling full kernel programs to
+  /// prevent affecting the internal invariants of the compiler and accidentally
+  /// slowing down compilation.
+  void performOutlineTransformations(Component component) {}
 
   /// Perform target-specific modular transformations on the given libraries.
-  ///
-  /// The intent of this method is to perform the transformations only on some
-  /// subset of the program libraries and avoid packing them into a temporary
-  /// [Program] instance to pass into [performModularTransformationsOnProgram].
-  ///
-  /// Note that the following should be equivalent:
-  ///
-  ///     target.performModularTransformationsOnProgram(coreTypes, program);
-  ///
-  /// and
-  ///
-  ///     target.performModularTransformationsOnLibraries(
-  ///         coreTypes, program.libraries);
-  void performModularTransformationsOnLibraries(
+  void performModularTransformationsOnLibraries(Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)});
 
-  /// Perform target-specific whole-program transformations.
+  /// Perform target-specific modular transformations on the given program.
   ///
-  /// These transformations should be optimizations and not required for
-  /// correctness.  Everything should work if a simple and fast linker chooses
-  /// not to apply these transformations.
-  ///
-  /// Note that [performGlobalTransformations] doesn't have -OnProgram and
-  /// -OnLibraries alternatives, because the global knowledge required by the
-  /// transformations is assumed to be retrieved from a [Program] instance.
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
-      {void logger(String msg)});
+  /// This is used when an individual expression is compiled, e.g. for debugging
+  /// purposes. It is illegal to modify any of the enclosing nodes of the
+  /// procedure.
+  void performTransformationsOnProcedure(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      {void logger(String msg)}) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
   /// `int`, `double`, `num`, and `String`.
@@ -124,7 +127,7 @@ abstract class Target {
 
   /// Whether a library is allowed to import a platform private library.
   ///
-  /// By default only `dart:*` libraries are allowed. May be overriden for
+  /// By default only `dart:*` libraries are allowed. May be overridden for
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       imported.scheme != "dart" ||
@@ -148,6 +151,13 @@ abstract class Target {
   // we should at least unify the VM and non-VM variants.
   bool get nativeExtensionExpectsString => false;
 
+  /// Whether integer literals that cannot be represented exactly on the web
+  /// (i.e. in Javascript) should cause an error to be issued.
+  /// An example of such a number is `2^53 + 1` where in Javascript - because
+  /// integers are represented as doubles
+  /// `Math.pow(2, 53) = Math.pow(2, 53) + 1`.
+  bool get errorOnUnexactWebIntLiterals => false;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -166,39 +176,20 @@ abstract class Target {
       bool isConstructor: false,
       bool isTopLevel: false});
 
-  /// Builds an expression that throws [error] as compile-time error. The
-  /// target must be able to handle this expression in a constant expression.
-  Expression throwCompileConstantError(CoreTypes coreTypes, Expression error) {
-    // This method returns `const _ConstantExpressionError()._throw(error)`.
-    int offset = error.fileOffset;
-    var receiver = new ConstructorInvocation(
-        coreTypes.constantExpressionErrorDefaultConstructor,
-        new Arguments.empty()..fileOffset = offset,
-        isConst: true)
-      ..fileOffset = offset;
-    var methodInvocation = new MethodInvocation(
-        receiver,
-        new Name("_throw", coreTypes.coreLibrary),
-        new Arguments(<Expression>[error])..fileOffset = error.fileOffset)
-      ..fileOffset = offset;
-    if (strongMode) {
-      methodInvocation.interfaceTarget = coreTypes.constantExpressionErrorThrow;
-    }
-    return methodInvocation;
-  }
-
-  /// Builds an expression that represents a compile-time error which is
-  /// suitable for being passed to [throwCompileConstantError].
-  Expression buildCompileTimeError(
-      CoreTypes coreTypes, String message, int offset) {
-    return new ConstructorInvocation(
-        coreTypes.compileTimeErrorDefaultConstructor,
-        new Arguments(<Expression>[new StringLiteral(message)])
-          ..fileOffset = offset)
-      ..fileOffset = offset;
-  }
+  /// Configure the given [Component] in a target specific way.
+  /// Returns the configured component.
+  Component configureComponent(Component component) => component;
 
   String toString() => 'Target($name)';
+
+  Class concreteListLiteralClass(CoreTypes coreTypes) => null;
+  Class concreteConstListLiteralClass(CoreTypes coreTypes) => null;
+
+  Class concreteMapLiteralClass(CoreTypes coreTypes) => null;
+  Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
+
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
+  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 }
 
 class NoneTarget extends Target {
@@ -206,19 +197,17 @@ class NoneTarget extends Target {
 
   NoneTarget(this.flags);
 
-  bool get strongMode => flags.strongMode;
+  bool get legacyMode => flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void performModularTransformationsOnLibraries(
+  void performModularTransformationsOnLibraries(Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
-      {void logger(String msg)}) {}
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
       {void logger(String msg)}) {}
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    return new InvalidExpression();
+    return new InvalidExpression(null);
   }
 
   @override
@@ -234,6 +223,6 @@ class NoneTarget extends Target {
       bool isStatic: false,
       bool isConstructor: false,
       bool isTopLevel: false}) {
-    return new InvalidExpression();
+    return new InvalidExpression(null);
   }
 }

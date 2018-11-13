@@ -43,11 +43,6 @@ RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
   return call.TargetCode();
 }
 
-intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  UNREACHABLE();
-  return 0;
-}
-
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
                                                      ICData* ic_data_result) {
@@ -88,16 +83,16 @@ RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
 void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
                                     NativeFunction target,
-                                    const Code& trampoline) {
+                                    NativeFunctionWrapper trampoline) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
   call.set_target(trampoline);
   call.set_native_function(target);
 }
 
-RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& code,
-                                      NativeFunction* target) {
+NativeFunctionWrapper CodePatcher::GetNativeCallAt(uword return_address,
+                                                   const Code& code,
+                                                   NativeFunction* target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
   *target = call.native_function();

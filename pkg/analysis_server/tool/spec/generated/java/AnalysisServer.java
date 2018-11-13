@@ -1,17 +1,9 @@
 /*
- * Copyright (c) 2015, the Dart project authors.
+ * Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
  *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package com.google.dart.server.generated;
@@ -146,8 +138,31 @@ public interface AnalysisServer {
    * generated.
    *
    * @param file The file for which reachable source information is being requested.
+   *
+   * @deprecated
    */
   public void analysis_getReachableSources(String file, GetReachableSourcesConsumer consumer);
+
+  /**
+   * {@code analysis.getSignature}
+   *
+   * Return the signature information associated with the given location in the given file. If the
+   * signature information for the given file has not yet been computed, or the most recently
+   * computed signature information for the given file is out of date, then the response for this
+   * request will be delayed until it has been computed. If a request is made for a file which does
+   * not exist, or which is not currently subject to analysis (e.g. because it is not associated with
+   * any analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_SIGNATURE_INVALID_FILE will be generated. If the location given is not inside the argument
+   * list for a function (including method and constructor) invocation, then an error of type
+   * GET_SIGNATURE_INVALID_OFFSET will be generated. If the location is inside an argument list but
+   * the function is not defined or cannot be determined (such as a method invocation where the
+   * target has type 'dynamic') then an error of type GET_SIGNATURE_UNKNOWN_FUNCTION will be
+   * generated.
+   *
+   * @param file The file in which signature information is being requested.
+   * @param offset The location for which signature information is being requested.
+   */
+  public void analysis_getSignature(String file, int offset, GetSignatureConsumer consumer);
 
   /**
    * {@code analysis.reanalyze}
@@ -393,6 +408,22 @@ public interface AnalysisServer {
   public void diagnostic_getServerPort(GetServerPortConsumer consumer);
 
   /**
+   * {@code edit.dartfix}
+   *
+   * Analyze the specified sources for recommended changes and return a set of suggested edits for
+   * those sources. These edits may include changes to sources outside the set of specified sources
+   * if a change in a specified source requires it.
+   *
+   * @param included A list of the files and directories for which edits should be suggested. If a
+   *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
+   *         error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a
+   *         file which does not exist, or which is not currently subject to analysis (e.g. because
+   *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
+   *         error of type FILE_NOT_ANALYZED will be generated.
+   */
+  public void edit_dartfix(List<String> included, DartfixConsumer consumer);
+
+  /**
    * {@code edit.format}
    *
    * Format the contents of a single file. The currently selected region of text is passed in so that
@@ -584,6 +615,38 @@ public interface AnalysisServer {
   public void execution_deleteContext(String id);
 
   /**
+   * {@code execution.getSuggestions}
+   *
+   * Request completion suggestions for the given runtime context.
+   *
+   * It might take one or two requests of this type to get completion suggestions. The first request
+   * should have only "code", "offset", and "variables", but not "expressions". If there are
+   * sub-expressions that can have different runtime types, and are considered to be safe to evaluate
+   * at runtime (e.g. getters), so using their actual runtime types can improve completion results,
+   * the server will not include the "suggestions" field in the response, and instead will return the
+   * "expressions" field. The client will use debug API to get current runtime types for these
+   * sub-expressions and send another request, this time with "expressions". If there are no
+   * interesting sub-expressions to get runtime types for, or when the "expressions" field is
+   * provided by the client, the server will return "suggestions" in the response.
+   *
+   * @param code The code to get suggestions in.
+   * @param offset The offset within the code to get suggestions at.
+   * @param contextFile The path of the context file, e.g. the file of the current debugger frame.
+   *         The combination of the context file and context offset can be used to ensure that all
+   *         variables of the context are available for completion (with their static types).
+   * @param contextOffset The offset in the context file, e.g. the line offset in the current
+   *         debugger frame.
+   * @param variables The runtime context variables that are potentially referenced in the code.
+   * @param expressions The list of sub-expressions in the code for which the client wants to provide
+   *         runtime types. It does not have to be the full list of expressions requested by the
+   *         server, for missing expressions their static types will be used. When this field is
+   *         omitted, the server will return completion suggestions only when there are no
+   *         interesting sub-expressions in the given code. The client may provide an empty list, in
+   *         this case the server will return completion suggestions.
+   */
+  public void execution_getSuggestions(String code, int offset, String contextFile, int contextOffset, List<RuntimeCompletionVariable> variables, List<RuntimeCompletionExpression> expressions, GetSuggestionsConsumer consumer);
+
+  /**
    * {@code execution.mapUri}
    *
    * Map a URI from the execution context to the file that it corresponds to, or map a file to the
@@ -625,6 +688,46 @@ public interface AnalysisServer {
    * @deprecated
    */
   public void execution_setSubscriptions(List<String> subscriptions);
+
+  /**
+   * {@code flutter.getChangeAddForDesignTimeConstructor}
+   *
+   * Return the change that adds the forDesignTime() constructor for the widget class at the given
+   * offset.
+   *
+   * @param file The file containing the code of the class.
+   * @param offset The offset of the class in the code.
+   */
+  public void flutter_getChangeAddForDesignTimeConstructor(String file, int offset, GetChangeAddForDesignTimeConstructorConsumer consumer);
+
+  /**
+   * {@code flutter.setSubscriptions}
+   *
+   * Subscribe for services that are specific to individual files. All previous subscriptions are
+   * replaced by the current set of subscriptions. If a given service is not included as a key in the
+   * map then no files will be subscribed to the service, exactly as if the service had been included
+   * in the map with an explicit empty list of files.
+   *
+   * Note that this request determines the set of requested subscriptions. The actual set of
+   * subscriptions at any given time is the intersection of this set with the set of files currently
+   * subject to analysis. The files currently subject to analysis are the set of files contained
+   * within an actual analysis root but not excluded, plus all of the files transitively reachable
+   * from those files via import, export and part directives. (See analysis.setAnalysisRoots for an
+   * explanation of how the actual analysis roots are determined.) When the actual analysis roots
+   * change, the actual set of subscriptions is automatically updated, but the set of requested
+   * subscriptions is unchanged.
+   *
+   * If a requested subscription is a directory it is ignored, but remains in the set of requested
+   * subscriptions so that if it later becomes a file it can be included in the set of actual
+   * subscriptions.
+   *
+   * It is an error if any of the keys in the map are not valid services. If there is an error, then
+   * the existing subscriptions will remain unchanged.
+   *
+   * @param subscriptions A table mapping services to a list of the files being subscribed to the
+   *         service.
+   */
+  public void flutter_setSubscriptions(Map<String, List<String>> subscriptions);
 
   /**
    * Return {@code true} if the socket is open.
@@ -707,6 +810,20 @@ public interface AnalysisServer {
    * @param pattern The regular expression used to match the names of the declarations to be found.
    */
   public void search_findTopLevelDeclarations(String pattern, FindTopLevelDeclarationsConsumer consumer);
+
+  /**
+   * {@code search.getElementDeclarations}
+   *
+   * Return top-level and class member declarations.
+   *
+   * @param file If this field is provided, return only declarations in this file. If this field is
+   *         missing, return declarations in all files.
+   * @param pattern The regular expression used to match the names of declarations. If this field is
+   *         missing, return all declarations.
+   * @param maxResults The maximum number of declarations to return. If this field is missing, return
+   *         all matching declarations.
+   */
+  public void search_getElementDeclarations(String file, String pattern, int maxResults, GetElementDeclarationsConsumer consumer);
 
   /**
    * {@code search.getTypeHierarchy}

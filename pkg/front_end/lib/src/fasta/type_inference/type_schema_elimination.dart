@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/ast.dart'
+    show DartType, DynamicType, FunctionType, InterfaceType, NamedType;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'type_schema.dart' show TypeSchemaVisitor, UnknownType;
 
 /// Returns the greatest closure of the given type [schema] with respect to `?`.
 ///
@@ -74,9 +77,11 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
       }
     }
     isLeastClosure = !isLeastClosure;
+    DartType typedefType = node.typedefType?.accept(this);
     if (newReturnType == null &&
         newPositionalParameters == null &&
-        newNamedParameters == null) {
+        newNamedParameters == null &&
+        typedefType == null) {
       // No types had to be substituted.
       return null;
     } else {
@@ -86,7 +91,7 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: node.typeParameters,
           requiredParameterCount: node.requiredParameterCount,
-          typedefReference: node.typedefReference);
+          typedefType: typedefType);
     }
   }
 

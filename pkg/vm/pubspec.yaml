@@ -1,12 +1,13 @@
+# This package is not intended to be published.
 name: vm
-version: 0.1.0-alpha.1
-author: Dart Team <misc@dartlang.org>
+# version: do-not-upload
 description: VM specific Dart code and helper scripts
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/vm
-environment:
-  sdk: ">=1.8.0 <2.0.0"
+
 dependencies:
-  front_end: 0.1.0-alpha.6
-  kernel: 0.3.0-alpha.3
+  build_integration:
+    path: ../build_integration
+  front_end: 0.1.6
+  kernel: 0.3.6
+
 dev_dependencies:
-  args: ^0.13.0
+  args: ^1.4.4

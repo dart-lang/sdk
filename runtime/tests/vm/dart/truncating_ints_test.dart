@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--limit-ints-to-64-bits --enable-inlining-annotations --optimization_counter_threshold=10 --no-use-osr --no-background-compilation
+// VMOptions=--enable-inlining-annotations --optimization_counter_threshold=10 --no-use-osr --no-background-compilation
 
-// Test for truncating (wrap-around) integer arithmetic in --limit-ints-to-64-bits mode.
+// Test for truncating (wrap-around) integer arithmetic.
 
 import "package:expect/expect.dart";
 

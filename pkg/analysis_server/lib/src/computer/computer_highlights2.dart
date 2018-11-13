@@ -122,7 +122,12 @@ class DartUnitHighlightsComputer2 {
     ClassElement classElement = element;
     // prepare type
     HighlightRegionType type;
-    if (classElement.isEnum) {
+    if (node.parent is TypeName &&
+        node.parent.parent is ConstructorName &&
+        node.parent.parent.parent is InstanceCreationExpression) {
+      // new Class()
+      type = HighlightRegionType.CONSTRUCTOR;
+    } else if (classElement.isEnum) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
@@ -140,10 +145,6 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
-    // no propagated type
-    if (node.propagatedType != null) {
-      return false;
-    }
     // has dynamic static type
     DartType staticType = node.staticType;
     if (staticType == null || !staticType.isDynamic) {
@@ -167,7 +168,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is FieldFormalParameterElement) {
       if (node.parent is FieldFormalParameter) {
         element = (element as FieldFormalParameterElement).field;
@@ -315,7 +316,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is! MethodElement) {
       return false;
     }
@@ -361,7 +362,7 @@ class DartUnitHighlightsComputer2 {
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
       SimpleIdentifier node) {
     // unresolved
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element != null) {
       return false;
     }
@@ -427,7 +428,7 @@ class DartUnitHighlightsComputer2 {
     if (e is SimpleIdentifier && e.staticElement is PrefixElement) {
       return false;
     }
-    return resolutionMap.bestTypeForExpression(e).isDynamic;
+    return resolutionMap.staticTypeForExpression(e).isDynamic;
   }
 }
 
@@ -553,6 +554,12 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitExtendsClause(ExtendsClause node) {
+    computer._addRegion_token(node.extendsKeyword, HighlightRegionType.KEYWORD);
+    return super.visitExtendsClause(node);
+  }
+
+  @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
     return super.visitFieldDeclaration(node);
@@ -632,7 +639,9 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    if (node.keyword != null) {
+      computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    }
     return super.visitInstanceCreationExpression(node);
   }
 
@@ -689,6 +698,12 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
+    return super.visitMixinDeclaration(node);
+  }
+
+  @override
   Object visitNativeClause(NativeClause node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     return super.visitNativeClause(node);
@@ -698,6 +713,12 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     return super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  Object visitOnClause(OnClause node) {
+    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
+    return super.visitOnClause(node);
   }
 
   @override

@@ -1,15 +1,29 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:8:8: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//   B(): super().foo() {}
+//        ^
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:8:16: Error: Expected an initializer.
+//   B(): super().foo() {}
+//                ^
+
 library;
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  constructor •() → void
-    : final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_31198.dart:8:8: Error: Super calls can't be used as expressions.\nTo delegate a constructor to a super constructor, put the super call as an initializer.\n  B(): super().foo() {}\n       ^")).foo() {}
+  constructor •() → self::B
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_31198.dart:8:8: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+  B(): super().foo() {}
+       ^".foo() {}
 }
 static method bad() → dynamic {
   new self::B::•();

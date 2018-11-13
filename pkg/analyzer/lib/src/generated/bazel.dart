@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.bazel;
-
 import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:path/path.dart';
 
 /**
@@ -31,7 +31,7 @@ class BazelFileUriResolver extends ResourceUriResolver {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
-    String path = provider.pathContext.fromUri(uri);
+    String path = fileUriToNormalizedPath(provider.pathContext, uri);
     File file = workspace.findFile(path);
     if (file != null) {
       return file.createSource(actualUri ?? uri);
@@ -206,6 +206,9 @@ class BazelWorkspace extends Workspace {
     Context context = provider.pathContext;
     try {
       String relative = context.relative(absolutePath, from: root);
+      if (relative == '.') {
+        return null;
+      }
       // genfiles
       if (genfiles != null) {
         File file = provider.getFile(context.join(genfiles, relative));

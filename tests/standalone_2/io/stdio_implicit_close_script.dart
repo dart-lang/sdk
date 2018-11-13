@@ -7,9 +7,8 @@ import "dart:io";
 void main(List<String> arguments) {
   // Access stdout and stderr so that the system grabs a handle to it. This
   // initializes some internal structures.
-  if (stdout.hashCode == -1234 && stderr.hashCode == (stderr.hashCode + 1)) {
-    throw "we have other problems.";
-  }
+  stdout.write("APPLE");
+  stderr.write("BANANA");
 
   if (arguments.contains("stdout")) {
     stdout.close();

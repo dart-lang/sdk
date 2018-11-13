@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ShutdownTest);
-    defineReflectiveTests(ShutdownTest_PreviewDart2);
   });
 }
 
@@ -29,10 +28,4 @@ class ShutdownTest extends AbstractAnalysisServerIntegrationTest {
       });
     });
   }
-}
-
-@reflectiveTest
-class ShutdownTest_PreviewDart2 extends ShutdownTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

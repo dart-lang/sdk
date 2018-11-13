@@ -5,14 +5,23 @@
 /// Shared code used by fasta_perf and incremental_perf.
 library front_end.tool.perf_common;
 
-import 'dart:io';
+import 'dart:io' show exitCode, stderr;
 
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/fasta/command_line_reporting.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:kernel/target/flutter.dart' show FlutterTarget;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
-import 'package:kernel/target/vm.dart' show VmTarget;
+
+import 'package:vm/target/flutter.dart' show FlutterTarget;
+
+import 'package:vm/target/vm.dart' show VmTarget;
+
+import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler, getMessageCodeObject;
+
+import 'package:front_end/src/api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
+import 'package:front_end/src/fasta/fasta_codes.dart' as fastaCodes;
+
+import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.
@@ -24,29 +33,29 @@ import 'package:kernel/target/vm.dart' show VmTarget;
 /// Note: the performance bots compile both dart2js and the flutter-gallery app
 /// as benchmarks, so they both need to be checked before we remove a message
 /// from this set.
-final whitelistMessageCode = new Set<String>.from(<String>[
+final whitelistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
   // Code names in this list should match the key used in messages.yaml
-  codeInvalidAssignment.name,
+  fastaCodes.codeInvalidAssignment,
+  fastaCodes.codeOverrideTypeMismatchParameter,
+  fastaCodes.codeOverriddenMethodCause,
 
   // The following errors are not covered by unit tests in the SDK repo because
   // they are only seen today in the flutter-gallery benchmark (external to
   // this repo).
-  codeInvalidCastFunctionExpr.name,
-  codeInvalidCastTopLevelFunction.name,
-  codeUndefinedGetter.name,
-  codeUndefinedMethod.name,
+  fastaCodes.codeInvalidCastFunctionExpr,
+  fastaCodes.codeInvalidCastTopLevelFunction,
+  fastaCodes.codeUndefinedGetter,
+  fastaCodes.codeUndefinedMethod,
 ]);
 
-onErrorHandler(bool isStrong) {
+DiagnosticMessageHandler onDiagnosticMessageHandler(bool isStrong) {
   bool messageReported = false;
-  return (CompilationMessage m) {
+  return (DiagnosticMessage m) {
     if (m.severity == Severity.internalProblem ||
         m.severity == Severity.error) {
-      if (!isStrong || !whitelistMessageCode.contains(m.code)) {
-        var uri = m.span.start.sourceUrl;
-        var offset = m.span.start.offset;
-        stderr.writeln('$uri:$offset: '
-            '${severityName(m.severity, capitalized: true)}: ${m.message}');
+      if (!isStrong ||
+          !whitelistMessageCode.contains(getMessageCodeObject(m))) {
+        printDiagnosticMessage(m, stderr.writeln);
         exitCode = 1;
       } else if (!messageReported) {
         messageReported = true;
@@ -62,7 +71,7 @@ onErrorHandler(bool isStrong) {
 // strongMode flag get merged, and we have a single way of specifying the
 // strong-mode flag to the FE.
 Target createTarget({bool isFlutter: false, bool strongMode: true}) {
-  var flags = new TargetFlags(strongMode: strongMode);
+  var flags = new TargetFlags(legacyMode: !strongMode);
   if (isFlutter) {
     return strongMode
         ? new FlutterTarget(flags)
@@ -131,7 +140,7 @@ class TimingsCollector {
       for (double duration in durations.skip(3)) {
         total += duration;
       }
-      print("$key took: ${total/(durations.length - 3)}ms");
+      print("$key took: ${total / (durations.length - 3)}ms");
     });
   }
 }

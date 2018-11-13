@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,13 +11,12 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetErrorsTest);
-    defineReflectiveTests(GetErrorsTest_PreviewDart2);
   });
 }
 
 @reflectiveTest
 class GetErrorsTest extends AbstractAnalysisServerIntegrationTest {
-  test_getErrors() {
+  test_getErrors() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 main() {
@@ -26,18 +24,8 @@ main() {
 }''';
     writeFile(pathname, text);
     standardAnalysisSetup();
-    Future finishTest() {
-      return sendAnalysisGetErrors(pathname).then((result) {
-        expect(result.errors, equals(currentAnalysisErrors[pathname]));
-      });
-    }
-
-    return analysisFinished.then((_) => finishTest());
+    await analysisFinished;
+    AnalysisGetErrorsResult result = await sendAnalysisGetErrors(pathname);
+    expect(result.errors, equals(currentAnalysisErrors[pathname]));
   }
-}
-
-@reflectiveTest
-class GetErrorsTest_PreviewDart2 extends GetErrorsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

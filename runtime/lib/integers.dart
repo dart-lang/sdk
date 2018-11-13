@@ -4,40 +4,16 @@
 
 // part of "core_patch.dart";
 
-// This marker interface represents 64-bit integers in the compiler for type
-// propagation and range analysis.  It is implemented by _Smi and _Mint.
-abstract class _int64 implements int {}
-
 abstract class _IntegerImplementation implements int {
-  num operator +(num other) {
-    var result = other._addFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._addFromInteger(this);
-  }
-
-  num operator -(num other) {
-    var result = other._subFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._subFromInteger(this);
-  }
-
-  num operator *(num other) {
-    var result = other._mulFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._mulFromInteger(this);
-  }
+  num operator +(num other) => other._addFromInteger(this);
+  num operator -(num other) => other._subFromInteger(this);
+  num operator *(num other) => other._mulFromInteger(this);
 
   int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    var result = other._truncDivFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._truncDivFromInteger(this);
+    return other._truncDivFromInteger(this);
   }
 
   double operator /(num other) {
@@ -48,33 +24,16 @@ abstract class _IntegerImplementation implements int {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    var result = other._moduloFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._moduloFromInteger(this);
+    return other._moduloFromInteger(this);
   }
 
   int operator -() {
     return 0 - this;
   }
 
-  int operator &(int other) {
-    var result = other._bitAndFromInteger(this);
-    if (result != null) return result;
-    return other._toBigint()._bitAndFromInteger(this);
-  }
-
-  int operator |(int other) {
-    var result = other._bitOrFromInteger(this);
-    if (result != null) return result;
-    return other._toBigint()._bitOrFromInteger(this);
-  }
-
-  int operator ^(int other) {
-    var result = other._bitXorFromInteger(this);
-    if (result != null) return result;
-    return other._toBigint()._bitXorFromInteger(this);
-  }
+  int operator &(int other) => other._bitAndFromInteger(this);
+  int operator |(int other) => other._bitOrFromInteger(this);
+  int operator ^(int other) => other._bitXorFromInteger(this);
 
   num remainder(num other) {
     return other._remainderFromInteger(this);
@@ -84,6 +43,8 @@ abstract class _IntegerImplementation implements int {
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
+  int _shrFromInteger(int other) native "Integer_shrFromInteger";
+  int _shlFromInteger(int other) native "Integer_shlFromInteger";
   int _addFromInteger(int other) native "Integer_addFromInteger";
   int _subFromInteger(int other) native "Integer_subFromInteger";
   int _mulFromInteger(int other) native "Integer_mulFromInteger";
@@ -93,37 +54,34 @@ abstract class _IntegerImplementation implements int {
     return other - (other ~/ this) * this;
   }
 
-  int operator >>(int other) {
-    var result = other._shrFromInt(this);
-    if (result != null) return result;
-    return other._toBigint()._shrFromInt(this);
-  }
+  int operator >>(int other) => other._shrFromInteger(this);
+  int operator <<(int other) => other._shlFromInteger(this);
 
-  int operator <<(int other) {
-    var result = other._shlFromInt(this);
-    if (result != null) return result;
-    return other._toBigint()._shlFromInt(this);
-  }
-
+  @pragma("vm:exact-result-type", bool)
   bool operator <(num other) {
     return other > this;
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator >(num other) {
     return other._greaterThanFromInteger(this);
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator >=(num other) {
     return (this == other) || (this > other);
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
 
+  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     if (other is num) {
       return other._equalToInteger(this);
@@ -131,6 +89,7 @@ abstract class _IntegerImplementation implements int {
     return false;
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool _equalToInteger(int other) native "Integer_equalToInteger";
   int abs() {
     return this < 0 ? -this : this;
@@ -166,20 +125,36 @@ abstract class _IntegerImplementation implements int {
     if (other is double) {
       const int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992; // 2^53.
       const int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
-      double d = other;
-      if (d.isInfinite) {
-        return d == double.negativeInfinity ? GREATER : LESS;
+      const bool limitIntsTo64Bits = ((1 << 64) == 0);
+      if (limitIntsTo64Bits) {
+        // With integers limited to 64 bits, double.toInt() clamps
+        // double value to fit into the MIN_INT64..MAX_INT64 range.
+        // Check if the double value is outside of this range.
+        // This check handles +/-infinity as well.
+        const double minInt64AsDouble = -9223372036854775808.0;
+        // MAX_INT64 is not precisely representable in doubles, so
+        // check against (MAX_INT64 + 1).
+        const double maxInt64Plus1AsDouble = 9223372036854775808.0;
+        if (other < minInt64AsDouble) {
+          return GREATER;
+        } else if (other >= maxInt64Plus1AsDouble) {
+          return LESS;
+        }
+      } else {
+        if (other.isInfinite) {
+          return other.isNegative ? GREATER : LESS;
+        }
       }
-      if (d.isNaN) {
+      if (other.isNaN) {
         return LESS;
       }
       if (MIN_EXACT_INT_TO_DOUBLE <= this && this <= MAX_EXACT_INT_TO_DOUBLE) {
         // Let the double implementation deal with -0.0.
-        return -(d.compareTo(this.toDouble()));
+        return -(other.compareTo(this.toDouble()));
       } else {
         // If abs(other) > MAX_EXACT_INT_TO_DOUBLE, then other has an integer
         // value (no bits below the decimal point).
-        other = d.toInt();
+        other = other.toInt();
       }
     }
     if (this < other) {
@@ -252,16 +227,9 @@ abstract class _IntegerImplementation implements int {
     return this;
   }
 
+  @pragma("vm:exact-result-type", _Double)
   double toDouble() {
     return new _Double.fromInteger(this);
-  }
-
-  _Bigint _toBigint() {
-    return new _Bigint._fromInt(this);
-  }
-
-  num _toBigintOrDouble() {
-    return _toBigint();
   }
 
   String toStringAsFixed(int fractionDigits) {
@@ -288,6 +256,12 @@ abstract class _IntegerImplementation implements int {
     if (radix == 10) return this.toString();
     final bool isNegative = this < 0;
     int value = isNegative ? -this : this;
+    if (value < 0) {
+      // With integers limited to 64 bits, the value
+      // MIN_INT64 = -0x8000000000000000 overflows at negation:
+      // -MIN_INT64 == MIN_INT64, so it requires special handling.
+      return _minInt64ToRadixString(radix);
+    }
     List temp = new List();
     do {
       int digit = value % radix;
@@ -313,6 +287,12 @@ abstract class _IntegerImplementation implements int {
     if (negative) {
       value = -value;
       length = 1;
+      if (value < 0) {
+        // With integers limited to 64 bits, the value
+        // MIN_INT64 = -0x8000000000000000 overflows at negation:
+        // -MIN_INT64 == MIN_INT64, so it requires special handling.
+        return _minInt64ToRadixString(radix);
+      }
     }
     // Integer division, rounding up, to find number of _digits.
     length += (value.bitLength + bitsPerDigit - 1) ~/ bitsPerDigit;
@@ -323,6 +303,27 @@ abstract class _IntegerImplementation implements int {
       string._setAt(--length, _digits.codeUnitAt(value & mask));
       value >>= bitsPerDigit;
     } while (value > 0);
+    return string;
+  }
+
+  /// Converts negative value to radix string.
+  /// This method is only used to handle corner case of
+  /// MIN_INT64 = -0x8000000000000000.
+  String _minInt64ToRadixString(int radix) {
+    List temp = new List();
+    int value = this;
+    assert(value < 0);
+    do {
+      int digit = -value.remainder(radix);
+      value ~/= radix;
+      temp.add(_digits.codeUnitAt(digit));
+    } while (value != 0);
+    temp.add(0x2d); // '-'.
+
+    _OneByteString string = _OneByteString._allocate(temp.length);
+    for (int i = 0, j = temp.length; j > 0; i++) {
+      string._setAt(i, temp[--j]);
+    }
     return string;
   }
 
@@ -337,9 +338,6 @@ abstract class _IntegerImplementation implements int {
     if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
-    if (e is _Bigint || m is _Bigint) {
-      return _toBigint().modPow(e, m);
-    }
     int b = this;
     if (b < 0 || b > m) {
       b %= m;
@@ -434,9 +432,6 @@ abstract class _IntegerImplementation implements int {
     }
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
-    if (m is _Bigint) {
-      return _toBigint().modInverse(m);
-    }
     int t = this;
     if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
@@ -456,27 +451,26 @@ abstract class _IntegerImplementation implements int {
     if (x == 0) return y;
     if (y == 0) return x;
     if ((x == 1) || (y == 1)) return 1;
-    if (y is _Bigint) {
-      return x._toBigint().gcd(y);
-    }
     return _binaryGcd(x, y, false);
   }
 }
 
-class _Smi extends _IntegerImplementation implements _int64 {
+@pragma("vm:entry-point")
+class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
     throw new UnsupportedError("_Smi can only be allocated by the VM");
   }
   int get hashCode => this;
   int get _identityHashCode => this;
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator ~() native "Smi_bitNegate";
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Smi_bitLength";
 
   int operator &(int other) => other._bitAndFromSmi(this);
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int _bitAndFromSmi(_Smi other) native "Smi_bitAndFromSmi";
-  int _shrFromInt(int other) native "Smi_shrFromInt";
-  int _shlFromInt(int other) native "Smi_shlFromInt";
 
   /**
    * The digits of '00', '01', ... '99' as a single array.
@@ -663,7 +657,8 @@ class _Smi extends _IntegerImplementation implements _int64 {
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
-class _Mint extends _IntegerImplementation implements _int64 {
+@pragma("vm:entry-point")
+class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {
     throw new UnsupportedError("_Mint can only be allocated by the VM");
   }
@@ -673,15 +668,4 @@ class _Mint extends _IntegerImplementation implements _int64 {
   int get bitLength native "Mint_bitLength";
 
   int _bitAndFromSmi(_Smi other) => _bitAndFromInteger(other);
-
-  // Shift by mint exceeds range that can be handled by the VM.
-  int _shrFromInt(int other) {
-    if (other < 0) {
-      return -1;
-    } else {
-      return 0;
-    }
-  }
-
-  int _shlFromInt(int other) native "Mint_shlFromInt";
 }

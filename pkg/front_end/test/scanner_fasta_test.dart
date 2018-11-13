@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:analyzer/src/fasta/token_utils.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner.dart' as usedForFuzzTesting;
+import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
@@ -40,7 +41,7 @@ class ScannerTest_Fasta_FuzzTestAPI {
     expect(result.tokens?.type, same(Keyword.CLASS));
 
     // UTF8 encode source with trailing zero
-    List<int> bytes = UTF8.encode(source).toList();
+    List<int> bytes = utf8.encode(source).toList();
     bytes.add(0);
 
     result = usedForFuzzTesting.scan(bytes);
@@ -52,12 +53,10 @@ class ScannerTest_Fasta_FuzzTestAPI {
 @reflectiveTest
 class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
   @override
-  createScanner(String source, {bool genericMethodComments: false}) {
-    List<int> encoded = UTF8.encode(source).toList(growable: true);
+  createScanner(String source) {
+    List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
-    return new fasta.Utf8BytesScanner(encoded,
-        includeComments: true,
-        scanGenericMethodComments: genericMethodComments);
+    return new fasta.Utf8BytesScanner(encoded, includeComments: true);
   }
 
   test_invalid_utf8() {
@@ -65,7 +64,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
       var hex = bytes.map((b) => '0x${b.toRadixString(16).toUpperCase()}');
       print('$bytes\n[${hex.join(', ')}]');
       try {
-        UTF8.decode(bytes);
+        utf8.decode(bytes);
       } catch (e) {
         // Bad UTF-8 encoding
         print('  This is invalid UTF-8, but scanner should not crash.');
@@ -97,18 +96,22 @@ class ScannerTest_Fasta extends ScannerTestBase {
     usingFasta = true;
   }
 
-  createScanner(String source, {bool genericMethodComments: false}) =>
-      new fasta.StringScanner(source,
-          includeComments: true,
-          scanGenericMethodComments: genericMethodComments);
+  createScanner(String source) =>
+      new fasta.StringScanner(source, includeComments: true);
 
   @override
   Token scanWithListener(String source, ErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
-    var scanner =
-        createScanner(source, genericMethodComments: genericMethodComments);
+      {bool lazyAssignmentOperators: false}) {
+    var scanner = createScanner(source);
     var token = scanner.tokenize();
+    if (scanner.errors != null) {
+      for (LocatedMessage error in scanner.errors) {
+        translateScanError(error.code, error.charOffset, error.length,
+            (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+          listener.errors.add(new TestError(offset, errorCode, arguments));
+        });
+      }
+    }
     return new ToAnalyzerTokenStreamConverter_WithListener(listener)
         .convertTokens(token);
   }
@@ -299,8 +302,8 @@ main() {}
     expect(openBrace.endToken, same(closeBrace));
     expect(openParen2.endToken, same(closeParen2));
     listener.assertErrors([
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(6, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 
@@ -335,16 +338,37 @@ main() {}
     expect(openBracket.endToken, same(closeBracket));
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
-      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
-      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 }
 
 /// Base class for scanner tests that examine the token stream in Fasta format.
 abstract class ScannerTest_Fasta_Base {
-  Token scan(String source);
+  List<LocatedMessage> scanErrors;
+
+  Token scan(String source, {int errorCount});
+
+  expectError(Code code, int charOffset, int length) {
+    if (scanErrors == null) {
+      fail('Expected $code but found no errors');
+    }
+    for (LocatedMessage e in scanErrors) {
+      if (e.code == code && e.charOffset == charOffset && e.length == length) {
+        return;
+      }
+    }
+    final msg = new StringBuffer();
+    msg.writeln('Expected:');
+    msg.writeln('  $code at $charOffset, $length');
+    msg.writeln('but found:');
+    for (LocatedMessage e in scanErrors) {
+      msg.writeln('  ${e.code} at ${e.charOffset}, ${e.length}');
+    }
+    fail(msg.toString());
+  }
 
   expectToken(Token token, TokenType type, int offset, int length,
       {bool isSynthetic: false, String lexeme}) {
@@ -387,7 +411,8 @@ abstract class ScannerTest_Fasta_Base {
   }
 
   void test_string_simple_unterminated_interpolation_block() {
-    Token token = scan(r'"foo ${bar');
+    Token token = scan(r'"foo ${bar', errorCount: 1);
+    expectError(codeUnterminatedString, 0, 10);
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
 
     token = token.next;
@@ -411,12 +436,12 @@ abstract class ScannerTest_Fasta_Base {
     expectToken(token, TokenType.STRING, 10, 0, isSynthetic: true, lexeme: '"');
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
+    expect(token.isEof, isTrue);
   }
 
   void test_string_simple_unterminated_interpolation_block2() {
-    Token token = scan(r'"foo ${bar(baz[');
+    Token token = scan(r'"foo ${bar(baz[', errorCount: 1);
+    expectError(codeUnterminatedString, 0, 15);
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
 
     token = token.next;
@@ -468,12 +493,12 @@ abstract class ScannerTest_Fasta_Base {
     expectToken(token, TokenType.STRING, 15, 0, isSynthetic: true, lexeme: '"');
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
+    expect(token.isEof, isTrue);
   }
 
   void test_string_simple_missing_interpolation_identifier() {
-    Token token = scan(r'"foo $');
+    Token token = scan(r'"foo $', errorCount: 1);
+    expectError(codeUnterminatedString, 0, 6);
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
 
     token = token.next;
@@ -491,68 +516,68 @@ abstract class ScannerTest_Fasta_Base {
     expectToken(token, TokenType.STRING, 6, 0, isSynthetic: true, lexeme: '"');
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
+    expect(token.isEof, isTrue);
   }
 
   void test_string_multi_unterminated() {
-    Token token = scan("'''string");
+    Token token = scan("'''string", errorCount: 1);
+    expectError(codeUnterminatedString, 0, 9);
     expectToken(token, TokenType.STRING, 0, 9,
         lexeme: "'''string'''", isSynthetic: true);
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "'''");
+    expect(token.isEof, isTrue);
   }
 
   void test_string_raw_multi_unterminated() {
-    Token token = scan("r'''string");
+    Token token = scan("r'''string", errorCount: 1);
+    expectError(codeUnterminatedString, 0, 10);
     expectToken(token, TokenType.STRING, 0, 10,
         lexeme: "r'''string'''", isSynthetic: true);
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "r'''");
+    expect(token.isEof, isTrue);
   }
 
   void test_string_raw_simple_unterminated_eof() {
-    Token token = scan("r'string");
+    Token token = scan("r'string", errorCount: 1);
+    expectError(codeUnterminatedString, 0, 8);
     expectToken(token, TokenType.STRING, 0, 8,
         lexeme: "r'string'", isSynthetic: true);
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "r'");
+    expect(token.isEof, isTrue);
   }
 
   void test_string_raw_simple_unterminated_eol() {
-    Token token = scan("r'string\n");
+    Token token = scan("r'string\n", errorCount: 1);
+    expectError(codeUnterminatedString, 0, 8);
     expectToken(token, TokenType.STRING, 0, 8,
         lexeme: "r'string'", isSynthetic: true);
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "r'");
+    expect(token.isEof, isTrue);
   }
 
   void test_string_simple_unterminated_eof() {
-    Token token = scan("'string");
+    Token token = scan("'string", errorCount: 1);
+    expectError(codeUnterminatedString, 0, 7);
     expectToken(token, TokenType.STRING, 0, 7,
         lexeme: "'string'", isSynthetic: true);
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "'");
+    expect(token.isEof, isTrue);
   }
 
   void test_string_simple_unterminated_eol() {
-    Token token = scan("'string\n");
+    Token token = scan("'string\n", errorCount: 1);
+    expectError(codeUnterminatedString, 0, 7);
+
     expectToken(token, TokenType.STRING, 0, 7,
         lexeme: "'string'", isSynthetic: true);
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "'");
+    expect(token.isEof, isTrue);
   }
 
   void test_match_angle_brackets() {
@@ -712,7 +737,7 @@ abstract class ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   createScanner(String source, {bool includeComments}) {
-    List<int> encoded = UTF8.encode(source).toList(growable: true);
+    List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
     return new fasta.Utf8BytesScanner(encoded,
         includeComments: includeComments);
@@ -726,8 +751,23 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
       new fasta.StringScanner(source, includeComments: includeComments);
 
   @override
-  Token scan(String source) {
-    return createScanner(source, includeComments: true).tokenize();
+  Token scan(String source, {int errorCount}) {
+    Scanner scanner = createScanner(source, includeComments: true);
+    scanner.reportErrors = true;
+    final Token first = scanner.tokenize();
+    Token token = first;
+    while (!token.isEof) {
+      Token next = token.next;
+      expect(token.next, next);
+      expect(next.previous, token);
+      if (next.isSynthetic && [')', ']', '}'].contains(next.lexeme)) {
+        expect(next.beforeSynthetic, token);
+      }
+      token = next;
+    }
+    scanErrors = scanner.errors;
+    expect(scanErrors, errorCount == null ? isNull : hasLength(errorCount));
+    return first;
   }
 
   void test_linestarts() {

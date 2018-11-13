@@ -2,29 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.perf_report;
-
 import 'dart:convert' show JsonEncoder;
 import 'dart:io' show Platform;
 
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
-import 'package:analyzer/task/model.dart' show AnalysisTask;
+import 'package:analyzer/src/task/api/model.dart' show AnalysisTask;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
 const _JSON = const JsonEncoder.withIndent("  ");
-
-bool _isCheckedMode = () {
-  bool x = true;
-  try {
-    // Trigger an exception if we're in checked mode.
-    x = "" as dynamic;
-    return x != ""; // return false; suppress unused variable warning
-  } catch (e) {
-    return true;
-  }
-}();
 
 String _osType = () {
   if (Platform.isLinux) {
@@ -48,7 +35,6 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
   var platformJson = <String, dynamic>{
     'osType': _osType,
     'dartSdkVersion': Platform.version,
-    'checkedMode': _isCheckedMode,
   };
 
   var optionsJson = <String, dynamic>{

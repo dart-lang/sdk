@@ -5,6 +5,7 @@
 // part of "internal_patch.dart";
 
 class ClassID {
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int getID(Object value) native "ClassID_getID";
 
   static final int cidArray = 0;
@@ -13,5 +14,4 @@ class ClassID {
   static final int cidImmutableArray = 0;
   static final int cidOneByteString = 0;
   static final int cidTwoByteString = 0;
-  static final int cidBigint = 0;
 }

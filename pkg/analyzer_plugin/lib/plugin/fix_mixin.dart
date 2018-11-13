@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,6 +27,8 @@ import 'package:analyzer_plugin/utilities/generator.dart';
 abstract class DartFixesMixin implements FixesMixin {
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     int offset = parameters.offset;
     ResolveResult result = await getResolveResult(path);
@@ -69,10 +71,13 @@ abstract class FixesMixin implements ServerPlugin {
   @override
   Future<EditGetFixesResult> handleEditGetFixes(
       EditGetFixesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     FixesRequest request = await getFixesRequest(parameters);
     FixGenerator generator = new FixGenerator(getFixContributors(path));
-    GeneratorResult result = await generator.generateFixesResponse(request);
+    GeneratorResult<EditGetFixesResult> result =
+        generator.generateFixesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

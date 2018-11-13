@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.constant.evaluation;
-
 import 'dart:collection';
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -26,9 +24,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
-    show TypeSystem, TypeSystemImpl;
-import 'package:analyzer/src/generated/utilities_collection.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
+    show StrongTypeSystemImpl, TypeSystem;
 import 'package:analyzer/src/task/dart.dart';
 
 /**
@@ -40,20 +36,36 @@ class ConstantEvaluationEngine {
    * Parameter to "fromEnvironment" methods that denotes the default value.
    */
   static String _DEFAULT_VALUE_PARAM = "defaultValue";
+  /**
+   * Source of RegExp matching declarable operator names.
+   * From sdk/lib/internal/symbol.dart.
+   */
+  static String _OPERATOR_RE =
+      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+
+  /**
+   * Source of RegExp matching Dart reserved words.
+   * From sdk/lib/internal/symbol.dart.
+   */
+  static String _RESERVED_WORD_RE =
+      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
+      "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
+      "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
+      "r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
 
   /**
    * Source of RegExp matching any public identifier.
    * From sdk/lib/internal/symbol.dart.
    */
   static String _PUBLIC_IDENTIFIER_RE =
-      "(?!${ConstantValueComputer._RESERVED_WORD_RE}\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
+      "(?!$_RESERVED_WORD_RE\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /**
    * RegExp that validates a non-empty non-private symbol.
    * From sdk/lib/internal/symbol.dart.
    */
   static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp(
-      "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
+      "^(?:$_OPERATOR_RE\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
    * The type provider used to access the known types.
@@ -77,8 +89,10 @@ class ConstantEvaluationEngine {
    */
   final ConstantEvaluationValidator validator;
 
-  /** Whether we are running in strong mode. */
-  final bool strongMode;
+  /**
+   * Whether this engine is used inside Analysis Driver.
+   */
+  final bool forAnalysisDriver;
 
   /**
    * Initialize a newly created [ConstantEvaluationEngine].  The [typeProvider]
@@ -88,13 +102,13 @@ class ConstantEvaluationEngine {
    * tests.
    */
   ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
-      {ConstantEvaluationValidator validator, TypeSystem typeSystem})
+      {ConstantEvaluationValidator validator,
+      TypeSystem typeSystem,
+      this.forAnalysisDriver: false})
       : typeProvider = typeProvider,
-        strongMode =
-            typeProvider.objectType.element.context.analysisOptions.strongMode,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider);
+        typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider);
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -108,7 +122,7 @@ class ConstantEvaluationEngine {
   bool checkFromEnvironmentArguments(
       NodeList<Expression> arguments,
       List<DartObjectImpl> argumentValues,
-      HashMap<String, DartObjectImpl> namedArgumentValues,
+      Map<String, DartObjectImpl> namedArgumentValues,
       InterfaceType expectedDefaultValueType) {
     int argumentCount = arguments.length;
     if (argumentCount < 1 || argumentCount > 2) {
@@ -149,7 +163,7 @@ class ConstantEvaluationEngine {
   bool checkSymbolArguments(
       NodeList<Expression> arguments,
       List<DartObjectImpl> argumentValues,
-      HashMap<String, DartObjectImpl> namedArgumentValues) {
+      Map<String, DartObjectImpl> namedArgumentValues) {
     if (arguments.length != 1) {
       return false;
     }
@@ -169,15 +183,20 @@ class ConstantEvaluationEngine {
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
     if (constant is ParameterElementImpl) {
-      Expression defaultValue = constant.constantInitializer;
-      if (defaultValue != null) {
-        RecordingErrorListener errorListener = new RecordingErrorListener();
-        ErrorReporter errorReporter =
-            new ErrorReporter(errorListener, constant.source);
-        DartObjectImpl dartObject =
-            defaultValue.accept(new ConstantVisitor(this, errorReporter));
-        constant.evaluationResult =
-            new EvaluationResultImpl(dartObject, errorListener.errors);
+      if (constant.isOptional) {
+        Expression defaultValue = constant.constantInitializer;
+        if (defaultValue != null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          ErrorReporter errorReporter =
+              new ErrorReporter(errorListener, constant.source);
+          DartObjectImpl dartObject =
+              defaultValue.accept(new ConstantVisitor(this, errorReporter));
+          constant.evaluationResult =
+              new EvaluationResultImpl(dartObject, errorListener.errors);
+        } else {
+          constant.evaluationResult =
+              EvaluationResultImpl(typeProvider.nullObject);
+        }
       }
     } else if (constant is VariableElementImpl) {
       Expression constantInitializer = constant.constantInitializer;
@@ -202,12 +221,13 @@ class ConstantEvaluationEngine {
         constant.evaluationResult =
             new EvaluationResultImpl(dartObject, errorListener.errors);
       }
-    } else if (constant is ConstructorElement) {
+    } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
         // No evaluation needs to be done; constructor declarations are only in
         // the dependency graph to ensure that any constants referred to in
         // initializer lists and parameter defaults are evaluated before
         // invocations of the constructor.
+        constant.isConstantEvaluated = true;
       }
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
@@ -388,7 +408,7 @@ class ConstantEvaluationEngine {
   DartObjectImpl computeValueFromEnvironment(
       DartObject environmentValue,
       DartObjectImpl builtInDefaultValue,
-      HashMap<String, DartObjectImpl> namedArgumentValues) {
+      Map<String, DartObjectImpl> namedArgumentValues) {
     DartObjectImpl value = environmentValue as DartObjectImpl;
     if (value.isUnknown || value.isNull) {
       // The name either doesn't exist in the environment or we couldn't parse
@@ -420,6 +440,11 @@ class ConstantEvaluationEngine {
       ConstantVisitor constantVisitor,
       ErrorReporter errorReporter,
       {ConstructorInvocation invocation}) {
+    if (!constructor.isConst) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
+      return null;
+    }
     if (!getConstructorImpl(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
@@ -433,9 +458,9 @@ class ConstantEvaluationEngine {
         new List<DartObjectImpl>(argumentCount);
     List<DartObjectImpl> positionalArguments = <DartObjectImpl>[];
     List<Expression> argumentNodes = new List<Expression>(argumentCount);
-    HashMap<String, DartObjectImpl> namedArgumentValues =
+    Map<String, DartObjectImpl> namedArgumentValues =
         new HashMap<String, DartObjectImpl>();
-    HashMap<String, NamedExpression> namedArgumentNodes =
+    Map<String, NamedExpression> namedArgumentNodes =
         new HashMap<String, NamedExpression>();
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
@@ -530,21 +555,6 @@ class ConstantEvaluationEngine {
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
 
-    // In strong mode, we allow constants to have type arguments.
-    //
-    // They will be added to the lexical environment when evaluating
-    // subexpressions.
-    HashMap<String, DartObjectImpl> typeArgumentMap;
-    if (strongMode) {
-      // Instantiate the constructor with the in-scope type arguments.
-      definingClass = constantVisitor.evaluateType(definingClass);
-      constructor = ConstructorMember.from(constructorBase, definingClass);
-
-      typeArgumentMap = new HashMap<String, DartObjectImpl>.fromIterables(
-          definingClass.typeParameters.map((t) => t.name),
-          definingClass.typeArguments.map(constantVisitor.typeConstant));
-    }
-
     var fieldMap = new HashMap<String, DartObjectImpl>();
 
     // The errors reported while computing values for field initializers, or
@@ -574,8 +584,6 @@ class ConstantEvaluationEngine {
       }
     }
 
-    var fieldInitVisitor = new ConstantVisitor(this, externalErrorReporter,
-        lexicalEnvironment: typeArgumentMap);
     // Start with final fields that are initialized at their declaration site.
     List<FieldElement> fields = constructor.enclosingElement.fields;
     for (int i = 0; i < fields.length; i++) {
@@ -585,12 +593,8 @@ class ConstantEvaluationEngine {
           field is ConstFieldElementImpl) {
         validator.beforeGetFieldEvaluationResult(field);
 
-        DartObjectImpl fieldValue;
-        if (strongMode) {
-          fieldValue = field.constantInitializer?.accept(fieldInitVisitor);
-        } else {
-          fieldValue = field.evaluationResult?.value;
-        }
+        DartObjectImpl fieldValue = field.evaluationResult?.value;
+
         // It is possible that the evaluation result is null.
         // This happens for example when we have duplicate fields.
         // class Test {final x = 1; final x = 2; const Test();}
@@ -611,7 +615,7 @@ class ConstantEvaluationEngine {
       }
     }
     // Now evaluate the constructor declaration.
-    HashMap<String, DartObjectImpl> parameterMap =
+    Map<String, DartObjectImpl> parameterMap =
         new HashMap<String, DartObjectImpl>();
     List<ParameterElement> parameters = constructor.parameters;
     int parameterCount = parameters.length;
@@ -624,7 +628,7 @@ class ConstantEvaluationEngine {
       }
       DartObjectImpl argumentValue = null;
       AstNode errorTarget = null;
-      if (baseParameter.parameterKind == ParameterKind.NAMED) {
+      if (baseParameter.isNamed) {
         argumentValue = namedArgumentValues[baseParameter.name];
         errorTarget = namedArgumentNodes[baseParameter.name];
       } else if (i < argumentCount) {
@@ -641,23 +645,13 @@ class ConstantEvaluationEngine {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
         validator.beforeGetParameterDefault(baseParameter);
-        if (strongMode && baseParameter is ConstVariableElement) {
-          var defaultValue =
-              (baseParameter as ConstVariableElement).constantInitializer;
-          if (defaultValue == null) {
-            argumentValue = typeProvider.nullObject;
-          } else {
-            argumentValue = defaultValue.accept(fieldInitVisitor);
-          }
-        } else {
-          EvaluationResultImpl evaluationResult =
-              baseParameter.evaluationResult;
-          if (evaluationResult == null) {
-            // No default was provided, so the default value is null.
-            argumentValue = typeProvider.nullObject;
-          } else if (evaluationResult.value != null) {
-            argumentValue = evaluationResult.value;
-          }
+
+        EvaluationResultImpl evaluationResult = baseParameter.evaluationResult;
+        if (evaluationResult == null) {
+          // No default was provided, so the default value is null.
+          argumentValue = typeProvider.nullObject;
+        } else if (evaluationResult.value != null) {
+          argumentValue = evaluationResult.value;
         }
       }
       if (argumentValue != null) {
@@ -752,6 +746,22 @@ class ConstantEvaluationEngine {
           reportLocalErrorForRecordedExternalErrors();
           return result;
         }
+      } else if (initializer is AssertInitializer) {
+        Expression condition = initializer.condition;
+        if (condition == null) {
+          errorReporter.reportErrorForNode(
+              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+              node);
+        }
+        DartObjectImpl evaluationResult = condition.accept(initializerVisitor);
+        if (evaluationResult == null ||
+            !evaluationResult.isBool ||
+            evaluationResult.toBoolValue() != true) {
+          errorReporter.reportErrorForNode(
+              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+              node);
+          return null;
+        }
       }
     }
     // Evaluate explicit or implicit call to super().
@@ -775,7 +785,7 @@ class ConstantEvaluationEngine {
 
   void evaluateSuperConstructorCall(
       AstNode node,
-      HashMap<String, DartObjectImpl> fieldMap,
+      Map<String, DartObjectImpl> fieldMap,
       ConstructorElement superConstructor,
       List<Expression> superArguments,
       ConstantVisitor initializerVisitor,
@@ -897,6 +907,11 @@ class ConstantEvaluationEngine {
     if (type.isUndefined) {
       return false;
     }
+    // TODO(mfairhurst): Remove this once #33441 is solved and we can use
+    // inference properly. This is a hack.
+    if (obj.type == typeProvider.intType && type == typeProvider.doubleType) {
+      return true;
+    }
     return obj.type.isSubtypeOf(type);
   }
 
@@ -971,119 +986,6 @@ class ConstantEvaluationValidator_ForProduction
 }
 
 /**
- * An object used to compute the values of constant variables and constant
- * constructor invocations in one or more compilation units. The expected usage
- * pattern is for the compilation units to be added to this computer using the
- * method [add] and then for the method [computeValues] to be invoked exactly
- * once. Any use of an instance after invoking the method [computeValues] will
- * result in unpredictable behavior.
- */
-class ConstantValueComputer {
-  /**
-   * Source of RegExp matching declarable operator names.
-   * From sdk/lib/internal/symbol.dart.
-   */
-  static String _OPERATOR_RE =
-      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
-
-  /**
-   * Source of RegExp matching Dart reserved words.
-   * From sdk/lib/internal/symbol.dart.
-   */
-  static String _RESERVED_WORD_RE =
-      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
-
-  /**
-   * A graph in which the nodes are the constants, and the edges are from each
-   * constant to the other constants that are referenced by it.
-   */
-  DirectedGraph<ConstantEvaluationTarget> referenceGraph =
-      new DirectedGraph<ConstantEvaluationTarget>();
-
-  /**
-   * The elements whose constant values need to be computed.  Any elements
-   * which appear in [referenceGraph] but not in this set either belong to a
-   * different library cycle (and hence don't need to be recomputed) or were
-   * computed during a previous stage of resolution stage (e.g. constants
-   * associated with enums).
-   */
-  HashSet<ConstantEvaluationTarget> _constantsToCompute =
-      new HashSet<ConstantEvaluationTarget>();
-
-  /**
-   * The evaluation engine that does the work of evaluating instance creation
-   * expressions.
-   */
-  final ConstantEvaluationEngine evaluationEngine;
-
-  /**
-   * Initialize a newly created constant value computer. The [typeProvider] is
-   * the type provider used to access known types. The [declaredVariables] is
-   * the set of variables declared on the command line using '-D'.
-   */
-  ConstantValueComputer(
-      TypeProvider typeProvider, DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
-      : evaluationEngine = new ConstantEvaluationEngine(
-            typeProvider, declaredVariables,
-            validator: validator, typeSystem: typeSystem);
-
-  /**
-   * Add the constants in the given compilation [unit] to the list of constants
-   * whose value needs to be computed.
-   */
-  void add(CompilationUnit unit) {
-    ConstantFinder constantFinder = new ConstantFinder();
-    unit.accept(constantFinder);
-    _constantsToCompute.addAll(constantFinder.constantsToCompute);
-  }
-
-  /**
-   * Compute values for all of the constants in the compilation units that were
-   * added.
-   */
-  void computeValues() {
-    for (ConstantEvaluationTarget constant in _constantsToCompute) {
-      referenceGraph.addNode(constant);
-      evaluationEngine.computeDependencies(constant,
-          (ConstantEvaluationTarget dependency) {
-        referenceGraph.addEdge(constant, dependency);
-      });
-    }
-    List<List<ConstantEvaluationTarget>> topologicalSort =
-        referenceGraph.computeTopologicalSort();
-    for (List<ConstantEvaluationTarget> constantsInCycle in topologicalSort) {
-      if (constantsInCycle.length == 1) {
-        ConstantEvaluationTarget constant = constantsInCycle[0];
-        if (!referenceGraph.getTails(constant).contains(constant)) {
-          _computeValueFor(constant);
-          continue;
-        }
-      }
-      for (ConstantEvaluationTarget constant in constantsInCycle) {
-        evaluationEngine.generateCycleError(constantsInCycle, constant);
-      }
-    }
-  }
-
-  /**
-   * Compute a value for the given [constant].
-   */
-  void _computeValueFor(ConstantEvaluationTarget constant) {
-    if (!_constantsToCompute.contains(constant)) {
-      // Element is in the dependency graph but should have been computed by
-      // a previous stage of analysis.
-      // TODO(paulberry): once we have moved over to the new task model, this
-      // should only occur for constants associated with enum members.  Once
-      // that happens we should add an assertion to verify that it doesn't
-      // occur in any other cases.
-      return;
-    }
-    evaluationEngine.computeConstantValue(constant);
-  }
-}
-
-/**
  * A visitor used to evaluate constant expressions to produce their compile-time
  * value. According to the Dart Language Specification: <blockquote> A constant
  * expression is one of the following:
@@ -1144,7 +1046,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   final ConstantEvaluationEngine evaluationEngine;
 
-  final HashMap<String, DartObjectImpl> _lexicalEnvironment;
+  final Map<String, DartObjectImpl> _lexicalEnvironment;
 
   /**
    * Error reporter that we use to report errors accumulated while computing the
@@ -1166,7 +1068,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * correct dependency analysis.
    */
   ConstantVisitor(this.evaluationEngine, this._errorReporter,
-      {HashMap<String, DartObjectImpl> lexicalEnvironment})
+      {Map<String, DartObjectImpl> lexicalEnvironment})
       : _lexicalEnvironment = lexicalEnvironment {
     this._dartObjectComputer =
         new DartObjectComputer(_errorReporter, evaluationEngine.typeProvider);
@@ -1181,7 +1083,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /**
    * Convenience getter to gain access to the [evaluationEngine]'s type system.
    */
-  TypeSystem get _typeSystem => evaluationEngine.typeSystem;
+  TypeSystem get typeSystem => evaluationEngine.typeSystem;
 
   /**
    * Given a [type] that may contain free type variables, evaluate them against
@@ -1189,16 +1091,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   DartType evaluateType(DartType type) {
     if (type is TypeParameterType) {
-      // Constants may only refer to type parameters in strong mode.
-      if (!evaluationEngine.strongMode) {
-        return null;
-      }
-
-      String name = type.name;
-      if (_lexicalEnvironment != null) {
-        return _lexicalEnvironment[name]?.toTypeValue() ?? type;
-      }
-      return type;
+      return null;
     }
     if (type is ParameterizedType) {
       List<DartType> typeArguments;
@@ -1241,30 +1134,24 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitBinaryExpression(BinaryExpression node) {
-    DartObjectImpl leftResult = node.leftOperand.accept(this);
-    DartObjectImpl rightResult = node.rightOperand.accept(this);
     TokenType operatorType = node.operator.type;
-    // 'null' is almost never good operand
-    if (operatorType != TokenType.BANG_EQ &&
-        operatorType != TokenType.EQ_EQ &&
-        operatorType != TokenType.QUESTION_QUESTION) {
-      if (leftResult != null && leftResult.isNull ||
-          rightResult != null && rightResult.isNull) {
-        _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-        return null;
-      }
+    DartObjectImpl leftResult = node.leftOperand.accept(this);
+    // evaluate lazy operators
+    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      return _dartObjectComputer.logicalAnd(
+          node, leftResult, () => node.rightOperand.accept(this));
+    } else if (operatorType == TokenType.BAR_BAR) {
+      return _dartObjectComputer.logicalOr(
+          node, leftResult, () => node.rightOperand.accept(this));
     }
-    // evaluate operator
+    // evaluate eager operators
+    DartObjectImpl rightResult = node.rightOperand.accept(this);
     if (operatorType == TokenType.AMPERSAND) {
       return _dartObjectComputer.bitAnd(node, leftResult, rightResult);
-    } else if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      return _dartObjectComputer.logicalAnd(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BANG_EQ) {
       return _dartObjectComputer.notEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BAR) {
       return _dartObjectComputer.bitOr(node, leftResult, rightResult);
-    } else if (operatorType == TokenType.BAR_BAR) {
-      return _dartObjectComputer.logicalOr(node, leftResult, rightResult);
     } else if (operatorType == TokenType.CARET) {
       return _dartObjectComputer.bitXor(node, leftResult, rightResult);
     } else if (operatorType == TokenType.EQ_EQ) {
@@ -1337,8 +1224,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
-    return new DartObjectImpl.validWithUnknownValue(_typeSystem
-        .getLeastUpperBound(thenType, elseType) as ParameterizedType);
+    return new DartObjectImpl.validWithUnknownValue(
+        typeSystem.getLeastUpperBound(thenType, elseType) as ParameterizedType);
   }
 
   @override
@@ -1384,7 +1271,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitListLiteral(ListLiteral node) {
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
       return null;
@@ -1402,28 +1289,25 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (errorOccurred) {
       return null;
     }
-    DartType elementType = _typeProvider.dynamicType;
-    NodeList<TypeAnnotation> typeArgs = node.typeArguments?.arguments;
-    if (typeArgs?.length == 1) {
-      DartType type = visitTypeAnnotation(typeArgs[0])?.toTypeValue();
-      if (type != null) {
-        elementType = type;
-      }
-    }
+    var nodeType = node.staticType;
+    DartType elementType =
+        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+            ? nodeType.typeArguments[0]
+            : _typeProvider.dynamicType;
     InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
     return new DartObjectImpl(listType, new ListState(elements));
   }
 
   @override
   DartObjectImpl visitMapLiteral(MapLiteral node) {
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
       return null;
     }
     bool errorOccurred = false;
-    LinkedHashMap<DartObjectImpl, DartObjectImpl> map =
-        new LinkedHashMap<DartObjectImpl, DartObjectImpl>();
+    Map<DartObjectImpl, DartObjectImpl> map =
+        <DartObjectImpl, DartObjectImpl>{};
     for (MapLiteralEntry entry in node.entries) {
       DartObjectImpl keyResult = entry.key.accept(this);
       DartObjectImpl valueResult = entry.value.accept(this);
@@ -1438,17 +1322,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     DartType keyType = _typeProvider.dynamicType;
     DartType valueType = _typeProvider.dynamicType;
-    NodeList<TypeAnnotation> typeArgs = node.typeArguments?.arguments;
-    if (typeArgs?.length == 2) {
-      DartType keyTypeCandidate =
-          visitTypeAnnotation(typeArgs[0])?.toTypeValue();
-      if (keyTypeCandidate != null) {
-        keyType = keyTypeCandidate;
-      }
-      DartType valueTypeCandidate =
-          visitTypeAnnotation(typeArgs[1])?.toTypeValue();
-      if (valueTypeCandidate != null) {
-        valueType = valueTypeCandidate;
+    var nodeType = node.staticType;
+    if (nodeType is InterfaceType) {
+      var typeArguments = nodeType.typeArguments;
+      if (typeArguments.length >= 2) {
+        keyType = typeArguments[0];
+        valueType = typeArguments[1];
       }
     }
     InterfaceType mapType =
@@ -1612,6 +1491,17 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * given error [code].
    */
   void _error(AstNode node, ErrorCode code) {
+    if (code == null) {
+      var parent = node?.parent;
+      var parent2 = parent?.parent;
+      if (parent is ArgumentList &&
+          parent2 is InstanceCreationExpression &&
+          parent2.isConst) {
+        code = CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT;
+      } else {
+        code = CompileTimeErrorCode.INVALID_CONSTANT;
+      }
+    }
     _errorReporter.reportErrorForNode(
         code ?? CompileTimeErrorCode.INVALID_CONSTANT, node);
   }
@@ -1625,10 +1515,23 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
-      evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
-      EvaluationResultImpl value = variableElement.evaluationResult;
-      if (variableElement.isConst && value != null) {
-        return value.value;
+      // We access values of constant variables here in two cases: when we
+      // compute values of other constant  variables, or when we compute values
+      // and errors for other constant expressions. In any case, with Analysis
+      // Driver, we compute values of all dependencies first (or detect  cycle).
+      // So, the value has already been computed. Just return it.
+      if (evaluationEngine.forAnalysisDriver) {
+        if (variableElement.isConst) {
+          return variableElement.evaluationResult.value;
+        }
+      } else {
+        // TODO(scheglov) Once we remove task model, we can remove this code.
+        evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
+        variableElement.computeConstantValue();
+        EvaluationResultImpl value = variableElement.evaluationResult;
+        if (variableElement.isConst && value != null) {
+          return value.value;
+        }
       }
     } else if (variableElement is ExecutableElement) {
       ExecutableElement function = element;
@@ -1640,9 +1543,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return new DartObjectImpl(functionType, new FunctionState(function));
       }
     } else if (variableElement is TypeDefiningElement) {
-      // Constants may only refer to type parameters in strong mode.
-      if (evaluationEngine.strongMode ||
-          variableElement is! TypeParameterElement) {
+      // Constants may not refer to type parameters.
+      if (variableElement is! TypeParameterElement) {
         return new DartObjectImpl(
             _typeProvider.typeType, new TypeState(variableElement.type));
       }
@@ -1880,10 +1782,10 @@ class DartObjectComputer {
   }
 
   DartObjectImpl logicalAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
+      DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
       try {
-        return leftOperand.logicalAnd(_typeProvider, rightOperand);
+        return leftOperand.logicalAnd(_typeProvider, rightOperandComputer);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1903,10 +1805,10 @@ class DartObjectComputer {
   }
 
   DartObjectImpl logicalOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
+      DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
       try {
-        return leftOperand.logicalOr(_typeProvider, rightOperand);
+        return leftOperand.logicalOr(_typeProvider, rightOperandComputer);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }

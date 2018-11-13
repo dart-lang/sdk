@@ -11,22 +11,30 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InvalidType,
         TypeParameter,
-        Typedef;
+        Typedef,
+        VariableDeclaration;
 
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart'
+    show FreshTypeParameters, getFreshTypeParameters, substitute;
 
-import '../fasta_codes.dart' show templateCyclicTypedef;
+import '../fasta_codes.dart'
+    show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
+
+import '../problems.dart' show unhandled;
 
 import 'kernel_builder.dart'
     show
         FunctionTypeAliasBuilder,
+        KernelFormalParameterBuilder,
         KernelFunctionTypeBuilder,
+        KernelLibraryBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
-        TypeVariableBuilder,
-        computeDefaultTypeArguments;
+        TypeVariableBuilder;
+
+final InvalidType cyclicTypeAliasMarker = new InvalidType();
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
@@ -43,36 +51,69 @@ class KernelFunctionTypeAliasBuilder
       int charOffset,
       [Typedef target])
       : target = target ??
-            (new Typedef(name, null, fileUri: parent.target.fileUri)
+            (new Typedef(name, null,
+                typeParameters:
+                    KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
+                        typeVariables),
+                fileUri: parent.target.fileUri)
               ..fileOffset = charOffset),
         super(metadata, name, typeVariables, type, parent, charOffset);
 
   Typedef build(LibraryBuilder libraryBuilder) {
-    return target..type ??= buildThisType(libraryBuilder);
+    target..type ??= buildThisType(libraryBuilder);
+
+    if (type != null) {
+      List<TypeParameter> typeParameters =
+          new List<TypeParameter>(type.typeVariables?.length ?? 0);
+      for (int i = 0; i < typeParameters.length; ++i) {
+        KernelTypeVariableBuilder typeVariable = type.typeVariables[i];
+        typeParameters[i] = typeVariable.parameter;
+      }
+      FreshTypeParameters freshTypeParameters =
+          getFreshTypeParameters(typeParameters);
+      target.typeParametersOfFunctionType
+          .addAll(freshTypeParameters.freshTypeParameters);
+
+      if (type.formals != null) {
+        for (KernelFormalParameterBuilder formal in type.formals) {
+          VariableDeclaration parameter = formal.build(libraryBuilder, 0);
+          parameter.type = freshTypeParameters.substitute(parameter.type);
+          if (formal.isNamed) {
+            target.namedParameters.add(parameter);
+          } else {
+            target.positionalParameters.add(parameter);
+          }
+        }
+      }
+    }
+
+    return target;
   }
 
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
-      if (const InvalidType() == thisType) {
-        library.addCompileTimeError(
-            templateCyclicTypedef.withArguments(name), charOffset, fileUri);
-        return const DynamicType();
+      if (identical(thisType, cyclicTypeAliasMarker)) {
+        library.addProblem(templateCyclicTypedef.withArguments(name),
+            charOffset, noLength, fileUri);
+        return const InvalidType();
       }
       return thisType;
     }
-    thisType = const InvalidType();
-    FunctionType builtType = type?.build(library);
+    // It is a compile-time error for an alias (typedef) to refer to itself. We
+    // detect cycles by detecting recursive calls to this method using an
+    // instance of InvalidType that isn't identical to `const InvalidType()`.
+    thisType = cyclicTypeAliasMarker;
+    FunctionType builtType = type?.build(library, target.thisType);
     if (builtType != null) {
-      builtType.typedefReference = target.reference;
       if (typeVariables != null) {
         for (KernelTypeVariableBuilder tv in typeVariables) {
-          tv.parameter.bound = tv?.bound?.build(library);
-          target.typeParameters.add(tv.parameter..parent = target);
+          // Follow bound in order to find all cycles
+          tv.bound?.build(library);
         }
       }
       return thisType = builtType;
     } else {
-      return thisType = const DynamicType();
+      return thisType = const InvalidType();
     }
   }
 
@@ -83,8 +124,6 @@ class KernelFunctionTypeAliasBuilder
     if (const DynamicType() == thisType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;
-    arguments =
-        computeDefaultTypeArguments(library, target.typeParameters, arguments);
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < target.typeParameters.length; i++) {
       substitution[target.typeParameters[i]] = arguments[i];
@@ -92,20 +131,57 @@ class KernelFunctionTypeAliasBuilder
     return substitute(result, substitution);
   }
 
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    if (arguments == null && typeVariables == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeVariables != null) {
+      List<DartType> result =
+          new List<DartType>.filled(typeVariables.length, null, growable: true);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = typeVariables[i].defaultType.build(library);
+      }
+      if (library is KernelLibraryBuilder) {
+        library.inferredTypes.addAll(result);
+      }
+      return result;
+    }
+
+    if (arguments != null && arguments.length != (typeVariables?.length ?? 0)) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(typeVariables.length)
+              .message,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    // arguments.length == typeVariables.length
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
+  }
+
+  /// If [arguments] are null, the default types for the variables are used.
+  @override
+  int get typeVariablesCount => typeVariables?.length ?? 0;
+
   @override
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     var thisType = buildThisType(library);
-    if (thisType is DynamicType) return thisType;
+    if (thisType is InvalidType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;
     // Otherwise, substitute.
-    List<DartType> builtArguments = <DartType>[];
-    if (arguments != null) {
-      for (int i = 0; i < arguments.length; i++) {
-        builtArguments.add(arguments[i].build(library));
-      }
-    }
-    return buildTypesWithBuiltArguments(library, builtArguments);
+    return buildTypesWithBuiltArguments(
+        library, buildTypeArguments(library, arguments));
   }
 }

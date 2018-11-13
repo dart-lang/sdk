@@ -9,9 +9,6 @@ class ParameterInitializerTest {
     var obj = new Foo.untyped(1);
     Expect.equals(1, obj.x);
 
-    obj = new Foo.supertype(9);
-    Expect.equals(9, obj.x);
-
     obj = new Foo.subtype(7);
     Expect.equals(7, obj.x);
 
@@ -40,7 +37,6 @@ class Foo {
   }
 
   Foo.untyped(this.x) {}
-  Foo.supertype(Object this.x) {}
   Foo.subtype(int this.x) {}
   Foo.optional([this.x = 5]) {}
 

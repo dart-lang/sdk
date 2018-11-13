@@ -28,6 +28,20 @@ class Code;
 
 bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj);
 
+#if !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+
+class TypeTestingStubCallPattern : public ValueObject {
+ public:
+  explicit TypeTestingStubCallPattern(uword pc) : pc_(pc) {}
+
+  intptr_t GetSubtypeTestCachePoolIndex();
+
+ private:
+  const uword pc_;
+};
+
+#endif  // !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_INSTRUCTIONS_H_

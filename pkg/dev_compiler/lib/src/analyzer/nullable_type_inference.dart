@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'element_helpers.dart' show getStaticType, isInlineJS, findAnnotation;
 import 'js_interop.dart' show isNotNullAnnotation, isNullCheckAnnotation;
+import 'js_typerep.dart';
 import 'property_model.dart';
 
 /// An inference engine for nullable types.
@@ -27,22 +28,22 @@ abstract class NullableTypeInference {
   LibraryElement get coreLibrary;
   VirtualFieldModel get virtualFields;
 
-  InterfaceType getImplementationType(DartType type);
-  bool isPrimitiveType(DartType type);
+  JSTypeRep get jsTypeRep;
   bool isObjectMember(String name);
 
   /// Known non-null local variables.
   HashSet<LocalVariableElement> _notNullLocals;
 
   void inferNullableTypes(AstNode node) {
-    var visitor = new _NullableLocalInference(this);
+    var visitor = _NullableLocalInference(this);
     node.accept(visitor);
     _notNullLocals = visitor.computeNotNullLocals();
   }
 
   /// Adds a new variable, typically a compiler generated temporary, and record
   /// whether its type is nullable.
-  void addTemporaryVariable(LocalVariableElement local, {bool nullable: true}) {
+  void addTemporaryVariable(LocalVariableElement local,
+      {bool nullable = true}) {
     if (!nullable) _notNullLocals.add(local);
   }
 
@@ -85,7 +86,7 @@ abstract class NullableTypeInference {
       Element container = e.enclosingElement;
       if (container is ClassElement) {
         DartType targetType = container.type;
-        InterfaceType implType = getImplementationType(targetType);
+        InterfaceType implType = jsTypeRep.getImplementationType(targetType);
         if (implType != null) {
           MethodElement method = implType.lookUpMethod(e.name, coreLibrary);
           if (method != null) e = method;
@@ -109,7 +110,7 @@ abstract class NullableTypeInference {
     Element container = element.enclosingElement;
     if (container is ClassElement) {
       var targetType = container.type;
-      var implType = getImplementationType(targetType);
+      var implType = jsTypeRep.getImplementationType(targetType);
       if (implType != null) {
         var getter = implType.lookUpGetter(name, coreLibrary);
         if (getter != null) element = getter;
@@ -237,33 +238,48 @@ abstract class NullableTypeInference {
 
       return true;
     }
-
-    DartType type = null;
-    if (expr is BinaryExpression) {
-      switch (expr.operator.type) {
-        case TokenType.EQ_EQ:
-        case TokenType.BANG_EQ:
-        case TokenType.AMPERSAND_AMPERSAND:
-        case TokenType.BAR_BAR:
-          return false;
-        case TokenType.QUESTION_QUESTION:
-          return _isNullable(expr.leftOperand, localIsNullable) &&
-              _isNullable(expr.rightOperand, localIsNullable);
-      }
-      type = getStaticType(expr.leftOperand);
-    } else if (expr is PrefixExpression) {
-      if (expr.operator.type == TokenType.BANG) return false;
-      type = getStaticType(expr.operand);
-    } else if (expr is PostfixExpression) {
-      type = getStaticType(expr.operand);
-    }
-    if (type != null && isPrimitiveType(type)) {
-      return false;
-    }
     if (expr is MethodInvocation &&
-        (expr.operator?.type != TokenType.QUESTION_PERIOD ||
+        (expr.operator?.lexeme != '?.' ||
             !_isNullable(expr.target, localIsNullable)) &&
         _isNonNullMethodInvocation(expr)) {
+      return false;
+    }
+
+    Expression operand, rightOperand;
+    String op;
+    if (expr is AssignmentExpression) {
+      op = expr.operator.lexeme;
+      assert(op.endsWith('='));
+      if (op == '=') {
+        return _isNullable(expr.rightHandSide, localIsNullable);
+      }
+      // op assignment like +=, remove trailing '='
+      op = op.substring(0, op.length - 1);
+      operand = expr.leftHandSide;
+      rightOperand = expr.rightHandSide;
+    } else if (expr is BinaryExpression) {
+      operand = expr.leftOperand;
+      rightOperand = expr.rightOperand;
+      op = expr.operator.lexeme;
+    } else if (expr is PrefixExpression) {
+      operand = expr.operand;
+      op = expr.operator.lexeme;
+    } else if (expr is PostfixExpression) {
+      operand = expr.operand;
+      op = expr.operator.lexeme;
+    }
+    switch (op) {
+      case '==':
+      case '!=':
+      case '&&':
+      case '||':
+      case '!':
+        return false;
+      case '??':
+        return _isNullable(operand, localIsNullable) &&
+            _isNullable(rightOperand, localIsNullable);
+    }
+    if (operand != null && jsTypeRep.isPrimitive(getStaticType(operand))) {
       return false;
     }
 
@@ -286,14 +302,14 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   final NullableTypeInference _nullInference;
 
   /// Known local variables.
-  final _locals = new HashSet<LocalVariableElement>.identity();
+  final _locals = HashSet<LocalVariableElement>.identity();
 
   /// Variables that are known to be nullable.
-  final _nullableLocals = new HashSet<LocalVariableElement>.identity();
+  final _nullableLocals = HashSet<LocalVariableElement>.identity();
 
   /// Given a variable, tracks all other variables that it is assigned to.
   final _assignments =
-      new HashMap<LocalVariableElement, Set<LocalVariableElement>>.identity();
+      HashMap<LocalVariableElement, Set<LocalVariableElement>>.identity();
 
   _NullableLocalInference(this._nullInference);
 
@@ -322,7 +338,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.element;
+    var element = node.declaredElement;
     var initializer = node.initializer;
     if (element is LocalVariableElement) {
       _locals.add(element);
@@ -339,7 +355,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   visitForEachStatement(ForEachStatement node) {
     if (node.identifier == null) {
       var declaration = node.loopVariable;
-      var element = declaration.element;
+      var element = declaration.declaredElement;
       _locals.add(element);
       if (!_assertedNotNull(element)) {
         _nullableLocals.add(element);
@@ -356,31 +372,26 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   @override
   visitCatchClause(CatchClause node) {
     var e = node.exceptionParameter?.staticElement;
-    if (e != null) {
+    if (e is LocalVariableElement) {
       _locals.add(e);
       // TODO(jmesserly): we allow throwing of `null`, for better or worse.
       _nullableLocals.add(e);
     }
 
     e = node.stackTraceParameter?.staticElement;
-    if (e != null) _locals.add(e);
+    if (e is LocalVariableElement) _locals.add(e);
 
     super.visitCatchClause(node);
   }
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    _visitAssignment(node.leftHandSide, node.rightHandSide);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  visitBinaryExpression(BinaryExpression node) {
-    var op = node.operator.type;
-    if (op.isAssignmentOperator) {
-      _visitAssignment(node.leftOperand, node);
+    if (node.operator.lexeme == '=') {
+      _visitAssignment(node.leftHandSide, node.rightHandSide);
+    } else {
+      _visitAssignment(node.leftHandSide, node);
     }
-    super.visitBinaryExpression(node);
+    super.visitAssignmentExpression(node);
   }
 
   @override
@@ -408,7 +419,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
         bool visitLocal(LocalVariableElement otherLocal) {
           // Record the assignment.
           _assignments
-              .putIfAbsent(otherLocal, () => new HashSet.identity())
+              .putIfAbsent(otherLocal, () => HashSet.identity())
               .add(element);
           // Optimistically assume this local is not null.
           // We will validate this assumption later.

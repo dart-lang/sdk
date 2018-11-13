@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -32,6 +31,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     OpType optype = (request as DartCompletionRequestImpl).opType;
     AstNode node = request.target.containingNode;
 
@@ -64,7 +65,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
         return visitor.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 
@@ -306,7 +307,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       TypeAnnotation typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
+      ClassOrMixinDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     CompletionSuggestionKind kind = targetIsFunctionalArgument
@@ -377,7 +378,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
+      ClassOrMixinDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     relevance = optype.returnValueSuggestionsFilter(
@@ -468,13 +469,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }).toList();
 
     Iterable<ParameterElement> requiredParameters = paramList
-        .where((FormalParameter param) => param.kind == ParameterKind.REQUIRED)
-        .map((p) => p.element);
+        .where((FormalParameter param) => param.isRequired)
+        .map((p) => p.declaredElement);
     suggestion.requiredParameterCount = requiredParameters.length;
 
     Iterable<ParameterElement> namedParameters = paramList
-        .where((FormalParameter param) => param.kind == ParameterKind.NAMED)
-        .map((p) => p.element);
+        .where((FormalParameter param) => param.isNamed)
+        .map((p) => p.declaredElement);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
     addDefaultArgDetails(suggestion, null, requiredParameters, namedParameters);

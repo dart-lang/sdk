@@ -50,15 +50,16 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   __ ret();
 }
 
-TEST_CASE(CallRuntimeStubCode) {
+ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
   const int length = 10;
   const char* kName = "Test_CallRuntimeStubCode";
-  Assembler assembler;
+  Assembler assembler(nullptr);
   GenerateCallToCallRuntimeStub(&assembler, length);
-  const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallRuntimeStubCode"), &assembler));
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(*CreateFunction("Test_CallRuntimeStubCode"), nullptr,
+                         &assembler, Code::PoolAttachment::kAttachPool));
   const Function& function = RegisterFakeFunction(kName, code);
   Array& result = Array::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
@@ -90,7 +91,7 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ ret();  // Return value is in EAX.
 }
 
-TEST_CASE(CallLeafRuntimeStubCode) {
+ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
   const char* str_value = "abAB";
@@ -98,11 +99,12 @@ TEST_CASE(CallLeafRuntimeStubCode) {
   intptr_t rhs_index_value = 2;
   intptr_t length_value = 2;
   const char* kName = "Test_CallLeafRuntimeStubCode";
-  Assembler assembler;
+  Assembler assembler(nullptr);
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallLeafRuntimeStubCode"), &assembler));
+      *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
+      Code::PoolAttachment::kAttachPool));
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());

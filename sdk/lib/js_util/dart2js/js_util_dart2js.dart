@@ -7,6 +7,8 @@
 /// methods when the same effect cannot be achieved with @JS annotations.
 /// These methods would be extension methods on JSObject if Dart supported
 /// extension methods.
+///
+/// {@category Web}
 library dart.js_util;
 
 import 'dart:_foreign_helper' show JS;
@@ -58,14 +60,14 @@ _convertDataTree(data) {
 
 newObject() => JS('=Object', '{}');
 
-hasProperty(o, name) => JS('bool', '# in #', name, o);
+bool hasProperty(o, name) => JS('bool', '# in #', name, o);
 getProperty(o, name) => JS('Object|Null', '#[#]', o, name);
 setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 
 callMethod(o, String method, List args) =>
     JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
-instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
+bool instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
 callConstructor(Function constr, List arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
@@ -109,7 +111,7 @@ callConstructor(Function constr, List arguments) {
   // the arguments list passed to apply().
   // After that, use the JavaScript 'new' operator which overrides any binding
   // of 'this' with the new instance.
-  var args = [null]..addAll(arguments);
+  var args = <dynamic>[null]..addAll(arguments);
   var factoryFunction = JS('', '#.bind.apply(#, #)', constr, constr, args);
   // Without this line, calling factoryFunction as a constructor throws
   JS('String', 'String(#)', factoryFunction);

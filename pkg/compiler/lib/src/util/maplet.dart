@@ -157,7 +157,7 @@ class Maplet<K, V> extends MapBase<K, V> {
           copyTo++;
         }
       } else {
-        Map map = new Map();
+        var map = new Map<K, V>();
         forEach((eachKey, eachValue) => map[eachKey] = eachValue);
         map[key] = value;
         _key = map;

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+const intValue = 0;
 const double c = 0.0; //# 01: ok
-const double d = 0; //# 02: compile-time error
+const double d = intValue; //# 02: compile-time error
 
 main() {
   print(c); //# 01: continued

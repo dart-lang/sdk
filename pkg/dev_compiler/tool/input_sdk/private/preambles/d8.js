@@ -85,7 +85,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
     var id = timerIdCounter++;
     f.$timerId = id;
     timerIds[id] = f;
-    if (ms == 0) {
+    if (ms == 0 && !isNextTimerDue()) {
       zeroTimerQueue.push(f);
     } else {
       addDelayedTimer(f, ms);
@@ -134,7 +134,10 @@ if (typeof global != "undefined") self = global;  // Node.js.
   var originalDate = Date;
   var originalNow = originalDate.now;
   function advanceTimeTo(time) {
-    timeOffset = time - originalNow();
+    var now = originalNow();
+    if (timeOffset < time - now) {
+      timeOffset = time - now;
+    }
   }
   function installMockDate() {
     var NewDate = function Date(Y, M, D, h, m, s, ms) {
@@ -177,6 +180,12 @@ if (typeof global != "undefined") self = global;  // Node.js.
     } else {
       timerList.push(f);
     }
+  }
+
+  function isNextTimerDue() {
+    if (timerHeap.length == 0) return false;
+    var head = timerHeap[0];
+    return head[0] < originalNow() + timeOffset;
   }
 
   function nextDelayedTimerQueue() {

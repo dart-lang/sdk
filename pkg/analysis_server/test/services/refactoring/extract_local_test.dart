@@ -52,6 +52,28 @@ main() {
         expectedMessage: "The name 'res' is already used in the scope.");
   }
 
+  test_checkInitialCondition_false_outOfRange_length() async {
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoring(0, 1 << 20);
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+  }
+
+  test_checkInitialCondition_outOfRange_offset() async {
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoring(-10, 20);
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+  }
+
   test_checkInitialConditions_assignmentLeftHandSize() async {
     await indexTestUnit('''
 main() {
@@ -68,8 +90,7 @@ main() {
 
   test_checkInitialConditions_namePartOfDeclaration_function() async {
     await indexTestUnit('''
-main() {
-}
+void main() {}
 ''');
     _createRefactoringWithSuffix('main', '()');
     // check conditions
@@ -695,6 +716,24 @@ main() {
     expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
   }
 
+  test_isAvailable_false_notPartOfFunction() async {
+    await indexTestUnit('''
+var v = 1 + 2;
+''');
+    _createRefactoringForString('1 + 2');
+    expect(refactoring.isAvailable(), isFalse);
+  }
+
+  test_isAvailable_true() async {
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoringForString('1 + 2');
+    expect(refactoring.isAvailable(), isTrue);
+  }
+
   test_occurrences_differentVariable() async {
     await indexTestUnit('''
 main() {
@@ -932,6 +971,7 @@ main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_singleExpression_hasParseError_expectedSemicolon() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''
@@ -1273,23 +1313,21 @@ main() {
 
   void _assertSingleLinkedEditGroup(
       {int length, List<int> offsets, List<String> names}) {
-    String positionsString = offsets
-        .map((offset) => '{"file": "$testFile", "offset": $offset}')
-        .join(',');
-    String suggestionsString =
-        names.map((name) => '{"value": "$name", "kind": "VARIABLE"}').join(',');
-    _assertSingleLinkedEditGroupJson('''
-{
-  "length": $length,
-  "positions": [$positionsString],
-  "suggestions": [$suggestionsString]
-}''');
+    var positions =
+        offsets.map((offset) => {"file": testFile, "offset": offset});
+    var suggestions = names.map((name) => {"value": name, "kind": "VARIABLE"});
+    var expected = <String, dynamic>{
+      "length": length,
+      "positions": positions.toList(),
+      "suggestions": suggestions.toList()
+    };
+    _assertSingleLinkedEditGroupJson(json.encode(expected));
   }
 
   void _assertSingleLinkedEditGroupJson(String expectedJsonString) {
     List<LinkedEditGroup> editGroups = refactoringChange.linkedEditGroups;
     expect(editGroups, hasLength(1));
-    expect(editGroups.first.toJson(), JSON.decode(expectedJsonString));
+    expect(editGroups.first.toJson(), json.decode(expectedJsonString));
   }
 
   /**
@@ -1304,7 +1342,8 @@ main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = new ExtractLocalRefactoring(testUnit, offset, length);
+    refactoring =
+        new ExtractLocalRefactoring(testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 

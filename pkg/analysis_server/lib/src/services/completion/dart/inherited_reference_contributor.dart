@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,18 +22,16 @@ import '../../../protocol_server.dart'
  * or `null` if the target is in a static method or field
  * or not in a class.
  */
-ClassDeclaration _enclosingClass(CompletionTarget target) {
+ClassOrMixinDeclaration _enclosingClass(CompletionTarget target) {
   AstNode node = target.containingNode;
   while (node != null) {
-    if (node is ClassDeclaration) {
+    if (node is ClassOrMixinDeclaration) {
       return node;
-    }
-    if (node is MethodDeclaration) {
+    } else if (node is MethodDeclaration) {
       if (node.isStatic) {
         return null;
       }
-    }
-    if (node is FieldDeclaration) {
+    } else if (node is FieldDeclaration) {
       if (node.isStatic) {
         return null;
       }
@@ -56,41 +55,38 @@ class InheritedReferenceContributor extends DartCompletionContributor
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
-    ClassDeclaration classDecl = _enclosingClass(request.target);
-    if (classDecl == null || classDecl.element == null) {
-      return EMPTY_LIST;
+    ClassOrMixinDeclaration classDecl = _enclosingClass(request.target);
+    if (classDecl == null || classDecl.declaredElement == null) {
+      return const <CompletionSuggestion>[];
     }
     containingLibrary = request.libraryElement;
-    return _computeSuggestionsForClass2(
-        resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
-  }
-
-  List<CompletionSuggestion> computeSuggestionsForClass(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass: true}) {
-    if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+    if (classDecl is ClassDeclaration) {
+      return _computeSuggestionsForClass2(
+          resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
+    } else if (classDecl is MixinDeclaration) {
+      return _computeSuggestionsForClass2(
+          resolutionMap.elementDeclaredByMixinDeclaration(classDecl), request);
     }
-    containingLibrary = request.libraryElement;
-
-    return _computeSuggestionsForClass2(classElement, request,
-        skipChildClass: skipChildClass);
+    return const <CompletionSuggestion>[];
   }
 
-  _addSuggestionsForType(InterfaceType type, OpType optype,
+  _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,
       {bool isFunctionalArgument: false}) {
+    OpType opType = request.opType;
     if (!isFunctionalArgument) {
       for (PropertyAccessorElement elem in type.accessors) {
         if (elem.isGetter) {
-          if (optype.includeReturnValueSuggestions) {
+          if (opType.includeReturnValueSuggestions) {
             addSuggestion(elem);
           }
         } else {
-          if (optype.includeVoidReturnSuggestions) {
+          if (opType.includeVoidReturnSuggestions) {
             addSuggestion(elem);
           }
         }
@@ -100,12 +96,13 @@ class InheritedReferenceContributor extends DartCompletionContributor
       if (elem.returnType == null) {
         addSuggestion(elem);
       } else if (!elem.returnType.isVoid) {
-        if (optype.includeReturnValueSuggestions) {
+        if (opType.includeReturnValueSuggestions) {
           addSuggestion(elem);
         }
       } else {
-        if (optype.includeVoidReturnSuggestions) {
-          addSuggestion(elem);
+        if (opType.includeVoidReturnSuggestions) {
+          CompletionSuggestion suggestion = addSuggestion(elem);
+          _updateFlutterSuggestions(request, elem, suggestion);
         }
       }
     }
@@ -118,17 +115,58 @@ class InheritedReferenceContributor extends DartCompletionContributor
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
-    OpType optype = request.opType;
-
     if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, optype,
+      _addSuggestionsForType(classElement.type, request,
           isFunctionalArgument: isFunctionalArgument);
     }
 
     for (InterfaceType type in classElement.allSupertypes) {
-      _addSuggestionsForType(type, optype,
+      _addSuggestionsForType(type, request,
           isFunctionalArgument: isFunctionalArgument);
     }
     return suggestions;
+  }
+
+  void _updateFlutterSuggestions(DartCompletionRequest request, Element element,
+      CompletionSuggestion suggestion) {
+    if (suggestion == null) {
+      return;
+    }
+    if (element is MethodElement &&
+        element.name == 'setState' &&
+        flutter.isExactState(element.enclosingElement)) {
+      // Find the line indentation.
+      String content = request.result.content;
+      int lineStartOffset = request.offset;
+      int notWhitespaceOffset = request.offset;
+      for (; lineStartOffset > 0; lineStartOffset--) {
+        var char = content.substring(lineStartOffset - 1, lineStartOffset);
+        if (char == '\n') {
+          break;
+        }
+        if (char != ' ' && char != '\t') {
+          notWhitespaceOffset = lineStartOffset - 1;
+        }
+      }
+      String indent = content.substring(lineStartOffset, notWhitespaceOffset);
+
+      // Let the user know that we are going to insert a complete statement.
+      suggestion.displayText = 'setState(() {});';
+
+      // Build the completion and the selection offset.
+      var buffer = new StringBuffer();
+      buffer.writeln('setState(() {');
+      buffer.write('$indent  ');
+      suggestion.selectionOffset = buffer.length;
+      buffer.writeln();
+      buffer.write('$indent});');
+      suggestion.completion = buffer.toString();
+
+      // There are no arguments to fill.
+      suggestion.parameterNames = null;
+      suggestion.parameterTypes = null;
+      suggestion.requiredParameterCount = null;
+      suggestion.hasNamedParameters = null;
+    }
   }
 }

@@ -19,9 +19,11 @@ class CombinatorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AstNode node = request.target.containingNode;
     if (node is! Combinator) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Build list of suggestions
@@ -32,10 +34,12 @@ class CombinatorContributor extends DartCompletionContributor {
         LibraryElementSuggestionBuilder builder =
             new LibraryElementSuggestionBuilder(request.libraryElement,
                 CompletionSuggestionKind.IDENTIFIER, false, false);
-        library.visitChildren(builder);
+        for (var element in library.exportNamespace.definedNames.values) {
+          element.accept(builder);
+        }
         return builder.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }

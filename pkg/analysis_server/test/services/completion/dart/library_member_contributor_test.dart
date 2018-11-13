@@ -91,7 +91,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     addSource(libFile, '''
         library testA;
         import "dart:async" deferred as bar;
-        part "$testFile";''');
+        part "${convertAbsolutePathToUri(testFile)}";''');
     addTestSource('part of testA; foo() {bar.^}');
     // Assume that libraries containing has been computed for part files
     await computeLibrariesContaining();
@@ -105,10 +105,11 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     addSource('/libA.dart', 'library libA; class A { }');
     addSource('/libB.dart', '''
         library libB;
-        export "/libA.dart";
+        export "${convertAbsolutePathToUri("/libA.dart")}";
         class B { }
         @deprecated class B1 { }''');
-    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
+    addTestSource(
+        'import "${convertAbsolutePathToUri("/libB.dart")}" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     assertSuggestClass('B');
     assertSuggestClass('B1', relevance: DART_RELEVANCE_LOW, isDeprecated: true);
@@ -124,7 +125,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -141,6 +142,41 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
+  test_PrefixedIdentifier_library_export_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addSource('/b.dart', r'''
+export 'a.dart' show A;
+''');
+    addTestSource(r'''
+import 'b.dart' as p;
+main() {
+  p.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('B');
+  }
+
+  test_PrefixedIdentifier_library_import_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addTestSource(r'''
+import 'a.dart' as p show A;
+main() {
+  p.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('B');
+  }
+
   test_PrefixedIdentifier_library_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
@@ -151,8 +187,8 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class Y { }''');
     addSource(libFile, '''
         library testA;
-        import "/testB.dart" as b;
-        part "$testFile";
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
+        part "${convertAbsolutePathToUri(testFile)}";
         var T2;
         class A { }''');
     addTestSource('''
@@ -181,7 +217,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -206,7 +242,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -231,7 +267,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "/testB.dart";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
         foo(X x) {x.^}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -243,7 +279,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "/testA.dart";
+        import "${convertAbsolutePathToUri("/testA.dart")}";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertNoSuggestions();

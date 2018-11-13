@@ -189,9 +189,6 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
 
 class DartDocToken extends CommentToken
     implements analyzer.DocumentationCommentToken {
-  @override
-  final List<Token> references = <Token>[];
-
   /**
    * Creates a lazy comment token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
@@ -214,12 +211,8 @@ class DartDocToken extends CommentToken
       : super._(type, valueOrLazySubstring, charOffset);
 
   @override
-  DartDocToken copy() {
-    DartDocToken copy =
-        new DartDocToken._(type, valueOrLazySubstring, charOffset);
-    references.forEach((ref) => copy.references.add(ref.copy()));
-    return copy;
-  }
+  DartDocToken copy() =>
+      new DartDocToken._(type, valueOrLazySubstring, charOffset);
 }
 
 /**
@@ -235,7 +228,7 @@ abstract class _LazySubstring {
   int get length;
 
   /**
-   * If this substring is based on a String, the [boolValue] indicates wheter
+   * If this substring is based on a String, the [boolValue] indicates whether
    * the resulting substring should be canonicalized.
    *
    * For substrings based on a byte array, the [boolValue] is true if the

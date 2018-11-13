@@ -12,10 +12,10 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../universe/world_builder.dart';
+import '../universe/codegen_world_builder.dart';
+import 'allocator_analysis.dart' show JAllocatorAnalysis;
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
-import 'namer.dart';
 import 'runtime_types.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
@@ -36,11 +36,11 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
 
   final CompilerOptions _options;
-  final CommonElements _commonElements;
+  final JCommonElements _commonElements;
   final CodegenWorldBuilder _worldBuilder;
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;
-  final Namer _namer;
+  final JAllocatorAnalysis _allocatorAnalysis;
   final CodeEmitterTask _task;
   final _ConstantReferenceGenerator constantReferenceGenerator;
   final _ConstantListGenerator makeConstantList;
@@ -56,7 +56,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       this._worldBuilder,
       this._rtiNeed,
       this._rtiEncoder,
-      this._namer,
+      this._allocatorAnalysis,
       this._task,
       this.constantReferenceGenerator,
       this.makeConstantList);
@@ -120,7 +120,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitInt(IntConstantValue constant, [_]) {
-    int primitiveValue = constant.primitiveValue;
+    BigInt value = constant.intValue;
     // Since we are in JavaScript we can shorten long integers to their shorter
     // exponential representation, for example: "1e4" is shorter than "10000".
     //
@@ -128,12 +128,12 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     // (like 1234567890123456789012345 which becomes 12345678901234568e8).
     // However, since JavaScript engines represent all numbers as doubles, these
     // digits are lost anyway.
-    String representation = primitiveValue.toString();
+    String representation = value.toString();
     String alternative = null;
     int cutoff = _options.enableMinification ? 10000 : 1e10.toInt();
-    if (primitiveValue.abs() >= cutoff) {
+    if (value.abs() >= new BigInt.from(cutoff)) {
       alternative = _shortenExponentialRepresentation(
-          primitiveValue.toStringAsExponential());
+          value.toDouble().toStringAsExponential());
     }
     if (alternative != null && alternative.length < representation.length) {
       representation = alternative;
@@ -143,12 +143,12 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitDouble(DoubleConstantValue constant, [_]) {
-    double value = constant.primitiveValue;
+    double value = constant.doubleValue;
     if (value.isNaN) {
       return js("0/0");
-    } else if (value == double.INFINITY) {
+    } else if (value == double.infinity) {
       return js("1/0");
-    } else if (value == -double.INFINITY) {
+    } else if (value == -double.infinity) {
       return js("-1/0");
     } else {
       String shortened = _shortenExponentialRepresentation("$value");
@@ -178,7 +178,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
    */
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
-    return js.escapedString(constant.primitiveValue, ascii: true);
+    return js.escapedString(constant.stringValue, ascii: true);
   }
 
   @override
@@ -188,7 +188,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
         .toList(growable: false);
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
     jsAst.Expression value = makeConstantList(array);
-    return maybeAddTypeArguments(constant.type, value);
+    return maybeAddTypeArguments(constant, constant.type, value);
   }
 
   @override
@@ -197,7 +197,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       List<jsAst.Property> properties = <jsAst.Property>[];
       for (int i = 0; i < constant.length; i++) {
         StringConstantValue key = constant.keys[i];
-        if (key.primitiveValue == JavaScriptMapConstant.PROTO_PROPERTY) {
+        if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) {
           continue;
         }
 
@@ -261,8 +261,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
           "Compiler and ${className} disagree on number of fields.");
     }
 
-    if (_rtiNeed.classNeedsRtiField(classElement)) {
-      arguments.add(_reifiedTypeArguments(constant.type));
+    if (_rtiNeed.classNeedsTypeArguments(classElement)) {
+      arguments
+          .add(_reifiedTypeArguments(constant, constant.type.typeArguments));
     }
 
     jsAst.Expression constructor = _emitter.constructorAccess(classElement);
@@ -276,19 +277,21 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType;
-    jsAst.Name typeName;
-    Entity element;
-    if (type is InterfaceType) {
-      element = type.element;
-    } else if (type is TypedefType) {
-      element = type.element;
-    } else {
-      assert(type is DynamicType);
+    DartType type = constant.representedType.unaliased;
+
+    jsAst.Expression unexpected(TypeVariableType _variable) {
+      TypeVariableType variable = _variable;
+      throw failedAt(
+          NO_LOCATION_SPANNABLE,
+          "Unexpected type variable '${variable}'"
+          " in constant '${constant.toDartText()}'");
     }
-    typeName = _namer.runtimeTypeName(element);
-    return new jsAst.Call(getHelperProperty(_commonElements.createRuntimeType),
-        [js.quoteName(typeName)]);
+
+    jsAst.Expression rti =
+        _rtiEncoder.getTypeRepresentation(_emitter, type, unexpected);
+
+    return new jsAst.Call(
+        getHelperProperty(_commonElements.createRuntimeType), [rti]);
   }
 
   @override
@@ -317,20 +320,34 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     ClassEntity element = constant.type.element;
     if (element == _commonElements.jsConstClass) {
       StringConstantValue str = constant.fields.values.single;
-      String value = str.primitiveValue;
+      String value = str.stringValue;
       return new jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.Expression constructor =
         _emitter.constructorAccess(constant.type.element);
     List<jsAst.Expression> fields = <jsAst.Expression>[];
     _worldBuilder.forEachInstanceField(element, (_, FieldEntity field) {
-      fields.add(constantReferenceGenerator(constant.fields[field]));
+      if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
+        fields.add(constantReferenceGenerator(constant.fields[field]));
+      }
     });
-    if (_rtiNeed.classNeedsRtiField(constant.type.element)) {
-      fields.add(_reifiedTypeArguments(constant.type));
+    if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
+      fields.add(_reifiedTypeArguments(constant, constant.type.typeArguments));
     }
-    jsAst.New instantiation = new jsAst.New(constructor, fields);
-    return instantiation;
+    return new jsAst.New(constructor, fields);
+  }
+
+  @override
+  jsAst.Expression visitInstantiation(InstantiationConstantValue constant,
+      [_]) {
+    ClassEntity cls =
+        _commonElements.getInstantiationClass(constant.typeArguments.length);
+    List<jsAst.Expression> fields = <jsAst.Expression>[
+      constantReferenceGenerator(constant.function),
+      _reifiedTypeArguments(constant, constant.typeArguments)
+    ];
+    jsAst.Expression constructor = _emitter.constructorAccess(cls);
+    return new jsAst.New(constructor, fields);
   }
 
   String stripComments(String rawJavaScript) {
@@ -338,28 +355,29 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   jsAst.Expression maybeAddTypeArguments(
-      InterfaceType type, jsAst.Expression value) {
+      ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     if (type is InterfaceType &&
         !type.treatAsRaw &&
-        _rtiNeed.classNeedsRti(type.element)) {
+        _rtiNeed.classNeedsTypeArguments(type.element)) {
       return new jsAst.Call(
           getHelperProperty(_commonElements.setRuntimeTypeInfo),
-          [value, _reifiedTypeArguments(type)]);
+          [value, _reifiedTypeArguments(constant, type.typeArguments)]);
     }
     return value;
   }
 
-  jsAst.Expression _reifiedTypeArguments(InterfaceType type) {
+  jsAst.Expression _reifiedTypeArguments(
+      ConstantValue constant, List<DartType> typeArguments) {
     jsAst.Expression unexpected(TypeVariableType _variable) {
       TypeVariableType variable = _variable;
       throw failedAt(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable}'"
-          " in constant type '${type}'");
+          " in constant '${constant.toDartText()}'");
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    for (DartType argument in type.typeArguments) {
+    for (DartType argument in typeArguments) {
       arguments.add(
           _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
     }
@@ -367,7 +385,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   @override
-  jsAst.Expression visitDeferred(DeferredConstantValue constant, [_]) {
+  jsAst.Expression visitDeferredGlobal(DeferredGlobalConstantValue constant,
+      [_]) {
     return constantReferenceGenerator(constant.referenced);
   }
 }

@@ -1,9 +1,26 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/invalid_assignment.dart:13:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//   i = /*@error=InvalidAssignment*/ s;
+//                                    ^
+//
+// pkg/front_end/testcases/invalid_assignment.dart:15:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//   i ??= /*@error=InvalidAssignment*/ s;
+//                                      ^
+//
+// pkg/front_end/testcases/invalid_assignment.dart:17:34: Error: A value of type 'dart.core::String' can't be assigned to a variable of type '#lib1::A'.
+// Try changing the type of the left hand side, or casting the right hand side to '#lib1::A'.
+//   a /*@error=InvalidAssignment*/ += 1;
+//                                  ^
+
 library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   operator +(core::int i) → core::String
@@ -11,10 +28,19 @@ class A extends core::Object {
 }
 static method test(core::int i, core::String s, self::A a) → dynamic {
   i = 1;
-  i = let final dynamic #t1 = s in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_assignment.dart:13:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  i = /*@error=InvalidAssignment*/ s;\n                                   ^"));
+  i = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:13:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  i = /*@error=InvalidAssignment*/ s;
+                                   ^" in s as{TypeError} core::int;
   i.{core::num::==}(null) ?{core::int} i = 1 : null;
-  i.{core::num::==}(null) ?{core::Object} i = let final dynamic #t2 = s in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_assignment.dart:15:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  i ??= /*@error=InvalidAssignment*/ s;\n                                     ^")) : null;
+  i.{core::num::==}(null) ?{core::Object} i = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:15:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  i ??= /*@error=InvalidAssignment*/ s;
+                                     ^" in s as{TypeError} core::int : null;
   a = new self::A::•();
-  a = let final dynamic #t3 = a.{self::A::+}(1) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/invalid_assignment.dart:17:34: Error: A value of type 'dart.core::String' can't be assigned to a variable of type '#lib1::A'.\nTry changing the type of the left hand side, or casting the right hand side to '#lib1::A'.\n  a /*@error=InvalidAssignment*/ += 1;\n                                 ^"));
+  a = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:17:34: Error: A value of type 'dart.core::String' can't be assigned to a variable of type '#lib1::A'.
+Try changing the type of the left hand side, or casting the right hand side to '#lib1::A'.
+  a /*@error=InvalidAssignment*/ += 1;
+                                 ^" in a.{self::A::+}(1) as{TypeError} self::A;
 }
 static method main() → dynamic {}

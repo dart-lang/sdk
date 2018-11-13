@@ -9,6 +9,7 @@
 //
 // Only this exact special file is allowed to import "dart:_internal" without
 // causing a compile error.
+// ignore: import_internal_library
 import 'dart:_internal' as internal;
 
 /// Given an [Iterable], invokes [extract], passing the [iterable]'s type

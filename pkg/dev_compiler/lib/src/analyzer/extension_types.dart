@@ -6,7 +6,9 @@ import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, CompilationUnitElement, Element;
 import 'package:analyzer/dart/element/type.dart' show DartType, InterfaceType;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/summary/resynthesize.dart';
+import 'element_helpers.dart' show getAnnotationName, isBuiltinAnnotation;
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -26,17 +28,17 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 /// This will provide the [Iterable.first] property, without needing to add
 /// `first` to the `Array.prototype`.
 class ExtensionTypeSet {
-  final AnalysisContext _context;
+  final SummaryResynthesizer _resynthesizer;
 
   // Abstract types that may be implemented by both native and non-native
   // classes.
-  final _extensibleTypes = new HashSet<ClassElement>();
+  final _extensibleTypes = HashSet<ClassElement>();
 
   // Concrete native types.
-  final _nativeTypes = new HashSet<ClassElement>();
-  final _pendingLibraries = new HashSet<String>();
+  final _nativeTypes = HashSet<ClassElement>();
+  final _pendingLibraries = HashSet<String>();
 
-  ExtensionTypeSet(this._context) {
+  ExtensionTypeSet(TypeProvider types, this._resynthesizer) {
     // TODO(vsm): Eventually, we want to make this extensible - i.e., find
     // annotations in user code as well.  It would need to be summarized in
     // the element model - not searched this way on every compile.  To make this
@@ -45,7 +47,6 @@ class ExtensionTypeSet {
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
-    var types = _context.typeProvider;
     _extensibleTypes.add(types.objectType.element);
     _addExtensionType(types.intType, true);
     _addExtensionType(types.doubleType, true);
@@ -102,20 +103,19 @@ class ExtensionTypeSet {
     }
     element.interfaces.forEach(_addExtensionType);
     element.mixins.forEach(_addExtensionType);
-    _addExtensionType(element.supertype);
+    var supertype = element.supertype;
+    if (supertype != null) _addExtensionType(element.supertype);
   }
 
   void _addExtensionTypesForLibrary(String libraryUri, List<String> typeNames) {
-    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
-    var library = _context.computeLibraryElement(sourceFactory);
+    var library = _resynthesizer.getLibraryElement(libraryUri);
     for (var typeName in typeNames) {
       _addExtensionType(library.getType(typeName).type);
     }
   }
 
   void _addExtensionTypes(String libraryUri) {
-    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
-    var library = _context.computeLibraryElement(sourceFactory);
+    var library = _resynthesizer.getLibraryElement(libraryUri);
     _visitCompilationUnit(library.definingCompilationUnit);
     library.parts.forEach(_visitCompilationUnit);
   }
@@ -150,4 +150,21 @@ class ExtensionTypeSet {
 
   bool hasNativeSubtype(DartType type) =>
       isNativeInterface(type.element) || isNativeClass(type.element);
+
+  /// Gets the JS peer for this Dart type if any, otherwise null.
+  ///
+  /// For example for dart:_interceptors `JSArray` this will return "Array",
+  /// referring to the JavaScript built-in `Array` type.
+  List<String> getNativePeers(ClassElement classElem) {
+    if (classElem.type.isObject) return ['Object'];
+    var names = getAnnotationName(
+        classElem,
+        (a) =>
+            isBuiltinAnnotation(a, '_js_helper', 'JsPeerInterface') ||
+            isBuiltinAnnotation(a, '_js_helper', 'Native'));
+    if (names == null) return [];
+
+    // Omit the special name "!nonleaf" and any future hacks starting with "!"
+    return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+  }
 }

@@ -25,36 +25,39 @@ class C2<T> {
 class D2<S, T> extends C2<T> {}
 
 main() {
-  Expect.isTrue(new D1<String, bool>() is Foo, 'new D1<String, bool>() is Foo');
-  Expect.isTrue(new D1<String, bool>() is Bar, 'new D1<String, bool>() is Bar');
-  Expect.isFalse(
-      new D1<String, bool>() is Baz, 'new D1<String, bool>() is Baz');
-  Expect.isTrue(new D1<String, bool>() is Boz, 'new D1<String, bool>() is Boz');
+  Function d1_String_bool = new D1<String, bool>();
+  Expect.isTrue(d1_String_bool is Foo, 'd1_String_bool is Foo');
+  Expect.isTrue(d1_String_bool is Bar, 'd1_String_bool is Bar');
+  Expect.isFalse(d1_String_bool is Baz, 'd1_String_bool is Baz');
+  Expect.isTrue(d1_String_bool is Boz, 'd1_String_bool is Boz');
 
-  Expect.isTrue(new D1<bool, int>() is Foo, 'new D1<bool, int>() is Foo');
-  Expect.isTrue(new D1<bool, int>() is Bar, 'new D1<bool, int>() is Bar');
-  Expect.isFalse(new D1<bool, int>() is Baz, 'new D1<bool, int>() is Baz');
-  Expect.isTrue(new D1<bool, int>() is Boz, 'new D1<bool, int>() is Boz');
+  Function d1_bool_int = new D1<bool, int>();
+  Expect.isTrue(d1_bool_int is Foo, 'd1_bool_int is Foo');
+  Expect.isTrue(d1_bool_int is Bar, 'd1_bool_int is Bar');
+  Expect.isFalse(d1_bool_int is Baz, 'd1_bool_int is Baz');
+  Expect.isTrue(d1_bool_int is Boz, 'd1_bool_int is Boz');
 
-  Expect.isTrue(new D1() is Foo, 'new D1() is Foo');
-  Expect.isTrue(new D1() is Bar, 'new D1() is Bar');
-  Expect.isFalse(new D1() is Baz, 'new D1() is Baz');
-  Expect.isTrue(new D1() is Boz, 'new D1() is Boz');
+  Function d1 = new D1();
+  Expect.isTrue(d1 is Foo, 'd1 is Foo');
+  Expect.isTrue(d1 is Bar, 'd1 is Bar');
+  Expect.isFalse(d1 is Baz, 'd1 is Baz');
+  Expect.isTrue(d1 is Boz, 'd1 is Boz');
 
-  Expect.isFalse(
-      new D2<String, bool>() is Foo, 'new D2<String, bool>() is Foo');
-  Expect.isFalse(
-      new D2<String, bool>() is Bar, 'new D2<String, bool>() is Bar');
-  Expect.isTrue(new D2<String, bool>() is Baz, 'new D2<String, bool>() is Baz');
-  Expect.isTrue(new D2<String, bool>() is Boz, 'new D2<String, bool>() is Boz');
+  Function d2_String_bool = new D2<String, bool>();
+  Expect.isFalse(d2_String_bool is Foo, 'd2_String_bool is Foo');
+  Expect.isFalse(d2_String_bool is Bar, 'd2_String_bool is Bar');
+  Expect.isTrue(d2_String_bool is Baz, 'd2_String_bool is Baz');
+  Expect.isTrue(d2_String_bool is Boz, 'd2_String_bool is Boz');
 
-  Expect.isFalse(new D2<bool, int>() is Foo, 'new D2<bool, int>() is Foo');
-  Expect.isFalse(new D2<bool, int>() is Bar, 'new D2<bool, int>() is Bar');
-  Expect.isTrue(new D2<bool, int>() is Baz, 'new D2<bool, int>() is Baz');
-  Expect.isTrue(new D2<bool, int>() is Boz, 'new D2<bool, int>() is Boz');
+  Function d2_bool_int = new D2<bool, int>();
+  Expect.isFalse(d2_bool_int is Foo, 'd2_bool_int is Foo');
+  Expect.isFalse(d2_bool_int is Bar, 'd2_bool_int is Bar');
+  Expect.isTrue(d2_bool_int is Baz, 'd2_bool_int is Baz');
+  Expect.isTrue(d2_bool_int is Boz, 'd2_bool_int is Boz');
 
-  Expect.isFalse(new D2() is Foo, 'new D2() is Foo');
-  Expect.isFalse(new D2() is Bar, 'new D2() is Bar');
-  Expect.isTrue(new D2() is Baz, 'new D2() is Baz');
-  Expect.isTrue(new D2() is Boz, 'new D2() is Boz');
+  Function d2 = new D2();
+  Expect.isFalse(d2 is Foo, 'd2 is Foo');
+  Expect.isFalse(d2 is Bar, 'd2 is Bar');
+  Expect.isTrue(d2 is Baz, 'd2 is Baz');
+  Expect.isTrue(d2 is Boz, 'd2 is Boz');
 }

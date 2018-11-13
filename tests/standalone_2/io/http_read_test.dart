@@ -113,7 +113,7 @@ class TestServer {
   // Return a 404.
   void _notFoundHandler(HttpRequest request) {
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.write("Page not found");
     response.close();
@@ -186,7 +186,7 @@ void testRead(bool chunkedEncoding) {
         }
         return request.close();
       }).then((response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         List<int> body = new List<int>();
         response.listen(body.addAll, onDone: () {
           Expect.equals(data, new String.fromCharCodes(body));

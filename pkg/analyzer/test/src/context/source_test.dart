@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class SourceFactoryImplTest extends AbstractContextTest {
   void test_restoreUri() {
-    String libPath = resourceProvider.convertPath('/pkgs/somepkg/lib/');
+    String libPath = resourceProvider.convertPath('/pkgs/somepkg/lib');
     Uri libUri = resourceProvider.getFolder(libPath).toUri();
     Map<String, Uri> packageUriMap = <String, Uri>{'foo': libUri};
     SourceFactoryImpl sourceFactory = new SourceFactoryImpl(
@@ -58,6 +58,5 @@ class _MockPackages implements Packages {
   @override
   Uri resolve(Uri packageUri, {Uri notFound(Uri packageUri)}) {
     fail('Unexpected invocation of resolve');
-    return null;
   }
 }

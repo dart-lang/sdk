@@ -6,7 +6,10 @@ part of dart.developer;
 
 const bool _isProduct = const bool.fromEnvironment("dart.vm.product");
 
+/// A typedef for the function argument to [Timeline.timeSync].
 typedef dynamic TimelineSyncFunction();
+
+// TODO: This typedef is not used.
 typedef Future TimelineAsyncFunction();
 
 /// A class to represent Flow events.
@@ -75,8 +78,8 @@ class Flow {
 ///
 /// [Timeline]'s methods add synchronous events to the timeline. When
 /// generating a timeline in Chrome's tracing format, using [Timeline] generates
-/// "Complete" events. [Timeline]'s [startSync] and [endSync] can be used
-/// explicitly, or implicitly by wrapping a closure in [timeSync]. For exmaple:
+/// "Complete" events. [Timeline]'s [startSync] and [finishSync] can be used
+/// explicitly, or implicitly by wrapping a closure in [timeSync]. For example:
 ///
 /// ```dart
 /// Timeline.startSync("Doing Something");
@@ -325,7 +328,7 @@ class _SyncBlock {
 
 String _argumentsAsJson(Map arguments) {
   if ((arguments == null) || (arguments.length == 0)) {
-    // Fast path no arguments. Avoid calling JSON.encode.
+    // Fast path no arguments. Avoid calling jsonEncode.
     return '{}';
   }
   return json.encode(arguments);

@@ -4,9 +4,7 @@
 
 library dart2js.frontend_strategy;
 
-import '../compiler_new.dart' as api;
 import 'common/backend_api.dart';
-import 'common/tasks.dart';
 import 'common.dart';
 import 'common_elements.dart';
 import 'compiler.dart' show Compiler;
@@ -14,40 +12,25 @@ import 'deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'enqueue.dart';
-import 'environment.dart';
-import 'js_backend/backend.dart';
+import 'js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import 'js_backend/backend_usage.dart';
 import 'js_backend/interceptor_data.dart';
-import 'js_backend/mirrors_analysis.dart';
-import 'js_backend/mirrors_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
 import 'js_backend/runtime_types.dart';
 import 'library_loader.dart';
 import 'native/enqueue.dart' show NativeResolutionEnqueuer;
 import 'native/resolver.dart';
-import 'patch_parser.dart';
-import 'resolved_uri_translator.dart';
-import 'serialization/task.dart';
-import 'universe/class_hierarchy_builder.dart';
+import 'universe/class_hierarchy.dart';
+import 'universe/resolution_world_builder.dart';
 import 'universe/world_builder.dart';
 import 'universe/world_impact.dart';
 
 /// Strategy pattern that defines the connection between the input format and
 /// the resolved element model.
 abstract class FrontendStrategy {
-  /// Creates library loader task for this strategy.
-  LibraryLoaderTask createLibraryLoader(
-      ResolvedUriTranslator uriTranslator,
-      ScriptLoader scriptLoader,
-      api.CompilerInput compilerInput,
-      ElementScanner scriptScanner,
-      LibraryDeserializer deserializer,
-      PatchResolverFunction patchResolverFunc,
-      PatchParserTask patchParser,
-      Environment environment,
-      DiagnosticReporter reporter,
-      Measurer measurer);
+  /// Registers a set of loaded libraries with this strategy.
+  void registerLoadedLibraries(LoadedLibraries loadedLibraries);
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
@@ -75,6 +58,9 @@ abstract class FrontendStrategy {
   /// this strategy.
   NoSuchMethodResolver createNoSuchMethodResolver();
 
+  /// Returns the [RuntimeTypesNeedBuilder] used by this frontend strategy.
+  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting;
+
   /// Creates the [ResolutionWorldBuilder] corresponding to the element model
   /// used in this strategy.
   ResolutionWorldBuilder createResolutionWorldBuilder(
@@ -83,6 +69,7 @@ abstract class FrontendStrategy {
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
+      KAllocatorAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
@@ -99,18 +86,7 @@ abstract class FrontendStrategy {
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
-  FunctionEntity computeMain(
-      LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder);
-
-  // TODO(johnniwinther): Reuse the following classes between strategies:
-
-  /// Creates the [MirrorsDataBuilder] for this strategy.
-  MirrorsDataBuilder createMirrorsDataBuilder();
-
-  /// Creates the [MirrorsResolutionAnalysis] for this strategy.
-  // TODO(johnniwinther): Avoid passing [JavaScriptBackend].
-  MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
-      JavaScriptBackend backend);
+  FunctionEntity computeMain(WorldImpactBuilder impactBuilder);
 
   /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();
@@ -150,11 +126,8 @@ abstract class FrontendStrategyBase implements FrontendStrategy {
 }
 
 /// Class that deletes the contents of an [WorldImpact] cache.
-// TODO(redemption): this can be deleted when we sunset the old front end and
-// delete serialization.
+// TODO(redemption): this can be deleted when we sunset the old front end.
 abstract class ImpactCacheDeleter {
-  bool retainCachesForTesting;
-
   /// Removes the [WorldImpact] for [element] from the resolution cache. Later
   /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
   void uncacheWorldImpact(Entity element);

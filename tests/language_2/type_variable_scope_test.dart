@@ -4,7 +4,7 @@
 
 // Test that type variables referenced from within static members are malformed.
 
-class Foo<T> {
+class Foo<T> implements I<T> {
   Foo() {}
 
   static

@@ -19,6 +19,7 @@ List<Element> getChildren(Element parent, [String name]) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
+    return false;
   });
   return children;
 }
@@ -57,8 +58,10 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
  */
 Future<Set<ClassElement>> getDirectSubClasses(
     SearchEngine searchEngine, ClassElement seed) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
   List<SearchMatch> matches = await searchEngine.searchSubtypes(seed);
-  return matches.map((match) => match.element).toSet();
+  return matches.map((match) => match.element).cast<ClassElement>().toSet();
 }
 
 /**
@@ -67,6 +70,8 @@ Future<Set<ClassElement>> getDirectSubClasses(
  */
 Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
   Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
   // static elements
   if (member.isStatic || member is ConstructorElement) {
@@ -97,6 +102,36 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
     }
   }
   return result;
+}
+
+/**
+ * If the [element] is a named parameter in a [MethodElement], return all
+ * corresponding named parameters in the method hierarchy.
+ */
+Future<List<ParameterElement>> getHierarchyNamedParameters(
+    SearchEngine searchEngine, ParameterElement element) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
+  if (element.isNamed) {
+    Element method = element.enclosingElement;
+    if (method is MethodElement) {
+      var hierarchyParameters = <ParameterElement>[];
+      var hierarchyMembers = await getHierarchyMembers(searchEngine, method);
+      for (ClassMemberElement hierarchyMethod in hierarchyMembers) {
+        if (hierarchyMethod is MethodElement) {
+          for (var hierarchyParameter in hierarchyMethod.parameters) {
+            if (hierarchyParameter.isNamed &&
+                hierarchyParameter.name == element.name) {
+              hierarchyParameters.add(hierarchyParameter);
+              break;
+            }
+          }
+        }
+      }
+      return hierarchyParameters;
+    }
+  }
+  return [element];
 }
 
 /**
@@ -137,6 +172,10 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
       if (superType != null) {
         queue.add(superType.element);
       }
+    }
+    // append superclass constraints
+    for (InterfaceType interface in current.superclassConstraints) {
+      queue.add(interface.element);
     }
     // append interfaces
     for (InterfaceType interface in current.interfaces) {

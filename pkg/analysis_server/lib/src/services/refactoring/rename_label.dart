@@ -8,15 +8,15 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /**
  * A [Refactoring] for renaming [LabelElement]s.
  */
 class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
-  RenameLabelRefactoringImpl(SearchEngine searchEngine, LabelElement element)
-      : super(searchEngine, element);
+  RenameLabelRefactoringImpl(
+      RefactoringWorkspace workspace, LabelElement element)
+      : super(workspace, element);
 
   @override
   LabelElement get element => super.element as LabelElement;
@@ -38,8 +38,8 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() {
-    addDeclarationEdit(element);
-    return searchEngine.searchReferences(element).then(addReferenceEdits);
+  Future<void> fillChange() {
+    var processor = new RenameProcessor(searchEngine, change, newName);
+    return processor.renameElement(element);
   }
 }

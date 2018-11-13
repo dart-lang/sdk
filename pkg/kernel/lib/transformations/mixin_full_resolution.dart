@@ -63,7 +63,8 @@ class MixinFullResolution {
     }
 
     // We might need to update the class hierarchy.
-    hierarchy = hierarchy.applyChanges(transformedClasses);
+    hierarchy =
+        hierarchy.applyMemberChanges(transformedClasses, findDescendants: true);
 
     if (!doSuperResolution) {
       return;
@@ -73,25 +74,11 @@ class MixinFullResolution {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
-        final bool hasTransformedSuperclass =
-            transformedClasses.contains(class_.superclass);
-
         for (var procedure in class_.procedures) {
           if (procedure.containsSuperCalls) {
             new SuperCallResolutionTransformer(
                     hierarchy, coreTypes, class_.superclass, targetInfo)
                 .visit(procedure);
-          }
-        }
-        for (var constructor in class_.constructors) {
-          if (constructor.containsSuperCalls) {
-            new SuperCallResolutionTransformer(
-                    hierarchy, coreTypes, class_.superclass, targetInfo)
-                .visit(constructor);
-          }
-          if (hasTransformedSuperclass && constructor.initializers.length > 0) {
-            new SuperInitializerResolutionTransformer(class_.superclass)
-                .transformInitializers(constructor.initializers);
           }
         }
       }
@@ -106,6 +93,13 @@ class MixinFullResolution {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
     if (!processedClasses.add(class_)) return;
+
+    if (!librariesToBeTransformed.contains(class_.enclosingLibrary) &&
+        class_.enclosingLibrary.importUri?.scheme == "dart") {
+      // If we're not asked to transform the platform libraries then we expect
+      // that they will be already transformed.
+      return;
+    }
 
     // Ensure super classes have been transformed before this class.
     if (class_.superclass != null &&
@@ -130,9 +124,33 @@ class MixinFullResolution {
     // Clone fields and methods from the mixin class.
     var substitution = getSubstitutionMap(class_.mixedInType);
     var cloner = new CloneVisitor(typeSubstitution: substitution);
-    for (var field in class_.mixin.fields) {
-      class_.addMember(cloner.clone(field));
+
+    // When we copy a field from the mixed in class, we remove any
+    // forwarding-stub getters/setters from the superclass, but copy their
+    // covariance-bits onto the new field.
+    var nonSetters = <Name, Procedure>{};
+    var setters = <Name, Procedure>{};
+    for (var procedure in class_.procedures) {
+      if (procedure.isSetter) {
+        setters[procedure.name] = procedure;
+      } else {
+        nonSetters[procedure.name] = procedure;
+      }
     }
+    for (var field in class_.mixin.fields) {
+      Field clone = cloner.clone(field);
+      Procedure setter = setters[field.name];
+      if (setter != null) {
+        setters.remove(field.name);
+        VariableDeclaration parameter =
+            setter.function.positionalParameters.first;
+        clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+      }
+      nonSetters.remove(field.name);
+      class_.addMember(clone);
+    }
+    class_.procedures.clear();
+    class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
 
     // Existing procedures in the class should only be forwarding stubs.
     // Replace them with methods from the mixin class if they have the same
@@ -145,6 +163,12 @@ class MixinFullResolution {
       // application.  They should not be copied.
       if (procedure.isForwardingStub) continue;
 
+      // Factory constructors are not cloned.
+      if (procedure.isFactory) continue;
+
+      // NoSuchMethod forwarders aren't cloned.
+      if (procedure.isNoSuchMethodForwarder) continue;
+
       Procedure clone = cloner.clone(procedure);
       // Linear search for a forwarding stub with the same name.
       for (int i = 0; i < originalLength; ++i) {
@@ -153,6 +177,15 @@ class MixinFullResolution {
             originalProcedure.kind == clone.kind) {
           FunctionNode src = originalProcedure.function;
           FunctionNode dst = clone.function;
+
+          if (src.positionalParameters.length !=
+                  dst.positionalParameters.length ||
+              src.namedParameters.length != dst.namedParameters.length) {
+            // A compile time error has already occured, but don't crash below,
+            // and don't add several procedures with the same name to the class.
+            continue outer;
+          }
+
           assert(src.typeParameters.length == dst.typeParameters.length);
           for (int j = 0; j < src.typeParameters.length; ++j) {
             dst.typeParameters[j].flags = src.typeParameters[i].flags;
@@ -161,6 +194,8 @@ class MixinFullResolution {
             dst.positionalParameters[j].flags =
                 src.positionalParameters[j].flags;
           }
+          // TODO(kernel team): The named parameters are not sorted,
+          // this might not be correct.
           for (int j = 0; j < src.namedParameters.length; ++j) {
             dst.namedParameters[j].flags = src.namedParameters[j].flags;
           }
@@ -171,71 +206,17 @@ class MixinFullResolution {
       }
       class_.addMember(clone);
     }
-    // For each generative constructor in the superclass we make a
-    // corresponding forwarding constructor in the subclass.
-    // Named mixin applications already have constructors, so only build the
-    // constructors for anonymous mixin applications.
-    if (class_.constructors.isEmpty) {
-      var superclassSubstitution = getSubstitutionMap(class_.supertype);
-      var superclassCloner =
-          new CloneVisitor(typeSubstitution: superclassSubstitution);
-      for (var superclassConstructor in class_.superclass.constructors) {
-        var forwardingConstructor =
-            buildForwardingConstructor(superclassCloner, superclassConstructor);
-        class_.addMember(forwardingConstructor);
-      }
-    }
+    assert(class_.constructors.isNotEmpty);
 
-    // This class implements the mixin type.
+    // This class implements the mixin type. Also, backends rely on the fact
+    // that eliminated mixin is appended into the end of interfaces list.
     class_.implementedTypes.add(class_.mixedInType);
 
     // This class is now a normal class.
     class_.mixedInType = null;
-  }
 
-  Constructor buildForwardingConstructor(
-      CloneVisitor cloner, Constructor superclassConstructor) {
-    var superFunction = superclassConstructor.function;
-
-    // We keep types and default values for the parameters but always mark the
-    // parameters as final (since we just forward them to the super
-    // constructor).
-    VariableDeclaration cloneVariable(VariableDeclaration variable) {
-      VariableDeclaration clone = cloner.clone(variable);
-      clone.isFinal = true;
-      return clone;
-    }
-
-    // Build a [FunctionNode] which has the same parameters as the one in the
-    // superclass constructor.
-    var positionalParameters =
-        superFunction.positionalParameters.map(cloneVariable).toList();
-    var namedParameters =
-        superFunction.namedParameters.map(cloneVariable).toList();
-    var function = new FunctionNode(new EmptyStatement(),
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: superFunction.requiredParameterCount,
-        returnType: const VoidType());
-
-    // Build a [SuperInitializer] which takes all positional/named parameters
-    // and forward them to the super class constructor.
-    var positionalArguments = <Expression>[];
-    for (var variable in positionalParameters) {
-      positionalArguments.add(new VariableGet(variable));
-    }
-    var namedArguments = <NamedExpression>[];
-    for (var variable in namedParameters) {
-      namedArguments
-          .add(new NamedExpression(variable.name, new VariableGet(variable)));
-    }
-    var superInitializer = new SuperInitializer(superclassConstructor,
-        new Arguments(positionalArguments, named: namedArguments));
-
-    // Assemble the constructor.
-    return new Constructor(function,
-        name: superclassConstructor.name,
-        initializers: <Initializer>[superInitializer]);
+    // Leave breadcrumbs for backends (e.g. for dart:mirrors implementation).
+    class_.isEliminatedMixin = true;
   }
 }
 
@@ -294,7 +275,7 @@ class SuperCallResolutionTransformer extends Transformer {
       // Target not found at all, or call was illegal.
       return _callNoSuchMethod(node.name.name, visitedArguments, node,
           isSuper: true);
-    } else if (target != null) {
+    } else {
       return new MethodInvocation(
           new DirectPropertyGet(new ThisExpression(), target),
           new Name('call'),

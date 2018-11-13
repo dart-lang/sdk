@@ -1,7 +1,6 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--checked
 
 /// Dart test program testing generic type allocations and generic type tests.
 import "package:expect/expect.dart";
@@ -29,7 +28,7 @@ class B<T extends A> {
   }
 }
 
-class C<T> {
+class C<T extends A> {
   B<T> b_;
   C(T t) : b_ = new B<T>(t) {}
 }
@@ -40,34 +39,19 @@ class D {
 }
 
 class E {
-  C<AX> cax_;
-  E() : cax_ = new C<AX>(const AX()) {}
-}
-
-class GenericTest {
-  static test() {
-    int result = 0;
-    D d = new D();
-    Expect.equals(true, d.caa_.b_ is B<AA>);
-    Expect.equals(true, d.caa_.b_.isT(const AA()));
-    C c = new C(const AA()); // c is of raw type C, T in C<T> is dynamic.
-    Expect.equals(true, c.b_ is B);
-    Expect.equals(true, c.b_ is B<AA>);
-    Expect.equals(true, c.b_.isT(const AA()));
-    Expect.equals(true, c.b_.isT(const AX()));
-    try {
-      E e = new E(); // Throws a type error, if type checks are enabled.
-    } on TypeError catch (error) {
-      result = 1;
-    }
-    return result;
-  }
-
-  static testMain() {
-    Expect.equals(1, test());
-  }
+  C<AX> cax_ = new C<AX>(const AX()); //# 01: compile-time error
 }
 
 main() {
-  GenericTest.testMain();
+  D d = new D();
+  Expect.equals(true, d.caa_.b_ is B<AA>);
+  Expect.equals(true, d.caa_.b_.isT(const AA()));
+  C c = new C(const AA()); // inferred as `C<A>` because of the `extends A`.
+  Expect.equals(true, c is C<A>);
+  Expect.equals(false, c is C<AA>, 'C<A> is not a subtype of C<AA>');
+  Expect.equals(true, c.b_ is B);
+  Expect.equals(false, c.b_ is B<AA>);
+  Expect.equals(true, c.b_.isT(const AA()), 'AA is a subtype of A');
+  Expect.equals(false, c.b_.isT(const AX()), 'AX is not a subtype of A');
+  new E();
 }

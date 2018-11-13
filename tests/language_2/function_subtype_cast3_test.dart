@@ -28,7 +28,8 @@ class Class<T> {
 void bar(int i) {}
 
 void main() {
-  new Class().test(true, bar, "dynamic");
+  new Class<dynamic>().test(false, bar, "dynamic");
+  new Class<Object>().test(false, bar, "Object");
   new Class<int>().test(true, bar, "int");
   new Class<bool>().test(false, bar, "bool");
 }

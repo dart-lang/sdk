@@ -30,9 +30,6 @@ main() {
 
   test('dom-is-js', () {
     var e = confuse(new html.DivElement());
-    // TODO(26838): When Issue 26838 is fixed and this test passes, move this
-    // test into group `HTMLDivElement-types`.
-
     // Currently, HTML types are not [JavaScriptObject]s. We could change that
     // by having HTML types extend JavaScriptObject, in which case we would
     // change this expectation.

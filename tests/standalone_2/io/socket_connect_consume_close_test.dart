@@ -17,7 +17,7 @@ void main() {
   // Connect socket then immediate close the consumer without
   // listening on the stream.
   asyncStart();
-  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((_) {});
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.close();

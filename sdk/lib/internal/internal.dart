@@ -6,10 +6,21 @@ library dart._internal;
 
 import 'dart:collection';
 
+import 'dart:async'
+    show
+        Future,
+        Stream,
+        StreamSubscription,
+        StreamTransformer,
+        StreamTransformerBase,
+        Zone;
+import 'dart:convert' show Converter;
 import 'dart:core' hide Symbol;
 import 'dart:core' as core;
 import 'dart:math' show Random;
 
+part 'async_cast.dart';
+part 'cast.dart';
 part 'iterable.dart';
 part 'list.dart';
 part 'print.dart';
@@ -61,10 +72,14 @@ class CodeUnits extends UnmodifiableListBase<int> {
   static String stringOf(CodeUnits u) => u._string;
 }
 
-/// Marks a function as an external implementation ("native" in the Dart VM).
+/// Marks a function or library as having an external implementation ("native"
+/// in the Dart VM).
 ///
-/// Provides a backend-specific String that can be used to identify the
-/// function's implementation.
+/// On a function, this provides a backend-specific String that can be used to
+/// identify the function's implementation.
+///
+/// On a library, it provides a Uri that can be used to locate the native
+/// library's implementation.
 class ExternalName {
   final String name;
   const ExternalName(this.name);

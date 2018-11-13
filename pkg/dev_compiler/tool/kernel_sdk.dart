@@ -3,54 +3,74 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:convert' show json;
+import 'dart:io';
 import 'package:args/args.dart' show ArgParser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
+import 'package:dev_compiler/src/compiler/shared_command.dart'
+    show SharedCompilerOptions;
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/kernel_generator.dart';
+import 'package:dev_compiler/src/kernel/compiler.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show CompilerOptions, kernelForComponent;
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
-import 'patch_sdk.dart' as patch_sdk;
 
 Future main(List<String> args) async {
+  var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
+
   // Parse flags.
-  var parser = new ArgParser()
-    ..addFlag('generate-javascript',
-        help: 'Generate JavaScript (in addition to dill)', abbr: 'g');
+  var parser = ArgParser()
+    ..addOption('output')
+    ..addOption('libraries',
+        defaultsTo: path.join(ddcPath, '../../sdk/lib/libraries.json'));
   var parserOptions = parser.parse(args);
-  var generateJS = parserOptions['generate-javascript'] as bool;
-  var rest = parserOptions.rest;
 
-  Directory.current = path.dirname(path.dirname(path.fromUri(Platform.script)));
+  var outputPath = parserOptions['output'] as String;
+  if (outputPath == null) {
+    var sdkRoot = path.absolute(path.dirname(path.dirname(ddcPath)));
+    var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
+    var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
+    outputPath = path.join(genDir, 'kernel', 'ddc_sdk.dill');
+  }
 
-  var outputPath =
-      path.absolute(rest.length > 0 ? rest[0] : 'gen/sdk/ddc_sdk.dill');
-
-  patch_sdk.main(['../..', 'tool/input_sdk', 'gen/patched_sdk']);
-
-  var inputPath = path.absolute('gen/patched_sdk');
-  var target = new DevCompilerTarget();
-  var options = new CompilerOptions()
+  var target = DevCompilerTarget();
+  var options = CompilerOptions()
     ..compileSdk = true
-    ..chaseDependencies = true
-    ..packagesFileUri = path.toUri(path.absolute('../../.packages'))
-    ..sdkRoot = path.toUri(inputPath)
+    // TODO(sigmund): remove this unnecessary option when possible.
+    ..sdkRoot = Uri.base
+    ..librariesSpecificationUri =
+        Uri.base.resolveUri(Uri.file(parserOptions['libraries']))
     ..target = target;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
-  var program = await kernelForBuildUnit(inputs, options);
+  var component = await kernelForComponent(inputs, options);
 
-  // Useful for debugging:
-  // writeProgramToText(program);
-  await writeProgramToBinary(program, outputPath);
+  var outputDir = path.dirname(outputPath);
+  await Directory(outputDir).create(recursive: true);
+  await writeComponentToBinary(component, outputPath);
 
-  if (generateJS) {
-    var jsModule = compileToJSModule(program, [], [], {});
-    var jsPath = path.join(path.basename(outputPath), 'dart_sdk.kernel.js');
-    new File(jsPath)
-        .writeAsStringSync(jsProgramToCode(jsModule, ModuleFormat.es6).code);
+  var jsModule = ProgramCompiler(
+      component,
+      target.hierarchy,
+      SharedCompilerOptions(moduleName: 'dart_sdk'),
+      {}).emitModule(component, [], {});
+  var moduleFormats = {
+    'amd': ModuleFormat.amd,
+    'common': ModuleFormat.common,
+    'es6': ModuleFormat.es6,
+    'legacy': ModuleFormat.legacy,
+  };
+
+  for (var name in moduleFormats.keys) {
+    var format = moduleFormats[name];
+    var jsDir = path.join(outputDir, name);
+    var jsPath = path.join(jsDir, 'dart_sdk.js');
+    await Directory(jsDir).create();
+    var jsCode = jsProgramToCode(jsModule, format);
+    await File(jsPath).writeAsString(jsCode.code);
+    await File('$jsPath.map').writeAsString(json.encode(jsCode.sourceMap));
   }
 }

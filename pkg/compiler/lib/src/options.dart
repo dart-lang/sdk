@@ -40,208 +40,208 @@ abstract class DiagnosticOptions {
 /// as few as possible.
 class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
-  final Uri entryPoint;
-
-  /// Root location where SDK libraries are found.
-  final Uri libraryRoot;
+  Uri entryPoint;
 
   /// Package root location.
   ///
   /// If not null then [packageConfig] should be null.
-  final Uri packageRoot;
+  Uri packageRoot;
 
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
-  final Uri packageConfig;
+  Uri packageConfig;
 
   // TODO(sigmund): Move out of here, maybe to CompilerInput. Options should not
   // hold code, just configuration options.
-  final PackagesDiscoveryProvider packagesDiscoveryProvider;
+  PackagesDiscoveryProvider packagesDiscoveryProvider;
+
+  /// Location from which serialized inference data is read.
+  ///
+  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// frontend work is skipped.
+  Uri readDataUri;
+
+  /// Location to which inference data is serialized.
+  ///
+  /// If this is set, the compilation stops after type inference.
+  Uri writeDataUri;
 
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
-  final Map<String, dynamic> environment;
+  Map<String, String> environment = const <String, String>{};
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
   /// Whether we allow mocking compilation of libraries such as dart:io and
   /// dart:html for unit testing purposes.
-  final bool allowMockCompilation;
+  bool allowMockCompilation = false;
 
-  /// Whether the native extension syntax is supported by the frontend.
-  final bool allowNativeExtensions;
-
-  /// Whether to resolve all functions in the program, not just those reachable
-  /// from main. This implies [analyzeOnly] is true as well.
-  final bool analyzeAll;
-
-  /// Whether to disable tree-shaking for the main script. This marks all
-  /// functions in the main script as reachable (not just a function named
-  /// `main`).
-  // TODO(sigmund): rename. The current name seems to indicate that only the
-  // main function is retained, which is the opposite of what this does.
-  final bool analyzeMain;
-
-  /// Whether to run the compiler just for the purpose of analysis. That is, to
-  /// run resolution and type-checking alone, but otherwise do not generate any
-  /// code.
-  final bool analyzeOnly;
-
-  /// Whether to skip analysis of method bodies and field initializers. Implies
-  /// [analyzeOnly].
-  final bool analyzeSignaturesOnly;
+  /// Sets a combination of flags for benchmarking 'production' mode.
+  bool benchmarkingProduction = false;
 
   /// ID associated with this sdk build.
-  final String buildId;
+  String buildId = _UNDETERMINED_BUILD_ID;
 
   /// Whether there is a build-id available so we can use it on error messages
   /// and in the emitted output of the compiler.
   bool get hasBuildId => buildId != _UNDETERMINED_BUILD_ID;
 
+  /// Whether to compile for the server category. This is used to compile to JS
+  /// that is intended to be run on server-side VMs like nodejs.
+  bool compileForServer = false;
+
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
-  final Uri deferredMapUri;
+  Uri deferredMapUri;
 
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
-  final bool disableInlining;
+  bool disableInlining = false;
+
+  /// Disable deferred loading, instead generate everything in one output unit.
+  /// Note: the resulting program still correctly checks that loadLibrary &
+  /// checkLibrary calls are correct.
+  bool disableProgramSplit = false;
 
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
-  final bool fatalWarnings;
+  bool fatalWarnings = false;
 
   /// Diagnostic option: Emit terse diagnostics without howToFix.
-  final bool terseDiagnostics;
+  bool terseDiagnostics = false;
 
   /// Diagnostic option: If `true`, warnings are not reported.
-  final bool suppressWarnings;
+  bool suppressWarnings = false;
 
   /// Diagnostic option: If `true`, hints are not reported.
-  final bool suppressHints;
+  bool suppressHints = false;
 
   /// Diagnostic option: List of packages for which warnings and hints are
   /// reported. If `null`, no package warnings or hints are reported. If
   /// empty, all warnings and hints are reported.
-  final List<String> _shownPackageWarnings;
+  List<String> shownPackageWarnings; // &&&&&
 
   /// Whether to disable global type inference.
-  final bool disableTypeInference;
+  bool disableTypeInference = false;
+
+  /// Whether to disable optimization for need runtime type information.
+  bool disableRtiOptimization = false;
 
   /// Whether to emit a .json file with a summary of the information used by the
   /// compiler during optimization. This includes resolution details,
   /// dependencies between elements, results of type inference, and the output
   /// code for each function.
-  final bool dumpInfo;
+  bool dumpInfo = false;
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   ///
   /// This is only included so that tests can pass the --assert-message flag
   /// without causing dart2js to crash. The flag has no effect.
-  final bool enableAssertMessage;
+  bool enableAssertMessage = true;
 
   /// Whether the user specified a flag to allow the use of dart:mirrors. This
   /// silences a warning produced by the compiler.
-  final bool enableExperimentalMirrors;
+  bool enableExperimentalMirrors = false;
 
   /// Whether to enable minification
   // TODO(sigmund): rename to minify
-  final bool enableMinification;
+  bool enableMinification = false;
 
   /// Whether to model which native classes are live based on annotations on the
   /// core libraries. If false, all native classes will be included by default.
-  final bool enableNativeLiveTypeAnalysis;
-
-  /// Whether to generate code containing checked-mode assignability checks.
-  final bool enableTypeAssertions;
+  bool enableNativeLiveTypeAnalysis = true;
 
   /// Whether to generate code containing user's `assert` statements.
-  final bool enableUserAssertions;
+  bool enableUserAssertions = false;
 
   /// Whether to generate output even when there are compile-time errors.
-  final bool generateCodeWithCompileTimeErrors;
+  bool generateCodeWithCompileTimeErrors = false;
 
   /// Whether to generate a source-map file together with the output program.
-  final bool generateSourceMap;
+  bool generateSourceMap = true;
 
   /// URI of the main output if the compiler is generating source maps.
-  final Uri outputUri;
+  Uri outputUri;
 
-  /// Location of the platform configuration file.
-  final Uri platformConfigUri;
+  /// Location of the libraries specification file.
+  Uri librariesSpecificationUri;
 
   /// Location of the kernel platform `.dill` files.
-  final Uri platformBinaries;
-
-  /// Whether to emit URIs in the reflection metadata.
-  final bool preserveUris;
-
-  /// The locations of serialized data used for resolution.
-  final List<Uri> resolutionInputs;
-
-  /// The location of the serialized data from resolution.
-  final Uri resolutionOutput;
-
-  /// If `true`, sources are resolved and serialized.
-  final bool resolveOnly;
-
-  /// If `true`, sources are only available from serialized data.
-  final bool compileOnly;
+  Uri platformBinaries;
 
   /// URI where the compiler should generate the output source map file.
-  final Uri sourceMapUri;
+  Uri sourceMapUri;
 
   /// The compiler is run from the build bot.
-  final bool testMode;
+  bool testMode = false;
 
   /// Whether to trust JS-interop annotations. (experimental)
-  final bool trustJSInteropTypeAnnotations;
+  bool trustJSInteropTypeAnnotations = false;
 
   /// Whether to trust primitive types during inference and optimizations.
-  final bool trustPrimitives;
+  bool trustPrimitives = false;
 
-  /// Whether to trust type annotations during inference and optimizations.
-  final bool trustTypeAnnotations;
+  /// Whether to omit implicit strong mode checks.
+  bool omitImplicitChecks = false;
+
+  /// Whether to omit as casts.
+  bool omitAsCasts = false;
+
+  /// Whether to omit class type arguments only needed for `toString` on
+  /// `Object.runtimeType`.
+  bool laxRuntimeTypeToString = false;
+
+  /// What should the compiler do with type assertions of assignments.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy assignmentCheckPolicy;
+
+  /// What should the compiler do with parameter type assertions.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy parameterCheckPolicy;
+
+  /// What should the compiler do with implicit downcasts.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy implicitDowncastCheckPolicy;
 
   /// Whether to generate code compliant with content security policy (CSP).
-  final bool useContentSecurityPolicy;
-
-  /// Preview the unified front-end and compilation from kernel.
-  ///
-  /// When enabled the compiler will use the unified front-end to compile
-  /// sources to kernel, and then continue compilation from the kernel
-  /// representation.
-  ///
-  /// When this flag is on, the compiler also acccepts reading .dill files from
-  /// disk. The compiler reads the sources differently depending on the
-  /// extension format.
-  final bool useKernel;
+  bool useContentSecurityPolicy = false;
 
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
-  final bool useFrequencyNamer;
+  bool useFrequencyNamer = true;
 
   /// Whether to generate source-information from both the old and the new
   /// source-information engines. (experimental)
-  final bool useMultiSourceInfo;
+  bool useMultiSourceInfo = false;
 
   /// Whether to use the new source-information implementation for source-maps.
   /// (experimental)
-  final bool useNewSourceInfo;
+  bool useNewSourceInfo = false;
 
   /// Whether the user requested to use the fast startup emitter. The full
   /// emitter might still be used if the program uses dart:mirrors.
-  final bool useStartupEmitter;
+  bool useStartupEmitter = false;
 
-  /// Enable verbose printing during compilation. Includes progress messages
-  /// during each phase and a time-breakdown between phases at the end.
-  final bool verbose;
+  /// Enable verbose printing during compilation. Includes a time-breakdown
+  /// between phases at the end.
+  bool verbose = false;
+
+  /// On top of --verbose, enable more verbose printing, like progress messages
+  /// during each phase of compilation.
+  bool showInternalProgress = false;
 
   /// Track allocations in the JS output.
   ///
   /// This is an experimental feature.
-  final bool experimentalTrackAllocations;
+  bool experimentalTrackAllocations = false;
+
+  /// Expermental optimization.
+  bool experimentLocalNames = false;
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -249,166 +249,94 @@ class CompilerOptions implements DiagnosticOptions {
   /// [experimentalTrackAllocations] encoded as a JSON map.
   ///
   /// This is an experimental feature.
-  final String experimentalAllocationsPath;
+  String experimentalAllocationsPath;
 
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
   // TODO(sigmund): delete these as we delete the underlying features
 
-  /// Whether to preserve comments while scanning (only use for dart:mirrors).
-  final bool preserveComments;
+  /// Whether to start `async` functions synchronously.
+  bool startAsyncSynchronously = false;
 
-  /// Strip option used by dart2dart.
-  final List<String> strips;
+  /// If specified, a bundle of optimizations to enable (or disable).
+  int optimizationLevel = null;
 
   /// Create an options object by parsing flags from [options].
-  factory CompilerOptions.parse(
-      {Uri entryPoint,
-      Uri libraryRoot,
-      Uri packageRoot,
-      Uri packageConfig,
-      Uri platformBinaries,
-      List<Uri> resolutionInputs,
-      Uri resolutionOutput,
-      PackagesDiscoveryProvider packagesDiscoveryProvider,
-      Map<String, dynamic> environment: const <String, dynamic>{},
-      List<String> options}) {
-    return new CompilerOptions(
-        entryPoint: entryPoint,
-        libraryRoot: libraryRoot,
-        packageRoot: packageRoot,
-        packageConfig: packageConfig,
-        packagesDiscoveryProvider: packagesDiscoveryProvider,
-        environment: environment,
-        allowMockCompilation: _hasOption(options, Flags.allowMockCompilation),
-        allowNativeExtensions: _hasOption(options, Flags.allowNativeExtensions),
-        analyzeAll: _hasOption(options, Flags.analyzeAll),
-        analyzeMain: _hasOption(options, Flags.analyzeMain),
-        analyzeOnly: _hasOption(options, Flags.analyzeOnly),
-        analyzeSignaturesOnly: _hasOption(options, Flags.analyzeSignaturesOnly),
-        buildId: _extractStringOption(
-            options, '--build-id=', _UNDETERMINED_BUILD_ID),
-        deferredMapUri: _extractUriOption(options, '--deferred-map='),
-        fatalWarnings: _hasOption(options, Flags.fatalWarnings),
-        terseDiagnostics: _hasOption(options, Flags.terse),
-        suppressWarnings: _hasOption(options, Flags.suppressWarnings),
-        suppressHints: _hasOption(options, Flags.suppressHints),
-        shownPackageWarnings:
-            _extractOptionalCsvOption(options, Flags.showPackageWarnings),
-        disableInlining: _hasOption(options, Flags.disableInlining),
-        disableTypeInference: _hasOption(options, Flags.disableTypeInference),
-        dumpInfo: _hasOption(options, Flags.dumpInfo),
-        enableExperimentalMirrors:
-            _hasOption(options, Flags.enableExperimentalMirrors),
-        enableMinification: _hasOption(options, Flags.minify),
-        enableNativeLiveTypeAnalysis:
-            !_hasOption(options, Flags.disableNativeLiveTypeAnalysis),
-        enableTypeAssertions: _hasOption(options, Flags.enableCheckedMode),
-        enableUserAssertions: _hasOption(options, Flags.enableCheckedMode) ||
-            _hasOption(options, Flags.enableAsserts),
-        experimentalTrackAllocations:
-            _hasOption(options, Flags.experimentalTrackAllocations),
-        experimentalAllocationsPath: _extractStringOption(
-            options, "${Flags.experimentalAllocationsPath}=", null),
-        generateCodeWithCompileTimeErrors:
-            _hasOption(options, Flags.generateCodeWithCompileTimeErrors),
-        generateSourceMap: !_hasOption(options, Flags.noSourceMaps),
-        outputUri: _extractUriOption(options, '--out='),
-        platformConfigUri:
-            _resolvePlatformConfigFromOptions(libraryRoot, options),
-        platformBinaries: platformBinaries,
-        preserveComments: _hasOption(options, Flags.preserveComments),
-        preserveUris: _hasOption(options, Flags.preserveUris),
-        resolutionInputs: resolutionInputs,
-        resolutionOutput: resolutionOutput,
-        resolveOnly: _hasOption(options, Flags.resolveOnly),
-        sourceMapUri: _extractUriOption(options, '--source-map='),
-        strips: _extractCsvOption(options, '--force-strip='),
-        testMode: _hasOption(options, Flags.testMode),
-        trustJSInteropTypeAnnotations:
-            _hasOption(options, Flags.trustJSInteropTypeAnnotations),
-        trustPrimitives: _hasOption(options, Flags.trustPrimitives),
-        trustTypeAnnotations: _hasOption(options, Flags.trustTypeAnnotations),
-        useContentSecurityPolicy:
-            _hasOption(options, Flags.useContentSecurityPolicy),
-        useKernel: _hasOption(options, Flags.useKernel),
-        useFrequencyNamer:
-            !_hasOption(options, Flags.noFrequencyBasedMinification),
-        useMultiSourceInfo: _hasOption(options, Flags.useMultiSourceInfo),
-        useNewSourceInfo: _hasOption(options, Flags.useNewSourceInfo),
-        useStartupEmitter: _hasOption(options, Flags.fastStartup),
-        verbose: _hasOption(options, Flags.verbose));
+  static CompilerOptions parse(List<String> options,
+      {Uri librariesSpecificationUri, Uri platformBinaries}) {
+    return new CompilerOptions()
+      ..librariesSpecificationUri = librariesSpecificationUri
+      ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
+      ..benchmarkingProduction =
+          _hasOption(options, Flags.benchmarkingProduction)
+      ..buildId =
+          _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
+      ..compileForServer = _hasOption(options, Flags.serverMode)
+      ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
+      ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
+      ..terseDiagnostics = _hasOption(options, Flags.terse)
+      ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)
+      ..suppressHints = _hasOption(options, Flags.suppressHints)
+      ..shownPackageWarnings =
+          _extractOptionalCsvOption(options, Flags.showPackageWarnings)
+      ..disableInlining = _hasOption(options, Flags.disableInlining)
+      ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
+      ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
+      ..disableRtiOptimization =
+          _hasOption(options, Flags.disableRtiOptimization)
+      ..dumpInfo = _hasOption(options, Flags.dumpInfo)
+      ..enableExperimentalMirrors =
+          _hasOption(options, Flags.enableExperimentalMirrors)
+      ..enableMinification = _hasOption(options, Flags.minify)
+      ..enableNativeLiveTypeAnalysis =
+          !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
+      ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
+          _hasOption(options, Flags.enableAsserts)
+      ..experimentalTrackAllocations =
+          _hasOption(options, Flags.experimentalTrackAllocations)
+      ..experimentalAllocationsPath = _extractStringOption(
+          options, "${Flags.experimentalAllocationsPath}=", null)
+      ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
+      ..generateCodeWithCompileTimeErrors =
+          _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
+      ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
+      ..outputUri = _extractUriOption(options, '--out=')
+      ..platformBinaries =
+          platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
+      ..sourceMapUri = _extractUriOption(options, '--source-map=')
+      ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
+      ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
+      ..laxRuntimeTypeToString =
+          _hasOption(options, Flags.laxRuntimeTypeToString)
+      ..testMode = _hasOption(options, Flags.testMode)
+      ..trustJSInteropTypeAnnotations =
+          _hasOption(options, Flags.trustJSInteropTypeAnnotations)
+      ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
+      ..useContentSecurityPolicy =
+          _hasOption(options, Flags.useContentSecurityPolicy)
+      ..useFrequencyNamer =
+          !_hasOption(options, Flags.noFrequencyBasedMinification)
+      ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
+      ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
+      ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
+      ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
+      ..verbose = _hasOption(options, Flags.verbose)
+      ..showInternalProgress = _hasOption(options, Flags.progress)
+      ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
+      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=');
   }
 
-  /// Creates an option object for the compiler.
-  ///
-  /// This validates and normalizes dependent options to be consistent. For
-  /// example, if [analyzeAll] is true, the resulting options object will also
-  /// have [analyzeOnly] as true.
-  factory CompilerOptions(
-      {Uri entryPoint,
-      Uri libraryRoot,
-      Uri packageRoot,
-      Uri packageConfig,
-      PackagesDiscoveryProvider packagesDiscoveryProvider,
-      Map<String, dynamic> environment: const <String, dynamic>{},
-      bool allowMockCompilation: false,
-      bool allowNativeExtensions: false,
-      bool analyzeAll: false,
-      bool analyzeMain: false,
-      bool analyzeOnly: false,
-      bool analyzeSignaturesOnly: false,
-      String buildId: _UNDETERMINED_BUILD_ID,
-      Uri deferredMapUri: null,
-      bool fatalWarnings: false,
-      bool terseDiagnostics: false,
-      bool suppressWarnings: false,
-      bool suppressHints: false,
-      List<String> shownPackageWarnings: null,
-      bool disableInlining: false,
-      bool disableTypeInference: false,
-      bool dumpInfo: false,
-      bool enableAssertMessage: true,
-      bool enableExperimentalMirrors: false,
-      bool enableMinification: false,
-      bool enableNativeLiveTypeAnalysis: true,
-      bool enableTypeAssertions: false,
-      bool enableUserAssertions: false,
-      bool experimentalTrackAllocations: false,
-      String experimentalAllocationsPath: null,
-      bool generateCodeWithCompileTimeErrors: false,
-      bool generateSourceMap: true,
-      bool kernelGlobalInference: false,
-      Uri outputUri: null,
-      Uri platformConfigUri: null,
-      Uri platformBinaries: null,
-      bool preserveComments: false,
-      bool preserveUris: false,
-      List<Uri> resolutionInputs: null,
-      Uri resolutionOutput: null,
-      bool resolveOnly: false,
-      Uri sourceMapUri: null,
-      List<String> strips: const [],
-      bool testMode: false,
-      bool trustJSInteropTypeAnnotations: false,
-      bool trustPrimitives: false,
-      bool trustTypeAnnotations: false,
-      bool useContentSecurityPolicy: false,
-      bool useKernel: false,
-      bool useFrequencyNamer: true,
-      bool useMultiSourceInfo: false,
-      bool useNewSourceInfo: false,
-      bool useStartupEmitter: false,
-      bool verbose: false}) {
+  void validate() {
     // TODO(sigmund): should entrypoint be here? should we validate it is not
     // null? In unittests we use the same compiler to analyze or build multiple
     // entrypoints.
-    if (libraryRoot == null) {
-      throw new ArgumentError("[libraryRoot] is null.");
+    if (librariesSpecificationUri == null) {
+      throw new ArgumentError("[librariesSpecificationUri] is null.");
     }
-    if (!libraryRoot.path.endsWith("/")) {
-      throw new ArgumentError("[libraryRoot] must end with a /");
+    if (librariesSpecificationUri.path.endsWith('/')) {
+      throw new ArgumentError(
+          "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
     if (packageRoot != null && packageConfig != null) {
       throw new ArgumentError("Only one of [packageRoot] or [packageConfig] "
@@ -417,273 +345,95 @@ class CompilerOptions implements DiagnosticOptions {
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("[packageRoot] must end with a /");
     }
-    if (!analyzeOnly) {
-      if (allowNativeExtensions) {
-        throw new ArgumentError(
-            "${Flags.allowNativeExtensions} is only supported in combination "
-            "with ${Flags.analyzeOnly}");
-      }
+    if (platformBinaries == null) {
+      throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
-    if (useKernel && platformBinaries == null) {
-      throw new ArgumentError(
-          "${Flags.useKernel} is only supported in combination "
-          "with ${Flags.platformBinaries}");
-    }
-    return new CompilerOptions._(entryPoint, libraryRoot, packageRoot,
-        packageConfig, packagesDiscoveryProvider, environment,
-        allowMockCompilation: allowMockCompilation,
-        allowNativeExtensions: allowNativeExtensions,
-        analyzeAll: analyzeAll || resolveOnly,
-        analyzeMain: analyzeMain,
-        analyzeOnly:
-            analyzeOnly || analyzeSignaturesOnly || analyzeAll || resolveOnly,
-        analyzeSignaturesOnly: analyzeSignaturesOnly,
-        buildId: buildId,
-        deferredMapUri: deferredMapUri,
-        fatalWarnings: fatalWarnings,
-        terseDiagnostics: terseDiagnostics,
-        suppressWarnings: suppressWarnings,
-        suppressHints: suppressHints,
-        shownPackageWarnings: shownPackageWarnings,
-        disableInlining: disableInlining,
-        disableTypeInference: disableTypeInference,
-        dumpInfo: dumpInfo,
-        enableAssertMessage: enableAssertMessage,
-        enableExperimentalMirrors: enableExperimentalMirrors,
-        enableMinification: enableMinification,
-        enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis,
-        enableTypeAssertions: enableTypeAssertions,
-        enableUserAssertions: enableUserAssertions,
-        experimentalTrackAllocations: experimentalTrackAllocations,
-        experimentalAllocationsPath: experimentalAllocationsPath,
-        generateCodeWithCompileTimeErrors:
-            generateCodeWithCompileTimeErrors && !useKernel,
-        generateSourceMap: generateSourceMap,
-        outputUri: outputUri,
-        platformConfigUri: platformConfigUri ??
-            _resolvePlatformConfig(libraryRoot, null, const []),
-        platformBinaries: platformBinaries,
-        preserveComments: preserveComments,
-        preserveUris: preserveUris,
-        resolutionInputs: resolutionInputs,
-        resolutionOutput: resolutionOutput,
-        resolveOnly: resolveOnly,
-        sourceMapUri: sourceMapUri,
-        strips: strips,
-        testMode: testMode,
-        trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
-        trustPrimitives: trustPrimitives,
-        trustTypeAnnotations: trustTypeAnnotations,
-        useContentSecurityPolicy: useContentSecurityPolicy,
-        useKernel: useKernel,
-        useFrequencyNamer: useFrequencyNamer,
-        useMultiSourceInfo: useMultiSourceInfo,
-        useNewSourceInfo: useNewSourceInfo,
-        useStartupEmitter: useStartupEmitter,
-        verbose: verbose);
   }
 
-  CompilerOptions._(this.entryPoint, this.libraryRoot, this.packageRoot,
-      this.packageConfig, this.packagesDiscoveryProvider, this.environment,
-      {this.allowMockCompilation: false,
-      this.allowNativeExtensions: false,
-      this.analyzeAll: false,
-      this.analyzeMain: false,
-      this.analyzeOnly: false,
-      this.analyzeSignaturesOnly: false,
-      this.buildId: _UNDETERMINED_BUILD_ID,
-      this.deferredMapUri: null,
-      this.fatalWarnings: false,
-      this.terseDiagnostics: false,
-      this.suppressWarnings: false,
-      this.suppressHints: false,
-      List<String> shownPackageWarnings: null,
-      this.disableInlining: false,
-      this.disableTypeInference: false,
-      this.dumpInfo: false,
-      this.enableAssertMessage: true,
-      this.enableExperimentalMirrors: false,
-      this.enableMinification: false,
-      this.enableNativeLiveTypeAnalysis: false,
-      this.enableTypeAssertions: false,
-      this.enableUserAssertions: false,
-      this.experimentalTrackAllocations: false,
-      this.experimentalAllocationsPath: null,
-      this.generateCodeWithCompileTimeErrors: false,
-      this.generateSourceMap: true,
-      this.outputUri: null,
-      this.platformConfigUri: null,
-      this.platformBinaries: null,
-      this.preserveComments: false,
-      this.preserveUris: false,
-      this.resolutionInputs: null,
-      this.resolutionOutput: null,
-      this.resolveOnly: false,
-      this.compileOnly: false,
-      this.sourceMapUri: null,
-      this.strips: const [],
-      this.testMode: false,
-      this.trustJSInteropTypeAnnotations: false,
-      this.trustPrimitives: false,
-      this.trustTypeAnnotations: false,
-      this.useContentSecurityPolicy: false,
-      this.useKernel: false,
-      this.useFrequencyNamer: false,
-      this.useMultiSourceInfo: false,
-      this.useNewSourceInfo: false,
-      this.useStartupEmitter: false,
-      this.verbose: false})
-      : _shownPackageWarnings = shownPackageWarnings;
+  void deriveOptions() {
+    if (benchmarkingProduction) {
+      useStartupEmitter = true;
+      trustPrimitives = true;
+      omitImplicitChecks = true;
+    }
 
-  /// Creates a copy of the [CompilerOptions] where the provided non-null
-  /// option values replace existing.
-  static CompilerOptions copy(CompilerOptions options,
-      {entryPoint,
-      libraryRoot,
-      packageRoot,
-      packageConfig,
-      packagesDiscoveryProvider,
-      environment,
-      allowMockCompilation,
-      allowNativeExtensions,
-      analyzeAll,
-      analyzeMain,
-      analyzeOnly,
-      analyzeSignaturesOnly,
-      buildId,
-      deferredMapUri,
-      fatalWarnings,
-      terseDiagnostics,
-      suppressWarnings,
-      suppressHints,
-      List<String> shownPackageWarnings,
-      disableInlining,
-      disableTypeInference,
-      dumpInfo,
-      enableAssertMessage,
-      enableExperimentalMirrors,
-      enableMinification,
-      enableNativeLiveTypeAnalysis,
-      enableTypeAssertions,
-      enableUserAssertions,
-      experimentalTrackAllocations,
-      experimentalAllocationsPath,
-      generateCodeWithCompileTimeErrors,
-      generateSourceMap,
-      kernelGlobalInference,
-      outputUri,
-      platformConfigUri,
-      platformBinaries,
-      preserveComments,
-      preserveUris,
-      resolutionInputs,
-      resolutionOutput,
-      resolveOnly,
-      compileOnly,
-      sourceMapUri,
-      strips,
-      testMode,
-      trustJSInteropTypeAnnotations,
-      trustPrimitives,
-      trustTypeAnnotations,
-      useContentSecurityPolicy,
-      useKernel,
-      useFrequencyNamer,
-      useMultiSourceInfo,
-      useNewSourceInfo,
-      useStartupEmitter,
-      verbose}) {
-    return new CompilerOptions._(
-        entryPoint ?? options.entryPoint,
-        libraryRoot ?? options.libraryRoot,
-        packageRoot ?? options.packageRoot,
-        packageConfig ?? options.packageConfig,
-        packagesDiscoveryProvider ?? options.packagesDiscoveryProvider,
-        environment ?? options.environment,
-        allowMockCompilation:
-            allowMockCompilation ?? options.allowMockCompilation,
-        allowNativeExtensions:
-            allowNativeExtensions ?? options.allowNativeExtensions,
-        analyzeAll: analyzeAll ?? options.analyzeAll,
-        analyzeMain: analyzeMain ?? options.analyzeMain,
-        analyzeOnly: analyzeOnly ?? options.analyzeOnly,
-        analyzeSignaturesOnly:
-            analyzeSignaturesOnly ?? options.analyzeSignaturesOnly,
-        buildId: buildId ?? options.buildId,
-        deferredMapUri: deferredMapUri ?? options.deferredMapUri,
-        fatalWarnings: fatalWarnings ?? options.fatalWarnings,
-        terseDiagnostics: terseDiagnostics ?? options.terseDiagnostics,
-        suppressWarnings: suppressWarnings ?? options.suppressWarnings,
-        suppressHints: suppressHints ?? options.suppressHints,
-        shownPackageWarnings:
-            shownPackageWarnings ?? options._shownPackageWarnings,
-        disableInlining: disableInlining ?? options.disableInlining,
-        disableTypeInference:
-            disableTypeInference ?? options.disableTypeInference,
-        dumpInfo: dumpInfo ?? options.dumpInfo,
-        enableAssertMessage: enableAssertMessage ?? options.enableAssertMessage,
-        enableExperimentalMirrors:
-            enableExperimentalMirrors ?? options.enableExperimentalMirrors,
-        enableMinification: enableMinification ?? options.enableMinification,
-        enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis ??
-            options.enableNativeLiveTypeAnalysis,
-        enableTypeAssertions:
-            enableTypeAssertions ?? options.enableTypeAssertions,
-        enableUserAssertions:
-            enableUserAssertions ?? options.enableUserAssertions,
-        experimentalTrackAllocations: experimentalTrackAllocations ??
-            options.experimentalTrackAllocations,
-        experimentalAllocationsPath:
-            experimentalAllocationsPath ?? options.experimentalAllocationsPath,
-        generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors ??
-            options.generateCodeWithCompileTimeErrors,
-        generateSourceMap: generateSourceMap ?? options.generateSourceMap,
-        outputUri: outputUri ?? options.outputUri,
-        platformConfigUri: platformConfigUri ?? options.platformConfigUri,
-        platformBinaries: platformBinaries ?? options.platformBinaries,
-        preserveComments: preserveComments ?? options.preserveComments,
-        preserveUris: preserveUris ?? options.preserveUris,
-        resolutionInputs: resolutionInputs ?? options.resolutionInputs,
-        resolutionOutput: resolutionOutput ?? options.resolutionOutput,
-        resolveOnly: resolveOnly ?? options.resolveOnly,
-        compileOnly: compileOnly ?? options.compileOnly,
-        sourceMapUri: sourceMapUri ?? options.sourceMapUri,
-        strips: strips ?? options.strips,
-        testMode: testMode ?? options.testMode,
-        trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations ??
-            options.trustJSInteropTypeAnnotations,
-        trustPrimitives: trustPrimitives ?? options.trustPrimitives,
-        trustTypeAnnotations:
-            trustTypeAnnotations ?? options.trustTypeAnnotations,
-        useContentSecurityPolicy:
-            useContentSecurityPolicy ?? options.useContentSecurityPolicy,
-        useKernel: useKernel ?? options.useKernel,
-        useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
-        useMultiSourceInfo: useMultiSourceInfo ?? options.useMultiSourceInfo,
-        useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,
-        useStartupEmitter: useStartupEmitter ?? options.useStartupEmitter,
-        verbose: verbose ?? options.verbose);
+    if (optimizationLevel != null) {
+      if (optimizationLevel == 0) {
+        disableInlining = true;
+        disableTypeInference = true;
+        disableRtiOptimization = true;
+      }
+      if (optimizationLevel >= 2) {
+        enableMinification = true;
+        laxRuntimeTypeToString = true;
+      }
+      if (optimizationLevel >= 3) {
+        omitImplicitChecks = true;
+      }
+      if (optimizationLevel == 4) {
+        trustPrimitives = true;
+      }
+    }
+
+    // TODO(johnniwinther): Should we support this in the future?
+    generateCodeWithCompileTimeErrors = false;
+
+    // Strong mode always trusts type annotations (inferred or explicit), so
+    // assignments checks should be trusted.
+    assignmentCheckPolicy = CheckPolicy.trusted;
+    if (omitImplicitChecks) {
+      parameterCheckPolicy = CheckPolicy.trusted;
+      implicitDowncastCheckPolicy = CheckPolicy.trusted;
+    } else {
+      parameterCheckPolicy = CheckPolicy.checked;
+      implicitDowncastCheckPolicy = CheckPolicy.checked;
+    }
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.
   bool get showAllPackageWarnings {
-    return _shownPackageWarnings != null && _shownPackageWarnings.isEmpty;
+    return shownPackageWarnings != null && shownPackageWarnings.isEmpty;
   }
 
   /// Returns `true` if warnings and hints are hidden for all packages.
-  bool get hidePackageWarnings => _shownPackageWarnings == null;
+  bool get hidePackageWarnings => shownPackageWarnings == null;
 
   /// Returns `true` if warnings should be should for [uri].
   bool showPackageWarningsFor(Uri uri) {
     if (showAllPackageWarnings) {
       return true;
     }
-    if (_shownPackageWarnings != null) {
+    if (shownPackageWarnings != null) {
       return uri.scheme == 'package' &&
-          _shownPackageWarnings.contains(uri.pathSegments.first);
+          shownPackageWarnings.contains(uri.pathSegments.first);
     }
     return false;
   }
+}
+
+/// Policy for what to do with a type assertion check.
+///
+/// This enum-like class is used to configure how the compiler treats type
+/// assertions during global type inference and codegen.
+class CheckPolicy {
+  /// Whether the type assertion should be trusted.
+  final bool isTrusted;
+
+  /// Whether the type assertion should be emitted and checked.
+  final bool isEmitted;
+
+  /// Whether the type assertion should be ignored.
+  final bool isIgnored;
+
+  const CheckPolicy(
+      {this.isTrusted: false, this.isEmitted: false, this.isIgnored: false});
+
+  static const trusted = const CheckPolicy(isTrusted: true);
+  static const checked = const CheckPolicy(isEmitted: true);
+  static const ignored = const CheckPolicy(isIgnored: true);
+
+  String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
+      'isEmitted=$isEmitted,isIgnored=$isIgnored)';
 }
 
 String _extractStringOption(
@@ -699,16 +449,6 @@ String _extractStringOption(
 Uri _extractUriOption(List<String> options, String prefix) {
   var option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : Uri.parse(option);
-}
-
-// CSV: Comma separated values.
-List<String> _extractCsvOption(List<String> options, String prefix) {
-  for (String option in options) {
-    if (option.startsWith(prefix)) {
-      return option.substring(prefix.length).split(',');
-    }
-  }
-  return const <String>[];
 }
 
 bool _hasOption(List<String> options, String option) {
@@ -730,37 +470,5 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
   }
   return null;
 }
-
-Uri _resolvePlatformConfig(
-    Uri libraryRoot, String platformConfigPath, Iterable<String> categories) {
-  if (platformConfigPath != null) {
-    return libraryRoot.resolve(platformConfigPath);
-  } else {
-    if (categories.length == 0) {
-      return libraryRoot.resolve(_clientPlatform);
-    }
-    assert(categories.length <= 2);
-    if (categories.contains("Client")) {
-      if (categories.contains("Server")) {
-        return libraryRoot.resolve(_sharedPlatform);
-      }
-      return libraryRoot.resolve(_clientPlatform);
-    }
-    assert(categories.contains("Server"));
-    return libraryRoot.resolve(_serverPlatform);
-  }
-}
-
-Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {
-  return _resolvePlatformConfig(
-      libraryRoot,
-      _extractStringOption(options, "--platform-config=", null),
-      _extractCsvOption(options, '--categories='));
-}
-
-/// Locations of the platform descriptor files relative to the library root.
-const String _clientPlatform = "lib/dart_client.platform";
-const String _serverPlatform = "lib/dart_server.platform";
-const String _sharedPlatform = "lib/dart_shared.platform";
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

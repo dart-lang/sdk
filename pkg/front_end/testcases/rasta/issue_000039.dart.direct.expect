@@ -8,6 +8,6 @@ class A extends core::Object {
     : invalid-initializer;
 }
 class B extends self::A {
-  default constructor •() → self::B
+  synthetic constructor •() → self::B
     : super self::A::•();
 }

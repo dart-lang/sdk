@@ -16,9 +16,9 @@ import 'package:test/test.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
-const Matcher isBool = const isInstanceOf<bool>();
+const Matcher isBool = const TypeMatcher<bool>();
 
-const Matcher isInt = const isInstanceOf<int>();
+const Matcher isInt = const TypeMatcher<int>();
 
 const Matcher isNotification = const MatchesJsonObject(
     'notification', const {'event': isString},
@@ -26,7 +26,7 @@ const Matcher isNotification = const MatchesJsonObject(
 
 const Matcher isObject = isMap;
 
-const Matcher isString = const isInstanceOf<String>();
+const Matcher isString = const TypeMatcher<String>();
 
 final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
@@ -41,7 +41,7 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
 /**
  * Assert that [actual] matches [matcher].
  */
-void outOfTestExpect(actual, matcher,
+void outOfTestExpect(actual, Matcher matcher,
     {String reason, skip, bool verbose: false}) {
   var matchState = {};
   try {
@@ -94,7 +94,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 60);
 
   /**
    * Connection to the analysis server.
@@ -110,7 +110,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Map from file path to the list of analysis errors which have most recently
    * been received for the file.
    */
-  HashMap<String, List<AnalysisError>> currentAnalysisErrors =
+  Map<String, List<AnalysisError>> currentAnalysisErrors =
       new HashMap<String, List<AnalysisError>>();
 
   /**
@@ -143,8 +143,9 @@ abstract class AbstractAnalysisServerIntegrationTest
    * analysis to finish.
    */
   Future<ServerStatusParams> get analysisFinished {
-    Completer completer = new Completer();
-    StreamSubscription subscription;
+    Completer<ServerStatusParams> completer =
+        new Completer<ServerStatusParams>();
+    StreamSubscription<ServerStatusParams> subscription;
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     outOfTestExpect(_subscribedToServerStatus, isTrue);
@@ -253,25 +254,14 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
-   * Whether to run integration tests with the --preview-dart-2 flag.
-   */
-  // TODO(devoncarew): Remove this when --preview-dart-2 goes away.
-  bool get usePreviewDart2 => false;
-
-  /**
    * Start [server].
    */
   Future startServer({
-    bool checked: true,
     int diagnosticPort,
     int servicesPort,
-    bool previewDart2: false,
   }) {
     return server.start(
-        checked: checked,
-        diagnosticPort: diagnosticPort,
-        servicesPort: servicesPort,
-        previewDart2: previewDart2 || usePreviewDart2);
+        diagnosticPort: diagnosticPort, servicesPort: servicesPort);
   }
 
   /**
@@ -414,7 +404,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
     }
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
-        if (!item.containsKey(key)) {
+        if (!(item as Map).containsKey(key)) {
           mismatches.add((Description mismatchDescription) =>
               mismatchDescription
                   .add('is missing field ')
@@ -572,18 +562,28 @@ class Server {
    */
   void listenToOutput(NotificationProcessor notificationProcessor) {
     _process.stdout
-        .transform((new Utf8Codec()).decoder)
+        .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
-      if (trimmedLine.startsWith('Observatory listening on ')) {
+
+      // Guard against lines like:
+      //   {"event":"server.connected","params":{...}}Observatory listening on ...
+      final String observatoryMessage = 'Observatory listening on ';
+      if (trimmedLine.contains(observatoryMessage)) {
+        trimmedLine = trimmedLine
+            .substring(0, trimmedLine.indexOf(observatoryMessage))
+            .trim();
+      }
+      if (trimmedLine.isEmpty) {
         return;
       }
+
       _recordStdio('<== $trimmedLine');
       var message;
       try {
-        message = JSON.decoder.convert(trimmedLine);
+        message = json.decoder.convert(trimmedLine);
       } catch (exception) {
         _badDataFromServer('JSON decode failure: $exception');
         return;
@@ -651,9 +651,9 @@ class Server {
     Completer<Map<String, dynamic>> completer =
         new Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
-    String line = JSON.encode(command);
+    String line = json.encode(command);
     _recordStdio('==> $line');
-    _process.stdin.add(UTF8.encoder.convert("$line\n"));
+    _process.stdin.add(utf8.encoder.convert("$line\n"));
     return completer.future;
   }
 
@@ -663,13 +663,11 @@ class Server {
    * to be used.
    */
   Future start({
-    bool checked: true,
     int diagnosticPort,
     String instrumentationLogFile,
     bool profileServer: false,
     String sdkPath,
     int servicesPort,
-    bool previewDart2: false,
     bool useAnalysisHighlight2: false,
   }) async {
     if (_process != null) {
@@ -677,9 +675,28 @@ class Server {
     }
     _time.start();
     String dartBinary = Platform.executable;
-    String rootDir =
-        findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-    String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+
+    // The integration tests run 3x faster when run from snapshots (you need to
+    // run test.py with --use-sdk).
+    final bool useSnapshot = true;
+    String serverPath;
+
+    if (useSnapshot) {
+      // Look for snapshots/analysis_server.dart.snapshot.
+      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+          'snapshots', 'analysis_server.dart.snapshot'));
+
+      if (!FileSystemEntity.isFileSync(serverPath)) {
+        // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
+        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+      }
+    } else {
+      String rootDir =
+          findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    }
+
     List<String> arguments = [];
     //
     // Add VM arguments.
@@ -694,14 +711,8 @@ class Server {
     } else if (servicesPort != null) {
       arguments.add('--enable-vm-service=$servicesPort');
     }
-    if (Platform.packageRoot != null) {
-      arguments.add('--package-root=${Platform.packageRoot}');
-    }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
-    }
-    if (checked) {
-      arguments.add('--checked');
     }
     //
     // Add the server executable.
@@ -724,12 +735,6 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (previewDart2) {
-      arguments.add('--preview-dart-2');
-    }
-    // TODO(devoncarew): We could experiment with instead launching the analysis
-    // server in a separate isolate. This would make it easier to debug the
-    // integration tests, and would likely speed up the tests as well.
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
       if (code != 0) {
@@ -1005,5 +1010,6 @@ abstract class _RecursiveMatcher extends Matcher {
   MismatchDescriber simpleDescription(String description) =>
       (Description mismatchDescription) {
         mismatchDescription.add(description);
+        return mismatchDescription;
       };
 }

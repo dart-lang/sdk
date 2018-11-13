@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show templateInternalProblemStackNotEmpty;
-import 'package:front_end/src/fasta/problems.dart' show internalProblem;
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    show DartType, Expression, TypeParameterType, VariableDeclaration;
+
+import '../fasta_codes.dart' show templateInternalProblemStackNotEmpty;
+
+import '../problems.dart' show internalProblem;
+
+import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Keeps track of the state necessary to perform type promotion.
 ///
@@ -16,7 +18,7 @@ import 'package:kernel/ast.dart';
 /// methods maintain a linked list of [TypePromotionFact] objects tracking what
 /// is known about the state of each variable at the current point in the code,
 /// as well as a linked list of [TypePromotionScope] objects tracking the
-/// program's nesting structure.  Whenever a variable is read, the current
+/// component's nesting structure.  Whenever a variable is read, the current
 /// [TypePromotionFact] and [TypePromotionScope] are recorded for later use.
 ///
 /// During type inference, the [TypeInferrer] calls back into this class to ask
@@ -222,7 +224,7 @@ abstract class TypePromoterImpl extends TypePromoter {
     // appropriate facts for the case where the expression gets short-cut.
     bool isAnd = identical(operator, '&&');
     _currentScope =
-        new _LogicalScope(_currentScope, isAnd ? falseFacts : trueFacts);
+        new _LogicalScope(_currentScope, isAnd, isAnd ? falseFacts : trueFacts);
     // While processing the RHS, assume the condition was false or true,
     // depending on the type of logical expression.
     _currentFacts = isAnd ? trueFacts : falseFacts;
@@ -254,8 +256,15 @@ abstract class TypePromoterImpl extends TypePromoter {
     debugEvent('exitLogicalExpression');
     _LogicalScope scope = _currentScope;
     _currentScope = _currentScope._enclosing;
-    _recordPromotionExpression(logicalExpression, _factsWhenTrue(rhs),
-        _mergeFacts(scope.shortcutFacts, _currentFacts));
+    if (scope.isAnd) {
+      _recordPromotionExpression(logicalExpression, _factsWhenTrue(rhs),
+          _mergeFacts(scope.shortcutFacts, _currentFacts));
+    } else {
+      _recordPromotionExpression(
+          logicalExpression,
+          _mergeFacts(scope.shortcutFacts, _currentFacts),
+          _factsWhenFalse(rhs));
+    }
   }
 
   @override
@@ -466,7 +475,7 @@ abstract class TypePromoterImpl extends TypePromoter {
 }
 
 /// A single fact which is known to the type promotion engine about the state of
-/// a variable (or about the flow control of the program).
+/// a variable (or about the flow control of the component).
 ///
 /// The type argument V represents is the class which represents local variable
 /// declarations.
@@ -474,18 +483,18 @@ abstract class TypePromoterImpl extends TypePromoter {
 /// Facts are linked together into linked lists via the [previous] pointer into
 /// a data structure called a "fact chain" (or sometimes a "fact state"), which
 /// represents all facts that are known to hold at a certain point in the
-/// program.
+/// component.
 ///
-/// The fact is said to "apply" to a given point in the execution of the program
-/// if the fact is part of the current fact state at the point the parser
-/// reaches that point in the program.
+/// The fact is said to "apply" to a given point in the execution of the
+/// component if the fact is part of the current fact state at the point the
+/// parser reaches that point in the component.
 ///
-/// Note: just because a fact "applies" to a given point in the execution of the
-/// program doesn't mean a type will be promoted--it simply means that the fact
-/// was deduced at a previous point in the straight line execution of the code.
-/// It's possible that the fact will be overshadowed by a later fact, or its
-/// effect will be cancelled by a later assignment.  The final detemination of
-/// whether promotion occurs is left to [_computePromotedType].
+/// Note: just because a fact "applies" to a given point in the execution of
+/// the component doesn't mean a type will be promoted--it simply means that
+/// the fact was deduced at a previous point in the straight line execution of
+/// the code.  It's possible that the fact will be overshadowed by a later
+/// fact, or its effect will be cancelled by a later assignment.  The final
+/// detemination of whether promotion occurs is left to [_computePromotedType].
 abstract class TypePromotionFact {
   /// The variable this fact records information about, or `null` if this fact
   /// records information about general flow control.
@@ -680,10 +689,13 @@ class _IsCheck extends TypePromotionFact {
 
 /// [TypePromotionScope] representing the RHS of a logical expression.
 class _LogicalScope extends TypePromotionScope {
+  /// Indicates whether the logical operation is an `&&` or an `||`.
+  final bool isAnd;
+
   /// The fact state in effect if the logical expression gets short-cut.
   final TypePromotionFact shortcutFacts;
 
-  _LogicalScope(TypePromotionScope enclosing, this.shortcutFacts)
+  _LogicalScope(TypePromotionScope enclosing, this.isAnd, this.shortcutFacts)
       : super(enclosing);
 }
 

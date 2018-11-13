@@ -7,6 +7,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
+#include "bin/error_exit.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
@@ -209,23 +210,6 @@ void Loader::SendRequest(intptr_t tag,
   }
 }
 
-// Forward a request from the tag handler to the kernel isolate.
-// [ tag, send port, url ]
-void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
-  // This port delivers loading messages to the Kernel isolate.
-  Dart_Port kernel_port = Dart_KernelPort();
-  ASSERT(kernel_port != ILLEGAL_PORT);
-
-  Dart_Handle request = Dart_NewList(3);
-  Dart_ListSetAt(request, 0, Dart_NewInteger(tag));
-  Dart_ListSetAt(request, 1, Dart_NewSendPort(port_));
-  Dart_ListSetAt(request, 2, url);
-  if (Dart_Post(kernel_port, request)) {
-    MonitorLocker ml(monitor_);
-    pending_operations_++;
-  }
-}
-
 void Loader::QueueMessage(Dart_CObject* message) {
   MonitorLocker ml(monitor_);
   if (results_length_ == results_capacity_) {
@@ -313,7 +297,7 @@ void Loader::ResolveDependenciesAsFilePaths() {
     }
 
     // Convert buffer buffer to NUL-terminated string.
-    (*dependencies)[i] = StringUtils::StrNDup(
+    (*dependencies)[i] = Utils::StrNDup(
         reinterpret_cast<const char*>(file_path), file_path_length);
     free(file_path);
     free(resolved_uri);
@@ -353,17 +337,11 @@ class ScopedDecompress : public ValueObject {
   uint8_t* decompressed_;
 };
 
-static void ReleaseFetchedBytes(uint8_t* buffer) {
-  free(buffer);
-}
-
 bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
   Dart_Handle uri =
       Dart_NewStringFromCString(reinterpret_cast<char*>(result->uri));
-  Dart_Handle resolved_uri =
-      Dart_NewStringFromCString(reinterpret_cast<char*>(result->resolved_uri));
   Dart_Handle library_uri = Dart_Null();
   if (result->library_uri != NULL) {
     library_uri =
@@ -443,68 +421,9 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
       return false;
     }
   }
-  intptr_t tag = result->tag;
 
-  // No touching.
-  result = NULL;
-
-  // We must drop the lock here because the tag handler may be recursively
-  // invoked and it will attempt to acquire the lock to queue more work.
-  loader->monitor_->Exit();
-
-  Dart_Handle dart_result = Dart_Null();
-  bool reload_extensions = false;
-
-  switch (tag) {
-    case Dart_kImportTag:
-      dart_result = Dart_LoadLibrary(uri, resolved_uri, source, 0, 0);
-      break;
-    case Dart_kSourceTag: {
-      ASSERT(library_uri != Dart_Null());
-      Dart_Handle library = Dart_LookupLibrary(library_uri);
-      ASSERT(!Dart_IsError(library));
-      dart_result = Dart_LoadSource(library, uri, resolved_uri, source, 0, 0);
-    } break;
-    case Dart_kScriptTag:
-      if (payload_type == DartUtils::kSnapshotMagicNumber) {
-        DartUtils::SkipSnapshotMagicNumber(&payload, &payload_length);
-        dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
-        reload_extensions = true;
-      } else if (payload_type == DartUtils::kKernelMagicNumber) {
-        // TODO(27590): This code path is only hit when trying to spawn
-        // isolates. We currently do not have support for neither
-        // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based
-        // frontend.
-        Dart_Handle kernel_binary =
-            reinterpret_cast<Dart_Handle>(Dart_ReadKernelBinary(
-                payload, payload_length, ReleaseFetchedBytes));
-        dart_result = Dart_LoadScript(uri, resolved_uri, kernel_binary, 0, 0);
-      } else {
-        dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
-      }
-      break;
-    default:
-      UNREACHABLE();
-  }
-
-  // Re-acquire the lock before exiting the function (it was held before entry),
-  loader->monitor_->Enter();
-  if (Dart_IsError(dart_result)) {
-    // Remember the error if we encountered one.
-    loader->error_ = dart_result;
-    return false;
-  }
-
-  if (reload_extensions) {
-    dart_result = ReloadNativeExtensions();
-    if (Dart_IsError(dart_result)) {
-      // Remember the error if we encountered one.
-      loader->error_ = dart_result;
-      return false;
-    }
-  }
-
-  return true;
+  UNREACHABLE();
+  return false;
 }
 
 bool Loader::ProcessPayloadResultLocked(Loader* loader,
@@ -664,6 +583,12 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   return Dart_Null();
 }
 #else
+static void MallocFinalizer(void* isolate_callback_data,
+                            Dart_WeakPersistentHandle handle,
+                            void* peer) {
+  free(peer);
+}
+
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
@@ -680,13 +605,50 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
   if (tag == Dart_kKernelTag) {
-    ASSERT(dfe.UseDartFrontend() || dfe.kernel_file_specified());
-    Dart_Isolate current = Dart_CurrentIsolate();
-    ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
-    return dfe.ReadKernelBinary(current, url_string);
+    uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
+    if (!DFE::TryReadKernelFile(url_string, &kernel_buffer,
+                                &kernel_buffer_size)) {
+      return DartUtils::NewError("'%s' is not a kernel file", url_string);
+    }
+    result = Dart_NewExternalTypedData(Dart_TypedData_kUint8, kernel_buffer,
+                                       kernel_buffer_size);
+    Dart_NewWeakPersistentHandle(result, kernel_buffer, kernel_buffer_size,
+                                 MallocFinalizer);
+    return result;
   }
-  ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) ||
-         (!dfe.UseDartFrontend() && !dfe.kernel_file_specified()));
+  if (tag == Dart_kImportExtensionTag) {
+    if (strncmp(url_string, "dart-ext:", 9)) {
+      return DartUtils::NewError(
+          "Native extensions must use the dart-ext: scheme.");
+    }
+    const char* path = DartUtils::RemoveScheme(url_string);
+
+    const char* lib_uri = NULL;
+    result = Dart_StringToCString(Dart_LibraryResolvedUrl(library), &lib_uri);
+    RETURN_ERROR(result);
+
+    UriDecoder decoder(lib_uri);
+    lib_uri = decoder.decoded();
+
+    char* lib_path = NULL;
+    if (strncmp(lib_uri, "file://", 7) == 0) {
+      lib_path = DartUtils::DirName(lib_uri + 7);
+    } else {
+      lib_path = strdup(lib_uri);
+    }
+
+    if (!File::IsAbsolutePath(path) && PathContainsSeparator(path)) {
+      return DartUtils::NewError(
+          "Native extension path must be absolute, or simply the file name: "
+          "%s: ",
+          path);
+    }
+
+    Dart_Handle result = Extensions::LoadExtension(lib_path, path, library);
+    free(lib_path);
+    return result;
+  }
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
     // Grab the library's url.
@@ -764,8 +726,26 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
   } else {
-    if (Dart_KernelIsolateIsRunning()) {
-      loader->SendKernelRequest(tag, url);
+    if (dfe.CanUseDartFrontend() && dfe.UseDartFrontend() &&
+        (tag == Dart_kImportTag)) {
+      // E.g., IsolateMirror.loadUri.
+      char* error = NULL;
+      int exit_code = 0;
+      uint8_t* kernel_buffer = NULL;
+      intptr_t kernel_buffer_size = -1;
+      dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
+                               &error, &exit_code, NULL);
+      if (exit_code == 0) {
+        return Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+      } else if (exit_code == kCompilationErrorExitCode) {
+        Dart_Handle result = Dart_NewCompilationError(error);
+        free(error);
+        return result;
+      } else {
+        Dart_Handle result = Dart_NewApiError(error);
+        free(error);
+        return result;
+      }
     } else {
       loader->SendRequest(
           tag, url,
@@ -822,35 +802,6 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   if (tag == Dart_kCanonicalizeUrl) {
     // These will be handled internally.
     return url;
-  } else if (tag == Dart_kImportTag) {
-    Builtin::BuiltinLibraryId id = Builtin::FindId(url_string);
-    if (id == Builtin::kInvalidLibrary) {
-      return DartUtils::NewError(
-          "The built-in library '%s' is not available"
-          " on the stand-alone VM.\n",
-          url_string);
-    }
-    return Builtin::LoadLibrary(url, id);
-  } else {
-    ASSERT(tag == Dart_kSourceTag);
-    Builtin::BuiltinLibraryId id = Builtin::FindId(library_url_string);
-    if (id == Builtin::kInvalidLibrary) {
-      return DartUtils::NewError(
-          "The built-in library '%s' is not available"
-          " on the stand-alone VM. Trying to load"
-          " '%s'.\n",
-          library_url_string, url_string);
-    }
-    // Prepend the library URI to form a unique script URI for the part.
-    intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
-    char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
-    snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
-    Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
-    Dart_Handle result =
-        Dart_LoadSource(library, part_uri_obj, Dart_Null(),
-                        Builtin::PartSource(id, part_uri), 0, 0);
-    free(part_uri);
-    return result;
   }
   // All cases should have been handled above.
   UNREACHABLE();

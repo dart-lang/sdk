@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bad() → dynamic {
+  core::String a = "";
+  invalid-expression "pkg/front_end/testcases/regress/issue_29941.dart:7:5: Error: Expected an identifier, but got '\"\"'.
+  a.\"\";
+    ^^";
+}
+static method main() → dynamic {}

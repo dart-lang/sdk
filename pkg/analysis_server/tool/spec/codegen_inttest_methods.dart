@@ -8,7 +8,6 @@
 import 'dart:convert';
 
 import 'package:analyzer/src/codegen/tools.dart';
-import 'package:front_end/src/codegen/tools.dart';
 import 'package:path/path.dart' as path;
 
 import 'api.dart';
@@ -183,7 +182,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');
     }));
     notificationSwitchContents.add(collectCode(() {
-      writeln('case ${JSON.encode(notification.longEvent)}:');
+      writeln('case ${json.encode(notification.longEvent)}:');
       indent(() {
         String paramsValidator = camelJoin(
             ['is', notification.domainName, notification.event, 'params']);
@@ -256,7 +255,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         args.addAll(optionalArgs);
         writeln('var params = new $requestClass(${args.join(', ')}).toJson();');
       }
-      String methodJson = JSON.encode(request.longMethod);
+      String methodJson = json.encode(request.longMethod);
       writeln('var result = await server.send($methodJson, $paramsVar);');
       if (request.result != null) {
         String kind = 'null';

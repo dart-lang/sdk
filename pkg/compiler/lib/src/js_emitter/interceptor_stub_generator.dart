@@ -19,9 +19,9 @@ import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 
@@ -34,7 +34,7 @@ class InterceptorStubGenerator {
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final CodegenWorldBuilder _codegenWorldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   InterceptorStubGenerator(
       this._options,
@@ -301,21 +301,24 @@ class InterceptorStubGenerator {
       bool containsJsIndexable = _closedWorld
               .isImplemented(_commonElements.jsIndexingBehaviorInterface) &&
           classes.any((cls) {
-            return _closedWorld.isSubtypeOf(
-                cls, _commonElements.jsIndexingBehaviorInterface);
+            return _closedWorld.classHierarchy
+                .isSubtypeOf(cls, _commonElements.jsIndexingBehaviorInterface);
           });
       // The index set operator requires a check on its set value in
       // checked mode, so we don't optimize the interceptor if the
       // _compiler has type assertions enabled.
       if (selector.isIndexSet &&
-          (_options.enableTypeAssertions || !containsArray)) {
+          (_options.parameterCheckPolicy.isEmitted || !containsArray)) {
         return null;
       }
       if (!containsArray && !containsString) {
         return null;
       }
       jsAst.Expression arrayCheck = js('receiver.constructor == Array');
-      jsAst.Expression indexableCheck =
+
+      // Lazy generation of the indexable check. If indexable behavior isn't
+      // used, the isJsIndexable function isn't part of the closed world.
+      jsAst.Expression genericIndexableCheck() =>
           _generateIsJsIndexableCall(js('receiver'), js('receiver'));
 
       jsAst.Expression orExp(left, right) {
@@ -333,7 +336,7 @@ class InterceptorStubGenerator {
         }
 
         if (containsJsIndexable) {
-          typeCheck = orExp(typeCheck, indexableCheck);
+          typeCheck = orExp(typeCheck, genericIndexableCheck());
         }
 
         return js.statement('''
@@ -349,7 +352,7 @@ class InterceptorStubGenerator {
         }
 
         if (containsJsIndexable) {
-          typeCheck = orExp(typeCheck, indexableCheck);
+          typeCheck = orExp(typeCheck, genericIndexableCheck());
         }
 
         return js.statement(r'''
@@ -358,6 +361,19 @@ class InterceptorStubGenerator {
                 (a0 >>> 0) === a0 && a0 < receiver.length)
               return receiver[a0] = a1;
           ''', typeCheck);
+      }
+    } else if (selector.isCall) {
+      if (selector.name == 'abs' && selector.argumentCount == 0) {
+        return js.statement(r'''
+          if (typeof receiver === "number") return Math.abs(receiver);
+        ''');
+      }
+    } else if (selector.isGetter) {
+      if (selector.name == 'sign') {
+        return js.statement(r'''
+          if (typeof receiver === "number")
+             return receiver > 0 ? 1 : receiver < 0 ? -1 : receiver;
+        ''');
       }
     }
     return null;
@@ -378,6 +394,9 @@ class InterceptorStubGenerator {
     } else {
       for (int i = 0; i < selector.argumentCount; i++) {
         parameterNames.add('a$i');
+      }
+      for (int i = 1; i <= selector.typeArgumentCount; i++) {
+        parameterNames.add('\$T$i');
       }
     }
 
@@ -432,7 +451,7 @@ class InterceptorStubGenerator {
         //     {"": A.A$, "foo": A.A$foo, "bar": A.A$bar}
         //
         // We expect most of the time the map will be a singleton.
-        var properties = [];
+        var properties = <jsAst.Property>[];
         for (ConstructorEntity member in analysis.constructors(classElement)) {
           properties.add(new jsAst.Property(
               js.string(member.name), _emitter.staticFunctionAccess(member)));

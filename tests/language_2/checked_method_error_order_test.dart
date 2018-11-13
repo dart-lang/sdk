@@ -18,10 +18,13 @@ main() {
   if (checkedMode) {
     dynamic x = 'e';
     dynamic y = 3;
-    Expect.throws(
-        () => new Bar().foo(i: x, a: y),
-        (e) =>
-            e is TypeError &&
-            e.message.toString().contains("is not a subtype of type 'int'"));
+    Expect.throws(() => new Bar().foo(i: x, a: y), (e) {
+      if (e is TypeError) {
+        var m = e.message.toString();
+        return m.contains("is not a subtype of type 'int'") ||
+            m.contains("is not a subtype of expected type 'int'");
+      }
+      return false;
+    });
   }
 }

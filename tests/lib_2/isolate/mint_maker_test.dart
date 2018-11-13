@@ -44,8 +44,8 @@ class MintWrapper {
 
   void createPurse(int balance, handlePurse(PurseWrapper purse)) {
     ReceivePort reply = new ReceivePort();
-    reply.first.then((SendPort purse) {
-      handlePurse(new PurseWrapper(purse));
+    reply.first.then((purse) {
+      handlePurse(new PurseWrapper(purse as SendPort));
     });
     _mint.send([balance, reply.sendPort]);
   }
@@ -103,10 +103,10 @@ class PurseWrapper {
 
   PurseWrapper(this._purse) {}
 
-  void _sendReceive(message, replyHandler(reply)) {
+  void _sendReceive<T>(String message, replyHandler(T reply)) {
     ReceivePort reply = new ReceivePort();
     _purse.send([message, reply.sendPort]);
-    reply.first.then(replyHandler);
+    reply.first.then((a) => replyHandler(a as T));
   }
 
   void queryBalance(handleBalance(int balance)) {
@@ -127,9 +127,9 @@ class PurseWrapper {
 mintMakerWrapper(SendPort replyPort) {
   ReceivePort receiver = new ReceivePort();
   replyPort.send(receiver.sendPort);
-  receiver.listen((SendPort replyTo) {
+  receiver.listen((replyTo) {
     Mint mint = new Mint();
-    replyTo.send(mint.port);
+    (replyTo as SendPort).send(mint.port);
   });
 }
 
@@ -147,8 +147,8 @@ class MintMakerWrapper {
 
   void makeMint(handleMint(MintWrapper mint)) {
     ReceivePort reply = new ReceivePort();
-    reply.first.then((SendPort mint) {
-      handleMint(new MintWrapper(mint));
+    reply.first.then((mint) {
+      handleMint(new MintWrapper(mint as SendPort));
     });
     _port.send(reply.sendPort);
   }

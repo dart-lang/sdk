@@ -83,7 +83,7 @@ class EventHandlerImplementation {
   static void* GetHashmapKeyFromFd(intptr_t fd);
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
 
-  HashMap socket_map_;
+  SimpleHashMap socket_map_;
   TimeoutQueue timeout_queue_;
   bool shutdown_;
   int interrupt_fds_[2];

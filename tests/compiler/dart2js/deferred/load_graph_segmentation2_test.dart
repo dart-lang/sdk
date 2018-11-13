@@ -9,22 +9,22 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
-    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
-    dynamic lib =
-        compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
-    var f1 = lib.find("f1");
-    var f2 = lib.find("f2");
-    Expect.notEquals(mainOutputUnit, outputUnitForEntity(f1));
-    Expect.equals(mainOutputUnit, outputUnitForEntity(f2));
+    var closedWorld = compiler.backendClosedWorldForTesting;
+    var env = closedWorld.elementEnvironment;
+    var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
+    var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
+    dynamic lib = env.lookupLibrary(Uri.parse("memory:lib.dart"));
+    var f1 = env.lookupLibraryMember(lib, "f1");
+    var f2 = env.lookupLibraryMember(lib, "f2");
+    Expect.notEquals(mainOutputUnit, outputUnitForMember(f1));
+    Expect.equals(mainOutputUnit, outputUnitForMember(f2));
   });
 }
 
@@ -38,7 +38,7 @@ void main() {
 // lib1 and lib2 also import lib4 deferred, but lib1 uses lib4.bar1 and lib2
 // uses lib4.bar2.  So two output units should be created for lib4, one for each
 // import.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "dart:async";
 

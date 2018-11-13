@@ -1,0 +1,30 @@
+pkg/front_end/testcases/bad_setter_abstract.dart:22:11: Context: Write to threw@344
+    threw = true;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:24:11: Context: Write to threw@344
+    threw = false;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:32:11: Context: Write to threw@344
+    threw = true;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:34:11: Context: Write to threw@344
+    threw = false;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:42:11: Context: Write to threw@344
+    threw = true;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:44:11: Context: Write to threw@344
+    threw = false;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:55:11: Context: Write to threw@344
+    threw = true;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:57:11: Context: Write to threw@344
+    threw = false;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:65:11: Context: Write to threw@344
+    threw = true;
+          ^
+pkg/front_end/testcases/bad_setter_abstract.dart:67:11: Context: Write to threw@344
+    threw = false;
+          ^

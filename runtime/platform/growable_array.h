@@ -70,6 +70,16 @@ class BaseGrowableArray : public B {
     }
   }
 
+  void EnsureLength(intptr_t new_length, const T& default_value) {
+    const intptr_t old_length = length_;
+    if (old_length < new_length) {
+      Resize(new_length);
+      for (intptr_t i = old_length; i < new_length; ++i) {
+        (*this)[i] = default_value;
+      }
+    }
+  }
+
   const T& At(intptr_t index) const { return operator[](index); }
 
   T& Last() const {
@@ -129,6 +139,20 @@ class BaseGrowableArray : public B {
 
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
+
+  void StealBuffer(T** buffer, intptr_t* length) {
+    *buffer = data_;
+    *length = length_;
+    data_ = NULL;
+    length_ = 0;
+    capacity_ = 0;
+  }
+
+  T* begin() { return &data_[0]; }
+  const T* begin() const { return &data_[0]; }
+
+  T* end() { return &data_[length_]; }
+  const T* end() const { return &data_[length_]; }
 
  private:
   intptr_t length_;

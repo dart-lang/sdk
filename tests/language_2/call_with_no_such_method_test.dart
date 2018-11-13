@@ -5,7 +5,9 @@
 import "package:expect/expect.dart";
 
 class F {
-  call() => null;
+  final int value;
+  F(this.value);
+  call() => value;
   noSuchMethod(Invocation i) {
     if (i.memberName == #call && i.isMethod) {
       return i.positionalArguments[0];
@@ -15,6 +17,14 @@ class F {
 }
 
 main() {
-  var result = Function.apply(new F(), ['a', 'b', 'c', 'd']);
+  F f = new F(42);
+  // Tears off f.call, fails with nSM (wrong number of arguments).
+  Expect.throwsNoSuchMethodError(() => Function.apply(f, ['a', 'b', 'c', 'd']));
+
+  dynamic d = f;
+  var result = d('a', 'b', 'c', 'd'); // calls F.noSuchMethod
   Expect.equals('a', result);
+
+  // Tears off f.call, call succeeds
+  Expect.equals(42, Function.apply(f, []));
 }

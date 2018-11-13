@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,6 +27,8 @@ abstract class DartNavigationMixin implements NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     ResolveResult result = await getResolveResult(path);
     int offset = parameters.offset;
@@ -66,12 +68,14 @@ abstract class NavigationMixin implements ServerPlugin {
   @override
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
       AnalysisGetNavigationParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     NavigationRequest request = await getNavigationRequest(parameters);
     NavigationGenerator generator =
         new NavigationGenerator(getNavigationContributors(path));
-    GeneratorResult result =
-        await generator.generateNavigationResponse(request);
+    GeneratorResult<AnalysisGetNavigationResult> result =
+        generator.generateNavigationResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
@@ -81,14 +85,16 @@ abstract class NavigationMixin implements ServerPlugin {
    * server.
    */
   @override
-  Future<Null> sendNavigationNotification(String path) async {
+  Future<void> sendNavigationNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       NavigationRequest request = await getNavigationRequest(
           new AnalysisGetNavigationParams(path, -1, -1));
       NavigationGenerator generator =
           new NavigationGenerator(getNavigationContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateNavigationNotification(request);
+          generator.generateNavigationNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

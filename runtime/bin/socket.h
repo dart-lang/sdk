@@ -35,12 +35,23 @@ class Socket : public ReferenceCounted<Socket> {
     kFinalizerNormal,
     kFinalizerListening,
     kFinalizerStdio,
+    kFinalizerSignal,
+  };
+
+  // Keep in sync with constants in _NativeSocket in socket_patch.dart.
+  enum SocketType {
+    kTcpSocket = 18,
+    kUdpSocket = 19,
+    kInternalSocket = 20,
+    kInternalSignalSocket = 21,
   };
 
   explicit Socket(intptr_t fd);
 
   intptr_t fd() const { return fd_; }
   void SetClosedFd();
+
+  Dart_Port isolate_port() const { return isolate_port_; }
 
   Dart_Port port() const { return port_; }
   void set_port(Dart_Port port) { port_ = port; }
@@ -59,7 +70,10 @@ class Socket : public ReferenceCounted<Socket> {
                                     const RawAddr& source_addr);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
-  static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
+  static intptr_t CreateBindDatagram(const RawAddr& addr,
+                                     bool reuseAddress,
+                                     bool reusePort,
+                                     int ttl = 1);
 
   static CObject* LookupRequest(const CObjectArray& request);
   static CObject* ListInterfacesRequest(const CObjectArray& request);
@@ -84,6 +98,10 @@ class Socket : public ReferenceCounted<Socket> {
     short_socket_write_ = short_socket_write;
   }
 
+  static bool IsSignalSocketFlag(intptr_t flag) {
+    return ((flag & (0x1 << kInternalSignalSocket)) != 0);
+  }
+
  private:
   ~Socket() {
     ASSERT(fd_ == kClosedFd);
@@ -97,6 +115,7 @@ class Socket : public ReferenceCounted<Socket> {
   static bool short_socket_write_;
 
   intptr_t fd_;
+  Dart_Port isolate_port_;
   Dart_Port port_;
   uint8_t* udp_receive_buffer_;
 
@@ -232,8 +251,8 @@ class ListeningSocketRegistry {
   bool CloseOneSafe(OSSocket* os_socket, bool update_hash_maps);
   void CloseAllSafe();
 
-  HashMap sockets_by_port_;
-  HashMap sockets_by_fd_;
+  SimpleHashMap sockets_by_port_;
+  SimpleHashMap sockets_by_fd_;
 
   Mutex* mutex_;
 

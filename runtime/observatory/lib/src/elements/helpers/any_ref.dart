@@ -23,7 +23,6 @@ import 'package:observatory/src/elements/script_ref.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/src/elements/singletargetcache_ref.dart';
 import 'package:observatory/src/elements/subtypetestcache_ref.dart';
-import 'package:observatory/src/elements/token_stream_ref.dart';
 import 'package:observatory/src/elements/type_arguments_ref.dart';
 import 'package:observatory/src/elements/unknown_ref.dart';
 import 'package:observatory/src/elements/unlinkedcall_ref.dart';
@@ -76,8 +75,6 @@ Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
       return new SubtypeTestCacheRefElement(isolate, ref, queue: queue);
     } else if (ref is M.TypeArgumentsRef) {
       return new TypeArgumentsRefElement(isolate, ref, queue: queue);
-    } else if (ref is M.TokenStreamRef) {
-      return new TokenStreamRefElement(isolate, ref, queue: queue);
     } else if (ref is M.UnknownObjectRef) {
       return new UnknownObjectRefElement(isolate, ref, queue: queue);
     } else if (ref is M.UnlinkedCallRef) {

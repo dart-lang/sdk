@@ -12,6 +12,7 @@
 #if !HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif                    // !HOST_OS_IOS
+#include <errno.h>        // NOLINT
 #include <mach-o/dyld.h>
 #include <signal.h>       // NOLINT
 #include <string.h>       // NOLINT
@@ -20,7 +21,7 @@
 #include <sys/utsname.h>  // NOLINT
 #include <unistd.h>       // NOLINT
 
-#include "bin/fdutils.h"
+#include "bin/console.h"
 #include "bin/file.h"
 
 namespace dart {
@@ -32,6 +33,12 @@ int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
+  Log::PrintErr(
+      "\n===== CRASH =====\n"
+      "version=%s\n"
+      "si_signo=%s(%d), si_code=%d, si_addr=%p\n",
+      Dart_VersionString(), strsignal(siginfo->si_signo), siginfo->si_signo,
+      siginfo->si_code, siginfo->si_addr);
   Dart_DumpNativeStackTrace(context);
   abort();
 }
@@ -47,6 +54,18 @@ bool Platform::Initialize() {
     perror("Setting signal handler failed");
     return false;
   }
+
+  // tcsetattr raises SIGTTOU if we try to set console attributes when
+  // backgrounded, which suspends the process. Ignoring the signal prevents
+  // us from being suspended and lets us fail gracefully instead.
+  sigset_t signal_mask;
+  sigemptyset(&signal_mask);
+  sigaddset(&signal_mask, SIGTTOU);
+  if (sigprocmask(SIG_BLOCK, &signal_mask, NULL) < 0) {
+    perror("Setting signal handler failed");
+    return false;
+  }
+
   act.sa_flags = SA_SIGINFO;
   act.sa_sigaction = &segv_handler;
   if (sigemptyset(&act.sa_mask) != 0) {
@@ -66,6 +85,10 @@ bool Platform::Initialize() {
     return false;
   }
   if (sigaction(SIGTRAP, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
+  if (sigaction(SIGILL, &act, NULL) != 0) {
     perror("sigaction() failed.");
     return false;
   }
@@ -229,6 +252,7 @@ const char* Platform::ResolveExecutablePath() {
 }
 
 void Platform::Exit(int exit_code) {
+  Console::RestoreConfig();
   exit(exit_code);
 }
 

@@ -97,6 +97,27 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestField('values', 'List<E>', isDeprecated: true);
   }
 
+  test_implicitCreation() async {
+    configurePreviewDart2();
+    addSource('/a.dart', '''
+class A {
+  A.foo();
+  A.bar();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  A.^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('foo', elementName: 'foo');
+    assertSuggestConstructor('bar', elementName: 'bar');
+  }
+
   test_keyword() async {
     addTestSource('class C { static C get instance => null; } main() {C.in^}');
     await computeSuggestions();

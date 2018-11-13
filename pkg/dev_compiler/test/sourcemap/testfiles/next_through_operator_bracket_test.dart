@@ -14,7 +14,7 @@ class Class2 {
 }
 
 main() {
-  /*bl*/ /*sl:1*/ Class2 c = new Class2();
-  c /*s:2*/ [42];
-  c. /*s:3*/ code();
+  /*bl*/ /*sl:1*/ Class2 c = Class2();
+  c /*sl:2*/ [42];
+  c /*sl:3*/ .code();
 }

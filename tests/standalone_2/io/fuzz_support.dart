@@ -13,7 +13,7 @@ const typeMapping = const {
   'int': 0,
   'int64': -9000000000000000000,
   'String': 'a',
-  'FileMode': FileMode.READ,
+  'FileMode': FileMode.read,
   'num': 0.50,
   'List<int>': const [1, 2, 3],
   'Map<String, int>': const {"a": 23}

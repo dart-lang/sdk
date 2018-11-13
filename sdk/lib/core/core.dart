@@ -101,7 +101,7 @@
  * and used by Map for its keys and values.
  *
  * For other kinds of collections, check out the
- * [dart:collection](#dart-collection) library.
+ * `dart:collection` library.
  *
  * ## Date and time
  *
@@ -149,6 +149,8 @@
  * The
  * [Dart Language Specification](http://www.dartlang.org/docs/spec/)
  * provides technical details.
+ *
+ * {@category Core}
  */
 library dart.core;
 
@@ -166,6 +168,8 @@ import "dart:convert"
         utf8;
 import "dart:math" show Random; // Used by List.shuffle.
 import "dart:typed_data" show Uint8List, Uint16List, Endian;
+
+export "dart:async" show Future, Stream;
 
 part "annotations.dart";
 part "bigint.dart";

@@ -34,7 +34,7 @@ class LuciApi {
                 host: CBE_HOST,
                 path: "/get_master/${client}")),
             "cbe")
-        .then(JSON.decode);
+        .then(jsonDecode);
   }
 
   /// Calling the Milo Api to get latest builds for this bot,
@@ -53,15 +53,15 @@ class LuciApi {
       "includeCurrent": true
     };
     return withCache(
-            () => _makePostRequest(uri, JSON.encode(body), {
+            () => _makePostRequest(uri, jsonEncode(body), {
                   HttpHeaders.CONTENT_TYPE: "application/json",
                   HttpHeaders.ACCEPT: "application/json"
                 }),
             '${uri.path}_${botName}_$amount')
-        .then(JSON.decode)
+        .then(jsonDecode)
         .then((json) {
       return json["builds"].map((b) {
-        var build = JSON.decode(UTF8.decode(BASE64.decode(b["data"])));
+        var build = jsonDecode(utf8.decode(base64Decode(b["data"])));
         return getBuildDetailFromJson(client, botName, build);
       }).toList();
     });
@@ -77,14 +77,14 @@ class LuciApi {
         path: "prpc/milo.Buildbot/GetBuildbotBuildJSON");
     var body = {"master": client, "builder": botName, "buildNum": buildNumber};
     return withCache(
-            () => _makePostRequest(uri, JSON.encode(body), {
+            () => _makePostRequest(uri, jsonEncode(body), {
                   HttpHeaders.CONTENT_TYPE: "application/json",
                   HttpHeaders.ACCEPT: "application/json"
                 }),
             '${uri.path}_${botName}_$buildNumber')
-        .then(JSON.decode)
+        .then(jsonDecode)
         .then((json) {
-      var build = JSON.decode(UTF8.decode(BASE64.decode(json["data"])));
+      var build = jsonDecode(utf8.decode(base64Decode(json["data"])));
       return getBuildDetailFromJson(client, botName, build);
     });
   }
@@ -97,7 +97,7 @@ class LuciApi {
       response.drain();
       throw new HttpException(response.reasonPhrase, uri: uri);
     }
-    return response.transform(UTF8.decoder).join();
+    return response.transform(utf8.decoder).join();
   }
 
   /// [_makePostRequest] performs a post request to [uri], where the posted

@@ -27,6 +27,7 @@ void main() {
   testMapLiteral();
   testNullValue();
   testTypes();
+  testUnmodifiableMaps();
 
   testWeirdStringKeys(new Map());
   testWeirdStringKeys(new Map<String, String>());
@@ -703,8 +704,7 @@ class Equalizer {
   int id;
   Equalizer(this.id);
   int get hashCode => id;
-  bool operator ==(Object other) =>
-      other is Equalizer && id == (other as Equalizer).id;
+  bool operator ==(Object other) => other is Equalizer && id == other.id;
 }
 
 /**
@@ -721,7 +721,7 @@ class Vampire {
   // The double-fang operator falsely claims that a vampire is equal to
   // any of its sire's generation.
   bool operator ==(Object other) =>
-      other is Vampire && generation - 1 == (other as Vampire).generation;
+      other is Vampire && generation - 1 == other.generation;
 }
 
 void testCustomMap<K, V>(Map<K, V> typedMap) {
@@ -1025,4 +1025,22 @@ void testTypeAnnotations(Map<int, int> map) {
   testLength(2, map);
   Expect.equals(103, map.remove(0x20000000000000));
   testLength(1, map);
+}
+
+void testUnmodifiableMaps() {
+  void checkUnmodifiable(Map<int, int> map) {
+    Expect.throws(() => map[0] = 0);
+    Expect.throws(() => map.addAll({0: 0}));
+    Expect.throws(() => map.addEntries({0: 0}.entries));
+    Expect.throws(() => map.clear());
+    Expect.throws(() => map.putIfAbsent(0, () => 0));
+    Expect.throws(() => map.remove(0));
+    Expect.throws(() => map.removeWhere((k, v) => true));
+    Expect.throws(() => map.update(0, (v) => v, ifAbsent: () => 0));
+    Expect.throws(() => map.updateAll((k, v) => v));
+  }
+
+  checkUnmodifiable(const {1: 1});
+  checkUnmodifiable(Map.unmodifiable({1: 1}));
+  checkUnmodifiable(UnmodifiableMapView({1: 1}));
 }

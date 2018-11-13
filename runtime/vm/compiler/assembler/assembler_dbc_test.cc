@@ -6,19 +6,22 @@
 #if defined(TARGET_ARCH_DBC)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 static RawObject* ExecuteTest(const Code& code) {
-  Thread* thread = Thread::Current();
-  TransitionToGenerated transition(thread);
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 0;
-  return Simulator::Current()->Call(
-      code, Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)),
-      Array::Handle(Array::New(0)), thread);
+  const Array& args_desc =
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
+  const Array& args = Array::Handle(Array::New(0));
+  Thread* thread = Thread::Current();
+  TransitionToGenerated transition(thread);
+  return Simulator::Current()->Call(code, args_desc, args, thread);
 }
 
 #define EXECUTE_TEST_CODE_INTPTR(code)                                         \
@@ -65,13 +68,15 @@ static void GenerateDummyCode(Assembler* assembler, const Object& result) {
 
 static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   // Make a dummy function.
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateDummyCode(&_assembler_, result);
   const char* dummy_function_name = "dummy_instance_function";
   const Function& dummy_instance_function =
       Function::Handle(CreateFunction(dummy_function_name));
-  Code& code =
-      Code::Handle(Code::FinalizeCode(dummy_instance_function, &_assembler_));
+  Code& code = Code::Handle(
+      Code::FinalizeCode(dummy_instance_function, nullptr, &_assembler_,
+                         Code::PoolAttachment::kAttachPool));
   dummy_instance_function.AttachCode(code);
 
   // Make a dummy ICData.
@@ -81,7 +86,7 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
   const ICData& ic_data = ICData::Handle(ICData::New(
       dummy_instance_function, String::Handle(dummy_instance_function.name()),
-      dummy_arguments_descriptor, Thread::kNoDeoptId, 2, ICData::kInstance));
+      dummy_arguments_descriptor, DeoptId::kNone, 2, ICData::kInstance));
 
   // Wire up the Function in the ICData.
   GrowableArray<intptr_t> cids(2);
@@ -90,7 +95,7 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   ic_data.AddCheck(cids, dummy_instance_function);
 
   // For the non-Smi tests.
-  cids[0] = kBigintCid;
+  cids[0] = kMintCid;
   ic_data.AddCheck(cids, dummy_instance_function);
   ICData* call_ic_data = &ICData::ZoneHandle(ic_data.Original());
 
@@ -211,7 +216,7 @@ ASSEMBLER_TEST_RUN(AddTOSOverflow, test) {
 
 ASSEMBLER_TEST_GENERATE(AddTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ AddTOS();
@@ -252,7 +257,7 @@ ASSEMBLER_TEST_RUN(SubTOSOverflow, test) {
 
 ASSEMBLER_TEST_GENERATE(SubTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ SubTOS();
@@ -293,7 +298,7 @@ ASSEMBLER_TEST_RUN(MulTOSOverflow, test) {
 
 ASSEMBLER_TEST_GENERATE(MulTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ MulTOS();
@@ -321,7 +326,7 @@ ASSEMBLER_TEST_RUN(BitOrTOS, test) {
 
 ASSEMBLER_TEST_GENERATE(BitOrTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(0x08)));
   __ BitOrTOS();
@@ -349,7 +354,7 @@ ASSEMBLER_TEST_RUN(BitAndTOS, test) {
 
 ASSEMBLER_TEST_GENERATE(BitAndTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(0x08)));
   __ BitAndTOS();
@@ -390,7 +395,7 @@ ASSEMBLER_TEST_RUN(EqualTOSFalse, test) {
 
 ASSEMBLER_TEST_GENERATE(EqualTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ EqualTOS();
@@ -431,7 +436,7 @@ ASSEMBLER_TEST_RUN(LessThanTOSFalse, test) {
 
 ASSEMBLER_TEST_GENERATE(LessThanTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ LessThanTOS();
@@ -472,7 +477,7 @@ ASSEMBLER_TEST_RUN(GreaterThanTOSFalse, test) {
 
 ASSEMBLER_TEST_GENERATE(GreaterThanTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ GreaterThanTOS();

@@ -53,8 +53,12 @@ class DartUnitHoverComputer {
         }
         // description
         hover.elementDescription = element.toString();
+        if (node is InstanceCreationExpression && node.keyword == null) {
+          String prefix = node.isConst ? '(const) ' : '(new) ';
+          hover.elementDescription = prefix + hover.elementDescription;
+        }
         hover.elementKind = element.kind.displayName;
-        hover.isDeprecated = element.isDeprecated;
+        hover.isDeprecated = element.hasDeprecated;
         // not local element
         if (element.enclosingElement is! ExecutableElement) {
           // containing class
@@ -71,15 +75,14 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = _computeDocumentation(element);
+        hover.dartdoc = computeDocumentation(element);
       }
       // parameter
-      hover.parameter = _safeToString(expression.bestParameterElement);
+      hover.parameter = _safeToString(expression.staticParameterElement);
       // types
       {
         AstNode parent = expression.parent;
         DartType staticType = null;
-        DartType propagatedType = expression.propagatedType;
         if (element is ParameterElement) {
           staticType = element.type;
         } else if (element == null || element is VariableElement) {
@@ -87,16 +90,11 @@ class DartUnitHoverComputer {
         }
         if (parent is MethodInvocation && parent.methodName == expression) {
           staticType = parent.staticInvokeType;
-          propagatedType = parent.propagatedInvokeType;
           if (staticType != null && staticType.isDynamic) {
             staticType = null;
           }
-          if (propagatedType != null && propagatedType.isDynamic) {
-            propagatedType = null;
-          }
         }
         hover.staticType = _safeToString(staticType);
-        hover.propagatedType = _safeToString(propagatedType);
       }
       // done
       return hover;
@@ -105,7 +103,8 @@ class DartUnitHoverComputer {
     return null;
   }
 
-  String _computeDocumentation(Element element) {
+  static String computeDocumentation(Element element) {
+    // TODO(dantup) We're reusing this in parameter information - move it somewhere shared?
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }
@@ -136,5 +135,5 @@ class DartUnitHoverComputer {
     return null;
   }
 
-  static _safeToString(obj) => obj?.toString();
+  static String _safeToString(obj) => obj?.toString();
 }

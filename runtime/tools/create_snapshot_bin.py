@@ -45,9 +45,6 @@ def BuildOptions():
       action="store", type="string",
       help="output file name into which isolate snapshot in binary form " +
            "is generated")
-  result.add_option("--embedder_entry_points_manifest",
-      action="store", type="string",
-      help="input manifest with the vm entry points in a precompiled snapshot")
   result.add_option("--script",
       action="store", type="string",
       help="Dart script for which snapshot is to be generated")
@@ -145,11 +142,6 @@ def Main():
   if options.isolate_instructions_output_bin != None:
     script_args.append(''.join([ "--isolate_snapshot_instructions=",
                                  options.isolate_instructions_output_bin ]))
-
-  # Specify the embedder entry points snapshot
-  if options.embedder_entry_points_manifest:
-    script_args.append(''.join([ "--embedder_entry_points_manifest=",
-                                 options.embedder_entry_points_manifest ]))
 
   # Next setup all url mapping options specified.
   for url_arg in options.url_mapping:

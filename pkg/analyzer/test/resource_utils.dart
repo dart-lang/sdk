@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.resource_utils;
 
 import 'dart:async';
 import 'dart:core';
@@ -10,7 +8,6 @@ import 'dart:core';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -92,12 +89,7 @@ class TestPathTranslator {
 class TestResourceProvider implements ResourceProvider {
   final ResourceProvider _provider;
 
-  TestResourceProvider(this._provider) {
-    expect(_provider.absolutePathContext.separator, isWindows ? '\\' : '/');
-  }
-
-  @override
-  AbsolutePathContext get absolutePathContext => _provider.absolutePathContext;
+  TestResourceProvider(this._provider);
 
   @override
   path.Context get pathContext => _provider.pathContext;

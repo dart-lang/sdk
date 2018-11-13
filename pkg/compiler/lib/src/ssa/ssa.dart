@@ -7,14 +7,14 @@ library ssa;
 import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../constants/values.dart';
-import '../elements/entities.dart'
-    show FieldEntity, FunctionEntity, MemberEntity;
+import '../elements/entities.dart' show FieldEntity, MemberEntity;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
+import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/use.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'codegen.dart';
 import 'nodes.dart';
@@ -39,20 +39,23 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
   /// Generates JavaScript code for `work.element`.
   /// Using the ssa builder, optimizer and codegenerator.
-  js.Fun compile(CodegenWorkItem work, ClosedWorld closedWorld) {
-    HGraph graph = _builder.build(work, closedWorld);
+  js.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    HGraph graph = _builder.build(work, closedWorld, globalInferenceResults);
     if (graph == null) return null;
-    optimizer.optimize(work, graph, closedWorld);
+    optimizer.optimize(work, graph, closedWorld, globalInferenceResults);
     MemberEntity element = work.element;
     js.Expression result = generator.generateCode(work, graph, closedWorld);
-    if (element is FunctionEntity) {
+    if (graph.needsAsyncRewrite) {
       SourceInformationBuilder sourceInformationBuilder =
           backend.sourceInformationStrategy.createBuilderForContext(element);
-
       result = backend.rewriteAsync(
           closedWorld.commonElements,
+          closedWorld.elementEnvironment,
+          work.registry,
           element,
           result,
+          graph.asyncElementType,
           sourceInformationBuilder.buildAsyncBody(),
           sourceInformationBuilder.buildAsyncExit());
     }
@@ -67,7 +70,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
 abstract class SsaBuilder {
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld);
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults);
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -87,8 +91,9 @@ class SsaBuilderTask extends CompilerTask {
 
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    return _builder.build(work, closedWorld);
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    return _builder.build(work, closedWorld, globalInferenceResults);
   }
 }
 
@@ -104,8 +109,8 @@ abstract class SsaBuilderFieldMixin {
   ///
   /// If the field is constant, no code is needed for the field and the method
   /// returns `true`.
-  bool handleConstantField(
-      MemberEntity element, CodegenRegistry registry, ClosedWorld closedWorld) {
+  bool handleConstantField(MemberEntity element, CodegenRegistry registry,
+      JClosedWorld closedWorld) {
     if (element.isField) {
       ConstantValue initialValue = getFieldInitialConstantValue(element);
       if (initialValue != null) {

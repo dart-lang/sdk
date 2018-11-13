@@ -55,7 +55,7 @@ Future runServer(RawSocket client) {
   client.writeEventsEnabled = false;
   client.listen((event) {
     switch (event) {
-      case RawSocketEvent.READ:
+      case RawSocketEvent.read:
         Expect.isTrue(client.available() > 0);
         var buffer = client.read(200);
         dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
@@ -64,12 +64,12 @@ Future runServer(RawSocket client) {
           verifyTestData(dataReceived);
         }
         break;
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         Expect.fail('WRITE event received');
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         Expect.fail('READ_CLOSED event received');
-        client.shutdown(SocketDirection.SEND);
+        client.shutdown(SocketDirection.send);
         completer.complete(null);
         break;
     }
@@ -97,10 +97,10 @@ Future<RawSocket> runClient(List sockets) {
   int bytesWritten = 0;
   socket.listen((event) {
     switch (event) {
-      case RawSocketEvent.READ:
+      case RawSocketEvent.read:
         Expect.fail('READ event received');
         break;
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         if (bytesWritten < data.length) {
           bytesWritten += socket.write(data, bytesWritten);
         }
@@ -109,10 +109,10 @@ Future<RawSocket> runClient(List sockets) {
         }
         if (bytesWritten == data.length) {
           baseSocket.write(data, 0, 300);
-          socket.shutdown(SocketDirection.SEND);
+          socket.shutdown(SocketDirection.send);
         }
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         tryComplete();
         break;
     }

@@ -37,8 +37,8 @@ void missingReasonPhrase(int statusCode, bool includeSpace) {
 }
 
 void main() {
-  missingReasonPhrase(HttpStatus.OK, true);
-  missingReasonPhrase(HttpStatus.INTERNAL_SERVER_ERROR, true);
-  missingReasonPhrase(HttpStatus.OK, false);
-  missingReasonPhrase(HttpStatus.INTERNAL_SERVER_ERROR, false);
+  missingReasonPhrase(HttpStatus.ok, true);
+  missingReasonPhrase(HttpStatus.internalServerError, true);
+  missingReasonPhrase(HttpStatus.ok, false);
+  missingReasonPhrase(HttpStatus.internalServerError, false);
 }

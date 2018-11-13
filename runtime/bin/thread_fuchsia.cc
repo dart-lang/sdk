@@ -9,7 +9,6 @@
 #include "bin/thread_fuchsia.h"
 
 #include <errno.h>         // NOLINT
-#include <sys/resource.h>  // NOLINT
 #include <sys/time.h>      // NOLINT
 
 #include "platform/assert.h"
@@ -150,10 +149,6 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
   return (pthread_equal(a, b) != 0);
-}
-
-void Thread::InitOnce() {
-  // Nothing to be done.
 }
 
 Mutex::Mutex() {

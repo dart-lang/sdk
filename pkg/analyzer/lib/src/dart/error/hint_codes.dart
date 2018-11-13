@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.error.hint_codes;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -12,18 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
  * mentioned in the Dart Language Specification.
  */
 class HintCode extends ErrorCode {
-  /**
-   * When an abstract supertype member is referenced with `super` as its target,
-   * it cannot be overridden, so it is always a runtime error.
-   *
-   * Parameters:
-   * 0: the display name for the kind of the referenced element
-   * 1: the name of the referenced element
-   */
-  static const HintCode ABSTRACT_SUPER_MEMBER_REFERENCE = const HintCode(
-      'ABSTRACT_SUPER_MEMBER_REFERENCE',
-      "The {0} '{1}' is always abstract in the supertype.");
-
   /**
    * This hint is generated anywhere where the
    * [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated,
@@ -38,35 +24,21 @@ class HintCode extends ErrorCode {
       "The argument type '{0}' can't be assigned to the parameter type '{1}'.");
 
   /**
-   * This hint is generated when a function type is assigned to a function
-   * typed location, and the assignment will be invalid after fuzzy arrows
-   * (the treatment of dynamic as bottom in certain locations) is removed.
-   *
-   */
-  static const HintCode USES_DYNAMIC_AS_BOTTOM = const HintCode(
-      'USES_DYNAMIC_AS_BOTTOM',
-      "A function of type '{0}' can't be assigned to a variable of type '{1}'.",
-      "Try changing the type of the function, or "
-      "casting the right-hand type to '{1}'.");
-
-  /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
    */
   static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = const HintCode(
       'CAN_BE_NULL_AFTER_NULL_AWARE',
       "The target expression uses '?.', so its value can be null.",
-      "Replace the '.' with a '?.' in the invocation.");
+      correction: "Replace the '.' with a '?.' in the invocation.");
 
   /**
    * Dead code is code that is never reached, this can happen for instance if a
    * statement follows a return statement.
    */
-  static const HintCode DEAD_CODE = const HintCode(
-      'DEAD_CODE',
-      "Dead code.",
-      "Try removing the code, or "
-      "fixing the code before it so that it can be reached.");
+  static const HintCode DEAD_CODE = const HintCode('DEAD_CODE', "Dead code.",
+      correction: "Try removing the code, or "
+          "fixing the code before it so that it can be reached.");
 
   /**
    * Dead code is code that is never reached. This case covers cases where the
@@ -76,8 +48,9 @@ class HintCode extends ErrorCode {
       'DEAD_CODE_CATCH_FOLLOWING_CATCH',
       "Dead code: catch clauses after a 'catch (e)' or "
       "an 'on Object catch (e)' are never reached.",
-      "Try reordering the catch clauses so that they can be reached, or "
-      "removing the unreachable catch clauses.");
+      correction:
+          "Try reordering the catch clauses so that they can be reached, or "
+          "removing the unreachable catch clauses.");
 
   /**
    * Dead code is code that is never reached. This case covers cases where the
@@ -92,8 +65,9 @@ class HintCode extends ErrorCode {
       'DEAD_CODE_ON_CATCH_SUBTYPE',
       "Dead code: this on-catch block will never be executed because '{0}' is "
       "a subtype of '{1}' and hence will have been caught above.",
-      "Try reordering the catch clauses so that this block can be reached, or "
-      "removing the unreachable catch clause.");
+      correction:
+          "Try reordering the catch clauses so that this block can be reached, or "
+          "removing the unreachable catch clause.");
 
   /**
    * Deprecated members should not be invoked or used.
@@ -102,9 +76,9 @@ class HintCode extends ErrorCode {
    * 0: the name of the member
    */
   static const HintCode DEPRECATED_MEMBER_USE = const HintCode(
-      'DEPRECATED_MEMBER_USE',
-      "'{0}' is deprecated and shouldn't be used.",
-      "Try replacing the use of the deprecated member with the replacement.");
+      'DEPRECATED_MEMBER_USE', "'{0}' is deprecated and shouldn't be used.",
+      correction:
+          "Try replacing the use of the deprecated member with the replacement.");
 
   /**
    * Users should not create a class named `Function` anymore.
@@ -112,23 +86,21 @@ class HintCode extends ErrorCode {
   static const HintCode DEPRECATED_FUNCTION_CLASS_DECLARATION = const HintCode(
       'DEPRECATED_FUNCTION_CLASS_DECLARATION',
       "Declaring a class named 'Function' is deprecated.",
-      "Try renaming the class.");
+      correction: "Try renaming the class.");
 
   /**
    * `Function` should not be extended anymore.
    */
   static const HintCode DEPRECATED_EXTENDS_FUNCTION = const HintCode(
-      'DEPRECATED_EXTENDS_FUNCTION',
-      "Extending 'Function' is deprecated.",
-      "Try removing 'Function' from the 'extends' clause.");
+      'DEPRECATED_EXTENDS_FUNCTION', "Extending 'Function' is deprecated.",
+      correction: "Try removing 'Function' from the 'extends' clause.");
 
   /**
    * `Function` should not be mixed in anymore.
    */
   static const HintCode DEPRECATED_MIXIN_FUNCTION = const HintCode(
-      'DEPRECATED_MIXIN_FUNCTION',
-      "Mixing in 'Function' is deprecated.",
-      "Try removing 'Function' from the 'with' clause.");
+      'DEPRECATED_MIXIN_FUNCTION', "Mixing in 'Function' is deprecated.",
+      correction: "Try removing 'Function' from the 'with' clause.");
 
   /**
    * Hint to use the ~/ operator.
@@ -136,13 +108,30 @@ class HintCode extends ErrorCode {
   static const HintCode DIVISION_OPTIMIZATION = const HintCode(
       'DIVISION_OPTIMIZATION',
       "The operator x ~/ y is more efficient than (x / y).toInt().",
-      "Try re-writing the expression to use the '~/' operator.");
+      correction: "Try re-writing the expression to use the '~/' operator.");
 
   /**
    * Duplicate imports.
    */
-  static const HintCode DUPLICATE_IMPORT = const HintCode('DUPLICATE_IMPORT',
-      "Duplicate import.", "Try removing all but one import of the library.");
+  static const HintCode DUPLICATE_IMPORT = const HintCode(
+      'DUPLICATE_IMPORT', "Duplicate import.",
+      correction: "Try removing all but one import of the library.");
+
+  /**
+   * Duplicate hidden names.
+   */
+  static const HintCode DUPLICATE_HIDDEN_NAME =
+      const HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
+          correction: "Try removing the repeated name from the list of hidden "
+              "members.");
+
+  /**
+   * Duplicate shown names.
+   */
+  static const HintCode DUPLICATE_SHOWN_NAME =
+      const HintCode('DUPLICATE_SHOWN_NAME', "Duplicate shown name.",
+          correction: "Try removing the repeated name from the list of shown "
+              "members.");
 
   /**
    * It is a bad practice for a source file in a package "lib" directory
@@ -156,8 +145,8 @@ class HintCode extends ErrorCode {
           'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
           "A file in the 'lib' directory shouldn't import a file outside the "
           "'lib' directory.",
-          "Try removing the import, or "
-          "moving the imported file inside the 'lib' directory.");
+          correction: "Try removing the import, or "
+              "moving the imported file inside the 'lib' directory.");
 
   /**
    * It is a bad practice for a source file ouside a package "lib" directory
@@ -171,7 +160,7 @@ class HintCode extends ErrorCode {
           'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
           "A file outside the 'lib' directory shouldn't reference a file "
           "inside the 'lib' directory using a relative path.",
-          "Try using a package: URI instead.");
+          correction: "Try using a package: URI instead.");
 
   /**
    * Generic type comments (`/*<T>*/` and `/*=T*/`) are no longer necessary and
@@ -180,7 +169,7 @@ class HintCode extends ErrorCode {
   static const HintCode GENERIC_METHOD_COMMENT = const HintCode(
       'GENERIC_METHOD_COMMENT',
       "The generic type comment is being deprecated in favor of the real syntax.",
-      "Try replacing the comment with the actual type annotation.");
+      correction: "Try replacing the comment with the actual type annotation.");
 
   /**
    * Deferred libraries shouldn't define a top level function 'loadLibrary'.
@@ -190,8 +179,8 @@ class HintCode extends ErrorCode {
           'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
           "The library '{0}' defines a top-level function named 'loadLibrary' "
           "which is hidden by deferring this library.",
-          "Try changing the import to not be deferred, or "
-          "rename the function in the imported library.");
+          correction: "Try changing the import to not be deferred, or "
+              "rename the function in the imported library.");
 
   /**
    * This hint is generated anywhere where the
@@ -205,8 +194,8 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_ASSIGNMENT = const HintCode(
       'INVALID_ASSIGNMENT',
       "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
-      "Try changing the type of the variable, or "
-      "casting the right-hand type to '{1}'.");
+      correction: "Try changing the type of the variable, or "
+          "casting the right-hand type to '{1}'.");
 
   /**
    * This hint is generated anywhere a @factory annotation is associated with
@@ -253,11 +242,13 @@ class HintCode extends ErrorCode {
    * 1: the number of type parameters in the overridden method
    * 2: the name of the class where the overridden method is declared
    */
-  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS = const HintCode(
-      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
-      "The method has {0} type parameters, but it is overriding a method "
-      "with {1} type parameters from '{2}'.",
-      "Try changing the number of type parameters so that they are the same.");
+  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
+      const HintCode(
+          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
+          "The method has {0} type parameters, but it is overriding a method "
+          "with {1} type parameters from '{2}'.",
+          correction:
+              "Try changing the number of type parameters so that they are the same.");
 
   /**
    * Generic Method DEP: bounds of type parameters must be compatible.
@@ -275,7 +266,8 @@ class HintCode extends ErrorCode {
           'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
           "The type parameter '{0}' extends '{1}', but that is stricter than "
           "'{2}' extends '{3}' in the overridden method from '{4}'.",
-          "Try changing the bounds on the type parameters so that they are compatible.");
+          correction:
+              "Try changing the bounds on the type parameters so that they are compatible.");
 
   /**
    * This hint is generated anywhere where `@required` annotates a non named
@@ -288,7 +280,20 @@ class HintCode extends ErrorCode {
       'INVALID_REQUIRED_PARAM',
       "The type parameter '{0}' is annotated with @required but only named "
       "parameters without default value can be annotated with it.",
-      "Remove @required.");
+      correction: "Remove @required.");
+
+  /**
+   * This hint is generated anywhere where `@sealed` annotates something other
+   * than a class or mixin.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_SEALED_ANNOTATION = const HintCode(
+      'INVALID_SEALED_ANNOTATION',
+      "The member '{0}' is annotated with @sealed but only classes and mixins "
+      "can be annotated with it.",
+      correction: "Remove @sealed.");
 
   /**
    * This hint is generated anywhere where a member annotated with `@protected`
@@ -302,6 +307,16 @@ class HintCode extends ErrorCode {
       'INVALID_USE_OF_PROTECTED_MEMBER',
       "The member '{0}' can only be used within instance members of subclasses "
       "of '{1}'.");
+
+  /// This hint is generated anywhere where a member annotated with
+  /// `@visibleForTemplate` is used outside of a "template" Dart file.
+  ///
+  /// Parameters:
+  /// 0: the name of the member
+  /// 1: the name of the defining class
+  static const HintCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
+      const HintCode('INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+          "The member '{0}' can only be used within '{1}' or a template library.");
 
   /// This hint is generated anywhere where a member annotated with
   /// `@visibleForTesting` is used outside the defining library, or a test.
@@ -320,7 +335,7 @@ class HintCode extends ErrorCode {
       'IS_DOUBLE',
       "When compiled to JS, this test might return true when the left hand "
       "side is an int.",
-      "Try testing for 'num' instead.");
+      correction: "Try testing for 'num' instead.");
 
   /**
    * Hint for the `x is int` type checks.
@@ -329,7 +344,7 @@ class HintCode extends ErrorCode {
       'IS_INT',
       "When compiled to JS, this test might return true when the left hand "
       "side is a double.",
-      "Try testing for 'num' instead.");
+      correction: "Try testing for 'num' instead.");
 
   /**
    * Hint for the `x is! double` type checks.
@@ -338,7 +353,7 @@ class HintCode extends ErrorCode {
       'IS_NOT_DOUBLE',
       "When compiled to JS, this test might return false when the left hand "
       "side is an int.",
-      "Try testing for 'num' instead.");
+      correction: "Try testing for 'num' instead.");
 
   /**
    * Hint for the `x is! int` type checks.
@@ -347,7 +362,7 @@ class HintCode extends ErrorCode {
       'IS_NOT_INT',
       "When compiled to JS, this test might return false when the left hand "
       "side is a double.",
-      "Try testing for 'num' instead.");
+      correction: "Try testing for 'num' instead.");
 
   /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
@@ -357,7 +372,7 @@ class HintCode extends ErrorCode {
       'MISSING_JS_LIB_ANNOTATION',
       "The @JS() annotation can only be used if it is also declared on the "
       "library directive.",
-      "Try adding the annotation to the library directive.");
+      correction: "Try adding the annotation to the library directive.");
 
   /**
    * Generate a hint for a constructor, function or method invocation where a
@@ -392,9 +407,10 @@ class HintCode extends ErrorCode {
    */
   static const HintCode MISSING_RETURN = const HintCode(
       'MISSING_RETURN',
-      "This function declares a return type of '{0}', but doesn't end with a "
+      "This function has a return type of '{0}', but doesn't end with a "
       "return statement.",
-      "Try adding a return statement, or changing the return type to 'void'.");
+      correction: "Try adding a return statement, "
+          "or changing the return type to 'void'.");
 
   /**
    * Generate a hint for classes that inherit from classes annotated with
@@ -418,6 +434,14 @@ class HintCode extends ErrorCode {
       "but does not invoke the overridden method.");
 
   /**
+   * When the left operand of a binary expression uses '?.' operator, it can be
+   * `null`.
+   */
+  static const HintCode NULL_AWARE_BEFORE_OPERATOR = const HintCode(
+      'NULL_AWARE_BEFORE_OPERATOR',
+      "The left operand uses '?.', so its value can be null.");
+
+  /**
    * A condition in a control flow statement could evaluate to `null` because it
    * uses the null-aware '?.' operator.
    */
@@ -425,8 +449,18 @@ class HintCode extends ErrorCode {
       'NULL_AWARE_IN_CONDITION',
       "The value of the '?.' operator can be 'null', which isn't appropriate "
       "in a condition.",
-      "Try replacing the '?.' with a '.', testing the left-hand side for null if "
-      "necessary.");
+      correction:
+          "Try replacing the '?.' with a '.', testing the left-hand side for null if "
+          "necessary.");
+
+  /**
+   * A condition in operands of a logical operator could evaluate to `null`
+   * because it uses the null-aware '?.' operator.
+   */
+  static const HintCode NULL_AWARE_IN_LOGICAL_OPERATOR = const HintCode(
+      'NULL_AWARE_IN_LOGICAL_OPERATOR',
+      "The value of the '?.' operator can be 'null', which isn't appropriate "
+      "as an operand of a logical operator.");
 
   /**
    * Hint for classes that override equals, but not hashCode.
@@ -437,7 +471,7 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode(
       'OVERRIDE_EQUALS_BUT_NOT_HASH_CODE',
       "The class '{0}' overrides 'operator==', but not 'get hashCode'.",
-      "Try implementing 'hashCode'.");
+      correction: "Try implementing 'hashCode'.");
 
   /**
    * A getter with the override annotation does not override an existing getter.
@@ -445,8 +479,8 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode(
       'OVERRIDE_ON_NON_OVERRIDING_GETTER',
       "Getter doesn't override an inherited getter.",
-      "Try updating this class to match the superclass, or "
-      "removing the override annotation.");
+      correction: "Try updating this class to match the superclass, or "
+          "removing the override annotation.");
 
   /**
    * A field with the override annotation does not override a getter or setter.
@@ -454,8 +488,8 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD = const HintCode(
       'OVERRIDE_ON_NON_OVERRIDING_FIELD',
       "Field doesn't override an inherited getter or setter.",
-      "Try updating this class to match the superclass, or "
-      "removing the override annotation.");
+      correction: "Try updating this class to match the superclass, or "
+          "removing the override annotation.");
 
   /**
    * A method with the override annotation does not override an existing method.
@@ -463,8 +497,8 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = const HintCode(
       'OVERRIDE_ON_NON_OVERRIDING_METHOD',
       "Method doesn't override an inherited method.",
-      "Try updating this class to match the superclass, or "
-      "removing the override annotation.");
+      correction: "Try updating this class to match the superclass, or "
+          "removing the override annotation.");
 
   /**
    * A setter with the override annotation does not override an existing setter.
@@ -472,8 +506,8 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = const HintCode(
       'OVERRIDE_ON_NON_OVERRIDING_SETTER',
       "Setter doesn't override an inherited setter.",
-      "Try updating this class to match the superclass, or "
-      "removing the override annotation.");
+      correction: "Try updating this class to match the superclass, or "
+          "removing the override annotation.");
 
   /**
    * It is a bad practice for a package import to reference anything outside the
@@ -491,15 +525,14 @@ class HintCode extends ErrorCode {
   static const HintCode TYPE_CHECK_IS_NOT_NULL = const HintCode(
       'TYPE_CHECK_IS_NOT_NULL',
       "Tests for non-null should be done with '!= null'.",
-      "Try replacing the 'is! Null' check with '!= null'.");
+      correction: "Try replacing the 'is! Null' check with '!= null'.");
 
   /**
    * Type checks of the type `x is Null` should be done with `x == null`.
    */
   static const HintCode TYPE_CHECK_IS_NULL = const HintCode(
-      'TYPE_CHECK_IS_NULL',
-      "Tests for null should be done with '== null'.",
-      "Try replacing the 'is Null' check with '== null'.");
+      'TYPE_CHECK_IS_NULL', "Tests for null should be done with '== null'.",
+      correction: "Try replacing the 'is Null' check with '== null'.");
 
   /**
    * This hint is generated anywhere where the
@@ -512,9 +545,9 @@ class HintCode extends ErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const HintCode UNDEFINED_GETTER = const HintCode(
-      'UNDEFINED_GETTER',
-      "The getter '{0}' isn't defined for the class '{1}'.",
-      "Try defining a getter or field named '{0}', or invoke a different getter.");
+      'UNDEFINED_GETTER', "The getter '{0}' isn't defined for the class '{1}'.",
+      correction:
+          "Try defining a getter or field named '{0}', or invoke a different getter.");
 
   /**
    * An undefined name hidden in an import or export directive.
@@ -522,7 +555,7 @@ class HintCode extends ErrorCode {
   static const HintCode UNDEFINED_HIDDEN_NAME = const HintCode(
       'UNDEFINED_HIDDEN_NAME',
       "The library '{0}' doesn't export a member with the hidden name '{1}'.",
-      "Try removing the name from the list of hidden members.");
+      correction: "Try removing the name from the list of hidden members.");
 
   /**
    * This hint is generated anywhere where the
@@ -534,10 +567,10 @@ class HintCode extends ErrorCode {
    * 1: the resolved type name that the method lookup is happening on
    */
   static const HintCode UNDEFINED_METHOD = const HintCode(
-      'UNDEFINED_METHOD',
-      "The method '{0}' isn't defined for the class '{1}'.",
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}'.");
+      'UNDEFINED_METHOD', "The method '{0}' isn't defined for the class '{1}'.",
+      correction:
+          "Try correcting the name to the name of an existing method, or "
+          "defining a method named '{0}'.");
 
   /**
    * This hint is generated anywhere where the
@@ -551,7 +584,7 @@ class HintCode extends ErrorCode {
   static const HintCode UNDEFINED_OPERATOR = const HintCode(
       'UNDEFINED_OPERATOR',
       "The operator '{0}' isn't defined for the class '{1}'.",
-      "Try defining the operator '{0}'.");
+      correction: "Try defining the operator '{0}'.");
 
   /**
    * This hint is generated anywhere where the
@@ -564,9 +597,9 @@ class HintCode extends ErrorCode {
    * 1: the name of the enclosing type where the setter is being looked for
    */
   static const HintCode UNDEFINED_SETTER = const HintCode(
-      'UNDEFINED_SETTER',
-      "The setter '{0}' isn't defined for the class '{1}'.",
-      "Try defining a setter or field named '{0}', or invoke a different setter.");
+      'UNDEFINED_SETTER', "The setter '{0}' isn't defined for the class '{1}'.",
+      correction:
+          "Try defining a setter or field named '{0}', or invoke a different setter.");
 
   /**
    * An undefined name shown in an import or export directive.
@@ -574,21 +607,21 @@ class HintCode extends ErrorCode {
   static const HintCode UNDEFINED_SHOWN_NAME = const HintCode(
       'UNDEFINED_SHOWN_NAME',
       "The library '{0}' doesn't export a member with the shown name '{1}'.",
-      "Try removing the name from the list of shown members.");
+      correction: "Try removing the name from the list of shown members.");
 
   /**
    * Unnecessary cast.
    */
   static const HintCode UNNECESSARY_CAST = const HintCode(
-      'UNNECESSARY_CAST', "Unnecessary cast.", "Try removing the cast.");
+      'UNNECESSARY_CAST', "Unnecessary cast.",
+      correction: "Try removing the cast.");
 
   /**
    * Unnecessary `noSuchMethod` declaration.
    */
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = const HintCode(
-      'UNNECESSARY_NO_SUCH_METHOD',
-      "Unnecessary 'noSuchMethod' declaration.",
-      "Try removing the declaration of 'noSuchMethod'.");
+      'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration.",
+      correction: "Try removing the declaration of 'noSuchMethod'.");
 
   /**
    * Unnecessary type checks, the result is always false.
@@ -596,7 +629,7 @@ class HintCode extends ErrorCode {
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode(
       'UNNECESSARY_TYPE_CHECK_FALSE',
       "Unnecessary type check, the result is always false.",
-      "Try correcting the type check, or removing the type check.");
+      correction: "Try correcting the type check, or removing the type check.");
 
   /**
    * Unnecessary type checks, the result is always true.
@@ -604,7 +637,7 @@ class HintCode extends ErrorCode {
   static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = const HintCode(
       'UNNECESSARY_TYPE_CHECK_TRUE',
       "Unnecessary type check, the result is always true.",
-      "Try correcting the type check, or removing the type check.");
+      correction: "Try correcting the type check, or removing the type check.");
 
   /**
    * Unused catch exception variables.
@@ -615,7 +648,7 @@ class HintCode extends ErrorCode {
       // TODO(brianwilkerson) Split this error code so that we can differentiate
       // between removing the catch clause and replacing the catch clause with
       // an on clause.
-      "Try removing the catch clause.");
+      correction: "Try removing the catch clause.");
 
   /**
    * Unused catch stack trace variables.
@@ -623,54 +656,55 @@ class HintCode extends ErrorCode {
   static const HintCode UNUSED_CATCH_STACK = const HintCode(
       'UNUSED_CATCH_STACK',
       "The stack trace variable '{0}' isn't used and can be removed.",
-      "Try removing the stack trace variable, or using it.");
+      correction: "Try removing the stack trace variable, or using it.");
 
   /**
    * See [Modifier.IS_USED_IN_LIBRARY].
    */
-  static const HintCode UNUSED_ELEMENT = const HintCode('UNUSED_ELEMENT',
-      "The {0} '{1}' isn't used.", "Try removing the declaration of '{1}'.");
+  static const HintCode UNUSED_ELEMENT = const HintCode(
+      'UNUSED_ELEMENT', "The {0} '{1}' isn't used.",
+      correction: "Try removing the declaration of '{1}'.");
 
   /**
    * Unused fields are fields which are never read.
    */
   static const HintCode UNUSED_FIELD = const HintCode(
-      'UNUSED_FIELD',
-      "The value of the field '{0}' isn't used.",
-      "Try removing the field, or using it.");
+      'UNUSED_FIELD', "The value of the field '{0}' isn't used.",
+      correction: "Try removing the field, or using it.");
 
   /**
    * Unused imports are imports which are never used.
+   *
+   * Parameters:
+   * 0: The content of the unused import's uri
    */
   static const HintCode UNUSED_IMPORT = const HintCode(
-      'UNUSED_IMPORT', "Unused import.", "Try removing the import directive.");
+      'UNUSED_IMPORT', "Unused import: '{0}'.",
+      correction: "Try removing the import directive.");
 
   /**
-   * Unused local variables are local variables which are never read.
+   * Unused labels are labels that are never referenced in either a 'break' or
+   * 'continue' statement.
+   */
+  static const HintCode UNUSED_LABEL =
+      const HintCode('UNUSED_LABEL', "The label '{0}' isn't used.",
+          correction: "Try removing the label, or "
+              "using it in either a 'break' or 'continue' statement.");
+
+  /**
+   * Unused local variables are local variables that are never read.
    */
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
       'UNUSED_LOCAL_VARIABLE',
       "The value of the local variable '{0}' isn't used.",
-      "Try removing the variable, or using it.");
+      correction: "Try removing the variable, or using it.");
 
   /**
    * Unused shown names are names shown on imports which are never used.
    */
   static const HintCode UNUSED_SHOWN_NAME = const HintCode(
-      'UNUSED_SHOWN_NAME',
-      "The name {0} is shown, but not used.",
-      "Try removing the name from the list of shown members.");
-
-  /**
-   * Hint for cases where the source expects a method or function to return a
-   * non-void result, but the method or function signature returns void.
-   *
-   * Parameters:
-   * 0: the name of the method or function that returns void
-   */
-  static const HintCode USE_OF_VOID_RESULT = const HintCode(
-      'USE_OF_VOID_RESULT',
-      "The result of '{0}' is being used, even though it is declared to be 'void'.");
+      'UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.",
+      correction: "Try removing the name from the list of shown members.");
 
   /**
    * It will be a static type warning if <i>m</i> is not a generic method with
@@ -685,7 +719,7 @@ class HintCode extends ErrorCode {
       'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
       "The method '{0}' is declared with {1} type parameters, "
       "but {2} type arguments were given.",
-      "Try adjusting the number of type arguments.");
+      correction: "Try adjusting the number of type arguments.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -693,8 +727,8 @@ class HintCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const HintCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const HintCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;

@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -35,28 +37,35 @@ class AnalysisSessionImplTest {
   }
 
   test_getErrors() async {
-    ErrorsResult result = new ErrorsResult(null, null, null, null, null);
+    ErrorsResult result = new ErrorsResult(null, null, null, null, null, null);
     driver.errorsResult = result;
     expect(await session.getErrors('path'), result);
   }
 
   test_getLibraryByUri() async {
     String uri = 'uri';
-    LibraryElement element = new LibraryElementImpl(null, null, null, null);
-    driver.libraryMap[uri] = element;
-    expect(await session.getLibraryByUri(uri), element);
+
+    var source = new _SourceMock(Uri.parse(uri));
+    var unit = new CompilationUnitElementImpl()
+      ..librarySource = source
+      ..source = source;
+    var library = new LibraryElementImpl(null, null, null, null)
+      ..definingCompilationUnit = unit;
+
+    driver.libraryMap[uri] = library;
+    expect(await session.getLibraryByUri(uri), library);
   }
 
   test_getParsedAst() async {
     ParseResult result =
-        new ParseResult(null, null, null, null, null, null, null);
+        new ParseResult(null, null, null, null, null, null, null, null);
     driver.parseResult = result;
     expect(await session.getParsedAst('path'), result);
   }
 
   test_getResolvedAst() async {
-    AnalysisResult result = new AnalysisResult(
-        driver, null, null, null, null, null, null, null, null, null, null);
+    AnalysisResult result = new AnalysisResult(driver, null, null, null, null,
+        null, null, null, null, null, null, null);
     driver.result = result;
     expect(await session.getResolvedAst('path'), result);
   }
@@ -86,6 +95,12 @@ class AnalysisSessionImplTest {
     expect(await session.getUnitElementSignature('path'), signature);
   }
 
+  test_resourceProvider() {
+    ResourceProvider resourceProvider = new MemoryResourceProvider();
+    driver.resourceProvider = resourceProvider;
+    expect(session.resourceProvider, resourceProvider);
+  }
+
   test_sourceFactory() {
     SourceFactory sourceFactory = new SourceFactory([]);
     driver.sourceFactory = sourceFactory;
@@ -104,7 +119,7 @@ class AnalysisSessionImplTest {
 
   void _initializeSDK() {
     CompilationUnitElementImpl newUnit(String name) {
-      CompilationUnitElementImpl unit = new CompilationUnitElementImpl(name);
+      CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
       unit.accessors = [];
       unit.enums = [];
       unit.functions = [];
@@ -148,6 +163,7 @@ class MockAnalysisDriver implements AnalysisDriver {
   ErrorsResult errorsResult;
   Map<String, LibraryElement> libraryMap = <String, LibraryElement>{};
   ParseResult parseResult;
+  ResourceProvider resourceProvider;
   AnalysisResult result;
   SourceFactory sourceFactory;
   SourceKind sourceKind;
@@ -197,11 +213,27 @@ class MockAnalysisDriver implements AnalysisDriver {
   @override
   dynamic noSuchMethod(Invocation invocation) {
     fail('Unexpected invocation of ${invocation.memberName}');
-    return null;
   }
 
   @override
   Future<ParseResult> parseFile(String path) async {
     return parseResult;
+  }
+
+  @override
+  ParseResult parseFileSync(String path) {
+    return parseResult;
+  }
+}
+
+class _SourceMock implements Source {
+  @override
+  final Uri uri;
+
+  _SourceMock(this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

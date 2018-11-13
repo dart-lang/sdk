@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:test/test.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -19,6 +18,7 @@ var classEnvironment = <String, List<String>>{
   'List<T>': ['Iterable<T>'],
   'Future<T>': ['Object'],
   'FutureOr<T>': ['Object'],
+  'Null': ['Object'],
 };
 
 List<TestCase> testCases = <TestCase>[
@@ -74,19 +74,22 @@ List<TestCase> testCases = <TestCase>[
   notSubtype('<E,F>(E) => (F) => E', '<E>(E) => <F>(F) => E'),
   notSubtype('<E,F>(E) => (F) => E', '<F,E>(E) => (F) => E'),
 
-  subtype('<E>(E,num) => E', '<E:num>(E,E) => E'),
-  subtype('<E:num>(E) => int', '<E:int>(E) => int'),
-  subtype('<E:num>(E) => E', '<E:int>(E) => E'),
-  subtype('<E:num>(int) => E', '<E:int>(int) => E'),
+  notSubtype('<E>(E,num) => E', '<E:num>(E,E) => E'),
+  notSubtype('<E:num>(E) => int', '<E:int>(E) => int'),
+  notSubtype('<E:num>(E) => E', '<E:int>(E) => E'),
+  notSubtype('<E:num>(int) => E', '<E:int>(int) => E'),
+  subtype('<E:num>(E) => E', '<F:num>(F) => num'),
+  subtype('<E:int>(E) => E', '<F:int>(F) => num'),
+  subtype('<E:int>(E) => E', '<F:int>(F) => int'),
   notSubtype('<E>(int) => int', '(int) => int'),
   notSubtype('<E,F>(int) => int', '<E>(int) => int'),
 
   subtype('<E:List<E>>(E) => E', '<F:List<F>>(F) => F'),
-  subtype('<E:Iterable<E>>(E) => E', '<F:List<F>>(F) => F'),
-  subtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => F'),
+  notSubtype('<E:Iterable<E>>(E) => E', '<F:List<F>>(F) => F'),
+  notSubtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => F'),
   notSubtype('<E>(E,List<Object>) => List<E>', '<F:List<F>>(F,F) => F'),
   notSubtype('<E>(E,List<Object>) => int', '<F:List<F>>(F,F) => F'),
-  subtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => void'),
+  notSubtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => void'),
 
   subtype('int', 'FutureOr<int>', strongMode: true),
   subtype('int', 'FutureOr<num>', strongMode: true),
@@ -223,7 +226,8 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
       }
     }
   }
-  var hierarchy = new IncrementalClassHierarchy();
+  var component = new Component(libraries: [environment.dummyLibrary]);
+  var hierarchy = new ClassHierarchy(component);
   return new MockSubtypeTester(
       hierarchy,
       objectClass.rawType,

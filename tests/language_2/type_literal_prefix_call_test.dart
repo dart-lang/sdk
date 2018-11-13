@@ -6,5 +6,5 @@ import "package:expect/expect.dart";
 import 'dart:core' as core;
 
 main() {
-  core.List(); //# 00: compile-time error
+  core.List();
 }

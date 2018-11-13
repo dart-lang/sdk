@@ -134,8 +134,8 @@ class ObservableList<T> extends AbstractObservable
   List<T> _internal;
 
   ObservableList([Observable parent = null])
-      : super(parent),
-        _internal = new List<T>();
+      : _internal = new List<T>(),
+        super(parent);
 
   T operator [](int index) => _internal[index];
 
@@ -145,6 +145,19 @@ class ObservableList<T> extends AbstractObservable
   }
 
   int get length => _internal.length;
+
+  List<R> cast<R>() => _internal.cast<R>();
+  Iterable<R> whereType<R>() => _internal.whereType<R>();
+
+  List<T> operator +(List<T> other) => _internal + other;
+
+  Iterable<T> followedBy(Iterable<T> other) => _internal.followedBy(other);
+
+  int indexWhere(bool test(T element), [int start = 0]) =>
+      _internal.indexWhere(test, start);
+
+  int lastIndexWhere(bool test(T element), [int start]) =>
+      _internal.lastIndexWhere(test, start);
 
   void set length(int value) {
     _internal.length = value;
@@ -158,8 +171,8 @@ class ObservableList<T> extends AbstractObservable
 
   Iterable<T> get reversed => _internal.reversed;
 
-  void sort([int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
+  void sort([int compare(T a, T b)]) {
+    //if (compare == null) compare = (u, v) => Comparable.compare(u, v);
     _internal.sort(compare);
     recordGlobalChange();
   }
@@ -182,7 +195,15 @@ class ObservableList<T> extends AbstractObservable
   }
 
   T get first => _internal.first;
+  void set first(T value) {
+    _internal.first = value;
+  }
+
   T get last => _internal.last;
+  void set last(T value) {
+    _internal.last = value;
+  }
+
   T get single => _internal.single;
 
   void insert(int index, T element) {
@@ -214,7 +235,7 @@ class ObservableList<T> extends AbstractObservable
     return _internal.indexOf(element, start);
   }
 
-  int lastIndexOf(Object element, [int start = null]) {
+  int lastIndexOf(Object element, [int start]) {
     if (start == null) start = length - 1;
     return _internal.lastIndexOf(element, start);
   }
@@ -272,11 +293,11 @@ class ObservableList<T> extends AbstractObservable
     throw new UnimplementedError();
   }
 
-  List sublist(int start, [int end]) {
+  List<T> sublist(int start, [int end]) {
     throw new UnimplementedError();
   }
 
-  Iterable getRange(int start, int end) {
+  Iterable<T> getRange(int start, int end) {
     throw new UnimplementedError();
   }
 
@@ -288,8 +309,7 @@ class ObservableList<T> extends AbstractObservable
     throw new UnimplementedError();
   }
 
-  dynamic fold(
-      var initialValue, dynamic combine(var previousValue, T element)) {
+  R fold<R>(R initialValue, R combine(R previousValue, T element)) {
     throw new UnimplementedError();
   }
 
@@ -297,8 +317,8 @@ class ObservableList<T> extends AbstractObservable
   Iterator<T> get iterator => _internal.iterator;
 
   Iterable<T> where(bool f(T element)) => _internal.where(f);
-  Iterable map(f(T element)) => _internal.map(f);
-  Iterable expand(Iterable f(T element)) => _internal.expand(f);
+  Iterable<R> map<R>(R f(T element)) => _internal.map(f);
+  Iterable<R> expand<R>(Iterable<R> f(T element)) => _internal.expand(f);
   List<T> skip(int count) => _internal.skip(count);
   List<T> take(int count) => _internal.take(count);
   bool every(bool f(T element)) => _internal.every(f);
@@ -308,16 +328,16 @@ class ObservableList<T> extends AbstractObservable
   }
 
   String join([String separator = ""]) => _internal.join(separator);
-  dynamic firstWhere(bool test(T value), {Object orElse()}) {
+  T firstWhere(bool test(T value), {T orElse()}) {
     return _internal.firstWhere(test, orElse: orElse);
   }
 
-  dynamic lastWhere(bool test(T value), {Object orElse()}) {
+  T lastWhere(bool test(T value), {T orElse()}) {
     return _internal.lastWhere(test, orElse: orElse);
   }
 
   void shuffle([random]) => throw new UnimplementedError();
-  bool remove(T element) => throw new UnimplementedError();
+  bool remove(Object element) => throw new UnimplementedError();
   void removeWhere(bool test(T element)) => throw new UnimplementedError();
   void retainWhere(bool test(T element)) => throw new UnimplementedError();
   List<T> toList({bool growable: true}) => throw new UnimplementedError();
@@ -325,8 +345,8 @@ class ObservableList<T> extends AbstractObservable
   Iterable<T> takeWhile(bool test(T value)) => throw new UnimplementedError();
   Iterable<T> skipWhile(bool test(T value)) => throw new UnimplementedError();
 
-  T singleWhere(bool test(T value)) {
-    return _internal.singleWhere(test);
+  T singleWhere(bool test(T value), {T orElse()}) {
+    return _internal.singleWhere(test, orElse: orElse);
   }
 
   T elementAt(int index) {
@@ -351,8 +371,8 @@ class ObservableList<T> extends AbstractObservable
 /** A wrapper around a single value whose change can be observed. */
 class ObservableValue<T> extends AbstractObservable {
   ObservableValue(T value, [Observable parent = null])
-      : super(parent),
-        _value = value;
+      : _value = value,
+        super(parent);
 
   T get value => _value;
 

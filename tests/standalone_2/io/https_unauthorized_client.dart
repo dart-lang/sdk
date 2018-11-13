@@ -26,7 +26,7 @@ const HOST_NAME = "localhost";
 Future runClients(int port) {
   HttpClient client = new HttpClient();
 
-  var testFutures = [];
+  var testFutures = <Future>[];
   for (int i = 0; i < 20; ++i) {
     testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/')).then(
         (HttpClientRequest request) {

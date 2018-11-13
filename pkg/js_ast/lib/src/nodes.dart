@@ -979,6 +979,8 @@ abstract class Name extends Literal
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitName(this, arg);
 
+  Name _clone();
+
   /// Returns a unique [key] for this name.
   ///
   /// The key is unrelated to the actual name and is not intended for human
@@ -1044,7 +1046,12 @@ class LiteralExpression extends Expression {
 class VariableDeclarationList extends Expression {
   final List<VariableInitialization> declarations;
 
-  VariableDeclarationList(this.declarations);
+  /// When pretty-printing a declaration list with multiple declarations over
+  /// several lines, the declarations are usually indented with respect to the
+  /// `var` keyword. Set [indentSplits] to `false` to suppress the indentation.
+  final bool indentSplits;
+
+  VariableDeclarationList(this.declarations, {this.indentSplits = true});
 
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitVariableDeclarationList(this);
@@ -1638,7 +1645,7 @@ class LiteralNumber extends Literal {
 class ArrayInitializer extends Expression {
   final List<Expression> elements;
 
-  ArrayInitializer(this.elements);
+  ArrayInitializer(this.elements) : assert(!elements.contains(null));
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayInitializer(this);
 

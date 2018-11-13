@@ -6,9 +6,9 @@
 
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import 'indexed.dart';
 
 const String kElementPrefix = 'k:';
 
@@ -19,17 +19,6 @@ class KLibrary extends IndexedLibrary {
   KLibrary(this.name, this.canonicalUri);
 
   String toString() => '${kElementPrefix}library($name)';
-}
-
-class KImport implements ImportEntity {
-  final bool isDeferred;
-  final String name;
-  final Uri uri;
-
-  KImport(this.isDeferred, this.name, this.uri);
-
-  String toString() =>
-      '${kElementPrefix}import($name:${isDeferred ? ' deferred' : ''})';
 }
 
 class KClass extends IndexedClass {
@@ -277,12 +266,25 @@ class KLocalFunction implements Local {
   final String name;
   final MemberEntity memberContext;
   final Entity executableContext;
-  final FunctionType functionType;
   final ir.Node node;
+  FunctionType functionType;
 
-  KLocalFunction(this.name, this.memberContext, this.executableContext,
-      this.functionType, this.node);
+  KLocalFunction(
+      this.name, this.memberContext, this.executableContext, this.node);
 
   String toString() => '${kElementPrefix}local_function'
       '(${memberContext.name}.${name ?? '<anonymous>'})';
+}
+
+class KLocalTypeVariable implements TypeVariableEntity {
+  final Entity typeDeclaration;
+  final String name;
+  final int index;
+  DartType bound;
+  DartType defaultType;
+
+  KLocalTypeVariable(this.typeDeclaration, this.name, this.index);
+
+  String toString() =>
+      '${kElementPrefix}local_type_variable(${typeDeclaration.name}.$name)';
 }

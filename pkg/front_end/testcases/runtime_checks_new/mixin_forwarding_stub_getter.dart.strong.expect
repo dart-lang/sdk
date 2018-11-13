@@ -1,10 +1,30 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:39:9: Error: The return type of the method 'M::x' is '(test::C::T) → void', which does not match the return type of the overridden method, '(dart.core::int) → void'.
+// Change to a subtype of '(dart.core::int) → void'.
+//   T get x => f();
+//         ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:24:14: Context: This is the overridden method ('x').
+//   F<int> get x {
+//              ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:47:16: Context: Override was introduced in the mixin application class 'C'.
+// abstract class C<T> = B with M<F<T>> implements I<T>;
+//                ^
+
+// Unhandled errors:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:39:9: Error: The return type of the method 'M::x' is '(test::C::T) → void', which does not match the return type of the overridden method, '(dart.core::int) → void'.
+// Change to a subtype of '(dart.core::int) → void'.
+//   T get x => f();
+//         ^
+
 library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object> = (T) → void;
+typedef F<T extends core::Object = dynamic> = (T) → void;
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   get x() → (core::int) → void {
@@ -14,15 +34,15 @@ class B extends core::Object {
     throw "Should not be reached";
   }
 }
-abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class I<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T>
     : super core::Object::•()
     ;
-  abstract generic-contravariant get x() → (self::I::T) → void;
+  abstract get x() → (self::I::T) → void;
   abstract set x(core::Object value) → void;
 }
-abstract class M<T extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class M<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::M<self::M::T>
     : super core::Object::•()
     ;
   get x() → self::M::T
@@ -32,15 +52,13 @@ abstract class M<T extends core::Object> extends core::Object {
   }
   abstract method f() → self::M::T;
 }
-abstract class C<T extends core::Object> = self::B with self::M<(self::C::T) → void> implements self::I<self::C::T> {
-  constructor •() → void
+abstract class C<T extends core::Object = dynamic> = self::B with self::M<(self::C::T) → void> implements self::I<self::C::T> {
+  synthetic constructor •() → self::C<self::C::T>
     : super self::B::•()
     ;
-  abstract forwarding-stub generic-contravariant method f() → (self::C::T) → void;
-  abstract forwarding-stub generic-contravariant get x() → (self::C::T) → void;
 }
 class D extends self::C<core::int> {
-  default constructor •() → void
+  synthetic constructor •() → self::D
     : super self::B::•()
     ;
   method f() → (core::int) → void

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -14,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetFixesTest);
-    defineReflectiveTests(GetFixesTest_PreviewDart2);
   });
 }
 
@@ -23,7 +20,7 @@ class GetFixesTest extends AbstractAnalysisServerIntegrationTest {
   test_has_fixes() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
-Future f;
+FutureOr f;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
@@ -32,12 +29,13 @@ Future f;
     expect(currentAnalysisErrors[pathname], isNotEmpty);
 
     EditGetFixesResult result =
-        await sendEditGetFixes(pathname, text.indexOf('Future f'));
-    expect(result.fixes, hasLength(1));
+        await sendEditGetFixes(pathname, text.indexOf('FutureOr f'));
 
-    // expect a suggestion to add the dart:async import
+    expect(result.fixes, hasLength(1));
     AnalysisErrorFixes fix = result.fixes.first;
     expect(fix.error.code, 'undefined_class');
+
+    // expect a suggestion to add the dart:async import
     expect(fix.fixes, isNotEmpty);
 
     SourceChange change = fix.fixes.singleWhere(
@@ -51,23 +49,13 @@ Future f;
     String text = r'''
 import 'dart:async';
 
-Future f;
+FutureOr f;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
 
     EditGetFixesResult result =
-        await sendEditGetFixes(pathname, text.indexOf('Future f'));
+        await sendEditGetFixes(pathname, text.indexOf('FutureOr f'));
     expect(result.fixes, isEmpty);
   }
-}
-
-@reflectiveTest
-class GetFixesTest_PreviewDart2 extends GetFixesTest {
-  @override
-  bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  Future test_has_fixes() => super.test_has_fixes();
 }

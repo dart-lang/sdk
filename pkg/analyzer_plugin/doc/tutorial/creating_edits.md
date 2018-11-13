@@ -97,8 +97,8 @@ String className = 'NewClass';
 fileEditBuilder.addReplacement(range, (DartEditBuilder editBuilder) {
   editBuilder.writeClassDeclaration(className, memberWriter: () {
     editBuilder.writeConstructorDeclaration(className);
-    editBuilder.writeOverrideOfInheritedMember(
-        typeProvider.objectType.getMethod('toString'));
+    editBuilder.writeOverride(
+        typeProvider.objectType.getMethod('toString').type);
   });
 });
 ```

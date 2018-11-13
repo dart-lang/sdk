@@ -11,6 +11,10 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
+#if !HOST_OS_IOS
+#define HAS_C11_THREAD_LOCAL 1
+#endif
+
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(HOST_OS_ANDROID)
 #include "vm/os_thread_android.h"
@@ -154,7 +158,11 @@ class OSThread : public BaseThread {
     }
     return os_thread;
   }
-  static void SetCurrent(OSThread* current);
+  static void SetCurrent(OSThread* current) { SetCurrentTLS(current); }
+
+#if defined(HAS_C11_THREAD_LOCAL)
+  static Thread* CurrentVMThread() { return current_vm_thread_; }
+#endif
 
   // TODO(5411455): Use flag to override default value and Validate the
   // stack size by querying OS.
@@ -166,7 +174,7 @@ class OSThread : public BaseThread {
   static BaseThread* GetCurrentTLS() {
     return reinterpret_cast<BaseThread*>(OSThread::GetThreadLocal(thread_key_));
   }
-  static void SetCurrentTLS(uword value) { SetThreadLocal(thread_key_, value); }
+  static void SetCurrentTLS(BaseThread* value);
 
   typedef void (*ThreadStartFunction)(uword parameter);
   typedef void (*ThreadDestructor)(void* parameter);
@@ -196,7 +204,7 @@ class OSThread : public BaseThread {
   static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
 
   // Called at VM startup and shutdown.
-  static void InitOnce();
+  static void Init();
 
   static bool IsThreadInList(ThreadId id);
 
@@ -264,6 +272,10 @@ class OSThread : public BaseThread {
   static Mutex* thread_list_lock_;
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
+
+#if defined(HAS_C11_THREAD_LOCAL)
+  static thread_local Thread* current_vm_thread_;
+#endif
 
   friend class Isolate;  // to access set_thread(Thread*).
   friend class OSThreadIterator;

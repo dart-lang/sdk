@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
  * Sorter for unit/class members.
  */
 class MemberSorter {
-  static List<_PriorityItem> _PRIORITY_ITEMS = [
+  static final List<_PriorityItem> _PRIORITY_ITEMS = [
     new _PriorityItem(false, _MemberKind.UNIT_FUNCTION_MAIN, false),
     new _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, false),
     new _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, true),

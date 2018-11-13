@@ -12,13 +12,13 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
@@ -57,7 +57,7 @@ String _getMethodSourceForInvocation(
     // prepare argument
     Expression argument = null;
     for (Expression arg in arguments) {
-      if (arg.bestParameterElement == parameter) {
+      if (arg.staticParameterElement == parameter) {
         argument = arg;
         break;
       }
@@ -73,7 +73,7 @@ String _getMethodSourceForInvocation(
       argumentSource = utils.getNodeText(argument);
     } else {
       // report about a missing required parameter
-      if (parameter.parameterKind == ParameterKind.REQUIRED) {
+      if (parameter.isNotOptional) {
         status.addError('No argument for the parameter "${parameter.name}".',
             newLocation_fromNode(contextNode));
         return;
@@ -189,7 +189,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
   final AstProvider astProvider;
-  final CompilationUnit unit;
+  final ResolveResult resolveResult;
   final int offset;
   ResolvedUnitCache _unitCache;
   CorrectionUtils utils;
@@ -209,13 +209,14 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Expression _methodExpression;
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
-  List<_ReferenceProcessor> _referenceProcessors = [];
-  Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
+  final List<_ReferenceProcessor> _referenceProcessors = [];
+  final Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
 
   InlineMethodRefactoringImpl(
-      this.searchEngine, this.astProvider, this.unit, this.offset) {
-    _unitCache = new ResolvedUnitCache(astProvider, unit);
-    utils = new CorrectionUtils(unit);
+      this.searchEngine, this.astProvider, this.resolveResult, this.offset) {
+    _unitCache = new ResolvedUnitCache(astProvider, resolveResult.unit);
+    utils =
+        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
   }
 
   @override
@@ -273,6 +274,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     // prepare method information
     result.addStatus(await _prepareMethod());
@@ -308,10 +311,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return new Future.value(change);
   }
 
-  @override
-  bool requiresPreview() => false;
-
   Future<FunctionDeclaration> _computeFunctionDeclaration() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     CompilationUnit unit = await _unitCache.getUnit(_methodElement);
     return new NodeLocator(_methodElement.nameOffset)
         .searchWithin(unit)
@@ -319,6 +321,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<MethodDeclaration> _computeMethodDeclaration() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     CompilationUnit unit = await _unitCache.getUnit(_methodElement);
     return new NodeLocator(_methodElement.nameOffset)
         .searchWithin(unit)
@@ -339,6 +343,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
    * Initializes [_methodElement] and related fields.
    */
   Future<RefactoringStatus> _prepareMethod() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _methodElement = null;
     _methodParameters = null;
     _methodBody = null;
@@ -348,13 +354,13 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     RefactoringStatus fatalStatus = new RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
     // prepare selected SimpleIdentifier
-    AstNode node = new NodeLocator(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(resolveResult.unit);
     if (node is! SimpleIdentifier) {
       return fatalStatus;
     }
     SimpleIdentifier identifier = node as SimpleIdentifier;
     // prepare selected ExecutableElement
-    Element element = identifier.bestElement;
+    Element element = identifier.staticElement;
     if (element is! ExecutableElement) {
       return fatalStatus;
     }
@@ -457,7 +463,9 @@ class _ReferenceProcessor {
 
   _ReferenceProcessor(this.ref, this.reference);
 
-  Future<Null> init() async {
+  Future<void> init() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     refElement = reference.element;
     // prepare CorrectionUtils
     CompilationUnit refUnit = await ref._unitCache.getUnit(refElement);
@@ -790,12 +798,12 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   /**
    * The [SourceRange] of the element body.
    */
-  SourceRange bodyRange;
+  final SourceRange bodyRange;
 
   /**
    * The [_SourcePart] to record reference into.
    */
-  _SourcePart result;
+  final _SourcePart result;
 
   int offset;
 

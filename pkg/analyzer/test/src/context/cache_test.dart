@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.context.cache_test;
-
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:mockito/mockito.dart';
 
 import '../../generated/test_support.dart';
 
@@ -39,14 +36,14 @@ AnalysisCache createCache({AnalysisContext context}) {
 }
 
 class AbstractCacheTest {
-  InternalAnalysisContext context;
+  _InternalAnalysisContextMock context;
   AnalysisCache cache;
 
   void setUp() {
     context = new _InternalAnalysisContextMock();
-    when(context.prioritySources).thenReturn([]);
+    context.prioritySources = [];
     cache = createCache(context: context);
-    when(context.analysisCache).thenReturn(cache);
+    context.analysisCache = cache;
   }
 }
 
@@ -63,8 +60,8 @@ class AnalysisCacheTest extends AbstractCacheTest {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     // put values
-    entry.setValue(resultA, 'a', TargetedResult.EMPTY_LIST);
-    entry.setValue(resultB, 'b', TargetedResult.EMPTY_LIST);
+    entry.setValue(resultA, 'a', const <TargetedResult>[]);
+    entry.setValue(resultB, 'b', const <TargetedResult>[]);
     expect(cache.getState(target, resultA), CacheState.VALID);
     expect(cache.getState(target, resultB), CacheState.VALID);
     expect(cache.getValue(target, resultA), 'a');
@@ -187,7 +184,7 @@ class AnalysisCacheTest extends AbstractCacheTest {
     ResultDescriptor<int> result2 = new ResultDescriptor<int>('result2', -2);
     ResultDescriptor<int> result3 = new ResultDescriptor<int>('result3', -3);
     // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry1.setValue(result1, 111, const <TargetedResult>[]);
     entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
     entry3.setValue(result3, 333, []);
     expect(entry1.getState(result1), CacheState.VALID);
@@ -211,7 +208,7 @@ class AnalysisCacheTest extends AbstractCacheTest {
     ResultDescriptor<int> result1 = new ResultDescriptor<int>('result1', -1);
     ResultDescriptor<int> result2 = new ResultDescriptor<int>('result2', -2);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result1, 111, const <TargetedResult>[]);
     entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
@@ -271,7 +268,7 @@ class CacheEntryTest extends AbstractCacheTest {
     CacheEntry entry2 = new CacheEntry(target2);
     cache.put(entry1);
     cache.put(entry2);
-    entry1.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+    entry1.setValue(descriptor1, 1, const <TargetedResult>[]);
     entry2.setValue(descriptor2, 2, <TargetedResult>[result1]);
     // target2 is listed as dependent in target1
     expect(
@@ -310,7 +307,7 @@ class CacheEntryTest extends AbstractCacheTest {
     CaughtException exception = new CaughtException(null, null);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     // set the same result to VALID
-    entry.setValue(result, 1, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 1, const <TargetedResult>[]);
     // fix the exception state
     entry.fixExceptionState();
     expect(entry.exception, isNull);
@@ -332,8 +329,8 @@ class CacheEntryTest extends AbstractCacheTest {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     // put values
-    entry.setValue(resultA, 'a', TargetedResult.EMPTY_LIST);
-    entry.setValue(resultB, 'b', TargetedResult.EMPTY_LIST);
+    entry.setValue(resultA, 'a', const <TargetedResult>[]);
+    entry.setValue(resultB, 'b', const <TargetedResult>[]);
     expect(entry.getState(resultA), CacheState.VALID);
     expect(entry.getState(resultB), CacheState.VALID);
     expect(entry.getValue(resultA), 'a');
@@ -362,8 +359,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_getValue_flushResults() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> descriptor1 = new ResultDescriptor<int>(
         'result1', null,
         cachingPolicy: cachingPolicy);
@@ -377,18 +373,18 @@ class CacheEntryTest extends AbstractCacheTest {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     {
-      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+      entry.setValue(descriptor1, 1, const <TargetedResult>[]);
       expect(entry.getState(descriptor1), CacheState.VALID);
     }
     {
-      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
+      entry.setValue(descriptor2, 2, const <TargetedResult>[]);
       expect(entry.getState(descriptor1), CacheState.VALID);
       expect(entry.getState(descriptor2), CacheState.VALID);
     }
     // get descriptor1, so that descriptor2 will be flushed
     entry.getValue(descriptor1);
     {
-      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
+      entry.setValue(descriptor3, 3, const <TargetedResult>[]);
       expect(entry.getState(descriptor1), CacheState.VALID);
       expect(entry.getState(descriptor2), CacheState.FLUSHED);
       expect(entry.getState(descriptor3), CacheState.VALID);
@@ -417,7 +413,7 @@ class CacheEntryTest extends AbstractCacheTest {
         new ResultDescriptor<String>('test', null);
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
-    entry.setValue(result, 'value', TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 'value', const <TargetedResult>[]);
     entry.invalidateAllInformation();
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.getValue(result), isNull);
@@ -431,9 +427,9 @@ class CacheEntryTest extends AbstractCacheTest {
     // prepare some good state
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
-    entry.setValue(result1, 10, TargetedResult.EMPTY_LIST);
-    entry.setValue(result2, 20, TargetedResult.EMPTY_LIST);
-    entry.setValue(result3, 30, TargetedResult.EMPTY_LIST);
+    entry.setValue(result1, 10, const <TargetedResult>[]);
+    entry.setValue(result2, 20, const <TargetedResult>[]);
+    entry.setValue(result3, 30, const <TargetedResult>[]);
     // set error state
     CaughtException exception = new CaughtException(null, null);
     entry.setErrorState(exception, <ResultDescriptor>[result1, result2]);
@@ -459,7 +455,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result3 = new ResultDescriptor<int>('result3', -3);
     ResultDescriptor<int> result4 = new ResultDescriptor<int>('result4', -4);
     // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry1.setValue(result1, 111, const <TargetedResult>[]);
     entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
     entry2.setValue(result3, 333, [new TargetedResult(target2, result2)]);
     entry2.setValue(result4, 444, []);
@@ -519,7 +515,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result = new ResultDescriptor<int>('test', null);
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
-    entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 42, const <TargetedResult>[]);
     // an invalid state change
     expect(() {
       entry.setState(result, CacheState.ERROR);
@@ -535,7 +531,7 @@ class CacheEntryTest extends AbstractCacheTest {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     // set VALID
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 10, const <TargetedResult>[]);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set FLUSHED
@@ -550,7 +546,7 @@ class CacheEntryTest extends AbstractCacheTest {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     // set VALID
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 10, const <TargetedResult>[]);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set IN_PROCESS
@@ -565,7 +561,7 @@ class CacheEntryTest extends AbstractCacheTest {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     // set VALID
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 10, const <TargetedResult>[]);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // listen, expect "result" invalidation event
@@ -624,7 +620,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result3 = new ResultDescriptor<int>('result3', -3);
     ResultDescriptor<int> result4 = new ResultDescriptor<int>('result4', -4);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result1, 111, const <TargetedResult>[]);
     entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
     entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
     entry.setValue(result4, 444, []);
@@ -657,7 +653,7 @@ class CacheEntryTest extends AbstractCacheTest {
     cache.put(entry);
     ResultDescriptor<int> result = new ResultDescriptor<int>('result1', -1);
     // set results, all of them are VALID
-    entry.setValue(result, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 111, const <TargetedResult>[]);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 111);
     // invalidate result, keep entry
@@ -676,7 +672,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result2 = new ResultDescriptor<int>('result2', -2);
     ResultDescriptor<int> result3 = new ResultDescriptor<int>('result3', -3);
     // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry1.setValue(result1, 111, const <TargetedResult>[]);
     entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
     entry2.setValue(result3, 333, [new TargetedResult(target2, result2)]);
     expect(entry1.getState(result1), CacheState.VALID);
@@ -699,7 +695,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result2 = new ResultDescriptor<int>('result2', -2);
     ResultDescriptor<int> result3 = new ResultDescriptor<int>('result3', -3);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result1, 111, const <TargetedResult>[]);
     entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
     entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
     expect(entry.getState(result1), CacheState.VALID);
@@ -747,14 +743,13 @@ class CacheEntryTest extends AbstractCacheTest {
     String value = 'value';
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
-    entry.setValue(result, value, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, value, const <TargetedResult>[]);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), value);
   }
 
   test_setValue_flushResults() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> descriptor1 = new ResultDescriptor<int>(
         'result1', null,
         cachingPolicy: cachingPolicy);
@@ -768,16 +763,16 @@ class CacheEntryTest extends AbstractCacheTest {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     {
-      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+      entry.setValue(descriptor1, 1, const <TargetedResult>[]);
       expect(entry.getState(descriptor1), CacheState.VALID);
     }
     {
-      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
+      entry.setValue(descriptor2, 2, const <TargetedResult>[]);
       expect(entry.getState(descriptor1), CacheState.VALID);
       expect(entry.getState(descriptor2), CacheState.VALID);
     }
     {
-      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
+      entry.setValue(descriptor3, 3, const <TargetedResult>[]);
       expect(entry.getState(descriptor1), CacheState.FLUSHED);
       expect(entry.getState(descriptor2), CacheState.VALID);
       expect(entry.getState(descriptor3), CacheState.VALID);
@@ -785,8 +780,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_setValue_flushResults_keepForPrioritySources() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> newResult(String name) =>
         new ResultDescriptor<int>(name, null, cachingPolicy: cachingPolicy);
     ResultDescriptor<int> descriptor1 = newResult('result1');
@@ -809,14 +803,14 @@ class CacheEntryTest extends AbstractCacheTest {
     cache.put(entry3);
 
     // Set two results.
-    entry1.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
-    entry2.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
+    entry1.setValue(descriptor1, 1, const <TargetedResult>[]);
+    entry2.setValue(descriptor2, 2, const <TargetedResult>[]);
     expect(entry1.getState(descriptor1), CacheState.VALID);
     expect(entry2.getState(descriptor2), CacheState.VALID);
 
     // Make source1 priority, so result2 is flushed instead.
-    when(context.prioritySources).thenReturn([source1]);
-    entry3.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
+    context.prioritySources = <Source>[source1];
+    entry3.setValue(descriptor3, 3, const <TargetedResult>[]);
     expect(entry1.getState(descriptor1), CacheState.VALID);
     expect(entry2.getState(descriptor2), CacheState.FLUSHED);
     expect(entry3.getState(descriptor3), CacheState.VALID);
@@ -829,14 +823,14 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result1 = new ResultDescriptor<int>('result1', -1);
     ResultDescriptor<int> result2 = new ResultDescriptor<int>('result2', -2);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result1, 111, const <TargetedResult>[]);
     entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getValue(result1), 111);
     expect(entry.getValue(result2), 222);
     // set result1; result2 is intact
-    entry.setValue(result1, 1111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result1, 1111, const <TargetedResult>[]);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getValue(result1), 1111);
@@ -854,7 +848,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result2 = new ResultDescriptor<int>('result2', -2);
     // set results, all of them are VALID
     entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry1.setValue(result1, 111, const <TargetedResult>[]);
     expect(entry1.getState(result1), CacheState.VALID);
     expect(entry2.getState(result2), CacheState.VALID);
     expect(entry1.getValue(result1), 111);
@@ -873,7 +867,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result2 = new ResultDescriptor<int>('result2', -2);
     ResultDescriptor<int> result3 = new ResultDescriptor<int>('result3', -3);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result1, 111, const <TargetedResult>[]);
     entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
     entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
     expect(entry.getState(result1), CacheState.VALID);
@@ -907,7 +901,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor<int> result = new ResultDescriptor<int>('test', null);
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
-    entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
+    entry.setValue(result, 42, const <TargetedResult>[]);
     expect(entry.toString(), isNotNull);
   }
 }
@@ -1253,11 +1247,11 @@ class UniversalCachePartitionTest extends CachePartitionTest {
   }
 
   test_dispose() {
-    InternalAnalysisContext context = new _InternalAnalysisContextMock();
+    _InternalAnalysisContextMock context = new _InternalAnalysisContextMock();
     CachePartition partition1 = new UniversalCachePartition(context);
     CachePartition partition2 = new UniversalCachePartition(context);
     AnalysisCache cache = new AnalysisCache([partition1, partition2]);
-    when(context.analysisCache).thenReturn(cache);
+    context.analysisCache = cache;
     // configure
     // prepare entries
     ResultDescriptor<int> descriptor1 =
@@ -1272,7 +1266,7 @@ class UniversalCachePartitionTest extends CachePartitionTest {
     CacheEntry entry2 = new CacheEntry(target2);
     partition1.put(entry1);
     partition2.put(entry2);
-    entry1.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+    entry1.setValue(descriptor1, 1, const <TargetedResult>[]);
     entry2.setValue(descriptor2, 2, <TargetedResult>[result1]);
     // target2 is listed as dependent in target1
     expect(
@@ -1286,10 +1280,20 @@ class UniversalCachePartitionTest extends CachePartitionTest {
   }
 }
 
-class _InternalAnalysisContextMock extends Mock
-    implements InternalAnalysisContext {
+class _InternalAnalysisContextMock implements InternalAnalysisContext {
   @override
   final AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
+
+  @override
+  AnalysisCache analysisCache;
+
+  @override
+  List<Source> prioritySources = <Source>[];
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
 }
 
 /**

@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/promote_bounds.dart:17:9: Context: Possible promotion of a@366
+  if (a is String) {
+        ^^
+pkg/front_end/testcases/inference/promote_bounds.dart:21:9: Context: Possible promotion of a@366
+  if (a is C) {
+        ^^

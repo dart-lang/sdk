@@ -4,9 +4,12 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -22,8 +25,21 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class AnalysisSession {
   /**
-   * Return the source factory used to resolve URIs.
+   * The declared environment variables.
    */
+  DeclaredVariables get declaredVariables;
+
+  /**
+   * Return the [ResourceProvider] that is used to access the file system.
+   */
+  ResourceProvider get resourceProvider;
+
+  /**
+   * Return the source factory used to resolve URIs.
+   *
+   * Deprecated: Use the methods on [uriConverter] instead.
+   */
+  @deprecated
   SourceFactory get sourceFactory;
 
   /**
@@ -36,6 +52,11 @@ abstract class AnalysisSession {
    * Return the type system being used by this session.
    */
   Future<TypeSystem> get typeSystem;
+
+  /**
+   * Return the URI converter used to convert between URI's and file paths.
+   */
+  UriConverter get uriConverter;
 
   /**
    * Return a future that will complete with information about the errors
@@ -57,6 +78,12 @@ abstract class AnalysisSession {
    * parsing the file with the given absolute, normalized [path].
    */
   Future<ParseResult> getParsedAst(String path);
+
+  /**
+   * Return information about the results of parsing the file with the given
+   * absolute, normalized [path].
+   */
+  ParseResult getParsedAstSync(String path);
 
   /**
    * Return a future that will complete with information about the results of
@@ -105,10 +132,7 @@ abstract class AnalysisSession {
  * might be inconsistent with any previously returned results.
  */
 class InconsistentAnalysisException extends AnalysisException {
-  /**
-   * Initialize a newly created exception to have the given [message] and
-   * [cause].
-   */
-  InconsistentAnalysisException([String message, CaughtException cause])
-      : super(message, cause);
+  InconsistentAnalysisException()
+      : super('Requested result might be inconsistent with previously '
+            'returned results');
 }

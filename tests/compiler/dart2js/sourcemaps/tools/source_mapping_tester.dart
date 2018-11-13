@@ -131,13 +131,7 @@ bool parseArgument(String argument, Set<String> configurations,
 }
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
-  'ast': const [
-    '--use-new-source-info',
-  ],
-  'kernel': const [
-    Flags.useKernel,
-  ],
-  'old': const [],
+  'kernel': const [],
 };
 
 final Map<String, Uri> TEST_FILES = _computeTestFiles();
@@ -158,7 +152,7 @@ Future<TestResult> runTests(
     {bool verbose: true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(uri);
   SourceMaps sourceMaps = await processor.process(
-      ['--csp', '--disable-inlining']..addAll(options),
+      [Flags.useContentSecurityPolicy, Flags.disableInlining]..addAll(options),
       verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {

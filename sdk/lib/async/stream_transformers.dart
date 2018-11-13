@@ -155,7 +155,7 @@ typedef EventSink<S> _SinkMapper<S, T>(EventSink<T> output);
  *
  * Note that this class can be `const`.
  */
-class _StreamSinkTransformer<S, T> implements StreamTransformer<S, T> {
+class _StreamSinkTransformer<S, T> extends StreamTransformerBase<S, T> {
   final _SinkMapper<S, T> _sinkMapper;
   const _StreamSinkTransformer(this._sinkMapper);
 
@@ -282,6 +282,16 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   }
 }
 
+/**
+ * A StreamTransformer that overrides [StreamTransformer.bind] with a callback.
+ */
+class _StreamBindTransformer<S, T> extends StreamTransformerBase<S, T> {
+  final Stream<T> Function(Stream<S>) _bind;
+  _StreamBindTransformer(this._bind);
+
+  Stream<T> bind(Stream<S> stream) => _bind(stream);
+}
+
 /// A closure mapping a stream and cancelOnError to a StreamSubscription.
 typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
     Stream<S> stream, bool cancelOnError);
@@ -298,7 +308,7 @@ typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
  * `StreamSubscription`. As such it can also act on `cancel` events, making it
  * fully general.
  */
-class _StreamSubscriptionTransformer<S, T> implements StreamTransformer<S, T> {
+class _StreamSubscriptionTransformer<S, T> extends StreamTransformerBase<S, T> {
   final _SubscriptionTransformer<S, T> _onListen;
 
   const _StreamSubscriptionTransformer(this._onListen);

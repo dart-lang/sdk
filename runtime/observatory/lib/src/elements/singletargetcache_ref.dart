@@ -31,7 +31,7 @@ class SingleTargetCacheRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(singleTargetCache != null);
     SingleTargetCacheRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SingleTargetCacheRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._singleTargetCache = singleTargetCache;
     return e;
@@ -49,14 +49,14 @@ class SingleTargetCacheRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(
           href: Uris.inspect(_isolate, object: _singleTargetCache))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'SingleTargetCache',

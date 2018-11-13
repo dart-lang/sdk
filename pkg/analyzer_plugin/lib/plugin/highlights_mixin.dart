@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,6 +25,8 @@ import 'package:analyzer_plugin/utilities/highlights/highlights.dart';
 abstract class DartHighlightsMixin implements HighlightsMixin {
   @override
   Future<HighlightsRequest> getHighlightsRequest(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(path);
     return new DartHighlightsRequestImpl(resourceProvider, result);
   }
@@ -53,13 +55,15 @@ abstract class HighlightsMixin implements ServerPlugin {
   Future<HighlightsRequest> getHighlightsRequest(String path);
 
   @override
-  Future<Null> sendHighlightsNotification(String path) async {
+  Future<void> sendHighlightsNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       HighlightsRequest request = await getHighlightsRequest(path);
       HighlightsGenerator generator =
           new HighlightsGenerator(getHighlightsContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateHighlightsNotification(request);
+          generator.generateHighlightsNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

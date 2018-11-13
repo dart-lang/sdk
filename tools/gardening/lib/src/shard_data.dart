@@ -52,12 +52,10 @@ const Map<String, List<String>> shardGroups = const {
     'vm-kernel-precomp-linux-debug-x64-8-8-be',
   ],
   'vm-misc': const <String>[
-    'vm-win-debug-ia32-russian-be',
     'cross-arm64-vm-linux-release-be',
-    'vm-linux-release-ia32-asan-be',
-    'vm-linux-release-x64-asan-be',
     'vm-linux-release-ia32-optcounter-threshold-be',
     'vm-linux-release-x64-optcounter-threshold-be',
+    'vm-linux-release-x64-asan-be',
     'target-arm64-vm-linux-release-be',
   ],
   'vm-precomp': const <String>[
@@ -133,9 +131,7 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-linux-chromeff-4-4-be',
   ],
   'chrome': const <String>[
-    'dart2js-linux-drt-1-2-be',
-    'dart2js-linux-drt-2-2-be',
-    'dart2js-linux-drt-csp-minified-be',
+    'dart2js-linux-chrome-csp-minified-be',
     'dart2js-mac10.11-chrome-be',
   ],
   'safari': const <String>[
@@ -211,12 +207,10 @@ const Map<String, List<String>> shardGroups = const {
     'vm-kernel-precomp-linux-debug-x64-8-8-dev',
   ],
   'vm-misc-dev': const <String>[
-    'vm-win-debug-ia32-russian-dev',
     'cross-arm64-vm-linux-release-dev',
-    'vm-linux-release-ia32-asan-dev',
-    'vm-linux-release-x64-asan-dev',
     'vm-linux-release-ia32-optcounter-threshold-dev',
     'vm-linux-release-x64-optcounter-threshold-dev',
+    'vm-linux-release-x64-asan-dev',
     'target-arm64-vm-linux-release-dev',
   ],
   'vm-precomp-dev': const <String>[
@@ -292,9 +286,7 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-linux-chromeff-4-4-dev',
   ],
   'chrome-dev': const <String>[
-    'dart2js-linux-drt-1-2-dev',
-    'dart2js-linux-drt-2-2-dev',
-    'dart2js-linux-drt-csp-minified-dev',
+    'dart2js-linux-chrome-csp-minified-dev',
     'dart2js-mac10.11-chrome-dev',
   ],
   'safari-dev': const <String>[
@@ -351,12 +343,10 @@ const Map<String, List<String>> shardGroups = const {
     'vm-kernel-precomp-linux-debug-x64-8-8-stable',
   ],
   'vm-misc-stable': const <String>[
-    'vm-win-debug-ia32-russian-stable',
     'cross-arm64-vm-linux-release-stable',
-    'vm-linux-release-ia32-asan-stable',
-    'vm-linux-release-x64-asan-stable',
     'vm-linux-release-ia32-optcounter-threshold-stable',
     'vm-linux-release-x64-optcounter-threshold-stable',
+    'vm-linux-release-x64-asan-stable',
     'target-arm64-vm-linux-release-stable',
   ],
   'vm-precomp-stable': const <String>[
@@ -451,9 +441,7 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-linux-chromeff-4-4-stable',
   ],
   'chrome-stable': const <String>[
-    'dart2js-linux-drt-1-2-stable',
-    'dart2js-linux-drt-2-2-stable',
-    'dart2js-linux-drt-csp-minified-stable',
+    'dart2js-linux-chrome-csp-minified-stable',
     'dart2js-mac10.11-chrome-stable',
   ],
   'safari-stable': const <String>[

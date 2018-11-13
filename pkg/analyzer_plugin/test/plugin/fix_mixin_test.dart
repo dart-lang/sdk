@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -98,8 +98,8 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
     int offset = parameters.offset;
     AnalysisError error = new AnalysisError(
         new MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
-    AnalysisResult result = new AnalysisResult(null, null, null, null, null,
-        null, new LineInfo([0, 20]), null, null, [error], null);
+    AnalysisResult result = new MockAnalysisResult(
+        lineInfo: new LineInfo([0, 20]), errors: [error]);
     return new DartFixesRequestImpl(resourceProvider, offset, [error], result);
   }
 }

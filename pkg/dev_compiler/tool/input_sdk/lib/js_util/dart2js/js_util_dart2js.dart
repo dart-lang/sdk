@@ -24,13 +24,13 @@ import 'dart:collection' show HashMap;
 /// JavaScript type, and all other objects are proxied.
 jsify(object) {
   if ((object is! Map) && (object is! Iterable)) {
-    throw new ArgumentError("object must be a Map or Iterable");
+    throw ArgumentError("object must be a Map or Iterable");
   }
   return _convertDataTree(object);
 }
 
 _convertDataTree(data) {
-  var _convertedObjects = new HashMap.identity();
+  var _convertedObjects = HashMap.identity();
 
   _convert(o) {
     if (_convertedObjects.containsKey(o)) {
@@ -72,7 +72,7 @@ callConstructor(Function constr, List arguments) {
   }
 
   if (JS('bool', '# instanceof Array', arguments)) {
-    int argumentCount = JS('int', '#.length', arguments);
+    int argumentCount = JS('!', '#.length', arguments);
     switch (argumentCount) {
       case 0:
         return JS('Object', 'new #()', constr);

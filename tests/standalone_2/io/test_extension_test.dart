@@ -40,16 +40,7 @@ List<String> getExtensionNames(String arch) {
 }
 
 String getExtensionPath(String buildDirectory, String filename) {
-  switch (Platform.operatingSystem) {
-    case 'android':
-    case 'linux':
-      return join(buildDirectory, 'lib.target', filename);
-    case 'macos':
-    case 'windows':
-      return join(buildDirectory, filename);
-    default:
-      Expect.fail('Unknown operating system ${Platform.operatingSystem}');
-  }
+  return join(buildDirectory, filename);
 }
 
 String getArchFromBuildDir(String buildDirectory) {
@@ -64,7 +55,7 @@ String getArchFromBuildDir(String buildDirectory) {
   return 'unknown';
 }
 
-Future testExtension(bool withArchSuffix) {
+Future testExtension(bool withArchSuffix) async {
   String scriptDirectory = dirname(Platform.script.toFilePath());
   String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory =
@@ -79,34 +70,34 @@ Future testExtension(bool withArchSuffix) {
     fileNames = getExtensionNames('');
   }
 
-  // Copy test_extension shared library, test_extension.dart and
-  // test_extension_tester.dart to the temporary test directory.
-  return copyFileToDirectory(getExtensionPath(buildDirectory, fileNames[0]),
-      join(testDirectory, fileNames[1])).then((_) {
+  try {
+    // Copy test_extension shared library, test_extension.dart and
+    // test_extension_tester.dart to the temporary test directory.
+    await copyFileToDirectory(getExtensionPath(buildDirectory, fileNames[0]),
+        join(testDirectory, fileNames[1]));
+
     var extensionDartFile = join(scriptDirectory, 'test_extension.dart');
-    return copyFileToDirectory(extensionDartFile, testDirectory);
-  }).then((_) {
+    await copyFileToDirectory(extensionDartFile, testDirectory);
+
     var testExtensionTesterFile =
         join(scriptDirectory, 'test_extension_tester.dart');
-    return copyFileToDirectory(testExtensionTesterFile, testDirectory);
-  }).then<ProcessResult>((_) {
-    var script = join(testDirectory, 'test_extension_tester.dart');
-    return Process.run(Platform.executable, [script]);
-  })
-    ..then((ProcessResult result) {
-      if (result.exitCode != 0) {
-        print('Subprocess failed with exit code ${result.exitCode}');
-        print('stdout:');
-        print('${result.stdout}');
-        print('stderr:');
-        print('${result.stderr}');
-      }
-      Expect.equals(0, result.exitCode);
-      tempDirectory.deleteSync(recursive: true);
-    })
-    ..catchError((_) {
-      tempDirectory.deleteSync(recursive: true);
-    });
+    await copyFileToDirectory(testExtensionTesterFile, testDirectory);
+
+    var args = new List<String>.from(Platform.executableArguments)
+      ..add(join(testDirectory, 'test_extension_tester.dart'));
+    ProcessResult result = await Process.run(Platform.executable, args);
+
+    if (result.exitCode != 0) {
+      print('Subprocess failed with exit code ${result.exitCode}');
+      print('stdout:');
+      print('${result.stdout}');
+      print('stderr:');
+      print('${result.stderr}');
+    }
+    Expect.equals(0, result.exitCode);
+  } finally {
+    tempDirectory.deleteSync(recursive: true);
+  }
 }
 
 Future testWithArchSuffix() {

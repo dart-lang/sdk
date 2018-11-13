@@ -27,7 +27,7 @@ void block_test() {
   }; // No implicit downcast on the assignment, implicit downcast on the return
   assert(g is List<Object> Function());
   assert(g is! List<int> Function());
-  assert(g is! Object Function());
+  assert(g is Object Function());
   g(); // No runtime error;
   o = 3;
   Expect.throwsTypeError(() {
@@ -53,7 +53,7 @@ void arrow_test() {
       o; // No implicit downcast on the assignment, implicit downcast on the return
   assert(g is List<Object> Function());
   assert(g is! List<int> Function());
-  assert(g is! Object Function());
+  assert(g is Object Function());
   g(); // No runtime error;
   o = 3;
   Expect.throwsTypeError(() {

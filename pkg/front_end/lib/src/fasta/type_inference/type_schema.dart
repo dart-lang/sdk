@@ -2,9 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart';
-import 'package:kernel/import_table.dart';
-import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/ast.dart'
+    show
+        DartType,
+        DartTypeVisitor,
+        DartTypeVisitor1,
+        FunctionType,
+        InterfaceType,
+        TypedefType,
+        Visitor;
+
+import 'package:kernel/import_table.dart' show ImportTable;
+
+import 'package:kernel/text/ast_to_text.dart'
+    show Annotator, NameSystem, Printer, globalDebuggingNames;
 
 /// Determines whether a type schema contains `?` somewhere inside it.
 bool isKnown(DartType schema) => schema.accept(new _IsKnownVisitor());
@@ -72,6 +83,9 @@ class UnknownType extends DartType {
       return v.defaultDartType(this);
     }
   }
+
+  @override
+  accept1(DartTypeVisitor1 v, arg) => v.defaultDartType(this, arg);
 
   @override
   visitChildren(Visitor v) {}

@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 
+import '../../../../generated/test_support.dart';
 import '../recovery_test_support.dart';
+
+typedef CompilationUnit AdjustValidUnitBeforeComparison(CompilationUnit unit);
 
 /**
  * A base class that adds support for tests that test how well the parser
@@ -25,9 +30,10 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * A list of suffixes that can be used by tests of class members.
    */
   static final List<TestSuffix> classMemberSuffixes = <TestSuffix>[
+    new TestSuffix('annotation', '@annotation var f;'),
     new TestSuffix('field', 'var f;'),
-    new TestSuffix('fieldConst', 'const f;'),
-    new TestSuffix('fieldFinal', 'final f;'),
+    new TestSuffix('fieldConst', 'const f = 0;'),
+    new TestSuffix('fieldFinal', 'final f = 0;'),
     new TestSuffix('methodNonVoid', 'int a(b) => 0;'),
     new TestSuffix('methodVoid', 'void a(b) {}'),
     new TestSuffix('getter', 'int get a => 0;'),
@@ -44,8 +50,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     new TestSuffix('functionVoid', 'void f() {}'),
     new TestSuffix('functionNonVoid', 'int f() {}'),
     new TestSuffix('var', 'var a;'),
-    new TestSuffix('const', 'const a;'),
-    new TestSuffix('final', 'final a;'),
+    new TestSuffix('const', 'const a = 0;'),
+    new TestSuffix('final', 'final a = 0;'),
     new TestSuffix('getter', 'int get a => 0;'),
     new TestSuffix('setter', 'set a(b) {}')
   ];
@@ -99,11 +105,13 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    */
   buildTests(String groupName, List<TestDescriptor> descriptors,
       List<TestSuffix> suffixes,
-      {String head, String tail}) {
+      {String head, bool includeEof: true, String tail}) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
-        _buildTestForDescriptorAndSuffix(
-            descriptor, TestSuffix.eof, 0, head, tail);
+        if (includeEof) {
+          _buildTestForDescriptorAndSuffix(
+              descriptor, TestSuffix.eof, 0, head, tail);
+        }
         for (int i = 0; i < suffixes.length; i++) {
           _buildTestForDescriptorAndSuffix(
               descriptor, suffixes[i], i + 1, head, tail);
@@ -111,9 +119,13 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         if (descriptor.failing != null) {
           test('${descriptor.name}_failingList', () {
             Set<String> failing = new Set.from(descriptor.failing);
-            failing.remove('eof');
+            if (includeEof) {
+              failing.remove('eof');
+            }
             failing.removeAll(suffixes.map((TestSuffix suffix) => suffix.name));
-            expect(failing, isEmpty);
+            expect(failing, isEmpty,
+                reason:
+                    'There are tests marked as failing that are not being run');
           });
         }
       }
@@ -131,9 +143,11 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       //
       StringBuffer invalid = new StringBuffer();
       StringBuffer valid = new StringBuffer();
+      StringBuffer base = new StringBuffer();
       if (head != null) {
         invalid.write(head);
         valid.write(head);
+        base.write(head);
       }
       invalid.write(descriptor.invalid);
       valid.write(descriptor.valid);
@@ -142,10 +156,40 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         invalid.write(suffix.text);
         valid.write(' ');
         valid.write(suffix.text);
+        base.write(' ');
+        base.write(suffix.text);
       }
       if (tail != null) {
         invalid.write(tail);
         valid.write(tail);
+        base.write(tail);
+      }
+      //
+      // Determine the existing errors in the code without either valid or
+      // invalid code.
+      //
+      GatheringErrorListener listener =
+          new GatheringErrorListener(checkRanges: true);
+      parseCompilationUnit2(base.toString(), listener);
+      var baseErrorCodes = <ErrorCode>[];
+      listener.errors.forEach((AnalysisError error) {
+        if (error.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
+            error.errorCode == ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
+            error.errorCode == ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
+          baseErrorCodes.add(error.errorCode);
+        }
+      });
+
+      var expectedValidCodeErrors = <ErrorCode>[];
+      expectedValidCodeErrors.addAll(baseErrorCodes);
+      if (descriptor.expectedErrorsInValidCode != null) {
+        expectedValidCodeErrors.addAll(descriptor.expectedErrorsInValidCode);
+      }
+
+      var expectedInvalidCodeErrors = <ErrorCode>[];
+      expectedInvalidCodeErrors.addAll(baseErrorCodes);
+      if (descriptor.errorCodes != null) {
+        expectedInvalidCodeErrors.addAll(descriptor.errorCodes);
       }
       //
       // Run the test.
@@ -156,7 +200,10 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         bool failed = false;
         try {
           testRecovery(
-              invalid.toString(), descriptor.errorCodes, valid.toString());
+              invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
+              adjustValidUnitBeforeComparison:
+                  descriptor.adjustValidUnitBeforeComparison,
+              expectedErrorsInValidCode: expectedValidCodeErrors);
           failed = true;
         } catch (e) {
           // Expected to fail.
@@ -166,7 +213,10 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         }
       } else {
         testRecovery(
-            invalid.toString(), descriptor.errorCodes, valid.toString());
+            invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
+            adjustValidUnitBeforeComparison:
+                descriptor.adjustValidUnitBeforeComparison,
+            expectedErrorsInValidCode: expectedValidCodeErrors);
       }
     });
   }
@@ -198,6 +248,11 @@ class TestDescriptor {
   final String valid;
 
   /**
+   * Error codes that the parser is expected to produce in the valid code.
+   */
+  final List<ErrorCode> expectedErrorsInValidCode;
+
+  /**
    * A flag indicating whether all of the tests are expected to fail.
    */
   final bool allFailing;
@@ -209,10 +264,19 @@ class TestDescriptor {
   final List<String> failing;
 
   /**
+   * A function that modifies the valid compilation unit before it is compared
+   * with the invalid compilation unit, or `null` if no modification needed.
+   */
+  AdjustValidUnitBeforeComparison adjustValidUnitBeforeComparison;
+
+  /**
    * Initialize a newly created test descriptor.
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
-      {this.allFailing: false, this.failing});
+      {this.allFailing: false,
+      this.failing,
+      this.expectedErrorsInValidCode,
+      this.adjustValidUnitBeforeComparison});
 }
 
 /**

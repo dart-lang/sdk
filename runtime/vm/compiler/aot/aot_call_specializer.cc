@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/cha.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
@@ -161,7 +162,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   ASSERT(!function.IsNull());
   const Function& target = Function::ZoneHandle(Z, function.raw());
   StaticCallInstr* static_call = StaticCallInstr::FromCall(Z, call, target);
-  static_call->set_result_cid(kTypeCid);
+  static_call->SetResultType(Z, CompileType::FromCid(kTypeCid));
   call->ReplaceWith(static_call, current_iterator());
   return true;
 }
@@ -176,12 +177,13 @@ static bool IsGetRuntimeType(Definition* defn) {
 // Object._haveSameRuntimeType(a, b).
 // Note: this optimization is not speculative.
 bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
-    InstanceCallInstr* call) {
-  const ICData& ic_data = *call->ic_data();
-  ASSERT(ic_data.NumArgsTested() == 2);
-
+    TemplateDartCall<0>* call) {
+  ASSERT((call->IsInstanceCall() &&
+          (call->AsInstanceCall()->ic_data()->NumArgsTested() == 2)) ||
+         call->IsStaticCall());
   ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
+
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
@@ -203,12 +205,11 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
     InsertBefore(call, arg, NULL, FlowGraph::kEffect);
     args->Add(arg);
     const intptr_t kTypeArgsLen = 0;
-    ASSERT(call->type_args_len() == kTypeArgsLen);
     StaticCallInstr* static_call = new (Z) StaticCallInstr(
         call->token_pos(), have_same_runtime_type, kTypeArgsLen,
         Object::null_array(),  // argument_names
         args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
-    static_call->set_result_cid(kBoolCid);
+    static_call->SetResultType(Z, CompileType::FromCid(kBoolCid));
     ReplaceCall(call, static_call);
     return true;
   }
@@ -251,19 +252,62 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   return false;
 }
 
+bool AotCallSpecializer::TryInlineFieldAccess(StaticCallInstr* call) {
+  if (call->function().IsImplicitGetterFunction()) {
+    Field& field = Field::ZoneHandle(call->function().accessor_field());
+    if (should_clone_fields_) {
+      field = field.CloneFromOriginal();
+    }
+    InlineImplicitInstanceGetter(call, field);
+    return true;
+  }
+
+  return false;
+}
+
+bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
+    CompileType* operand_type) {
+  if (operand_type->IsNullableInt()) {
+    if (operand_type->ToNullableCid() == kSmiCid) {
+      return true;
+    }
+
+    if (FlowGraphCompiler::SupportsUnboxedInt64() &&
+        FlowGraphCompiler::CanConvertInt64ToDouble()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
-  ASSERT((cid == kDoubleCid) ||
-         (FLAG_limit_ints_to_64_bits && (cid == kMintCid)));
+  ASSERT(I->can_use_strong_mode_types());
+  ASSERT((cid == kDoubleCid) || (cid == kMintCid));
 
-  AddCheckNull(input, call->deopt_id(), call->env(), call);
+  const String& function_name =
+      (call->IsInstanceCall()
+           ? call->AsInstanceCall()->function_name()
+           : String::ZoneHandle(Z, call->AsStaticCall()->function().name()));
+
+  AddCheckNull(input, function_name, call->deopt_id(), call->env(), call);
 
   input = input->CopyWithType(Z);
 
-  if ((cid == kDoubleCid) && (input->Type()->ToNullableCid() == kSmiCid)) {
-    Definition* conversion = new (Z) SmiToDoubleInstr(input, call->token_pos());
+  if ((cid == kDoubleCid) && input->Type()->IsNullableInt()) {
+    Definition* conversion = NULL;
+
+    if (input->Type()->ToNullableCid() == kSmiCid) {
+      conversion = new (Z) SmiToDoubleInstr(input, call->token_pos());
+    } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
+               FlowGraphCompiler::CanConvertInt64ToDouble()) {
+      conversion = new (Z) Int64ToDoubleInstr(input, DeoptId::kNone,
+                                              Instruction::kNotSpeculative);
+    } else {
+      UNREACHABLE();
+    }
 
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", conversion->ToCString());
@@ -277,29 +321,38 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
 Value* AotCallSpecializer::PrepareReceiverOfDevirtualizedCall(Value* input,
                                                               intptr_t cid) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
-  ASSERT(cid == kDoubleCid);
+  ASSERT(I->can_use_strong_mode_types());
+  ASSERT((cid == kDoubleCid) || (cid == kMintCid));
 
   // Can't assert !input->Type()->is_nullable() here as PushArgument receives
   // value prior to a CheckNull in case of devirtualized call.
 
   input = input->CopyWithType(Z);
 
-  // Make sure type of the input is double.
-  // It is necessary as VM has limited knowledge of generic types
-  // and may not accurately infer type of the receiver if it is a
-  // generic type.
-  // TODO(dartbug.com/30480): improve type inference for generic types
-  if (!input->Type()->IsNullableDouble()) {
+  // Correct type of input if necessary.
+  // This correction is needed as VM may not be able to infer receiver type.
+  if ((cid == kIntegerCid) && !input->Type()->IsNullableInt()) {
+    input->SetReachingType(new (Z) CompileType(CompileType::Int()));
+  } else if ((cid == kDoubleCid) && !input->Type()->IsNullableDouble()) {
     input->SetReachingType(new (Z) CompileType(CompileType::Double()));
   }
 
   return input;
 }
 
+// After replacing a call with a specialized instruction, make sure to
+// update types at all uses, as specialized instruction can provide a more
+// specific type.
+static void RefineUseTypes(Definition* instr) {
+  CompileType* new_type = instr->Type();
+  for (Value::Iterator it(instr->input_use_list()); !it.Done(); it.Advance()) {
+    it.Current()->RefineReachingType(new_type);
+  }
+}
+
 bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
     InstanceCallInstr* instr) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+  ASSERT(I->can_use_strong_mode_types());
 
   const intptr_t receiver_index = instr->FirstArgIndex();
   const Token::Kind op_kind = instr->token_kind();
@@ -317,21 +370,20 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       CompileType* left_type = left_value->Type();
       CompileType* right_type = right_value->Type();
       if (left_type->IsNullableInt() && right_type->IsNullableInt()) {
-        if (FLAG_limit_ints_to_64_bits &&
-            FlowGraphCompiler::SupportsUnboxedMints()) {
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
           if (Token::IsRelationalOperator(op_kind)) {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
             replacement = new (Z) RelationalOpInstr(
                 instr->token_pos(), op_kind, left_value, right_value, kMintCid,
-                Thread::kNoDeoptId, Instruction::kNotSpeculative);
+                DeoptId::kNone, Instruction::kNotSpeculative);
 
           } else {
             // TODO(dartbug.com/30480): Figure out how to handle null in
             // equality comparisons.
             // replacement = new (Z) EqualityCompareInstr(
             //     instr->token_pos(), op_kind, left_value->CopyWithType(Z),
-            //     right_value->CopyWithType(Z), kMintCid, Thread::kNoDeoptId);
+            //     right_value->CopyWithType(Z), kMintCid, DeoptId::kNone);
             replacement = new (Z) CheckedSmiComparisonInstr(
                 instr->token_kind(), left_value->CopyWithType(Z),
                 right_value->CopyWithType(Z), instr);
@@ -345,7 +397,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
               instr->token_pos(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
               left_value->CopyWithType(Z), right_value->CopyWithType(Z),
-              /* number_check = */ false, Thread::kNoDeoptId);
+              /* number_check = */ false, DeoptId::kNone);
         } else {
           replacement = new (Z) CheckedSmiComparisonInstr(
               instr->token_kind(), left_value->CopyWithType(Z),
@@ -353,11 +405,9 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
         }
       } else if (FlowGraphCompiler::SupportsUnboxedDoubles() &&
                  (left_type->IsNullableDouble() ||
-                  (left_type->ToNullableCid() == kSmiCid)) &&
+                  IsSupportedIntOperandForStaticDoubleOp(left_type)) &&
                  (right_type->IsNullableDouble() ||
-                  (right_type->ToNullableCid() == kSmiCid))) {
-        // TODO(dartbug.com/30480): Extend double/int mixed cases from Smi to
-        // AbstractInt (it requires corresponding conversions).
+                  IsSupportedIntOperandForStaticDoubleOp(right_type))) {
         ASSERT(left_type->IsNullableDouble() || right_type->IsNullableDouble());
         // TODO(dartbug.com/30480): Support == and != for doubles.
         if ((op_kind == Token::kLT) || (op_kind == Token::kLTE) ||
@@ -366,7 +416,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) RelationalOpInstr(
               instr->token_pos(), op_kind, left_value, right_value, kDoubleCid,
-              Thread::kNoDeoptId, Instruction::kNotSpeculative);
+              DeoptId::kNone, Instruction::kNotSpeculative);
         }
       }
       break;
@@ -390,21 +440,20 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       CompileType* right_type = right_value->Type();
       if (left_type->IsNullableInt() && right_type->IsNullableInt() &&
           (op_kind != Token::kDIV)) {
-        if (FLAG_limit_ints_to_64_bits &&
-            FlowGraphCompiler::SupportsUnboxedMints()) {
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
           if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
             // TODO(dartbug.com/30480): Enable 64-bit integer shifts.
             // replacement = new ShiftInt64OpInstr(
             //     op_kind, left_value->CopyWithType(Z),
-            //     right_value->CopyWithType(Z), Thread::kNoDeoptId);
+            //     right_value->CopyWithType(Z), DeoptId::kNone);
             replacement =
                 new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
                                           right_value->CopyWithType(Z), instr);
           } else {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new BinaryInt64OpInstr(
-                op_kind, left_value, right_value, Thread::kNoDeoptId,
+            replacement = new (Z) BinaryInt64OpInstr(
+                op_kind, left_value, right_value, DeoptId::kNone,
                 Instruction::kNotSpeculative);
           }
         } else {
@@ -414,11 +463,9 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
         }
       } else if (FlowGraphCompiler::SupportsUnboxedDoubles() &&
                  (left_type->IsNullableDouble() ||
-                  (left_type->ToNullableCid() == kSmiCid)) &&
+                  IsSupportedIntOperandForStaticDoubleOp(left_type)) &&
                  (right_type->IsNullableDouble() ||
-                  (right_type->ToNullableCid() == kSmiCid))) {
-        // TODO(dartbug.com/30480): Extend double/int mixed cases from Smi to
-        // AbstractInt (it requires corresponding conversions).
+                  IsSupportedIntOperandForStaticDoubleOp(right_type))) {
         if ((op_kind == Token::kADD) || (op_kind == Token::kSUB) ||
             (op_kind == Token::kMUL) || (op_kind == Token::kDIV)) {
           ASSERT(left_type->IsNullableDouble() ||
@@ -426,7 +473,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) BinaryDoubleOpInstr(
-              op_kind, left_value, right_value, Thread::kNoDeoptId,
+              op_kind, left_value, right_value, DeoptId::kNone,
               instr->token_pos(), Instruction::kNotSpeculative);
         }
       }
@@ -437,12 +484,13 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       break;
   }
 
-  if (replacement != NULL) {
+  if (replacement != NULL && !replacement->ComputeCanDeoptimize()) {
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                 instr->ToCString(), replacement->ToCString());
     }
     ReplaceCall(instr, replacement);
+    RefineUseTypes(replacement);
     return true;
   }
 
@@ -450,63 +498,217 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
 }
 
 bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
-    StaticCallInstr* call) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+    StaticCallInstr* instr) {
+  ASSERT(I->can_use_strong_mode_types());
   Definition* replacement = NULL;
 
-  if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    const Class& owner = Class::Handle(Z, call->function().Owner());
-    // Recognize double operators here as devirtualization can convert
-    // instance calls of double operators into static calls.
-    if (owner.id() == kDoubleCid) {
-      const String& name = String::Handle(Z, call->function().name());
-      Token::Kind op_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
-      // TODO(dartbug.com/30480): Handle more double operations.
-      if ((op_kind == Token::kADD) || (op_kind == Token::kSUB) ||
-          (op_kind == Token::kMUL) || (op_kind == Token::kDIV)) {
-        ASSERT(call->FirstArgIndex() == 0);
-        Value* left_value = call->PushArgumentAt(0)->value();
-        Value* right_value = call->PushArgumentAt(1)->value();
-        if (right_value->Type()->IsNullableDouble() ||
-            (right_value->Type()->ToNullableCid() == kSmiCid)) {
-          left_value =
-              PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
-          right_value = PrepareStaticOpInput(right_value, kDoubleCid, call);
-          replacement = new (Z) BinaryDoubleOpInstr(
-              op_kind, left_value, right_value, Thread::kNoDeoptId,
-              call->token_pos(), Instruction::kNotSpeculative);
+  const String& name = String::Handle(Z, instr->function().name());
+  const Token::Kind op_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
+
+  if ((op_kind == Token::kEQ) && TryReplaceWithHaveSameRuntimeType(instr)) {
+    return true;
+  }
+
+  const Class& owner = Class::Handle(Z, instr->function().Owner());
+  if ((owner.id() != kIntegerCid) && (owner.id() != kDoubleCid)) {
+    return false;
+  }
+
+  const intptr_t receiver_index = instr->FirstArgIndex();
+
+  // Recognize double and int operators here as devirtualization can convert
+  // instance calls of these operators into static calls.
+
+  if (owner.id() == kIntegerCid) {
+    if (!FlowGraphCompiler::SupportsUnboxedInt64()) {
+      return false;
+    }
+
+    switch (op_kind) {
+      case Token::kEQ:
+      case Token::kNE: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        CompileType* right_type = right_value->Type();
+        // TODO(dartbug.com/32166): Support EQ, NE for nullable ints.
+        // (requires null-aware comparison instruction).
+        if (right_type->IsNullableInt() && !right_type->is_nullable()) {
+          left_value = PrepareReceiverOfDevirtualizedCall(left_value, kMintCid);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z) EqualityCompareInstr(
+              instr->token_pos(), op_kind, left_value, right_value, kMintCid,
+              DeoptId::kNone, Instruction::kNotSpeculative);
         }
-      } else if ((op_kind == Token::kLT) || (op_kind == Token::kLTE) ||
-                 (op_kind == Token::kGT) || (op_kind == Token::kGTE)) {
-        ASSERT(call->FirstArgIndex() == 0);
-        Value* left_value = call->PushArgumentAt(0)->value();
-        Value* right_value = call->PushArgumentAt(1)->value();
-        if (right_value->Type()->IsNullableDouble() ||
-            (right_value->Type()->ToNullableCid() == kSmiCid)) {
-          left_value =
-              PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
-          right_value = PrepareStaticOpInput(right_value, kDoubleCid, call);
+        break;
+      }
+      case Token::kLT:
+      case Token::kLTE:
+      case Token::kGT:
+      case Token::kGTE: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        CompileType* left_type = left_value->Type();
+        CompileType* right_type = right_value->Type();
+        if (right_type->IsNullableInt()) {
+          left_value = PrepareReceiverOfDevirtualizedCall(left_value, kMintCid);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
           replacement = new (Z) RelationalOpInstr(
-              call->token_pos(), op_kind, left_value, right_value, kDoubleCid,
-              Thread::kNoDeoptId, Instruction::kNotSpeculative);
+              instr->token_pos(), op_kind, left_value, right_value, kMintCid,
+              DeoptId::kNone, Instruction::kNotSpeculative);
+        } else if (FlowGraphCompiler::SupportsUnboxedDoubles() &&
+                   right_type->IsNullableDouble() &&
+                   IsSupportedIntOperandForStaticDoubleOp(left_type)) {
+          left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
+          replacement = new (Z) RelationalOpInstr(
+              instr->token_pos(), op_kind, left_value, right_value, kDoubleCid,
+              DeoptId::kNone, Instruction::kNotSpeculative);
         }
-      } else if (op_kind == Token::kNEGATE) {
-        ASSERT(call->FirstArgIndex() == 0);
-        Value* left_value = call->PushArgumentAt(0)->value();
+        break;
+      }
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+      case Token::kBIT_AND:
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kMUL:
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+      // TODO(ajcbik): 32-bit archs too?
+      case Token::kMOD:
+      case Token::kTRUNCDIV:
+#endif
+      case Token::kDIV: {
+        if ((op_kind == Token::kDIV) &&
+            !FlowGraphCompiler::SupportsHardwareDivision()) {
+          return false;
+        }
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        CompileType* left_type = left_value->Type();
+        CompileType* right_type = right_value->Type();
+        if (right_type->IsNullableInt() && (op_kind != Token::kDIV)) {
+          left_value = PrepareReceiverOfDevirtualizedCall(left_value, kMintCid);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z)
+              BinaryInt64OpInstr(op_kind, left_value, right_value,
+                                 DeoptId::kNone, Instruction::kNotSpeculative);
+        } else if (FlowGraphCompiler::SupportsUnboxedDoubles() &&
+                   right_type->IsNullableDouble() &&
+                   IsSupportedIntOperandForStaticDoubleOp(left_type)) {
+          if ((op_kind == Token::kADD) || (op_kind == Token::kSUB) ||
+              (op_kind == Token::kMUL) || (op_kind == Token::kDIV)) {
+            ASSERT(left_type->IsNullableDouble() ||
+                   right_type->IsNullableDouble() || (op_kind == Token::kDIV));
+            left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
+            right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
+            replacement = new (Z) BinaryDoubleOpInstr(
+                op_kind, left_value, right_value, DeoptId::kNone,
+                instr->token_pos(), Instruction::kNotSpeculative);
+          }
+        }
+        break;
+      }
+#ifndef TARGET_ARCH_DBC
+      case Token::kNEGATE: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        left_value = PrepareReceiverOfDevirtualizedCall(left_value, kMintCid);
+        replacement = new (Z)
+            UnaryInt64OpInstr(Token::kNEGATE, left_value, DeoptId::kNone,
+                              Instruction::kNotSpeculative);
+        break;
+      }
+#endif
+      case Token::kSHL:
+      case Token::kSHR: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        CompileType* right_type = right_value->Type();
+        if (right_type->IsNullableInt()) {
+          left_value = PrepareReceiverOfDevirtualizedCall(left_value, kMintCid);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z) ShiftInt64OpInstr(op_kind, left_value,
+                                                  right_value, DeoptId::kNone);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  } else if ((owner.id() == kDoubleCid) &&
+             FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    // TODO(dartbug.com/30480): Handle more double operations.
+    switch (op_kind) {
+      case Token::kEQ:
+      case Token::kNE: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        CompileType* right_type = right_value->Type();
+        // TODO(dartbug.com/32166): Support EQ, NE for nullable doubles.
+        // (requires null-aware comparison instruction).
+        if (right_type->IsNullableDouble() && !right_type->is_nullable()) {
+          left_value =
+              PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
+          right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
+          replacement = new (Z) EqualityCompareInstr(
+              instr->token_pos(), op_kind, left_value, right_value, kDoubleCid,
+              DeoptId::kNone, Instruction::kNotSpeculative);
+        }
+        break;
+      }
+      case Token::kLT:
+      case Token::kLTE:
+      case Token::kGT:
+      case Token::kGTE: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        if (right_value->Type()->IsNullableDouble() ||
+            IsSupportedIntOperandForStaticDoubleOp(right_value->Type())) {
+          left_value =
+              PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
+          right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
+          replacement = new (Z) RelationalOpInstr(
+              instr->token_pos(), op_kind, left_value, right_value, kDoubleCid,
+              DeoptId::kNone, Instruction::kNotSpeculative);
+        }
+        break;
+      }
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kMUL:
+      case Token::kDIV: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        if (right_value->Type()->IsNullableDouble() ||
+            IsSupportedIntOperandForStaticDoubleOp(right_value->Type())) {
+          left_value =
+              PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
+          right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
+          replacement = new (Z) BinaryDoubleOpInstr(
+              op_kind, left_value, right_value, DeoptId::kNone,
+              instr->token_pos(), Instruction::kNotSpeculative);
+        }
+        break;
+      }
+      case Token::kNEGATE: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
         left_value = PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
         replacement = new (Z)
-            UnaryDoubleOpInstr(Token::kNEGATE, left_value, call->deopt_id(),
+            UnaryDoubleOpInstr(Token::kNEGATE, left_value, instr->deopt_id(),
                                Instruction::kNotSpeculative);
+        break;
       }
+      default:
+        break;
     }
   }
 
-  if (replacement != NULL) {
+  if ((replacement != NULL) && !replacement->ComputeCanDeoptimize()) {
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
-                call->ToCString(), replacement->ToCString());
+                instr->ToCString(), replacement->ToCString());
     }
-    ReplaceCall(call, replacement);
+    ReplaceCall(instr, replacement);
+    RefineUseTypes(replacement);
     return true;
   }
 
@@ -540,10 +742,6 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     ReplaceWithInstanceOf(instr);
     return;
   }
-  if (Token::IsTypeCastOperator(op_kind)) {
-    ReplaceWithTypeCast(instr);
-    return;
-  }
 
   if (TryInlineFieldAccess(instr)) {
     return;
@@ -561,8 +759,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
-  if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
-      number_of_checks > 0) {
+  if (I->can_use_strong_mode_types()) {
+    // In AOT strong mode, we avoid deopting speculation.
+    // TODO(ajcbik): replace this with actual analysis phase
+    //               that determines if checks are removed later.
+  } else if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
+             number_of_checks > 0) {
     if ((op_kind == Token::kINDEX) &&
         TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;
@@ -594,7 +796,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
-  if (I->strong() && FLAG_use_strong_mode_types &&
+  if (I->can_use_strong_mode_types() &&
       TryOptimizeInstanceCallUsingStaticTypes(instr)) {
     return;
   }
@@ -611,7 +813,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (has_one_target) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
+    if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
+        FlowGraph::ToCheck::kNoCheck) {
       CallTargets* targets = CallTargets::Create(Z, unary_checks);
       ASSERT(targets->HasSingleTarget());
       const Function& target = targets->FirstTarget();
@@ -704,7 +907,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
   if (!receiver_class.IsNull()) {
     GrowableArray<intptr_t> class_ids(6);
-    if (thread()->cha()->ConcreteSubclasses(receiver_class, &class_ids)) {
+    if (thread()->compiler_state().cha().ConcreteSubclasses(receiver_class,
+                                                            &class_ids)) {
       // First check if all subclasses end up calling the same method.
       // If this is the case we will replace instance call with a direct
       // static call.
@@ -754,7 +958,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           // Create an ICData and map all previously seen classes (< i) to
           // the computed single_target.
           ic_data = ICData::New(function, instr->function_name(),
-                                args_desc_array, Thread::kNoDeoptId,
+                                args_desc_array, DeoptId::kNone,
                                 /* args_tested = */ 1, ICData::kOptimized);
           for (intptr_t j = 0; j < i; j++) {
             ic_data.AddReceiverCheck(class_ids[j], single_target);
@@ -775,7 +979,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           // Create fake IC data with the resolved target.
           const ICData& ic_data = ICData::Handle(
               ICData::New(flow_graph()->function(), instr->function_name(),
-                          args_desc_array, Thread::kNoDeoptId,
+                          args_desc_array, DeoptId::kNone,
                           /* args_tested = */ 1, ICData::kOptimized));
           cls = single_target.Owner();
           ic_data.AddReceiverCheck(cls.id(), single_target);
@@ -825,6 +1029,13 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 }
 
+void AotCallSpecializer::VisitStaticCall(StaticCallInstr* instr) {
+  if (TryInlineFieldAccess(instr)) {
+    return;
+  }
+  CallSpecializer::VisitStaticCall(instr);
+}
+
 bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
                                                     InstanceCallInstr* call) {
   // If it's an accessor call it can't be a call through getter.
@@ -869,7 +1080,8 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
       call->token_pos(), getter_name, Token::kGET, get_arguments,
       /*type_args_len=*/0,
       /*argument_names=*/Object::empty_array(),
-      /*checked_argument_count=*/1, thread()->GetNextDeoptId());
+      /*checked_argument_count=*/1,
+      thread()->compiler_state().GetNextDeoptId());
 
   // Arguments to the .call() are the same as arguments to the
   // original call (including type arguments), but receiver
@@ -889,7 +1101,8 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   InstanceCallInstr* invoke_call = new (Z) InstanceCallInstr(
       call->token_pos(), Symbols::Call(), Token::kILLEGAL, call_arguments,
       call->type_args_len(), call->argument_names(),
-      /*checked_argument_count=*/1, thread()->GetNextDeoptId());
+      /*checked_argument_count=*/1,
+      thread()->compiler_state().GetNextDeoptId());
 
   // Insert all new instructions, except .call() invocation into the
   // graph.
@@ -949,13 +1162,13 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
     return false;
   }
 
-  TypeRangeCache* cache = precompiler_->type_range_cache();
-  if (cache == NULL) {
+  HierarchyInfo* hi = thread()->hierarchy_info();
+  if (hi == NULL) {
     return false;
   }
 
   intptr_t lower_limit, upper_limit;
-  if (!cache->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
+  if (!hi->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
     return false;
   }
 
@@ -972,7 +1185,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
     StrictCompareInstr* check_cid = new (Z)
         StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
                            new (Z) Value(left_cid), new (Z) Value(lower_cid),
-                           /* number_check = */ false, Thread::kNoDeoptId);
+                           /* number_check = */ false, DeoptId::kNone);
     ReplaceCall(call, check_cid);
     return true;
   }
@@ -1015,97 +1228,20 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   return true;
 }
 
-bool AotCallSpecializer::TryReplaceTypeCastWithRangeCheck(
-    InstanceCallInstr* call,
-    const AbstractType& type) {
-  if (precompiler_ == NULL) {
-    // Loading not complete, can't do CHA yet.
-    return false;
-  }
+void AotCallSpecializer::ReplaceArrayBoundChecks(FlowGraph* flow_graph) {
+  Zone* zone = Thread::Current()->zone();
 
-  TypeRangeCache* cache = precompiler_->type_range_cache();
-  if (cache == NULL) {
-    return false;
-  }
-
-  intptr_t lower_limit, upper_limit;
-  if (!cache->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
-    return false;
-  }
-
-  Definition* left = call->ArgumentAt(0);
-
-  // left as type =>
-  //     _classRangeCheck(pos, left, type, left.cid, lower_limit, upper_limit)
-  LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-  InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
-  ConstantInstr* lower_cid =
-      flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(lower_limit)));
-  ConstantInstr* upper_cid =
-      flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(upper_limit)));
-  ConstantInstr* pos = flow_graph()->GetConstant(
-      Smi::ZoneHandle(Z, Smi::New(call->token_pos().Pos())));
-
-  ZoneGrowableArray<PushArgumentInstr*>* args =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(6);
-  PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(pos));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(left));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg =
-      new (Z) PushArgumentInstr(new (Z) Value(flow_graph()->GetConstant(type)));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(lower_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(upper_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-
-  const Library& dart_internal = Library::Handle(Z, Library::CoreLibrary());
-  const String& target_name = Symbols::_classRangeAssert();
-  const Function& target = Function::ZoneHandle(
-      Z, dart_internal.LookupFunctionAllowPrivate(target_name));
-  ASSERT(!target.IsNull());
-  ASSERT(target.IsRecognized());
-  ASSERT(target.always_inline());
-
-  const intptr_t kTypeArgsLen = 0;
-  StaticCallInstr* new_call = new (Z) StaticCallInstr(
-      call->token_pos(), target, kTypeArgsLen,
-      Object::null_array(),  // argument_names
-      args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
-  Environment* copy =
-      call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
-  for (intptr_t i = 0; i < args->length(); ++i) {
-    copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
-  }
-  call->RemoveEnvironment();
-  ReplaceCall(call, new_call);
-  copy->DeepCopyTo(Z, new_call);
-  return true;
-}
-
-void AotCallSpecializer::ReplaceArrayBoundChecks() {
-  for (BlockIterator block_it = flow_graph()->reverse_postorder_iterator();
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
-    ForwardInstructionIterator it(block_it.Current());
-    current_iterator_ = &it;
-    for (; !it.Done(); it.Advance()) {
-      CheckArrayBoundInstr* check = it.Current()->AsCheckArrayBound();
-      if (check != NULL) {
-        GenericCheckBoundInstr* new_check = new (Z) GenericCheckBoundInstr(
-            new (Z) Value(check->length()->definition()),
-            new (Z) Value(check->index()->definition()), check->deopt_id());
-        flow_graph()->InsertBefore(check, new_check, check->env(),
-                                   FlowGraph::kEffect);
-        current_iterator()->RemoveCurrentFromGraph();
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+         it.Advance()) {
+      if (CheckArrayBoundInstr* check = it.Current()->AsCheckArrayBound()) {
+        GenericCheckBoundInstr* new_check = new (zone) GenericCheckBoundInstr(
+            new (zone) Value(check->length()->definition()),
+            new (zone) Value(check->index()->definition()), check->deopt_id());
+        flow_graph->InsertBefore(check, new_check, check->env(),
+                                 FlowGraph::kEffect);
+        it.RemoveCurrentFromGraph();
       }
     }
   }

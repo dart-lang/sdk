@@ -16,20 +16,19 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Adds edits to the given [change] that ensure that all the [libraries] are
  * imported into the given [targetLibrary].
  */
-void addLibraryImports(
-    SourceChange change, LibraryElement targetLibrary, Set<Source> libraries) {
+void addLibraryImports(pathos.Context pathContext, SourceChange change,
+    LibraryElement targetLibrary, Set<Source> libraries) {
   CorrectionUtils libUtils;
   try {
     CompilationUnitElement unitElement = targetLibrary.definingCompilationUnit;
@@ -53,7 +52,8 @@ void addLibraryImports(
 
   // Prepare all URIs to import.
   List<String> uriList = libraries
-      .map((library) => getLibrarySourceUri(targetLibrary, library))
+      .map((library) =>
+          getLibrarySourceUri(pathContext, targetLibrary, library.uri))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
 
@@ -141,6 +141,16 @@ Expression climbPropertyAccess(AstNode node) {
     }
     return node;
   }
+}
+
+/**
+ * Return references to the [element] inside the [root] node.
+ */
+List<SimpleIdentifier> findLocalElementReferences(
+    AstNode root, LocalElement element) {
+  var collector = new _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
 }
 
 /**
@@ -232,7 +242,7 @@ ClassElement getEnclosingClassElement(AstNode node) {
   ClassDeclaration enclosingClassNode =
       node.getAncestor((node) => node is ClassDeclaration);
   if (enclosingClassNode != null) {
-    return enclosingClassNode.element;
+    return enclosingClassNode.declaredElement;
   }
   return null;
 }
@@ -261,13 +271,13 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
   while (node != null) {
     if (node is FunctionDeclaration) {
-      return node.element;
+      return node.declaredElement;
     }
     if (node is ConstructorDeclaration) {
-      return node.element;
+      return node.declaredElement;
     }
     if (node is MethodDeclaration) {
-      return node.element;
+      return node.declaredElement;
     }
     node = node.parent;
   }
@@ -332,26 +342,20 @@ int getExpressionPrecedence(AstNode node) {
  * Returns the namespace of the given [ImportElement].
  */
 Map<String, Element> getImportNamespace(ImportElement imp) {
-  NamespaceBuilder builder = new NamespaceBuilder();
-  Namespace namespace = builder.createImportNamespaceForDirective(imp);
-  return namespace.definedNames;
+  return imp.namespace.definedNames;
 }
 
 /**
  * Computes the best URI to import [what] into [from].
  */
-String getLibrarySourceUri(LibraryElement from, Source what) {
-  String whatPath = what.fullName;
-  // check if an absolute URI (such as 'dart:' or 'package:')
-  Uri whatUri = what.uri;
-  String whatUriScheme = whatUri.scheme;
-  if (whatUriScheme != '' && whatUriScheme != 'file') {
-    return whatUri.toString();
+String getLibrarySourceUri(
+    pathos.Context pathContext, LibraryElement from, Uri what) {
+  if (what.scheme == 'file') {
+    String fromFolder = pathContext.dirname(from.source.fullName);
+    String relativeFile = pathContext.relative(what.path, from: fromFolder);
+    return pathContext.split(relativeFile).join('/');
   }
-  // compute a relative URI
-  String fromFolder = dirname(from.source.fullName);
-  String relativeFile = relative(whatPath, from: fromFolder);
-  return split(relativeFile).join('/');
+  return what.toString();
 }
 
 /**
@@ -493,7 +497,7 @@ CompilationUnit getParsedUnit(CompilationUnitElement unitElement) {
   AnalysisContext context = unitElement.context;
   Source source = unitElement.source;
   CompilationUnit unit = context.parseCompilationUnit(source);
-  if (unit.element == null) {
+  if (unit.declaredElement == null) {
     unit.element = unitElement;
   }
   return unit;
@@ -650,14 +654,14 @@ class CorrectionUtils {
   String _buffer;
   String _endOfLine;
 
-  CorrectionUtils(this.unit) {
-    CompilationUnitElement unitElement = unit.element;
+  CorrectionUtils(this.unit, {String buffer}) {
+    CompilationUnitElement unitElement = unit.declaredElement;
     AnalysisContext context = unitElement.context;
     if (context == null) {
       throw new CancelCorrectionException();
     }
     this._library = unitElement.library;
-    this._buffer = context.getContents(unitElement.source).data;
+    this._buffer = buffer ?? context.getContents(unitElement.source).data;
   }
 
   /**
@@ -1286,8 +1290,8 @@ class CorrectionUtils {
       TokenType operator = expression.operator.type;
       Expression le = expression.leftOperand;
       Expression re = expression.rightOperand;
-      _InvertedCondition ls = _invertCondition0(le);
-      _InvertedCondition rs = _invertCondition0(re);
+      _InvertedCondition ls = _InvertedCondition._simple(getNodeText(le));
+      _InvertedCondition rs = _InvertedCondition._simple(getNodeText(re));
       if (operator == TokenType.LT) {
         return _InvertedCondition._binary2(ls, " >= ", rs);
       }
@@ -1307,10 +1311,14 @@ class CorrectionUtils {
         return _InvertedCondition._binary2(ls, " == ", rs);
       }
       if (operator == TokenType.AMPERSAND_AMPERSAND) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.BAR_BAR.precedence, ls, " || ", rs);
       }
       if (operator == TokenType.BAR_BAR) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
       }
@@ -1331,7 +1339,7 @@ class CorrectionUtils {
     } else if (expression is ParenthesizedExpression) {
       return _invertCondition0(expression.unParenthesized);
     }
-    DartType type = expression.bestType;
+    DartType type = expression.staticType;
     if (type.displayName == "bool") {
       return _InvertedCondition._simple("!${getNodeText(expression)}");
     }
@@ -1391,32 +1399,6 @@ class CorrectionUtils_InsertDesc {
  */
 class TokenUtils {
   /**
-   * Return the first token in the list of [tokens] representing the given
-   * [keyword], or `null` if there is no such token.
-   */
-  static Token findKeywordToken(List<Token> tokens, Keyword keyword) {
-    for (Token token in tokens) {
-      if (token.keyword == keyword) {
-        return token;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @return the first [Token] with given [TokenType], may be <code>null</code> if not
-   *         found.
-   */
-  static Token findToken(List<Token> tokens, TokenType type) {
-    for (Token token in tokens) {
-      if (token.type == type) {
-        return token;
-      }
-    }
-    return null;
-  }
-
-  /**
    * @return [Token]s of the given Dart source, not <code>null</code>, may be empty if no
    *         tokens or some exception happens.
    */
@@ -1434,13 +1416,6 @@ class TokenUtils {
       return [];
     }
   }
-
-  /**
-   * @return <code>true</code> if given [Token]s contain only single [Token] with given
-   *         [TokenType].
-   */
-  static bool hasOnly(List<Token> tokens, TokenType type) =>
-      tokens.length == 1 && tokens[0].type == type;
 }
 
 class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
@@ -1460,6 +1435,20 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
             parent.realTarget != null ||
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
+  }
+}
+
+class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
+  final Element element;
+  final List<SimpleIdentifier> references = [];
+
+  _ElementReferenceCollector(this.element);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement == element) {
+      references.add(node);
+    }
   }
 }
 

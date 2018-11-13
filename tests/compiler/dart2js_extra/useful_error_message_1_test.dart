@@ -22,7 +22,9 @@ main() {
   var c = confuse(new CCCC());
 
   var instanceString = confuse(c).toString();
-  bool isMinified = instanceString.contains(new RegExp("Instance of '..?.?'"));
+  bool isMinified =
+      instanceString.contains(new RegExp("Instance of '..?.?'")) ||
+          instanceString.contains('minified:');
   if (!isMinified) {
     Expect.equals("Instance of 'CCCC'", instanceString);
   }
@@ -33,7 +35,9 @@ main() {
         Expect.fail('"$message" should contain "$tag"');
       }
       // When minified we will accept quoted names up to 3 characters.
-      Expect.isTrue(message.contains(new RegExp("'..?.?'")),
+      Expect.isTrue(
+          message.contains(new RegExp("'..?.?'")) ||
+              message.contains("'minified:"),
           '"$message" should contain minified name');
     }
   }

@@ -34,6 +34,7 @@ import 'utils.dart';
 const int browserCrashExitCode = -10;
 const int parseFailExitCode = 245;
 const int slowTimeoutMultiplier = 4;
+const int extraSlowTimeoutMultiplier = 8;
 const int nonUtfFakeExitCode = 0xFFFD;
 
 const cannotOpenDisplayMessage = 'Gtk-WARNING **: cannot open display';
@@ -93,7 +94,7 @@ class TestCase extends UniqueObject {
   Map<Command, CommandOutput> commandOutputs =
       new Map<Command, CommandOutput>();
 
-  Configuration configuration;
+  TestConfiguration configuration;
   String displayName;
   int _expectations = 0;
   int hash = 0;
@@ -134,6 +135,14 @@ class TestCase extends UniqueObject {
     }
   }
 
+  TestCase indexedCopy(int index) {
+    var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
+    return new TestCase(
+        displayName, newCommands, configuration, expectedOutcomes)
+      .._expectations = _expectations
+      ..hash = hash;
+  }
+
   bool get isNegative => _expectations & IS_NEGATIVE != 0;
   bool get hasRuntimeError => _expectations & HAS_RUNTIME_ERROR != 0;
   bool get hasStaticWarning => _expectations & HAS_STATIC_WARNING != 0;
@@ -152,6 +161,24 @@ class TestCase extends UniqueObject {
   }
 
   Expectation get result => lastCommandOutput.result(this);
+  Expectation get realResult => lastCommandOutput.realResult(this);
+  Expectation get realExpected {
+    if (isNegative || (isNegativeIfChecked && configuration.isChecked)) {
+      return Expectation.fail;
+    }
+    if (configuration.compiler == Compiler.specParser) {
+      if (hasSyntaxError) {
+        return Expectation.syntaxError;
+      }
+    } else if ((hasCompileError) ||
+        (hasCompileErrorIfChecked && configuration.isChecked)) {
+      return Expectation.compileTimeError;
+    }
+    if (configuration.runtime != Runtime.none && hasRuntimeError) {
+      return Expectation.runtimeError;
+    }
+    return Expectation.pass;
+  }
 
   CommandOutput get lastCommandOutput {
     if (commandOutputs.length == 0) {
@@ -175,6 +202,8 @@ class TestCase extends UniqueObject {
     var result = configuration.timeout;
     if (expectedOutcomes.contains(Expectation.slow)) {
       result *= slowTimeoutMultiplier;
+    } else if (expectedOutcomes.contains(Expectation.extraSlow)) {
+      result *= extraSlowTimeoutMultiplier;
     }
     return result;
   }
@@ -253,13 +282,13 @@ class OutputLog {
 
   void _checkUtf8(List<int> data) {
     try {
-      UTF8.decode(data, allowMalformed: false);
+      utf8.decode(data, allowMalformed: false);
     } on FormatException {
       hasNonUtf8 = true;
-      String malformed = UTF8.decode(data, allowMalformed: true);
+      String malformed = utf8.decode(data, allowMalformed: true);
       data
         ..clear()
-        ..addAll(UTF8.encode(malformed))
+        ..addAll(utf8.encode(malformed))
         ..addAll("""
 
   *****************************************************************************
@@ -329,7 +358,7 @@ Future<List<int>> _getPidList(int pid, List<String> diagnostics) async {
   }
   if (lines.length > startLine) {
     for (var i = startLine; i < lines.length; ++i) {
-      var pid = int.parse(lines[i], onError: (source) => null);
+      var pid = int.tryParse(lines[i]);
       if (pid != null) pids.add(pid);
     }
   } else {
@@ -361,7 +390,7 @@ class RunningProcess {
   List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
-  Configuration configuration;
+  TestConfiguration configuration;
 
   RunningProcess(this.command, this.timeout, {this.configuration});
 
@@ -496,8 +525,8 @@ class RunningProcess {
             });
           }
 
-          Future
-              .wait([stdoutCompleter.future, stderrCompleter.future]).then((_) {
+          Future.wait([stdoutCompleter.future, stderrCompleter.future])
+              .then((_) {
             _commandComplete(exitCode);
           });
         });
@@ -572,6 +601,10 @@ class RunningProcess {
 }
 
 class BatchRunnerProcess {
+  /// When true, the command line is passed to the test runner as a
+  /// JSON-encoded list of strings.
+  final bool _useJson;
+
   Completer<CommandOutput> _completer;
   ProcessCommand _command;
   List<String> _arguments;
@@ -592,6 +625,8 @@ class BatchRunnerProcess {
   DateTime _startTime;
   Timer _timer;
   int _testCount = 0;
+
+  BatchRunnerProcess({bool useJson: true}) : _useJson = useJson;
 
   Future<CommandOutput> runCommand(String runnerType, ProcessCommand command,
       int timeout, List<String> arguments) {
@@ -659,12 +694,16 @@ class BatchRunnerProcess {
     _process.stdin.write(line);
     _stdoutSubscription.resume();
     _stderrSubscription.resume();
-    Future.wait([_stdoutCompleter.future, _stderrCompleter.future]).then(
-        (_) => _reportResult());
+    Future.wait([_stdoutCompleter.future, _stderrCompleter.future])
+        .then((_) => _reportResult());
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
-    return arguments.join(' ') + '\n';
+    if (_useJson) {
+      return "${jsonEncode(arguments)}\n";
+    } else {
+      return arguments.join(' ') + '\n';
+    }
   }
 
   void _reportResult() {
@@ -729,7 +768,7 @@ class BatchRunnerProcess {
       _process = p;
 
       Stream<String> _stdoutStream =
-          _process.stdout.transform(UTF8.decoder).transform(new LineSplitter());
+          _process.stdout.transform(utf8.decoder).transform(new LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
         if (line.startsWith('>>> TEST')) {
           _status = line;
@@ -750,7 +789,7 @@ class BatchRunnerProcess {
       _stdoutSubscription.pause();
 
       Stream<String> _stderrStream =
-          _process.stderr.transform(UTF8.decoder).transform(new LineSplitter());
+          _process.stderr.transform(utf8.decoder).transform(new LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrSubscription.pause();
@@ -841,27 +880,46 @@ class TestCaseEnqueuer {
     enqueueNextSuite();
   }
 
+  /// Adds a test case to the list of active test cases, and adds its commands
+  /// to the dependency graph of commands.
+  ///
+  /// If the repeat flag is > 1, replicates the test case and its commands,
+  /// adding an index field with a distinct value to each of the copies.
+  ///
+  /// Each copy of the test case depends on the previous copy of the test
+  /// case completing, with its first command having a dependency on the last
+  /// command of the previous copy of the test case. This dependency is
+  /// marked as a "timingDependency", so that it doesn't depend on the previous
+  /// test completing successfully, just on it completing.
   void _newTest(TestCase testCase) {
-    remainingTestCases.add(testCase);
-
     Node<Command> lastNode;
-    for (var command in testCase.commands) {
-      // Make exactly *one* node in the dependency graph for every command.
-      // This ensures that we never have two commands c1 and c2 in the graph
-      // with "c1 == c2".
-      var node = command2node[command];
-      if (node == null) {
-        var requiredNodes = (lastNode != null) ? [lastNode] : <Node<Command>>[];
-        node = graph.add(command, requiredNodes);
-        command2node[command] = node;
-        command2testCases[command] = <TestCase>[];
+    for (int i = 0; i < testCase.configuration.repeat; ++i) {
+      if (i > 0) {
+        testCase = testCase.indexedCopy(i);
       }
-      // Keep mapping from command to all testCases that refer to it
-      command2testCases[command].add(testCase);
+      remainingTestCases.add(testCase);
+      bool isFirstCommand = true;
+      for (var command in testCase.commands) {
+        // Make exactly *one* node in the dependency graph for every command.
+        // This ensures that we never have two commands c1 and c2 in the graph
+        // with "c1 == c2".
+        var node = command2node[command];
+        if (node == null) {
+          var requiredNodes =
+              (lastNode != null) ? [lastNode] : <Node<Command>>[];
+          node = graph.add(command, requiredNodes,
+              timingDependency: isFirstCommand);
+          command2node[command] = node;
+          command2testCases[command] = <TestCase>[];
+        }
+        // Keep mapping from command to all testCases that refer to it
+        command2testCases[command].add(testCase);
 
-      lastNode = node;
+        lastNode = node;
+        isFirstCommand = false;
+      }
+      _onTestCaseAdded(testCase);
     }
-    _onTestCaseAdded(testCase);
   }
 }
 
@@ -890,8 +948,8 @@ class CommandEnqueuer {
       if (event.from == NodeState.waiting ||
           event.from == NodeState.processing) {
         if (_finishedStates.contains(event.to)) {
-          for (var dependendNode in event.node.neededFor) {
-            _changeNodeStateIfNecessary(dependendNode);
+          for (var dependentNode in event.node.neededFor) {
+            _changeNodeStateIfNecessary(dependentNode);
           }
         }
       }
@@ -902,19 +960,19 @@ class CommandEnqueuer {
   // changed it's state.
   void _changeNodeStateIfNecessary(Node<Command> node) {
     if (_initStates.contains(node.state)) {
+      bool allDependenciesFinished =
+          node.dependencies.every((dep) => _finishedStates.contains(dep.state));
       bool anyDependenciesUnsuccessful = node.dependencies.any((dep) =>
           [NodeState.failed, NodeState.unableToRun].contains(dep.state));
+      bool allDependenciesSuccessful =
+          node.dependencies.every((dep) => dep.state == NodeState.successful);
 
       var newState = NodeState.waiting;
-      if (anyDependenciesUnsuccessful) {
+      if (allDependenciesSuccessful ||
+          (allDependenciesFinished && node.timingDependency)) {
+        newState = NodeState.enqueuing;
+      } else if (anyDependenciesUnsuccessful) {
         newState = NodeState.unableToRun;
-      } else {
-        bool allDependenciesSuccessful =
-            node.dependencies.every((dep) => dep.state == NodeState.successful);
-
-        if (allDependenciesSuccessful) {
-          newState = NodeState.enqueuing;
-        }
       }
       if (node.state != newState) {
         _graph.changeState(node, newState);
@@ -1084,7 +1142,7 @@ abstract class CommandExecutor {
 }
 
 class CommandExecutorImpl implements CommandExecutor {
-  final Configuration globalConfiguration;
+  final TestConfiguration globalConfiguration;
   final int maxProcesses;
   final int maxBrowserProcesses;
   AdbDevicePool adbDevicePool;
@@ -1093,7 +1151,7 @@ class CommandExecutorImpl implements CommandExecutor {
   // we keep a list of batch processes.
   final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
   // We keep a BrowserTestRunner for every configuration.
-  final _browserTestRunners = new Map<Configuration, BrowserTestRunner>();
+  final _browserTestRunners = new Map<TestConfiguration, BrowserTestRunner>();
 
   bool _finishing = false;
 
@@ -1161,7 +1219,8 @@ class CommandExecutorImpl implements CommandExecutor {
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
         (command.displayName == 'dartdevc' ||
-            command.displayName == 'dartdevk') &&
+            command.displayName == 'dartdevk' ||
+            command.displayName == 'fasta') &&
         globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
@@ -1260,7 +1319,7 @@ class CommandExecutorImpl implements CommandExecutor {
       if (result.exitCode != 0) break;
     }
     return createCommandOutput(command, result.exitCode, result.timedOut,
-        UTF8.encode('$writer'), [], stopwatch.elapsed, false);
+        utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
   BatchRunnerProcess _getBatchRunner(String identifier) {
@@ -1269,7 +1328,7 @@ class CommandExecutorImpl implements CommandExecutor {
     if (runners == null) {
       runners = new List<BatchRunnerProcess>(maxProcesses);
       for (int i = 0; i < maxProcesses; i++) {
-        runners[i] = new BatchRunnerProcess();
+        runners[i] = new BatchRunnerProcess(useJson: identifier == "fasta");
       }
       _batchProcesses[identifier] = runners;
     }
@@ -1288,13 +1347,7 @@ class CommandExecutorImpl implements CommandExecutor {
       completer.complete(new BrowserCommandOutput(browserCommand, output));
     };
 
-    BrowserTest browserTest;
-    if (browserCommand is BrowserHtmlTestCommand) {
-      browserTest = new HtmlTest(browserCommand.url, callback, timeout,
-          browserCommand.expectedMessages);
-    } else {
-      browserTest = new BrowserTest(browserCommand.url, callback, timeout);
-    }
+    var browserTest = new BrowserTest(browserCommand.url, callback, timeout);
     _getBrowserTestRunner(browserCommand.configuration).then((testRunner) {
       testRunner.enqueueTest(browserTest);
     });
@@ -1303,7 +1356,7 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(
-      Configuration configuration) async {
+      TestConfiguration configuration) async {
     if (_browserTestRunners[configuration] == null) {
       var testRunner = new BrowserTestRunner(
           configuration, globalConfiguration.localIP, maxBrowserProcesses);
@@ -1344,14 +1397,6 @@ bool shouldRetryCommand(CommandOutput output) {
           return true;
         }
       }
-    }
-
-    // As long as we use a legacy version of our custom content_shell (which
-    // became quite flaky after chrome-50 roll) we'll re-run tests on it.
-    // The plan is to use chrome's content_shell instead of our own.
-    // See http://dartbug.com/29655 .
-    if (command is ContentShellCommand) {
-      return true;
     }
 
     if (io.Platform.operatingSystem == 'linux') {
@@ -1473,7 +1518,7 @@ class TestCaseCompleter {
 }
 
 class ProcessQueue {
-  Configuration _globalConfiguration;
+  TestConfiguration _globalConfiguration;
 
   Function _allDone;
   final Graph<Command> _graph = new Graph();

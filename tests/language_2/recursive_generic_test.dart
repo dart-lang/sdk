@@ -9,7 +9,7 @@ abstract class S<T extends S<T>> {
   get S_T => T;
 }
 
-class C<T extends C<T>> extends S<C> {
+class C<T extends C<T>> extends S<C<T>> {
   m() => 456;
   get C_T => T;
 }
@@ -17,9 +17,19 @@ class C<T extends C<T>> extends S<C> {
 class D extends C<D> {}
 
 main() {
+  regress31434();
+
   Expect.equals(new C<D>().m(), 456);
-  // TODO(jmesserly): this should be dart1 vs dart2, not DDC vs VM.
-  var isVM = const bool.fromEnvironment('dart.isVM');
-  Expect.equals(new C<D>().S_T.toString(), isVM ? 'C' : 'C<C>');
-  Expect.equals(new C<D>().C_T.toString(), isVM ? 'dynamic' : 'D');
+  Expect.equals(new C<D>().C_T, D);
+  Expect.equals(new C<D>().S_T.toString(), 'C<D>');
+}
+
+class F<L, R> {}
+
+class E<L, R> extends F<E<L, Object>, R> {}
+
+regress31434() {
+  type<T>() => T;
+  dynamic e = new E<int, String>();
+  Expect.equals(e.runtimeType, type<E<int, String>>());
 }

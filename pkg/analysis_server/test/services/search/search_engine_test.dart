@@ -7,16 +7,16 @@ import 'dart:async';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,8 +29,7 @@ main() {
 }
 
 @reflectiveTest
-class SearchEngineImplTest {
-  final MemoryResourceProvider provider = new MemoryResourceProvider();
+class SearchEngineImplTest extends Object with ResourceProviderMixin {
   DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
@@ -41,36 +40,32 @@ class SearchEngineImplTest {
   AnalysisDriverScheduler scheduler;
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: provider);
+    sdk = new MockSdk(resourceProvider: resourceProvider);
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
     scheduler.start();
   }
 
   test_membersOfSubtypes_hasMembers() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-    var c = _p('/test/c.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B extends A {
   void a() {}
 }
-''');
-    provider.newFile(c, '''
+''').path;
+    var c = newFile('/test/c.dart', content: '''
 import 'a.dart';
 class C extends A {
   void b() {}
 }
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -81,7 +76,7 @@ class C extends A {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -89,20 +84,17 @@ class C extends A {
   }
 
   test_membersOfSubtypes_noMembers() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B extends A {}
-''');
+''').path;
 
     var driver = _newDriver();
 
@@ -111,7 +103,7 @@ class B extends A {}
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -119,22 +111,19 @@ class B extends A {}
   }
 
   test_membersOfSubtypes_noSubtypes() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B {
   void a() {}
 }
-''');
+''').path;
 
     var driver = _newDriver();
 
@@ -143,7 +132,7 @@ class B {
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -151,10 +140,7 @@ class B {
   }
 
   test_membersOfSubtypes_private() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void _b() {}
@@ -163,8 +149,8 @@ class A {
 class B extends A {
   void _b() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class C extends A {
   void a() {}
@@ -173,7 +159,7 @@ class C extends A {
 class D extends B {
   void _c() {}
 }
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -183,7 +169,7 @@ class D extends B {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -191,42 +177,37 @@ class D extends B {
   }
 
   test_searchAllSubtypes() async {
-    var p = _p('/test.dart');
-
-    provider.newFile(p, '''
+    var p = newFile('/test.dart', content: '''
 class T {}
 class A extends T {}
 class B extends A {}
 class C implements B {}
-''');
+''').path;
 
     var driver = _newDriver();
     driver.addFile(p);
 
     var resultA = await driver.getResult(p);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
     expect(subtypes, hasLength(3));
-    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'A')));
-    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'B')));
-    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
+    _assertContainsClass(subtypes, 'A');
+    _assertContainsClass(subtypes, 'B');
+    _assertContainsClass(subtypes, 'C');
   }
 
   test_searchAllSubtypes_acrossDrivers() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class T {}
 class A extends T {}
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B extends A {}
 class C extends B {}
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -235,7 +216,7 @@ class C extends B {}
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
@@ -245,10 +226,36 @@ class C extends B {}
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
   }
 
-  test_searchMemberDeclarations() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
+  test_searchAllSubtypes_mixin() async {
+    var p = newFile('/test.dart', content: '''
+class T {}
 
+mixin A on T {}
+mixin B implements T {}
+
+class C extends T {}
+
+mixin D on C {}
+mixin E implements C {}
+''').path;
+
+    var driver = _newDriver();
+    driver.addFile(p);
+
+    var resultA = await driver.getResult(p);
+    ClassElement element = resultA.unit.declaredElement.types[0];
+
+    var searchEngine = new SearchEngineImpl([driver]);
+    Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
+    expect(subtypes, hasLength(5));
+    _assertContainsClass(subtypes, 'A');
+    _assertContainsClass(subtypes, 'B');
+    _assertContainsClass(subtypes, 'C');
+    _assertContainsClass(subtypes, 'D');
+    _assertContainsClass(subtypes, 'E');
+  }
+
+  test_searchMemberDeclarations() async {
     var codeA = '''
 class A {
   int test; // 1
@@ -263,8 +270,8 @@ class B {
 int test;
 ''';
 
-    provider.newFile(a, codeA);
-    provider.newFile(b, codeB);
+    var a = newFile('/test/a.dart', content: codeA).path;
+    var b = newFile('/test/b.dart', content: codeB).path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -295,23 +302,20 @@ int test;
   }
 
   test_searchMemberReferences() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   int test;
 }
 foo(p) {
   p.test;
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 bar(p) {
   p.test = 1;
 }
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -334,17 +338,14 @@ bar(p) {
   }
 
   test_searchReferences() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class T {}
 T a;
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 T b;
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -353,7 +354,7 @@ T b;
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
@@ -364,18 +365,47 @@ T b;
         matches, contains(predicate((SearchMatch m) => m.element.name == 'b')));
   }
 
-  test_searchTopLevelDeclarations() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
+  test_searchReferences_discover_owned() async {
+    var t = newFile('/test/lib/t.dart', content: '''
+import 'package:aaa/a.dart';
+int t;
+''').path;
+    var a = newFile('/aaa/lib/a.dart', content: '''
+int a;
+''').path;
 
-    provider.newFile(a, '''
+    var driver1 = _newDriver(packageUriResolver: _mapUriResolver('aaa', a));
+    var driver2 = _newDriver();
+
+    driver1.addFile(t);
+    driver2.addFile(a);
+
+    LibraryElement coreLib = await driver1.getLibraryByUri('dart:core');
+    ClassElement intElement = coreLib.getType('int');
+
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
+    var matches = await searchEngine.searchReferences(intElement);
+
+    void assertHasOne(String path, String name) {
+      expect(matches.where((m) {
+        var element = m.element;
+        return element.name == name && element.source.fullName == path;
+      }), hasLength(1));
+    }
+
+    assertHasOne(t, 't');
+    assertHasOne(a, 'a');
+  }
+
+  test_searchTopLevelDeclarations() async {
+    var a = newFile('/test/a.dart', content: '''
 class A {}
 int a;
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 class B {}
 get b => 42;
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -388,10 +418,9 @@ get b => 42;
     }
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
-    List<SearchMatch> matches =
-        await searchEngine.searchTopLevelDeclarations('.*');
-    expect(
-        matches.where((match) => !match.libraryElement.isInSdk), hasLength(4));
+    var matches = await searchEngine.searchTopLevelDeclarations('.*');
+    matches.removeWhere((match) => match.libraryElement.isInSdk);
+    expect(matches, hasLength(4));
 
     void assertHasOneElement(String name) {
       Iterable<SearchMatch> nameMatches = matches.where((SearchMatch m) =>
@@ -406,25 +435,20 @@ get b => 42;
   }
 
   test_searchTopLevelDeclarations_dependentPackage() async {
-    var a = _p('/a/lib/a.dart');
-    provider.newFile(a, '''
+    var a = newFile('/a/lib/a.dart', content: '''
 class A {}
-''');
+''').path;
     var driver1 = _newDriver();
     driver1.addFile(a);
 
     // The package:b uses the class A from the package:a,
     // so it sees the declaration the element A.
-    var b = _p('/b/lib/b.dart');
-    provider.newFile(b, '''
+    var b = newFile('/b/lib/b.dart', content: '''
 import 'package:a/a.dart';
 class B extends A {}
 ''');
-    var driver2 = _newDriver(
-        packageUriResolver: new PackageMapUriResolver(provider, {
-      'a': [provider.getFile(a).parent]
-    }));
-    driver2.addFile(b);
+    var driver2 = _newDriver(packageUriResolver: _mapUriResolver('a', a));
+    driver2.addFile(b.path);
 
     while (scheduler.isAnalyzing) {
       await new Future.delayed(new Duration(milliseconds: 1));
@@ -448,26 +472,34 @@ class B extends A {}
     assertHasOneElement('B');
   }
 
+  UriResolver _mapUriResolver(String packageName, String path) {
+    return new PackageMapUriResolver(resourceProvider, {
+      packageName: [resourceProvider.getFile(path).parent]
+    });
+  }
+
   AnalysisDriver _newDriver({UriResolver packageUriResolver}) {
     var resolvers = <UriResolver>[
       new DartUriResolver(sdk),
-      new ResourceUriResolver(provider)
+      new ResourceUriResolver(resourceProvider)
     ];
     if (packageUriResolver != null) {
       resolvers.add(packageUriResolver);
     }
-    resolvers.add(new ResourceUriResolver(provider));
+    resolvers.add(new ResourceUriResolver(resourceProvider));
 
     return new AnalysisDriver(
         scheduler,
         logger,
-        provider,
+        resourceProvider,
         byteStore,
         contentOverlay,
         null,
-        new SourceFactory(resolvers, null, provider),
-        new AnalysisOptionsImpl()..strongMode = true);
+        new SourceFactory(resolvers, null, resourceProvider),
+        new AnalysisOptionsImpl());
   }
 
-  String _p(String path) => provider.convertPath(path);
+  static void _assertContainsClass(Set<ClassElement> subtypes, String name) {
+    expect(subtypes, contains(predicate((ClassElement e) => e.name == name)));
+  }
 }

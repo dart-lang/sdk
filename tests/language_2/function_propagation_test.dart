@@ -12,24 +12,14 @@ typedef int F(String str);
 
 main() {
   var a = new A();
-  if (a is Function) {
-    Expect.isTrue(a is A);
-  } else {
-    Expect.fail("a should be a Function");
-  }
+  Expect.isFalse(a is A);
 
   var a2 = new A();
-  if (a2 is F) {
-    Expect.isTrue(a2 is A);
-  } else {
-    Expect.fail("a2 should be an F");
-  }
+  Expect.isFalse(a is F);
 
   Function a3 = new A();
-  // Dart2Js mistakenly assumed that Function and A couldn't be related and
-  // returned false for a is A.
-  Expect.isTrue(a3 is A);
+  Expect.isFalse(a3 is A);
 
   F a4 = new A();
-  Expect.isTrue(a4 is A);
+  Expect.isFalse(a4 is A);
 }

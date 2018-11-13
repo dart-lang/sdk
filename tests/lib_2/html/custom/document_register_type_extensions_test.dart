@@ -96,13 +96,13 @@ main() {
       return;
     }
     registeredTypes = true;
-    document.registerElement(Foo.tag, Foo);
-    document.registerElement(Bar.tag, Bar, extendsTag: 'input');
-    document.registerElement(Baz.tag, Baz);
-    document.registerElement(Qux.tag, Qux, extendsTag: 'input');
-    document.registerElement(MyCanvas.tag, MyCanvas, extendsTag: 'canvas');
-    document.registerElement(CustomCustomDiv.tag, CustomCustomDiv,
-        extendsTag: 'div');
+    document.registerElement2(Foo.tag, {'prototype': Foo});
+    document.registerElement2(Bar.tag, {'prototype': Bar, 'extends': 'input'});
+    document.registerElement2(Baz.tag, {'prototype': Baz});
+    document.registerElement2(Qux.tag, {'prototype': Qux, 'extends': 'input'});
+    document.registerElement2(MyCanvas.tag, {'prototype': MyCanvas, 'extends': 'canvas'});
+    document.registerElement2(CustomCustomDiv.tag, {'prototype': CustomCustomDiv,
+        'extends': 'div'});
   }
 
   setUp(() => customElementsReady);
@@ -111,19 +111,19 @@ main() {
     setUp(registerTypes);
 
     test('cannot register twice', () {
-      expect(() => document.registerElement(FooBad.tag, Foo, extendsTag: 'div'),
+      expect(() => document.registerElement2(FooBad.tag, {'prototype': Foo, 'extends': 'div'}),
           throws);
     });
 
     test('cannot register for non-matching tag', () {
       expect(() {
-        document.registerElement('x-input-div', Bar, extendsTag: 'div');
+        document.registerElement2('x-input-div', {'prototype': Bar, 'extends': 'div'});
       }, throws);
     });
 
     test('cannot register type extension for custom tag', () {
       expect(() {
-        document.registerElement('x-custom-tag', CustomCustomDiv);
+        document.registerElement2('x-custom-tag',  {'prototype': CustomCustomDiv});
       }, throws);
     });
   });

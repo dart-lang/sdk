@@ -2,45 +2,112 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/problems.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        Class,
+        DartType,
+        DynamicType,
+        Expression,
+        Field,
+        FunctionNode,
+        FunctionType,
+        Member,
+        Name,
+        NamedExpression,
+        Procedure,
+        ProcedureKind,
+        ReturnStatement,
+        SuperMethodInvocation,
+        SuperPropertyGet,
+        SuperPropertySet,
+        TypeParameter,
+        TypeParameterType,
+        VariableDeclaration,
+        VariableGet,
+        VoidType;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
-import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
 
-/// Set this flag to `true` to cause debugging information about covariance
-/// checks to be printed to standard output.
-const bool debugCovariance = false;
+import 'package:kernel/type_algebra.dart' show Substitution;
 
-/// Type of a closure which applies a covariance annotation to a class member.
-///
-/// This is necessary since we need to determine which covariance annotations
-/// need to be added before creating a forwarding stub, but the covariance
-/// annotations themselves need to be applied to the forwarding stub.
-typedef void _CovarianceFix(FunctionNode function);
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import '../../base/instrumentation.dart'
+    show
+        Instrumentation,
+        InstrumentationValueForForwardingStub,
+        InstrumentationValueLiteral;
+
+import '../builder/builder.dart' show LibraryBuilder;
+
+import '../kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
+
+import '../kernel/kernel_shadow_ast.dart'
+    show
+        ShadowClass,
+        ShadowField,
+        ShadowMember,
+        ShadowProcedure,
+        VariableDeclarationJudgment;
+
+import '../messages.dart'
+    show
+        messageDeclaredMemberConflictsWithInheritedMember,
+        messageDeclaredMemberConflictsWithInheritedMemberCause,
+        messageInheritedMembersConflict,
+        messageInheritedMembersConflictCause1,
+        messageInheritedMembersConflictCause2,
+        noLength,
+        templateCantInferTypeDueToCircularity,
+        templateCantInferTypeDueToInconsistentOverrides;
+
+import '../names.dart' show indexSetName;
+
+import '../problems.dart' show unhandled;
+
+import 'type_inference_engine.dart'
+    show
+        FieldInitializerInferenceNode,
+        IncludesTypeParametersCovariantly,
+        InferenceNode,
+        TypeInferenceEngine;
+
+import 'type_inferrer.dart' show getNamedFormal;
+
+import 'type_schema_environment.dart'
+    show
+        getNamedParameterType,
+        getPositionalParameterType,
+        substituteTypeParams;
 
 /// Concrete class derived from [InferenceNode] to represent type inference of
 /// getters, setters, and fields based on inheritance.
-class AccessorInferenceNode extends MemberInferenceNode {
-  AccessorInferenceNode(
-      InterfaceResolver interfaceResolver,
-      Procedure declaredMethod,
-      List<Member> candidates,
-      int start,
-      int end,
-      LibraryBuilder library,
-      Uri fileUri)
-      : super(interfaceResolver, declaredMethod, candidates, start, end,
-            library, fileUri);
+class AccessorInferenceNode extends InferenceNode {
+  final InterfaceResolver _interfaceResolver;
+
+  /// The method whose return type and/or parameter types should be inferred.
+  final Procedure _declaredMethod;
+
+  /// A list containing the methods overridden by [_declaredMethod], if any.
+  final List<Member> _candidates;
+
+  /// The index of the first method in [_candidates] overridden by
+  /// [_declaredMethod].
+  final int _start;
+
+  /// The past-the-end index of the last method in [_candidates] overridden by
+  /// [_declaredMethod].
+  final int _end;
+
+  final LibraryBuilder _library;
+
+  final Uri _fileUri;
+
+  AccessorInferenceNode(this._interfaceResolver, this._declaredMethod,
+      this._candidates, this._start, this._end, this._library, this._fileUri);
 
   String get _name {
     if (_declaredMethod is! SyntheticAccessor && _declaredMethod.isSetter) {
@@ -62,12 +129,14 @@ class AccessorInferenceNode extends MemberInferenceNode {
     var kind = declaredMethod.kind;
     var overriddenTypes = _computeAccessorOverriddenTypes();
     if (isCircular) {
-      _library.addCompileTimeError(
+      _library.addProblem(
           templateCantInferTypeDueToCircularity.withArguments(_name),
           _offset,
+          noLength,
           _fileUri);
     } else {
-      var inferredType = _matchTypes(overriddenTypes, _name, _offset);
+      var inferredType = _interfaceResolver.matchTypes(
+          overriddenTypes, _library, _name, _fileUri, _offset);
       if (declaredMethod is SyntheticAccessor) {
         declaredMethod._field.type = inferredType;
       } else {
@@ -177,63 +246,65 @@ class ForwardingNode extends Procedure {
   /// Does not create forwarding stubs.
   Procedure resolve() => _resolution ??= _resolve();
 
-  /// Determines which covariance fixes need to be applied to the given
-  /// [interfaceMember].
+  /// Tag the parameters of [interfaceMember] that need type checks
   ///
-  /// [substitution] indicates the necessary substitutions to convert types
-  /// named in [interfaceMember] to types in the target class.
+  /// Parameters can need type checks for calls coming from statically typed
+  /// call sites, due to covariant generics and overrides with explicit
+  /// `covariant` parameters.
   ///
-  /// The fixes are not applied immediately (since [interfaceMember] might be
-  /// a member of another class, and a forwarding stub may need to be
-  /// generated).
-  void _computeCovarianceFixes(Substitution substitution,
-      Procedure interfaceMember, List<_CovarianceFix> fixes) {
-    if (debugCovariance) {
-      print('Considering covariance fixes for '
-          '${_printProcedure(interfaceMember, enclosingClass)}');
-      for (int i = _start; i < _end; i++) {
-        print('  Candidate: ${_printProcedure(_candidates[i])}');
-      }
-    }
-    var class_ = enclosingClass;
+  /// Tag parameters of [interfaceMember] that need such checks when the member
+  /// occurs in [enclosingClass]'s interface.  If parameters need checks but
+  /// they would not be checked in an inherited implementation, a forwarding
+  /// stub is introduced as a place to put the checks.
+  Procedure _computeCovarianceFixes(Procedure interfaceMember) {
+    assert(_interfaceResolver.strongMode);
+    var substitution =
+        _interfaceResolver._substitutionFor(interfaceMember, enclosingClass);
+    // We always create a forwarding stub when we've inherited a member from an
+    // interface other than the first override candidate.  This is to work
+    // around a bug in the Kernel type checker where it chooses the first
+    // override candidate.
+    //
+    // TODO(kmillikin): Fix the Kernel type checker and stop creating these
+    // extra stubs.
+    var stub = interfaceMember.enclosingClass == enclosingClass ||
+            interfaceMember == _resolvedCandidate(_start)
+        ? interfaceMember
+        : _createForwardingStub(substitution, interfaceMember);
+
     var interfaceFunction = interfaceMember.function;
     var interfacePositionalParameters = interfaceFunction.positionalParameters;
     var interfaceNamedParameters = interfaceFunction.namedParameters;
     var interfaceTypeParameters = interfaceFunction.typeParameters;
+
+    void createStubIfNeeded() {
+      if (stub != interfaceMember) return;
+      if (interfaceMember.enclosingClass == enclosingClass) return;
+      stub = _createForwardingStub(substitution, interfaceMember);
+    }
+
     bool isImplCreated = false;
     void createImplIfNeeded() {
       if (isImplCreated) return;
-      fixes.add(_createForwardingImplIfNeeded);
+      createStubIfNeeded();
+      _createForwardingImplIfNeeded(stub.function);
       isImplCreated = true;
     }
 
     IncludesTypeParametersCovariantly needsCheckVisitor =
-        class_.typeParameters.isEmpty
+        enclosingClass.typeParameters.isEmpty
             ? null
-            : ShadowClass.getClassInferenceInfo(class_).needsCheckVisitor ??=
-                new IncludesTypeParametersCovariantly(class_.typeParameters);
+            : ShadowClass.getClassInferenceInfo(enclosingClass)
+                    .needsCheckVisitor ??=
+                new IncludesTypeParametersCovariantly(
+                    enclosingClass.typeParameters);
     bool needsCheck(DartType type) => needsCheckVisitor == null
         ? false
         : substitution.substituteType(type).accept(needsCheckVisitor);
-    needsCheckVisitor?.inCovariantContext = false;
-    var isGenericContravariant = needsCheck(interfaceFunction.returnType);
-    needsCheckVisitor?.inCovariantContext = true;
-    if (isGenericContravariant != interfaceMember.isGenericContravariant) {
-      fixes.add((FunctionNode function) {
-        Procedure procedure = function.parent;
-        procedure.isGenericContravariant = isGenericContravariant;
-      });
-    }
     for (int i = 0; i < interfacePositionalParameters.length; i++) {
       var parameter = interfacePositionalParameters[i];
-      var isGenericCovariantInterface = needsCheck(parameter.type);
-      if (isGenericCovariantInterface !=
-          parameter.isGenericCovariantInterface) {
-        fixes.add((FunctionNode function) => function.positionalParameters[i]
-            .isGenericCovariantInterface = isGenericCovariantInterface);
-      }
       var isGenericCovariantImpl =
-          isGenericCovariantInterface || parameter.isGenericCovariantImpl;
+          parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       var isCovariant = parameter.isCovariant;
       var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
@@ -252,31 +323,29 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
-        createImplIfNeeded();
+      if (isGenericCovariantImpl) {
+        if (!superParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isGenericCovariantImpl) {
+          createStubIfNeeded();
+          stub.function.positionalParameters[i].isGenericCovariantImpl = true;
+        }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
-        fixes.add((FunctionNode function) => function.positionalParameters[i]
-            .isGenericCovariantImpl = isGenericCovariantImpl);
-      }
-      if (isCovariant != superParameter.isCovariant) {
-        createImplIfNeeded();
-      }
-      if (isCovariant != parameter.isCovariant) {
-        fixes.add((FunctionNode function) =>
-            function.positionalParameters[i].isCovariant = isCovariant);
+      if (isCovariant) {
+        if (!superParameter.isCovariant) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isCovariant) {
+          createStubIfNeeded();
+          stub.function.positionalParameters[i].isCovariant = true;
+        }
       }
     }
     for (int i = 0; i < interfaceNamedParameters.length; i++) {
       var parameter = interfaceNamedParameters[i];
-      var isGenericCovariantInterface = needsCheck(parameter.type);
-      if (isGenericCovariantInterface !=
-          parameter.isGenericCovariantInterface) {
-        fixes.add((FunctionNode function) => function.namedParameters[i]
-            .isGenericCovariantInterface = isGenericCovariantInterface);
-      }
       var isGenericCovariantImpl =
-          isGenericCovariantInterface || parameter.isGenericCovariantImpl;
+          parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       var isCovariant = parameter.isCovariant;
       var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
@@ -294,31 +363,29 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
-        createImplIfNeeded();
+      if (isGenericCovariantImpl) {
+        if (!superParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isGenericCovariantImpl) {
+          createStubIfNeeded();
+          stub.function.namedParameters[i].isGenericCovariantImpl = true;
+        }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
-        fixes.add((FunctionNode function) => function.namedParameters[i]
-            .isGenericCovariantImpl = isGenericCovariantImpl);
-      }
-      if (isCovariant != superParameter.isCovariant) {
-        createImplIfNeeded();
-      }
-      if (isCovariant != parameter.isCovariant) {
-        fixes.add((FunctionNode function) =>
-            function.namedParameters[i].isCovariant = isCovariant);
+      if (isCovariant) {
+        if (!superParameter.isCovariant) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isCovariant) {
+          createStubIfNeeded();
+          stub.function.namedParameters[i].isCovariant = true;
+        }
       }
     }
     for (int i = 0; i < interfaceTypeParameters.length; i++) {
       var typeParameter = interfaceTypeParameters[i];
-      var isGenericCovariantInterface = needsCheck(typeParameter.bound);
-      if (isGenericCovariantInterface !=
-          typeParameter.isGenericCovariantInterface) {
-        fixes.add((FunctionNode function) => function.typeParameters[i]
-            .isGenericCovariantInterface = isGenericCovariantInterface);
-      }
-      var isGenericCovariantImpl =
-          isGenericCovariantInterface || typeParameter.isGenericCovariantImpl;
+      var isGenericCovariantImpl = typeParameter.isGenericCovariantImpl ||
+          needsCheck(typeParameter.bound);
       var superTypeParameter = typeParameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
@@ -332,18 +399,17 @@ class ForwardingNode extends Procedure {
           isGenericCovariantImpl = true;
         }
       }
-      if (isGenericCovariantImpl != superTypeParameter.isGenericCovariantImpl) {
-        createImplIfNeeded();
-      }
-      if (isGenericCovariantImpl != typeParameter.isGenericCovariantImpl) {
-        fixes.add((FunctionNode function) => function
-            .typeParameters[i].isGenericCovariantImpl = isGenericCovariantImpl);
+      if (isGenericCovariantImpl) {
+        if (!superTypeParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
+        }
+        if (!typeParameter.isGenericCovariantImpl) {
+          createStubIfNeeded();
+          stub.function.typeParameters[i].isGenericCovariantImpl = true;
+        }
       }
     }
-
-    if (debugCovariance && fixes.isNotEmpty) {
-      print('  ${fixes.length} fix(es)');
-    }
+    return stub;
   }
 
   void _createForwardingImplIfNeeded(FunctionNode function) {
@@ -366,11 +432,16 @@ class ForwardingNode extends Procedure {
     }
     procedure.isAbstract = false;
     if (!procedure.isForwardingStub) {
+      // This procedure exists abstractly in the source code; we need to make it
+      // concrete and give it a body that is a forwarding stub.  This situation
+      // is called a "forwarding semi-stub".
+      procedure.isForwardingStub = true;
+      procedure.isForwardingSemiStub = true;
       _interfaceResolver._instrumentation?.record(
           procedure.fileUri,
           procedure.fileOffset,
           'forwardingStub',
-          new InstrumentationValueLiteral('implementation'));
+          new InstrumentationValueLiteral('semi-stub'));
     }
     var positionalArguments = function.positionalParameters
         .map<Expression>((parameter) => new VariableGet(parameter))
@@ -411,6 +482,7 @@ class ForwardingNode extends Procedure {
     }
     function.body = new ReturnStatement(superCall)..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;
+    procedure.forwardingStubSuperTarget = superTarget;
   }
 
   /// Creates a forwarding stub based on the given [target].
@@ -419,8 +491,7 @@ class ForwardingNode extends Procedure {
       return new VariableDeclaration(parameter.name,
           type: substitution.substituteType(parameter.type),
           isCovariant: parameter.isCovariant)
-        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
-        ..isGenericCovariantInterface = parameter.isGenericCovariantInterface;
+        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl;
     }
 
     var targetTypeParameters = target.function.typeParameters;
@@ -432,9 +503,7 @@ class ForwardingNode extends Procedure {
       for (int i = 0; i < targetTypeParameters.length; i++) {
         var targetTypeParameter = targetTypeParameters[i];
         var typeParameter = new TypeParameter(targetTypeParameter.name, null)
-          ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl
-          ..isGenericCovariantInterface =
-              targetTypeParameter.isGenericCovariantInterface;
+          ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl;
         typeParameters[i] = typeParameter;
         additionalSubstitution[targetTypeParameter] =
             new TypeParameterType(typeParameter);
@@ -457,53 +526,29 @@ class ForwardingNode extends Procedure {
         requiredParameterCount: target.function.requiredParameterCount,
         returnType: substitution.substituteType(target.function.returnType));
     Member finalTarget;
-    if (target is ForwardingStub) {
-      finalTarget = ForwardingStub.getInterfaceTarget(target);
+    if (target is Procedure && target.isForwardingStub) {
+      finalTarget = target.forwardingStubInterfaceTarget;
     } else if (target is SyntheticAccessor) {
       finalTarget = target._field;
     } else {
       finalTarget = target;
     }
-    return new ForwardingStub(finalTarget, name, kind, function,
-        fileUri: enclosingClass.fileUri)
+    return new Procedure(name, kind, function,
+        isAbstract: true,
+        isForwardingStub: true,
+        fileUri: enclosingClass.fileUri,
+        forwardingStubInterfaceTarget: finalTarget)
+      ..startFileOffset = enclosingClass.fileOffset
       ..fileOffset = enclosingClass.fileOffset
-      ..parent = enclosingClass
-      ..isGenericContravariant = target.isGenericContravariant;
+      ..parent = enclosingClass;
   }
 
-  /// Creates a forwarding stubs for this node if necessary, and propagates
+  /// Creates a forwarding stub for this node if necessary, and propagates
   /// covariance information.
   Procedure _finalize() {
-    var inheritedMember = resolve();
-    var inheritedMemberSubstitution =
-        _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
-    bool isDeclaredInThisClass =
-        identical(inheritedMember.enclosingClass, enclosingClass);
-
-    // Now decide whether we need a forwarding stub or not, and propagate
-    // covariance.
-    var covarianceFixes = <_CovarianceFix>[];
-    if (_interfaceResolver.strongMode) {
-      _computeCovarianceFixes(
-          inheritedMemberSubstitution, inheritedMember, covarianceFixes);
-    }
-    if (!isDeclaredInThisClass &&
-        (!identical(inheritedMember, _resolvedCandidate(_start)) ||
-            covarianceFixes.isNotEmpty)) {
-      var stub =
-          _createForwardingStub(inheritedMemberSubstitution, inheritedMember);
-      var function = stub.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return stub;
-    } else {
-      var function = inheritedMember.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return inheritedMember;
-    }
+    return _interfaceResolver.strongMode
+        ? _computeCovarianceFixes(resolve())
+        : resolve();
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
@@ -513,29 +558,6 @@ class ForwardingNode extends Procedure {
             _interfaceResolver.isTypeInferencePrepared
         ? candidate.finalize()
         : candidate;
-  }
-
-  /// Returns a string describing the signature of [procedure], along with the
-  /// class it's in.
-  ///
-  /// Only used if [debugCovariance] is `true`.
-  ///
-  /// If [class_] is provided, it is used instead of [procedure]'s enclosing
-  /// class.
-  String _printProcedure(Procedure procedure, [Class class_]) {
-    class_ ??= procedure.enclosingClass;
-    var buffer = new StringBuffer();
-    if (procedure.function == null) {
-      buffer.write(procedure.toString());
-    } else {
-      procedure.accept(new Printer(buffer));
-    }
-    var text = buffer.toString();
-    var newlineIndex = text.indexOf('\n');
-    if (newlineIndex != -1) {
-      text = text.substring(0, newlineIndex);
-    }
-    return '$class_: $text';
   }
 
   /// Determines which inherited member this node resolves to, and also performs
@@ -649,36 +671,12 @@ class ForwardingNode extends Procedure {
   }
 }
 
-/// Represents a [Procedure] generated by the front end to serve as a forwarding
-/// stub.
-///
-/// This class exists to work around dartbug.com/31519.
-/// TODO(paulberry): remove when dartbug.com/31519 is fixed.
-class ForwardingStub extends Procedure {
-  /// The interface target that this forwarding stub replaces.
-  final Member _interfaceTarget;
-
-  ForwardingStub(this._interfaceTarget, Name name, ProcedureKind kind,
-      FunctionNode function, {Uri fileUri})
-      : super(name, kind, function,
-            isAbstract: true, isForwardingStub: true, fileUri: fileUri);
-
-  /// Retrieves the [_interfaceTarget] from a forwarding stub.
-  ///
-  /// This method exists so that we don't have to expose [_interfaceTarget] as
-  /// a public getter (which might confuse clients of the front end that aren't
-  /// expecting it).
-  static Member getInterfaceTarget(ForwardingStub stub) {
-    return stub._interfaceTarget;
-  }
-}
-
 /// An [InterfaceResolver] keeps track of the information necessary to resolve
 /// method calls, gets, and sets within a chunk of code being compiled, to
 /// infer covariance annotations, and to create forwarwding stubs when necessary
 /// to meet covariance requirements.
 class InterfaceResolver {
-  final TypeInferenceEngineImpl _typeInferenceEngine;
+  final TypeInferenceEngine _typeInferenceEngine;
 
   final TypeEnvironment _typeEnvironment;
 
@@ -693,14 +691,138 @@ class InterfaceResolver {
   bool get isTypeInferencePrepared =>
       _typeInferenceEngine.isTypeInferencePrepared;
 
-  /// Populates [apiMembers] with a list of the implemented and inherited
-  /// members of the given [class_]'s interface.
+  /// Report an error if all types in [types] are not equal using `==`.
   ///
-  /// Members of the class's interface that need to be resolved later are
-  /// represented by a [ForwardingNode] object.
+  /// Returns the type if there is at least one and they are all equal,
+  /// otherwise the type `dynamic`.  [library], [name], [fileUri], and
+  /// [charOffset] are used to report the error.
+  DartType matchTypes(Iterable<DartType> types, LibraryBuilder library,
+      String name, Uri fileUri, int charOffset) {
+    DartType first;
+    for (var type in types) {
+      if (first == null) {
+        first = type;
+      } else if (first != type) {
+        // Types don't match.  Report an error.
+        library.addProblem(
+            templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
+            charOffset,
+            noLength,
+            fileUri);
+        return const DynamicType();
+      }
+    }
+    // If there are no overridden types, infer `dynamic`.
+    return first ?? const DynamicType();
+  }
+
+  /// Computes the types of the methods overridden by [method] in [class_].
   ///
-  /// If [setters] is `true`, the list will be populated by setters; otherwise
-  /// it will be populated by getters and methods.
+  /// The types have the type parameters of [class_] substituted appropriately.
+  ///
+  /// [candidates] has the list of inherited interface methods with the same
+  /// name as [method] as a sublist from [start] inclusive to [end] exclusive.
+  List<FunctionType> _computeMethodOverriddenTypes(Class class_,
+      Procedure method, List<Member> candidates, int start, int end) {
+    var overriddenTypes = <FunctionType>[];
+    var declaredTypeParameters = method.function.typeParameters;
+    for (int i = start; i < end; ++i) {
+      var candidate = candidates[i];
+      if (candidate is SyntheticAccessor) {
+        // This can happen if there are errors.  Just skip this override.
+        continue;
+      }
+      var candidateFunction = candidate.function;
+      if (candidateFunction == null) {
+        // This can happen if there are errors.  Just skip this override.
+        continue;
+      }
+      var substitution = _substitutionFor(candidate, class_);
+      FunctionType overriddenType =
+          substitution.substituteType(candidateFunction.functionType);
+      var overriddenTypeParameters = overriddenType.typeParameters;
+      if (overriddenTypeParameters.length != declaredTypeParameters.length) {
+        // Generic arity mismatch.  Don't do any inference for this method.
+        // TODO(paulberry): report an error.
+        overriddenTypes.clear();
+        break;
+      } else if (overriddenTypeParameters.isNotEmpty) {
+        var substitutionMap = <TypeParameter, DartType>{};
+        for (int i = 0; i < declaredTypeParameters.length; ++i) {
+          substitutionMap[overriddenTypeParameters[i]] =
+              new TypeParameterType(declaredTypeParameters[i]);
+        }
+        overriddenType = substituteTypeParams(
+            overriddenType, substitutionMap, declaredTypeParameters);
+      }
+      overriddenTypes.add(overriddenType);
+    }
+    return overriddenTypes;
+  }
+
+  void inferMethodType(LibraryBuilder library, Class class_, Procedure method,
+      List<Member> candidates, int start, int end) {
+    var overriddenTypes =
+        _computeMethodOverriddenTypes(class_, method, candidates, start, end);
+    if (ShadowProcedure.hasImplicitReturnType(method) &&
+        method.name != indexSetName) {
+      method.function.returnType = matchTypes(
+          overriddenTypes.map((type) => type.returnType),
+          library,
+          method.name.name,
+          class_.fileUri,
+          method.fileOffset);
+    }
+    var positionalParameters = method.function.positionalParameters;
+    for (int i = 0; i < positionalParameters.length; ++i) {
+      if (VariableDeclarationJudgment.isImplicitlyTyped(
+          positionalParameters[i])) {
+        // Note that if the parameter is not present in the overridden method,
+        // getPositionalParameterType treats it as dynamic.  This is consistent
+        // with the behavior called for in the informal top level type inference
+        // spec, which says:
+        //
+        //     If there is no corresponding parameter position in the overridden
+        //     method to infer from and the signatures are compatible, it is
+        //     treated as dynamic (e.g. overriding a one parameter method with a
+        //     method that takes a second optional parameter).  Note: if there
+        //     is no corresponding parameter position in the overridden method to
+        //     infer from and the signatures are incompatible (e.g. overriding a
+        //     one parameter method with a method that takes a second
+        //     non-optional parameter), the inference result is not defined and
+        //     tools are free to either emit an error, or to defer the error to
+        //     override checking.
+        positionalParameters[i].type = matchTypes(
+            overriddenTypes.map((type) => getPositionalParameterType(type, i)),
+            library,
+            positionalParameters[i].name,
+            class_.fileUri,
+            positionalParameters[i].fileOffset);
+      }
+    }
+    var namedParameters = method.function.namedParameters;
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (VariableDeclarationJudgment.isImplicitlyTyped(namedParameters[i])) {
+        var name = namedParameters[i].name;
+        namedParameters[i].type = matchTypes(
+            overriddenTypes.map((type) => getNamedParameterType(type, name)),
+            library,
+            namedParameters[i].name,
+            class_.fileUri,
+            namedParameters[i].fileOffset);
+      }
+    }
+  }
+
+  /// Populates [getters] and [setters] with the members of the given [class_]'s
+  /// interface.
+  ///
+  /// [getters] will contain methods and getters, [setters] will contain
+  /// setters.  Some members cannot be resolved immediately.  For instance,
+  /// top-level type inference has not yet inferred field types based on
+  /// initializers and so we cannot yet do override based resolution of getters
+  /// and setters.  Members of the class's interface that need to be resolved
+  /// later are represented by a [ForwardingNode] object.
   void createApiMembers(Class class_, List<Member> getters,
       List<Member> setters, LibraryBuilder library) {
     var candidates = ClassHierarchy.mergeSortedLists(
@@ -711,37 +833,166 @@ class InterfaceResolver {
     setters.length = candidates.length;
     int getterIndex = 0;
     int setterIndex = 0;
-    forEachApiMember(candidates, (int getterStart, int setterEnd, Name name) {
-      // TODO(paulberry): check for illegal getter/method mixing
+    // To detect conflicts between instance members (possibly inherited ones)
+    // and static members, use a map from names to lists of members.  There can
+    // be more than one static member with a given name, e.g., if there is a
+    // getter and a setter.  We will report both conflicts.
+    Map<Name, List<Member>> staticMembers = {};
+    for (var procedure in class_.procedures) {
+      if (procedure.isStatic && !procedure.isFactory) {
+        staticMembers.putIfAbsent(procedure.name, () => []).add(procedure);
+      }
+    }
+    for (var field in class_.fields) {
+      if (field.isStatic) {
+        staticMembers.putIfAbsent(field.name, () => []).add(field);
+      }
+    }
+    forEachApiMember(candidates, (int start, int end, Name name) {
+      Procedure member = candidates[start];
+      // We should not have a method, getter, or setter in our interface that
+      // conflicts with a static method, getter, or setter declared in the
+      // class.
+      List<Member> conflicts = staticMembers[name];
+      if (conflicts != null) {
+        for (var conflict in conflicts) {
+          library.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
+              conflict.fileOffset, noLength, conflict.fileUri,
+              context: [
+                messageDeclaredMemberConflictsWithInheritedMemberCause
+                    .withLocation(member.fileUri, member.fileOffset, noLength)
+              ]);
+        }
+        return;
+      }
+      ProcedureKind kind = _kindOf(member);
+      if (kind != ProcedureKind.Getter && kind != ProcedureKind.Setter) {
+        for (int i = start + 1; i < end; ++i) {
+          if (_kindOf(candidates[i]) != kind) {
+            // We've seen a getter or setter.  If it's a getter conflicting
+            // with a method and both are declared in the same class, then that
+            // has already been signaled as a duplicated definition.
+            Procedure conflict = candidates[i];
+            if (conflict.enclosingClass != member.enclosingClass) {
+              if (member.enclosingClass == class_) {
+                library.addProblem(
+                    messageDeclaredMemberConflictsWithInheritedMember,
+                    member.fileOffset,
+                    noLength,
+                    member.fileUri,
+                    context: [
+                      messageDeclaredMemberConflictsWithInheritedMemberCause
+                          .withLocation(
+                              conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              } else if (conflict.enclosingClass == class_) {
+                library.addProblem(
+                    messageDeclaredMemberConflictsWithInheritedMember,
+                    conflict.fileOffset,
+                    noLength,
+                    conflict.fileUri,
+                    context: [
+                      messageDeclaredMemberConflictsWithInheritedMemberCause
+                          .withLocation(
+                              member.fileUri, member.fileOffset, noLength)
+                    ]);
+              } else {
+                library.addProblem(messageInheritedMembersConflict,
+                    class_.fileOffset, noLength, class_.fileUri,
+                    context: [
+                      messageInheritedMembersConflictCause1.withLocation(
+                          member.fileUri, member.fileOffset, noLength),
+                      messageInheritedMembersConflictCause2.withLocation(
+                          conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              }
+            } else {
+              // If it's a setter conflicting with a method and both are
+              // declared in the same class, it hasn't been signaled as a
+              // duplicated definition so it's reported here.
+              library.addProblem(
+                  messageDeclaredMemberConflictsWithInheritedMember,
+                  member.fileOffset,
+                  noLength,
+                  member.fileUri,
+                  context: [
+                    messageDeclaredMemberConflictsWithInheritedMemberCause
+                        .withLocation(
+                            conflict.fileUri, conflict.fileOffset, noLength)
+                  ]);
+            }
+            return;
+          }
+        }
+        if (strongMode &&
+            member.enclosingClass == class_ &&
+            _requiresTypeInference(member)) {
+          inferMethodType(library, class_, member, candidates, start + 1, end);
+        }
+        var forwardingNode = new ForwardingNode(
+            this, null, class_, name, kind, candidates, start, end);
+        getters[getterIndex++] = forwardingNode.finalize();
+        if (library is KernelLibraryBuilder &&
+            forwardingNode.finalize() != forwardingNode.resolve()) {
+          library.forwardersOrigins.add(forwardingNode.finalize());
+          library.forwardersOrigins.add(forwardingNode.resolve());
+        }
+        return;
+      }
 
       Procedure declaredGetter;
-      int i = getterStart;
-      int inheritedGetterStart;
-      int getterEnd;
-      if (_kindOf(candidates[i]) == ProcedureKind.Setter) {
-        inheritedGetterStart = i;
-      } else {
-        if (identical(candidates[i].enclosingClass, class_)) {
-          declaredGetter = candidates[i++];
+      int inheritedGetterStart = start;
+      int getterEnd = start;
+      if (kind == ProcedureKind.Getter) {
+        if (member.enclosingClass == class_) {
+          declaredGetter = member;
+          ++inheritedGetterStart;
         }
-        inheritedGetterStart = i;
-        while (
-            i < setterEnd && _kindOf(candidates[i]) != ProcedureKind.Setter) {
-          ++i;
+        while (++getterEnd < end) {
+          ProcedureKind currentKind = _kindOf(candidates[getterEnd]);
+          if (currentKind == ProcedureKind.Setter) break;
+          if (currentKind != ProcedureKind.Getter) {
+            Procedure conflict = candidates[getterEnd];
+            if (conflict.enclosingClass != member.enclosingClass) {
+              if (member.enclosingClass == class_) {
+                library.addProblem(
+                    messageDeclaredMemberConflictsWithInheritedMember,
+                    member.fileOffset,
+                    noLength,
+                    member.fileUri,
+                    context: [
+                      messageDeclaredMemberConflictsWithInheritedMemberCause
+                          .withLocation(
+                              conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              } else {
+                library.addProblem(messageInheritedMembersConflict,
+                    class_.fileOffset, noLength, class_.fileUri,
+                    context: [
+                      messageInheritedMembersConflictCause1.withLocation(
+                          member.fileUri, member.fileOffset, noLength),
+                      messageInheritedMembersConflictCause2.withLocation(
+                          conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              }
+            }
+            return;
+          }
         }
       }
-      getterEnd = i;
+
       Procedure declaredSetter;
-      int inheritedSetterStart;
-      if (i < setterEnd && identical(candidates[i].enclosingClass, class_)) {
-        declaredSetter = candidates[i];
-        inheritedSetterStart = i + 1;
-      } else {
-        inheritedSetterStart = i;
+      int inheritedSetterStart = getterEnd;
+      if (getterEnd < end) {
+        member = candidates[getterEnd];
+        if (member.enclosingClass == class_) {
+          declaredSetter = member;
+          ++inheritedSetterStart;
+        }
       }
 
       InferenceNode getterInferenceNode;
-      if (getterStart < getterEnd) {
+      if (start < getterEnd) {
         if (declaredGetter != null) {
           getterInferenceNode = _createInferenceNode(
               class_,
@@ -750,57 +1001,47 @@ class InterfaceResolver {
               inheritedGetterStart,
               getterEnd,
               inheritedSetterStart,
-              setterEnd,
+              end,
               library,
               class_.fileUri);
         }
-        var forwardingNode = new ForwardingNode(
-            this,
-            getterInferenceNode,
-            class_,
-            name,
-            _kindOf(candidates[getterStart]),
-            candidates,
-            getterStart,
-            getterEnd);
-        if (!forwardingNode.isGetter) {
-          // Methods and operators can be finalized immediately.
-          getters[getterIndex++] = forwardingNode.finalize();
-        } else {
-          // Getters need to be resolved later, as part of type
-          // inference, so just save the forwarding node for now.
-          getters[getterIndex++] = forwardingNode;
-        }
+        // Getters need to be resolved later, as part of type inference, so just
+        // save the forwarding node for now.
+        //
+        // Choose a representative to use for error reporting, such as if a
+        // class inherits this getter and tries to declare a method with the
+        // same name.
+        Member representative = candidates[start];
+        getters[getterIndex++] = new ForwardingNode(this, getterInferenceNode,
+            class_, name, ProcedureKind.Getter, candidates, start, getterEnd)
+          ..fileUri = representative.fileUri
+          ..fileOffset = representative.fileOffset
+          ..fileEndOffset = representative.fileEndOffset;
       }
-      if (getterEnd < setterEnd) {
+      if (getterEnd < end) {
         InferenceNode setterInferenceNode;
         if (declaredSetter != null) {
-          if (declaredSetter is SyntheticAccessor) {
-            setterInferenceNode = getterInferenceNode;
-          } else {
-            setterInferenceNode = _createInferenceNode(
-                class_,
-                declaredSetter,
-                candidates,
-                inheritedSetterStart,
-                setterEnd,
-                inheritedGetterStart,
-                getterEnd,
-                library,
-                class_.fileUri);
-          }
+          setterInferenceNode = declaredSetter is SyntheticAccessor
+              ? getterInferenceNode
+              : _createInferenceNode(
+                  class_,
+                  declaredSetter,
+                  candidates,
+                  inheritedSetterStart,
+                  end,
+                  inheritedGetterStart,
+                  getterEnd,
+                  library,
+                  class_.fileUri);
         }
-        var forwardingNode = new ForwardingNode(
-            this,
-            setterInferenceNode,
-            class_,
-            name,
-            ProcedureKind.Setter,
-            candidates,
-            getterEnd,
-            setterEnd);
-        // Setters need to be resolved later, as part of type
-        // inference, so just save the forwarding node for now.
+        Member representative = candidates[getterEnd];
+        var forwardingNode = new ForwardingNode(this, setterInferenceNode,
+            class_, name, ProcedureKind.Setter, candidates, getterEnd, end)
+          ..fileUri = representative.fileUri
+          ..fileOffset = representative.fileOffset
+          ..fileEndOffset = representative.fileEndOffset;
+        // Setters need to be resolved later, as part of type inference, so just
+        // save the forwarding node for now.
         setters[setterIndex++] = forwardingNode;
       }
     });
@@ -808,17 +1049,23 @@ class InterfaceResolver {
     setters.length = setterIndex;
   }
 
-  void finalizeCovariance(Class class_, List<Member> apiMembers) {
+  void finalizeCovariance(
+      Class class_, List<Member> apiMembers, LibraryBuilder library) {
     for (int i = 0; i < apiMembers.length; i++) {
       var member = apiMembers[i];
       Member resolution;
       if (member is ForwardingNode) {
         apiMembers[i] = resolution = member.finalize();
+        if (library is KernelLibraryBuilder &&
+            member.finalize() != member.resolve()) {
+          library.forwardersOrigins.add(member.finalize());
+          library.forwardersOrigins.add(member.resolve());
+        }
       } else {
         resolution = member;
       }
       if (resolution is Procedure &&
-          resolution.isForwardingStub &&
+          resolution.isSyntheticForwarder &&
           identical(resolution.enclosingClass, class_)) {
         if (strongMode) class_.addMember(resolution);
         _instrumentation?.record(
@@ -879,31 +1126,25 @@ class InterfaceResolver {
       int crossEnd,
       LibraryBuilder library,
       Uri fileUri) {
-    if (!_requiresTypeInference(procedure)) return null;
-    switch (procedure.kind) {
-      case ProcedureKind.Getter:
-      case ProcedureKind.Setter:
-        if (strongMode && start < end) {
-          return new AccessorInferenceNode(
-              this, procedure, candidates, start, end, library, fileUri);
-        } else if (strongMode && crossStart < crossEnd) {
-          return new AccessorInferenceNode(this, procedure, candidates,
-              crossStart, crossEnd, library, fileUri);
-        } else if (procedure is SyntheticAccessor &&
-            procedure._field.initializer != null) {
-          var node = new FieldInitializerInferenceNode(
-              _typeInferenceEngine, procedure._field, library);
-          ShadowField.setInferenceNode(procedure._field, node);
-          return node;
-        }
-        return null;
-      default: // Method || Operator
-        if (strongMode) {
-          return new MethodInferenceNode(
-              this, procedure, candidates, start, end, library, fileUri);
-        }
-        return null;
+    InferenceNode node;
+    if (procedure.isAccessor && _requiresTypeInference(procedure)) {
+      if (strongMode && start < end) {
+        node = new AccessorInferenceNode(
+            this, procedure, candidates, start, end, library, fileUri);
+      } else if (strongMode && crossStart < crossEnd) {
+        node = new AccessorInferenceNode(this, procedure, candidates,
+            crossStart, crossEnd, library, fileUri);
+      } else if (procedure is SyntheticAccessor &&
+          procedure._field.initializer != null) {
+        node = new FieldInitializerInferenceNode(
+            _typeInferenceEngine, procedure._field, library);
+      }
+
+      if (node != null && procedure is SyntheticAccessor) {
+        ShadowField.setInferenceNode(procedure._field, node);
+      }
     }
+    return node;
   }
 
   /// Retrieves a list of the interface members of the given [class_].
@@ -968,10 +1209,9 @@ class InterfaceResolver {
   void _recordInstrumentation(Class class_) {
     var uri = class_.fileUri;
     void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
-        bool isGenericCovariantInterface, bool isGenericCovariantImpl) {
+        bool isGenericCovariantImpl) {
       var covariance = <String>[];
       if (isExplicitlyCovariant) covariance.add('explicit');
-      if (isGenericCovariantInterface) covariance.add('genericInterface');
       if (!isExplicitlyCovariant && isGenericCovariantImpl) {
         covariance.add('genericImpl');
       }
@@ -981,41 +1221,30 @@ class InterfaceResolver {
       }
     }
 
-    void recordContravariance(int fileOffset, bool isGenericContravariant) {
-      if (isGenericContravariant) {
-        _instrumentation.record(uri, fileOffset, 'genericContravariant',
-            new InstrumentationValueLiteral('true'));
-      }
-    }
-
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
       // Forwarding stubs are annotated separately
-      if (procedure.isForwardingStub) continue;
+      if (procedure.isSyntheticForwarder) {
+        continue;
+      }
       void recordFormalAnnotations(VariableDeclaration formal) {
         recordCovariance(formal.fileOffset, formal.isCovariant,
-            formal.isGenericCovariantInterface, formal.isGenericCovariantImpl);
+            formal.isGenericCovariantImpl);
       }
 
       void recordTypeParameterAnnotations(TypeParameter typeParameter) {
-        recordCovariance(
-            typeParameter.fileOffset,
-            false,
-            typeParameter.isGenericCovariantInterface,
+        recordCovariance(typeParameter.fileOffset, false,
             typeParameter.isGenericCovariantImpl);
       }
 
       procedure.function.positionalParameters.forEach(recordFormalAnnotations);
       procedure.function.namedParameters.forEach(recordFormalAnnotations);
       procedure.function.typeParameters.forEach(recordTypeParameterAnnotations);
-      recordContravariance(
-          procedure.fileOffset, procedure.isGenericContravariant);
     }
     for (var field in class_.fields) {
       if (field.isStatic) continue;
-      recordCovariance(field.fileOffset, field.isCovariant,
-          field.isGenericCovariantInterface, field.isGenericCovariantImpl);
-      recordContravariance(field.fileOffset, field.isGenericContravariant);
+      recordCovariance(
+          field.fileOffset, field.isCovariant, field.isGenericCovariantImpl);
     }
   }
 
@@ -1057,12 +1286,10 @@ class InterfaceResolver {
       // information is propagated to the getter/setter during type inference.
       var type = member.type;
       var isGenericCovariantImpl = member.isGenericCovariantImpl;
-      var isGenericCovariantInterface = member.isGenericCovariantInterface;
       var isCovariant = member.isCovariant;
       if (setter) {
         var valueParam = new VariableDeclaration('_', type: type)
           ..isGenericCovariantImpl = isGenericCovariantImpl
-          ..isGenericCovariantInterface = isGenericCovariantInterface
           ..isCovariant = isCovariant;
         var function = new FunctionNode(null,
             positionalParameters: [valueParam], returnType: const VoidType());
@@ -1088,168 +1315,21 @@ class InterfaceResolver {
     }
     if (procedure.kind != ProcedureKind.Setter &&
         ShadowProcedure.hasImplicitReturnType(procedure)) {
-      return true;
+      // Inference of the return type of `[]=` is handled separately by
+      // KernelProcedureBuilder.build, since there are no dependencies.
+      if (procedure.kind != ProcedureKind.Operator ||
+          procedure.name.name != '[]=') {
+        return true;
+      }
     }
     var function = procedure.function;
     for (var parameter in function.positionalParameters) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
+      if (VariableDeclarationJudgment.isImplicitlyTyped(parameter)) return true;
     }
     for (var parameter in function.namedParameters) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
+      if (VariableDeclarationJudgment.isImplicitlyTyped(parameter)) return true;
     }
     return false;
-  }
-}
-
-/// Abstract class derived from [InferenceNode] to represent type inference of
-/// methods, getters, and setters based on inheritance.
-abstract class MemberInferenceNode extends InferenceNode {
-  final InterfaceResolver _interfaceResolver;
-
-  /// The method whose return type and/or parameter types should be inferred.
-  final Procedure _declaredMethod;
-
-  /// A list containing the methods overridden by [_declaredMethod], if any.
-  final List<Member> _candidates;
-
-  /// The index of the first method in [_candidates] overridden by
-  /// [_declaredMethod].
-  final int _start;
-
-  /// The past-the-end index of the last method in [_candidates] overridden by
-  /// [_declaredMethod].
-  final int _end;
-
-  final LibraryBuilder _library;
-
-  final Uri _fileUri;
-
-  MemberInferenceNode(this._interfaceResolver, this._declaredMethod,
-      this._candidates, this._start, this._end, this._library, this._fileUri);
-
-  DartType _matchTypes(Iterable<DartType> types, String name, int charOffset) {
-    var iterator = types.iterator;
-    if (!iterator.moveNext()) {
-      // No overridden types.  Infer `dynamic`.
-      return const DynamicType();
-    }
-    var inferredType = iterator.current;
-    while (iterator.moveNext()) {
-      if (inferredType != iterator.current) {
-        // Types don't match.  Report an error.
-        _library.addCompileTimeError(
-            templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
-            charOffset,
-            _fileUri);
-        return const DynamicType();
-      }
-    }
-    return inferredType;
-  }
-}
-
-/// Concrete class derived from [InferenceNode] to represent type inference of
-/// methods.
-class MethodInferenceNode extends MemberInferenceNode {
-  MethodInferenceNode(
-      InterfaceResolver interfaceResolver,
-      Procedure declaredMethod,
-      List<Member> candidates,
-      int start,
-      int end,
-      LibraryBuilder library,
-      Uri fileUri)
-      : super(interfaceResolver, declaredMethod, candidates, start, end,
-            library, fileUri);
-
-  @override
-  void resolveInternal() {
-    var declaredMethod = _declaredMethod;
-    var overriddenTypes = _computeMethodOverriddenTypes();
-    if (ShadowProcedure.hasImplicitReturnType(declaredMethod)) {
-      declaredMethod.function.returnType = _matchTypes(
-          overriddenTypes.map((type) => type.returnType),
-          declaredMethod.name.name,
-          declaredMethod.fileOffset);
-    }
-    var positionalParameters = declaredMethod.function.positionalParameters;
-    for (int i = 0; i < positionalParameters.length; i++) {
-      if (ShadowVariableDeclaration
-          .isImplicitlyTyped(positionalParameters[i])) {
-        // Note that if the parameter is not present in the overridden method,
-        // getPositionalParameterType treats it as dynamic.  This is consistent
-        // with the behavior called for in the informal top level type inference
-        // spec, which says:
-        //
-        //     If there is no corresponding parameter position in the overridden
-        //     method to infer from and the signatures are compatible, it is
-        //     treated as dynamic (e.g. overriding a one parameter method with a
-        //     method that takes a second optional parameter).  Note: if there
-        //     is no corresponding parameter position in the overriden method to
-        //     infer from and the signatures are incompatible (e.g. overriding a
-        //     one parameter method with a method that takes a second
-        //     non-optional parameter), the inference result is not defined and
-        //     tools are free to either emit an error, or to defer the error to
-        //     override checking.
-        positionalParameters[i].type = _matchTypes(
-            overriddenTypes.map((type) => getPositionalParameterType(type, i)),
-            positionalParameters[i].name,
-            positionalParameters[i].fileOffset);
-      }
-    }
-    var namedParameters = declaredMethod.function.namedParameters;
-    for (int i = 0; i < namedParameters.length; i++) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
-        var name = namedParameters[i].name;
-        namedParameters[i].type = _matchTypes(
-            overriddenTypes.map((type) => getNamedParameterType(type, name)),
-            namedParameters[i].name,
-            namedParameters[i].fileOffset);
-      }
-    }
-    // Circularities should never occur with method inference, since the
-    // inference of a method can only depend on the methods above it in the
-    // class hierarchy.
-    assert(!isCircular);
-  }
-
-  /// Computes the types of the methods overridden by [_declaredMethod], with
-  /// appropriate type parameter substitutions.
-  List<FunctionType> _computeMethodOverriddenTypes() {
-    var overriddenTypes = <FunctionType>[];
-    var declaredTypeParameters = _declaredMethod.function.typeParameters;
-    for (int i = _start; i < _end; i++) {
-      var candidate = _candidates[i];
-      if (candidate is SyntheticAccessor) {
-        // This can happen if there are errors.  Just skip this override.
-        continue;
-      }
-      var candidateFunction = candidate.function;
-      if (candidateFunction == null) {
-        // This can happen if there are errors.  Just skip this override.
-        continue;
-      }
-      var substitution = _interfaceResolver._substitutionFor(
-          candidate, _declaredMethod.enclosingClass);
-      FunctionType overriddenType =
-          substitution.substituteType(candidateFunction.functionType);
-      var overriddenTypeParameters = overriddenType.typeParameters;
-      if (overriddenTypeParameters.length != declaredTypeParameters.length) {
-        // Generic arity mismatch.  Don't do any inference for this method.
-        // TODO(paulberry): report an error.
-        return <FunctionType>[];
-      } else if (overriddenTypeParameters.isNotEmpty) {
-        var substitutionMap = <TypeParameter, DartType>{};
-        for (int i = 0; i < declaredTypeParameters.length; i++) {
-          substitutionMap[overriddenTypeParameters[i]] =
-              new TypeParameterType(declaredTypeParameters[i]);
-        }
-        overriddenType = substituteTypeParams(
-            overriddenType, substitutionMap, declaredTypeParameters);
-      }
-      overriddenTypes.add(overriddenType);
-    }
-    return overriddenTypes;
   }
 }
 
@@ -1272,16 +1352,6 @@ class SyntheticAccessor extends Procedure {
 
   @override
   DartType get getterType => _field.type;
-
-  @override
-  bool get isGenericContravariant =>
-      kind == ProcedureKind.Getter && _field.isGenericContravariant;
-
-  @override
-  void set isGenericContravariant(bool value) {
-    assert(kind == ProcedureKind.Getter);
-    _field.isGenericContravariant = value;
-  }
 
   static getField(SyntheticAccessor accessor) => accessor._field;
 }
@@ -1338,14 +1408,6 @@ class SyntheticSetterParameter extends VariableDeclaration {
   @override
   void set isGenericCovariantImpl(bool value) {
     _field.isGenericCovariantImpl = value;
-  }
-
-  @override
-  bool get isGenericCovariantInterface => _field.isGenericCovariantInterface;
-
-  @override
-  void set isGenericCovariantInterface(bool value) {
-    _field.isGenericCovariantInterface = value;
   }
 
   @override

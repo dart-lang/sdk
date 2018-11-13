@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:convert';
@@ -19,7 +18,7 @@ Future<ServiceExtensionResponse> Handler(String method,
     case 'ext..delay':
       Completer c = new Completer();
       new Timer(new Duration(seconds: 1), () {
-        c.complete(new ServiceExtensionResponse.result(JSON.encode({
+        c.complete(new ServiceExtensionResponse.result(jsonEncode({
             'type': '_delayedType',
             'method': method,
             'parameters': paremeters,
@@ -35,7 +34,7 @@ Future<ServiceExtensionResponse> Handler(String method,
       throw "I always throw!";
     case 'ext..success':
       return new Future.value(
-          new ServiceExtensionResponse.result(JSON.encode({
+          new ServiceExtensionResponse.result(jsonEncode({
               'type': '_extensionType',
               'method': method,
               'parameters': paremeters,

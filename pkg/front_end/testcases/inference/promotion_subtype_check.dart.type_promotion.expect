@@ -1,0 +1,9 @@
+pkg/front_end/testcases/inference/promotion_subtype_check.dart:9:9: Context: Possible promotion of x@276
+  if (x is int) {
+        ^^
+pkg/front_end/testcases/inference/promotion_subtype_check.dart:10:33: Context: Possible promotion of x@276
+    if (/*@promotedType=int*/ x is String) {
+                                ^^
+pkg/front_end/testcases/inference/promotion_subtype_check.dart:18:9: Context: Possible promotion of x@276
+  if (x is String) {
+        ^^

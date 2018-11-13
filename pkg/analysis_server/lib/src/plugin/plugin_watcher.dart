@@ -4,11 +4,10 @@
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
-import 'package:front_end/src/base/source.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:path/src/context.dart';
 
 /**
@@ -36,7 +35,7 @@ class PluginWatcher implements DriverWatcher {
   /**
    * A table mapping analysis drivers to information related to the driver.
    */
-  Map<AnalysisDriver, _DriverInfo> _driverInfo =
+  final Map<AnalysisDriver, _DriverInfo> _driverInfo =
       <AnalysisDriver, _DriverInfo>{};
 
   /**
@@ -99,10 +98,9 @@ class PluginWatcher implements DriverWatcher {
    * [driver].
    */
   String _getSdkPath(AnalysisDriver driver) {
-    AbsolutePathContext context = resourceProvider.absolutePathContext;
     String sdkRoot = driver.sourceFactory.forUri('dart:core').fullName;
-    while (context.basename(sdkRoot) != 'lib') {
-      String parent = context.dirname(sdkRoot);
+    while (resourceProvider.pathContext.basename(sdkRoot) != 'lib') {
+      String parent = resourceProvider.pathContext.dirname(sdkRoot);
       if (parent == sdkRoot) {
         break;
       }

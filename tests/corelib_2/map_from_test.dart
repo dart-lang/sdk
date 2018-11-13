@@ -18,7 +18,6 @@ testWithConstMap() {
   var map = const {'b': 42, 'a': 43};
   var otherMap = new Map.from(map);
   Expect.isTrue(otherMap is Map);
-  Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
@@ -41,7 +40,6 @@ testWithNonConstMap() {
   var map = {'b': 42, 'a': 43};
   var otherMap = new Map.from(map);
   Expect.isTrue(otherMap is Map);
-  Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
@@ -91,7 +89,6 @@ testWithLinkedMap() {
   var map = const {'b': 1, 'a': 2, 'c': 3};
   var otherMap = new LinkedHashMap.from(map);
   Expect.isTrue(otherMap is Map);
-  Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
   var i = 1;
   for (var val in map.values) {

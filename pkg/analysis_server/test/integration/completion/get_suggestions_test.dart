@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionsTest);
-    defineReflectiveTests(GetSuggestionsTest_PreviewDart2);
   });
 }
 
@@ -108,18 +107,11 @@ main() {
     standardAnalysisSetup(subscribeStatus: false);
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
-    var errorToken = 'exception from server';
     return sendCompletionGetSuggestions(path, 0).catchError((e) {
       // Exception expected
-      return errorToken;
+      return null;
     }).then((result) {
-      expect(result, new isInstanceOf<CompletionGetSuggestionsResult>());
+      expect(result, const TypeMatcher<CompletionGetSuggestionsResult>());
     });
   }
-}
-
-@reflectiveTest
-class GetSuggestionsTest_PreviewDart2 extends GetSuggestionsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

@@ -10,9 +10,9 @@ import '../kernel/kernel_builder.dart'
     show
         KernelFunctionTypeAliasBuilder,
         KernelFunctionTypeBuilder,
+        KernelTypeBuilder,
         LibraryBuilder,
-        MetadataBuilder,
-        TypeVariableBuilder;
+        MetadataBuilder;
 
 import '../problems.dart' show unimplemented;
 
@@ -28,9 +28,7 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
   }
 
   @override
-  List<TypeVariableBuilder> get typeVariables {
-    return unimplemented("typeVariables", -1, null);
-  }
+  int get typeVariablesCount => target.typeParameters.length;
 
   @override
   KernelFunctionTypeBuilder get type {
@@ -39,4 +37,29 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
 
   @override
   DartType buildThisType(LibraryBuilder library) => thisType ??= target.type;
+
+  @override
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    // For performance reasons, [typeVariables] aren't restored from [target].
+    // So, if [arguments] is null, the default types should be retrieved from
+    // [cls.typeParameters].
+    if (arguments == null) {
+      List<DartType> result = new List<DartType>.filled(
+          target.typeParameters.length, null,
+          growable: true);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = target.typeParameters[i].defaultType;
+      }
+      return result;
+    }
+
+    // [arguments] != null
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
+  }
 }

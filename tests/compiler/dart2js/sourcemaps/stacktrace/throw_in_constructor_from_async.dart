@@ -10,13 +10,14 @@ main() {
 }
 
 test() async {
+  await null;
   // ignore: UNUSED_LOCAL_VARIABLE
   var c = new /*1:test*/ Class();
 }
 
 class Class {
   @NoInline()
-  /*2:Class*/ Class() {
-    /*3:Class*/ throw '>ExceptionMarker<';
+  Class() {
+    /*2:Class*/ throw '>ExceptionMarker<';
   }
 }

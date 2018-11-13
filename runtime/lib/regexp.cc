@@ -15,7 +15,8 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(RegExp_factory, 4) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_multi_line,
                                arguments->NativeArgAt(2));
@@ -37,25 +38,25 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 4) {
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getPattern, 1) {
-  const RegExp& regexp = RegExp::CheckedHandle(arguments->NativeArgAt(0));
+  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   return regexp.pattern();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsMultiLine, 1) {
-  const RegExp& regexp = RegExp::CheckedHandle(arguments->NativeArgAt(0));
+  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   return Bool::Get(regexp.is_multi_line()).raw();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsCaseSensitive, 1) {
-  const RegExp& regexp = RegExp::CheckedHandle(arguments->NativeArgAt(0));
+  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   return Bool::Get(!regexp.is_ignore_case()).raw();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 1) {
-  const RegExp& regexp = RegExp::CheckedHandle(arguments->NativeArgAt(0));
+  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   if (regexp.is_initialized()) {
     return regexp.num_bracket_expressions();
@@ -73,7 +74,7 @@ DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 1) {
 static RawObject* ExecuteMatch(Zone* zone,
                                NativeArguments* arguments,
                                bool sticky) {
-  const RegExp& regexp = RegExp::CheckedHandle(arguments->NativeArgAt(0));
+  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, subject, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));

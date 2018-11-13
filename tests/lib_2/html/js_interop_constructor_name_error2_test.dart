@@ -30,9 +30,6 @@ main() {
 
   test('String-is-not-js', () {
     var e = confuse('kombucha');
-    // TODO(26838): When Issue 26838 is fixed and this test passes, move this
-    // test into group `HTMLDivElement-types`.
-
     // A String should not be a JS interop type. The type test flags are added
     // to Interceptor, but should be added to the class that implements all
     // the JS-interop methods.

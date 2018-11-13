@@ -55,7 +55,7 @@ void addDefaultArgDetails(
   }
 
   for (ParameterElement param in namedParams) {
-    if (param.isRequired) {
+    if (param.hasRequired) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }
@@ -98,23 +98,7 @@ protocol.Element createLocalElement(
   return new protocol.Element(kind, name, flags,
       location: location,
       parameters: parameters,
-      returnType: nameForType(returnType));
-}
-
-/**
- * Create a new suggestion for the given [fieldDecl]. Return the new suggestion
- * or `null` if it could not be created.
- */
-CompletionSuggestion createLocalFieldSuggestion(
-    Source source, FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-  bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-  TypeAnnotation type = fieldDecl.fields.type;
-  return createLocalSuggestion(
-      varDecl.name, deprecated, DART_RELEVANCE_LOCAL_FIELD, type,
-      classDecl: fieldDecl.parent,
-      element: createLocalElement(
-          source, protocol.ElementKind.FIELD, varDecl.name,
-          returnType: type, isDeprecated: deprecated));
+      returnType: nameForType(id, returnType));
 }
 
 /**
@@ -123,7 +107,7 @@ CompletionSuggestion createLocalFieldSuggestion(
  */
 CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
-    {ClassDeclaration classDecl,
+    {ClassOrMixinDeclaration classDecl,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
     protocol.Element element}) {
   if (id == null) {
@@ -141,7 +125,7 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
       0,
       isDeprecated,
       false,
-      returnType: nameForType(returnType),
+      returnType: nameForType(id, returnType),
       element: element);
   if (classDecl != null) {
     SimpleIdentifier classId = classDecl.name;
@@ -204,33 +188,45 @@ bool isDeprecated(AnnotatedNode node) {
 }
 
 /**
- * Return the name for the given [type].
+ * Return name of the type of the given [identifier], or, if it unresolved, the
+ * name of its declared [declaredType].
  */
-String nameForType(TypeAnnotation type) {
-  if (type == NO_RETURN_TYPE) {
+String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
+  if (identifier == null) {
     return null;
   }
+
+  // Get the type from the identifier element.
+  DartType type;
+  Element element = identifier.staticElement;
+  if (element == null) {
+    return DYNAMIC;
+  } else if (element is FunctionTypedElement) {
+    if (element is PropertyAccessorElement && element.isSetter) {
+      return null;
+    }
+    type = element.returnType;
+  } else if (element is VariableElement) {
+    type = identifier.staticType;
+  } else {
+    return null;
+  }
+
+  // If the type is unresolved, use the declared type.
+  if (type != null && type.isUndefined) {
+    if (declaredType is TypeName) {
+      Identifier id = declaredType.name;
+      if (id != null) {
+        return id.name;
+      }
+    }
+    return DYNAMIC;
+  }
+
   if (type == null) {
     return DYNAMIC;
   }
-  if (type is TypeName) {
-    Identifier id = type.name;
-    if (id == null) {
-      return DYNAMIC;
-    }
-    String name = id.name;
-    if (name == null || name.length <= 0) {
-      return DYNAMIC;
-    }
-    TypeArgumentList typeArgs = type.typeArguments;
-    if (typeArgs != null) {
-      //TODO (danrubel) include type arguments
-    }
-    return name;
-  } else if (type is GenericFunctionType) {
-    // TODO(brianwilkerson) Implement this.
-  }
-  return DYNAMIC;
+  return type.toString();
 }
 
 //TODO(pq): fix to use getDefaultStringParameterValue()

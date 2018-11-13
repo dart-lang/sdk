@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.yaml_test;
-
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/yaml.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/yaml.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -20,7 +18,7 @@ main() {
   });
 }
 
-isInstanceOf isParseYamlTask = new isInstanceOf<ParseYamlTask>();
+final isParseYamlTask = new TypeMatcher<ParseYamlTask>();
 
 @reflectiveTest
 class ParseYamlTaskTest extends AbstractContextTest {
@@ -36,7 +34,7 @@ rules:
     YamlDocument document = outputs[YAML_DOCUMENT];
     expect(document, isNotNull);
     var value = document.contents.value;
-    expect(value, new isInstanceOf<Map>());
+    expect(value, new TypeMatcher<Map>());
     expect(value['rules']['style_guide']['camel_case_types'], isFalse);
     expect(outputs[YAML_ERRORS], hasLength(0));
     LineInfo lineInfo = outputs[LINE_INFO];
@@ -60,10 +58,11 @@ rules:
   }
 
   void _performParseTask(String content) {
+    var path = resourceProvider.convertPath('/test.yaml');
     if (content == null) {
-      source = resourceProvider.getFile('/test.yaml').createSource();
+      source = resourceProvider.getFile(path).createSource();
     } else {
-      source = newSource('/test.yaml', content);
+      source = newSource(path, content);
     }
     computeResult(source, YAML_DOCUMENT, matcher: isParseYamlTask);
   }

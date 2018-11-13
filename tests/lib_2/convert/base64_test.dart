@@ -24,7 +24,7 @@ main() {
   testErrors();
   testIssue25577();
 
-  // Decoder is lenienet with mixed styles.
+  // Decoder is lenient with mixed styles.
   Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], base64.decode("-_+/AA%3D="));
   Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], base64.decode("-_+/AA=%3D"));
 }
@@ -107,6 +107,10 @@ void testRoundtrip(List<int> list, String name) {
       }
     }
   }
+  // Using .encode
+  Expect.equals(uriEncoded, base64Url.encode(list), ".encode($list)");
+  // Using base64UrlEncode
+  Expect.equals(uriEncoded, base64UrlEncode(list), ".encode($list)");
 
   for (var encoded in [encodedNormal, encodedPercent, uriEncoded]) {
     increment = encoded.length ~/ 7 + 1;
@@ -141,6 +145,9 @@ void testRoundtrip(List<int> list, String name) {
         }
       }
     }
+    Expect.listEquals(list, base64.decode(encoded), ".decode($encoded)");
+    Expect.listEquals(list, base64Url.decode(encoded), "url.decode($encoded)");
+    Expect.listEquals(list, base64Decode(encoded), "base64Decode($encoded)");
   }
 }
 

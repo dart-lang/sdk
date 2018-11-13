@@ -14,5 +14,6 @@ import 'package:observatory/sample_profile.dart';
 import 'package:observatory/event.dart' show createEventFromServiceEvent;
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/tracer.dart';
+import 'package:observatory/service_common.dart';
 
 part 'src/service/object.dart';

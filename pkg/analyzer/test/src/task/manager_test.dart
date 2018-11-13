@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.manager_test;
-
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -65,7 +63,7 @@ class TaskManagerTest extends EngineTestCase {
     TaskManager manager = new TaskManager();
     AnalysisTarget target = new TestSource();
     expect(() => manager.findTask(target, result1),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   test_findTask_multiple() {
@@ -92,7 +90,7 @@ class TaskManagerTest extends EngineTestCase {
     manager.addTaskDescriptor(descriptor);
     AnalysisTarget target = new TestSource();
     expect(() => manager.findTask(target, result2),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   test_removeGeneralResult_absent() {

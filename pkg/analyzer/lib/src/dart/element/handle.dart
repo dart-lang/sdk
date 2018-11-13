@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.element_handle;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -44,10 +42,19 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   List<FieldElement> get fields => actualElement.fields;
 
   @override
+  bool get hasJS => actualElement.hasJS;
+
+  @override
   bool get hasNonFinalField => actualElement.hasNonFinalField;
 
   @override
   bool get hasReferenceToSuper => actualElement.hasReferenceToSuper;
+
+  @override
+  bool get hasRequired => actualElement.hasRequired;
+
+  @override
+  bool get hasSealed => actualElement.hasSealed;
 
   @override
   bool get hasStaticMember => actualElement.hasStaticMember;
@@ -62,7 +69,10 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isEnum => actualElement.isEnum;
 
   @override
-  bool get isJS => actualElement.isJS;
+  bool get isJS => actualElement.hasJS;
+
+  @override
+  bool get isMixin => actualElement.isMixin;
 
   @override
   bool get isMixinApplication => actualElement.isMixinApplication;
@@ -74,7 +84,10 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isProxy => actualElement.isProxy;
 
   @override
-  bool get isRequired => actualElement.isRequired;
+  bool get isRequired => actualElement.hasRequired;
+
+  @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
 
   @override
   bool get isValidMixin => actualElement.isValidMixin;
@@ -87,6 +100,10 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   List<InterfaceType> get mixins => actualElement.mixins;
+
+  @override
+  List<InterfaceType> get superclassConstraints =>
+      actualElement.superclassConstraints;
 
   @override
   InterfaceType get supertype => actualElement.supertype;
@@ -121,10 +138,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   @override
   PropertyAccessorElement getSetter(String setterName) =>
       actualElement.getSetter(setterName);
-
-  @override
-  bool isSuperConstructorAccessible(ConstructorElement constructor) =>
-      actualElement.isSuperConstructorAccessible(constructor);
 
   @override
   MethodElement lookUpConcreteMethod(
@@ -212,6 +225,9 @@ class CompilationUnitElementHandle extends ElementHandle
   LineInfo get lineInfo => actualElement.lineInfo;
 
   @override
+  List<ClassElement> get mixins => actualElement.mixins;
+
+  @override
   Source get source => actualElement.source;
 
   @override
@@ -263,6 +279,9 @@ class ConstructorElementHandle extends ExecutableElementHandle
 
   @override
   bool get isConst => actualElement.isConst;
+
+  @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
   @override
   bool get isDefaultConstructor => actualElement.isDefaultConstructor;
@@ -345,40 +364,76 @@ abstract class ElementHandle implements Element {
   Element get enclosingElement => actualElement.enclosingElement;
 
   @override
+  bool get hasAlwaysThrows => actualElement.hasAlwaysThrows;
+
+  @override
+  bool get hasDeprecated => actualElement.hasDeprecated;
+
+  @override
+  bool get hasFactory => actualElement.hasFactory;
+
+  @override
   int get hashCode => _location.hashCode;
 
   @override
-  bool get isAlwaysThrows => actualElement.isAlwaysThrows;
+  bool get hasIsTest => actualElement.hasIsTest;
 
   @override
-  bool get isDeprecated => actualElement.isDeprecated;
+  bool get hasIsTestGroup => actualElement.hasIsTestGroup;
 
   @override
-  bool get isFactory => actualElement.isFactory;
+  bool get hasJS => actualElement.hasJS;
 
   @override
-  bool get isJS => actualElement.isJS;
+  bool get hasOverride => actualElement.hasOverride;
 
   @override
-  bool get isOverride => actualElement.isOverride;
+  bool get hasProtected => actualElement.hasProtected;
+
+  @override
+  bool get hasRequired => actualElement.hasRequired;
+
+  @override
+  bool get hasSealed => actualElement.hasSealed;
+
+  @override
+  bool get hasVisibleForTemplate => actualElement.hasVisibleForTemplate;
+
+  @override
+  bool get hasVisibleForTesting => actualElement.hasVisibleForTesting;
+
+  @override
+  bool get isAlwaysThrows => actualElement.hasAlwaysThrows;
+
+  @override
+  bool get isDeprecated => actualElement.hasDeprecated;
+
+  @override
+  bool get isFactory => actualElement.hasFactory;
+
+  @override
+  bool get isJS => actualElement.hasJS;
+
+  @override
+  bool get isOverride => actualElement.hasOverride;
 
   @override
   bool get isPrivate => actualElement.isPrivate;
 
   @override
-  bool get isProtected => actualElement.isProtected;
+  bool get isProtected => actualElement.hasProtected;
 
   @override
   bool get isPublic => actualElement.isPublic;
 
   @override
-  bool get isRequired => actualElement.isRequired;
+  bool get isRequired => actualElement.hasRequired;
 
   @override
   bool get isSynthetic => actualElement.isSynthetic;
 
   @override
-  bool get isVisibleForTesting => actualElement.isVisibleForTesting;
+  bool get isVisibleForTesting => actualElement.hasVisibleForTesting;
 
   @override
   LibraryElement get library =>
@@ -502,6 +557,9 @@ abstract class ExecutableElementHandle extends ElementHandle
   bool get isOperator => actualElement.isOperator;
 
   @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
+
+  @override
   bool get isStatic => actualElement.isStatic;
 
   @override
@@ -576,8 +634,12 @@ class FieldElementHandle extends PropertyInducingElementHandle
   ClassElement get enclosingElement => actualElement.enclosingElement;
 
   @override
+  bool get isCovariant => actualElement.isCovariant;
+
+  @override
   bool get isEnumConstant => actualElement.isEnumConstant;
 
+  @deprecated
   @override
   bool get isVirtual => actualElement.isVirtual;
 
@@ -641,6 +703,12 @@ class FunctionTypeAliasElementHandle extends ElementHandle
       super.enclosingElement as CompilationUnitElement;
 
   @override
+  GenericFunctionTypeElement get function => actualElement.function;
+
+  @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
   @override
@@ -657,6 +725,10 @@ class FunctionTypeAliasElementHandle extends ElementHandle
 
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
+
+  @override
+  FunctionType instantiate(List<DartType> argumentTypes) =>
+      actualElement.instantiate(argumentTypes);
 }
 
 /**
@@ -680,6 +752,9 @@ class GenericTypeAliasElementHandle extends ElementHandle
   GenericFunctionTypeElement get function => actualElement.function;
 
   @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
   @override
@@ -696,6 +771,10 @@ class GenericTypeAliasElementHandle extends ElementHandle
 
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
+
+  @override
+  FunctionType instantiate(List<DartType> argumentTypes) =>
+      actualElement.instantiate(argumentTypes);
 }
 
 /**
@@ -725,6 +804,9 @@ class ImportElementHandle extends ElementHandle implements ImportElement {
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  Namespace get namespace => actualElement.namespace;
 
   @override
   PrefixElement get prefix => actualElement.prefix;
@@ -944,6 +1026,7 @@ class ParameterElementHandle extends VariableElementHandle
   @override
   ElementKind get kind => ElementKind.PARAMETER;
 
+  @deprecated
   @override
   ParameterKind get parameterKind => actualElement.parameterKind;
 
@@ -981,7 +1064,7 @@ class PrefixElementHandle extends ElementHandle implements PrefixElement {
       super.enclosingElement as LibraryElement;
 
   @override
-  List<LibraryElement> get importedLibraries => LibraryElement.EMPTY_LIST;
+  List<LibraryElement> get importedLibraries => const <LibraryElement>[];
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
@@ -1053,8 +1136,12 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   @override
   PropertyAccessorElement get getter => actualElement.getter;
 
+  @deprecated
   @override
-  DartType get propagatedType => actualElement.propagatedType;
+  DartType get propagatedType => null;
+
+  @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
   @override
   PropertyAccessorElement get setter => actualElement.setter;
@@ -1134,6 +1221,9 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   FunctionElement get initializer => actualElement.initializer;
+
+  @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
   @override
   bool get isConst => actualElement.isConst;

@@ -13,10 +13,10 @@ main() {
     var element = new Element.tag('x-basic1')..id = 'basic1';
     document.body.nodes.add(element);
 
-    var queryById = query('#basic1');
+    var queryById = querySelector('#basic1');
     expect(queryById, equals(element));
 
-    var queryByTag = queryAll('x-basic1');
+    var queryByTag = querySelectorAll('x-basic1');
     expect(queryByTag.length, equals(1));
     expect(queryByTag[0], equals(element));
   });
@@ -27,10 +27,10 @@ main() {
         treeSanitizer: new NullTreeSanitizer());
     document.body.nodes.add(element);
 
-    var queryById = query('#basic2');
+    var queryById = querySelector('#basic2');
     expect(queryById is Element, isTrue);
 
-    var queryByTag = queryAll('x-basic2');
+    var queryByTag = querySelectorAll('x-basic2');
     expect(queryByTag.length, equals(1));
     expect(queryByTag[0], equals(queryById));
   });
@@ -41,7 +41,7 @@ main() {
         treeSanitizer: new NullTreeSanitizer());
     document.body.nodes.add(element);
 
-    var queryById = query('#basic3');
+    var queryById = querySelector('#basic3');
     expect(queryById is DivElement, isTrue);
   });
 }

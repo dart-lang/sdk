@@ -13,9 +13,9 @@ abstract class TargetRepository {
 
   Target get current;
   Iterable<Target> list();
-  void add(String);
-  void setCurrent(Target);
-  void delete(Target);
+  void add(String address);
+  void setCurrent(Target t);
+  void delete(Target o);
   Target find(String networkAddress);
   bool isConnectedVMTarget(Target target);
 }

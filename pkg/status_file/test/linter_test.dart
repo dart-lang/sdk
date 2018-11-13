@@ -51,6 +51,17 @@ expectNoError(String text, {bool disjunctions = true}) {
   Expect.listEquals([], errors);
 }
 
+void testEmptyLinesInHeader() {
+  expectNoError(r"""# LICENSE
+
+# valid comment after empty line on default section
+suite/tests: Skip
+
+# valid comment
+[ $mode == debug ]
+""");
+}
+
 void testCommentLinesInSection_invalidCommentInSection() {
   expectError(r"""[ $mode == debug ]
 # this comment is invalid

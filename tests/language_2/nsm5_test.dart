@@ -15,8 +15,6 @@ abstract class Foo {
   int foo();
 }
 
-class DontWarnMe extends Mock implements Foo {}
+/*@compile-error=unspecified*/ class WarnMe extends Mock implements Foo {}
 
-main() {
-  Expect.throws(() => new DontWarnMe().foo());
-}
+main() {}

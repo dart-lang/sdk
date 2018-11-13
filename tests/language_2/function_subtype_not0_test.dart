@@ -13,7 +13,7 @@ typedef void Bar(int i);
 void bar(int i) {}
 
 void main() {
-  Expect.isFalse(bar is! Foo);
+  Expect.isTrue(bar is! Foo);
   Expect.isTrue(bar is! Foo<bool>);
   Expect.isFalse(bar is! Foo<int>);
   Expect.isFalse(bar is! Bar);

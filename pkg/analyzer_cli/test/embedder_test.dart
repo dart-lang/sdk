@@ -53,14 +53,14 @@ main() {
       ]);
 
       DartSdk sdk = driver.sdk;
-      expect(sdk, new isInstanceOf<FolderBasedDartSdk>());
+      expect(sdk, const TypeMatcher<FolderBasedDartSdk>());
       expect((sdk as FolderBasedDartSdk).useSummary, isFalse);
     }));
   });
 }
 
 /// Wrap a function call to dump stdout and stderr in case of an exception.
-Function wrap(Function f) {
+dynamic Function() wrap(dynamic Function() f) {
   return () async {
     try {
       await f();

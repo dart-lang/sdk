@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.scanner_test;
-
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -79,19 +77,6 @@ class CharacterRangeReaderTest extends EngineTestCase {
 
 @reflectiveTest
 class LineInfoTest extends EngineTestCase {
-  void test_translate_missing_closing_gt_error() {
-    // Ensure that the UnmatchedToken error for missing '>' is translated
-    // to the correct analyzer error code.
-    // See https://github.com/dart-lang/sdk/issues/30320
-    String source = '<!-- @Component(';
-    GatheringErrorListener listener = new GatheringErrorListener();
-    _scanWithListener(source, listener);
-    listener.assertErrorsWithCodes(const [
-      ScannerErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.EXPECTED_TOKEN,
-    ]);
-  }
-
   void test_lineInfo_multilineComment() {
     String source = "/*\r\n *\r\n */";
     _assertLineInfo(source, [
@@ -145,8 +130,20 @@ class LineInfoTest extends EngineTestCase {
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
-    expect(
-        lineStarts, orderedEquals([0, 5, 7, 9, fe.Scanner.useFasta ? 12 : 11]));
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 12]));
+  }
+
+  void test_translate_missing_closing_gt_error() {
+    // Ensure that the UnmatchedToken error for missing '>' is translated
+    // to the correct analyzer error code.
+    // See https://github.com/dart-lang/sdk/issues/30320
+    String source = '<!-- @Component(';
+    GatheringErrorListener listener = new GatheringErrorListener();
+    _scanWithListener(source, listener);
+    listener.assertErrorsWithCodes(const [
+      ScannerErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.EXPECTED_TOKEN,
+    ]);
   }
 
   void _assertLineInfo(
@@ -159,7 +156,7 @@ class LineInfoTest extends EngineTestCase {
     int count = expectedLocations.length;
     for (int i = 0; i < count; i++) {
       ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
-      LineInfo_Location location = info.getLocation(expectedLocation._offset);
+      CharacterLocation location = info.getLocation(expectedLocation._offset);
       expect(location.lineNumber, expectedLocation._lineNumber,
           reason: 'Line number in location $i');
       expect(location.columnNumber, expectedLocation._columnNumber,
@@ -168,11 +165,9 @@ class LineInfoTest extends EngineTestCase {
   }
 
   Token _scanWithListener(String source, GatheringErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
+      {bool lazyAssignmentOperators: false}) {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    scanner.scanGenericMethodComments = genericMethodComments;
     scanner.scanLazyAssignmentOperators = lazyAssignmentOperators;
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);

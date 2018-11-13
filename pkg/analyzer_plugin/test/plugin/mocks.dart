@@ -1,13 +1,16 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisOptionsImpl, TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -22,8 +25,15 @@ class MockAnalysisDriver extends AnalysisDriver {
   Set<String> addedFiles = new HashSet<String>();
 
   MockAnalysisDriver()
-      : super(new AnalysisDriverScheduler(null), null, null, null, null, null,
-            new SourceFactory([]), new AnalysisOptionsImpl());
+      : super(
+            new AnalysisDriverScheduler(null),
+            null,
+            new MockResourceProvider(),
+            null,
+            new FileContentOverlay(),
+            null,
+            new SourceFactory([]),
+            new AnalysisOptionsImpl());
 
   @override
   bool get hasFilesToAnalyze => false;
@@ -44,6 +54,22 @@ class MockAnalysisDriver extends AnalysisDriver {
 
   @override
   Future<Null> performWork() => new Future.value(null);
+}
+
+class MockAnalysisResult implements AnalysisResult {
+  @override
+  final List<AnalysisError> errors;
+
+  @override
+  final LineInfo lineInfo;
+
+  @override
+  final String path;
+
+  MockAnalysisResult({this.errors, this.lineInfo, this.path});
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockChannel implements PluginCommunicationChannel {
@@ -67,7 +93,9 @@ class MockChannel implements PluginCommunicationChannel {
 
   @override
   void listen(void onRequest(Request request),
-      {void onDone(), Function onError, Function onNotification}) {
+      {void onDone(),
+      Function onError,
+      Function(Notification) onNotification}) {
     _onDone = onDone;
     _onError = onError;
     _onNotification = onNotification;
@@ -113,6 +141,11 @@ class MockChannel implements PluginCommunicationChannel {
     Completer<Response> completer = completers.remove(response.id);
     completer.complete(response);
   }
+}
+
+class MockResourceProvider implements ResourceProvider {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**

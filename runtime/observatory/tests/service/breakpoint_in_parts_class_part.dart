@@ -88,4 +88,4 @@ class Foo10 {
   }
 }
 
-var foo2 = foo();
+var foo2 = foo() as dynamic;

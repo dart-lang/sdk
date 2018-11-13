@@ -115,6 +115,14 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   '*.webkitfullscreenerror': ('fullscreenError', 'Event'),
   '*.wheel': ('wheel', 'WheelEvent'),
   'AbstractWorker.error': ('error', 'Event'),
+  'AccessibleNode.accessibleclick': ('accessibleClick', 'Event'),
+  'AccessibleNode.accessiblecontextmenu': ('accessibleContextMenu', 'Event'),
+  'AccessibleNode.accessibledecrement': ('accessibleDecrement', 'Event'),
+  'AccessibleNode.accessiblefocus': ('accessibleFocus', 'Event'),
+  'AccessibleNode.accessibleincrement': ('accessibleIncrement', 'Event'),
+  'AccessibleNode.accessiblescrollintoview': ('accessibleScrollIntoView', 'Event'),
+  'Animation.finish': ('finish', 'Event'),
+  'Animation.cancel': ('cancel', 'Event'),
   'AudioContext.complete': ('complete', 'Event'),
   'ApplicationCache.cached': ('cached', 'Event'),
   'ApplicationCache.checking': ('checking', 'Event'),
@@ -131,6 +139,7 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'Document.pointerlockerror': ('pointerLockError', 'Event'),
   'EventSource.open': ('open', 'Event'),
   'FileReader.abort': ('abort', 'ProgressEvent'),
+  'FileReader.error': ('error', 'ProgressEvent'),
   'FileReader.load': ('load', 'ProgressEvent'),
   'FileReader.loadend': ('loadEnd', 'ProgressEvent'),
   'FileReader.loadstart': ('loadStart', 'ProgressEvent'),
@@ -140,10 +149,9 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'FileWriter.write': ('write', 'ProgressEvent'),
   'FileWriter.writeend': ('writeEnd', 'ProgressEvent'),
   'FileWriter.writestart': ('writeStart', 'ProgressEvent'),
-  'FontLoader.load': ('load', 'CssFontFaceLoadEvent'),
-  'FontLoader.loading': ('loading', 'CssFontFaceLoadEvent'),
-  'FontLoader.loadingdone': ('loadingDone', 'CssFontFaceLoadEvent'),
-  'FontLoader.loadstart': ('loadStart', 'CssFontFaceLoadEvent'),
+  'FontFaceSet.loading': ('loading', 'FontFaceSetLoadEvent'),
+  'FontFaceSet.loadingdone': ('loadingDone', 'FontFaceSetLoadEvent'),
+  'FontFaceSet.loadingerror': ('loadingError', 'FontFaceSetLoadEvent'),
   'HTMLBodyElement.storage': ('storage', 'StorageEvent'),
   'HTMLCanvasElement.webglcontextlost': ('webGlContextLost', 'gl.ContextEvent'),
   'HTMLCanvasElement.webglcontextrestored': ('webGlContextRestored', 'gl.ContextEvent'),
@@ -185,12 +193,16 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'RTCDataChannel.open': ('open', 'Event'),
   'RTCPeerConnection.addstream': ('addStream', 'MediaStreamEvent'),
   'RTCPeerConnection.datachannel': ('dataChannel', 'RtcDataChannelEvent'),
-  'RTCPeerConnection.icecandidate': ('iceCandidate', 'RtcIceCandidateEvent'),
+  'RTCPeerConnection.icecandidate': ('iceCandidate', 'RtcPeerConnectionIceEvent'),
   'RTCPeerConnection.iceconnectionstatechange': ('iceConnectionStateChange', 'Event'),
   'RTCPeerConnection.negotiationneeded': ('negotiationNeeded', 'Event'),
   'RTCPeerConnection.removestream': ('removeStream', 'MediaStreamEvent'),
   'RTCPeerConnection.signalingstatechange': ('signalingStateChange', 'Event'),
   'ScriptProcessorNode.audioprocess': ('audioProcess', 'AudioProcessingEvent'),
+  'ServiceWorkerGlobalScope.activate': ('activate', 'Event'),
+  'ServiceWorkerGlobalScope.fetch': ('fetch', 'Event'),
+  'ServiceWorkerGlobalScope.install': ('install', 'Event'),
+  'ServiceWorkerGlobalScope.foreignfetch': ('foreignfetch', 'ForeignFetchEvent'),
   'SharedWorker.error': ('error', 'Event'),
   'SharedWorkerGlobalScope.connect': ('connect', 'Event'),
   'SpeechRecognition.audioend': ('audioEnd', 'Event'),
@@ -223,6 +235,7 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'Window.pageshow': ('pageShow', 'Event'),
   'Window.progress': ('progress', 'Event'),
   'Window.webkittransitionend': ('webkitTransitionEnd', 'TransitionEvent'),
+  'Window.wheel': ('wheel', 'WheelEvent'),
   'Worker.error': ('error', 'Event'),
   'XMLHttpRequestEventTarget.abort': ('abort', 'ProgressEvent'),
   'XMLHttpRequestEventTarget.error': ('error', 'ProgressEvent'),
@@ -231,7 +244,7 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'XMLHttpRequestEventTarget.loadstart': ('loadStart', 'ProgressEvent'),
   'XMLHttpRequestEventTarget.progress': ('progress', 'ProgressEvent'),
   'XMLHttpRequestEventTarget.timeout': ('timeout', 'ProgressEvent'),
-  'XMLHttpRequest.readystatechange': ('readyStateChange', 'ProgressEvent'),
+  'XMLHttpRequest.readystatechange': ('readyStateChange', 'Event'),
 })
 
 # These classes require an explicit declaration for the "on" method even though
@@ -251,6 +264,7 @@ class HtmlEventGenerator(object):
 
   def EmitStreamProviders(self, interface, custom_events,
       members_emitter, library_name):
+
     events = self._GetEvents(interface, custom_events)
     if not events:
       return
@@ -279,6 +293,7 @@ class HtmlEventGenerator(object):
   def EmitStreamGetters(self, interface, custom_events,
       members_emitter, library_name, stream_getter_signatures_emitter=None,
       element_stream_getters_emitter=None):
+
     events = self._GetEvents(interface, custom_events)
     if not events:
       return

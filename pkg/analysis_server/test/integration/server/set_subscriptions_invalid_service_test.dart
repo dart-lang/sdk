@@ -10,7 +10,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsInvalidTest);
-    defineReflectiveTests(SetSubscriptionsInvalidTest_PreviewDart2);
   });
 }
 
@@ -28,11 +27,4 @@ class SetSubscriptionsInvalidTest
       // The expected error occurred.
     });
   }
-}
-
-@reflectiveTest
-class SetSubscriptionsInvalidTest_PreviewDart2
-    extends SetSubscriptionsInvalidTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

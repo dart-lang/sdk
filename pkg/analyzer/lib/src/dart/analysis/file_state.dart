@@ -10,7 +10,9 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -20,6 +22,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
@@ -27,17 +30,8 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
-
-/**
- * The type of the function that is notified about an error during parsing.
- */
-typedef void FileParseExceptionHandler(
-    FileState file, exception, StackTrace stackTrace);
 
 /**
  * [FileContentOverlay] is used to temporary override content of files.
@@ -82,6 +76,11 @@ class FileContentOverlay {
  * should be called.
  */
 class FileState {
+  /**
+   * The next value for [_exportDeclarationsId].
+   */
+  static int _exportDeclarationsNextId = 0;
+
   final FileSystemState _fsState;
 
   /**
@@ -111,25 +110,27 @@ class FileState {
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
-  Set<String> _definedTopLevelNames;
   Set<String> _definedClassMemberNames;
+  Set<String> _definedTopLevelNames;
   Set<String> _referencedNames;
-  Set<String> _subtypedNames;
   String _unlinkedKey;
+  AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
+  List<FileState> _libraryFiles;
   List<NameFilter> _exportFilters;
 
-  Set<FileState> _directReferencedFiles = new Set<FileState>();
+  Set<FileState> _directReferencedFiles;
   Set<FileState> _transitiveFiles;
   String _transitiveSignature;
 
   Map<String, TopLevelDeclaration> _topLevelDeclarations;
   Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
+  int _exportDeclarationsId = 0;
 
   /**
    * The flag that shows whether the file has an error or warning that
@@ -143,7 +144,8 @@ class FileState {
   FileState._external(this._fsState, this.uri)
       : isInExternalSummaries = true,
         path = null,
-        source = null {
+        source = null,
+        _exists = true {
     _apiSignature = new Uint8List(16);
   }
 
@@ -165,12 +167,18 @@ class FileState {
   /**
    * The class member names defined by the file.
    */
-  Set<String> get definedClassMemberNames => _definedClassMemberNames;
+  Set<String> get definedClassMemberNames {
+    return _definedClassMemberNames ??=
+        _driverUnlinkedUnit.definedClassMemberNames.toSet();
+  }
 
   /**
    * The top-level names defined by the file.
    */
-  Set<String> get definedTopLevelNames => _definedTopLevelNames;
+  Set<String> get definedTopLevelNames {
+    return _definedTopLevelNames ??=
+        _driverUnlinkedUnit.definedTopLevelNames.toSet();
+  }
 
   /**
    * Return the set of all directly referenced files - imported, exported or
@@ -193,44 +201,8 @@ class FileState {
    * keys to the map are names of declarations.
    */
   Map<String, TopLevelDeclaration> get exportedTopLevelDeclarations {
-    if (_exportedTopLevelDeclarations == null) {
-      _exportedTopLevelDeclarations = <String, TopLevelDeclaration>{};
-
-      Set<FileState> seenLibraries = new Set<FileState>();
-
-      /**
-       * Compute [TopLevelDeclaration]s exported from the [library].
-       */
-      Map<String, TopLevelDeclaration> computeExported(FileState library) {
-        var declarations = <String, TopLevelDeclaration>{};
-        if (seenLibraries.add(library)) {
-          // Append the exported declarations.
-          for (int i = 0; i < library._exportedFiles.length; i++) {
-            Map<String, TopLevelDeclaration> exported =
-                computeExported(library._exportedFiles[i]);
-            for (TopLevelDeclaration t in exported.values) {
-              if (library._exportFilters[i].accepts(t.name)) {
-                declarations[t.name] = t;
-              }
-            }
-          }
-
-          // Append the library declarations.
-          declarations.addAll(library.topLevelDeclarations);
-          for (FileState part in library.partedFiles) {
-            declarations.addAll(part.topLevelDeclarations);
-          }
-
-          // We're done with this library.
-          seenLibraries.remove(library);
-        }
-
-        return declarations;
-      }
-
-      _exportedTopLevelDeclarations = computeExported(this);
-    }
-    return _exportedTopLevelDeclarations;
+    _exportDeclarationsNextId = 1;
+    return _computeExportedDeclarations().declarations;
   }
 
   @override
@@ -262,6 +234,12 @@ class FileState {
   }
 
   /**
+   * The list of files files that this library consists of, i.e. this library
+   * file itself and its [partedFiles].
+   */
+  List<FileState> get libraryFiles => _libraryFiles;
+
+  /**
    * Return information about line in the file.
    */
   LineInfo get lineInfo => _lineInfo;
@@ -274,13 +252,9 @@ class FileState {
   /**
    * The external names referenced by the file.
    */
-  Set<String> get referencedNames => _referencedNames;
-
-  /**
-   * The names which are used in `extends`, `with` or `implements` clauses in
-   * the file. Import prefixes and type arguments are not included.
-   */
-  Set<String> get subtypedNames => _subtypedNames;
+  Set<String> get referencedNames {
+    return _referencedNames ??= _driverUnlinkedUnit.referencedNames.toSet();
+  }
 
   @visibleForTesting
   FileStateTestView get test => new FileStateTestView(this);
@@ -345,7 +319,7 @@ class FileState {
 
       void appendReferenced(FileState file) {
         if (_transitiveFiles.add(file)) {
-          file._directReferencedFiles.forEach(appendReferenced);
+          file._directReferencedFiles?.forEach(appendReferenced);
         }
       }
 
@@ -360,7 +334,7 @@ class FileState {
   String get transitiveSignature {
     if (_transitiveSignature == null) {
       ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_fsState._salt);
+      signature.addUint32List(_fsState._linkedSalt);
       signature.addInt(transitiveFiles.length);
       transitiveFiles
           .map((file) => file.apiSignature)
@@ -391,15 +365,13 @@ class FileState {
    *
    * If an exception happens during parsing, an empty unit is returned.
    */
-  CompilationUnit parse(AnalysisErrorListener errorListener) {
+  CompilationUnit parse([AnalysisErrorListener errorListener]) {
+    errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return PerformanceStatistics.parse.makeCurrentWhile(() {
         return _parse(errorListener);
       });
-    } catch (exception, stackTrace) {
-      if (_fsState.parseExceptionHandler != null) {
-        _fsState.parseExceptionHandler(this, exception, stackTrace);
-      }
+    } catch (_) {
       return _createEmptyCompilationUnit();
     }
   }
@@ -408,31 +380,26 @@ class FileState {
    * Read the file content and ensure that all of the file properties are
    * consistent with the read content, including API signature.
    *
+   * If [allowCached] is `true`, don't read the content of the file if it
+   * is already cached (in another [FileSystemState], because otherwise we
+   * would not create this new instance of [FileState] and refresh it).
+   *
    * Return `true` if the API signature changed since the last refresh.
    */
-  bool refresh() {
-    // Read the content.
-    try {
-      _content = _fsState._contentOverlay[path];
-      _content ??= _fsState._resourceProvider.getFile(path).readAsStringSync();
-      _exists = true;
-    } catch (_) {
-      _content = '';
-      _exists = false;
-    }
+  bool refresh({bool allowCached: false}) {
+    _invalidateCurrentUnresolvedData();
 
-    // Compute the content hash.
-    List<int> contentBytes = UTF8.encode(_content);
     {
-      List<int> hashBytes = md5.convert(contentBytes).bytes;
-      _contentHash = hex.encode(hashBytes);
+      var rawFileState = _fsState._fileContentCache.get(path, allowCached);
+      _content = rawFileState.content;
+      _exists = rawFileState.exists;
+      _contentHash = rawFileState.contentHash;
     }
 
     // Prepare the unlinked bundle key.
     {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_fsState._salt);
-      signature.addInt(contentBytes.length);
+      var signature = new ApiSignature();
+      signature.addUint32List(_fsState._unlinkedSalt);
       signature.addString(_contentHash);
       _unlinkedKey = '${signature.toHex()}.unlinked';
     }
@@ -442,7 +409,7 @@ class FileState {
     {
       bytes = _fsState._byteStore.get(_unlinkedKey);
       if (bytes == null || bytes.isEmpty) {
-        CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
+        CompilationUnit unit = parse();
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
           DefinedNames definedNames = computeDefinedNames(unit);
@@ -462,15 +429,9 @@ class FileState {
     }
 
     // Read the unlinked bundle.
-    var driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _definedTopLevelNames = driverUnlinkedUnit.definedTopLevelNames.toSet();
-    _definedClassMemberNames =
-        driverUnlinkedUnit.definedClassMemberNames.toSet();
-    _referencedNames = driverUnlinkedUnit.referencedNames.toSet();
-    _subtypedNames = driverUnlinkedUnit.subtypedNames.toSet();
-    _unlinked = driverUnlinkedUnit.unit;
+    _driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
+    _unlinked = _driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
-    _topLevelDeclarations = null;
 
     // Prepare API signature.
     List<int> newApiSignature = new Uint8List.fromList(_unlinked.apiSignature);
@@ -523,6 +484,7 @@ class FileState {
           .putIfAbsent(file, () => <FileState>[])
           .add(this);
     }
+    _libraryFiles = [this]..addAll(_partedFiles);
 
     // Compute referenced files.
     Set<FileState> oldDirectReferencedFiles = _directReferencedFiles;
@@ -534,14 +496,26 @@ class FileState {
     // If the set of directly referenced files of this file is changed,
     // then the transitive sets of files that include this file are also
     // changed. Reset these transitive sets.
-    if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
-        !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
-      for (FileState file in _fsState._uriToFile.values) {
-        if (file._transitiveFiles != null &&
-            file._transitiveFiles.contains(this)) {
-          file._transitiveFiles = null;
+    if (oldDirectReferencedFiles != null) {
+      if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
+          !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
+        for (FileState file in _fsState._uriToFile.values) {
+          if (file._transitiveFiles != null &&
+              file._transitiveFiles.contains(this)) {
+            file._transitiveFiles = null;
+          }
         }
       }
+    }
+
+    // Update mapping from subtyped names to files.
+    for (var name in _driverUnlinkedUnit.subtypedNames) {
+      var files = _fsState._subtypedNameToFiles[name];
+      if (files == null) {
+        files = new Set<FileState>();
+        _fsState._subtypedNameToFiles[name] = files;
+      }
+      files.add(this);
     }
 
     // Return whether the API signature changed.
@@ -550,6 +524,69 @@ class FileState {
 
   @override
   String toString() => path;
+
+  /**
+   * Compute the full or partial map of exported declarations for this library.
+   */
+  _ExportedDeclarations _computeExportedDeclarations() {
+    // If we know exported declarations, return them.
+    if (_exportedTopLevelDeclarations != null) {
+      return new _ExportedDeclarations(0, _exportedTopLevelDeclarations);
+    }
+
+    // If we are already computing exported declarations for this library,
+    // report that we found a cycle.
+    if (_exportDeclarationsId != 0) {
+      return new _ExportedDeclarations(_exportDeclarationsId, null);
+    }
+
+    var declarations = <String, TopLevelDeclaration>{};
+
+    // Give each library a unique identifier.
+    _exportDeclarationsId = _exportDeclarationsNextId++;
+
+    // Append the exported declarations.
+    int firstCycleId = 0;
+    for (int i = 0; i < _exportedFiles.length; i++) {
+      var exported = _exportedFiles[i]._computeExportedDeclarations();
+      if (exported.declarations != null) {
+        for (TopLevelDeclaration t in exported.declarations.values) {
+          if (_exportFilters[i].accepts(t.name)) {
+            declarations[t.name] = t;
+          }
+        }
+      }
+      if (exported.firstCycleId > 0) {
+        if (firstCycleId == 0 || firstCycleId > exported.firstCycleId) {
+          firstCycleId = exported.firstCycleId;
+        }
+      }
+    }
+
+    // If this library is the first component of the cycle, then we are at
+    // the beginning of this cycle, and combination of partial export
+    // namespaces of other exported libraries and declarations of this library
+    // is the full export namespace of this library.
+    if (firstCycleId != 0 && firstCycleId == _exportDeclarationsId) {
+      firstCycleId = 0;
+    }
+
+    // We're done with this library, successfully or not.
+    _exportDeclarationsId = 0;
+
+    // Append the library declarations.
+    for (FileState file in libraryFiles) {
+      declarations.addAll(file.topLevelDeclarations);
+    }
+
+    // Record the declarations only if it is the full result.
+    if (firstCycleId == 0) {
+      _exportedTopLevelDeclarations = declarations;
+    }
+
+    // Return the full or partial result.
+    return new _ExportedDeclarations(firstCycleId, declarations);
+  }
 
   CompilationUnit _createEmptyCompilationUnit() {
     var token = new Token.eof(0);
@@ -576,6 +613,25 @@ class FileState {
     return _fsState.getFileForUri(absoluteUri);
   }
 
+  /**
+   * Invalidate any data that depends on the current unlinked data of the file,
+   * because [refresh] is going to recompute the unlinked data.
+   */
+  void _invalidateCurrentUnresolvedData() {
+    // Invalidate unlinked information.
+    _definedTopLevelNames = null;
+    _definedClassMemberNames = null;
+    _referencedNames = null;
+    _topLevelDeclarations = null;
+
+    if (_driverUnlinkedUnit != null) {
+      for (var name in _driverUnlinkedUnit.subtypedNames) {
+        var files = _fsState._subtypedNameToFiles[name];
+        files?.remove(this);
+      }
+    }
+  }
+
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
     if (source == null) {
       return _createEmptyCompilationUnit();
@@ -584,7 +640,6 @@ class FileState {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = analysisOptions.strongMode;
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -592,7 +647,7 @@ class FileState {
 
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
-    parser.parseGenericMethodComments = analysisOptions.strongMode;
+    parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 
@@ -643,7 +698,8 @@ class FileSystemState {
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
-  final Uint32List _salt;
+  final Uint32List _unlinkedSalt;
+  final Uint32List _linkedSalt;
 
   /**
    * The optional store with externally provided unlinked and corresponding
@@ -657,15 +713,6 @@ class FileSystemState {
   final SummaryDataStore externalSummaries;
 
   /**
-   * The optional handler for scanning and parsing exceptions.
-   *
-   * We hope that these exceptions never happen, but we might need to get
-   * additional information if there are exception when we are replacing
-   * Analyzer's scanner and parser with implementations from FrontEnd.
-   */
-  final FileParseExceptionHandler parseExceptionHandler;
-
-  /**
    * Mapping from a URI to the corresponding [FileState].
    */
   final Map<Uri, FileState> _uriToFile = {};
@@ -674,6 +721,11 @@ class FileSystemState {
    * All known file paths.
    */
   final Set<String> knownFilePaths = new Set<String>();
+
+  /**
+   * All known files.
+   */
+  final List<FileState> knownFiles = [];
 
   /**
    * Mapping from a path to the flag whether there is a URI for the path.
@@ -696,30 +748,45 @@ class FileSystemState {
   final Map<FileState, List<FileState>> _partToLibraries = {};
 
   /**
+   * The map of subtyped names to files where these names are subtyped.
+   */
+  final Map<String, Set<FileState>> _subtypedNameToFiles = {};
+
+  /**
+   * The value of this field is incremented when the set of files is updated.
+   */
+  int fileStamp = 0;
+
+  /**
    * The [FileState] instance that correspond to an unresolved URI.
    */
   FileState _unresolvedFile;
 
+  /**
+   * The cache of content of files, possibly shared with other file system
+   * states with the same resource provider and the content overlay.
+   */
+  _FileContentCache _fileContentCache;
+
   FileSystemStateTestView _testView;
 
   FileSystemState(
-      this._logger,
-      this._byteStore,
-      this._contentOverlay,
-      this._resourceProvider,
-      this._sourceFactory,
-      this._analysisOptions,
-      this._salt,
-      {this.externalSummaries,
-      this.parseExceptionHandler}) {
+    this._logger,
+    this._byteStore,
+    this._contentOverlay,
+    this._resourceProvider,
+    this._sourceFactory,
+    this._analysisOptions,
+    this._unlinkedSalt,
+    this._linkedSalt, {
+    this.externalSummaries,
+  }) {
+    _fileContentCache = _FileContentCache.getInstance(
+      _resourceProvider,
+      _contentOverlay,
+    );
     _testView = new FileSystemStateTestView(this);
   }
-
-  /**
-   * Return the known files.
-   */
-  List<FileState> get knownFiles =>
-      _pathToFiles.values.map((files) => files.first).toList();
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -761,7 +828,7 @@ class FileSystemState {
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
-      file.refresh();
+      file.refresh(allowCached: true);
     }
     return file;
   }
@@ -778,7 +845,7 @@ class FileSystemState {
       // We are given all required unlinked and linked summaries for it.
       if (externalSummaries != null) {
         String uriStr = uri.toString();
-        if (externalSummaries.hasUnlinkedUnit(uriStr)) {
+        if (externalSummaries.hasLinkedLibrary(uriStr)) {
           file = new FileState._external(this, uri);
           _uriToFile[uri] = file;
           return file;
@@ -800,7 +867,7 @@ class FileSystemState {
       file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
-      file.refresh();
+      file.refresh(allowCached: true);
     }
     return file;
   }
@@ -821,6 +888,14 @@ class FileSystemState {
   }
 
   /**
+   * Return files where the given [name] is subtyped, i.e. used in `extends`,
+   * `with` or `implements` clauses.
+   */
+  Set<FileState> getFilesSubtypingName(String name) {
+    return _subtypedNameToFiles[name];
+  }
+
+  /**
    * Return `true` if there is a URI that can be resolved to the [path].
    *
    * When a file exists, but for the URI that corresponds to the file is
@@ -834,29 +909,42 @@ class FileSystemState {
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       Source uriSource = _sourceFactory.forUri2(uri);
-      flag = uriSource.fullName == path;
+      flag = uriSource?.fullName == path;
       _hasUriForPath[path] = flag;
     }
     return flag;
   }
 
   /**
+   * The file with the given [path] might have changed, so ensure that it is
+   * read the next time it is refreshed.
+   */
+  void markFileForReading(String path) {
+    _fileContentCache.remove(path);
+  }
+
+  /**
    * Remove the file with the given [path].
    */
   void removeFile(String path) {
+    markFileForReading(path);
     _uriToFile.clear();
     knownFilePaths.clear();
+    knownFiles.clear();
     _pathToFiles.clear();
     _pathToCanonicalFile.clear();
     _partToLibraries.clear();
+    _subtypedNameToFiles.clear();
   }
 
   void _addFileWithPath(String path, FileState file) {
     var files = _pathToFiles[path];
     if (files == null) {
       knownFilePaths.add(path);
+      knownFiles.add(file);
       files = <FileState>[];
       _pathToFiles[path] = files;
+      fileStamp++;
     }
     files.add(file);
   }
@@ -878,5 +966,106 @@ class FileSystemStateTestView {
     return state._uriToFile.values
         .where((f) => f._transitiveSignature == null)
         .toSet();
+  }
+
+  Set<FileState> get librariesWithComputedExportedDeclarations {
+    return state._uriToFile.values
+        .where((f) => !f.isPart && f._exportedTopLevelDeclarations != null)
+        .toSet();
+  }
+}
+
+/**
+ * The result of computing exported top-level declarations.
+ * It can be full (when [firstCycleId] is zero), or partial (when a cycle)
+ */
+class _ExportedDeclarations {
+  final int firstCycleId;
+  final Map<String, TopLevelDeclaration> declarations;
+
+  _ExportedDeclarations(this.firstCycleId, this.declarations);
+}
+
+/**
+ * Information about the content of a file.
+ */
+class _FileContent {
+  final String path;
+  final bool exists;
+  final String content;
+  final String contentHash;
+
+  _FileContent(this.path, this.exists, this.content, this.contentHash);
+}
+
+/**
+ * The cache of information about content of files.
+ */
+class _FileContentCache {
+  /**
+   * Weak map of cache instances.
+   *
+   * Outer key is a [FileContentOverlay].
+   * Inner key is a [ResourceProvider].
+   */
+  static final _instances = new Expando<Expando<_FileContentCache>>();
+
+  final ResourceProvider _resourceProvider;
+  final FileContentOverlay _contentOverlay;
+  final Map<String, _FileContent> _pathToFile = {};
+
+  _FileContentCache(this._resourceProvider, this._contentOverlay);
+
+  /**
+   * Return the content of the file with the given [path].
+   *
+   * If [allowCached] is `true`, and the file is in the cache, return the
+   * cached data. Otherwise read the file, compute and cache the data.
+   */
+  _FileContent get(String path, bool allowCached) {
+    var file = allowCached ? _pathToFile[path] : null;
+    if (file == null) {
+      String content;
+      bool exists;
+      try {
+        content = _contentOverlay[path];
+        content ??= _resourceProvider.getFile(path).readAsStringSync();
+        exists = true;
+      } catch (_) {
+        content = '';
+        exists = false;
+      }
+
+      List<int> contentBytes = utf8.encode(content);
+
+      List<int> contentHashBytes = md5.convert(contentBytes).bytes;
+      String contentHash = hex.encode(contentHashBytes);
+
+      file = new _FileContent(path, exists, content, contentHash);
+      _pathToFile[path] = file;
+    }
+    return file;
+  }
+
+  /**
+   * Remove the file with the given [path] from the cache.
+   */
+  void remove(String path) {
+    _pathToFile.remove(path);
+  }
+
+  static _FileContentCache getInstance(
+      ResourceProvider resourceProvider, FileContentOverlay contentOverlay) {
+    var providerToInstance = _instances[contentOverlay];
+    if (providerToInstance == null) {
+      providerToInstance = new Expando<_FileContentCache>();
+      _instances[contentOverlay] = providerToInstance;
+    }
+    var instance = providerToInstance[resourceProvider];
+    if (instance == null) {
+      instance = new _FileContentCache(resourceProvider, contentOverlay);
+      providerToInstance[resourceProvider] = instance;
+    }
+    return instance;
   }
 }

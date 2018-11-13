@@ -6,27 +6,32 @@
 library front_end.kernel_generator;
 
 import 'dart:async' show Future;
-import 'dart:async';
 
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Component;
 
-import 'compiler_options.dart';
-import '../base/processed_options.dart';
-import '../fasta/fasta_codes.dart';
-import '../fasta/compiler_context.dart';
-import '../fasta/severity.dart';
-import '../kernel_generator_impl.dart';
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../fasta/compiler_context.dart' show CompilerContext;
+
+import '../fasta/fasta_codes.dart' show messageMissingMain, noLength;
+
+import '../fasta/severity.dart' show Severity;
+
+import '../kernel_generator_impl.dart'
+    show generateKernel, generateKernelInternal;
+
+import 'compiler_options.dart' show CompilerOptions;
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source].
 ///
-/// Intended for whole program (non-modular) compilation.
+/// Intended for whole-program (non-modular) compilation.
 ///
 /// Given the Uri of a file containing a program's `main` method, this function
 /// follows `import`, `export`, and `part` declarations to discover the whole
 /// program, and converts the result to Dart Kernel format.
 ///
-/// If `compileSdk` in [options] is true, the generated program will include
+/// If `compileSdk` in [options] is true, the generated component will include
 /// code for the SDK.
 ///
 /// If summaries are provided in [options], the compiler will use them instead
@@ -37,18 +42,19 @@ import '../kernel_generator_impl.dart';
 /// The input [source] is expected to be a script with a main method, otherwise
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
-Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
-  var pOptions = new ProcessedOptions(options, false, [source]);
+Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
+  var pOptions = new ProcessedOptions(options: options, inputs: [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
-    var program = (await generateKernelInternal())?.program;
-    if (program == null) return null;
+    var component = (await generateKernelInternal())?.component;
+    if (component == null) return null;
 
-    if (program.mainMethod == null) {
-      context.options
-          .report(messageMissingMain.withLocation(source, -1), Severity.error);
+    if (component.mainMethod == null) {
+      context.options.report(
+          messageMissingMain.withLocation(source, -1, noLength),
+          Severity.error);
       return null;
     }
-    return program;
+    return component;
   });
 }
 
@@ -60,29 +66,21 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
 /// dependencies, build unit dependencies must be acyclic.
 ///
 /// This API is intended for modular compilation. Dependencies to other build
-/// units are specified using [CompilerOptions.inputSummaries].
-///
-/// By default, the compilation process is hermetic, meaning that the only files
-/// which will be read are those listed in [sources],
-/// [CompilerOptions.inputSummaries], and [CompilerOptions.sdkSummary].  If a
-/// source file attempts to refer to a file which is not obtainable from these
-/// URIs, that will result in an error, even if the file exists on the
-/// filesystem.
-///
-/// When [CompilerOptions.chaseDependencies] is true, this default behavior
-/// changes, and any dependency of [sources] that is not listed in
-/// [CompilerOptions.inputSummaries] and [CompilerOptions.sdkSummary] is treated
-/// as an additional source file for the build unit.
+/// units are specified using [CompilerOptions.inputSummaries].  Any dependency
+/// of [sources] that is not listed in [CompilerOptions.inputSummaries] and
+/// [CompilerOptions.sdkSummary] is treated as an additional source file for the
+/// build unit.
 ///
 /// Any `part` declarations found in [sources] must refer to part files which
 /// are also listed in the build unit sources, otherwise an error results.  (It
 /// is not permitted to refer to a part file declared in another build unit).
 ///
-/// The return value is a [Program] object with no main method set. The
-/// [Program] includes external libraries for those libraries loaded through
+/// The return value is a [Component] object with no main method set. The
+/// [Component] includes external libraries for those libraries loaded through
 /// summaries.
-Future<Program> kernelForBuildUnit(
+Future<Component> kernelForComponent(
     List<Uri> sources, CompilerOptions options) async {
-  return (await generateKernel(new ProcessedOptions(options, true, sources)))
-      ?.program;
+  return (await generateKernel(
+          new ProcessedOptions(options: options, inputs: sources)))
+      ?.component;
 }

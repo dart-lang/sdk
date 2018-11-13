@@ -24,20 +24,25 @@ class Program;
 
 class Dart : public AllStatic {
  public:
-  static char* InitOnce(const uint8_t* vm_snapshot_data,
-                        const uint8_t* vm_snapshot_instructions,
-                        Dart_IsolateCreateCallback create,
-                        Dart_IsolateShutdownCallback shutdown,
-                        Dart_IsolateCleanupCallback cleanup,
-                        Dart_ThreadExitCallback thread_exit,
-                        Dart_FileOpenCallback file_open,
-                        Dart_FileReadCallback file_read,
-                        Dart_FileWriteCallback file_write,
-                        Dart_FileCloseCallback file_close,
-                        Dart_EntropySource entropy_source,
-                        Dart_GetVMServiceAssetsArchive get_service_assets,
-                        bool start_kernel_isolate);
-  static const char* Cleanup();
+  // Returns null if initialization succeeds, otherwise returns an error message
+  // (caller owns error message and has to free it).
+  static char* Init(const uint8_t* vm_snapshot_data,
+                    const uint8_t* vm_snapshot_instructions,
+                    Dart_IsolateCreateCallback create,
+                    Dart_IsolateShutdownCallback shutdown,
+                    Dart_IsolateCleanupCallback cleanup,
+                    Dart_ThreadExitCallback thread_exit,
+                    Dart_FileOpenCallback file_open,
+                    Dart_FileReadCallback file_read,
+                    Dart_FileWriteCallback file_write,
+                    Dart_FileCloseCallback file_close,
+                    Dart_EntropySource entropy_source,
+                    Dart_GetVMServiceAssetsArchive get_service_assets,
+                    bool start_kernel_isolate);
+
+  // Returns null if cleanup succeeds, otherwise returns an error message
+  // (caller owns error message and has to free it).
+  static char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
                                 const Dart_IsolateFlags& api_flags);
@@ -48,8 +53,10 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_data,
                                      const uint8_t* snapshot_instructions,
-                                     intptr_t snapshot_length,
-                                     kernel::Program* kernel_program,
+                                     const uint8_t* shared_data,
+                                     const uint8_t* shared_instructions,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size,
                                      void* data);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
@@ -74,14 +81,10 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
-  static const char* FeaturesString(Isolate* isolate, Snapshot::Kind kind);
+  static const char* FeaturesString(Isolate* isolate,
+                                    bool is_vm_snapshot,
+                                    Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
-  static const uint8_t* vm_snapshot_instructions() {
-    return vm_snapshot_instructions_;
-  }
-  static void set_vm_snapshot_instructions(const uint8_t* buffer) {
-    vm_snapshot_instructions_ = buffer;
-  }
 
   static Dart_ThreadExitCallback thread_exit_callback() {
     return thread_exit_callback_;
@@ -122,6 +125,7 @@ class Dart : public AllStatic {
  private:
   static void WaitForIsolateShutdown();
   static void WaitForApplicationIsolateShutdown();
+  static bool HasApplicationIsolateLocked();
 
   static Isolate* vm_isolate_;
   static int64_t start_time_micros_;
@@ -129,7 +133,6 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
-  static const uint8_t* vm_snapshot_instructions_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;

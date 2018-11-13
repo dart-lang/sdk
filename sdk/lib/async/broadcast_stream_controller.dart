@@ -57,11 +57,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
 }
 
 abstract class _BroadcastStreamController<T>
-    implements
-        StreamController<T>,
-        _StreamControllerLifecycle<T>,
-        _EventSink<T>,
-        _EventDispatch<T> {
+    implements _StreamControllerBase<T> {
   static const int _STATE_INITIAL = 0;
   static const int _STATE_EVENT_ID = 1;
   static const int _STATE_FIRING = 2;
@@ -279,10 +275,10 @@ abstract class _BroadcastStreamController<T>
 
   Future get done => _ensureDoneFuture();
 
-  Future addStream(Stream<T> stream, {bool cancelOnError: true}) {
+  Future addStream(Stream<T> stream, {bool cancelOnError}) {
     if (!_mayAddEvent) throw _addEventError();
     _state |= _STATE_ADDSTREAM;
-    _addStreamState = new _AddStreamState(this, stream, cancelOnError);
+    _addStreamState = new _AddStreamState(this, stream, cancelOnError ?? false);
     return _addStreamState.addStreamFuture;
   }
 

@@ -20,6 +20,10 @@ class StatusCommand extends Command {
 
   Future run() async {
     var workflow = new Workflow();
-    return workflow.start(new AskForLogs());
+    var askForLogs = new AskForLogs();
+    for (var input in argResults.rest) {
+      await askForLogs.processInput(input);
+    }
+    return workflow.start(askForLogs);
   }
 }

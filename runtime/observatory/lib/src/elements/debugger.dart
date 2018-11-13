@@ -36,7 +36,7 @@ import 'package:observatory/src/elements/source_link.dart';
 abstract class DebuggerCommand extends Command {
   ObservatoryDebugger debugger;
 
-  DebuggerCommand(this.debugger, name, children) : super(name, children);
+  DebuggerCommand(this.debugger, name, List<Command> children) : super(name, children);
 
   String get helpShort;
   String get helpLong;
@@ -46,7 +46,7 @@ abstract class DebuggerCommand extends Command {
 // provided by the cli library.
 class HelpCommand extends DebuggerCommand {
   HelpCommand(Debugger debugger)
-      : super(debugger, 'help', [
+      : super(debugger, 'help', <Command>[
           new HelpHotkeysCommand(debugger),
         ]);
 
@@ -62,10 +62,10 @@ class HelpCommand extends DebuggerCommand {
     var con = debugger.console;
     if (args.length == 0) {
       // Print list of all top-level commands.
-      var commands = debugger.cmd.matchCommand([], false);
+      var commands = debugger.cmd.matchCommand(<String>[], false);
       commands.sort((a, b) => a.name.compareTo(b.name));
       con.print('List of commands:\n');
-      for (var command in commands) {
+      for (DebuggerCommand command in commands) {
         con.print('${_nameAndAlias(command).padRight(12)} '
             '- ${command.helpShort}');
       }
@@ -88,11 +88,11 @@ class HelpCommand extends DebuggerCommand {
         return new Future.value(null);
       }
       con.print('');
-      for (var command in commands) {
+      for (DebuggerCommand command in commands) {
         con.printBold(_nameAndAlias(command));
         con.print(command.helpLong);
 
-        var newArgs = [];
+        var newArgs = <String>[];
         newArgs.addAll(args.take(args.length - 1));
         newArgs.add(command.name);
         newArgs.add('');
@@ -101,7 +101,7 @@ class HelpCommand extends DebuggerCommand {
         if (subCommands.isNotEmpty) {
           subCommands.sort((a, b) => a.name.compareTo(b.name));
           con.print('Subcommands:\n');
-          for (var subCommand in subCommands) {
+          for (DebuggerCommand subCommand in subCommands) {
             con.print('    ${subCommand.fullName.padRight(16)} '
                 '- ${subCommand.helpShort}');
           }
@@ -115,7 +115,7 @@ class HelpCommand extends DebuggerCommand {
   Future<List<String>> complete(List<String> args) {
     var commands = debugger.cmd.matchCommand(args, false);
     var result = commands.map((command) => '${command.fullName} ');
-    return new Future.value(result);
+    return new Future.value(result.toList());
   }
 
   String helpShort =
@@ -129,7 +129,7 @@ class HelpCommand extends DebuggerCommand {
 }
 
 class HelpHotkeysCommand extends DebuggerCommand {
-  HelpHotkeysCommand(Debugger debugger) : super(debugger, 'hotkeys', []);
+  HelpHotkeysCommand(Debugger debugger) : super(debugger, 'hotkeys', <Command>[]);
 
   Future run(List<String> args) {
     var con = debugger.console;
@@ -160,7 +160,7 @@ class HelpHotkeysCommand extends DebuggerCommand {
 }
 
 class PrintCommand extends DebuggerCommand {
-  PrintCommand(Debugger debugger) : super(debugger, 'print', []) {
+  PrintCommand(Debugger debugger) : super(debugger, 'print', <Command>[]) {
     alias = 'p';
   }
 
@@ -178,6 +178,8 @@ class PrintCommand extends DebuggerCommand {
         await debugger.isolate.evalFrame(debugger.currentFrame, expression);
     if (response is S.DartError) {
       debugger.console.print(response.message);
+    } else if (response is S.Sentinel) {
+      debugger.console.print(response.valueAsString);
     } else {
       debugger.console.print('= ', newline: false);
       debugger.console.printRef(debugger.isolate, response, debugger.objects);
@@ -193,7 +195,7 @@ class PrintCommand extends DebuggerCommand {
 }
 
 class DownCommand extends DebuggerCommand {
-  DownCommand(Debugger debugger) : super(debugger, 'down', []);
+  DownCommand(Debugger debugger) : super(debugger, 'down', <Command>[]);
 
   Future run(List<String> args) {
     int count = 1;
@@ -227,7 +229,7 @@ class DownCommand extends DebuggerCommand {
 }
 
 class UpCommand extends DebuggerCommand {
-  UpCommand(Debugger debugger) : super(debugger, 'up', []);
+  UpCommand(Debugger debugger) : super(debugger, 'up', <Command>[]);
 
   Future run(List<String> args) {
     int count = 1;
@@ -261,7 +263,7 @@ class UpCommand extends DebuggerCommand {
 }
 
 class FrameCommand extends DebuggerCommand {
-  FrameCommand(Debugger debugger) : super(debugger, 'frame', []) {
+  FrameCommand(Debugger debugger) : super(debugger, 'frame', <Command>[]) {
     alias = 'f';
   }
 
@@ -295,7 +297,7 @@ class FrameCommand extends DebuggerCommand {
 }
 
 class PauseCommand extends DebuggerCommand {
-  PauseCommand(Debugger debugger) : super(debugger, 'pause', []);
+  PauseCommand(Debugger debugger) : super(debugger, 'pause', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.pause();
@@ -311,7 +313,7 @@ class PauseCommand extends DebuggerCommand {
 }
 
 class ContinueCommand extends DebuggerCommand {
-  ContinueCommand(Debugger debugger) : super(debugger, 'continue', []) {
+  ContinueCommand(Debugger debugger) : super(debugger, 'continue', <Command>[]) {
     alias = 'c';
   }
 
@@ -330,7 +332,7 @@ class ContinueCommand extends DebuggerCommand {
 }
 
 class SmartNextCommand extends DebuggerCommand {
-  SmartNextCommand(Debugger debugger) : super(debugger, 'next', []) {
+  SmartNextCommand(Debugger debugger) : super(debugger, 'next', <Command>[]) {
     alias = 'n';
   }
 
@@ -352,7 +354,7 @@ class SmartNextCommand extends DebuggerCommand {
 }
 
 class SyncNextCommand extends DebuggerCommand {
-  SyncNextCommand(Debugger debugger) : super(debugger, 'next-sync', []);
+  SyncNextCommand(Debugger debugger) : super(debugger, 'next-sync', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.syncNext();
@@ -368,7 +370,7 @@ class SyncNextCommand extends DebuggerCommand {
 }
 
 class AsyncNextCommand extends DebuggerCommand {
-  AsyncNextCommand(Debugger debugger) : super(debugger, 'next-async', []);
+  AsyncNextCommand(Debugger debugger) : super(debugger, 'next-async', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.asyncNext();
@@ -384,7 +386,7 @@ class AsyncNextCommand extends DebuggerCommand {
 }
 
 class StepCommand extends DebuggerCommand {
-  StepCommand(Debugger debugger) : super(debugger, 'step', []) {
+  StepCommand(Debugger debugger) : super(debugger, 'step', <Command>[]) {
     alias = 's';
   }
 
@@ -406,7 +408,7 @@ class StepCommand extends DebuggerCommand {
 }
 
 class RewindCommand extends DebuggerCommand {
-  RewindCommand(Debugger debugger) : super(debugger, 'rewind', []);
+  RewindCommand(Debugger debugger) : super(debugger, 'rewind', <Command>[]);
 
   Future run(List<String> args) async {
     try {
@@ -443,7 +445,7 @@ class ReloadCommand extends DebuggerCommand {
   final M.IsolateRepository _isolates;
 
   ReloadCommand(Debugger debugger, this._isolates)
-      : super(debugger, 'reload', []);
+      : super(debugger, 'reload', <Command>[]);
 
   Future run(List<String> args) async {
     try {
@@ -477,7 +479,7 @@ class ReloadCommand extends DebuggerCommand {
 }
 
 class ClsCommand extends DebuggerCommand {
-  ClsCommand(Debugger debugger) : super(debugger, 'cls', []) {}
+  ClsCommand(Debugger debugger) : super(debugger, 'cls', <Command>[]) {}
 
   Future run(List<String> args) {
     debugger.console.clear();
@@ -493,7 +495,7 @@ class ClsCommand extends DebuggerCommand {
 }
 
 class LogCommand extends DebuggerCommand {
-  LogCommand(Debugger debugger) : super(debugger, 'log', []);
+  LogCommand(Debugger debugger) : super(debugger, 'log', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length == 0) {
@@ -560,7 +562,7 @@ class LogCommand extends DebuggerCommand {
 }
 
 class FinishCommand extends DebuggerCommand {
-  FinishCommand(Debugger debugger) : super(debugger, 'finish', []);
+  FinishCommand(Debugger debugger) : super(debugger, 'finish', <Command>[]);
 
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
@@ -591,7 +593,7 @@ class FinishCommand extends DebuggerCommand {
 }
 
 class SetCommand extends DebuggerCommand {
-  SetCommand(Debugger debugger) : super(debugger, 'set', []);
+  SetCommand(Debugger debugger) : super(debugger, 'set', <Command>[]);
 
   static var _boeValues = ['All', 'None', 'Unhandled'];
   static var _boolValues = ['false', 'true'];
@@ -657,7 +659,7 @@ class SetCommand extends DebuggerCommand {
   Future run(List<String> args) async {
     if (args.length == 0) {
       for (var name in _options.keys) {
-        var getHandler = _options[name][2];
+        dynamic getHandler = _options[name][2];
         var value = await getHandler(debugger, name);
         debugger.console.print("${name} = ${value}");
       }
@@ -668,7 +670,7 @@ class SetCommand extends DebuggerCommand {
         debugger.console.print("unrecognized option: $name");
         return;
       } else {
-        var getHandler = optionInfo[2];
+        dynamic getHandler = optionInfo[2];
         var value = await getHandler(debugger, name);
         debugger.console.print("${name} = ${value}");
       }
@@ -680,12 +682,12 @@ class SetCommand extends DebuggerCommand {
         debugger.console.print("unrecognized option: $name");
         return;
       }
-      var validValues = optionInfo[0];
+      dynamic validValues = optionInfo[0];
       if (!validValues.contains(value)) {
         debugger.console.print("'${value}' is not in ${validValues}");
         return;
       }
-      var setHandler = optionInfo[1];
+      dynamic setHandler = optionInfo[1];
       await setHandler(debugger, name, value);
     } else {
       debugger.console.print("set expects 0, 1, or 2 arguments");
@@ -696,7 +698,7 @@ class SetCommand extends DebuggerCommand {
     if (args.length < 1 || args.length > 2) {
       return new Future.value([args.join('')]);
     }
-    var result = [];
+    var result = <String>[];
     if (args.length == 1) {
       var prefix = args[0];
       for (var option in _options.keys) {
@@ -737,7 +739,7 @@ class SetCommand extends DebuggerCommand {
 }
 
 class BreakCommand extends DebuggerCommand {
-  BreakCommand(Debugger debugger) : super(debugger, 'break', []);
+  BreakCommand(Debugger debugger) : super(debugger, 'break', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length > 1) {
@@ -821,7 +823,7 @@ class BreakCommand extends DebuggerCommand {
 }
 
 class ClearCommand extends DebuggerCommand {
-  ClearCommand(Debugger debugger) : super(debugger, 'clear', []);
+  ClearCommand(Debugger debugger) : super(debugger, 'clear', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length > 1) {
@@ -908,7 +910,7 @@ class ClearCommand extends DebuggerCommand {
 
 // TODO(turnidge): Add argument completion.
 class DeleteCommand extends DebuggerCommand {
-  DeleteCommand(Debugger debugger) : super(debugger, 'delete', []);
+  DeleteCommand(Debugger debugger) : super(debugger, 'delete', <Command>[]);
 
   Future run(List<String> args) {
     if (args.length < 1) {
@@ -931,7 +933,7 @@ class DeleteCommand extends DebuggerCommand {
       }
       toRemove.add(bptToRemove);
     }
-    List pending = [];
+    List<Future> pending = [];
     for (var bpt in toRemove) {
       pending.add(debugger.isolate.removeBreakpoint(bpt));
     }
@@ -948,7 +950,7 @@ class DeleteCommand extends DebuggerCommand {
 
 class InfoBreakpointsCommand extends DebuggerCommand {
   InfoBreakpointsCommand(Debugger debugger)
-      : super(debugger, 'breakpoints', []);
+      : super(debugger, 'breakpoints', <Command>[]);
 
   Future run(List<String> args) async {
     if (debugger.isolate.breakpoints.isEmpty) {
@@ -975,7 +977,7 @@ class InfoBreakpointsCommand extends DebuggerCommand {
 }
 
 class InfoFrameCommand extends DebuggerCommand {
-  InfoFrameCommand(Debugger debugger) : super(debugger, 'frame', []);
+  InfoFrameCommand(Debugger debugger) : super(debugger, 'frame', <Command>[]);
 
   Future run(List<String> args) {
     if (args.length > 0) {
@@ -995,7 +997,7 @@ class InfoFrameCommand extends DebuggerCommand {
 
 class IsolateCommand extends DebuggerCommand {
   IsolateCommand(Debugger debugger)
-      : super(debugger, 'isolate', [
+      : super(debugger, 'isolate', <Command>[
           new IsolateListCommand(debugger),
           new IsolateNameCommand(debugger),
         ]) {
@@ -1008,7 +1010,7 @@ class IsolateCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     var arg = args[0].trim();
-    var num = int.parse(arg, onError: (_) => null);
+    var num = int.tryParse(arg);
 
     var candidate;
     for (var isolate in debugger.vm.isolates) {
@@ -1041,7 +1043,7 @@ class IsolateCommand extends DebuggerCommand {
     if (args.length != 1) {
       return new Future.value([args.join('')]);
     }
-    var result = [];
+    var result = <String>[];
     for (var isolate in debugger.vm.isolates) {
       var str = isolate.number.toString();
       if (str.startsWith(args[0])) {
@@ -1077,7 +1079,7 @@ String _isolateRunState(S.Isolate isolate) {
 }
 
 class IsolateListCommand extends DebuggerCommand {
-  IsolateListCommand(Debugger debugger) : super(debugger, 'list', []);
+  IsolateListCommand(Debugger debugger) : super(debugger, 'list', <Command>[]);
 
   Future run(List<String> args) async {
     if (debugger.vm == null) {
@@ -1086,7 +1088,7 @@ class IsolateListCommand extends DebuggerCommand {
     }
 
     // Refresh all isolates first.
-    var pending = [];
+    var pending = <Future>[];
     for (var isolate in debugger.vm.isolates) {
       pending.add(isolate.reload());
     }
@@ -1123,7 +1125,7 @@ class IsolateListCommand extends DebuggerCommand {
 }
 
 class IsolateNameCommand extends DebuggerCommand {
-  IsolateNameCommand(Debugger debugger) : super(debugger, 'name', []);
+  IsolateNameCommand(Debugger debugger) : super(debugger, 'name', <Command>[]);
 
   Future run(List<String> args) {
     if (args.length != 1) {
@@ -1142,7 +1144,7 @@ class IsolateNameCommand extends DebuggerCommand {
 
 class InfoCommand extends DebuggerCommand {
   InfoCommand(Debugger debugger)
-      : super(debugger, 'info', [
+      : super(debugger, 'info', <Command>[
           new InfoBreakpointsCommand(debugger),
           new InfoFrameCommand(debugger)
         ]);
@@ -1160,7 +1162,7 @@ class InfoCommand extends DebuggerCommand {
 }
 
 class RefreshStackCommand extends DebuggerCommand {
-  RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', []);
+  RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.refreshStack();
@@ -1175,7 +1177,7 @@ class RefreshStackCommand extends DebuggerCommand {
 
 class RefreshCommand extends DebuggerCommand {
   RefreshCommand(Debugger debugger)
-      : super(debugger, 'refresh', [
+      : super(debugger, 'refresh', <Command>[
           new RefreshStackCommand(debugger),
         ]);
 
@@ -1193,7 +1195,7 @@ class RefreshCommand extends DebuggerCommand {
 }
 
 class VmListCommand extends DebuggerCommand {
-  VmListCommand(Debugger debugger) : super(debugger, 'list', []);
+  VmListCommand(Debugger debugger) : super(debugger, 'list', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length > 0) {
@@ -1235,7 +1237,7 @@ class VmListCommand extends DebuggerCommand {
 }
 
 class VmNameCommand extends DebuggerCommand {
-  VmNameCommand(Debugger debugger) : super(debugger, 'name', []);
+  VmNameCommand(Debugger debugger) : super(debugger, 'name', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length != 1) {
@@ -1258,7 +1260,7 @@ class VmNameCommand extends DebuggerCommand {
 
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger)
-      : super(debugger, 'vm', [
+      : super(debugger, 'vm', <Command>[
           new VmListCommand(debugger),
           new VmNameCommand(debugger),
         ]);
@@ -1508,7 +1510,8 @@ class ObservatoryDebugger extends Debugger {
       breakOnException = isolate.exceptionsPauseInfo;
     }
 
-    isolate.reload().then((response) {
+    isolate.reload().then((serviceObject) {
+      S.Isolate response = serviceObject;
       if (response.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
         // clear the isolate for the debugger page.
@@ -1516,7 +1519,7 @@ class ObservatoryDebugger extends Debugger {
       }
       // TODO(turnidge): Currently the debugger relies on all libs
       // being loaded.  Fix this.
-      var pending = [];
+      var pending = <Future>[];
       for (var lib in response.libraries) {
         if (!lib.loaded) {
           pending.add(lib.load());
@@ -1697,20 +1700,20 @@ class ObservatoryDebugger extends Debugger {
   void onEvent(S.ServiceEvent event) {
     switch (event.kind) {
       case S.ServiceEvent.kVMUpdate:
-        var vm = event.owner;
+        S.VM vm = event.owner;
         console.print("VM ${vm.displayName} renamed to '${vm.name}'");
         break;
 
       case S.ServiceEvent.kIsolateStart:
         {
-          var iso = event.owner;
+          S.Isolate iso = event.owner;
           console.print("Isolate ${iso.number} '${iso.name}' has been created");
         }
         break;
 
       case S.ServiceEvent.kIsolateExit:
         {
-          var iso = event.owner;
+          S.Isolate iso = event.owner;
           if (iso == isolate) {
             console.print("The current isolate ${iso.number} '${iso.name}' "
                 "has exited");
@@ -1735,7 +1738,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case S.ServiceEvent.kIsolateUpdate:
-        var iso = event.owner;
+        S.Isolate iso = event.owner;
         console.print("Isolate ${iso.number} renamed to '${iso.name}'");
         break;
 
@@ -1914,7 +1917,7 @@ class ObservatoryDebugger extends Debugger {
         await isolate.addBreakpoint(script, line);
       } else {
         // TODO(turnidge): Clear this breakpoint at current column.
-        var pending = [];
+        var pending = <Future>[];
         for (var bpt in bpts) {
           pending.add(isolate.removeBreakpoint(bpt));
         }
@@ -1926,7 +1929,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future smartNext() async {
     if (isolatePaused()) {
-      var event = isolate.pauseEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (event.atAsyncSuspension) {
         return asyncNext();
       } else {
@@ -1939,7 +1942,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future asyncNext() async {
     if (isolatePaused()) {
-      var event = isolate.pauseEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (!event.atAsyncSuspension) {
         console.print("No async continuation at this location");
       } else {
@@ -2019,7 +2022,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final e = document.createElement(tag.name);
+    final DebuggerPageElement e = document.createElement(tag.name);
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
     debugger.objects = objects;
@@ -2053,17 +2056,17 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     final stackDiv = new DivElement()..classes = ['stack'];
     final stackElement = new DebuggerStackElement(
         _isolate, _debugger, stackDiv, _objects, _scripts, _events);
-    stackDiv.children = [stackElement];
+    stackDiv.children = <Element>[stackElement];
     final consoleDiv = new DivElement()
       ..classes = ['console']
-      ..children = [consoleElement];
+      ..children = <Element>[consoleElement];
     final commandElement = new DebuggerInputElement(_isolate, _debugger);
     final commandDiv = new DivElement()
       ..classes = ['commandline']
-      ..children = [commandElement];
+      ..children = <Element>[commandElement];
 
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: app.queue),
         new NavVMMenuElement(app.vm, app.events, queue: app.queue),
         new NavIsolateMenuElement(_isolate, app.events, queue: app.queue),
@@ -2073,10 +2076,10 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['variable']
-        ..children = [
+        ..children = <Element>[
           stackDiv,
           new DivElement()
-            ..children = [
+            ..children = <Element>[
               new HRElement()..classes = ['splitter']
             ],
           consoleDiv,
@@ -2210,7 +2213,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final e = document.createElement(tag.name);
+    final DebuggerStackElement e = document.createElement(tag.name);
     e._isolate = isolate;
     e._debugger = debugger;
     e._scroller = scroller;
@@ -2220,10 +2223,10 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
     var btnPause;
     var btnRefresh;
-    e.children = [
+    e.children = <Element>[
       e._isSampled = new DivElement()
         ..classes = ['sampledMessage', 'hidden']
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..text = 'The program is not paused. '
                 'The stack trace below may be out of date.',
@@ -2419,9 +2422,9 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 class DebuggerFrameElement extends HtmlElement implements Renderable {
   static const tag = const Tag<DebuggerFrameElement>('debugger-frame');
 
-  RenderingScheduler<DebuggerMessageElement> _r;
+  RenderingScheduler<DebuggerFrameElement> _r;
 
-  Stream<RenderedEvent<DebuggerMessageElement>> get onRendered => _r.onRendered;
+  Stream<RenderedEvent<DebuggerFrameElement>> get onRendered => _r.onRendered;
 
   Element _scroller;
   DivElement _varsDiv;
@@ -2474,7 +2477,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     assert(scripts != null);
     assert(events != null);
     final DebuggerFrameElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<DebuggerFrameElement>(e, queue: queue);
     e._isolate = isolate;
     e._frame = frame;
     e._scroller = scroller;
@@ -2533,10 +2536,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
       content.addAll([
         new DivElement()
           ..classes = ['frameDetails']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['flex-row-wrap']
-              ..children = [
+              ..children = <Element>[
                 new DivElement()
                   ..classes = ['flex-item-script']
                   ..children = _frame.function?.location == null
@@ -2555,7 +2558,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                         ],
                 new DivElement()
                   ..classes = ['flex-item-vars']
-                  ..children = [
+                  ..children = <Element>[
                     _varsDiv = new DivElement()
                       ..classes = ['memberList', 'frameVars']
                       ..children = ([
@@ -2569,22 +2572,22 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                                     ..text = homeMethodName,
                                   new DivElement()
                                     ..classes = ['memberName']
-                                    ..children = [
+                                    ..children = <Element>[
                                       anyRef(_isolate, homeMethod.dartOwner,
                                           _objects,
                                           queue: _r.queue)
                                     ]
                                 ]
                       ]..addAll(_frame.variables
-                          .map((v) => new DivElement()
+                          .map<Element>((v) => new DivElement()
                             ..classes = ['memberItem']
-                            ..children = [
+                            ..children = <Element>[
                               new DivElement()
                                 ..classes = ['memberName']
                                 ..text = v.name,
                               new DivElement()
                                 ..classes = ['memberName']
-                                ..children = [
+                                ..children = <Element>[
                                   anyRef(_isolate, v['value'], _objects,
                                       queue: _r.queue)
                                 ]
@@ -2594,14 +2597,14 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
               ],
             new DivElement()
               ..classes = ['frameContractor']
-              ..children = [
+              ..children = <Element>[
                 collapseButton = new ButtonElement()
                   ..onClick.listen((e) async {
                     collapseButton.disabled = true;
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = [iconExpandLess.clone(true)]
+                  ..children = <Element>[iconExpandLess.clone(true)]
               ]
           ]
       ]);
@@ -2610,10 +2613,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createMarkerHeader(String marker) {
-    final content = [
+    final content = <Element>[
       new DivElement()
         ..classes = ['frameSummaryText']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['frameId']
             ..text = 'Frame ${_frame.index}',
@@ -2628,10 +2631,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createHeader() {
-    final content = [
+    final content = <Element>[
       new DivElement()
         ..classes = ['frameSummaryText']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['frameId']
             ..text = 'Frame ${_frame.index}',
@@ -2657,7 +2660,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     if (!_expanded) {
       content.add(new DivElement()
         ..classes = ['frameExpander']
-        ..children = [iconExpandMore.clone(true)]);
+        ..children = <Element>[iconExpandMore.clone(true)]);
     }
     return [
       new DivElement()
@@ -2688,25 +2691,25 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
 
   S.Script get script => _frame.location.script;
 
-  int _varsTop(varsDiv) {
+  int _varsTop(DivElement varsDiv) {
     const minTop = 0;
     if (varsDiv == null) {
       return minTop;
     }
-    final paddingTop = document.body.contentEdge.top;
-    final parent = varsDiv.parent.getBoundingClientRect();
-    final varsHeight = varsDiv.clientHeight;
-    final maxTop = parent.height - varsHeight;
-    final adjustedTop = paddingTop - parent.top;
-    return (max(minTop, min(maxTop, adjustedTop)));
+    final num paddingTop = document.body.contentEdge.top;
+    final Rectangle parent = varsDiv.parent.getBoundingClientRect();
+    final int varsHeight = varsDiv.clientHeight;
+    final int maxTop = (parent.height - varsHeight).toInt();
+    final int adjustedTop = (paddingTop - parent.top).toInt();
+    return max(minTop, min(maxTop, adjustedTop));
   }
 
   void _onScroll(event) {
     if (!_expanded || _varsDiv == null) {
       return;
     }
-    var currentTop = _varsDiv.style.top;
-    var newTop = _varsTop(_varsDiv);
+    String currentTop = _varsDiv.style.top;
+    int newTop = _varsTop(_varsDiv);
     if (currentTop != newTop) {
       _varsDiv.style.top = '${newTop}px';
     }
@@ -2809,7 +2812,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(events != null);
     final DebuggerMessageElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<DebuggerMessageElement>(e, queue: queue);
     e._isolate = isolate;
     e._message = message;
     e._objects = objects;
@@ -2850,10 +2853,10 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
       content.addAll([
         new DivElement()
           ..classes = ['messageDetails']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['flex-row-wrap']
-              ..children = [
+              ..children = <Element>[
                 new DivElement()
                   ..classes = ['flex-item-script']
                   ..children = _message.handler == null
@@ -2870,10 +2873,10 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                         ],
                 new DivElement()
                   ..classes = ['flex-item-vars']
-                  ..children = [
+                  ..children = <Element>[
                     new DivElement()
                       ..classes = ['memberItem']
-                      ..children = [
+                      ..children = <Element>[
                         new DivElement()..classes = ['memberName'],
                         new DivElement()
                           ..classes = ['memberValue']
@@ -2894,14 +2897,14 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
               ],
             new DivElement()
               ..classes = ['messageContractor']
-              ..children = [
+              ..children = <Element>[
                 collapseButton = new ButtonElement()
                   ..onClick.listen((e) async {
                     collapseButton.disabled = true;
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = [iconExpandLess.clone(true)]
+                  ..children = <Element>[iconExpandLess.clone(true)]
               ]
           ]
       ]);
@@ -2916,10 +2919,10 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createHeader() {
-    final content = [
+    final content = <Element>[
       new DivElement()
         ..classes = ['messageSummaryText']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['messageId']
             ..text = 'message ${_message.index}',
@@ -2944,7 +2947,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
     if (!_expanded) {
       content.add(new DivElement()
         ..classes = ['messageExpander']
-        ..children = [iconExpandMore.clone(true)]);
+        ..children = <Element>[iconExpandMore.clone(true)]);
     }
     return [
       new DivElement()
@@ -2974,7 +2977,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   Future _toggleExpand() async {
@@ -3000,7 +3003,7 @@ class DebuggerConsoleElement extends HtmlElement implements Renderable {
 
   factory DebuggerConsoleElement() {
     final DebuggerConsoleElement e = document.createElement(tag.name);
-    e.children = [new BRElement()];
+    e.children = <Element>[new BRElement()];
     return e;
   }
 
@@ -3132,7 +3135,7 @@ class DebuggerInputElement extends HtmlElement implements Renderable {
   factory DebuggerInputElement(
       S.Isolate isolate, ObservatoryDebugger debugger) {
     final DebuggerInputElement e = document.createElement(tag.name);
-    e.children = [e._modalPromptDiv, e._textBox];
+    e.children = <Element>[e._modalPromptDiv, e._textBox];
     e._textBox.select();
     e._textBox.onKeyDown.listen(e._onKeyDown);
     return e;
@@ -3281,7 +3284,7 @@ class DebuggerInputElement extends HtmlElement implements Renderable {
 final SvgSvgElement iconExpandLess = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PolygonElement()
       ..setAttribute('points', '12,8 6,14 7.4,15.4 12,10.8 16.6,15.4 18,14 ')
   ];
@@ -3289,7 +3292,7 @@ final SvgSvgElement iconExpandLess = new SvgSvgElement()
 final SvgSvgElement iconExpandMore = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PolygonElement()
       ..setAttribute('points', '16.6,8.6 12,13.2 7.4,8.6 6,10 12,16 18,10 ')
   ];
@@ -3297,7 +3300,7 @@ final SvgSvgElement iconExpandMore = new SvgSvgElement()
 final SvgSvgElement iconChevronRight = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute('d', 'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
   ];
@@ -3305,7 +3308,7 @@ final SvgSvgElement iconChevronRight = new SvgSvgElement()
 final SvgSvgElement iconChevronLeft = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute('d', 'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z')
   ];
@@ -3313,7 +3316,7 @@ final SvgSvgElement iconChevronLeft = new SvgSvgElement()
 final SvgSvgElement iconHorizontalThreeDot = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',
@@ -3326,7 +3329,7 @@ final SvgSvgElement iconHorizontalThreeDot = new SvgSvgElement()
 final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',
@@ -3339,7 +3342,7 @@ final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
 final SvgSvgElement iconInfo = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',
@@ -3350,7 +3353,7 @@ final SvgSvgElement iconInfo = new SvgSvgElement()
 final SvgSvgElement iconInfoOutline = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',

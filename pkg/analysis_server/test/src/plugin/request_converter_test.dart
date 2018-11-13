@@ -76,7 +76,7 @@ class RequestConverterTest extends ProtocolTestUtilities {
     expect(result, isNotNull);
     Map<String, dynamic> pluginFiles = result.files;
     expect(pluginFiles, hasLength(2));
-    expect(pluginFiles['file1'], new isInstanceOf<AddContentOverlay>());
-    expect(pluginFiles['file2'], new isInstanceOf<AddContentOverlay>());
+    expect(pluginFiles['file1'], const TypeMatcher<AddContentOverlay>());
+    expect(pluginFiles['file2'], const TypeMatcher<AddContentOverlay>());
   }
 }

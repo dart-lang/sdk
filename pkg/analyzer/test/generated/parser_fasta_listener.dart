@@ -108,14 +108,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassBody(Token token) {
-    super.beginClassBody(token);
-    begin('ClassBody');
+  void beginClassOrMixinBody(Token token) {
+    super.beginClassOrMixinBody(token);
+    begin('ClassOrMixinBody');
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token name) {
-    super.beginClassDeclaration(beginToken, name);
+  void beginClassDeclaration(
+      Token beginToken, Token abstractToken, Token name) {
+    super.beginClassDeclaration(beginToken, abstractToken, name);
     begin('ClassDeclaration');
   }
 
@@ -206,8 +207,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFactoryMethod(Token token) {
-    super.beginFactoryMethod(token);
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    super.beginFactoryMethod(lastConsumed, externalToken, constToken);
     begin('FactoryMethod');
   }
 
@@ -242,8 +244,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind) {
-    super.beginFormalParameter(token, kind);
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    super.beginFormalParameter(token, kind, covariantToken, varFinalOrConst);
     begin('FormalParameter');
   }
 
@@ -356,9 +359,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMember(Token token) {
-    expectIn('ClassBody');
-    super.beginMember(token);
+  void beginMember() {
+    expectIn('ClassOrMixinBody');
+    super.beginMember();
     begin('Member');
   }
 
@@ -376,15 +379,17 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMethod(Token token, Token name) {
-    super.beginMethod(token, name);
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    super.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, getOrSet, name);
     begin('Method');
   }
 
   @override
-  void beginMixinApplication(Token token) {
-    super.beginMixinApplication(token);
-    begin('MixinApplication');
+  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(mixinKeyword, name);
+    begin('MixinDeclaration');
   }
 
   @override
@@ -394,8 +399,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token name) {
-    super.beginNamedMixinApplication(beginToken, name);
+  void beginNamedMixinApplication(
+      Token beginToken, Token abstractToken, Token name) {
+    super.beginNamedMixinApplication(beginToken, abstractToken, name);
     begin('NamedMixinApplication');
   }
 
@@ -478,8 +484,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginTopLevelMethod(Token token, Token name) {
-    super.beginTopLevelMethod(token, name);
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    super.beginTopLevelMethod(lastConsumed, externalToken);
     begin('TopLevelMethod');
   }
 
@@ -520,8 +526,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token) {
-    super.beginVariablesDeclaration(token);
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    super.beginVariablesDeclaration(token, varFinalOrConst);
     begin('VariablesDeclaration');
   }
 
@@ -594,9 +600,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    end('ClassBody');
-    super.endClassBody(memberCount, beginToken, endToken);
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    end('ClassOrMixinBody');
+    super.endClassOrMixinBody(memberCount, beginToken, endToken);
   }
 
   @override
@@ -701,10 +707,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     // beginMember --> endFields, endMember
     expectIn('Member');
-    super.endFields(count, beginToken, endToken);
+    super.endFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override
@@ -774,9 +782,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken) {
     end('FunctionType');
-    super.endFunctionType(functionToken, endToken);
+    super.endFunctionType(functionToken);
   }
 
   @override
@@ -787,9 +795,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter() {
+  void endFunctionTypedFormalParameter(Token nameToken) {
     end('FunctionTypedFormalParameter');
-    super.endFunctionTypedFormalParameter();
+    super.endFunctionTypedFormalParameter(nameToken);
   }
 
   @override
@@ -877,15 +885,17 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     end('Method');
-    super.endMethod(getOrSet, beginToken, endToken);
+    super.endMethod(getOrSet, beginToken, beginParam, endToken);
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
-    end('MixinApplication');
-    super.endMixinApplication(withKeyword);
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+    end('MixinDeclaration');
+    end('ClassOrNamedMixinApplication');
+    super.endMixinDeclaration(mixinKeyword, endToken);
   }
 
   @override
@@ -995,9 +1005,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     end('TopLevelMember');
-    super.endTopLevelFields(count, beginToken, endToken);
+    super.endTopLevelFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override
@@ -1026,15 +1038,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
     end('TypeVariable');
-    super.endTypeVariable(token, extendsOrSuper);
+    super.endTypeVariable(token, index, extendsOrSuper);
   }
 
   @override
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
+  void endTypeVariables(Token beginToken, Token endToken) {
     end('TypeVariables');
-    super.endTypeVariables(count, beginToken, endToken);
+    super.endTypeVariables(beginToken, endToken);
   }
 
   @override
@@ -1080,9 +1092,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
-    expectIn('ClassDeclaration');
-    listener.handleClassImplements(implementsKeyword, interfacesCount);
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
+    expectInOneOf(['ClassDeclaration', 'MixinDeclaration']);
+    listener.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
   }
 
   @override
@@ -1110,6 +1123,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void handleRecoverMixinHeader() {
+    expectIn('MixinDeclaration');
+    listener.handleRecoverMixinHeader();
+  }
+
+  @override
   void handleInvalidMember(Token endToken) {
     expectIn('Member');
     super.handleInvalidMember(endToken);
@@ -1117,7 +1136,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
-    expectIn('CompilationUnit');
+    end('TopLevelMember');
     listener.handleInvalidTopLevelDeclaration(endToken);
   }
 
@@ -1147,7 +1166,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
-    expectIn('Import');
+    // This event normally happens within "Import",
+    // but happens within "CompilationUnit" during recovery.
+    expectInOneOf(const ['Import', 'CompilationUnit']);
     listener.handleImportPrefix(deferredKeyword, asKeyword);
   }
 
@@ -1155,5 +1176,10 @@ class ForwardingTestListener extends ForwardingListener {
   void handleScript(Token token) {
     expectIn('CompilationUnit');
     listener.handleScript(token);
+  }
+
+  @override
+  void handleTypeVariablesDefined(Token token, int count) {
+    listener.handleTypeVariablesDefined(token, count);
   }
 }

@@ -16,7 +16,9 @@ void addStandardArguments(ArgParser argParser) {
   argParser.addFlag("checked", negatable: false);
   argParser.addOption("compiler", allowed: Compiler.names);
   argParser.addFlag("csp", negatable: false);
+  argParser.addFlag("fasta", negatable: false);
   argParser.addFlag("dart2js-with-kernel", negatable: false);
+  argParser.addFlag("dart2js-old-frontend", negatable: false);
   argParser.addFlag("dart2js-with-kernel-in-ssa", negatable: false);
   argParser.addFlag("enable-asserts", negatable: false);
   argParser.addFlag("fast-startup", negatable: false);
@@ -25,11 +27,12 @@ void addStandardArguments(ArgParser argParser) {
   argParser.addFlag("hot-reload-rollback", negatable: false);
   argParser.addFlag("minified", negatable: false);
   argParser.addOption("mode", allowed: Mode.names);
+  argParser.addFlag("no-preview-dart-2", negatable: false);
+  argParser.addFlag("preview-dart-2", negatable: false);
   argParser.addOption("runtime", allowed: Runtime.names);
   argParser.addFlag("strong", negatable: false);
   argParser.addOption("system", allowed: System.names);
   argParser.addFlag("use-sdk", negatable: false);
-  argParser.addFlag("preview-dart-2", negatable: false);
 }
 
 /// Helper function to get a configuration from [argResults].
@@ -44,6 +47,7 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["host-checked"],
       argResults["minified"],
       argResults["csp"],
+      argResults["fasta"],
       argResults["system"],
       [],
       argResults["use-sdk"],
@@ -51,6 +55,7 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["fast-startup"],
       0,
       argResults["dart2js-with-kernel"],
+      argResults["dart2js-old-frontend"],
       argResults["enable-asserts"],
       argResults["hot-reload"],
       argResults["hot-reload-rollback"],

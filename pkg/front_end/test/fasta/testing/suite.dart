@@ -6,22 +6,19 @@ library fasta.testing.suite;
 
 import 'dart:async' show Future;
 
+import 'dart:convert' show jsonDecode;
+
 import 'dart:io' show File, Platform;
 
-import 'dart:convert' show JSON;
+import 'package:kernel/ast.dart' show Library, Component;
 
-import 'package:front_end/src/api_prototype/physical_file_system.dart'
-    show PhysicalFileSystem;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:front_end/src/base/libraries_specification.dart'
-    show TargetLibrariesSpecification;
+import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
-    show ValidatingInstrumentation;
+import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
-
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:kernel/target/targets.dart' show TargetFlags;
 
 import 'package:testing/testing.dart'
     show
@@ -34,8 +31,16 @@ import 'package:testing/testing.dart'
         TestDescription,
         StdioProcess;
 
+import 'package:vm/target/vm.dart' show VmTarget;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
+
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
+
+import 'package:front_end/src/base/libraries_specification.dart'
+    show TargetLibrariesSpecification;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -45,49 +50,47 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError;
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show MatchExpectation, Print, TypeCheck, Verify, WriteDill;
+
+import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
+    show ValidatingInstrumentation;
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
-import 'package:kernel/kernel.dart' show loadProgramFromBytes;
-
-import 'package:kernel/target/targets.dart' show TargetFlags;
-
-import 'package:kernel/target/vm.dart' show VmTarget;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/core_types.dart' show CoreTypes;
-
 export 'package:testing/testing.dart' show Chain, runMe;
-
-import 'analyzer_target.dart' show AnalyzerTarget;
 
 const String STRONG_MODE = " strong mode ";
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
-const String AST_KIND_INDEX = " AST kind index ";
-
 const String EXPECTATIONS = '''
 [
   {
-    "name": "VerificationError",
+    "name": "ExpectationFileMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "ExpectationFileMissing",
+    "group": "Fail"
+  },
+  {
+    "name": "InstrumentationMismatch",
     "group": "Fail"
   },
   {
     "name": "TypeCheckError",
+    "group": "Fail"
+  },
+  {
+    "name": "VerificationError",
     "group": "Fail"
   }
 ]
@@ -97,25 +100,22 @@ String generateExpectationName(bool strongMode) {
   return strongMode ? "strong" : "direct";
 }
 
-enum AstKind {
-  Analyzer,
-  Kernel,
-}
-
 class FastaContext extends ChainContext {
-  final UriTranslatorImpl uriTranslator;
+  final UriTranslator uriTranslator;
   final List<Step> steps;
   final Uri vm;
   final bool strongMode;
   final bool onlyCrashes;
-  final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
+  final Map<Component, KernelTarget> componentToTarget =
+      <Component, KernelTarget>{};
+  final Map<Component, StringBuffer> componentToDiagnostics =
+      <Component, StringBuffer>{};
   final Uri platformBinaries;
   Uri platformUri;
-  Uri outlineUri;
-  Program outline;
+  Component platform;
 
   final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
+      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
   Expectation verificationError;
 
   FastaContext(
@@ -128,49 +128,53 @@ class FastaContext extends ChainContext {
       bool updateComments,
       bool skipVm,
       this.uriTranslator,
-      bool fullCompile,
-      AstKind astKind)
+      bool fullCompile)
       : steps = <Step>[
-          new Outline(fullCompile, astKind, strongMode,
-              updateComments: updateComments),
+          new Outline(fullCompile, strongMode, updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
     verificationError = expectationSet["VerificationError"];
-    if (astKind != AstKind.Analyzer) {
+    if (!ignoreExpectations) {
+      steps.add(new MatchExpectation(
+          fullCompile
+              ? ".${generateExpectationName(strongMode)}.expect"
+              : ".outline.expect",
+          updateExpectations: updateExpectations));
+    }
+    if (strongMode) {
+      steps.add(const TypeCheck());
+    }
+    steps.add(const EnsureNoErrors());
+    if (fullCompile && !skipVm) {
+      steps.add(const Transform());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(
             fullCompile
-                ? ".${generateExpectationName(strongMode)}.expect"
-                : ".outline.expect",
+                ? ".${generateExpectationName(strongMode)}.transformed.expect"
+                : ".outline.transformed.expect",
             updateExpectations: updateExpectations));
       }
-      if (strongMode) {
-        steps.add(const TypeCheck());
-      }
-      if (fullCompile && !skipVm) {
-        steps.add(const Transform());
-        steps.add(const WriteDill());
-        steps.add(const Run());
-      }
+      steps.add(const EnsureNoErrors());
+      steps.add(const WriteDill());
+      steps.add(const Run());
     }
   }
 
   Future ensurePlatformUris() async {
     if (platformUri == null) {
-      platformUri = platformBinaries.resolve("vm_platform.dill");
-      outlineUri = platformBinaries
-          .resolve(strongMode ? "vm_outline_strong.dill" : "vm_outline.dill");
+      platformUri = platformBinaries
+          .resolve(strongMode ? "vm_platform_strong.dill" : "vm_platform.dill");
     }
   }
 
-  Future<Program> loadPlatformOutline() async {
-    if (outline == null) {
+  Future<Component> loadPlatform() async {
+    if (platform == null) {
       await ensurePlatformUris();
-      outline =
-          loadProgramFromBytes(new File.fromUri(outlineUri).readAsBytesSync());
+      platform = loadComponentFromBytes(
+          new File.fromUri(platformUri).readAsBytesSync());
     }
-    return outline;
+    return platform;
   }
 
   @override
@@ -189,11 +193,15 @@ class FastaContext extends ChainContext {
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
     Uri sdk = Uri.base.resolve("sdk/");
-    Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
+    Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
-    var options = new ProcessedOptions(new CompilerOptions()
-      ..sdkRoot = sdk
-      ..packagesFileUri = packages);
+    var options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onDiagnostic = (DiagnosticMessage message) {
+            throw message.plainTextFormatted.join("\n");
+          }
+          ..sdkRoot = sdk
+          ..packagesFileUri = packages);
     UriTranslator uriTranslator = await options.getUriTranslator();
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool onlyCrashes = environment["onlyCrashes"] == "true";
@@ -205,14 +213,11 @@ class FastaContext extends ChainContext {
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
-    String astKindString = environment[AST_KIND_INDEX];
-    AstKind astKind =
-        astKindString == null ? null : AstKind.values[int.parse(astKindString)];
     return new FastaContext(
         vm,
         strongMode,
         platformBinaries == null
-            ? computePlatformBinariesLocation()
+            ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
         ignoreExpectations,
@@ -220,8 +225,7 @@ class FastaContext extends ChainContext {
         updateComments,
         skipVm,
         uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE),
-        astKind);
+        environment.containsKey(ENABLE_FULL_COMPILE));
   }
 }
 
@@ -241,8 +245,13 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var args = ['--kernel-binaries=${context.platformBinaries.toFilePath()}'];
-      if (context.strongMode) args.add('--strong');
+      var args = <String>[];
+      if (context.strongMode) {
+        // TODO(ahe): This argument is probably ignored by the VM.
+        args.add('--strong');
+        // TODO(ahe): This argument is probably ignored by the VM.
+        args.add('--reify-generic-functions');
+      }
       args.add(generated.path);
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
@@ -253,86 +262,94 @@ class Run extends Step<Uri, int, FastaContext> {
   }
 }
 
-class Outline extends Step<TestDescription, Program, FastaContext> {
+class Outline extends Step<TestDescription, Component, FastaContext> {
   final bool fullCompile;
-
-  final AstKind astKind;
 
   final bool strongMode;
 
-  const Outline(this.fullCompile, this.astKind, this.strongMode,
+  const Outline(this.fullCompile, this.strongMode,
       {this.updateComments: false});
 
   final bool updateComments;
 
   String get name {
-    return fullCompile ? "${astKind} compile" : "outline";
+    return fullCompile ? "compile" : "outline";
   }
 
   bool get isCompiler => fullCompile;
 
-  Future<Result<Program>> run(
+  Future<Result<Component>> run(
       TestDescription description, FastaContext context) async {
-    var options = new ProcessedOptions(new CompilerOptions());
+    StringBuffer errors = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..legacyMode = !strongMode
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (errors.isNotEmpty) {
+              errors.write("\n\n");
+            }
+            errors.writeAll(message.plainTextFormatted, "\n");
+          },
+        inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.
       CompilerContext.current.disableColors();
-      Program platformOutline = await context.loadPlatformOutline();
+      Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmTarget(new TargetFlags(strongMode: strongMode)));
-      dillTarget.loader.appendLibraries(platformOutline);
+          new TestVmTarget(new TargetFlags(legacyMode: !strongMode)));
+      dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
-      UriTranslatorImpl uriTranslator = new UriTranslatorImpl(
+      UriTranslator uriTranslator = new UriTranslator(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
-      KernelTarget sourceTarget = astKind == AstKind.Analyzer
-          ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
-          : new KernelTarget(
-              PhysicalFileSystem.instance, false, dillTarget, uriTranslator);
+      KernelTarget sourceTarget = new KernelTarget(
+          StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
-      Program p;
-      try {
-        sourceTarget.read(description.uri);
-        await dillTarget.buildOutlines();
-        ValidatingInstrumentation instrumentation;
-        if (strongMode) {
-          instrumentation = new ValidatingInstrumentation();
-          await instrumentation.loadExpectations(description.uri);
-          sourceTarget.loader.instrumentation = instrumentation;
-        }
-        p = await sourceTarget.buildOutlines();
-        if (fullCompile) {
-          p = await sourceTarget.buildProgram();
-          instrumentation?.finish();
-          if (instrumentation != null && instrumentation.hasProblems) {
-            if (updateComments) {
-              await instrumentation.fixSource(description.uri, false);
-            } else {
-              return fail(null, instrumentation.problemsAsString);
-            }
+      sourceTarget.setEntryPoints(<Uri>[description.uri]);
+      await dillTarget.buildOutlines();
+      ValidatingInstrumentation instrumentation;
+      if (strongMode) {
+        instrumentation = new ValidatingInstrumentation();
+        await instrumentation.loadExpectations(description.uri);
+        sourceTarget.loader.instrumentation = instrumentation;
+      }
+      Component p = await sourceTarget.buildOutlines();
+      context.componentToTarget.clear();
+      context.componentToTarget[p] = sourceTarget;
+      context.componentToDiagnostics.clear();
+      context.componentToDiagnostics[p] = errors;
+      if (fullCompile) {
+        p = await sourceTarget.buildComponent();
+        instrumentation?.finish();
+        if (instrumentation != null && instrumentation.hasProblems) {
+          if (updateComments) {
+            await instrumentation.fixSource(description.uri, false);
+          } else {
+            return new Result<Component>(
+                p,
+                context.expectationSet["InstrumentationMismatch"],
+                instrumentation.problemsAsString,
+                null);
           }
         }
-      } on deprecated_InputError catch (e, s) {
-        return fail(null, e.error, s);
       }
-      context.programToTarget.clear();
-      context.programToTarget[p] = sourceTarget;
       return pass(p);
     });
   }
 }
 
-class Transform extends Step<Program, Program, FastaContext> {
+class Transform extends Step<Component, Component, FastaContext> {
   const Transform();
 
-  String get name => "transform program";
+  String get name => "transform component";
 
-  Future<Result<Program>> run(Program program, FastaContext context) async {
-    KernelTarget sourceTarget = context.programToTarget[program];
-    context.programToTarget.remove(program);
+  Future<Result<Component>> run(
+      Component component, FastaContext context) async {
+    KernelTarget sourceTarget = context.componentToTarget[component];
+    context.componentToTarget.remove(component);
     TestVmTarget backendTarget = sourceTarget.backendTarget;
     backendTarget.enabled = true;
     try {
@@ -342,7 +359,7 @@ class Transform extends Step<Program, Program, FastaContext> {
     } finally {
       backendTarget.enabled = false;
     }
-    return pass(program);
+    return pass(component);
   }
 }
 
@@ -353,20 +370,28 @@ class TestVmTarget extends VmTarget {
 
   String get name => "vm";
 
-  void performModularTransformationsOnLibraries(
+  @override
+  void performModularTransformationsOnLibraries(Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
     if (enabled) {
       super.performModularTransformationsOnLibraries(
-          coreTypes, hierarchy, libraries,
+          component, coreTypes, hierarchy, libraries,
           logger: logger);
     }
   }
+}
 
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
-      {void logger(String msg)}) {
-    if (enabled) {
-      super.performGlobalTransformations(coreTypes, program, logger: logger);
-    }
+class EnsureNoErrors extends Step<Component, Component, FastaContext> {
+  const EnsureNoErrors();
+
+  String get name => "check errors";
+
+  Future<Result<Component>> run(
+      Component component, FastaContext context) async {
+    StringBuffer buffer = context.componentToDiagnostics[component];
+    return buffer.isEmpty
+        ? pass(component)
+        : fail(component, """Unexpected errors:\n$buffer""");
   }
 }

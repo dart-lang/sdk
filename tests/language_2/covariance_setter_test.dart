@@ -55,4 +55,36 @@ main() {
 
   // This calls should have any arguments marked "covariant" type checked.
   Expect.throwsTypeError(() => b.s5 = new Object()); //# 05: ok
+
+  testMixin(); //# 06: ok
+}
+
+abstract class D<T> {
+  void set m1(T x);
+}
+
+class E {
+  void set m1(A x) {}
+}
+
+class F = Object with E implements D<A>;
+class G = C with E implements D<A>;
+
+class H extends Object with E implements D<A> {}
+
+class I extends Object with F {}
+
+void testMixin() {
+  D<Object> f = new F();
+  f.m1 = new A();
+  Expect.throwsTypeError(() => f.m1 = new Object());
+  f = new G();
+  f.m1 = new A();
+  Expect.throwsTypeError(() => f.m1 = new Object());
+  f = new H();
+  f.m1 = new A();
+  Expect.throwsTypeError(() => f.m1 = new Object());
+  f = new I();
+  f.m1 = new A();
+  Expect.throwsTypeError(() => f.m1 = new Object());
 }

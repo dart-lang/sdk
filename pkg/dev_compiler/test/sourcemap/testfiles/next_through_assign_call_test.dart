@@ -19,6 +19,6 @@ main() {
   /*bc:12*/ print(g);
 }
 
-foo() {
+int foo() {
   return 42;
 }

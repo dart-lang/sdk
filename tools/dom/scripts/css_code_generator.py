@@ -144,7 +144,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
 
-  @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
       value, priority);

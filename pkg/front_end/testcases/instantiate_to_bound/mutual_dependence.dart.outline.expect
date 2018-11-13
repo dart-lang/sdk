@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class B<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X, self::B::Y>
+    ;
+}
+class C1<X extends (self::C1::Y) → self::C1::X = dynamic, Y extends (self::C1::Y) → self::C1::X = dynamic> extends core::Object {
+  synthetic constructor •() → self::C1<self::C1::X, self::C1::Y>
+    ;
+}
+class C2<X extends (self::C2::Y) → self::C2::X = dynamic, Y extends (self::C2::X) → self::C2::Y = dynamic> extends core::Object {
+  synthetic constructor •() → self::C2<self::C2::X, self::C2::Y>
+    ;
+}
+class C3<X extends (self::C3::X, self::C3::Y) → self::C3::X = dynamic, Y extends (self::C3::X, self::C3::Y) → self::C3::X = dynamic> extends core::Object {
+  synthetic constructor •() → self::C3<self::C3::X, self::C3::Y>
+    ;
+}
+class C4<X extends (self::C4::X, self::C4::Y) → self::C4::X = dynamic, Y extends (self::C4::X, self::C4::Y) → self::C4::Y = dynamic> extends core::Object {
+  synthetic constructor •() → self::C4<self::C4::X, self::C4::Y>
+    ;
+}
+class D1<X extends self::B<self::D1::X, self::D1::Y> = dynamic, Y extends (self::D1::Y) → self::D1::X = dynamic> extends core::Object {
+  synthetic constructor •() → self::D1<self::D1::X, self::D1::Y>
+    ;
+}
+class D2<X extends self::B<self::D2::X, self::D2::Y> = dynamic, Y extends (self::D2::X) → self::D2::Y = dynamic> extends core::Object {
+  synthetic constructor •() → self::D2<self::D2::X, self::D2::Y>
+    ;
+}
+class D3<X extends self::B<self::D3::X, self::D3::Y> = dynamic, Y extends (self::D3::X, self::D3::Y) → self::D3::X = dynamic> extends core::Object {
+  synthetic constructor •() → self::D3<self::D3::X, self::D3::Y>
+    ;
+}
+class D4<X extends self::B<self::D4::X, self::D4::Y> = dynamic, Y extends (self::D4::X, self::D4::Y) → self::D4::Y = dynamic> extends core::Object {
+  synthetic constructor •() → self::D4<self::D4::X, self::D4::Y>
+    ;
+}
+class E<X extends (self::E::X) → self::E::X = dynamic> extends core::Object {
+  synthetic constructor •() → self::E<self::E::X>
+    ;
+}
+static field self::C1<dynamic, dynamic> c1;
+static field self::C2<dynamic, dynamic> c2;
+static field self::C3<dynamic, dynamic> c3;
+static field self::C4<dynamic, dynamic> c4;
+static field self::D1<dynamic, dynamic> d1;
+static field self::D2<dynamic, dynamic> d2;
+static field self::D3<dynamic, dynamic> d3;
+static field self::D4<dynamic, dynamic> d4;
+static field self::E<dynamic> e;
+static method main() → dynamic
+  ;

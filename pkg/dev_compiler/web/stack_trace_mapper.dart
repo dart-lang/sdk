@@ -59,7 +59,7 @@ external String _stringify(dynamic json);
 /// The unparsed data for the source maps must still be loaded before
 /// LazyMapping is used.
 class LazyMapping extends Mapping {
-  MappingBundle _bundle = new MappingBundle();
+  MappingBundle _bundle = MappingBundle();
   SourceMapProvider _provider;
 
   LazyMapping(this._provider);
@@ -69,17 +69,14 @@ class LazyMapping extends Mapping {
   SourceMapSpan spanFor(int line, int column,
       {Map<String, SourceFile> files, String uri}) {
     if (uri == null) {
-      throw new ArgumentError.notNull('uri');
+      throw ArgumentError.notNull('uri');
     }
 
     if (!_bundle.containsMapping(uri)) {
       var rawMap = _provider(uri);
       if (rawMap != null) {
-        if (rawMap is! String) {
-          // The sourcemap was passed as regular JavaScript JSON.
-          rawMap = _stringify(rawMap);
-        }
-        SingleMapping mapping = parse(rawMap);
+        var strMap = rawMap is String ? rawMap : _stringify(rawMap);
+        var mapping = parse(strMap) as SingleMapping;
         mapping
           ..targetUrl = uri
           ..sourceRoot = '${path.dirname(uri)}/';
@@ -104,19 +101,19 @@ String mapper(String rawStackTrace) {
   if (_mapping == null) {
     // This should not happen if the user has waited for the ReadyCallback
     // to start the application.
-    throw new StateError('Source maps are not done loading.');
+    throw StateError('Source maps are not done loading.');
   }
-  var trace = new Trace.parse(rawStackTrace);
+  var trace = Trace.parse(rawStackTrace);
   return mapStackTrace(_mapping, trace, roots: roots).toString();
 }
 
 void setSourceMapProvider(SourceMapProvider provider) {
-  _mapping = new LazyMapping(provider);
+  _mapping = LazyMapping(provider);
 }
 
 main() {
   // Register with DDC.
-  dartStackTraceUtility = new DartStackTraceUtility(
+  dartStackTraceUtility = DartStackTraceUtility(
       mapper: allowInterop(mapper),
       setSourceMapProvider: allowInterop(setSourceMapProvider));
 }

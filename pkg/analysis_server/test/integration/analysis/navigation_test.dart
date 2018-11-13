@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNavigationTest);
-    defineReflectiveTests(AnalysisNavigationTest_PreviewDart2);
   });
 }
 
@@ -84,7 +83,6 @@ part of foo;
         }
       }
       fail('No element found for index $index');
-      return null;
     }
 
     void checkLocal(
@@ -134,14 +132,4 @@ part of foo;
     checkLocal(
         'TypeParameter field;', 'TypeParameter>', ElementKind.TYPE_PARAMETER);
   }
-}
-
-@reflectiveTest
-class AnalysisNavigationTest_PreviewDart2 extends AnalysisNavigationTest {
-  @override
-  bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  test_navigation() => super.test_navigation();
 }

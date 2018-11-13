@@ -12,21 +12,17 @@ namespace dart {
 
 static const int kNumInitialReferences = 4;
 
-ApiMessageReader::ApiMessageReader(const uint8_t* buffer, intptr_t length)
-    : BaseReader(buffer, length),
-      zone_(NULL),
-      backward_references_(kNumInitialReferences),
-      vm_isolate_references_(kNumInitialReferences),
-      vm_symbol_references_(NULL) {}
-
 ApiMessageReader::ApiMessageReader(Message* msg)
     : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(msg->raw_obj())
-                              : msg->data(),
-                 msg->len()),
+                              : msg->snapshot(),
+                 msg->snapshot_length()),
       zone_(NULL),
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
-      vm_symbol_references_(NULL) {}
+      vm_symbol_references_(NULL),
+      finalizable_data_(msg->finalizable_data()) {}
+
+ApiMessageReader::~ApiMessageReader() {}
 
 void ApiMessageReader::Init() {
   // We need to have an enclosing ApiNativeScope.
@@ -104,19 +100,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
 }
 
 _Dart_CObject* ApiMessageReader::singleton_uint32_typed_data_ = NULL;
-
-Dart_CObject* ApiMessageReader::AllocateDartCObjectBigint() {
-  Dart_CObject* value = AllocateDartCObject(Dart_CObject_kBigint);
-  value->value.as_bigint.neg = false;
-  value->value.as_bigint.used = 0;
-  if (singleton_uint32_typed_data_ == NULL) {
-    singleton_uint32_typed_data_ =
-        AllocateDartCObjectTypedData(Dart_TypedData_kUint32, 0);
-  }
-  value->value.as_bigint.digits = singleton_uint32_typed_data_;
-  value->type = Dart_CObject_kBigint;
-  return value;
-}
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectDouble(double val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kDouble);
@@ -521,7 +504,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
                                                      intptr_t object_id) {
   switch (class_id) {
     case kClassCid: {
-      Read<bool>();  // Consume the is_in_fullsnapshot indicator.
       Dart_CObject_Internal* object = AllocateDartCObjectClass();
       AddBackRef(object_id, object, kIsDeserialized);
       object->internal.as_class.library_url = ReadObjectImpl();
@@ -574,27 +556,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
         object = AllocateDartCObjectInt64(value64);
       }
       AddBackRef(object_id, object, kIsDeserialized);
-      return object;
-    }
-    case kBigintCid: {
-      // Allocate an empty bigint which will be updated when its contents
-      // has been deserialized.
-      Dart_CObject* object = AllocateDartCObjectBigint();
-      AddBackRef(object_id, object, kIsDeserialized);
-      Dart_CObject* neg_obj = ReadObjectImpl();
-      ASSERT(neg_obj->type == Dart_CObject_kBool);
-      const bool neg = neg_obj->value.as_bool;
-      Dart_CObject* used_obj = ReadObjectImpl();
-      ASSERT(used_obj->type == Dart_CObject_kInt32);
-      const intptr_t used = used_obj->value.as_int32;
-      Dart_CObject* digits = ReadObjectImpl();
-      ASSERT(digits->type == Dart_CObject_kTypedData);
-      ASSERT(digits->value.as_typed_data.type == Dart_TypedData_kUint32);
-      ASSERT(digits->value.as_typed_data.length >= 4 * used);
-      // Update the bigint object.
-      object->value.as_bigint.neg = neg;
-      object->value.as_bigint.used = used;
-      object->value.as_bigint.digits = digits;
       return object;
     }
     case kDoubleCid: {
@@ -679,72 +640,77 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 #define READ_TYPED_DATA(type, ctype)                                           \
   {                                                                            \
     READ_TYPED_DATA_HEADER(type);                                              \
-    if (len > 0) {                                                             \
-      ctype* p = reinterpret_cast<ctype*>(object->value.as_typed_data.values); \
-      for (intptr_t i = 0; i < len; i++) {                                     \
-        p[i] = Read<ctype>();                                                  \
-      }                                                                        \
-    }                                                                          \
+    uint8_t* p =                                                               \
+        reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);        \
+    ReadBytes(p, len * sizeof(ctype));                                         \
+    return object;                                                             \
+  }
+
+#define READ_EXTERNAL_TYPED_DATA(type, ctype)                                  \
+  {                                                                            \
+    READ_TYPED_DATA_HEADER(type);                                              \
+    uint8_t* p =                                                               \
+        reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);        \
+    FinalizableData finalizable_data = finalizable_data_->Take();              \
+    memmove(p, finalizable_data.data, len * sizeof(ctype));                    \
+    finalizable_data.callback(NULL, NULL, finalizable_data.peer);              \
     return object;                                                             \
   }
 
     case kTypedDataInt8ArrayCid:
-    case kExternalTypedDataInt8ArrayCid: {
-      READ_TYPED_DATA_HEADER(Int8);
-      if (len > 0) {
-        uint8_t* p =
-            reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);
-        ReadBytes(p, len);
-      }
-      return object;
-    }
+      READ_TYPED_DATA(Int8, int8_t);
+    case kExternalTypedDataInt8ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int8, int8_t);
 
     case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid: {
-      READ_TYPED_DATA_HEADER(Uint8);
-      if (len > 0) {
-        uint8_t* p =
-            reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);
-        ReadBytes(p, len);
-      }
-      return object;
-    }
+      READ_TYPED_DATA(Uint8, uint8_t);
+    case kExternalTypedDataUint8ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint8, uint8_t);
 
     case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
       READ_TYPED_DATA(Uint8Clamped, uint8_t);
+    case kExternalTypedDataUint8ClampedArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint8Clamped, uint8_t);
 
     case kTypedDataInt16ArrayCid:
-    case kExternalTypedDataInt16ArrayCid:
       READ_TYPED_DATA(Int16, int16_t);
+    case kExternalTypedDataInt16ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int16, int16_t);
 
     case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint16ArrayCid:
       READ_TYPED_DATA(Uint16, uint16_t);
+    case kExternalTypedDataUint16ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint16, uint16_t);
 
     case kTypedDataInt32ArrayCid:
-    case kExternalTypedDataInt32ArrayCid:
       READ_TYPED_DATA(Int32, int32_t);
+    case kExternalTypedDataInt32ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int32, int32_t);
 
     case kTypedDataUint32ArrayCid:
-    case kExternalTypedDataUint32ArrayCid:
       READ_TYPED_DATA(Uint32, uint32_t);
+    case kExternalTypedDataUint32ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint32, uint32_t);
 
     case kTypedDataInt64ArrayCid:
-    case kExternalTypedDataInt64ArrayCid:
       READ_TYPED_DATA(Int64, int64_t);
+    case kExternalTypedDataInt64ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int64, int64_t);
 
     case kTypedDataUint64ArrayCid:
-    case kExternalTypedDataUint64ArrayCid:
       READ_TYPED_DATA(Uint64, uint64_t);
+    case kExternalTypedDataUint64ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint64, uint64_t);
 
     case kTypedDataFloat32ArrayCid:
-    case kExternalTypedDataFloat32ArrayCid:
       READ_TYPED_DATA(Float32, float);
+    case kExternalTypedDataFloat32ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Float32, float);
 
     case kTypedDataFloat64ArrayCid:
-    case kExternalTypedDataFloat64ArrayCid:
       READ_TYPED_DATA(Float64, double);
+    case kExternalTypedDataFloat64ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Float64, double);
 
     case kGrowableObjectArrayCid: {
       // A GrowableObjectArray is serialized as its type arguments and
@@ -794,6 +760,13 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
   }
+  if (object_id == kIntTypeArguments || object_id == kDoubleTypeArguments ||
+      object_id == kStringTypeArguments ||
+      object_id == kStringDynamicTypeArguments ||
+      object_id == kStringStringTypeArguments) {
+    return &type_arguments_marker;
+  }
+
   intptr_t index = object_id - kMaxPredefinedObjectIds;
   ASSERT((0 <= index) && (index < backward_references_.length()));
   ASSERT(backward_references_[index]->reference() != NULL);
@@ -857,24 +830,26 @@ Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
-void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t* data) {
-  // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(kMaxPredefinedObjectIds);
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
 
-  // Write out the class and tags information.
-  WriteIndexedObject(kArrayCid);
-  WriteTags(0);
+ApiMessageWriter::ApiMessageWriter()
+    : BaseWriter(malloc_allocator, NULL, kInitialSize),
+      object_id_(0),
+      forward_list_(NULL),
+      forward_list_length_(0),
+      forward_id_(0),
+      finalizable_data_(new MessageFinalizableData()) {
+  ASSERT(kDartCObjectTypeMask >= Dart_CObject_kNumberOfTypes - 1);
+}
 
-  // Write out the length field.
-  Write<RawObject*>(Smi::New(field_count));
-
-  // Write out the type arguments.
-  WriteNullObject();
-
-  // Write out the individual Smis.
-  for (int i = 0; i < field_count; i++) {
-    Write<RawObject*>(Integer::New(data[i]));
-  }
+ApiMessageWriter::~ApiMessageWriter() {
+  ::free(forward_list_);
+  delete finalizable_data_;
 }
 
 void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
@@ -1089,24 +1064,6 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
     case Dart_CObject_kInt64:
       WriteInt64(object);
       break;
-    case Dart_CObject_kBigint: {
-      // Write out the serialization header value for this object.
-      WriteInlinedHeader(object);
-      // Write out the class and tags information.
-      WriteIndexedObject(kBigintCid);
-      WriteTags(0);
-      // Write neg field.
-      if (object->value.as_bigint.neg) {
-        WriteVMIsolateObject(kTrueValue);
-      } else {
-        WriteVMIsolateObject(kFalseValue);
-      }
-      // Write used field.
-      WriteSmi(object->value.as_bigint.used);
-      // Write digits as TypedData (or NullObject).
-      WriteCObject(object->value.as_bigint.digits);
-      break;
-    }
     case Dart_CObject_kDouble:
       WriteVMIsolateObject(kDoubleObject);
       WriteDouble(object->value.as_double);
@@ -1187,17 +1144,12 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
         case kTypedDataInt8ArrayCid:
         case kTypedDataUint8ArrayCid: {
           uint8_t* bytes = object->value.as_typed_data.values;
-          for (intptr_t i = 0; i < len; i++) {
-            Write<uint8_t>(bytes[i]);
-          }
+          WriteBytes(bytes, len);
           break;
         }
         case kTypedDataUint32ArrayCid: {
-          uint32_t* words =
-              reinterpret_cast<uint32_t*>(object->value.as_typed_data.values);
-          for (intptr_t i = 0; i < len; i++) {
-            Write<uint32_t>(words[i]);
-          }
+          uint8_t* bytes = object->value.as_typed_data.values;
+          WriteBytes(bytes, len * sizeof(uint32_t));
           break;
         }
         default:
@@ -1225,10 +1177,12 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       void* peer = object->value.as_external_typed_data.peer;
       Dart_WeakPersistentHandleFinalizer callback =
           object->value.as_external_typed_data.callback;
+      if (callback == NULL) {
+        return false;
+      }
       WriteSmi(length);
-      WriteRawPointerValue(reinterpret_cast<intptr_t>(data));
-      WriteRawPointerValue(reinterpret_cast<intptr_t>(peer));
-      WriteRawPointerValue(reinterpret_cast<intptr_t>(callback));
+      finalizable_data_->Put(length, reinterpret_cast<void*>(data), peer,
+                             callback);
       break;
     }
     case Dart_CObject_kSendPort: {
@@ -1253,12 +1207,16 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
   return true;
 }
 
-bool ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
+Message* ApiMessageWriter::WriteCMessage(Dart_CObject* object,
+                                         Dart_Port dest_port,
+                                         Message::Priority priority) {
   bool success = WriteCObject(object);
   if (!success) {
     UnmarkAllCObjects(object);
-    return false;
+    free(buffer());
+    return NULL;
   }
+
   // Write out all objects that were added to the forward list and have
   // not been serialized yet. These would typically be fields of arrays.
   // NOTE: The forward list might grow as we process the list.
@@ -1266,11 +1224,16 @@ bool ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
     success = WriteForwardedCObject(forward_list_[i]);
     if (!success) {
       UnmarkAllCObjects(object);
-      return false;
+      free(buffer());
+      return NULL;
     }
   }
+
   UnmarkAllCObjects(object);
-  return true;
+  MessageFinalizableData* finalizable_data = finalizable_data_;
+  finalizable_data_ = NULL;
+  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
+                     priority);
 }
 
 }  // namespace dart

@@ -31,12 +31,12 @@ class EnableMallocHooksScope : public ValueObject {
     OSThread::Current();  // Ensure not allocated during test.
     saved_enable_malloc_hooks_ = FLAG_profiler_native_memory;
     FLAG_profiler_native_memory = true;
-    MallocHooks::InitOnce();
+    MallocHooks::Init();
     MallocHooks::ResetStats();
   }
 
   ~EnableMallocHooksScope() {
-    MallocHooks::TearDown();
+    MallocHooks::Cleanup();
     FLAG_profiler_native_memory = saved_enable_malloc_hooks_;
   }
 
@@ -52,7 +52,7 @@ class EnableMallocHooksAndStacksScope : public EnableMallocHooksScope {
     MallocHooks::set_stack_trace_collection_enabled(true);
     if (!FLAG_profiler) {
       FLAG_profiler = true;
-      Profiler::InitOnce();
+      Profiler::Init();
     }
     MallocHooks::ResetStats();
   }
@@ -187,6 +187,8 @@ ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
   // present in the profile. This is just a simple sanity check to make sure
   // that the ProfileTrie has a representation of the stack trace collected when
   // var is allocated. More intense testing is already done in profiler_test.cc.
+  // This is brittle: inlining and ICF in the C compiler and linker will affect
+  // the frames we see.
   EXPECT_SUBSTRING("\"dart::Dart_TestStackTraceMallocHookSimpleJSONTest()\"",
                    json);
   EXPECT_SUBSTRING("\"dart::TestCase::Run()\"", json);

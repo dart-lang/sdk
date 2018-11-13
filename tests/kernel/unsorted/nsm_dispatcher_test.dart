@@ -19,7 +19,7 @@ class A {
 }
 
 main() {
-  var o = new A();
+  dynamic o = new A();
   Expect.isTrue(o.fun() == '|${#fun}|');
   Expect.isTrue(o.fun(1) == '|${#fun}|1|');
   Expect.isTrue(o.fun(1, 2) == '|${#fun}|1|2|');

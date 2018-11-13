@@ -43,9 +43,9 @@ void main() {
     process.stdin.write(gcLog);
     process.stdin.close();
     var stdoutStringStream =
-        process.stdout.transform(UTF8.decoder).transform(new LineSplitter());
+        process.stdout.transform(utf8.decoder).transform(new LineSplitter());
     var stderrStringStream =
-        process.stderr.transform(UTF8.decoder).transform(new LineSplitter());
+        process.stderr.transform(utf8.decoder).transform(new LineSplitter());
     // Wait for 3 future events: stdout and stderr streams closed, and
     // process terminated.
     var futures = [];

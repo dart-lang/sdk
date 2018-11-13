@@ -114,7 +114,6 @@ class Compiler {
           Runtime.ie11,
           Runtime.opera,
           Runtime.chromeOnAndroid,
-          Runtime.safariMobileSim
         ];
 
       case Compiler.dartdevc:
@@ -250,7 +249,6 @@ class Runtime {
   static const ie11 = const Runtime._('ie11');
   static const opera = const Runtime._('opera');
   static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
-  static const safariMobileSim = const Runtime._('safarimobilesim');
   static const contentShellOnAndroid = const Runtime._('ContentShellOnAndroid');
   static const selfCheck = const Runtime._('self_check');
   static const none = const Runtime._('none');
@@ -272,7 +270,6 @@ class Runtime {
     ie11,
     opera,
     chromeOnAndroid,
-    safariMobileSim,
     contentShellOnAndroid,
     selfCheck,
     none
@@ -302,7 +299,6 @@ class Runtime {
         chrome,
         firefox,
         chromeOnAndroid,
-        safariMobileSim,
         contentShellOnAndroid
       ].contains(this);
 
@@ -337,7 +333,6 @@ class Runtime {
       case ie11:
       case opera:
       case chromeOnAndroid:
-      case safariMobileSim:
       case contentShellOnAndroid:
         return Compiler.dart2js;
 

@@ -71,7 +71,6 @@ class Tag {
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
 
-  static const int InvalidStatement = 60;
   static const int ExpressionStatement = 61;
   static const int Block = 62;
   static const int EmptyStatement = 63;
@@ -92,9 +91,9 @@ class Tag {
   static const int VariableDeclaration = 78;
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
+  static const int AssertBlock = 81;
 
   static const int TypedefType = 87;
-  static const int VectorType = 88;
   static const int BottomType = 89;
   static const int InvalidType = 90;
   static const int DynamicType = 91;
@@ -108,13 +107,6 @@ class Tag {
   static const int NullReference = 99;
   static const int ClassReference = 100;
   static const int MemberReference = 101;
-
-  static const int VectorCreation = 102;
-  static const int VectorGet = 103;
-  static const int VectorSet = 104;
-  static const int VectorCopy = 105;
-
-  static const int ClosureCreation = 106;
 
   static const int ConstantExpression = 107;
 
@@ -130,12 +122,12 @@ class Tag {
 
   static const int SpecializedIntLiteralBias = 3;
 
-  static const int ProgramFile = 0x90ABCDEF;
+  static const int ComponentFile = 0x90ABCDEF;
 
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
-  /// Keep in sync with runtime/vm/kernel_binary.h.
-  static const int BinaryFormatVersion = 3;
+  /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
+  static const int BinaryFormatVersion = 13;
 }
 
 abstract class ConstantTag {
@@ -144,9 +136,11 @@ abstract class ConstantTag {
   static const int IntConstant = 2;
   static const int DoubleConstant = 3;
   static const int StringConstant = 4;
-  static const int MapConstant = 5;
-  static const int ListConstant = 6;
-  static const int InstanceConstant = 7;
-  static const int TearOffConstant = 8;
-  static const int TypeLiteralConstant = 9;
+  static const int SymbolConstant = 5;
+  static const int MapConstant = 6;
+  static const int ListConstant = 7;
+  static const int InstanceConstant = 8;
+  static const int PartialInstantiationConstant = 9;
+  static const int TearOffConstant = 10;
+  static const int TypeLiteralConstant = 11;
 }

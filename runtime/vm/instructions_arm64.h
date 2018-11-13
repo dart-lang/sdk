@@ -42,16 +42,32 @@ class InstructionPattern : public AllStatic {
   // address of the first instruction in the sequence.  Returns the register
   // being loaded and the index in the pool being read from in the output
   // parameters 'reg' and 'index' respectively.
+  // IMPORANT: When generating code loading values from pool on ARM64 use
+  // LoadWordFromPool macro instruction instead of emitting direct load.
+  // The macro instruction takes care of pool offsets that can't be
+  // encoded as immediates.
   static uword DecodeLoadWordFromPool(uword end,
                                       Register* reg,
                                       intptr_t* index);
+
+  // Decodes a load sequence ending at 'end' (the last instruction of the
+  // load sequence is the instruction before the one at end).  Returns the
+  // address of the first instruction in the sequence.  Returns the registers
+  // being loaded and the index in the pool being read from in the output
+  // parameters 'reg1', 'reg2' and 'index' respectively.
+  // IMPORANT: When generating code loading values from pool on ARM64 use
+  // LoadDoubleWordFromPool macro instruction instead of emitting direct load.
+  // The macro instruction takes care of pool offsets that can't be
+  // encoded as immediates.
+  static uword DecodeLoadDoubleWordFromPool(uword end,
+                                            Register* reg1,
+                                            Register* reg2,
+                                            intptr_t* index);
 
   // Encodes a load sequence ending at 'end'. Encodes a fixed length two
   // instruction load from the pool pointer in PP using the destination
   // register reg as a temporary for the base address.
   static void EncodeLoadWordFromPoolFixed(uword end, int32_t offset);
-
-  static intptr_t OffsetFromPPIndex(intptr_t index);
 };
 
 class CallPattern : public ValueObject {
@@ -130,6 +146,66 @@ class ReturnPattern : public ValueObject {
 
  private:
   const uword pc_;
+};
+
+class PcRelativeCallPattern : public ValueObject {
+ public:
+  explicit PcRelativeCallPattern(uword pc) : pc_(pc) {}
+
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int32_t distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return Assembler::DecodeImm26BranchOffset(*reinterpret_cast<int32_t*>(pc_));
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    int32_t* word = reinterpret_cast<int32_t*>(pc_);
+    *word = Assembler::EncodeImm26BranchOffset(distance, *word);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsValid() const;
+
+ private:
+  uword pc_;
+};
+
+class PcRelativeJumpPattern : public ValueObject {
+ public:
+  explicit PcRelativeJumpPattern(uword pc) : pc_(pc) {}
+
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int32_t distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return Assembler::DecodeImm26BranchOffset(*reinterpret_cast<int32_t*>(pc_));
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    int32_t* word = reinterpret_cast<int32_t*>(pc_);
+    *word = Assembler::EncodeImm26BranchOffset(distance, *word);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsValid() const;
+
+ private:
+  uword pc_;
 };
 
 }  // namespace dart

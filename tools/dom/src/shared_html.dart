@@ -19,22 +19,6 @@ void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
 }
 
 /**
- * Alias for [querySelector]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-Element query(String relativeSelectors) => document.query(relativeSelectors);
-/**
- * Alias for [querySelectorAll]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-ElementList<Element> queryAll(String relativeSelectors) =>
-    document.queryAll(relativeSelectors);
-
-/**
  * Finds the first descendant element of this document that matches the
  * specified group of selectors.
  *
@@ -69,7 +53,7 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-ElementList<Element> querySelectorAll(String selectors) =>
+ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     document.querySelectorAll(selectors);
 
 /// A utility for changing the Dart wrapper type for elements.

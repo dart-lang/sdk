@@ -4,7 +4,7 @@
 
 main() {
   // ignore: unused_local_variable
-  Foo foo = new Foo.named();
+  Foo foo = Foo.named();
 }
 
 class Foo {

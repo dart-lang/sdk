@@ -43,6 +43,7 @@ namespace bin {
 Socket::Socket(intptr_t fd)
     : ReferenceCounted(),
       fd_(fd),
+      isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
       udp_receive_buffer_(NULL) {}
 
@@ -108,7 +109,10 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return -1;
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   LOG_ERR("SocketBase::CreateBindDatagram is unimplemented\n");
   UNIMPLEMENTED();
   return -1;

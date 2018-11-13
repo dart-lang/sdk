@@ -1,30 +1,62 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       int x = /*error:INVALID_ASSIGNMENT*/ i;
+//                                            ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'test::Baz::T' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       int x = /*error:INVALID_ASSIGNMENT*/ i;
+//                                            ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//     String y = /*error:INVALID_ASSIGNMENT*/ x;
+//                                             ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the variable.
+//   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
+//               ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:68: Error: The type 'dart.core::Map<dart.core::String, test::Foo>' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+//   for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
+//                                                                    ^
+
 library test;
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
   field core::int bar = 42;
-  default constructor •() → void
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
 }
-class Bar<T extends core::Iterable<core::String>> extends core::Object {
-  default constructor •() → void
+class Bar<T extends core::Iterable<core::String> = core::Iterable<core::String>> extends core::Object {
+  synthetic constructor •() → self::Bar<self::Bar::T>
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl generic-covariant-interface self::Bar::T t) → void {
+  method foo(generic-covariant-impl self::Bar::T t) → void {
     for (core::String i in t) {
-      core::int x = let final dynamic #t1 = i in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n      int x = /*error:INVALID_ASSIGNMENT*/ i;\n                                           ^"));
+      core::int x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      int x = /*error:INVALID_ASSIGNMENT*/ i;
+                                           ^" in i as{TypeError} core::int;
     }
   }
 }
-class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S extends self::Baz::E> extends core::Object {
-  default constructor •() → void
+class Baz<T extends core::Object = dynamic, E extends core::Iterable<self::Baz::T> = core::Iterable<dynamic>, S extends self::Baz::E = core::Iterable<dynamic>> extends core::Object {
+  synthetic constructor •() → self::Baz<self::Baz::T, self::Baz::E, self::Baz::S>
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl generic-covariant-interface self::Baz::S t) → void {
+  method foo(generic-covariant-impl self::Baz::S t) → void {
     for (self::Baz::T i in t) {
-      core::int x = let final dynamic #t2 = i in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'test::Baz::T' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n      int x = /*error:INVALID_ASSIGNMENT*/ i;\n                                           ^"));
+      core::int x = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'test::Baz::T' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      int x = /*error:INVALID_ASSIGNMENT*/ i;
+                                           ^" in i as{TypeError} core::int;
       self::Baz::T y = i;
     }
   }
@@ -32,13 +64,19 @@ class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S exte
 static method test() → dynamic {
   core::List<self::Foo> list = <self::Foo>[];
   for (self::Foo x in list) {
-    core::String y = let final dynamic #t3 = x in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n    String y = /*error:INVALID_ASSIGNMENT*/ x;\n                                            ^"));
+    core::String y = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+    String y = /*error:INVALID_ASSIGNMENT*/ x;
+                                            ^" in x as{TypeError} core::String;
   }
   for (dynamic x in list) {
     core::String y = x as{TypeError} core::String;
   }
   for (final self::Foo #t4 in list) {
-    core::String x = let final dynamic #t5 = #t4 in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {\n              ^"));
+    core::String x = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the variable.
+  for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
+              ^" in #t4 as{TypeError} core::String;
     core::String y = x;
   }
   dynamic z;
@@ -57,7 +95,9 @@ static method test() → dynamic {
     self::Foo y = x;
   }
   core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
-  for (dynamic x in let final dynamic #t9 = map in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:68: Error: A value of type 'dart.core::Map<dart.core::String, test::Foo>' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::Iterable<dynamic>'.\n  for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {\n                                                                   ^"))) {
+  for (dynamic x in let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:68: Error: The type 'dart.core::Map<dart.core::String, test::Foo>' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+  for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
+                                                                   ^" in map as{TypeError} core::Iterable<dynamic>) {
     core::String y = x as{TypeError} core::String;
   }
   for (core::String x in map.{core::Map::keys}) {

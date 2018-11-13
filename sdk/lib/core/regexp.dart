@@ -24,11 +24,12 @@ part of dart.core;
  *
  * The following example finds all matches of a regular expression in
  * a string.
+ * ```dart
+ * RegExp exp = new RegExp(r"(\w+)");
+ * String str = "Parse my string";
+ * Iterable<Match> matches = exp.allMatches(str);
+ * ```
  *
- *     RegExp exp = new RegExp(r"(\w+)");
- *     String str = "Parse my string";
- *     Iterable<Match> matches = exp.allMatches(str);
- * 
  * Note the use of a _raw string_ (a string prefixed with `r`)
  * in the example above. Use a raw string to treat each character in a string
  * as a literal character.
@@ -39,9 +40,40 @@ abstract class RegExp implements Pattern {
    *
    * Throws a [FormatException] if [source] is not valid regular
    * expression syntax.
+   *
+   * If `multiLine` is enabled, then `^` and `$` will match the beginning and
+   * end of a _line_, in addition to matching beginning and end of input,
+   * respectively.
+   *
+   * If `caseSensitive` is disabled, then case is ignored.
+   *
+   * Example:
+   *
+   * ```dart
+   * var wordPattern = RegExp(r"(\w+)");
+   * var bracketedNumberValue = RegExp("$key: \\[\\d+\\]");
+   * ```
+   *
+   * Notice the use of a _raw string_ in the first example, and a regular
+   * string in the second. Because of the many character classes used in
+   * regular expressions, it is common to use a raw string here, unless string
+   * interpolation is required.
    */
   external factory RegExp(String source,
       {bool multiLine: false, bool caseSensitive: true});
+
+  /**
+   * Returns a regular expression that matches [text].
+   *
+   * If [text] contains characters that are meaningful in regular expressions,
+   * the resulting regular expression will match those characters literally.
+   * If [text] contains no characters that have special meaning in a regular
+   * expression, it is returned unmodified.
+   *
+   * The characters that have special meaning in regular expressions are:
+   * `(`, `)`, `[`, `]`, `{`, `}`, `*`, `+`, `?`, `.`, `^`, `$`, `|` and `\`.
+   */
+  external static String escape(String text);
 
   /**
    * Searches for the first match of the regular expression

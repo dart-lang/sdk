@@ -87,6 +87,7 @@ class StackTraceTest {
 class RethrowStacktraceTest {
   var config = 0;
 
+  @pragma("vm:entry-point") // Prevent obfuscation
   issue12940() {
     throw "Progy";
   }

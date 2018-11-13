@@ -8,6 +8,8 @@
  * To use this library in your code:
  *
  *     import 'dart:math';
+ *
+ * {@category Core}
  */
 library dart.math;
 
@@ -65,23 +67,6 @@ const double sqrt1_2 = 0.7071067811865476;
  * Square root of 2.
  */
 const double sqrt2 = 1.4142135623730951;
-
-/** Deprecated, use [e] instead. */
-const double E = e;
-/** Deprecated, use [ln10] instead. */
-const double LN10 = ln10;
-/** Deprecated, use [ln2] instead. */
-const double LN2 = ln2;
-/** Deprecated, use [log2e] instead. */
-const double LOG2E = log2e;
-/** Deprecated, use [log10e] instead. */
-const double LOG10E = log10e;
-/** Deprecated, use [pi] instead. */
-const double PI = pi;
-/** Deprecated, use [sqrt1_2] instead. */
-const double SQRT1_2 = sqrt1_2;
-/** Deprecated, use [sqrt2] instead. */
-const double SQRT2 = sqrt2;
 
 /**
   * Returns the lesser of two numbers.

@@ -40,7 +40,7 @@ class ImportedElementsComputer {
    */
   List<ImportedElements> compute() {
     _Visitor visitor =
-        new _Visitor(unit.element.library, offset, offset + length);
+        new _Visitor(unit.declaredElement.library, offset, offset + length);
     unit.accept(visitor);
     return visitor.importedElements.values.toList();
   }

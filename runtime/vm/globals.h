@@ -32,6 +32,12 @@ const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
 const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
 const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
+// Number of bytes per BigInt digit.
+const intptr_t kBytesPerBigIntDigit = 4;
+
+// The default old gen heap size in MB, where 0 == unlimited.
+const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
+
 #define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
 #define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
 
@@ -43,8 +49,40 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
   ((sizeof(array) / sizeof(*(array))) /                                        \
    static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
 
+#if defined(PRODUCT) && defined(DEBUG)
+#error Both PRODUCT and DEBUG defined.
+#endif  // defined(PRODUCT) && defined(DEBUG)
+
+#if defined(PRODUCT)
+#define NOT_IN_PRODUCT(code)
+#else  // defined(PRODUCT)
+#define NOT_IN_PRODUCT(code) code
+#endif  // defined(PRODUCT)
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
+#error DART_PRECOMPILED_RUNTIME and DART_PRECOMPILER are mutually exclusive
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
+#error DART_PRECOMPILED_RUNTIME and DART_NOSNAPSHOT are mutually exclusive
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define NOT_IN_PRECOMPILED(code)
+#else
+#define NOT_IN_PRECOMPILED(code) code
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #if defined(ARCH_IS_64_BIT)
 #define HASH_IN_OBJECT_HEADER 1
+#endif
+
+// For checking deterministic graph generation, we can store instruction
+// tag in the ICData and check it when recreating the flow graph in
+// optimizing compiler. Enable it for other modes (product, release) if needed
+// for debugging.
+#if defined(DEBUG)
+#define TAG_IC_DATA
 #endif
 
 // The expression OFFSET_OF(type, field) computes the byte-offset of

@@ -3,21 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
+#include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/profiler.h"
-#include "vm/safepoint.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_interpreter);
+
 VM_UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
-
+  TestCase::CreateTestIsolate();
   Mutex* mutex = new Mutex();
   mutex->Lock();
   EXPECT_EQ(false, mutex->TryLock());
@@ -36,8 +37,7 @@ VM_UNIT_TEST_CASE(Mutex) {
 
 VM_UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   OSThread* thread = OSThread::Current();
   // Thread interrupter interferes with this test, disable interrupts.
   thread->DisableThreadInterrupts();
@@ -61,7 +61,7 @@ VM_UNIT_TEST_CASE(Monitor) {
 
     // Check whether this attempt falls within the expected time limits.
     int64_t wakeup_time = (stop - start) / kMicrosecondsPerMillisecond;
-    OS::Print("wakeup_time: %" Pd64 "\n", wakeup_time);
+    OS::PrintErr("wakeup_time: %" Pd64 "\n", wakeup_time);
     const int kAcceptableTimeJitter = 20;    // Measured in milliseconds.
     const int kAcceptableWakeupDelay = 150;  // Measured in milliseconds.
     if (((wait_time - kAcceptableTimeJitter) <= wakeup_time) &&
@@ -134,7 +134,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         ObjectCounter counter(isolate_, &smi);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&counter,
-                                       StackFrameIterator::kValidateFrames);
+                                       ValidationPolicy::kValidateFrames);
         EXPECT_EQ(1, counter.count());
       }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
@@ -151,7 +151,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         ObjectCounter str_counter(isolate_, &unique_str);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&str_counter,
-                                       StackFrameIterator::kValidateFrames);
+                                       ValidationPolicy::kValidateFrames);
         // We should visit the string object exactly once.
         EXPECT_EQ(1, str_counter.count());
       }
@@ -290,7 +290,7 @@ class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
   bool* wait_;
 };
 
-TEST_CASE(ManySimpleTasksWithZones) {
+ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   const int kTaskCount = 10;
   Monitor monitor;
   Monitor sync;
@@ -368,14 +368,12 @@ TEST_CASE(ThreadRegistry) {
   char* orig_str = orig_zone->PrintToString("foo");
   Dart_ExitIsolate();
   // Create and enter a new isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   Zone* zone0 = Thread::Current()->zone();
   EXPECT(zone0 != orig_zone);
   Dart_ShutdownIsolate();
   // Create and enter yet another isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   {
     // Create a stack resource this time, and exercise it.
     StackZone stack_zone(Thread::Current());
@@ -388,6 +386,143 @@ TEST_CASE(ThreadRegistry) {
   // Original zone should be preserved.
   EXPECT_EQ(orig_zone, Thread::Current()->zone());
   EXPECT_STREQ("foo", orig_str);
+}
+
+// A helper thread that repeatedly reads ICData
+class ICDataTestTask : public ThreadPool::Task {
+ public:
+  static const intptr_t kTaskCount;
+
+  ICDataTestTask(Isolate* isolate,
+                 const Array& ic_datas,
+                 Monitor* monitor,
+                 intptr_t* exited,
+                 bool* done)
+      : isolate_(isolate),
+        ic_datas_(ic_datas),
+        len_(ic_datas.Length()),
+        monitor_(monitor),
+        exited_(exited),
+        done_(done) {}
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+
+    Thread* thread = Thread::Current();
+
+    {
+      StackZone stack_zone(thread);
+      HANDLESCOPE(thread);
+
+      ICData& ic_data = ICData::Handle();
+      Array& arr = Array::Handle();
+      while (true) {
+        for (intptr_t cnt = 0; cnt < 0x1000; cnt++) {
+          for (intptr_t i = 0; i < len_; i++) {
+            ic_data ^= ic_datas_.At(i);
+            arr = ic_data.ic_data();
+            intptr_t num_checks = arr.Length() / 3;
+            if (num_checks < 0 || num_checks > 5) {
+              OS::PrintErr("Failure: %" Pd " checks!\n", num_checks);
+              abort();
+            }
+          }
+        }
+
+        if (AtomicOperations::LoadAcquire(done_)) {
+          break;
+        }
+
+        TransitionVMToBlocked blocked(thread);
+      }
+    }
+
+    Thread::ExitIsolateAsHelper();
+    {
+      MonitorLocker ml(monitor_);
+      ++*exited_;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  const Array& ic_datas_;
+  const intptr_t len_;
+  Monitor* monitor_;
+  intptr_t* exited_;  // # tasks that are no longer running.
+  bool* done_;        // Signal that helper threads can stop working.
+};
+
+static Function* CreateFunction(const char* name) {
+  const String& class_name =
+      String::Handle(Symbols::New(Thread::Current(), "ownerClass"));
+  const Script& script = Script::Handle();
+  const Library& lib = Library::Handle(Library::New(class_name));
+  const Class& owner_class = Class::Handle(
+      Class::New(lib, class_name, script, TokenPosition::kNoSource));
+  const String& function_name =
+      String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  Function& function = Function::ZoneHandle(Function::New(
+      function_name, RawFunction::kRegularFunction, true, false, false, false,
+      false, owner_class, TokenPosition::kNoSource));
+  return &function;
+}
+
+const intptr_t ICDataTestTask::kTaskCount = 1;
+
+// Test that checks that other threads only see a fully initialized ICData
+// whenever ICData is updated.
+ISOLATE_UNIT_TEST_CASE(ICDataTest) {
+  Isolate* isolate = thread->isolate();
+  USE(isolate);
+  Monitor monitor;
+  intptr_t exited = 0;
+  bool done = false;
+
+  const intptr_t kNumICData = 0x10;
+
+  const Array& ic_datas = Array::Handle(Array::New(kNumICData));
+  ICData& ic_data = ICData::Handle();
+  Function& owner = *CreateFunction("DummyFunction");
+  String& name = String::Handle(String::New("foo"));
+  const Array& args_desc =
+      Array::Handle(ArgumentsDescriptor::New(0, 0, Object::empty_array()));
+  for (intptr_t i = 0; i < kNumICData; i++) {
+    ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
+                          /*num_args_tested=*/1, ICData::kInstance,
+                          Object::null_abstract_type());
+    ic_datas.SetAt(i, ic_data);
+  }
+
+  for (int i = 0; i < ICDataTestTask::kTaskCount; i++) {
+    Dart::thread_pool()->Run(
+        new ICDataTestTask(isolate, ic_datas, &monitor, &exited, &done));
+  }
+
+  for (int i = 0; i < 0x10000; i++) {
+    for (intptr_t i = 0; i < kNumICData; i++) {
+      ic_data ^= ic_datas.At(i);
+      if (ic_data.NumberOfChecks() < 4) {
+        ic_data.AddReceiverCheck(kInstanceCid + ic_data.NumberOfChecks(), owner,
+                                 1);
+      } else {
+        ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
+                              /*num_args_tested=*/1, ICData::kInstance,
+                              Object::null_abstract_type());
+        ic_datas.SetAt(i, ic_data);
+      }
+    }
+  }
+  // Ensure we looped long enough to allow all helpers to succeed and exit.
+  {
+    AtomicOperations::StoreRelease(&done, true);
+    MonitorLocker ml(&monitor);
+    while (exited != ICDataTestTask::kTaskCount) {
+      ml.Wait();
+    }
+    EXPECT_EQ(ICDataTestTask::kTaskCount, exited);
+  }
 }
 
 // A helper thread that alternatingly cooperates and organizes
@@ -434,7 +569,7 @@ class SafepointTestTask : public ThreadPool::Task {
         ASSERT(thread->IsAtSafepoint());
         ObjectCounter counter(isolate_, &smi);
         iteration.IterateStackPointers(&counter,
-                                       StackFrameIterator::kValidateFrames);
+                                       ValidationPolicy::kValidateFrames);
         {
           MonitorLocker ml(monitor_);
           EXPECT_EQ(*expected_count_, counter.count());
@@ -504,20 +639,20 @@ TEST_CASE(SafepointTestDart) {
 #if defined(USING_SIMULATOR)
   const intptr_t kLoopCount = 12345678;
 #else
-  const intptr_t kLoopCount = 1234567890;
-#endif  // USING_SIMULATOR
+  const intptr_t kLoopCount = FLAG_enable_interpreter ? 12345678 : 1234567890;
+#endif  // defined(USING_SIMULATOR)
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "import 'dart:developer';\n"
-              "int dummy = 0;\n"
-              "main() {\n"
-              "  new UserTag('foo').makeCurrent();\n"
-              "  for (dummy = 0; dummy < %" Pd
-              "; ++dummy) {\n"
-              "    dummy += (dummy & 1);\n"
-              "  }\n"
-              "}\n",
-              kLoopCount);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:developer';\n"
+                 "int dummy = 0;\n"
+                 "main() {\n"
+                 "  new UserTag('foo').makeCurrent();\n"
+                 "  for (dummy = 0; dummy < %" Pd
+                 "; ++dummy) {\n"
+                 "    dummy += (dummy & 1);\n"
+                 "  }\n"
+                 "}\n",
+                 kLoopCount);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);

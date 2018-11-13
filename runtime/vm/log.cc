@@ -12,6 +12,15 @@ namespace dart {
 
 DEFINE_FLAG(bool, force_log_flush, false, "Always flush log messages.");
 
+// The following flag is useful when debugging on Android, since
+// adb logcat truncates messages that are "too long" (and always
+// flushing would result in too many short messages).
+DEFINE_FLAG(
+    int,
+    force_log_flush_at_size,
+    0,
+    "Flush log messages when buffer exceeds given size (disabled when 0).");
+
 DEFINE_FLAG(charp,
             isolate_log_filter,
             NULL,
@@ -63,14 +72,14 @@ void Log::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   // Print.
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   va_list print_args;
   va_copy(print_args, args);
-  OS::VSNPrint(buffer, (len + 1), format, print_args);
+  Utils::VSNPrint(buffer, (len + 1), format, print_args);
   va_end(print_args);
 
   // Append.
@@ -80,7 +89,7 @@ void Log::VPrint(const char* format, va_list args) {
   }
   free(buffer);
 
-  if ((manual_flush_ == 0) || FLAG_force_log_flush) {
+  if (ShouldFlush()) {
     Flush();
   }
 }
@@ -115,7 +124,7 @@ intptr_t Log::cursor() const {
 
 bool Log::ShouldLogForIsolate(const Isolate* isolate) {
   if (FLAG_isolate_log_filter == NULL) {
-    if (isolate->is_service_isolate()) {
+    if (isolate->is_service_isolate() || isolate->is_kernel_isolate()) {
       // By default, do not log for the service isolate.
       return false;
     }
@@ -159,6 +168,12 @@ void Log::DisableManualFlush(const intptr_t cursor) {
   if (manual_flush_ == 0) {
     Flush(cursor);
   }
+}
+
+bool Log::ShouldFlush() const {
+  return ((manual_flush_ == 0) || FLAG_force_log_flush ||
+          ((FLAG_force_log_flush_at_size > 0) &&
+           (cursor() > FLAG_force_log_flush_at_size)));
 }
 
 void LogBlock::Initialize() {

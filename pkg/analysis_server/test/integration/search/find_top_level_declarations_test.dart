@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindTopLevelDeclarationsTest);
-    defineReflectiveTests(FindTopLevelDeclarationsTest_PreviewDart2);
   });
 }
 
@@ -54,11 +53,4 @@ class Foo {
     }
     fail('No result for $pathname');
   }
-}
-
-@reflectiveTest
-class FindTopLevelDeclarationsTest_PreviewDart2
-    extends FindTopLevelDeclarationsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

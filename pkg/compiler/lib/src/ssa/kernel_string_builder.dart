@@ -33,7 +33,7 @@ class KernelStringBuilder extends ir.Visitor {
     //      conversions.
     //   2. The value can be primitive, because the library stringifier has
     //      fast-path code for most primitives.
-    if (expression.canBePrimitive(builder.closedWorld)) {
+    if (expression.canBePrimitive(builder.abstractValueDomain)) {
       append(stringify(expression));
       return;
     }
@@ -57,14 +57,14 @@ class KernelStringBuilder extends ir.Visitor {
 
   HInstruction concat(HInstruction left, HInstruction right) {
     HInstruction instruction =
-        new HStringConcat(left, right, builder.commonMasks.stringType);
+        new HStringConcat(left, right, builder.abstractValueDomain.stringType);
     builder.add(instruction);
     return instruction;
   }
 
   HInstruction stringify(HInstruction expression) {
     HInstruction instruction =
-        new HStringify(expression, builder.commonMasks.stringType)
+        new HStringify(expression, builder.abstractValueDomain.stringType)
           ..sourceInformation = expression.sourceInformation;
     builder.add(instruction);
     return instruction;

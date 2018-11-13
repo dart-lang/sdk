@@ -5,17 +5,11 @@
 
 part of OverriddenNoSuchMethodTest.dart;
 
-class GetName {
-  foo(a, b) => "foo";
-}
-
-String getName(im) => reflect(new GetName()).delegate(im);
-
 class OverriddenNoSuchMethod {
   OverriddenNoSuchMethod() {}
 
   noSuchMethod(Invocation mirror) {
-    Expect.equals("foo", getName(mirror));
+    Expect.equals(#foo, mirror.memberName);
     // 'foo' was called with two parameters (not counting receiver).
     List args = mirror.positionalArguments;
     Expect.equals(2, args.length);

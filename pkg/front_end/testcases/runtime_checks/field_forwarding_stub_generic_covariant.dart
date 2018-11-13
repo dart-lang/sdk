@@ -6,7 +6,7 @@
 library test;
 
 class B<T> {
-  T /*@covariance=genericInterface, genericImpl*/ x;
+  T /*@covariance=genericImpl*/ x;
 }
 
 class C {

@@ -351,6 +351,7 @@ class UseFunctionTypes {
     UntypedFunction2 uf2 = null;
     Foo foo = null;
     Foo<int, String> fooIntString = null;
+    Foo<Object, Object> fooObjectObject = null;
 
     f = uf;
     f = uf2;
@@ -362,8 +363,10 @@ class UseFunctionTypes {
     foo = f;
     fooIntString = f;
 
-    foo = fooIntString;
     fooIntString = foo;
+
+    foo = fooObjectObject;
+    fooObjectObject = foo;
 
     uf = uf2;
     uf2 = uf;

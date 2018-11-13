@@ -20,7 +20,7 @@ abstract class B {
 }
 
 abstract class C implements A, B {
-  /*@topType=int*/ f(
+  /*@topType=int*/ /*@error=OverrideMoreRequiredArguments*/ f(
       /*@topType=int*/ x,
       /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ y);
   /*@topType=int*/ g(/*@topType=int*/ x,

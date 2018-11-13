@@ -18,11 +18,15 @@ typedef const char* charp;
       Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 
 #define DEFINE_FLAG_HANDLER(handler, name, comment)                            \
-  bool DUMMY_##name = Flags::Register_func(handler, #name, comment);
+  bool DUMMY_##name = Flags::RegisterFlagHandler(handler, #name, comment);
+
+#define DEFINE_OPTION_HANDLER(handler, name, comment)                          \
+  bool DUMMY_##name = Flags::RegisterOptionHandler(handler, #name, comment);
 
 namespace dart {
 
 typedef void (*FlagHandler)(bool value);
+typedef void (*OptionHandler)(const char* value);
 
 // Forward declarations.
 class Flag;
@@ -51,17 +55,23 @@ class Flags {
                                     const char* default_value,
                                     const char* comment);
 
-  static bool Register_func(FlagHandler handler,
-                            const char* name,
-                            const char* comment);
+  static bool RegisterFlagHandler(FlagHandler handler,
+                                  const char* name,
+                                  const char* comment);
 
-  static bool ProcessCommandLineFlags(int argc, const char** argv);
+  static bool RegisterOptionHandler(OptionHandler handler,
+                                    const char* name,
+                                    const char* comment);
+
+  static char* ProcessCommandLineFlags(int argc, const char** argv);
 
   static Flag* Lookup(const char* name);
 
   static bool IsSet(const char* name);
 
   static bool Initialized() { return initialized_; }
+
+  static void Cleanup();
 
 #ifndef PRODUCT
   static void PrintJSON(JSONStream* js);

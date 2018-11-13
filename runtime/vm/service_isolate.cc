@@ -6,6 +6,7 @@
 
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_message.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
@@ -35,17 +36,6 @@ DEFINE_FLAG(bool,
             false,
             "Provide extra service tracing information.");
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 // These must be kept in sync with service/constants.dart
 #define VM_SERVICE_ISOLATE_EXIT_MESSAGE_ID 0
 #define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
@@ -53,6 +43,8 @@ static void malloc_deallocator(uint8_t* ptr) {
 
 #define VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID 3
 #define VM_SERVICE_SERVER_INFO_MESSAGE_ID 4
+
+#define VM_SERVICE_METHOD_CALL_FROM_NATIVE 5
 
 static RawArray* MakeServiceControlMessage(Dart_Port port_id,
                                            intptr_t code,
@@ -80,23 +72,12 @@ static RawArray* MakeServerControlMessage(const SendPort& sp,
   return list.raw();
 }
 
-static RawArray* MakeServiceExitMessage() {
-  const Array& list = Array::Handle(Array::New(1));
-  ASSERT(!list.IsNull());
-  const intptr_t code = VM_SERVICE_ISOLATE_EXIT_MESSAGE_ID;
-  const Integer& code_int = Integer::Handle(Integer::New(code));
-  list.SetAt(0, code_int);
-  return list.raw();
-}
-
 const char* ServiceIsolate::kName = "vm-service";
 Isolate* ServiceIsolate::isolate_ = NULL;
 Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::load_port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::origin_ = ILLEGAL_PORT;
 Dart_IsolateCreateCallback ServiceIsolate::create_callback_ = NULL;
-uint8_t* ServiceIsolate::exit_message_ = NULL;
-intptr_t ServiceIsolate::exit_message_length_ = 0;
 Monitor* ServiceIsolate::monitor_ = new Monitor();
 bool ServiceIsolate::initializing_ = true;
 bool ServiceIsolate::shutting_down_ = false;
@@ -106,22 +87,18 @@ void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
   const Array& message = Array::Handle(MakeServerControlMessage(
       sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */));
   ASSERT(!message.IsNull());
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(message);
-  intptr_t len = writer.BytesWritten();
-  PortMap::PostMessage(new Message(port_, data, len, Message::kNormalPriority));
+  MessageWriter writer(false);
+  PortMap::PostMessage(
+      writer.WriteMessage(message, port_, Message::kNormalPriority));
 }
 
 void ServiceIsolate::ControlWebServer(const SendPort& sp, bool enable) {
   const Array& message = Array::Handle(MakeServerControlMessage(
       sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable));
   ASSERT(!message.IsNull());
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(message);
-  intptr_t len = writer.BytesWritten();
-  PortMap::PostMessage(new Message(port_, data, len, Message::kNormalPriority));
+  MessageWriter writer(false);
+  PortMap::PostMessage(
+      writer.WriteMessage(message, port_, Message::kNormalPriority));
 }
 
 void ServiceIsolate::SetServerAddress(const char* address) {
@@ -178,13 +155,46 @@ Dart_Port ServiceIsolate::LoadPort() {
   return load_port_;
 }
 
+bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
+                                    intptr_t request_json_length,
+                                    Dart_Port reply_port) {
+  // Keep in sync with "sdk/lib/vmservice/vmservice.dart:_handleNativeRpcCall".
+  Dart_CObject opcode;
+  opcode.type = Dart_CObject_kInt32;
+  opcode.value.as_int32 = VM_SERVICE_METHOD_CALL_FROM_NATIVE;
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kTypedData;
+  message.value.as_typed_data.type = Dart_TypedData_kUint8;
+  message.value.as_typed_data.length = request_json_length;
+  message.value.as_typed_data.values = request_json;
+
+  Dart_CObject send_port;
+  send_port.type = Dart_CObject_kSendPort;
+  send_port.value.as_send_port.id = reply_port;
+  send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
+
+  Dart_CObject* request_array[] = {
+      &opcode,
+      &message,
+      &send_port,
+  };
+
+  Dart_CObject request;
+  request.type = Dart_CObject_kArray;
+  request.value.as_array.values = request_array;
+  request.value.as_array.length = ARRAY_SIZE(request_array);
+
+  return Dart_PostCObject(ServiceIsolate::Port(), &request);
+}
+
 bool ServiceIsolate::SendIsolateStartupMessage() {
   if (!IsRunning()) {
     return false;
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (IsServiceIsolateDescendant(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -194,16 +204,13 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   const Array& list = Array::Handle(MakeServiceControlMessage(
       Dart_GetMainPortId(), VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID, name));
   ASSERT(!list.IsNull());
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(list);
-  intptr_t len = writer.BytesWritten();
+  MessageWriter writer(false);
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
                  name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(
-      new Message(port_, data, len, Message::kNormalPriority));
+      writer.WriteMessage(list, port_, Message::kNormalPriority));
 }
 
 bool ServiceIsolate::SendIsolateShutdownMessage() {
@@ -212,7 +219,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (IsServiceIsolateDescendant(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -222,30 +229,36 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   const Array& list = Array::Handle(MakeServiceControlMessage(
       Dart_GetMainPortId(), VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID, name));
   ASSERT(!list.IsNull());
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(list);
-  intptr_t len = writer.BytesWritten();
+  MessageWriter writer(false);
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: Isolate %s %" Pd64 " deregistered.\n",
                  name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(
-      new Message(port_, data, len, Message::kNormalPriority));
+      writer.WriteMessage(list, port_, Message::kNormalPriority));
 }
 
 void ServiceIsolate::SendServiceExitMessage() {
   if (!IsRunning()) {
     return;
   }
-  if ((exit_message_ == NULL) || (exit_message_length_ == 0)) {
-    return;
-  }
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: sending service exit message.\n");
   }
-  PortMap::PostMessage(new Message(port_, exit_message_, exit_message_length_,
-                                   Message::kNormalPriority));
+
+  Dart_CObject code;
+  code.type = Dart_CObject_kInt32;
+  code.value.as_int32 = VM_SERVICE_ISOLATE_EXIT_MESSAGE_ID;
+  Dart_CObject* values[1] = {&code};
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kArray;
+  message.value.as_array.length = 1;
+  message.value.as_array.values = values;
+
+  ApiMessageWriter writer;
+  PortMap::PostMessage(
+      writer.WriteCMessage(&message, port_, Message::kNormalPriority));
 }
 
 void ServiceIsolate::SetServicePort(Dart_Port port) {
@@ -281,26 +294,6 @@ void ServiceIsolate::MaybeMakeServiceIsolate(Isolate* I) {
     return;
   }
   SetServiceIsolate(I);
-}
-
-void ServiceIsolate::ConstructExitMessageAndCache(Isolate* I) {
-  // Construct and cache exit message here so we can send it without needing an
-  // isolate.
-  Thread* T = Thread::Current();
-  ASSERT(I == T->isolate());
-  ASSERT(I != NULL);
-  StackZone zone(T);
-  HANDLESCOPE(T);
-  ASSERT(exit_message_ == NULL);
-  ASSERT(exit_message_length_ == 0);
-  const Array& list = Array::Handle(Z, MakeServiceExitMessage());
-  ASSERT(!list.IsNull());
-  MessageWriter writer(&exit_message_, &malloc_allocator, &malloc_deallocator,
-                       false);
-  writer.WriteMessage(list);
-  exit_message_length_ = writer.BytesWritten();
-  ASSERT(exit_message_ != NULL);
-  ASSERT(exit_message_length_ != 0);
 }
 
 void ServiceIsolate::FinishedExiting() {
@@ -348,16 +341,18 @@ class RunServiceTask : public ThreadPool::Task {
     {
       ASSERT(Isolate::Current() == NULL);
       StartIsolateScope start_scope(isolate);
-      ServiceIsolate::ConstructExitMessageAndCache(isolate);
       got_unwind = RunMain(isolate);
     }
+
+    // FinishedInitializing should be called irrespective of whether
+    // running main caused an error or not. Otherwise, other isolates
+    // waiting for service isolate to come up will deadlock.
+    ServiceIsolate::FinishedInitializing();
 
     if (got_unwind) {
       ShutdownIsolate(reinterpret_cast<uword>(isolate));
       return;
     }
-
-    ServiceIsolate::FinishedInitializing();
 
     isolate->message_handler()->Run(Dart::thread_pool(), NULL, ShutdownIsolate,
                                     reinterpret_cast<uword>(isolate));
@@ -370,8 +365,6 @@ class RunServiceTask : public ThreadPool::Task {
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
-    ServiceIsolate::SetServiceIsolate(NULL);
-    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
     I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
@@ -393,6 +386,10 @@ class RunServiceTask : public ThreadPool::Task {
       }
       Dart::RunShutdownCallback();
     }
+    ASSERT(ServiceIsolate::IsServiceIsolate(I));
+    ServiceIsolate::SetServiceIsolate(NULL);
+    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
+
     // Shut the isolate down.
     Dart::ShutdownIsolate(I);
     if (FLAG_trace_service) {

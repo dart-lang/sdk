@@ -1,0 +1,45 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::num n = 1;
+  core::int i = 1;
+  core::double d = 1.0;
+  dynamic ddPlus = d.+(d);
+  dynamic ddMinus = d.-(d);
+  dynamic ddTimes = d.*(d);
+  dynamic ddMod = d.%(d);
+  dynamic diPlus = d.+(i);
+  dynamic diMinus = d.-(i);
+  dynamic diTimes = d.*(i);
+  dynamic diMod = d.%(i);
+  dynamic dnPlus = d.+(n);
+  dynamic dnMinus = d.-(n);
+  dynamic dnTimes = d.*(n);
+  dynamic dnMod = d.%(n);
+  dynamic idPlus = i.+(d);
+  dynamic idMinus = i.-(d);
+  dynamic idTimes = i.*(d);
+  dynamic idMod = i.%(d);
+  dynamic iiPlus = i.+(i);
+  dynamic iiMinus = i.-(i);
+  dynamic iiTimes = i.*(i);
+  dynamic iiMod = i.%(i);
+  dynamic inPlus = i.+(n);
+  dynamic inMinus = i.-(n);
+  dynamic inTimes = i.*(n);
+  dynamic inMod = i.%(n);
+  dynamic ndPlus = n.+(d);
+  dynamic ndMinus = n.-(d);
+  dynamic ndTimes = n.*(d);
+  dynamic ndMod = n.%(d);
+  dynamic niPlus = n.+(i);
+  dynamic niMinus = n.-(i);
+  dynamic niTimes = n.*(i);
+  dynamic niMod = n.%(i);
+  dynamic nnPlus = n.+(n);
+  dynamic nnMinus = n.-(n);
+  dynamic nnTimes = n.*(n);
+  dynamic nnMod = n.%(n);
+}

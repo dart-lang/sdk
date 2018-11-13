@@ -17,7 +17,6 @@ main() {
 
   // Basics.
   assert(true, "");
-  assert(() => true, "");
 
   int x = null;
   // Successful asserts won't execute message.
@@ -79,7 +78,7 @@ Future asyncTests() async {
   assert(await true, await 2);
 
   // Successful asserts won't await/evaluate message.
-  void unreachable() => throw "unreachable";
+  Future unreachable() => throw "unreachable";
   assert(await true, await unreachable());
 
   try {

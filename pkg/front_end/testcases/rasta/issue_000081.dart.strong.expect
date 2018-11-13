@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Base extends core::Object {
+  field core::int hashCode = 42;
+  synthetic constructor •() → self::Base
+    : super core::Object::•()
+    ;
+}
+class Sub extends self::Base {
+  field core::int _hashCode = null;
+  synthetic constructor •() → self::Sub
+    : super self::Base::•()
+    ;
+  get hashCode() → core::int
+    return let final core::int #t1 = this.{self::Sub::_hashCode} in #t1.{core::num::==}(null) ?{core::int} this.{self::Sub::_hashCode} = super.{self::Base::hashCode} : #t1;
+  method foo() → dynamic {
+    this.{self::Sub::_hashCode}.{core::num::==}(null) ?{core::int} this.{self::Sub::_hashCode} = super.{self::Base::hashCode} : null;
+  }
+}
+static method main() → dynamic {
+  core::print(new self::Sub::•().{self::Sub::hashCode});
+  core::List<core::Null> l = <core::Null>[null];
+  let final core::List<core::Null> #t2 = l in let final core::int #t3 = 0 in #t2.{core::List::[]}(#t3).{core::Object::==}(null) ?{core::String} let final core::String #t4 = "fisk" as{TypeError} core::Null in let final void #t5 = #t2.{core::List::[]=}(#t3, #t4) in #t4 : null;
+}

@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F = () → core::int;
+static method main() → dynamic {
+  core::List<() → core::int> v = <() → core::int>[() → core::int {
+    return 1;
+  }];
+}

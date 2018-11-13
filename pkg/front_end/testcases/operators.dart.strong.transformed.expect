@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Operators extends core::Object {
+  synthetic constructor •() → self::Operators
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+  operator &(dynamic other) → dynamic
+    return null;
+  operator ~() → dynamic
+    return null;
+  operator |(dynamic other) → dynamic
+    return null;
+  operator ^(dynamic other) → dynamic
+    return null;
+  operator /(dynamic other) → dynamic
+    return null;
+  operator ==(dynamic other) → core::bool
+    return null;
+  operator >(dynamic other) → dynamic
+    return null;
+  operator >=(dynamic other) → dynamic
+    return null;
+  operator [](dynamic index) → dynamic
+    return null;
+  operator []=(dynamic index, dynamic value) → void {}
+  operator <<(dynamic other) → dynamic
+    return null;
+  operator <(dynamic other) → dynamic
+    return null;
+  operator <=(dynamic other) → dynamic
+    return null;
+  operator *(dynamic other) → dynamic
+    return null;
+  operator %(dynamic other) → dynamic
+    return null;
+  operator >>(dynamic other) → dynamic
+    return null;
+  operator -(dynamic other) → dynamic
+    return null;
+  operator ~/(dynamic other) → dynamic
+    return null;
+  operator unary-() → dynamic
+    return null;
+}
+static method main(dynamic arguments) → dynamic {
+  self::Operators a = new self::Operators::•();
+  self::Operators b = new self::Operators::•();
+  a.{self::Operators::+}(b);
+  a.{self::Operators::&}(b);
+  a.{self::Operators::~}();
+  a.{self::Operators::|}(b);
+  a.{self::Operators::^}(b);
+  a.{self::Operators::/}(b);
+  a.{self::Operators::==}(b);
+  a.{self::Operators::>}(b);
+  a.{self::Operators::>=}(b);
+  a.{self::Operators::[]}(0);
+  a.{self::Operators::[]=}(0, b);
+  a.{self::Operators::<<}(b);
+  a.{self::Operators::<}(b);
+  a.{self::Operators::<=}(b);
+  a.{self::Operators::*}(b);
+  a.{self::Operators::%}(b);
+  a.{self::Operators::>>}(b);
+  a.{self::Operators::-}(b);
+  a.{self::Operators::~/}(b);
+  a.{self::Operators::unary-}();
+}

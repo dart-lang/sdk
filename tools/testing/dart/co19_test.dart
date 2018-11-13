@@ -52,7 +52,7 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
 
 void main(List<String> args) {
   var optionsParser = new OptionsParser();
-  var configurations = <Configuration>[];
+  var configurations = <TestConfiguration>[];
   for (var commandLine in COMMAND_LINES) {
     var arguments = <String>[];
     arguments.addAll(COMMON_ARGUMENTS);

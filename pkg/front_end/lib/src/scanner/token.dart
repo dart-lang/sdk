@@ -8,9 +8,9 @@
  */
 import 'dart:collection';
 
-import 'package:front_end/src/base/syntactic_entity.dart';
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
-import 'package:front_end/src/scanner/string_utilities.dart';
+import '../base/syntactic_entity.dart';
+import '../fasta/scanner/token_constants.dart';
+import 'string_utilities.dart';
 
 const int NO_PRECEDENCE = 0;
 const int ASSIGNMENT_PRECEDENCE = 1;
@@ -29,6 +29,7 @@ const int ADDITIVE_PRECEDENCE = 13;
 const int MULTIPLICATIVE_PRECEDENCE = 14;
 const int PREFIX_PRECEDENCE = 15;
 const int POSTFIX_PRECEDENCE = 16;
+const int SELECTOR_PRECEDENCE = 17;
 
 /**
  * The opening half of a grouping pair of tokens. This is used for curly
@@ -107,13 +108,6 @@ class CommentToken extends StringToken {
  */
 class DocumentationCommentToken extends CommentToken {
   /**
-   * The references embedded within the documentation comment.
-   * This list will be empty unless this is a documentation comment that has
-   * references embedded within it.
-   */
-  final List<Token> references = <Token>[];
-
-  /**
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
@@ -121,12 +115,7 @@ class DocumentationCommentToken extends CommentToken {
       : super(type, value, offset);
 
   @override
-  CommentToken copy() {
-    DocumentationCommentToken copy =
-        new DocumentationCommentToken(type, _value, offset);
-    references.forEach((ref) => copy.references.add(ref.copy()));
-    return copy;
-  }
+  CommentToken copy() => new DocumentationCommentToken(type, _value, offset);
 }
 
 /**
@@ -216,11 +205,17 @@ class Keyword extends TokenType {
 
   static const Keyword IN = const Keyword("in", "IN");
 
+  static const Keyword INTERFACE =
+      const Keyword("interface", "INTERFACE", isBuiltIn: true);
+
   static const Keyword IS =
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
   static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
       isBuiltIn: true, isTopLevelKeyword: true);
+
+  static const Keyword MIXIN =
+      const Keyword("mixin", "MIXIN", isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword NATIVE =
       const Keyword("native", "NATIVE", isPseudo: true);
@@ -316,8 +311,10 @@ class Keyword extends TokenType {
     IMPLEMENTS,
     IMPORT,
     IN,
+    INTERFACE,
     IS,
     LIBRARY,
+    MIXIN,
     NATIVE,
     NEW,
     NULL,
@@ -493,6 +490,14 @@ class SimpleToken implements Token {
   int get charEnd => end;
 
   @override
+  Token get beforeSynthetic => null;
+
+  @override
+  set beforeSynthetic(Token previous) {
+    // ignored
+  }
+
+  @override
   int get end => offset + length;
 
   @override
@@ -581,6 +586,7 @@ class SimpleToken implements Token {
   Token setNext(Token token) {
     next = token;
     token.previous = this;
+    token.beforeSynthetic = this;
     return token;
   }
 
@@ -712,6 +718,12 @@ class SyntheticToken extends SimpleToken {
   SyntheticToken(TokenType type, int offset) : super(type, offset);
 
   @override
+  Token beforeSynthetic;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
   int get length => 0;
 
   @override
@@ -756,6 +768,18 @@ abstract class Token implements SyntacticEntity {
    * The character offset of the end of this token within the source text.
    */
   int get charEnd;
+
+  /**
+   * The token before this synthetic token,
+   * or `null` if this is not a synthetic `)`, `]`, `}`, or `>` token.
+   */
+  Token get beforeSynthetic;
+
+  /**
+   * Set token before this synthetic `)`, `]`, `}`, or `>` token,
+   * and ignored otherwise.
+   */
+  set beforeSynthetic(Token previous);
 
   @override
   int get end;
@@ -1255,7 +1279,7 @@ class TokenType {
       const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 
   static const TokenType INDEX = const TokenType(
-      '[]', 'INDEX', POSTFIX_PRECEDENCE, INDEX_TOKEN,
+      '[]', 'INDEX', SELECTOR_PRECEDENCE, INDEX_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
   static const TokenType INDEX_EQ = const TokenType(
@@ -1294,10 +1318,10 @@ class TokenType {
       '{', 'OPEN_CURLY_BRACKET', NO_PRECEDENCE, OPEN_CURLY_BRACKET_TOKEN);
 
   static const TokenType OPEN_PAREN =
-      const TokenType('(', 'OPEN_PAREN', POSTFIX_PRECEDENCE, OPEN_PAREN_TOKEN);
+      const TokenType('(', 'OPEN_PAREN', SELECTOR_PRECEDENCE, OPEN_PAREN_TOKEN);
 
   static const TokenType OPEN_SQUARE_BRACKET = const TokenType('[',
-      'OPEN_SQUARE_BRACKET', POSTFIX_PRECEDENCE, OPEN_SQUARE_BRACKET_TOKEN);
+      'OPEN_SQUARE_BRACKET', SELECTOR_PRECEDENCE, OPEN_SQUARE_BRACKET_TOKEN);
 
   static const TokenType PERCENT = const TokenType(
       '%', 'PERCENT', MULTIPLICATIVE_PRECEDENCE, PERCENT_TOKEN,
@@ -1308,7 +1332,7 @@ class TokenType {
       isOperator: true);
 
   static const TokenType PERIOD =
-      const TokenType('.', 'PERIOD', POSTFIX_PRECEDENCE, PERIOD_TOKEN);
+      const TokenType('.', 'PERIOD', SELECTOR_PRECEDENCE, PERIOD_TOKEN);
 
   static const TokenType PERIOD_PERIOD = const TokenType(
       '..', 'PERIOD_PERIOD', CASCADE_PRECEDENCE, PERIOD_PERIOD_TOKEN,
@@ -1331,7 +1355,7 @@ class TokenType {
       isOperator: true);
 
   static const TokenType QUESTION_PERIOD = const TokenType(
-      '?.', 'QUESTION_PERIOD', POSTFIX_PRECEDENCE, QUESTION_PERIOD_TOKEN,
+      '?.', 'QUESTION_PERIOD', SELECTOR_PRECEDENCE, QUESTION_PERIOD_TOKEN,
       isOperator: true);
 
   static const TokenType QUESTION_QUESTION = const TokenType(
@@ -1393,20 +1417,6 @@ class TokenType {
 
   static const TokenType PERIOD_PERIOD_PERIOD = const TokenType(
       '...', 'PERIOD_PERIOD_PERIOD', NO_PRECEDENCE, PERIOD_PERIOD_PERIOD_TOKEN);
-
-  static const TokenType GENERIC_METHOD_TYPE_LIST = const TokenType(
-      'generic_comment_list',
-      'GENERIC_METHOD_TYPE_LIST',
-      NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_LIST_TOKEN,
-      stringValue: null);
-
-  static const TokenType GENERIC_METHOD_TYPE_ASSIGN = const TokenType(
-      'generic_comment_assign',
-      'GENERIC_METHOD_TYPE_ASSIGN',
-      NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_ASSIGN_TOKEN,
-      stringValue: null);
 
   static const TokenType AS = Keyword.AS;
 
@@ -1499,8 +1509,6 @@ class TokenType {
     TokenType.BACKPING,
     TokenType.BACKSLASH,
     TokenType.PERIOD_PERIOD_PERIOD,
-    TokenType.GENERIC_METHOD_TYPE_LIST,
-    TokenType.GENERIC_METHOD_TYPE_ASSIGN,
 
     // TODO(danrubel): Should these be added to the "all" list?
     //TokenType.IS,
@@ -1665,6 +1673,12 @@ class TokenType {
       this == TokenType.MINUS ||
       this == TokenType.PLUS_PLUS ||
       this == TokenType.MINUS_MINUS;
+
+  /**
+   * Return `true` if this type of token represents a selector operator
+   * (starting token of a selector).
+   */
+  bool get isSelectorOperator => precedence == SELECTOR_PRECEDENCE;
 
   @override
   String toString() => name;

@@ -8,30 +8,32 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/path_filter.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/source/path_filter.dart';
+import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -364,22 +366,10 @@ abstract class ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event);
 
   /**
-   * Signals that the context manager has started to compute a package map (if
-   * [computing] is `true`) or has finished (if [computing] is `false`).
-   */
-  void computingPackageMap(bool computing);
-
-  /**
    * Create and return a context builder that can be used to create a context
    * for the files in the given [folder] when analyzed using the given [options].
    */
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options);
-
-  /**
-   * Called when the context manager changes the folder with which a context is
-   * associated. Currently this is mostly FYI, and used only in tests.
-   */
-  void moveContext(Folder from, Folder to);
 
   /**
    * Remove the context associated with the given [folder].  [flushedFiles] is
@@ -405,11 +395,6 @@ class ContextManagerImpl implements ContextManager {
   static const String LIB_DIR_NAME = 'lib';
 
   /**
-   * The name of `packages` folders.
-   */
-  static const String PACKAGES_NAME = 'packages';
-
-  /**
    * File name of pubspec files.
    */
   static const String PUBSPEC_NAME = 'pubspec.yaml';
@@ -432,17 +417,15 @@ class ContextManagerImpl implements ContextManager {
   final ResourceProvider resourceProvider;
 
   /**
+   * The file content overlay.
+   */
+  final FileContentOverlay fileContentOverlay;
+
+  /**
    * The manager used to access the SDK that should be associated with a
    * particular context.
    */
   final DartSdkManager sdkManager;
-
-  /**
-   * The context used to work with absolute file system paths.
-   *
-   * TODO(scheglov) remove [pathContext].
-   */
-  AbsolutePathContext absolutePathContext;
 
   /**
    * The context used to work with file system paths.
@@ -478,12 +461,6 @@ class ContextManagerImpl implements ContextManager {
    * to the standard URI resolver.
    */
   final ResolverProvider packageResolverProvider;
-
-  /**
-   * Provider which is used to determine the mapping from package name to
-   * package folder.
-   */
-  final PubPackageMapProvider _packageMapProvider;
 
   /**
    * A list of the globs used to determine which files should be analyzed.
@@ -522,13 +499,12 @@ class ContextManagerImpl implements ContextManager {
 
   ContextManagerImpl(
       this.resourceProvider,
+      this.fileContentOverlay,
       this.sdkManager,
       this.packageResolverProvider,
-      this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
-    absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
 
@@ -638,28 +614,23 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForDriver(ContextInfo info,
-      AnalysisOptionsImpl analysisOptions, Map<String, Object> options) {
+  void processOptionsForDriver(
+      ContextInfo info, AnalysisOptionsImpl analysisOptions, YamlMap options) {
     if (options == null) {
       return;
     }
 
     // Check for embedded options.
-    Map embeddedOptions = _getEmbeddedOptions(info);
+    YamlMap embeddedOptions = _getEmbeddedOptions(info);
     if (embeddedOptions != null) {
-      options = _toStringMap(new Merger().merge(embeddedOptions, options));
+      options = new Merger().merge(embeddedOptions, options);
     }
 
     applyToAnalysisOptions(analysisOptions, options);
 
-    var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is Map) {
+    if (analysisOptions.excludePatterns != null) {
       // Set ignore patterns.
-      YamlList exclude = analyzer[AnalyzerOptions.exclude];
-      List<String> excludeList = toStringList(exclude);
-      if (excludeList != null) {
-        setIgnorePatternsForContext(info, excludeList);
-      }
+      setIgnorePatternsForContext(info, analysisOptions.excludePatterns);
     }
   }
 
@@ -832,9 +803,6 @@ class ContextManagerImpl implements ContextManager {
         changeSet.addedSource(source);
         info.sources[path] = source;
       } else if (child is Folder) {
-        if (child.shortName == PACKAGES_NAME) {
-          continue;
-        }
         _addPreviouslyExcludedSources(info, changeSet, child, oldExcludedPaths);
       }
     }
@@ -871,10 +839,6 @@ class ContextManagerImpl implements ContextManager {
           info.sources[path] = source;
         }
       } else if (child is Folder) {
-        String shortName = child.shortName;
-        if (shortName == PACKAGES_NAME) {
-          continue;
-        }
         _addSourceFiles(changeSet, child, info);
       }
     }
@@ -885,19 +849,54 @@ class ContextManagerImpl implements ContextManager {
    * options file at the given [path].
    */
   void _analyzeAnalysisOptionsFile(AnalysisDriver driver, String path) {
-    String content = driver.fsState.getFileForPath(path).content;
-    List<AnalysisError> errors =
-        GenerateOptionsErrorsTask.analyzeAnalysisOptions(
-            resourceProvider.getFile(path).createSource(),
-            content,
-            driver.sourceFactory);
-    AnalyzerConverter converter = new AnalyzerConverter();
-    LineInfo lineInfo = _computeLineInfo(content);
+    List<protocol.AnalysisError> convertedErrors;
+    try {
+      String content = _readFile(path);
+      LineInfo lineInfo = _computeLineInfo(content);
+      List<AnalysisError> errors =
+          GenerateOptionsErrorsTask.analyzeAnalysisOptions(
+              resourceProvider.getFile(path).createSource(),
+              content,
+              driver.sourceFactory);
+      AnalyzerConverter converter = new AnalyzerConverter();
+      convertedErrors = converter.convertAnalysisErrors(errors,
+          lineInfo: lineInfo, options: driver.analysisOptions);
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
     callbacks.notificationManager.recordAnalysisErrors(
         NotificationManager.serverId,
         path,
-        converter.convertAnalysisErrors(errors,
-            lineInfo: lineInfo, options: driver.analysisOptions));
+        convertedErrors ?? <protocol.AnalysisError>[]);
+  }
+
+  /**
+   * Use the given analysis [driver] to analyze the content of the pubspec file
+   * at the given [path].
+   */
+  void _analyzePubspecFile(AnalysisDriver driver, String path) {
+    List<protocol.AnalysisError> convertedErrors;
+    try {
+      String content = _readFile(path);
+      YamlNode node = loadYamlNode(content);
+      if (node is YamlMap) {
+        PubspecValidator validator = new PubspecValidator(
+            resourceProvider, resourceProvider.getFile(path).createSource());
+        LineInfo lineInfo = _computeLineInfo(content);
+        List<AnalysisError> errors = validator.validate(node.nodes);
+        AnalyzerConverter converter = new AnalyzerConverter();
+        convertedErrors = converter.convertAnalysisErrors(errors,
+            lineInfo: lineInfo, options: driver.analysisOptions);
+      }
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
+    callbacks.notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId,
+        path,
+        convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
   void _checkForAnalysisOptionsUpdate(
@@ -926,7 +925,7 @@ class ContextManagerImpl implements ContextManager {
       String path, ContextInfo info, Folder folder) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
-    if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME) {
+    if (pathContext.basename(path) == PACKAGE_SPEC_NAME) {
       String contextRoot = info.folder.path;
       ContextBuilder builder =
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
@@ -938,6 +937,20 @@ class ContextManagerImpl implements ContextManager {
             builder.createSourceFactory(contextRoot, options);
         driver.configure(analysisOptions: options, sourceFactory: factory);
       }
+    }
+  }
+
+  void _checkForPubspecUpdate(
+      String path, ContextInfo info, ChangeType changeType) {
+    if (_isPubspec(path)) {
+      AnalysisDriver driver = info.analysisDriver;
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
+      }
+      _analyzePubspecFile(driver, path);
     }
   }
 
@@ -1007,33 +1020,20 @@ class ContextManagerImpl implements ContextManager {
       // resolve packages.
       return new NoPackageFolderDisposition(packageRoot: packageRoot);
     } else {
-      PackageMapInfo packageMapInfo;
-      callbacks.computingPackageMap(true);
-      try {
-        // Try .packages first.
-        if (absolutePathContext.basename(packagespecFile.path) ==
-            PACKAGE_SPEC_NAME) {
-          Packages packages = _readPackagespec(packagespecFile);
-          return new PackagesFileDisposition(packages);
-        }
-        if (packageResolverProvider != null) {
-          UriResolver resolver = packageResolverProvider(folder);
-          if (resolver != null) {
-            return new CustomPackageResolverDisposition(resolver);
-          }
-        }
+      // Try .packages first.
+      if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+        Packages packages = _readPackagespec(packagespecFile);
+        return new PackagesFileDisposition(packages);
+      }
 
-        packageMapInfo = _packageMapProvider.computePackageMap(folder);
-      } finally {
-        callbacks.computingPackageMap(false);
+      if (packageResolverProvider != null) {
+        UriResolver resolver = packageResolverProvider(folder);
+        if (resolver != null) {
+          return new CustomPackageResolverDisposition(resolver);
+        }
       }
-      for (String dependencyPath in packageMapInfo.dependencies) {
-        addDependency(dependencyPath);
-      }
-      if (packageMapInfo.packageMap == null) {
-        return new NoPackageFolderDisposition();
-      }
-      return new PackageMapDisposition(packageMapInfo.packageMap);
+
+      return new NoPackageFolderDisposition();
     }
   }
 
@@ -1074,8 +1074,8 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagesFile,
         normalizedPackageRoots[folder.path], disposition);
 
-    File optionsFile = null;
-    Map<String, Object> optionMap = null;
+    File optionsFile;
+    YamlMap optionMap;
     try {
       AnalysisOptionsProvider provider =
           _createAnalysisOptionsProvider(disposition.packages);
@@ -1097,8 +1097,9 @@ class ContextManagerImpl implements ContextManager {
             pathContext.isWithin(includedPath, excludedPath))
         .toList();
     processOptionsForDriver(info, options, optionMap);
-    ContextRoot contextRoot =
-        new ContextRoot(folder.path, containedExcludedPaths);
+    ContextRoot contextRoot = new ContextRoot(
+        folder.path, containedExcludedPaths,
+        pathContext: pathContext);
     if (optionsFile != null) {
       contextRoot.optionsFilePath = optionsFile.path;
     }
@@ -1106,6 +1107,10 @@ class ContextManagerImpl implements ContextManager {
         callbacks.addAnalysisDriver(folder, contextRoot, options);
     if (optionsFile != null) {
       _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
+    }
+    File pubspecFile = folder.getChildAssumingFile(PUBSPEC_NAME);
+    if (pubspecFile.exists) {
+      _analyzePubspecFile(info.analysisDriver, pubspecFile.path);
     }
     return info;
   }
@@ -1124,9 +1129,7 @@ class ContextManagerImpl implements ContextManager {
    */
   void _createContexts(ContextInfo parent, Folder folder,
       List<String> excludedPaths, bool withPackageSpecOnly) {
-    if (_isExcluded(folder.path) ||
-        folder.shortName.startsWith('.') ||
-        folder.shortName == 'packages') {
+    if (_isExcluded(folder.path) || folder.shortName.startsWith('.')) {
       return;
     }
     // Decide whether a context needs to be created for [folder] here, and if
@@ -1249,7 +1252,7 @@ class ContextManagerImpl implements ContextManager {
   /// skipped.
   ///
   /// Returns null if there are no embedded/configured options.
-  Map _getEmbeddedOptions(ContextInfo info) {
+  YamlMap _getEmbeddedOptions(ContextInfo info) {
     Map embeddedOptions = null;
     EmbedderYamlLocator locator =
         info.disposition.getEmbedderLocator(resourceProvider);
@@ -1326,7 +1329,6 @@ class ContextManagerImpl implements ContextManager {
     // maybe excluded globally
     if (_isExcluded(path) ||
         _isContainedInDotFolder(info.folder.path, path) ||
-        _isInPackagesDir(info.folder.path, path) ||
         _isInTopLevelDocDir(info.folder.path, path)) {
       return;
     }
@@ -1342,7 +1344,7 @@ class ContextManagerImpl implements ContextManager {
       case ChangeType.ADD:
         Resource resource = resourceProvider.getResource(path);
 
-        String directoryPath = absolutePathContext.dirname(path);
+        String directoryPath = pathContext.dirname(path);
 
         // Check to see if we need to create a new context.
         if (info.isTopLevel) {
@@ -1352,8 +1354,7 @@ class ContextManagerImpl implements ContextManager {
             if (_isPubspec(path)) {
               // Check for a sibling .packages file.
               if (!resourceProvider
-                  .getFile(absolutePathContext.append(
-                      directoryPath, PACKAGE_SPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
                   .exists) {
                 _extractContext(info, resource);
                 return;
@@ -1362,8 +1363,7 @@ class ContextManagerImpl implements ContextManager {
             if (_isPackagespec(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
-                  .getFile(
-                      absolutePathContext.append(directoryPath, PUBSPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
                   .exists) {
                 _extractContext(info, resource);
                 return;
@@ -1376,27 +1376,24 @@ class ContextManagerImpl implements ContextManager {
         // had a chance to process the event, resource might be a Folder.  In
         // that case don't add it.
         if (resource is File) {
-          File file = resource;
-          if (_shouldFileBeAnalyzed(file)) {
+          if (_shouldFileBeAnalyzed(resource)) {
             info.analysisDriver.addFile(path);
           }
         }
         break;
       case ChangeType.REMOVE:
-
         // If package spec info is removed, check to see if we can merge contexts.
         // Note that it's important to verify that there is NEITHER a .packages nor a
         // lingering pubspec.yaml before merging.
         if (!info.isTopLevel) {
-          String directoryPath = absolutePathContext.dirname(path);
+          String directoryPath = pathContext.dirname(path);
 
           // Only merge if this is the same directory described by our info object.
           if (info.folder.path == directoryPath) {
             if (_isPubspec(path)) {
               // Check for a sibling .packages file.
               if (!resourceProvider
-                  .getFile(absolutePathContext.append(
-                      directoryPath, PACKAGE_SPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
                   .exists) {
                 _mergeContext(info);
                 return;
@@ -1405,8 +1402,7 @@ class ContextManagerImpl implements ContextManager {
             if (_isPackagespec(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
-                  .getFile(
-                      absolutePathContext.append(directoryPath, PUBSPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
                   .exists) {
                 _mergeContext(info);
                 return;
@@ -1418,13 +1414,19 @@ class ContextManagerImpl implements ContextManager {
         callbacks.applyFileRemoved(info.analysisDriver, path);
         break;
       case ChangeType.MODIFY:
-        for (AnalysisDriver driver in driverMap.values) {
-          driver.changeFile(path);
+        Resource resource = resourceProvider.getResource(path);
+        if (resource is File) {
+          if (_shouldFileBeAnalyzed(resource)) {
+            for (AnalysisDriver driver in driverMap.values) {
+              driver.changeFile(path);
+            }
+            break;
+          }
         }
-        break;
     }
     _checkForPackagespecUpdate(path, info, info.folder);
     _checkForAnalysisOptionsUpdate(path, info, type);
+    _checkForPubspecUpdate(path, info, type);
   }
 
   /**
@@ -1432,16 +1434,14 @@ class ContextManagerImpl implements ContextManager {
    * context root [root], contains a folder whose name starts with '.'.
    */
   bool _isContainedInDotFolder(String root, String path) {
-    String pathDir = absolutePathContext.dirname(path);
-    String suffixPath = absolutePathContext.suffix(root, pathDir);
-    if (suffixPath == null) {
-      return false;
-    }
-    for (String pathComponent in absolutePathContext.split(suffixPath)) {
-      if (pathComponent.startsWith('.') &&
-          pathComponent != '.' &&
-          pathComponent != '..') {
-        return true;
+    String pathDir = pathContext.dirname(path);
+    String rootPrefix = root + pathContext.separator;
+    if (pathDir.startsWith(rootPrefix)) {
+      String suffixPath = pathDir.substring(rootPrefix.length);
+      for (String pathComponent in pathContext.split(suffixPath)) {
+        if (pathComponent.startsWith('.')) {
+          return true;
+        }
       }
     }
     return false;
@@ -1457,7 +1457,7 @@ class ContextManagerImpl implements ContextManager {
    */
   bool _isExcludedBy(List<String> excludedPaths, String path) {
     return excludedPaths.any((excludedPath) {
-      if (absolutePathContext.isWithin(excludedPath, path)) {
+      if (pathContext.isWithin(excludedPath, path)) {
         return true;
       }
       return path == excludedPath;
@@ -1465,36 +1465,23 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Determine whether the given [path], when interpreted relative to the
-   * context root [root], contains a 'packages' folder.
-   */
-  bool _isInPackagesDir(String root, String path) {
-    String suffixPath = absolutePathContext.suffix(root, path);
-    if (suffixPath == null) {
-      return false;
-    }
-    List<String> pathParts = absolutePathContext.split(suffixPath);
-    return pathParts.contains(PACKAGES_NAME);
-  }
-
-  /**
    * Determine whether the given [path] is in the direct 'doc' folder of the
    * context root [root].
    */
   bool _isInTopLevelDocDir(String root, String path) {
-    String suffixPath = absolutePathContext.suffix(root, path);
-    if (suffixPath == null) {
-      return false;
+    String rootPrefix = root + pathContext.separator;
+    if (path.startsWith(rootPrefix)) {
+      String suffix = path.substring(rootPrefix.length);
+      return suffix == DOC_DIR_NAME ||
+          suffix.startsWith(DOC_DIR_NAME + pathContext.separator);
     }
-    return suffixPath == DOC_DIR_NAME ||
-        suffixPath.startsWith(DOC_DIR_NAME + absolutePathContext.separator);
+    return false;
   }
 
   bool _isPackagespec(String path) =>
-      absolutePathContext.basename(path) == PACKAGE_SPEC_NAME;
+      pathContext.basename(path) == PACKAGE_SPEC_NAME;
 
-  bool _isPubspec(String path) =>
-      absolutePathContext.basename(path) == PUBSPEC_NAME;
+  bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
 
   /**
    * Merges [info] context into its parent.
@@ -1515,11 +1502,20 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
+  /**
+   * Read the contents of the file at the given [path], or throw an exception if
+   * the contents cannot be read.
+   */
+  String _readFile(String path) {
+    return fileContentOverlay[path] ??
+        resourceProvider.getFile(path).readAsStringSync();
+  }
+
   Packages _readPackagespec(File specFile) {
     try {
       String contents = specFile.readAsStringSync();
       Map<String, Uri> map =
-          pkgfile.parse(UTF8.encode(contents), new Uri.file(specFile.path));
+          pkgfile.parse(utf8.encode(contents), new Uri.file(specFile.path));
       return new MapPackages(map);
     } catch (_) {
       //TODO(pquitslund): consider creating an error for the spec file.
@@ -1557,25 +1553,6 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
-  }
-
-  /**
-   * If the given [object] is a map, and all of the keys in the map are strings,
-   * return a map containing the same mappings. Otherwise, return `null`.
-   */
-  Map<String, Object> _toStringMap(Object object) {
-    if (object is Map) {
-      Map<String, Object> stringMap = new HashMap<String, Object>();
-      for (var key in object.keys) {
-        if (key is String) {
-          stringMap[key] = object[key];
-        } else {
-          return null;
-        }
-      }
-      return stringMap;
-    }
-    return null;
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {
@@ -1777,9 +1754,10 @@ class PackagesFileDisposition extends FolderDisposition {
     if (packageMap == null) {
       packageMap = <String, List<Folder>>{};
       if (packages != null) {
+        var pathContext = resourceProvider.pathContext;
         packages.asMap().forEach((String name, Uri uri) {
           if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-            var path = resourceProvider.pathContext.fromUri(uri);
+            String path = fileUriToNormalizedPath(pathContext, uri);
             packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
           }
         });

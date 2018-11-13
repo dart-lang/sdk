@@ -8,7 +8,7 @@ library test;
 typedef void F<T>(T t);
 
 abstract class A<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x, int y);
+  void f(T /*@covariance=genericImpl*/ x, int y);
 }
 
 class B<T> implements A<F<T>> {
@@ -19,8 +19,8 @@ abstract class I<T> implements A<F<T>> {
   void f(F<T> /*@covariance=genericImpl*/ x, Object y);
 }
 
-class
-/*@forwardingStub=abstract void f(covariance=(genericInterface, genericImpl) ((C::T) -> void) -> void x, covariance=() Object y)*/
+abstract class
+/*@forwardingStub=abstract void f(covariance=(genericImpl) ((C::T) -> void) -> void x, covariance=() Object y)*/
     C<T> extends B<F<T>> implements I<F<T>> {}
 
 void main() {}

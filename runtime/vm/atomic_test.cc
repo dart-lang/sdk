@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/globals.h"
@@ -48,6 +48,20 @@ VM_UNIT_TEST_CASE(DecrementBy) {
   intptr_t v = 42;
   AtomicOperations::DecrementBy(&v, 41);
   EXPECT_EQ(static_cast<intptr_t>(1), v);
+}
+
+VM_UNIT_TEST_CASE(FetchOrRelaxed) {
+  uint32_t v = 42;
+  uint32_t previous = AtomicOperations::FetchOrRelaxedUint32(&v, 3);
+  EXPECT_EQ(static_cast<uint32_t>(42), previous);
+  EXPECT_EQ(static_cast<uint32_t>(43), v);
+}
+
+VM_UNIT_TEST_CASE(FetchAndRelaxed) {
+  uint32_t v = 42;
+  uint32_t previous = AtomicOperations::FetchAndRelaxedUint32(&v, 3);
+  EXPECT_EQ(static_cast<uint32_t>(42), previous);
+  EXPECT_EQ(static_cast<uint32_t>(2), v);
 }
 
 VM_UNIT_TEST_CASE(LoadRelaxed) {

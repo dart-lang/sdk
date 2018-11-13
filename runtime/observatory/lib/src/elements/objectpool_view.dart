@@ -82,7 +82,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(objects != null);
     ObjectPoolViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ObjectPoolViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -109,12 +109,12 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -129,7 +129,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'ObjectPool',
           new HRElement(),
           new ObjectCommonElement(_isolate, _pool, _retainedSizes,
@@ -140,9 +140,9 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberList']
             ..children = _pool.entries
-                .map((entry) => new DivElement()
+                .map<Element>((entry) => new DivElement()
                   ..classes = ['memberItem']
-                  ..children = [
+                  ..children = <Element>[
                     new DivElement()
                       ..classes = ['memberName', 'hexadecimal']
                       ..text = '[PP+0x${entry.offset.toRadixString(16)}]',
@@ -159,6 +159,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
 
   List<Element> _createEntry(M.ObjectPoolEntry entry) {
     switch (entry.kind) {
+      case M.ObjectPoolEntryKind.nativeEntryData:
       case M.ObjectPoolEntryKind.object:
         return [anyRef(_isolate, entry.asObject, _objects, queue: _r.queue)];
       case M.ObjectPoolEntryKind.immediate:

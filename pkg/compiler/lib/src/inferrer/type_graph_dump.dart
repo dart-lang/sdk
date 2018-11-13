@@ -4,9 +4,9 @@
 library dart2js.inferrer.type_graph_dump;
 
 import '../../compiler_new.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../types/types.dart';
+import '../elements/entity_utils.dart' as utils;
+import '../types/abstract_value_domain.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 import 'debug.dart';
@@ -80,7 +80,8 @@ class TypeGraphDump {
         String name = filenameFromElement(element);
         output = compilerOutput.createOutputSink(
             '$outputDir/$name', 'dot', OutputType.debug);
-        _GraphGenerator visitor = new _GraphGenerator(this, element, output);
+        _GraphGenerator visitor = new _GraphGenerator(
+            this, element, output, inferrer.abstractValueDomain.getCompactText);
         for (TypeInformation node in nodes[element]) {
           visitor.visit(node);
         }
@@ -99,11 +100,11 @@ class TypeGraphDump {
   ///
   /// Will never return the a given filename more than once, even if called with
   /// the same element.
-  String filenameFromElement(MemberElement element) {
+  String filenameFromElement(MemberEntity element) {
     // The toString method of elements include characters that are unsuitable
     // for URIs and file systems.
     List<String> parts = <String>[];
-    parts.add(element.library?.libraryName);
+    parts.add(element.library.canonicalUri.pathSegments.last);
     parts.add(element.enclosingClass?.name);
     if (element.isGetter) {
       parts.add('get-${element.name}');
@@ -115,19 +116,9 @@ class TypeGraphDump {
       } else {
         parts.add(element.name);
       }
-    } else if (element.isOperator) {
-      parts.add(Elements
-          .operatorNameToIdentifier(element.name)
-          .replaceAll(r'$', '-'));
     } else {
-      parts.add(element.name);
-    }
-    if (element != element) {
-      if (element.name.isEmpty) {
-        parts.add('anon${element.sourcePosition.begin}');
-      } else {
-        parts.add(element.name);
-      }
+      parts.add(
+          utils.operatorNameToIdentifier(element.name).replaceAll(r'$', '-'));
     }
     String filename = parts.where((x) => x != null && x != '').join('.');
     if (usedFilenames.add(filename)) return filename;
@@ -147,12 +138,13 @@ class _GraphGenerator extends TypeInformationVisitor {
   final Set<TypeInformation> seen = new Set<TypeInformation>();
   final List<TypeInformation> worklist = new List<TypeInformation>();
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
+  final String Function(AbstractValue) formatType;
   int usedIds = 0;
   final OutputSink output;
-  final MemberElement element;
+  final MemberEntity element;
   TypeInformation returnValue;
 
-  _GraphGenerator(this.global, this.element, this.output) {
+  _GraphGenerator(this.global, this.element, this.output, this.formatType) {
     returnValue = global.inferrer.types.getInferredTypeOfMember(element);
     getNode(returnValue); // Ensure return value is part of graph.
     append('digraph {');
@@ -372,7 +364,8 @@ class _GraphGenerator extends TypeInformationVisitor {
     addNode(info, 'BoolLiteral\n${info.value}');
   }
 
-  void handleCall(CallSiteTypeInformation info, String text, Map inputs) {
+  void handleCall(CallSiteTypeInformation info, String text,
+      Map<String, TypeInformation> inputs) {
     String sourceCode = shorten('${info.debugName}');
     text = '$text\n$sourceCode';
     if (info.arguments != null) {
@@ -422,42 +415,4 @@ class _GraphGenerator extends TypeInformationVisitor {
     String text = shorten('${info.debugName}');
     addNode(info, 'Yield\n$text');
   }
-}
-
-/// Convert the given TypeMask to a compact string format.
-///
-/// The default format is too verbose for the graph format since long strings
-/// create oblong nodes that obstruct the graph layout.
-String formatType(TypeMask type) {
-  if (type is FlatTypeMask) {
-    // TODO(asgerf): Disambiguate classes whose name is not unique. Using the
-    //     library name for all classes is not a good idea, since library names
-    //     can be really long and mess up the layout.
-    // Capitalize Null to emphasize that it's the null type mask and not
-    // a null value we accidentally printed out.
-    if (type.isEmptyOrNull) return type.isNullable ? 'Null' : 'Empty';
-    String nullFlag = type.isNullable ? '?' : '';
-    String subFlag = type.isExact ? '' : type.isSubclass ? '+' : '*';
-    return '${type.base.name}$nullFlag$subFlag';
-  }
-  if (type is UnionTypeMask) {
-    return type.disjointMasks.map(formatType).join(' | ');
-  }
-  if (type is ContainerTypeMask) {
-    String container = formatType(type.forwardTo);
-    String member = formatType(type.elementType);
-    return '$container<$member>';
-  }
-  if (type is MapTypeMask) {
-    String container = formatType(type.forwardTo);
-    String key = formatType(type.keyType);
-    String value = formatType(type.valueType);
-    return '$container<$key,$value>';
-  }
-  if (type is ValueTypeMask) {
-    String baseType = formatType(type.forwardTo);
-    String value = type.value.toStructuredText();
-    return '$baseType=$value';
-  }
-  return '$type'; // Fall back on toString if not supported here.
 }

@@ -1,0 +1,57 @@
+pkg/front_end/testcases/DeltaBlue.dart:458:20: Context: Write to overridden@13138
+        overridden = overridden.satisfy(mark));
+                   ^
+pkg/front_end/testcases/DeltaBlue.dart:479:48: Context: Write to i@14064
+      for (int i = 0; i < unsatisfied.length; i++) {
+                                               ^^
+pkg/front_end/testcases/DeltaBlue.dart:483:16: Context: Write to strength@14019
+      strength = strength.nextWeaker();
+               ^
+pkg/front_end/testcases/DeltaBlue.dart:530:46: Context: Write to i@16107
+    for (int i = 0; i < constraints.length; i++) {
+                                             ^^
+pkg/front_end/testcases/DeltaBlue.dart:578:50: Context: Write to i@17907
+      for (int i = 0; i < v.constraints.length; i++) {
+                                                 ^^
+pkg/front_end/testcases/DeltaBlue.dart:583:50: Context: Write to i@17907
+      for (int i = 0; i < v.constraints.length; i++) {
+                                                 ^^
+pkg/front_end/testcases/DeltaBlue.dart:596:48: Context: Write to i@18495
+    for (int i = 0; i < v.constraints.length; i++) {
+                                               ^^
+pkg/front_end/testcases/DeltaBlue.dart:618:39: Context: Write to i@19004
+    for (int i = 0; i < list.length; i++) {
+                                      ^^
+pkg/front_end/testcases/DeltaBlue.dart:641:28: Context: Write to i@19938
+  for (int i = 0; i <= n; i++) {
+                           ^^
+pkg/front_end/testcases/DeltaBlue.dart:644:23: Context: Write to first@19856
+    if (i == 0) first = v;
+                      ^
+pkg/front_end/testcases/DeltaBlue.dart:645:22: Context: Write to last@19870
+    if (i == n) last = v;
+                     ^
+pkg/front_end/testcases/DeltaBlue.dart:646:10: Context: Write to prev@19843
+    prev = v;
+         ^
+pkg/front_end/testcases/DeltaBlue.dart:651:29: Context: Write to i@19938
+  for (int i = 0; i < 100; i++) {
+                            ^^
+pkg/front_end/testcases/DeltaBlue.dart:674:27: Context: Write to i@21029
+  for (int i = 0; i < n; i++) {
+                          ^^
+pkg/front_end/testcases/DeltaBlue.dart:675:9: Context: Write to src@20954
+    src = new Variable("src", i);
+        ^
+pkg/front_end/testcases/DeltaBlue.dart:676:9: Context: Write to dst@20966
+    dst = new Variable("dst", i);
+        ^
+pkg/front_end/testcases/DeltaBlue.dart:686:31: Context: Write to i@21029
+  for (int i = 0; i < n - 1; i++) {
+                              ^^
+pkg/front_end/testcases/DeltaBlue.dart:690:31: Context: Write to i@21029
+  for (int i = 0; i < n - 1; i++) {
+                              ^^
+pkg/front_end/testcases/DeltaBlue.dart:698:28: Context: Write to i@21836
+  for (int i = 0; i < 10; i++) {
+                           ^^

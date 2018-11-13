@@ -1,0 +1,42 @@
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:23:9: Context: Write to local@474
+  local = /*@typeArgs=B*/ f();
+        ^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:24:9: Context: Write to local@474
+  local ??= /*@typeArgs=B*/ f();
+        ^^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:25:9: Context: Write to local@474
+  local += /*@typeArgs=dynamic*/ f();
+        ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:26:9: Context: Write to local@474
+  local *= /*@typeArgs=dynamic*/ f();
+        ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:27:9: Context: Write to local@474
+  local &= /*@typeArgs=dynamic*/ f();
+        ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:28:3: Context: Write to local@474
+  --local;
+  ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:29:8: Context: Write to local@474
+  local--;
+       ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:30:30: Context: Write to local@474
+  var /*@type=B*/ v1 = local = /*@typeArgs=B*/ f();
+                             ^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:31:30: Context: Write to local@474
+  var /*@type=B*/ v2 = local ??= /*@typeArgs=B*/ f();
+                             ^^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:32:30: Context: Write to local@474
+  var /*@type=A*/ v3 = local += /*@typeArgs=dynamic*/ f();
+                             ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:33:30: Context: Write to local@474
+  var /*@type=B*/ v4 = local *= /*@typeArgs=dynamic*/ f();
+                             ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:34:30: Context: Write to local@474
+  var /*@type=C*/ v5 = local &= /*@typeArgs=dynamic*/ f();
+                             ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:35:24: Context: Write to local@474
+  var /*@type=B*/ v6 = --local;
+                       ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:36:29: Context: Write to local@474
+  var /*@type=B*/ v7 = local--;
+                            ^^

@@ -8,9 +8,9 @@ class A {
   get getter1 => null; //# 01: ok
   num get getter2 => null; //# 02: ok
   num get getter3 => null; //# 03: ok
-  int get getter4 => null; //# 04: ok
+  int get getter4 => null; //# 04: compile-time error
   int get getter5 => null; //# 05: compile-time error
-  int get getter6 => null; //# 06: ok
+  int get getter6 => null; //# 06: compile-time error
   int get getter7 => null; //# 07: compile-time error
   int get getter8 => null; //# 08: compile-time error
 
@@ -19,27 +19,28 @@ class A {
   set setter3(_) => null; //# 23: ok
   set setter4(_) => null; //# 24: ok
   set setter5(num _) => null; //# 25: ok
-  set setter6(num _) => null; //# 26: ok
+  set setter6(num _) => null; //# 26: compile-time error
   set setter7(int _) => null; //# 27: ok
   set setter8(int _) => null; //# 28: compile-time error
-  set setter9(int _) => null; //# 29: ok
+  set setter9(int _) => null; //# 29: compile-time error
   set setter10(int _) => null; //# 30: compile-time error
   set setter11(int _) => null; //# 31: compile-time error
 
   @virtual int field1; //# 41: ok
   num field2; //# 42: ok
-  int field3; //# 43: ok
+  int field3; //# 43: compile-time error
   int field4; //# 44: compile-time error
-  int field5; //# 45: ok
+  int field5; //# 45: compile-time error
   @virtual num field6; //# 46: ok
   num field7; //# 47: compile-time error
   num get field8 => null; //# 48: compile-time error
-  num field9; //# 49: ok
-  num field10; //# 50: ok
+  num field9; //# 49: compile-time error
+  num field10; //# 50: compile-time error
   set field11(int _) {} //# 51: ok
   void set field12(int _) {} //# 52: ok
   num field13; //# 53: compile-time error
   set field14(num _) {} //# 54: compile-time error
+  num field15; //# 55: ok
 }
 
 class B extends A {
@@ -110,6 +111,7 @@ abstract class Class extends B implements I, J {
   num field12; //# 52: continued
   set field13(String _) {} //# 53: continued
   String field14; //# 54: continued
+  set field15(covariant int _) {} //# 55: continued
 }
 
 class SubClass extends Class {

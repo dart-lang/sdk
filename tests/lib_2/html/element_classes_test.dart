@@ -278,7 +278,7 @@ main() {
   test('listClasses=', () {
     var elements = listElementSetup();
     elements.classes = ['foo', 'qux'];
-    elements = document.queryAll('li');
+    elements = document.querySelectorAll('li');
     for (Element e in elements) {
       expect(e.classes, equals(['foo', 'qux']));
       expect(extractClasses(e), equals(['foo', 'qux']));

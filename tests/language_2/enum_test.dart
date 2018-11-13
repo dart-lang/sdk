@@ -16,6 +16,21 @@ enum _Enum6 { I, _J }
 
 enum _IsNot { IsNot }
 
+// Regression test for https://github.com/dart-lang/sdk/issues/33348
+enum JSFunctionPrototype {
+  length,
+  prototype,
+  __proto__,
+  arguments,
+  caller,
+  calee,
+  name,
+  constructor,
+  apply,
+  bind,
+  call
+}
+
 void expectIs<T>(T t, bool Function(Object) test) {
   Object obj = t;
   Expect.isTrue(test(obj), '$obj is $T');
@@ -68,6 +83,11 @@ main() {
 
   Expect.equals('_Enum6.I', _Enum6.I.toString());
   Expect.equals('_Enum6._J', _Enum6._J.toString());
+
+  for (var value in JSFunctionPrototype.values) {
+    expectIs(value, (e) => e is JSFunctionPrototype);
+  }
+  Expect.equals(JSFunctionPrototype.length, JSFunctionPrototype.values[0]);
 }
 
 test1(Enum1 e) {

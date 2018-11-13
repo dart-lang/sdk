@@ -24,13 +24,6 @@ jsCallEffectsAllDependsNoIndex() => JS('effects:all;depends:no-index', '#', 0);
 jsCallEffectsNoInstanceDependsNoStatic() =>
     JS('effects:no-instance;depends:no-static', '#', 0);
 
-/*element: jsBuiltin_createFunctionTypeRti:SideEffects(reads static; writes nothing)*/
-jsBuiltin_createFunctionTypeRti() {
-  // TODO(johnniwinther): Why doesn't this have `Depends on nothing`?
-  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-      JsBuiltin.createFunctionTypeRti);
-}
-
 /*element: jsBuiltin_rawRtiToJsConstructorName:SideEffects(reads anything; writes anything)*/
 jsBuiltin_rawRtiToJsConstructorName() {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, null);
@@ -59,7 +52,6 @@ main() {
   jsCallEffectsAllDependsNoIndex();
   jsCallEffectsNoInstanceDependsNoStatic();
 
-  jsBuiltin_createFunctionTypeRti();
   jsBuiltin_rawRtiToJsConstructorName();
 
   jsEmbeddedGlobal_getTypeFromName();

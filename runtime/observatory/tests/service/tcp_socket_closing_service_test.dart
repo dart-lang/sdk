@@ -35,14 +35,14 @@ Future setup() async {
 
   var server = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   server.listen((io.RawSocketEvent event) {
-    if (event == io.RawSocketEvent.READ) {
+    if (event == io.RawSocketEvent.read) {
       io.Datagram dg = server.receive();
       dg.data.forEach((x) => true);
       server.close();
     }
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
-  client.send(UTF8.encoder.convert('foobar'),
+  client.send(utf8.encoder.convert('foobar'),
       new io.InternetAddress('127.0.0.1'), server.port);
   client.close();
 

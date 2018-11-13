@@ -4,18 +4,11 @@
 
 library dart2js.source_information;
 
-import 'package:kernel/ast.dart' show Location;
+import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
-import '../elements/elements.dart'
-    show
-        AstElement,
-        CompilationUnitElement,
-        LocalElement,
-        ResolvedAst,
-        ResolvedAstKind;
 import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
-import '../script.dart';
+import '../universe/call_structure.dart';
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
@@ -36,21 +29,41 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   /// The source location associated with the end of the JS node.
   SourceLocation get endPosition => null;
 
-  /// All source locations associated with this source information.
+  /// A list containing start, inner, and end positions.
   List<SourceLocation> get sourceLocations;
+
+  /// A list of inlining context locations.
+  List<FrameContext> get inliningContext => null;
 
   /// Return a short textual representation of the source location.
   String get shortText;
 }
 
+/// Context information about inlined calls.
+///
+/// This is associated with SourceInformation objects to be able to emit
+/// precise data about inlining that can then be used by defobuscation tools
+/// when reconstructing a source stack from a production stack trace.
+class FrameContext {
+  /// Location of the call that was inlined.
+  final SourceInformation callInformation;
+
+  /// Name of the method that was inlined.
+  final String inlinedMethodName;
+
+  FrameContext(this.callInformation, this.inlinedMethodName);
+
+  String toString() => "(FrameContext: $callInformation, $inlinedMethodName)";
+}
+
 /// Strategy for creating, processing and applying [SourceInformation].
-class SourceInformationStrategy<T> {
+class SourceInformationStrategy {
   const SourceInformationStrategy();
 
   /// Create a [SourceInformationBuilder] for [member].
-  SourceInformationBuilder<T> createBuilderForContext(
+  SourceInformationBuilder createBuilderForContext(
       covariant MemberEntity member) {
-    return const SourceInformationBuilder();
+    return new SourceInformationBuilder();
   }
 
   /// Generate [SourceInformation] marker for non-preamble code.
@@ -61,62 +74,73 @@ class SourceInformationStrategy<T> {
 }
 
 /// Interface for generating [SourceInformation].
-class SourceInformationBuilder<T> {
+class SourceInformationBuilder {
   const SourceInformationBuilder();
 
-  /// Create a [SourceInformationBuilder] for [member].
-  SourceInformationBuilder forContext(covariant MemberEntity member) => this;
+  /// Create a [SourceInformationBuilder] for [member] with additional inlining
+  /// [context].
+  SourceInformationBuilder forContext(
+          covariant MemberEntity member, SourceInformation context) =>
+      this;
 
-  /// Generate [SourceInformation] the declaration of the [member].
+  /// Generate [SourceInformation] for the declaration of the [member].
   SourceInformation buildDeclaration(covariant MemberEntity member) => null;
+
+  /// Generate [SourceInformation] for the stub of [callStructure] for [member].
+  SourceInformation buildStub(
+          covariant FunctionEntity function, CallStructure callStructure) =>
+      null;
 
   /// Generate [SourceInformation] for the generic [node].
   @deprecated
-  SourceInformation buildGeneric(T node) => null;
+  SourceInformation buildGeneric(ir.Node node) => null;
 
   /// Generate [SourceInformation] for an instantiation of a class using [node]
   /// for the source position.
-  SourceInformation buildCreate(T node) => null;
+  SourceInformation buildCreate(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the return [node].
-  SourceInformation buildReturn(T node) => null;
+  SourceInformation buildReturn(ir.Node node) => null;
 
   /// Generate [SourceInformation] for an implicit return in [element].
   SourceInformation buildImplicitReturn(covariant MemberEntity element) => null;
 
   /// Generate [SourceInformation] for the loop [node].
-  SourceInformation buildLoop(T node) => null;
+  SourceInformation buildLoop(ir.Node node) => null;
 
-  /// Generate [SourceInformation] for a read access like `a.b` where in
-  /// [receiver] points to the left-most part of the access, `a` in the example,
-  /// and [property] points to the 'name' of accessed property, `b` in the
-  /// example.
-  SourceInformation buildGet(T node) => null;
+  /// Generate [SourceInformation] for a read access like `a.b`.
+  SourceInformation buildGet(ir.Node node) => null;
 
-  /// Generate [SourceInformation] for the read access in [node].
-  SourceInformation buildCall(T receiver, T call) => null;
+  /// Generate [SourceInformation] for a write access like `a.b = 3`.
+  SourceInformation buildSet(ir.Node node) => null;
+
+  /// Generate [SourceInformation] for a call in [node].
+  SourceInformation buildCall(ir.Node receiver, ir.Node call) => null;
 
   /// Generate [SourceInformation] for the if statement in [node].
-  SourceInformation buildIf(T node) => null;
+  SourceInformation buildIf(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the constructor invocation in [node].
-  SourceInformation buildNew(T node) => null;
+  SourceInformation buildNew(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the throw in [node].
-  SourceInformation buildThrow(T node) => null;
+  SourceInformation buildThrow(ir.Node node) => null;
+
+  /// Generate [SourceInformation] for the assert in [node].
+  SourceInformation buildAssert(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the assignment in [node].
-  SourceInformation buildAssignment(T node) => null;
+  SourceInformation buildAssignment(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the variable declaration inserted as
   /// first statement of a function.
   SourceInformation buildVariableDeclaration() => null;
 
   /// Generate [SourceInformation] for the await [node].
-  SourceInformation buildAwait(T node) => null;
+  SourceInformation buildAwait(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the yield or yield* [node].
-  SourceInformation buildYield(T node) => null;
+  SourceInformation buildYield(ir.Node node) => null;
 
   /// Generate [SourceInformation] for async/await boiler plate code.
   SourceInformation buildAsyncBody() => null;
@@ -125,58 +149,58 @@ class SourceInformationBuilder<T> {
   SourceInformation buildAsyncExit() => null;
 
   /// Generate [SourceInformation] for an invocation of a foreign method.
-  SourceInformation buildForeignCode(T node) => null;
+  SourceInformation buildForeignCode(ir.Node node) => null;
 
   /// Generate [SourceInformation] for a string interpolation of [node].
-  SourceInformation buildStringInterpolation(T node) => null;
+  SourceInformation buildStringInterpolation(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in `iterator` access in [node].
-  SourceInformation buildForInIterator(T node) => null;
+  SourceInformation buildForInIterator(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in `moveNext` call in [node].
-  SourceInformation buildForInMoveNext(T node) => null;
+  SourceInformation buildForInMoveNext(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in `current` access in [node].
-  SourceInformation buildForInCurrent(T node) => null;
+  SourceInformation buildForInCurrent(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in variable assignment in [node].
-  SourceInformation buildForInSet(T node) => null;
+  SourceInformation buildForInSet(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the operator `[]` access in [node].
-  SourceInformation buildIndex(T node) => null;
+  SourceInformation buildIndex(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the operator `[]=` assignment in [node].
-  SourceInformation buildIndexSet(T node) => null;
+  SourceInformation buildIndexSet(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the binary operation in [node].
-  SourceInformation buildBinary(T node) => null;
+  SourceInformation buildBinary(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the unary operation in [node].
-  SourceInformation buildUnary(T node) => null;
+  SourceInformation buildUnary(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the try statement in [node].
-  SourceInformation buildTry(T node) => null;
+  SourceInformation buildTry(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the unary operator in [node].
-  SourceInformation buildCatch(T node) => null;
+  SourceInformation buildCatch(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the is-test in [node].
-  SourceInformation buildIs(T node) => null;
+  SourceInformation buildIs(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the as-cast in [node].
-  SourceInformation buildAs(T node) => null;
+  SourceInformation buildAs(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the switch statement [node].
-  SourceInformation buildSwitch(T node) => null;
+  SourceInformation buildSwitch(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the switch case in [node].
-  SourceInformation buildSwitchCase(T node) => null;
+  SourceInformation buildSwitchCase(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the list literal in [node].
-  SourceInformation buildListLiteral(T node) => null;
+  SourceInformation buildListLiteral(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the break/continue in [node].
-  SourceInformation buildGoto(T node) => null;
+  SourceInformation buildGoto(ir.Node node) => null;
 }
 
 /// A location in a source file.
@@ -223,7 +247,7 @@ abstract class SourceLocation {
 /// A location in a source file.
 abstract class AbstractSourceLocation extends SourceLocation {
   final SourceFile _sourceFile;
-  Location _location;
+  ir.Location _location;
 
   AbstractSourceLocation(this._sourceFile) {
     assert(
@@ -235,6 +259,9 @@ abstract class AbstractSourceLocation extends SourceLocation {
   }
 
   AbstractSourceLocation.fromLocation(this._location) : _sourceFile = null;
+
+  AbstractSourceLocation.fromOther(AbstractSourceLocation location)
+      : this.fromLocation(location._location);
 
   /// The absolute URI of the source file of this source location.
   Uri get sourceUri => _sourceFile.uri;
@@ -271,87 +298,48 @@ class OffsetSourceLocation extends AbstractSourceLocation {
   String toString() => '${super.toString()}:$sourceName';
 }
 
-/// Compute the source map name for [element].
-String computeElementNameForSourceMaps(Entity element) {
-  if (element is AstElement) {
-    return _computeAstElementNameForSourceMaps(element);
-  } else if (element is ClassEntity) {
+/// Compute the source map name for [element]. If [callStructure] is non-null
+/// it is used to name the parameter stub for [element].
+// TODO(johnniwinther): Merge this with `computeKernelElementNameForSourceMaps`
+// when the old frontend is removed.
+String computeElementNameForSourceMaps(Entity element,
+    [CallStructure callStructure]) {
+  if (element is ClassEntity) {
     return element.name;
   } else if (element is MemberEntity) {
+    String suffix = computeStubSuffix(callStructure);
     if (element is ConstructorEntity || element is ConstructorBodyEntity) {
       String className = element.enclosingClass.name;
       if (element.name == '') {
         return className;
       }
-      return '$className.${element.name}';
+      return '$className.${element.name}$suffix';
     } else if (element.enclosingClass != null) {
       if (element.enclosingClass.isClosure) {
-        return computeElementNameForSourceMaps(element.enclosingClass);
+        return computeElementNameForSourceMaps(
+            element.enclosingClass, callStructure);
       }
-      return '${element.enclosingClass.name}.${element.name}';
+      return '${element.enclosingClass.name}.${element.name}$suffix';
     } else {
-      return element.name;
+      return '${element.name}$suffix';
     }
   }
   // TODO(redemption): Create element names from kernel locals and closures.
   return element.name;
 }
 
-String _computeAstElementNameForSourceMaps(AstElement element) {
-  if (element.isClosure) {
-    return computeElementNameForSourceMaps(element.enclosingElement);
-  } else if (element.isClass) {
-    return element.name;
-  } else if (element.isConstructor || element.isGenerativeConstructorBody) {
-    String className = element.enclosingClass.name;
-    if (element.name == '') {
-      return className;
-    }
-    return '$className.${element.name}';
-  } else if (element.isLocal) {
-    LocalElement local = element;
-    String name = local.name;
-    if (name == '') {
-      name = '<anonymous function>';
-    }
-    return '${computeElementNameForSourceMaps(local.executableContext)}.$name';
-  } else if (element.enclosingClass != null) {
-    if (element.enclosingClass.isClosure) {
-      return computeElementNameForSourceMaps(element.enclosingClass);
-    }
-    return '${element.enclosingClass.name}.${element.name}';
-  } else {
-    return element.name;
+/// Compute the suffix used for a parameter stub for [callStructure].
+String computeStubSuffix(CallStructure callStructure) {
+  if (callStructure == null) return '';
+  StringBuffer sb = new StringBuffer();
+  sb.write(r'[function-entry$');
+  sb.write(callStructure.positionalArgumentCount);
+  if (callStructure.namedArguments.isNotEmpty) {
+    sb.write(r'$');
+    sb.write(callStructure.getOrderedNamedArguments().join(r'$'));
   }
-}
-
-/// Computes the [SourceFile] for the source code of [resolvedAst].
-SourceFile computeSourceFile(ResolvedAst resolvedAst) {
-  SourceFile sourceFile;
-  if (resolvedAst.kind != ResolvedAstKind.PARSED) {
-    // Synthesized node. Use the enclosing element for the location.
-    sourceFile = resolvedAst.element.compilationUnit.script.file;
-  } else {
-    Uri uri = resolvedAst.sourceUri;
-    AstElement implementation = resolvedAst.element.implementation;
-    Script script = implementation.compilationUnit.script;
-    if (uri == script.resourceUri) {
-      sourceFile = script.file;
-    } else {
-      // Slow path, happens only for deserialized elements.
-      // TODO(johnniwinther): Support a way to get a [SourceFile] from a
-      // [Uri].
-      for (CompilationUnitElement compilationUnit
-          in implementation.library.compilationUnits) {
-        Script script = compilationUnit.script;
-        if (uri == script.resourceUri) {
-          sourceFile = script.file;
-          break;
-        }
-      }
-    }
-  }
-  return sourceFile;
+  sb.write(']');
+  return sb.toString();
 }
 
 class NoSourceLocationMarker extends SourceLocation {
@@ -378,4 +366,30 @@ class NoSourceLocationMarker extends SourceLocation {
   String get shortName => '<no-location>';
 
   String toString() => '<no-location>';
+}
+
+/// Information tracked about inlined frames.
+///
+/// Dart2js adds an extension to source-map files to track where calls are
+/// inlined. This information is used to improve the precision of tools that
+/// deobfuscate production stack traces.
+class FrameEntry {
+  /// For push operations, the location of the inlining call, otherwise null.
+  final SourceLocation pushLocation;
+
+  /// For push operations, the inlined method name, otherwise null.
+  final String inlinedMethodName;
+
+  /// Whether a pop is the last pop that makes the inlining stack empty.
+  final bool isEmptyPop;
+
+  FrameEntry.push(this.pushLocation, this.inlinedMethodName)
+      : isEmptyPop = false;
+
+  FrameEntry.pop(this.isEmptyPop)
+      : pushLocation = null,
+        inlinedMethodName = null;
+
+  bool get isPush => pushLocation != null;
+  bool get isPop => pushLocation == null;
 }

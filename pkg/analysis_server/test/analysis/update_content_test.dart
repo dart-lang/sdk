@@ -61,23 +61,22 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   test_multiple_contexts() async {
-    String fooPath = '/project1/foo.dart';
-    resourceProvider.newFile(fooPath, '''
+    String project1path = convertPath('/project1');
+    String project2path = convertPath('/project2');
+    String fooPath = newFile('/project1/foo.dart', content: '''
 library foo;
 import '../project2/baz.dart';
-main() { f(); }''');
-    String barPath = '/project2/bar.dart';
-    resourceProvider.newFile(barPath, '''
+main() { f(); }''').path;
+    String barPath = newFile('/project2/bar.dart', content: '''
 library bar;
 import 'baz.dart';
-main() { f(); }''');
-    String bazPath = '/project2/baz.dart';
-    resourceProvider.newFile(bazPath, '''
+main() { f(); }''').path;
+    String bazPath = newFile('/project2/baz.dart', content: '''
 library baz;
 f(int i) {}
-''');
+''').path;
     Request request =
-        new AnalysisSetAnalysisRootsParams(['/project1', '/project2'], [])
+        new AnalysisSetAnalysisRootsParams([project1path, project2path], [])
             .toRequest('0');
     handleSuccessfulRequest(request);
     {
@@ -106,7 +105,7 @@ f() {}
   @failingTest
   test_overlay_addPreviouslyImported() async {
     // The list of errors doesn't include errors for '/project/target.dart'.
-    Folder project = resourceProvider.newFolder('/project');
+    Folder project = newFolder('/project');
     handleSuccessfulRequest(
         new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
 
@@ -129,9 +128,9 @@ f() {}
   }
 
   test_overlayOnly() async {
-    String filePath = '/User/project1/test.dart';
-    Folder folder1 = resourceProvider.newFolder('/User/project1');
-    Folder folder2 = resourceProvider.newFolder('/User/project2');
+    String filePath = convertPath('/User/project1/test.dart');
+    Folder folder1 = newFolder('/User/project1');
+    Folder folder2 = newFolder('/User/project2');
     Request request =
         new AnalysisSetAnalysisRootsParams([folder1.path, folder2.path], [])
             .toRequest('0');
@@ -213,7 +212,7 @@ f() {}
     Map<String, dynamic> files = params.files;
     expect(files, hasLength(1));
     Object overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.AddContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.AddContentOverlay>());
     plugin.AddContentOverlay addOverlay = overlay;
     expect(addOverlay.content, fileContent);
     //
@@ -229,7 +228,7 @@ f() {}
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.ChangeContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.ChangeContentOverlay>());
     plugin.ChangeContentOverlay changeOverlay = overlay;
     expect(changeOverlay.edits, hasLength(2));
     //
@@ -244,7 +243,7 @@ f() {}
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.RemoveContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.RemoveContentOverlay>());
   }
 
 //  CompilationUnit _getTestUnit() {
@@ -257,7 +256,7 @@ f() {}
   List<String> _getUserSources(AnalysisDriver driver) {
     List<String> sources = <String>[];
     driver.addedFiles.forEach((path) {
-      if (path.startsWith('/User/')) {
+      if (path.startsWith(convertPath('/User/'))) {
         sources.add(path);
       }
     });

@@ -39,7 +39,7 @@ class FunctionRefElement extends HtmlElement implements Renderable {
     assert(function != null);
     assert(qualified != null);
     FunctionRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<FunctionRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._function = function;
     e._qualified = qualified;
@@ -57,7 +57,7 @@ class FunctionRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     title = '';
     _r.disable(notify: true);
   }

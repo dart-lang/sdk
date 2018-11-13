@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.inputs_test;
-
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -116,7 +114,7 @@ class ConstantTaskInputTest extends EngineTestCase {
 
   test_createBuilder() {
     ConstantTaskInput<int> input = new ConstantTaskInput<int>(5);
-    expect(input.createBuilder(), new isInstanceOf<ConstantTaskInputBuilder>());
+    expect(input.createBuilder(), new TypeMatcher<ConstantTaskInputBuilder>());
   }
 }
 
@@ -136,36 +134,35 @@ class ListTaskInputImplTest extends EngineTestCase {
 
   test_createBuilder() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    expect(input.createBuilder(), new isInstanceOf<SimpleTaskInputBuilder>());
+    expect(input.createBuilder(), new TypeMatcher<SimpleTaskInputBuilder>());
   }
 
   test_toList() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<List> input2 =
-        input.toList((target) => new SimpleTaskInput(target, null));
-    expect(input2,
-        new isInstanceOf<ListToListTaskInput<AnalysisTarget, String>>());
+    ListTaskInput<String> input2 =
+        input.toList((target) => new SimpleTaskInput<String>(target, null));
+    expect(
+        input2, new TypeMatcher<ListToListTaskInput<AnalysisTarget, String>>());
   }
 
   test_toListOf() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<List> input2 = input.toListOf(result2);
-    expect(
-        input2, new isInstanceOf<ListToListTaskInput<AnalysisTarget, int>>());
+    ListTaskInput<int> input2 = input.toListOf(result2);
+    expect(input2, new TypeMatcher<ListToListTaskInput<AnalysisTarget, int>>());
   }
 
   test_toMap() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<Map> input2 =
-        input.toMap((target) => new SimpleTaskInput(target, null));
+    MapTaskInput<AnalysisTarget, String> input2 =
+        input.toMap((target) => new SimpleTaskInput<String>(target, null));
     expect(
-        input2, new isInstanceOf<ListToMapTaskInput<AnalysisTarget, String>>());
+        input2, new TypeMatcher<ListToMapTaskInput<AnalysisTarget, String>>());
   }
 
   test_toMapOf() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<Map> input2 = input.toMapOf(result2);
-    expect(input2, new isInstanceOf<ListToMapTaskInput<AnalysisTarget, int>>());
+    MapTaskInput<AnalysisTarget, int> input2 = input.toMapOf(result2);
+    expect(input2, new TypeMatcher<ListToMapTaskInput<AnalysisTarget, int>>());
   }
 }
 
@@ -279,7 +276,7 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
     builder.currentValue = value3;
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<List>());
+    expect(inputValue, new TypeMatcher<List>());
     List list = inputValue;
     expect(list.length, 2);
     expect(list[0], value2);
@@ -299,7 +296,7 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
     builder.currentValue = value3;
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<List>());
+    expect(inputValue, new TypeMatcher<List>());
     List list = inputValue;
     expect(list, orderedEquals([value3]));
   }
@@ -310,7 +307,7 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
     builder.currentValueNotAvailable();
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<List>());
+    expect(inputValue, new TypeMatcher<List>());
     List list = inputValue;
     expect(list, isEmpty);
   }
@@ -349,7 +346,7 @@ class ListToListTaskInputTest extends EngineTestCase {
 
   test_create() {
     SimpleTaskInput<List> baseAccessor = result.of(target);
-    GenerateTaskInputs generate = (object) {};
+    GenerateTaskInputs generate = (object) => null;
     ListToListTaskInput input = new ListToListTaskInput(baseAccessor, generate);
     expect(input, isNotNull);
     expect(input.baseAccessor, baseAccessor);
@@ -358,7 +355,7 @@ class ListToListTaskInputTest extends EngineTestCase {
 
   test_createBuilder() {
     SimpleTaskInput<List> baseAccessor = result.of(target);
-    GenerateTaskInputs generate = (object) {};
+    GenerateTaskInputs generate = (object) => null;
     ListToListTaskInput input = new ListToListTaskInput(baseAccessor, generate);
     expect(input.createBuilder(), isNotNull);
   }
@@ -474,7 +471,7 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
     builder.currentValue = value3;
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<Map>());
+    expect(inputValue, new TypeMatcher<Map>());
     expect(inputValue.length, 2);
     expect(inputValue, containsPair(target2, value2));
     expect(inputValue, containsPair(target3, value3));
@@ -493,7 +490,7 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
     builder.currentValue = value3;
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<Map>());
+    expect(inputValue, new TypeMatcher<Map>());
     expect(inputValue, hasLength(1));
     expect(inputValue, containsPair(target3, value3));
   }
@@ -504,7 +501,7 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
     builder.currentValueNotAvailable();
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<Map>());
+    expect(inputValue, new TypeMatcher<Map>());
     expect(inputValue, isEmpty);
   }
 
@@ -542,7 +539,7 @@ class ListToMapTaskInputTest extends EngineTestCase {
 
   test_create() {
     SimpleTaskInput<List> baseAccessor = result.of(target);
-    GenerateTaskInputs generate = (object) {};
+    GenerateTaskInputs generate = (object) => null;
     ListToMapTaskInput input = new ListToMapTaskInput(baseAccessor, generate);
     expect(input, isNotNull);
     expect(input.baseAccessor, baseAccessor);
@@ -551,7 +548,7 @@ class ListToMapTaskInputTest extends EngineTestCase {
 
   test_createBuilder() {
     SimpleTaskInput<List> baseAccessor = result.of(target);
-    GenerateTaskInputs generate = (object) {};
+    GenerateTaskInputs generate = (object) => null;
     ListToMapTaskInput input = new ListToMapTaskInput(baseAccessor, generate);
     expect(input.createBuilder(), isNotNull);
   }
@@ -702,8 +699,8 @@ class ObjectToListTaskInputTest extends EngineTestCase {
     SimpleTaskInput baseInput = new SimpleTaskInput(target, result);
     var mapper = (Object x) => [x];
     ObjectToListTaskInput input = new ObjectToListTaskInput(baseInput, mapper);
-    expect(input.createBuilder(),
-        new isInstanceOf<ObjectToListTaskInputBuilder>());
+    expect(
+        input.createBuilder(), new TypeMatcher<ObjectToListTaskInputBuilder>());
   }
 }
 
@@ -845,7 +842,7 @@ class SimpleTaskInputTest extends EngineTestCase {
 
   test_createBuilder() {
     SimpleTaskInput input = new SimpleTaskInput(target, result);
-    expect(input.createBuilder(), new isInstanceOf<SimpleTaskInputBuilder>());
+    expect(input.createBuilder(), new TypeMatcher<SimpleTaskInputBuilder>());
   }
 }
 
@@ -1015,7 +1012,7 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
     builder.currentValue = value2;
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<Map>());
+    expect(inputValue, new TypeMatcher<Map>());
     Map inputs = inputValue;
     expect(inputs.length, 2);
     expect(inputs, containsPair(key1, value1));
@@ -1043,7 +1040,7 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
     builder.currentValue = value2;
     builder.moveNext(); // Advance to the end
     var inputValue = builder.inputValue;
-    expect(inputValue, new isInstanceOf<Map>());
+    expect(inputValue, new TypeMatcher<Map>());
     Map inputs = inputValue;
     expect(inputs, hasLength(1));
     expect(inputs, containsPair(key2, value2));

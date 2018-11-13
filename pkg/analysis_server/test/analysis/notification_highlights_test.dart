@@ -252,7 +252,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'get = 42');
   }
 
-  test_BUILT_IN_hide() async {
+  Future<void> test_BUILT_IN_hide() async {
     addTestFile('''
 import 'foo.dart' hide Foo;
 main() {
@@ -275,7 +275,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'implements = 42');
   }
 
-  test_BUILT_IN_import() async {
+  Future<void> test_BUILT_IN_import() async {
     addTestFile('''
 import "foo.dart";
 main() {
@@ -297,7 +297,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'library = 42');
   }
 
-  test_BUILT_IN_native() async {
+  Future<void> test_BUILT_IN_native() async {
     addTestFile('''
 class A native "A_native" {}
 class B {
@@ -312,7 +312,16 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'native = 42');
   }
 
-  test_BUILT_IN_on() async {
+  test_BUILT_IN_on_inMixin() async {
+    addTestFile('''
+mixin M on N {}
+class N {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'on N');
+  }
+
+  test_BUILT_IN_on_inTry() async {
     addTestFile('''
 main() {
   try {
@@ -344,7 +353,7 @@ part "my_part.dart";
 main() {
   var part = 42;
 }''');
-    addFile('/project/bin/my_part.dart', 'part of lib;');
+    newFile('/project/bin/my_part.dart', content: 'part of lib;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'part "my_');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
@@ -379,7 +388,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'set = 42');
   }
 
-  test_BUILT_IN_show() async {
+  Future<void> test_BUILT_IN_show() async {
     addTestFile('''
 import 'foo.dart' show Foo;
 main() {
@@ -496,25 +505,47 @@ void my_function(String a) {
     assertHasRegion(HighlightRegionType.COMMENT_BLOCK, '/* b', 19);
   }
 
-  test_CONSTRUCTOR() async {
+  test_CONSTRUCTOR_explicitNew() async {
     addTestFile('''
-class AAA {
+class AAA<T> {
   AAA() {}
   AAA.name(p) {}
 }
 main() {
-  new AAA();
-  new AAA.name(42);
+  new AAA<int>();
+  new AAA<int>.name(42);
 }
 ''');
     await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>.name(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>.name(');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
-    assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA() {}');
-    assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA();');
   }
 
-  test_DIRECTIVE() async {
+  test_CONSTRUCTOR_implicitNew() async {
+    addTestFile('''
+class AAA<T> {
+  AAA() {}
+  AAA.name(p) {}
+}
+main() {
+  AAA<int>();
+  AAA<int>.name(42);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>.name(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>.name(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
+  }
+
+  Future<void> test_DIRECTIVE() async {
     addTestFile('''
 library lib;
 import 'dart:math';
@@ -750,6 +781,14 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  test_KEYWORD_mixin() async {
+    addTestFile('''
+mixin M {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin');
+  }
+
   test_KEYWORD_void() async {
     addTestFile('''
 void main() {
@@ -890,7 +929,7 @@ main(A a) {
     assertHasRegion(HighlightRegionType.FIELD, 'bbb = 2');
   }
 
-  test_TOP_LEVEL_VARIABLE() async {
+  Future<void> test_TOP_LEVEL_VARIABLE() async {
     addTestFile('''
 const VVV = 0;
 @VVV // annotation
@@ -907,7 +946,7 @@ main() {
     assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 1');
   }
 
-  test_TYPE_NAME_DYNAMIC() async {
+  Future<void> test_TYPE_NAME_DYNAMIC() async {
     addTestFile('''
 dynamic main() {
   dynamic = 42;
@@ -934,7 +973,7 @@ class A<T> {
   }
 
   void _addLibraryForTestPart() {
-    addFile('$testFolder/my_lib.dart', '''
+    newFile(join(testFolder, 'my_lib.dart'), content: '''
 library lib;
 part 'test.dart';
     ''');

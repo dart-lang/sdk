@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -265,7 +265,7 @@ enum E2 { three, four }''');
     analyzer.CompilationUnit unit = await resolveLibraryUnit(source);
     {
       analyzer.ClassElement engineElement = findElementInUnit(unit, '_E1');
-      expect(engineElement.isDeprecated, isTrue);
+      expect(engineElement.hasDeprecated, isTrue);
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.ENUM);
@@ -282,7 +282,7 @@ enum E2 { three, four }''');
       expect(element.parameters, isNull);
       expect(
           element.flags,
-          (engineElement.isDeprecated ? plugin.Element.FLAG_DEPRECATED : 0) |
+          (engineElement.hasDeprecated ? plugin.Element.FLAG_DEPRECATED : 0) |
               plugin.Element.FLAG_PRIVATE);
     }
     {
@@ -347,7 +347,7 @@ enum E2 { three, four }''');
     }
     {
       analyzer.FieldElement engineElement =
-          unit.element.enums[1].getField('index');
+          unit.declaredElement.enums[1].getField('index');
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.FIELD);
@@ -366,7 +366,7 @@ enum E2 { three, four }''');
     }
     {
       analyzer.FieldElement engineElement =
-          unit.element.enums[1].getField('values');
+          unit.declaredElement.enums[1].getField('values');
 
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
@@ -407,7 +407,7 @@ class A {
       expect(location.startColumn, 16);
     }
     expect(element.parameters, isNull);
-    expect(element.returnType, 'dynamic');
+    expect(element.returnType, 'int');
     expect(
         element.flags, plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
   }

@@ -4,13 +4,12 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'summarize_ast_test.dart';
+import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,85 +18,19 @@ main() {
 }
 
 @reflectiveTest
-class LinkerUnitTest extends SummaryLinkerTest {
-  Linker linker;
+class LinkerUnitTest extends SummaryLinkerTestStrategyTwoPhase
+    with LinkerUnitTestCases {}
 
-  LinkerInputs linkerInputs;
-  LibraryElementInBuildUnit _testLibrary;
-  @override
-  bool get allowMissingFiles => false;
-
-  Matcher get isUndefined => new isInstanceOf<UndefinedElementForLink>();
-
-  LibraryElementInBuildUnit get testLibrary => _testLibrary ??=
-      linker.getLibrary(linkerInputs.testDartUri) as LibraryElementInBuildUnit;
-
-  void createLinker(String text, {String path: '/test.dart'}) {
-    linkerInputs = createLinkerInputs(text, path: path);
-    Map<String, LinkedLibraryBuilder> linkedLibraries = setupForLink(
-        linkerInputs.linkedLibraries,
-        linkerInputs.getUnit,
-        linkerInputs.getDeclaredVariable);
-    linker = new Linker(linkedLibraries, linkerInputs.getDependency,
-        linkerInputs.getUnit, true);
-  }
+/// Test cases that exercise the summary linker in a white-box fashion.
+///
+/// These test cases may be mixed into any class derived from
+/// [SummaryLinkerTestStrategy], allowing the linker to be unit-tested in a
+/// variety of ways.
+abstract class LinkerUnitTestCases implements SummaryLinkerTestStrategy {
+  Matcher get isUndefined => const TypeMatcher<UndefinedElementForLink>();
 
   LibraryElementForLink getLibrary(String uri) {
     return linker.getLibrary(Uri.parse(uri));
-  }
-
-  void test_apiSignature_apiChanges() {
-    var bundle0 =
-        createPackageBundle('f(int i) { print(i); }', path: '/test.dart');
-    var bundle1 =
-        createPackageBundle('f(String s) { print(s); }', path: '/test.dart');
-    expect(bundle0.apiSignature, isNotEmpty);
-    expect(bundle1.apiSignature, isNotEmpty);
-    expect(bundle0.apiSignature, isNot(bundle1.apiSignature));
-  }
-
-  void test_apiSignature_localChanges() {
-    var bundle0 = createPackageBundle('f() { print(0); }', path: '/test.dart');
-    var bundle1 = createPackageBundle('f() { print(1); }', path: '/test.dart');
-    expect(bundle0.apiSignature, isNotEmpty);
-    expect(bundle1.apiSignature, isNotEmpty);
-    expect(bundle0.apiSignature, bundle1.apiSignature);
-  }
-
-  void test_apiSignature_orderChange() {
-    // A change to the order in which files are processed should not affect the
-    // API signature.
-    addNamedSource('/a.dart', 'class A {}');
-    var bundle0 = createPackageBundle('class B {}', path: '/b.dart');
-    addNamedSource('/b.dart', 'class B {}');
-    var bundle1 = createPackageBundle('class A {}', path: '/a.dart');
-    expect(bundle0.apiSignature, isNotEmpty);
-    expect(bundle1.apiSignature, isNotEmpty);
-    expect(bundle0.apiSignature, bundle1.apiSignature);
-  }
-
-  void test_apiSignature_unlinkedOnly() {
-    // The API signature of a package bundle should only contain unlinked
-    // information.  In this test, the linked information for bundle2 and
-    // bundle3 refer to class C as existing in different files.  But the
-    // unlinked information for bundle2 and bundle3 should be the same, so their
-    // API signatures should be the same.
-    addNamedSource('/a.dart', 'class C {}');
-    var bundle0 = createPackageBundle('', path: '/b.dart');
-    addNamedSource('/a.dart', '');
-    var bundle1 = createPackageBundle('class C {}', path: '/b.dart');
-    var text = '''
-import 'a.dart';
-import 'b.dart';
-class D extends C {}
-''';
-    addBundle('/bundle0.ds', bundle0);
-    var bundle2 = createPackageBundle(text, path: '/c.dart');
-    addBundle('/bundle1.ds', bundle1);
-    var bundle3 = createPackageBundle(text, path: '/c.dart');
-    expect(bundle2.apiSignature, isNotEmpty);
-    expect(bundle3.apiSignature, isNotEmpty);
-    expect(bundle2.apiSignature, bundle3.apiSignature);
   }
 
   void test_baseClass_genericWithAccessor() {
@@ -109,7 +42,7 @@ class C<U> extends B<U> {
   var j;
 }
     ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -123,7 +56,7 @@ class C<T> extends B<T> {
   void f() {}
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -137,7 +70,7 @@ class C<U> extends B<U> {
   void f(g) {}
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -151,7 +84,7 @@ class C<V> extends B<V> {
   var j;
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -166,7 +99,7 @@ class C<T> extends B<T> {
   Future<T> f() => null;
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -180,7 +113,7 @@ class C<T> extends B<T> {
   void f() {}
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
   }
 
@@ -193,7 +126,7 @@ class C extends B {
   var c;
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -213,7 +146,7 @@ var y = x;
 import "b.dart";
 var z = y;
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('z')).inferredType.toString(),
         'int');
   }
@@ -276,30 +209,54 @@ class C extends B {
     expect(bundle.unlinkedUnits[0].references[typeRef.reference].name, 'int');
   }
 
+  void test_genericTypeAlias_fromBundle() {
+    var bundle = createPackageBundle('''
+typedef F<S> = S Function(num);
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A {
+  F<int> f;
+}
+class B implements A {
+  F<int> f;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    ClassElementForLink_Class B = library.getContainedName('B');
+    expect(B.fields, hasLength(1));
+    FieldElementForLink f = B.fields[0];
+    expect(f.type.toString(), '(num) → int');
+  }
+
   void test_getContainedName_nonStaticField() {
     createLinker('class C { var f; }');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     ClassElementForLink_Class c = library.getContainedName('C');
     expect(c.getContainedName('f'), isNot(isUndefined));
   }
 
   void test_getContainedName_nonStaticGetter() {
     createLinker('class C { get g => null; }');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     ClassElementForLink_Class c = library.getContainedName('C');
     expect(c.getContainedName('g'), isNot(isUndefined));
   }
 
   void test_getContainedName_nonStaticMethod() {
     createLinker('class C { m() {} }');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     ClassElementForLink_Class c = library.getContainedName('C');
     expect(c.getContainedName('m'), isNot(isUndefined));
   }
 
   void test_getContainedName_nonStaticSetter() {
     createLinker('class C { void set s(value) {} }');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     ClassElementForLink_Class c = library.getContainedName('C');
     expect(c.getContainedName('s='), isNot(isUndefined));
   }
@@ -313,9 +270,9 @@ var x = () {};
 import 'a.dart';
 var y = x;
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        '() → dynamic');
+        '() → Null');
   }
 
   void test_inferredType_closure_fromBundle_identifierSequence() {
@@ -333,7 +290,7 @@ class E {}
 import 'a.dart';
 var y = C.x;
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
         '(D) → E');
   }
@@ -354,7 +311,7 @@ class C extends B {
   void foo(bar) {}
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.methods, hasLength(1));
@@ -370,12 +327,12 @@ class C {
   final f = true ? <T>(T t) => 0 : <T>(T t) => 1;
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.fields, hasLength(1));
     var field = cls.fields[0];
-    expect(field.type.toString(), '(<bottom>) → dynamic');
+    expect(field.type.toString(), '(<bottom>) → int');
   }
 
   void test_inferredType_instanceField_dynamic() {
@@ -385,7 +342,7 @@ class C {
   var f = x; // Inferred type: dynamic
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.fields, hasLength(1));
@@ -402,13 +359,32 @@ class C extends B {
   f(x) {} // Inferred param type: dynamic
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.methods, hasLength(1));
     var method = cls.methods[0];
     expect(method.parameters, hasLength(1));
     expect(method.parameters[0].type.toString(), 'dynamic');
+  }
+
+  void test_inferredType_methodParamType_genericFunction() {
+    createLinker('''
+class A {
+  void m(Map<T, List<U>> Function<T, U>(T, U) p) {}
+}
+class B<V> extends A {
+  void m(p) {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class cls = library.getContainedName('B');
+    expect(cls.methods, hasLength(1));
+    var method = cls.methods[0];
+    expect(method.parameters, hasLength(1));
+    var pType = method.parameters[0].type;
+    expect(pType.toString(), '<T,U>(T, U) → Map<T, List<U>>');
   }
 
   void test_inferredType_methodReturnType_dynamic() {
@@ -420,7 +396,7 @@ class C extends B {
   f() {} // Inferred return type: dynamic
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.methods, hasLength(1));
@@ -436,7 +412,7 @@ class C extends B {
   f() {}
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.methods, hasLength(1));
@@ -456,13 +432,39 @@ class C extends A<int> {
   map<R2>(f) => null;
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class c = library.getContainedName('C');
     expect(c.methods, hasLength(1));
     MethodElementForLink map = c.methods[0];
     expect(map.parameters, hasLength(1));
     FunctionType fType = map.parameters[0].type;
+    expect(fType.returnType.toString(), 'R2');
+    expect(fType.parameters[0].type.toString(), 'int');
+  }
+
+  void test_inferredType_parameter_genericFunctionType_asTypeArgument() {
+    var bundle = createPackageBundle('''
+class A<T> {
+  A<R> map<R>(List<R Function(T)> fs) => null;
+}
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+    createLinker('''
+import 'a.dart';
+class C extends A<int> {
+  map<R2>(fs) => null;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.methods, hasLength(1));
+    MethodElementForLink map = c.methods[0];
+    expect(map.parameters, hasLength(1));
+    InterfaceType iType = map.parameters[0].type;
+    expect(iType.typeArguments, hasLength(1));
+    FunctionType fType = iType.typeArguments[0];
     expect(fType.returnType.toString(), 'R2');
     expect(fType.parameters[0].type.toString(), 'int');
   }
@@ -476,7 +478,7 @@ class C {
 ''');
     expect(
         _getVariable(linker
-                .getLibrary(linkerInputs.testDartUri)
+                .getLibrary(testDartUri)
                 .getContainedName('C')
                 .getContainedName('y'))
             .inferredType
@@ -490,9 +492,7 @@ dynamic x = null;
 var y = x;
 ''');
     expect(
-        _getVariable(linker
-                .getLibrary(linkerInputs.testDartUri)
-                .getContainedName('y'))
+        _getVariable(linker.getLibrary(testDartUri).getContainedName('y'))
             .inferredType
             .toString(),
         'dynamic');
@@ -508,7 +508,7 @@ var y = x; // Inferred type: dynamic
 import 'a.dart';
 var z = y; // Inferred type: dynamic
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('z')).inferredType.toString(),
         'dynamic');
   }
@@ -524,9 +524,9 @@ class C {
 import 'a.dart';
 var x = new C().f; // Inferred type: int
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
-        'int');
+        'dynamic');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_instanceField_toInstanceField() {
@@ -542,9 +542,9 @@ class D {
   var g = new C().f; // Inferred type: int
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     ClassElementForLink_Class classD = library.getContainedName('D');
-    expect(classD.fields[0].inferredType.toString(), 'int');
+    expect(classD.fields[0].inferredType.toString(), 'dynamic');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {
@@ -563,7 +563,7 @@ class D extends C {
   f(i) {} // Inferred param type: int
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('D');
     expect(cls.methods, hasLength(1));
@@ -586,7 +586,7 @@ class C extends B {
 import 'a.dart';
 var x = new C().f(); // Inferred type: int
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
         'int');
   }
@@ -607,7 +607,7 @@ class D extends C {
   f() => 2; //Inferred return type: int
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     ClassElementForLink_Class cls = library.getContainedName('D');
     expect(cls.methods, hasLength(1));
@@ -620,9 +620,7 @@ class D extends C {
     addBundle('/a.ds', bundle);
     createLinker('import "a.dart"; var x = C.f;', path: '/b.dart');
     expect(
-        _getVariable(linker
-                .getLibrary(linkerInputs.testDartUri)
-                .getContainedName('x'))
+        _getVariable(linker.getLibrary(testDartUri).getContainedName('x'))
             .inferredType
             .toString(),
         'int');
@@ -633,9 +631,7 @@ class D extends C {
     addBundle('/a.ds', bundle);
     createLinker('import "a.dart"; var b = a;', path: '/b.dart');
     expect(
-        _getVariable(linker
-                .getLibrary(linkerInputs.testDartUri)
-                .getContainedName('b'))
+        _getVariable(linker.getLibrary(testDartUri).getContainedName('b'))
             .inferredType
             .toString(),
         'int');
@@ -662,7 +658,7 @@ class C extends B {
   void foo(X2 x) {}
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
 
     ClassElementForLink_Class C = library.getContainedName('C');
@@ -678,7 +674,7 @@ class C<T> {}
 class D<T extends num> {}
 final x = new C<D>();
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
     ParameterizedType type1 = x.returnType;
@@ -696,7 +692,7 @@ final x = new C<D>();
 class C<T extends num> {}
 final x = new C();
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
     ParameterizedType type1 = x.returnType;
@@ -711,7 +707,7 @@ final x = new C();
 typedef T F<T extends num>();
 final x = new List<F>();
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
     ParameterizedType type1 = x.returnType;
@@ -720,6 +716,63 @@ final x = new List<F>();
     FunctionType type2 = type1.typeArguments[0];
     expect(type2.element.name, 'F');
     expect(type2.returnType.toString(), 'num');
+  }
+
+  void test_isSimplyBounded_class_in_other_bundle() {
+    var bundle = createPackageBundle('''
+class C<T extends C> {} // Not simply bounded
+class D<T extends D<Null>> {} // Simply bounded
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A<T extends C> {} // Not simply bounded
+class B<T extends D> {} // Simply bounded
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    expect(library.getContainedName('A').isSimplyBounded, false);
+    expect(library.getContainedName('B').isSimplyBounded, true);
+  }
+
+  void test_isSimplyBounded_new_typedef_in_other_bundle() {
+    var bundle = createPackageBundle('''
+typedef C<T extends C> = void Function(T x); // Not simply bounded
+typedef D<T extends D<Null>> = void Function(T x); // Simply bounded
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A<T extends C> {} // Not simply bounded
+class B<T extends D> {} // Simply bounded
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    expect(library.getContainedName('A').isSimplyBounded, false);
+    expect(library.getContainedName('B').isSimplyBounded, true);
+  }
+
+  void test_isSimplyBounded_old_typedef_in_other_bundle() {
+    var bundle = createPackageBundle('''
+typedef void C<T extends C>(T x); // Not simply bounded
+typedef void D<T extends D<Null>>(T x); // Simply bounded
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A<T extends C> {} // Not simply bounded
+class B<T extends D> {} // Simply bounded
+''');
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    expect(library.getContainedName('A').isSimplyBounded, false);
+    expect(library.getContainedName('B').isSimplyBounded, true);
   }
 
   void test_leastUpperBound_functionAndClass() {
@@ -731,7 +784,7 @@ var x = {
   'f': f
 };
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -833,7 +886,7 @@ class D extends C {
   void f() {}
 }
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
   }
@@ -868,21 +921,21 @@ class D extends C {
 
   void test_topLevelFunction_isStatic() {
     createLinker('f() {}');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     TopLevelFunctionElementForLink f = library.getContainedName('f');
     expect(f.isStatic, true);
   }
 
   void test_topLevelGetter_isStatic() {
     createLinker('get x => null;');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     PropertyAccessorElementForLink_Executable x = library.getContainedName('x');
     expect(x.isStatic, true);
   }
 
   void test_topLevelSetter_isStatic() {
     createLinker('void set x(value) {}');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     PropertyAccessorElementForLink_Executable x =
         library.getContainedName('x=');
     expect(x.isStatic, true);
@@ -890,42 +943,42 @@ class D extends C {
 
   void test_topLevelVariable_isStatic() {
     createLinker('var x;');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
     expect(x.isStatic, true);
     expect(x.variable.isStatic, true);
   }
 
-  void test_typeParameter_isTypeParameterInScope_direct() {
+  void test_typeParameter_computeDeBruijnIndex_direct() {
     createLinker('class C<T, U> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     TypeParameterElementImpl t = c.typeParameters[0];
     TypeParameterElementImpl u = c.typeParameters[1];
-    expect(c.isTypeParameterInScope(t), true);
-    expect(c.isTypeParameterInScope(u), true);
+    expect(c.computeDeBruijnIndex(t), 2);
+    expect(c.computeDeBruijnIndex(u), 1);
   }
 
-  void test_typeParameter_isTypeParameterInScope_indirect() {
+  void test_typeParameter_computeDeBruijnIndex_indirect() {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
     TypeParameterElementImpl t = c.typeParameters[0];
     TypeParameterElementImpl u = c.typeParameters[1];
-    expect(f.isTypeParameterInScope(t), true);
-    expect(f.isTypeParameterInScope(u), true);
+    expect(f.computeDeBruijnIndex(t), 4);
+    expect(f.computeDeBruijnIndex(u), 3);
   }
 
-  void test_typeParameter_isTypeParameterInScope_reversed() {
+  void test_typeParameter_computeDeBruijnIndex_reversed() {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
     TypeParameterElementImpl v = f.typeParameters[0];
     TypeParameterElementImpl w = f.typeParameters[1];
-    expect(c.isTypeParameterInScope(v), false);
-    expect(c.isTypeParameterInScope(w), false);
+    expect(c.computeDeBruijnIndex(v), isNull);
+    expect(c.computeDeBruijnIndex(w), isNull);
   }
 
-  void test_typeParameter_isTypeParameterInScope_unrelated() {
+  void test_typeParameter_computeDeBruijnIndex_unrelated() {
     createLinker('class C<T, U> {} class D<V, W> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     ClassElementForLink_Class d = testLibrary.getContainedName('D');
@@ -933,10 +986,10 @@ class D extends C {
     TypeParameterElementImpl u = c.typeParameters[1];
     TypeParameterElementImpl v = d.typeParameters[0];
     TypeParameterElementImpl w = d.typeParameters[1];
-    expect(c.isTypeParameterInScope(v), false);
-    expect(c.isTypeParameterInScope(w), false);
-    expect(d.isTypeParameterInScope(t), false);
-    expect(d.isTypeParameterInScope(u), false);
+    expect(c.computeDeBruijnIndex(v), isNull);
+    expect(c.computeDeBruijnIndex(w), isNull);
+    expect(d.computeDeBruijnIndex(t), isNull);
+    expect(d.computeDeBruijnIndex(u), isNull);
   }
 
   void test_variable_initializer_presence() {
@@ -949,7 +1002,7 @@ int i = 0;
 int j;
 var v = 0;
 ''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    LibraryElementForLink library = linker.getLibrary(testDartUri);
     PropertyAccessorElementForLink_Variable c = library.getContainedName('c');
     expect(c.variable.initializer, isNotNull);
     PropertyAccessorElementForLink_Variable i = library.getContainedName('i');

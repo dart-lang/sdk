@@ -197,12 +197,6 @@ config("compiler") {
       if (arm_tune != "") {
         cflags += [ "-mtune=$arm_tune" ]
       }
-      if (arm_use_thumb) {
-        cflags += [ "-mthumb" ]
-        if (is_android && !is_clang) {  # Clang doesn't support this option.
-          cflags += [ "-mthumb-interwork" ]
-        }
-      }
       if (!is_clang) {
         # Clang doesn't support these flags.
         cflags += [
@@ -240,7 +234,7 @@ config("compiler") {
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
   if (is_android || is_asan || is_lsan || is_msan || is_tsan ||
-      (is_linux && current_cpu == "arm")) {
+      (is_linux && current_cpu != "x86")) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
   }
@@ -266,6 +260,16 @@ config("compiler") {
   if (is_clang) {
     cflags += [ "-fcolor-diagnostics" ]
   }
+
+  # C++14 compiler flags setup.
+  # ---------------------------
+  if (is_win) {
+    cc_std = [ "/std:c++14" ]
+  } else {
+    cc_std = [ "-std=c++14" ]
+  }
+  cflags_cc += cc_std
+  cflags_objcc += cc_std
 
   # Android-specific flags setup.
   # -----------------------------
@@ -311,12 +315,6 @@ config("compiler") {
       "-Wl,--exclude-libs=libgcc.a",
       "-Wl,--exclude-libs=libc++_static.a",
     ]
-    if (current_cpu == "arm") {
-      ldflags += [
-        # Enable identical code folding to reduce size.
-        "-Wl,--icf=safe",
-      ]
-    }
 
     if (is_clang) {
       if (current_cpu == "arm") {
@@ -341,12 +339,14 @@ config("compiler") {
   # define into the compile line.
   if (is_clang && (is_linux || is_mac)) {
     if (is_linux) {
-      toolchain_stamp_file = "//buildtools/linux64/toolchain.stamp"
+      toolchain_stamp_file =
+          "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
     } else {
-      toolchain_stamp_file = "//buildtools/mac/toolchain.stamp"
+      toolchain_stamp_file =
+          "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
-    toolchain_version = read_file(toolchain_stamp_file, "trim string")
-    defines = [ "TOOLCHAIN_VERSION=$toolchain_version" ]
+    cipd_version = read_file(toolchain_stamp_file, "json")
+    defines = [ "TOOLCHAIN_VERSION=${cipd_version.instance_id}" ]
   }
 
   # Assign any flags set for the C compiler to asmflags so that they are sent
@@ -369,12 +369,24 @@ config("clang_stackrealign") {
       "-mstack-alignment=16",
       "-mstackrealign",
     ]
- }
+  }
 }
 
 config("compiler_arm_fpu") {
   if (current_cpu == "arm") {
     cflags = [ "-mfpu=$arm_fpu" ]
+  }
+}
+
+config("compiler_arm_thumb") {
+  if (current_cpu == "arm") {
+    if (arm_use_thumb) {
+      cflags = [ "-mthumb" ]
+      if (is_android && !is_clang) {  # Clang doesn't support this option.
+        cflags += [ "-mthumb-interwork" ]
+      }
+      asmflags = cflags
+    }
   }
 }
 
@@ -483,6 +495,7 @@ if (is_win) {
   default_warning_flags += [
     # Permanent.
     "/wd4091",  # typedef warning from dbghelp.h
+    "/wd4722",  # destructor never returns
 
     # Investigate.
     "/wd4312",  # int to pointer of greater size conversion.
@@ -502,6 +515,10 @@ if (is_win) {
     "-Wno-missing-field-initializers",  # "struct foo f = {0};"
     "-Wno-unused-parameter",  # Unused function parameters.
   ]
+
+  if (is_clang) {
+    default_warning_flags += [ "-Wno-tautological-constant-compare" ]
+  }
 
   if (is_mac) {
     # TODO(abarth): Re-enable once https://github.com/domokit/mojo/issues/728
@@ -639,7 +656,10 @@ if (is_win) {
       "/Gw",
     ]
   }
-  common_optimize_on_ldflags = [ "/OPT:REF" ]
+  common_optimize_on_ldflags = [
+    "/OPT:REF",
+    "/OPT:ICF",
+  ]
 } else {
   common_optimize_on_cflags = [
     # Don't emit the GCC version ident directives, they just end up in the
@@ -671,6 +691,12 @@ if (is_win) {
       "-Wl,-O1",
       "-Wl,--gc-sections",
     ]
+
+    if (is_clang) {
+      # Identical code folding to reduce size.
+      # Warning: This changes C/C++ semantics of function pointer comparison.
+      common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
+    }
 
     if (!using_sanitizer) {
       # Functions interposed by the sanitizers can make ld think
@@ -720,6 +746,13 @@ config("no_optimize") {
       "-ffunction-sections",
     ]
   }
+}
+
+# These are two named configs that zlib's BUILD.gn expects to exist.
+config("default_optimization") {
+}
+
+config("optimize_speed") {
 }
 
 # Symbols ----------------------------------------------------------------------

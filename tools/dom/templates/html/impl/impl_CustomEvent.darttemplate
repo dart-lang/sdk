@@ -33,7 +33,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return e;
   }
 
-  @DomName('CustomEvent.detail')
   get detail {
     if (_dartDetail != null) {
       return _dartDetail;

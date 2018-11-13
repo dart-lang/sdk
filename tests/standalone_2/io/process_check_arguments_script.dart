@@ -10,13 +10,13 @@ import "dart:math";
 class Expect {
   static void isTrue(x) {
     if (!x) {
-      throw new Error("Not true");
+      throw new StateError("Not true");
     }
   }
 
   static void equals(x, y) {
     if (x != y) {
-      throw new Error("Not equal");
+      throw new StateError("Not equal");
     }
   }
 }

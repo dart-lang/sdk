@@ -26,8 +26,7 @@ main() {
 @reflectiveTest
 class InvalidCodeTest extends ResolverTestCase {
   @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      new AnalysisOptionsImpl()..strongMode = true;
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
   /**
    * This code results in a method with the empty name, and the default
@@ -43,13 +42,14 @@ class C {
 ''');
   }
 
-  Future<Null> _assertCanBeAnalyzed(String text) async {
-    Source source = addSource('''
-class C {
-  var f = { : };
-  @ ();
-}
+  test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
+    await _assertCanBeAnalyzed(r'''
+C<int Function()> c;
 ''');
+  }
+
+  Future<Null> _assertCanBeAnalyzed(String text) async {
+    Source source = addSource(text);
     var analysisResult = await computeAnalysisResult(source);
     expect(analysisResult.errors, isNotEmpty);
   }

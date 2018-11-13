@@ -626,7 +626,7 @@ void main() {
 
   String decodeUtf8List(List<int> codeUnits) => utf8.decode(codeUnits);
   String decodeUtf8Uint8List(List<int> codeUnits) =>
-      UTF8.decode(new Uint8List.fromList(codeUnits));
+      utf8.decode(new Uint8List.fromList(codeUnits));
 
   testUtf8BytesToString(decodeUtf8List);
   testUtf8BytesToString(decodeUtf8Uint8List);
@@ -647,7 +647,7 @@ void main() {
 }
 
 void testEncodeToUtf8() {
-  List<int> encodeUtf8(String str) => UTF8.encode(str);
+  List<int> encodeUtf8(String str) => utf8.encode(str);
 
   Expect.listEquals(
       testEnglishUtf8, encodeUtf8(testEnglishPhrase), "english to utf8");
@@ -681,19 +681,19 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   Expect.listEquals([0x800], utf8ToRunes([0xe0, 0xa0, 0x80]), "800");
   Expect.listEquals([0x10000], utf8ToRunes([0xf0, 0x90, 0x80, 0x80]), "10000");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xf8, 0x88, 0x80, 0x80, 0x80]), "200000");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfc, 0x84, 0x80, 0x80, 0x80, 0x80]), "4000000");
 
   // boundary conditions: Last possible sequence of a certain length
@@ -701,48 +701,48 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   Expect.listEquals([0x7ff], utf8ToRunes([0xdf, 0xbf]), "7ff");
   Expect.listEquals([0xffff], utf8ToRunes([0xef, 0xbf, 0xbf]), "ffff");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xf7, 0xbf, 0xbf, 0xbf]), "1fffff");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfb, 0xbf, 0xbf, 0xbf, 0xbf]), "3ffffff");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfd, 0xbf, 0xbf, 0xbf, 0xbf, 0xbf]), "4000000");
 
   // other boundary conditions
   Expect.listEquals([0xd7ff], utf8ToRunes([0xed, 0x9f, 0xbf]), "d7ff");
   Expect.listEquals([0xe000], utf8ToRunes([0xee, 0x80, 0x80]), "e000");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xef, 0xbf, 0xbd]), "fffd");
   Expect
       .listEquals([0x10ffff], utf8ToRunes([0xf4, 0x8f, 0xbf, 0xbf]), "10ffff");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xf4, 0x90, 0x80, 0x80]), "110000");
 
   // unexpected continuation bytes
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0x80]),
+  Expect.listEquals([unicodeReplacementCharacterRune], utf8ToRunes([0x80]),
       "80 => replacement character");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xbf]),
+  Expect.listEquals([unicodeReplacementCharacterRune], utf8ToRunes([0xbf]),
       "bf => replacement character");
 
   List<int> allContinuationBytes = <int>[];
   List<int> matchingReplacementChars = <int>[];
   for (int i = 0x80; i < 0xc0; i++) {
     allContinuationBytes.add(i);
-    matchingReplacementChars.add(UNICODE_REPLACEMENT_CHARACTER_RUNE);
+    matchingReplacementChars.add(unicodeReplacementCharacterRune);
   }
   Expect.listEquals(matchingReplacementChars, utf8ToRunes(allContinuationBytes),
       "80 - bf => replacement character x 64");
@@ -751,7 +751,7 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   matchingReplacementChars = <int>[];
   for (int i = 0xc0; i < 0xe0; i++) {
     allFirstTwoByteSeq.addAll([i, 0x20]);
-    matchingReplacementChars.addAll([UNICODE_REPLACEMENT_CHARACTER_RUNE, 0x20]);
+    matchingReplacementChars.addAll([unicodeReplacementCharacterRune, 0x20]);
   }
   Expect.listEquals(matchingReplacementChars, utf8ToRunes(allFirstTwoByteSeq),
       "c0 - df + space => replacement character + space x 32");
@@ -760,7 +760,7 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   matchingReplacementChars = <int>[];
   for (int i = 0xe0; i < 0xf0; i++) {
     allFirstThreeByteSeq.addAll([i, 0x20]);
-    matchingReplacementChars.addAll([UNICODE_REPLACEMENT_CHARACTER_RUNE, 0x20]);
+    matchingReplacementChars.addAll([unicodeReplacementCharacterRune, 0x20]);
   }
   Expect.listEquals(matchingReplacementChars, utf8ToRunes(allFirstThreeByteSeq),
       "e0 - ef + space => replacement character x 16");
@@ -769,7 +769,7 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   matchingReplacementChars = <int>[];
   for (int i = 0xf0; i < 0xf8; i++) {
     allFirstFourByteSeq.addAll([i, 0x20]);
-    matchingReplacementChars.addAll([UNICODE_REPLACEMENT_CHARACTER_RUNE, 0x20]);
+    matchingReplacementChars.addAll([unicodeReplacementCharacterRune, 0x20]);
   }
   Expect.listEquals(matchingReplacementChars, utf8ToRunes(allFirstFourByteSeq),
       "f0 - f7 + space => replacement character x 8");
@@ -778,7 +778,7 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   matchingReplacementChars = <int>[];
   for (int i = 0xf8; i < 0xfc; i++) {
     allFirstFiveByteSeq.addAll([i, 0x20]);
-    matchingReplacementChars.addAll([UNICODE_REPLACEMENT_CHARACTER_RUNE, 0x20]);
+    matchingReplacementChars.addAll([unicodeReplacementCharacterRune, 0x20]);
   }
   Expect.listEquals(matchingReplacementChars, utf8ToRunes(allFirstFiveByteSeq),
       "f8 - fb + space => replacement character x 4");
@@ -787,91 +787,91 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   matchingReplacementChars = <int>[];
   for (int i = 0xfc; i < 0xfe; i++) {
     allFirstSixByteSeq.addAll([i, 0x20]);
-    matchingReplacementChars.addAll([UNICODE_REPLACEMENT_CHARACTER_RUNE, 0x20]);
+    matchingReplacementChars.addAll([unicodeReplacementCharacterRune, 0x20]);
   }
   Expect.listEquals(matchingReplacementChars, utf8ToRunes(allFirstSixByteSeq),
       "fc - fd + space => replacement character x 2");
 
   // Sequences with last continuation byte missing
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xc2]),
+  Expect.listEquals([unicodeReplacementCharacterRune], utf8ToRunes([0xc2]),
       "2-byte sequence with last byte missing");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xe0, 0x80]), "3-byte sequence with last byte missing");
   Expect.listEquals(
-      [UNICODE_REPLACEMENT_CHARACTER_RUNE],
+      [unicodeReplacementCharacterRune],
       utf8ToRunes([0xf0, 0x80, 0x80]),
       "4-byte sequence with last byte missing");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xf8, 0x88, 0x80, 0x80]),
       "5-byte sequence with last byte missing");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfc, 0x80, 0x80, 0x80, 0x80]),
       "6-byte sequence with last byte missing");
 
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xdf]),
+  Expect.listEquals([unicodeReplacementCharacterRune], utf8ToRunes([0xdf]),
       "2-byte sequence with last byte missing (hi)");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xef, 0xbf]), "3-byte sequence with last byte missing (hi)");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xf7, 0xbf, 0xbf]),
       "4-byte sequence with last byte missing (hi)");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfb, 0xbf, 0xbf, 0xbf]),
       "5-byte sequence with last byte missing (hi)");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfd, 0xbf, 0xbf, 0xbf, 0xbf]),
       "6-byte sequence with last byte missing (hi)");
 
   // Concatenation of incomplete sequences
   Expect.listEquals(
       [
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE,
-        UNICODE_REPLACEMENT_CHARACTER_RUNE
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune,
+        unicodeReplacementCharacterRune
       ],
       utf8ToRunes([
         0xc2,
@@ -908,82 +908,82 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
       "Concatenation of incomplete sequences");
 
   // Impossible bytes
-  Expect.listEquals(
-      [UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xfe]), "fe");
-  Expect.listEquals(
-      [UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xff]), "ff");
+  Expect
+      .listEquals([unicodeReplacementCharacterRune], utf8ToRunes([0xfe]), "fe");
+  Expect
+      .listEquals([unicodeReplacementCharacterRune], utf8ToRunes([0xff]), "ff");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfe, 0xfe, 0xff, 0xff]), "fe fe ff ff");
 
   // Overlong sequences
   Expect.listEquals(
-      [UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xc0, 0xaf]), "c0 af");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+      [unicodeReplacementCharacterRune], utf8ToRunes([0xc0, 0xaf]), "c0 af");
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xe0, 0x80, 0xaf]), "e0 80 af");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xf0, 0x80, 0x80, 0xaf]), "f0 80 80 af");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xf8, 0x80, 0x80, 0x80, 0xaf]), "f8 80 80 80 af");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfc, 0x80, 0x80, 0x80, 0x80, 0xaf]), "fc 80 80 80 80 af");
 
   Expect.listEquals(
-      [UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xc1, 0xbf]), "c1 bf");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+      [unicodeReplacementCharacterRune], utf8ToRunes([0xc1, 0xbf]), "c1 bf");
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xe0, 0x9f, 0xbf]), "e0 9f bf");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xf0, 0x8f, 0xbf, 0xbf]), "f0 8f bf bf");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xf8, 0x87, 0xbf, 0xbf, 0xbf]), "f8 87 bf bf bf");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfc, 0x83, 0xbf, 0xbf, 0xbf, 0xbf]), "fc 83 bf bf bf bf");
 
   Expect.listEquals(
-      [UNICODE_REPLACEMENT_CHARACTER_RUNE], utf8ToRunes([0xc0, 0x80]), "c0 80");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+      [unicodeReplacementCharacterRune], utf8ToRunes([0xc0, 0x80]), "c0 80");
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xe0, 0x80, 0x80]), "e0 80 80");
-  Expect.listEquals([UNICODE_REPLACEMENT_CHARACTER_RUNE],
+  Expect.listEquals([unicodeReplacementCharacterRune],
       utf8ToRunes([0xf0, 0x80, 0x80, 0x80]), "f0 80 80 80");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xf8, 0x80, 0x80, 0x80, 0x80]), "f8 80 80 80 80");
   Expect.listEquals([
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE,
-    UNICODE_REPLACEMENT_CHARACTER_RUNE
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune,
+    unicodeReplacementCharacterRune
   ], utf8ToRunes([0xfc, 0x80, 0x80, 0x80, 0x80, 0x80]), "fc 80 80 80 80 80");
 
   // Other illegal code positions (???)

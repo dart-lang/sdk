@@ -32,8 +32,8 @@ main() {
   sameType(1.2, d);
   sameType(false, b);
 
-  var l = [1, 2, 3];
-  var m = {'a': 1, 'b': 2};
+  List l = [1, 2, 3];
+  Map m = {'a': 1, 'b': 2};
   sameType([], l);
   sameType({}, m);
 

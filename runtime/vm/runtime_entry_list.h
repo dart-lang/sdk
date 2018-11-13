@@ -11,9 +11,13 @@ namespace dart {
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
+  V(AllocateSubtypeTestCache)                                                  \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
+  V(ExtractMethod)                                                             \
+  V(GetFieldForDispatch)                                                       \
+  V(ResolveCallFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(FixAllocationStubTarget)                                                   \
   V(InlineCacheMissHandlerOneArg)                                              \
@@ -35,11 +39,13 @@ namespace dart {
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \
   V(NullError)                                                                 \
+  V(NullErrorWithSelector)                                                     \
+  V(ArgumentError)                                                             \
+  V(ArgumentErrorUnboxedInt64)                                                 \
+  V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \
-  V(TraceFunctionEntry)                                                        \
-  V(TraceFunctionExit)                                                         \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \
@@ -54,7 +60,8 @@ namespace dart {
   V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
-  V(intptr_t, BigintCompare, RawBigint*, RawBigint*)                           \
+  V(void, MarkingStackBlockProcess, Thread*)                                   \
+  V(void, RememberCard, RawObject*, RawObject**)                               \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
   V(double, LibcFloor, double)                                                 \

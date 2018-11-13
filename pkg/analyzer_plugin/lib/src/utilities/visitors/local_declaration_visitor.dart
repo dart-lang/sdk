@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -186,7 +186,9 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitNode(AstNode node) {
-    node.parent.accept(this);
+    // Support the case of searching partial ASTs by aborting on nodes with no
+    // parents. This is useful for the angular plugin.
+    node.parent?.accept(this);
   }
 
   @override

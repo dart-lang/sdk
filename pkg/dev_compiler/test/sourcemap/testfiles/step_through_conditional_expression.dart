@@ -9,7 +9,7 @@ main() {
   print(/*bc:4*/ ! /*bc:3*/ foo() ? /*bc:5*/ bar() : baz());
 }
 
-foo() {
+bool foo() {
   return false;
 }
 

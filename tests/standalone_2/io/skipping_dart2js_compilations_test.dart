@@ -106,7 +106,7 @@ class FileUtils {
   void _writeToFile(File file, String content) {
     if (content != null) {
       var fd = new File(file.resolveSymbolicLinksSync())
-          .openSync(mode: FileMode.WRITE);
+          .openSync(mode: FileMode.write);
       fd.writeStringSync(content);
       fd.closeSync();
     }

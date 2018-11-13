@@ -39,7 +39,7 @@ Future<HttpServer> setupServer() {
     addRequestHandler("/redirect",
         (HttpRequest request, HttpResponse response) {
       response.redirect(Uri.parse("http://127.0.0.1:${server.port}/location"),
-          status: HttpStatus.MOVED_PERMANENTLY);
+          status: HttpStatus.movedPermanently);
     });
     addRequestHandler("/location",
         (HttpRequest request, HttpResponse response) {
@@ -49,15 +49,15 @@ Future<HttpServer> setupServer() {
     // Setup redirects with relative url.
     addRequestHandler("/redirectUrl",
         (HttpRequest request, HttpResponse response) {
-      response.headers.set(HttpHeaders.LOCATION, "/some/relativeUrl");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.headers.set(HttpHeaders.locationHeader, "/some/relativeUrl");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
 
     addRequestHandler("/some/redirectUrl",
         (HttpRequest request, HttpResponse response) {
-      response.headers.set(HttpHeaders.LOCATION, "relativeUrl");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.headers.set(HttpHeaders.locationHeader, "relativeUrl");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
 
@@ -68,68 +68,68 @@ Future<HttpServer> setupServer() {
 
     addRequestHandler("/some/relativeToAbsolute",
         (HttpRequest request, HttpResponse response) {
-      response.redirect(Uri.parse("xxx"), status: HttpStatus.SEE_OTHER);
+      response.redirect(Uri.parse("xxx"), status: HttpStatus.seeOther);
     });
 
     addRequestHandler("/redirectUrl2",
         (HttpRequest request, HttpResponse response) {
-      response.headers.set(HttpHeaders.LOCATION, "location");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.headers.set(HttpHeaders.locationHeader, "location");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
 
     addRequestHandler("/redirectUrl3",
         (HttpRequest request, HttpResponse response) {
-      response.headers.set(HttpHeaders.LOCATION, "./location");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.headers.set(HttpHeaders.locationHeader, "./location");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
 
     addRequestHandler("/redirectUrl4",
         (HttpRequest request, HttpResponse response) {
-      response.headers.set(HttpHeaders.LOCATION, "./a/b/../../location");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.headers.set(HttpHeaders.locationHeader, "./a/b/../../location");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
 
     addRequestHandler("/redirectUrl5",
         (HttpRequest request, HttpResponse response) {
-      response.headers
-          .set(HttpHeaders.LOCATION, "//127.0.0.1:${server.port}/location");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.headers.set(
+          HttpHeaders.locationHeader, "//127.0.0.1:${server.port}/location");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
 
     // Setup redirect chain.
     int n = 1;
-    addRedirectHandler(n++, HttpStatus.MOVED_PERMANENTLY);
-    addRedirectHandler(n++, HttpStatus.MOVED_TEMPORARILY);
-    addRedirectHandler(n++, HttpStatus.SEE_OTHER);
-    addRedirectHandler(n++, HttpStatus.TEMPORARY_REDIRECT);
+    addRedirectHandler(n++, HttpStatus.movedPermanently);
+    addRedirectHandler(n++, HttpStatus.movedTemporarily);
+    addRedirectHandler(n++, HttpStatus.seeOther);
+    addRedirectHandler(n++, HttpStatus.temporaryRedirect);
     for (int i = n; i < 10; i++) {
-      addRedirectHandler(i, HttpStatus.MOVED_PERMANENTLY);
+      addRedirectHandler(i, HttpStatus.movedPermanently);
     }
 
     // Setup redirect loop.
     addRequestHandler("/A", (HttpRequest request, HttpResponse response) {
       response.headers
-          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/B");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+          .set(HttpHeaders.locationHeader, "http://127.0.0.1:${server.port}/B");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
     addRequestHandler("/B", (HttpRequest request, HttpResponse response) {
       response.headers
-          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/A");
-      response.statusCode = HttpStatus.MOVED_TEMPORARILY;
+          .set(HttpHeaders.locationHeader, "http://127.0.0.1:${server.port}/A");
+      response.statusCode = HttpStatus.movedTemporarily;
       response.close();
     });
 
     // Setup redirect checking headers.
     addRequestHandler("/src", (HttpRequest request, HttpResponse response) {
       Expect.equals("value", request.headers.value("X-Request-Header"));
-      response.headers
-          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/target");
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.headers.set(
+          HttpHeaders.locationHeader, "http://127.0.0.1:${server.port}/target");
+      response.statusCode = HttpStatus.movedPermanently;
       response.close();
     });
     addRequestHandler("/target", (HttpRequest request, HttpResponse response) {
@@ -141,9 +141,9 @@ Future<HttpServer> setupServer() {
     addRequestHandler("/301src", (HttpRequest request, HttpResponse response) {
       Expect.equals("POST", request.method);
       request.listen((_) {}, onDone: () {
-        response.headers.set(
-            HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/301target");
-        response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+        response.headers.set(HttpHeaders.locationHeader,
+            "http://127.0.0.1:${server.port}/301target");
+        response.statusCode = HttpStatus.movedPermanently;
         response.close();
       });
     });
@@ -156,9 +156,9 @@ Future<HttpServer> setupServer() {
     addRequestHandler("/303src", (HttpRequest request, HttpResponse response) {
       request.listen((_) {}, onDone: () {
         Expect.equals("POST", request.method);
-        response.headers.set(
-            HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/303target");
-        response.statusCode = HttpStatus.SEE_OTHER;
+        response.headers.set(HttpHeaders.locationHeader,
+            "http://127.0.0.1:${server.port}/303target");
+        response.statusCode = HttpStatus.seeOther;
         response.close();
       });
     });
@@ -171,8 +171,8 @@ Future<HttpServer> setupServer() {
     // Setup redirect where we close the connection.
     addRequestHandler("/closing", (HttpRequest request, HttpResponse response) {
       response.headers
-          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/");
-      response.statusCode = HttpStatus.FOUND;
+          .set(HttpHeaders.locationHeader, "http://127.0.0.1:${server.port}/");
+      response.statusCode = HttpStatus.found;
       response.persistentConnection = false;
       response.close();
     });
@@ -207,7 +207,7 @@ void testManualRedirect() {
           checkRedirects(redirectCount, response);
           response.redirect().then(handleResponse);
         } else {
-          Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
+          Expect.equals(HttpStatus.notFound, response.statusCode);
           server.close();
           client.close();
         }
@@ -237,7 +237,7 @@ void testManualRedirectWithHeaders() {
           Expect.isTrue(response.isRedirect);
           response.redirect().then(handleResponse);
         } else {
-          Expect.equals(HttpStatus.OK, response.statusCode);
+          Expect.equals(HttpStatus.ok, response.statusCode);
           server.close();
           client.close();
         }
@@ -302,7 +302,7 @@ void testAutoRedirect301POST() {
         .then((HttpClientRequest request) {
       return request.close();
     }).then((HttpClientResponse response) {
-      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
+      Expect.equals(HttpStatus.movedPermanently, response.statusCode);
       response.listen((_) => Expect.fail("Response data not expected"),
           onDone: () {
         Expect.equals(0, response.redirects.length);
@@ -322,7 +322,7 @@ void testAutoRedirect303POST() {
         .then((HttpClientRequest request) {
       return request.close();
     }).then((HttpClientResponse response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       response.listen((_) => Expect.fail("Response data not expected"),
           onDone: () {
         Expect.equals(1, response.redirects.length);
@@ -392,7 +392,7 @@ void testRedirectRelativeUrl() {
           .then((request) => request.close())
           .then((response) {
         response.listen((_) {}, onDone: () {
-          Expect.equals(HttpStatus.OK, response.statusCode);
+          Expect.equals(HttpStatus.ok, response.statusCode);
           Expect.equals(1, response.redirects.length);
           server.close();
           client.close();
@@ -417,7 +417,7 @@ void testRedirectRelativeToAbsolute() {
     handleResponse(HttpClientResponse response) {
       response.listen((_) => Expect.fail("Response data not expected"),
           onDone: () {
-        Expect.equals(HttpStatus.SEE_OTHER, response.statusCode);
+        Expect.equals(HttpStatus.seeOther, response.statusCode);
         Expect.equals("xxx", response.headers["Location"][0]);
         Expect.isTrue(response.isRedirect);
         server.close();

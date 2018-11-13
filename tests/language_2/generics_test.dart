@@ -5,7 +5,7 @@
 
 import "package:expect/expect.dart";
 
-class GenericsTest<T, V> implements Map<int, int> {
+abstract class GenericsTest<T, V> implements Map<int, int> {
   static int myFunc(bool a, bool b) {
     Expect.equals(true, a);
     Expect.equals(false, b);

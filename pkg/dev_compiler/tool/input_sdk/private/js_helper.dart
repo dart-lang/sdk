@@ -30,13 +30,13 @@ class _Patch {
   const _Patch();
 }
 
-const _Patch patch = const _Patch();
+const _Patch patch = _Patch();
 
 /// Adapts a JS `[Symbol.iterator]` to a Dart `get iterator`.
-/// 
+///
 /// This is the inverse of `JsIterator`, for classes where we can more
 /// efficiently obtain a JS iterator instead of a Dart one.
-/// 
+///
 // TODO(jmesserly): this adapter is to work around
 // https://github.com/dart-lang/sdk/issues/28320
 class DartIterator<E> implements Iterator<E> {
@@ -62,45 +62,25 @@ class SyncIterable<E> extends IterableBase<E> {
   @JSExportName('Symbol.iterator')
   _jsIterator() => _initGenerator();
 
-  get iterator => new DartIterator(_initGenerator());
+  get iterator => DartIterator(_initGenerator());
 }
 
 class Primitives {
-  /// Isolate-unique ID for caching [JsClosureMirror.function].
-  /// Note the initial value is used by the first isolate (or if there are no
-  /// isolates), new isolates will update this value to avoid conflicts by
-  /// calling [initializeStatics].
-  static String mirrorFunctionCacheName = '\$cachedFunction';
-
-  /// Isolate-unique ID for caching [JsInstanceMirror._invoke].
-  static String mirrorInvokeCacheName = '\$cachedInvocation';
-
-  /// Called when creating a new isolate (see _IsolateContext constructor in
-  /// isolate_helper.dart).
-  /// Please don't add complicated code to this method, as it will impact
-  /// start-up performance.
-  static void initializeStatics(int id) {
-    // Benchmarking shows significant performance improvements if this is a
-    // fixed value.
-    mirrorFunctionCacheName += '_$id';
-    mirrorInvokeCacheName += '_$id';
-  }
-
   @NoInline()
   static int _parseIntError(String source, int handleError(String source)) {
-    if (handleError == null) throw new FormatException(source);
+    if (handleError == null) throw FormatException(source);
     return handleError(source);
   }
 
   static int parseInt(
       @nullCheck String source, int _radix, int handleError(String source)) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
-    var/*=JSArray<String>*/ match =
-        JS('JSExtendableArray|Null', '#.exec(#)', re, source);
+    // TODO(jmesserly): this isn't reified List<String>, but it's safe to use as
+    // long as we use it locally and don't expose it to user code.
+    List<String> match = JS('', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
-    int nonDecimalHexIndex = 4;
     if (match == null) {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
@@ -119,9 +99,10 @@ class Primitives {
       }
       return _parseIntError(source, handleError);
     }
-    @notNull var radix = _radix;
+    @notNull
+    var radix = _radix;
     if (radix < 2 || radix > 36) {
-      throw new RangeError.range(radix, 2, 36, 'radix');
+      throw RangeError.range(radix, 2, 36, 'radix');
     }
     if (radix == 10 && decimalMatch != null) {
       // Cannot fail because we know that the digits are all decimal.
@@ -166,12 +147,13 @@ class Primitives {
   static double _parseDoubleError(
       String source, double handleError(String source)) {
     if (handleError == null) {
-      throw new FormatException('Invalid double', source);
+      throw FormatException('Invalid double', source);
     }
     return handleError(source);
   }
 
-  static double parseDouble(@nullCheck String source, double handleError(String source)) {
+  static double parseDouble(
+      @nullCheck String source, double handleError(String source)) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -185,7 +167,7 @@ class Primitives {
         source)) {
       return _parseDoubleError(source, handleError);
     }
-    var result = JS('num', r'parseFloat(#)', source);
+    num result = JS('!', r'parseFloat(#)', source);
     if (result.isNaN) {
       var trimmed = source.trim();
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
@@ -196,7 +178,7 @@ class Primitives {
     return result;
   }
 
-  /** [: r"$".codeUnitAt(0) :] */
+  /** `r"$".codeUnitAt(0)` */
   static const int DOLLAR_CHAR_VALUE = 36;
 
   static int dateNow() => JS('int', r'Date.now()');
@@ -213,7 +195,7 @@ class Primitives {
     if (performance == null) return;
     if (JS('bool', 'typeof #.now != "function"', performance)) return;
     timerFrequency = 1000000;
-    timerTicks = () => (1000 * JS('num', '#.now()', performance)).floor();
+    timerTicks = () => (1000 * JS<num>('!', '#.now()', performance)).floor();
   }
 
   static int timerFrequency;
@@ -233,18 +215,21 @@ class Primitives {
 
   static String currentUri() {
     // In a browser return self.location.href.
-    if (JS('bool', '!!self.location')) {
-      return JS('String', 'self.location.href');
+    if (JS('bool', '!!#.location', dart.global_)) {
+      return JS('String', '#.location.href', dart.global_);
     }
 
-    return null;
+    // TODO(vsm): Consider supporting properly in non-browser settings.
+    return '';
   }
 
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
-  @notNull static String _fromCharCodeApply(List<int> array) {
+  @notNull
+  static String _fromCharCodeApply(List<int> array) {
     const kMaxApply = 500;
-    @nullCheck int end = array.length;
+    @nullCheck
+    int end = array.length;
     if (end <= kMaxApply) {
       return JS('String', r'String.fromCharCode.apply(null, #)', array);
     }
@@ -262,7 +247,8 @@ class Primitives {
     return result;
   }
 
-  @notNull static String stringFromCodePoints(JSArray<int> codePoints) {
+  @notNull
+  static String stringFromCodePoints(JSArray<int> codePoints) {
     List<int> a = <int>[];
     for (@nullCheck var i in codePoints) {
       if (i <= 0xffff) {
@@ -277,7 +263,8 @@ class Primitives {
     return _fromCharCodeApply(a);
   }
 
-  @notNull static String stringFromCharCodes(JSArray<int> charCodes) {
+  @notNull
+  static String stringFromCharCodes(JSArray<int> charCodes) {
     for (@nullCheck var i in charCodes) {
       if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
@@ -286,7 +273,8 @@ class Primitives {
   }
 
   // [start] and [end] are validated.
-  @notNull static String stringFromNativeUint8List(
+  @notNull
+  static String stringFromNativeUint8List(
       NativeUint8List charCodes, @nullCheck int start, @nullCheck int end) {
     const kMaxApply = 500;
     if (end <= kMaxApply && start == 0 && end == charCodes.length) {
@@ -306,7 +294,8 @@ class Primitives {
     return result;
   }
 
-  @notNull static String stringFromCharCode(@nullCheck int charCode) {
+  @notNull
+  static String stringFromCharCode(@nullCheck int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('String', 'String.fromCharCode(#)', charCode);
@@ -318,7 +307,7 @@ class Primitives {
         return JS('String', 'String.fromCharCode(#, #)', high, low);
       }
     }
-    throw new RangeError.range(charCode, 0, 0x10ffff);
+    throw RangeError.range(charCode, 0, 0x10ffff);
   }
 
   static String stringConcatUnchecked(String string1, String string2) {
@@ -369,18 +358,23 @@ class Primitives {
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static num valueFromDecomposedDate(@nullCheck int years, @nullCheck int month,
-                                     @nullCheck int day, @nullCheck int hours,
-      @nullCheck int minutes, @nullCheck int seconds, @nullCheck int milliseconds,
-                                     @nullCheck bool isUtc) {
+  static num valueFromDecomposedDate(
+      @nullCheck int years,
+      @nullCheck int month,
+      @nullCheck int day,
+      @nullCheck int hours,
+      @nullCheck int minutes,
+      @nullCheck int seconds,
+      @nullCheck int milliseconds,
+      @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
     num value;
     if (isUtc) {
-      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
+      value = JS('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
           hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
+      value = JS('!', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
           jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN ||
@@ -392,14 +386,14 @@ class Primitives {
     return value;
   }
 
-  static patchUpY2K(value, years, isUtc) {
+  static num patchUpY2K(value, years, isUtc) {
     var date = JS('', r'new Date(#)', value);
     if (isUtc) {
-      JS('num', r'#.setUTCFullYear(#)', date, years);
+      JS('', r'#.setUTCFullYear(#)', date, years);
     } else {
-      JS('num', r'#.setFullYear(#)', date, years);
+      JS('', r'#.setFullYear(#)', date, years);
     }
-    return JS('num', r'#.valueOf()', date);
+    return JS('!', r'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.
@@ -415,49 +409,49 @@ class Primitives {
   // that the result is really an integer, because the JavaScript implementation
   // may return -0.0 instead of 0.
 
-  static getYear(DateTime receiver) {
+  static int getYear(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMonth(DateTime receiver) {
+  static int getMonth(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
         : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
-  static getDay(DateTime receiver) {
+  static int getDay(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getHours(DateTime receiver) {
+  static int getHours(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMinutes(DateTime receiver) {
+  static int getMinutes(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getSeconds(DateTime receiver) {
+  static int getSeconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMilliseconds(DateTime receiver) {
+  static int getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getWeekday(DateTime receiver) {
+  static int getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
         ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
         : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
@@ -465,9 +459,9 @@ class Primitives {
     return (weekday + 6) % 7 + 1;
   }
 
-  static valueFromDateString(str) {
+  static num valueFromDateString(str) {
     if (str is! String) throw argumentErrorValue(str);
-    var value = JS('num', r'Date.parse(#)', str);
+    num value = JS('!', r'Date.parse(#)', str);
     if (value.isNaN) throw argumentErrorValue(str);
     return value;
   }
@@ -485,9 +479,6 @@ class Primitives {
     }
     JS('void', '#[#] = #', object, key, value);
   }
-
-  static StackTrace extractStackTrace(Error error) =>
-      getTraceFromException(error);
 }
 
 /**
@@ -500,10 +491,10 @@ Error diagnoseIndexError(indexable, int index) {
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
   if (index < 0 || index >= length) {
-    return new RangeError.index(index, indexable, 'index', null, length);
+    return RangeError.index(index, indexable, 'index', null, length);
   }
   // The above should always match, but if it does not, use the following.
-  return new RangeError.value(index, 'index');
+  return RangeError.value(index, 'index');
 }
 
 /**
@@ -513,27 +504,28 @@ Error diagnoseIndexError(indexable, int index) {
 @NoInline()
 Error diagnoseRangeError(int start, int end, int length) {
   if (start == null) {
-    return new ArgumentError.value(start, 'start');
+    return ArgumentError.value(start, 'start');
   }
   if (start < 0 || start > length) {
-    return new RangeError.range(start, 0, length, 'start');
+    return RangeError.range(start, 0, length, 'start');
   }
   if (end != null) {
     if (end < start || end > length) {
-      return new RangeError.range(end, start, length, 'end');
+      return RangeError.range(end, start, length, 'end');
     }
   }
   // The above should always match, but if it does not, use the following.
-  return new ArgumentError.value(end, "end");
+  return ArgumentError.value(end, "end");
 }
 
-@notNull int stringLastIndexOfUnchecked(receiver, element, start) =>
+@notNull
+int stringLastIndexOfUnchecked(receiver, element, start) =>
     JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
 @NoInline()
 ArgumentError argumentErrorValue(object) {
-  return new ArgumentError.value(object);
+  return ArgumentError.value(object);
 }
 
 void throwArgumentErrorValue(value) {
@@ -546,16 +538,16 @@ checkInt(value) {
 }
 
 throwRuntimeError(message) {
-  throw new RuntimeError(message);
+  throw RuntimeError(message);
 }
 
 throwAbstractClassInstantiationError(className) {
-  throw new AbstractClassInstantiationError(className);
+  throw AbstractClassInstantiationError(className);
 }
 
 @NoInline()
 throwConcurrentModificationError(collection) {
-  throw new ConcurrentModificationError(collection);
+  throw ConcurrentModificationError(collection);
 }
 
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
@@ -592,12 +584,20 @@ class UnknownJsTypeError extends Error {
  */
 final _stackTrace = JS('', 'Symbol("_stackTrace")');
 StackTrace getTraceFromException(exception) {
-  var error = JS('', 'dart.recordJsError(#)', exception);
-  var trace = JS('StackTrace|Null', '#[#]', error, _stackTrace);
+  var error = dart.recordJsError(exception);
+  StackTrace trace = JS('', '#[#]', error, _stackTrace);
   if (trace != null) return trace;
-  trace = new _StackTrace(error);
+  trace = _StackTrace(error);
   JS('', '#[#] = #', error, _stackTrace, trace);
   return trace;
+}
+
+/**
+ * Called on rethrow to (potentially) set a different trace.
+ */
+void setTraceForException(exception, StackTrace trace) {
+  var error = dart.recordJsError(exception);
+  JS('', '#[#] = #', error, _stackTrace, trace);
 }
 
 class _StackTrace implements StackTrace {
@@ -612,7 +612,11 @@ class _StackTrace implements StackTrace {
     String trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
-      trace = JS("String|Null", r"#.stack", _exception);
+      if (_exception is NativeError) {
+        trace = _exception.dartStack();
+      } else {
+        trace = JS("", r"#.stack", _exception);
+      }
       if (trace != null && stackTraceMapper != null) {
         trace = stackTraceMapper(trace);
       }
@@ -650,7 +654,7 @@ jsPropertyAccess(var jsObject, String property) {
  * Called at the end of unaborted switch cases to get the singleton
  * FallThroughError exception that will be thrown.
  */
-getFallThroughError() => new FallThroughErrorImplementation();
+getFallThroughError() => FallThroughErrorImplementation();
 
 /**
  * A metadata annotation describing the types instantiated by a native element.
@@ -746,46 +750,25 @@ abstract class JavaScriptIndexingBehavior<E> {}
 // TODO(lrn): These exceptions should be implemented in core.
 // When they are, remove the 'Implementation' here.
 
-/** Thrown by type assertions that fail. */
-class TypeErrorImplementation extends Error implements TypeError {
+/// Thrown by type assertions that fail.
+class TypeErrorImpl extends Error implements TypeError {
   final String message;
 
-  /**
-   * Normal type error caused by a failed subtype test.
-   */
-  // TODO(sra): Include [value] in message.
-  TypeErrorImplementation(Object value, Object actualType, Object expectedType,
-      bool strongModeError)
-      : message = "Type '${actualType}' is not a subtype "
-            "of type '${expectedType}'" +
-            (strongModeError ? " in strong mode" : "");
-
-  TypeErrorImplementation.fromMessage(String this.message);
+  TypeErrorImpl(this.message);
 
   String toString() => message;
 }
 
-/** Thrown by the 'as' operator if the cast isn't valid. */
-class CastErrorImplementation extends Error implements CastError {
-  // TODO(lrn): Rename to CastError (and move implementation into core).
+/// Thrown by the 'as' operator if the cast isn't valid.
+class CastErrorImpl extends Error implements CastError {
   final String message;
 
-  /**
-   * Normal cast error caused by a failed type cast.
-   */
-  // TODO(sra): Include [value] in message.
-  CastErrorImplementation(Object value, Object actualType, Object expectedType,
-      bool strongModeError)
-      : message = "CastError: Casting value of type '$actualType' to"
-            " type '$expectedType' which is incompatible" +
-            (strongModeError ? " in strong mode": "");
+  CastErrorImpl(this.message);
 
   String toString() => message;
 }
-
 
 class FallThroughErrorImplementation extends FallThroughError {
-  FallThroughErrorImplementation();
   String toString() => "Switch case fall-through.";
 }
 

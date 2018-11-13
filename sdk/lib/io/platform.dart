@@ -204,14 +204,11 @@ class Platform {
   static List<String> get executableArguments => _Platform.executableArguments;
 
   /**
-   * The `--package-root` flag passed to the executable used to run the script
-   * in this isolate.
+   * This returns `null`, as `packages/` directories are no longer supported.
    *
-   * If present, it specifies the directory where Dart packages are looked up.
-   *
-   * Is `null` if there is no `--package-root` flag.
    */
-  static String get packageRoot => _Platform.packageRoot;
+  @Deprecated('packages/ directory resolution is not supported in Dart 2')
+  static String get packageRoot => null; // TODO(mfairhurst): remove this
 
   /**
    * The `--packages` flag passed to the executable used to run the script

@@ -21,187 +21,428 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async' show Future, ZoneSpecification, runZoned;
+import 'dart:convert' show utf8;
 import 'dart:io' show Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/testing/hybrid_file_system.dart';
-import 'package:kernel/kernel.dart' show Program;
+import 'package:build_integration/file_system/multi_root.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/incremental_compiler.dart';
+import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
+import 'package:vm/http_filesystem.dart';
+import 'package:vm/target/vm.dart' show VmTarget;
 
-const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
+final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
+const String platformKernelFile = 'virtual_platform_kernel.dill';
+
+// NOTE: Any changes to these tags need to be reflected in kernel_isolate.cc
+// Tags used to indicate different requests to the dart frontend.
+//
+// Current tags include the following:
+//   0 - Perform normal compilation.
+//   1 - Update in-memory file system with in-memory sources (used by tests).
+//   2 - Accept last compilation result.
+//   3 - APP JIT snapshot training run for kernel_service.
+//   4 - Compile an individual expression in some context (for debugging
+//       purposes).
+//   5 - List program dependencies (for creating depfiles)
+//   6 - Isolate shutdown that potentially should result in compiler cleanup.
+const int kCompileTag = 0;
+const int kUpdateSourcesTag = 1;
+const int kAcceptTag = 2;
+const int kTrainTag = 3;
+const int kCompileExpressionTag = 4;
+const int kListDependenciesTag = 5;
+const int kNotifyIsolateShutdownTag = 6;
+
+bool allowDartInternalImport = false;
 
 abstract class Compiler {
   final FileSystem fileSystem;
-  final bool strongMode;
   final List<String> errors = new List<String>();
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem, Uri platformKernel, {this.strongMode: false}) {
-    Uri packagesUri = (Platform.packageConfig != null)
-        ? Uri.parse(Platform.packageConfig)
-        : null;
+  Compiler(this.fileSystem, Uri platformKernelPath,
+      {bool suppressWarnings: false,
+      bool bytecode: false,
+      String packageConfig: null}) {
+    Uri packagesUri = null;
+    if (packageConfig != null) {
+      packagesUri = Uri.parse(packageConfig);
+    } else if (Platform.packageConfig != null) {
+      packagesUri = Uri.parse(Platform.packageConfig);
+    }
 
     if (verbose) {
       print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
       print("DFE: packagesUri: ${packagesUri}");
       print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
-      print("DFE: platformKernel: ${platformKernel}");
-      print("DFE: strongMode: ${strongMode}");
+      print("DFE: platformKernelPath: ${platformKernelPath}");
     }
 
     options = new CompilerOptions()
-      ..strongMode = strongMode
       ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags(strongMode: strongMode))
+      ..target = new VmTarget(new TargetFlags(syncAsync: true))
       ..packagesFileUri = packagesUri
-      ..sdkSummary = platformKernel
+      ..sdkSummary = platformKernelPath
       ..verbose = verbose
-      ..onProblem =
-          (message, Severity severity, String formatted, int line, int column) {
-        switch (severity) {
+      ..bytecode = bytecode
+      ..onDiagnostic = (DiagnosticMessage message) {
+        bool printMessage;
+        switch (message.severity) {
           case Severity.error:
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
-            // are handled in the generated code (issue #30194).
-            errors.add(formatted);
-            stderr.writeln(formatted);
-            break;
-          case Severity.nit:
+            // are handled in the generated code.
+            printMessage = false; // errors are printed by VM
+            errors.addAll(message.plainTextFormatted);
             break;
           case Severity.warning:
-            stderr.writeln(formatted);
+            printMessage = !suppressWarnings;
             break;
+          case Severity.errorLegacyWarning:
+          case Severity.context:
+          case Severity.ignored:
+            throw "Unexpected severity: ${message.severity}";
+        }
+        if (printMessage) {
+          printDiagnosticMessage(message, stderr.writeln);
         }
       };
   }
 
-  Future<Program> compile(Uri script) {
-    return runWithPrintToStderr(() => compileInternal(script));
+  Future<Component> compile(Uri script) {
+    return runWithPrintToStderr(() async {
+      final component = await compileInternal(script);
+
+      if (options.bytecode && errors.isEmpty) {
+        await runWithFrontEndCompilerContext(script, options, component, () {
+          // TODO(alexmarkov): pass environment defines
+          generateBytecode(component);
+        });
+      }
+
+      return component;
+    });
   }
 
-  Future<Program> compileInternal(Uri script);
+  Future<Component> compileInternal(Uri script);
 }
 
-class IncrementalCompiler extends Compiler {
-  IncrementalKernelGenerator generator;
+class IncrementalCompilerWrapper extends Compiler {
+  IncrementalCompiler generator;
 
-  IncrementalCompiler(FileSystem fileSystem, Uri platformKernel,
-      {strongMode: false})
-      : super(fileSystem, platformKernel, strongMode: strongMode);
+  IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
+      {bool suppressWarnings: false,
+      bool bytecode: false,
+      String packageConfig: null})
+      : super(fileSystem, platformKernelPath,
+            suppressWarnings: suppressWarnings,
+            bytecode: bytecode,
+            packageConfig: packageConfig);
 
   @override
-  Future<Program> compileInternal(Uri script) async {
+  Future<Component> compileInternal(Uri script) async {
     if (generator == null) {
-      generator = await IncrementalKernelGenerator.newInstance(options, script);
+      generator = new IncrementalCompiler(options, script);
     }
-    DeltaProgram deltaProgram = await generator.computeDelta();
-    // TODO(aam): Accepting/rejecting should be done based on VM response.
-    generator.acceptLastDelta();
-    return deltaProgram.newProgram;
+    errors.clear();
+    return await generator.compile(entryPoint: script);
   }
 
-  void invalidate(Uri uri) {
-    generator.invalidate(uri);
-  }
+  void accept() => generator.accept();
+  void invalidate(Uri uri) => generator.invalidate(uri);
 }
 
-class SingleShotCompiler extends Compiler {
+class SingleShotCompilerWrapper extends Compiler {
   final bool requireMain;
 
-  SingleShotCompiler(FileSystem fileSystem, Uri platformKernel,
-      {this.requireMain: false, strongMode: false})
-      : super(fileSystem, platformKernel, strongMode: strongMode);
+  SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
+      {this.requireMain: false,
+      bool suppressWarnings: false,
+      bool bytecode: false,
+      String packageConfig: null})
+      : super(fileSystem, platformKernelPath,
+            suppressWarnings: suppressWarnings,
+            bytecode: bytecode,
+            packageConfig: packageConfig);
 
   @override
-  Future<Program> compileInternal(Uri script) async {
+  Future<Component> compileInternal(Uri script) async {
     return requireMain
         ? kernelForProgram(script, options)
-        : kernelForBuildUnit([script], options..chaseDependencies = true);
+        : kernelForComponent([script], options);
   }
 }
 
-final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
+// TODO(33428): This state is leaked on isolate shutdown.
+final Map<int, IncrementalCompilerWrapper> isolateCompilers =
+    new Map<int, IncrementalCompilerWrapper>();
+final Map<int, List<Uri>> isolateDependencies = new Map<int, List<Uri>>();
 
-Future<Compiler> lookupOrBuildNewIncrementalCompiler(
-    int isolateId, List sourceFiles, Uri platformKernel,
-    {strongMode: false}) async {
-  IncrementalCompiler compiler;
-  if (isolateCompilers.containsKey(isolateId)) {
-    compiler = isolateCompilers[isolateId];
-    final HybridFileSystem fileSystem = compiler.fileSystem;
-    if (sourceFiles != null) {
-      for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
-        Uri uri = Uri.parse(sourceFiles[i * 2]);
-        fileSystem.memory
-            .entityForUri(uri)
-            .writeAsBytesSync(sourceFiles[i * 2 + 1]);
-        compiler.invalidate(uri);
-      }
-    }
+IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
+  return isolateCompilers[isolateId];
+}
+
+Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
+    List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
+    {bool suppressWarnings: false,
+    bool bytecode: false,
+    String packageConfig: null,
+    String multirootFilepaths,
+    String multirootScheme}) async {
+  IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
+  if (compiler != null) {
+    updateSources(compiler, sourceFiles);
+    invalidateSources(compiler, sourceFiles);
   } else {
-    final FileSystem fileSystem = sourceFiles == null
-        ? PhysicalFileSystem.instance
-        : _buildFileSystem(sourceFiles);
+    FileSystem fileSystem = _buildFileSystem(
+        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
 
-    // TODO(aam): IncrementalCompiler instance created below have to be
+    // TODO(aam): IncrementalCompilerWrapper instance created below have to be
     // destroyed when corresponding isolate is shut down. To achieve that kernel
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
-    compiler = new IncrementalCompiler(fileSystem, platformKernel,
-        strongMode: strongMode);
+    compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
+        suppressWarnings: suppressWarnings,
+        bytecode: bytecode,
+        packageConfig: packageConfig);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
 }
 
+void updateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
+  final bool hasMemoryFS = compiler.fileSystem is HybridFileSystem;
+  if (sourceFiles.isNotEmpty) {
+    final FileSystem fs = compiler.fileSystem;
+    for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
+      Uri uri = Uri.parse(sourceFiles[i * 2]);
+      List<int> source = sourceFiles[i * 2 + 1];
+      // The source is only provided by unit tests and is normally empty.
+      // Don't add an entry for the uri so the compiler will fallback to the
+      // real file system for the updated source.
+      if (hasMemoryFS && source != null) {
+        (fs as HybridFileSystem)
+            .memory
+            .entityForUri(uri)
+            .writeAsBytesSync(source);
+      }
+    }
+  }
+}
+
+void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
+  if (sourceFiles.isNotEmpty) {
+    for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
+      compiler.invalidate(Uri.parse(sourceFiles[i * 2]));
+    }
+  }
+}
+
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in
 // kernel_isolate.cc and Loader::SendKernelRequest in loader.cc.
+Future _processExpressionCompilationRequest(request) async {
+  final SendPort port = request[1];
+  final int isolateId = request[2];
+  final String expression = request[3];
+  final List<String> definitions = request[4].cast<String>();
+  final List<String> typeDefinitions = request[5].cast<String>();
+  final String libraryUri = request[6];
+  final String klass = request[7]; // might be null
+  final bool isStatic = request[8];
+
+  IncrementalCompilerWrapper compiler = isolateCompilers[isolateId];
+
+  if (compiler == null) {
+    port.send(new CompilationResult.errors(
+            ["No incremental compiler available for this isolate."], null)
+        .toResponse());
+    return;
+  }
+
+  compiler.errors.clear();
+
+  CompilationResult result;
+  try {
+    Procedure procedure = await compiler.generator.compileExpression(
+        expression, definitions, typeDefinitions, libraryUri, klass, isStatic);
+
+    if (procedure == null) {
+      port.send(
+          new CompilationResult.errors(["Invalid scope."], null).toResponse());
+      return;
+    }
+
+    if (compiler.errors.isNotEmpty) {
+      // TODO(sigmund): the compiler prints errors to the console, so we
+      // shouldn't print those messages again here.
+      result = new CompilationResult.errors(compiler.errors, null);
+    } else {
+      result = new CompilationResult.ok(serializeProcedure(procedure));
+    }
+  } catch (error, stack) {
+    result = new CompilationResult.crash(error, stack);
+  }
+
+  port.send(result.toResponse());
+}
+
+void _recordDependencies(
+    int isolateId, Component component, String packageConfig) {
+  final dependencies = isolateDependencies[isolateId] ??= new List<Uri>();
+
+  if (component != null) {
+    for (var lib in component.libraries) {
+      if (lib.importUri.scheme == "dart") continue;
+
+      dependencies.add(lib.fileUri);
+      for (var part in lib.parts) {
+        final fileUri = lib.fileUri.resolve(part.partUri);
+        if (fileUri.scheme != "" && fileUri.scheme != "file") {
+          // E.g. part 'package:foo/foo.dart';
+          // Maybe the front end should resolve this?
+          continue;
+        }
+        dependencies.add(fileUri);
+      }
+    }
+  }
+
+  if (packageConfig != null) {
+    dependencies.add(Uri.parse(packageConfig));
+  }
+}
+
+String _escapeDependency(Uri uri) {
+  return uri.toFilePath().replaceAll("\\", "\\\\").replaceAll(" ", "\\ ");
+}
+
+List<int> _serializeDependencies(List<Uri> uris) {
+  return utf8.encode(uris.map(_escapeDependency).join(" "));
+}
+
+Future _processListDependenciesRequest(request) async {
+  final SendPort port = request[1];
+  final int isolateId = request[6];
+
+  final List<Uri> dependencies = isolateDependencies[isolateId] ?? <Uri>[];
+
+  CompilationResult result;
+  try {
+    result = new CompilationResult.ok(_serializeDependencies(dependencies));
+  } catch (error, stack) {
+    result = new CompilationResult.crash(error, stack);
+  }
+
+  port.send(result.toResponse());
+}
+
+Future _processIsolateShutdownNotification(request) async {
+  final int isolateId = request[1];
+  isolateCompilers.remove(isolateId);
+  isolateDependencies.remove(isolateId);
+}
+
 Future _processLoadRequest(request) async {
   if (verbose) print("DFE: request: $request");
 
   int tag = request[0];
+
+  if (tag == kCompileExpressionTag) {
+    await _processExpressionCompilationRequest(request);
+    return;
+  }
+
+  if (tag == kListDependenciesTag) {
+    await _processListDependenciesRequest(request);
+    return;
+  }
+
+  if (tag == kNotifyIsolateShutdownTag) {
+    await _processIsolateShutdownNotification(request);
+    return;
+  }
+
   final SendPort port = request[1];
   final String inputFileUri = request[2];
-  final Uri script = Uri.base.resolve(inputFileUri);
-  final Uri platformKernel = request[3] != null
-      ? Uri.base.resolveUri(new Uri.file(request[3]))
-      : computePlatformBinariesLocation().resolve(
-          // TODO(sigmund): use `vm_outline.dill` when the mixin transformer is
-          // modular.
-          'vm_platform.dill');
-
+  final Uri script =
+      inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool strong = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
-  // TODO(bkonyi): this still needs to be hooked in.
-  // final bool suppressWarnings = request[8];
+  final bool suppressWarnings = request[8];
+  final bool bytecode = request[9];
+  final String packageConfig = request[10];
+  final String multirootFilepaths = request[11];
+  final String multirootScheme = request[12];
+
+  Uri platformKernelPath = null;
+  List<int> platformKernel = null;
+  if (request[3] is String) {
+    platformKernelPath = Uri.base.resolveUri(new Uri.file(request[3]));
+  } else if (request[3] is List<int>) {
+    platformKernelPath = Uri.parse(platformKernelFile);
+    platformKernel = request[3];
+  } else {
+    platformKernelPath =
+        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+  }
 
   Compiler compiler;
+
+  // Update the in-memory file system with the provided sources. Currently, only
+  // unit tests compile sources that are not on the file system, so this can only
+  // happen during unit tests.
+  if (tag == kUpdateSourcesTag) {
+    assert(incremental,
+        "Incremental compiler required for use of 'kUpdateSourcesTag'");
+    compiler = lookupIncrementalCompiler(isolateId);
+    assert(compiler != null);
+    updateSources(compiler, sourceFiles);
+    port.send(new CompilationResult.ok(null).toResponse());
+    return;
+  } else if (tag == kAcceptTag) {
+    assert(
+        incremental, "Incremental compiler required for use of 'kAcceptTag'");
+    compiler = lookupIncrementalCompiler(isolateId);
+    // There are unit tests that invoke the IncrementalCompiler directly and
+    // request a reload, meaning that we won't have a compiler for this isolate.
+    if (compiler != null) {
+      (compiler as IncrementalCompilerWrapper).accept();
+    }
+    port.send(new CompilationResult.ok(null).toResponse());
+    return;
+  }
+
+  // script should only be null for kUpdateSourcesTag.
+  assert(script != null);
+
   // TODO(aam): There should be no need to have an option to choose
   // one compiler or another. We should always use an incremental
   // compiler as its functionality is a super set of the other one. We need to
   // watch the performance though.
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
-        isolateId, sourceFiles, platformKernel);
+        isolateId, sourceFiles, platformKernelPath, platformKernel,
+        suppressWarnings: suppressWarnings,
+        bytecode: bytecode,
+        packageConfig: packageConfig,
+        multirootFilepaths: multirootFilepaths,
+        multirootScheme: multirootScheme);
   } else {
-    final FileSystem fileSystem = sourceFiles == null
-        ? PhysicalFileSystem.instance
-        : _buildFileSystem(sourceFiles);
-    compiler = new SingleShotCompiler(fileSystem, platformKernel,
-        requireMain: sourceFiles == null, strongMode: strong);
+    FileSystem fileSystem = _buildFileSystem(
+        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
+    compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
+        requireMain: false,
+        suppressWarnings: suppressWarnings,
+        bytecode: bytecode,
+        packageConfig: packageConfig);
   }
 
   CompilationResult result;
@@ -210,19 +451,24 @@ Future _processLoadRequest(request) async {
       print("DFE: scriptUri: ${script}");
     }
 
-    Program program = await compiler.compile(script);
+    Component component = await compiler.compile(script);
 
     if (compiler.errors.isNotEmpty) {
-      // TODO(sigmund): the compiler prints errors to the console, so we
-      // shouldn't print those messages again here.
-      result = new CompilationResult.errors(compiler.errors);
+      if (component != null) {
+        result = new CompilationResult.errors(compiler.errors,
+            serializeComponent(component, filter: (lib) => !lib.isExternal));
+      } else {
+        result = new CompilationResult.errors(compiler.errors, null);
+      }
     } else {
-      // We serialize the program excluding vm_platform.dill because the VM has
+      // Record dependencies only if compilation was error free.
+      _recordDependencies(isolateId, component, packageConfig);
+      // We serialize the component excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.
       result = new CompilationResult.ok(
-          serializeProgram(program, filter: (lib) => !lib.isExternal));
+          serializeComponent(component, filter: (lib) => !lib.isExternal));
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
@@ -230,42 +476,73 @@ Future _processLoadRequest(request) async {
 
   if (verbose) print("DFE:> ${result}");
 
-  // Check whether this is a Loader request or a bootstrapping request from
-  // KernelIsolate::CompileToKernel.
-  final isBootstrapRequest = tag == null;
-  if (isBootstrapRequest) {
-    port.send(result.toResponse());
-  } else {
-    // See loader.cc for the code that handles these replies.
+  if (tag == kTrainTag) {
+    // In training mode make sure to read the sdk a few more times...
+    ProcessedOptions p = new ProcessedOptions(options: compiler.options);
+    var bytes = await p.loadSdkSummaryBytes();
+    for (int i = 0; i < 100; i++) {
+      p.loadComponent(bytes, null);
+    }
+
     if (result.status != Status.ok) {
       tag = -tag;
     }
     port.send([tag, inputFileUri, inputFileUri, null, result.payload]);
+  } else if (tag == kCompileTag) {
+    port.send(result.toResponse());
+  } else {
+    port.send([
+      -tag,
+      inputFileUri,
+      inputFileUri,
+      null,
+      new CompilationResult.errors(<String>["unknown tag"], null).payload
+    ]);
   }
 }
 
-/// Creates a file system containing the files specified in [namedSources] and
+/// Creates a file system containing the files specified in [sourceFiles] and
 /// that delegates to the underlying file system for any other file request.
-/// The [namedSources] list interleaves file name string and
+/// The [sourceFiles] list interleaves file name string and
 /// raw file content Uint8List.
 ///
-/// The result can be used instead of PhysicalFileSystem.instance by the
+/// The result can be used instead of StandardFileSystem.instance by the
 /// frontend.
-FileSystem _buildFileSystem(List namedSources) {
-  MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
-  for (int i = 0; i < namedSources.length ~/ 2; i++) {
-    fileSystem
-        .entityForUri(Uri.parse(namedSources[i * 2]))
-        .writeAsBytesSync(namedSources[i * 2 + 1]);
+FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
+    String multirootFilepaths, String multirootScheme) {
+  FileSystem fileSystem = new HttpAwareFileSystem(StandardFileSystem.instance);
+
+  if (!sourceFiles.isEmpty || platformKernel != null) {
+    MemoryFileSystem memoryFileSystem =
+        new MemoryFileSystem(Uri.parse('file:///'));
+    if (sourceFiles != null) {
+      for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
+        memoryFileSystem
+            .entityForUri(Uri.parse(sourceFiles[i * 2]))
+            .writeAsBytesSync(sourceFiles[i * 2 + 1]);
+      }
+    }
+    if (platformKernel != null) {
+      memoryFileSystem
+          .entityForUri(Uri.parse(platformKernelFile))
+          .writeAsBytesSync(platformKernel);
+    }
+    fileSystem = new HybridFileSystem(memoryFileSystem, fileSystem);
   }
-  return new HybridFileSystem(fileSystem);
+
+  if (multirootFilepaths != null) {
+    List<Uri> list = multirootFilepaths
+        .split(',')
+        .map((String s) => Uri.base.resolveUri(new Uri.file(s)))
+        .toList();
+    fileSystem = new MultiRootFileSystem(
+        multirootScheme ?? "org-dartlang-root", list, fileSystem);
+  }
+  return fileSystem;
 }
 
-train(String scriptUri, String platformKernel) {
-  // TODO(28532): Enable on Windows.
-  if (Platform.isWindows) return;
-
-  var tag = 1;
+train(String scriptUri, String platformKernelPath) {
+  var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {
     if (response[0] == tag) {
@@ -282,12 +559,16 @@ train(String scriptUri, String platformKernel) {
     tag,
     responsePort.sendPort,
     scriptUri,
-    platformKernel,
+    platformKernelPath,
     false /* incremental */,
-    false /* strong */,
+    true /* strong */,
     1 /* isolateId chosen randomly */,
-    null /* source files */,
+    [] /* source files */,
     false /* suppress warnings */,
+    true /* synchronous async */,
+    null /* package_config */,
+    null /* multirootFilepaths */,
+    null /* multirootScheme */,
   ];
   _processLoadRequest(request);
 }
@@ -324,7 +605,8 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List bytes) = _CompilationOk;
 
-  factory CompilationResult.errors(List<String> errors) = _CompilationError;
+  factory CompilationResult.errors(List<String> errors, Uint8List bytes) =
+      _CompilationError;
 
   factory CompilationResult.crash(Object exception, StackTrace stack) =
       _CompilationCrash;
@@ -360,9 +642,10 @@ abstract class _CompilationFail extends CompilationResult {
 }
 
 class _CompilationError extends _CompilationFail {
+  final Uint8List bytes;
   final List<String> errors;
 
-  _CompilationError(this.errors);
+  _CompilationError(this.errors, this.bytes);
 
   @override
   Status get status => Status.error;
@@ -371,6 +654,8 @@ class _CompilationError extends _CompilationFail {
   String get errorString => errors.take(10).join('\n');
 
   String toString() => "_CompilationError(${errorString})";
+
+  List toResponse() => [status.index, payload, bytes];
 }
 
 class _CompilationCrash extends _CompilationFail {

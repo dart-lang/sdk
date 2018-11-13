@@ -18,7 +18,7 @@ namespace dart {
 CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
 const char* CpuInfo::fields_[kCpuInfoMax] = {0};
 
-void CpuInfo::InitOnce() {
+void CpuInfo::Init() {
   method_ = kCpuInfoSystem;
 
   fields_[kCpuInfoProcessor] = "machdep.cpu.vendor";

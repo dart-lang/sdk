@@ -16,7 +16,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -50,11 +49,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       new RecentBuffer<CompletionPerformance>(performanceListMaxLength);
 
   /**
-   * Performance for the last priority change event.
-   */
-  CompletionPerformance computeCachePerformance;
-
-  /**
    * The current request being processed or `null` if none.
    */
   CompletionRequestImpl _currentRequest;
@@ -73,6 +67,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    */
   Future<CompletionResult> computeSuggestions(CompletionRequestImpl request,
       CompletionGetSuggestionsParams params) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     //
     // Allow plugins to start computing fixes.
     //
@@ -95,8 +91,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
       CompletionContributor contributor = new DartCompletionManager();
-      String contributorTag = 'computeSuggestions - ${contributor
-          .runtimeType}';
+      String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
       performance.logStartTime(contributorTag);
       try {
         suggestions.addAll(await contributor.computeSuggestions(request));
@@ -166,7 +161,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /**
    * Process a `completion.getSuggestions` request.
    */
-  Future<Null> processRequest(Request request) async {
+  Future<void> processRequest(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     performance = new CompletionPerformance();
 
     // extract and validate params
@@ -176,17 +173,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     int offset = params.offset;
 
     AnalysisResult result = await server.getAnalysisResult(filePath);
-    Source source;
 
-    if (result == null || !result.exists) {
-      if (server.onNoAnalysisCompletion != null) {
-        String completionId = (_nextCompletionId++).toString();
-        await server.onNoAnalysisCompletion(
-            request, this, params, performance, completionId);
-        return;
-      }
-      source = server.resourceProvider.getFile(filePath).createSource();
-    } else {
+    if (result != null && result.exists) {
       if (offset < 0 || offset > result.content.length) {
         server.sendResponse(new Response.invalidParameter(
             request,
@@ -195,13 +183,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             ' but found $offset'));
         return;
       }
-      source =
-          server.resourceProvider.getFile(result.path).createSource(result.uri);
 
-      recordRequest(performance, source, result.content, offset);
+      recordRequest(performance, filePath, result.content, offset);
     }
-    CompletionRequestImpl completionRequest = new CompletionRequestImpl(
-        result, server.resourceProvider, source, offset, performance);
+    CompletionRequestImpl completionRequest =
+        new CompletionRequestImpl(result, offset, performance);
 
     String completionId = (_nextCompletionId++).toString();
 
@@ -233,10 +219,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * If tracking code completion performance over time, then
    * record addition information about the request in the performance record.
    */
-  void recordRequest(CompletionPerformance performance, Source source,
+  void recordRequest(CompletionPerformance performance, String path,
       String content, int offset) {
-    performance.source = source;
-    if (performanceListMaxLength == 0 || source == null) {
+    performance.path = path;
+    if (performanceListMaxLength == 0) {
       return;
     }
     performance.setContentsAndOffset(content, offset);

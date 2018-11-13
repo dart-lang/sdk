@@ -6,8 +6,8 @@ library kernel.checks;
 import 'ast.dart';
 import 'transformations/flags.dart';
 
-void verifyProgram(Program program) {
-  VerifyingVisitor.check(program);
+void verifyComponent(Component component) {
+  VerifyingVisitor.check(component);
 }
 
 class VerificationError {
@@ -27,7 +27,7 @@ class VerificationError {
       // TODO(ahe): Fix the compiler instead.
     }
     if (location != null) {
-      String file = location.file ?? "";
+      String file = location.file?.toString() ?? "";
       return "$file:${location.line}:${location.column}: Verification error:"
           " $details";
     } else {
@@ -40,7 +40,7 @@ class VerificationError {
 
 enum TypedefState { Done, BeingChecked }
 
-/// Checks that a kernel program is well-formed.
+/// Checks that a kernel component is well-formed.
 ///
 /// This does not include any kind of type checking.
 class VerifyingVisitor extends RecursiveVisitor {
@@ -67,8 +67,8 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   TreeNode get context => currentMember ?? currentClass;
 
-  static void check(Program program) {
-    program.accept(new VerifyingVisitor());
+  static void check(Component component) {
+    component.accept(new VerifyingVisitor());
   }
 
   defaultTreeNode(TreeNode node) {
@@ -145,6 +145,10 @@ class VerifyingVisitor extends RecursiveVisitor {
   void declareTypeParameters(List<TypeParameter> parameters) {
     for (int i = 0; i < parameters.length; ++i) {
       var parameter = parameters[i];
+      if (parameter.bound == null) {
+        problem(
+            currentParent, "Missing bound for type parameter '$parameter'.");
+      }
       if (!typeParametersInScope.add(parameter)) {
         problem(parameter, "Type parameter '$parameter' redeclared.");
       }
@@ -161,9 +165,9 @@ class VerifyingVisitor extends RecursiveVisitor {
     }
   }
 
-  visitProgram(Program program) {
+  visitComponent(Component component) {
     try {
-      for (var library in program.libraries) {
+      for (var library in component.libraries) {
         for (var class_ in library.classes) {
           if (!classes.add(class_)) {
             problem(class_, "Class '$class_' declared more than once.");
@@ -179,9 +183,9 @@ class VerifyingVisitor extends RecursiveVisitor {
           class_.members.forEach(declareMember);
         }
       }
-      visitChildren(program);
+      visitChildren(component);
     } finally {
-      for (var library in program.libraries) {
+      for (var library in component.libraries) {
         library.members.forEach(undeclareMember);
         for (var class_ in library.classes) {
           class_.members.forEach(undeclareMember);
@@ -577,7 +581,7 @@ class VerifyingVisitor extends RecursiveVisitor {
       problem(
           currentParent,
           "Type parameter '$parameter' referenced from"
-          " static context, parent is '${parameter.parent}'.");
+          " static context, parent is: '${parameter.parent}'.");
     }
   }
 

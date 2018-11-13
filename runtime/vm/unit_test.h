@@ -9,11 +9,11 @@
 
 #include "platform/globals.h"
 
-#include "vm/ast.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
+#include "vm/dart_entry.h"
 #include "vm/globals.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -64,8 +64,10 @@
     TestIsolateScope __test_isolate__;                                         \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
+    TransitionNativeToVM transition1(__thread__);                              \
     StackZone __zone__(__thread__);                                            \
     HandleScope __hs__(__thread__);                                            \
+    TransitionVMToNative transition2(__thread__);                              \
     Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
   static void Dart_TestHelper##name(Thread* thread)
@@ -86,77 +88,34 @@
 #define ASSEMBLER_TEST_RUN(name, test)                                         \
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
   ISOLATE_UNIT_TEST_CASE(name) {                                               \
-    Assembler __assembler__;                                                   \
-    AssemblerTest test("" #name, &__assembler__);                              \
-    AssemblerTestGenerate##name(test.assembler());                             \
-    test.Assemble();                                                           \
-    AssemblerTestRun##name(&test);                                             \
+    {                                                                          \
+      bool use_far_branches = false;                                           \
+      LongJumpScope jump;                                                      \
+      if (setjmp(*jump.Set()) == 0) {                                          \
+        ObjectPoolWrapper object_pool_wrapper;                                 \
+        Assembler assembler(&object_pool_wrapper, use_far_branches);           \
+        AssemblerTest test("" #name, &assembler);                              \
+        AssemblerTestGenerate##name(test.assembler());                         \
+        test.Assemble();                                                       \
+        AssemblerTestRun##name(&test);                                         \
+        return;                                                                \
+      }                                                                        \
+    }                                                                          \
+                                                                               \
+    const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
+    if (error.raw() == Object::branch_offset_error().raw()) {                  \
+      bool use_far_branches = true;                                            \
+      ObjectPoolWrapper object_pool_wrapper;                                   \
+      Assembler assembler(&object_pool_wrapper, use_far_branches);             \
+      AssemblerTest test("" #name, &assembler);                                \
+      AssemblerTestGenerate##name(test.assembler());                           \
+      test.Assemble();                                                         \
+      AssemblerTestRun##name(&test);                                           \
+    } else {                                                                   \
+      FATAL1("Unexpected error: %s\n", error.ToErrorCString());                \
+    }                                                                          \
   }                                                                            \
   static void AssemblerTestRun##name(AssemblerTest* test)
-
-// Populate node list with AST nodes.
-#define CODEGEN_TEST_GENERATE(name, test)                                      \
-  static void CodeGenTestGenerate##name(CodeGenTest* test)
-
-// Populate node list with AST nodes, possibly using the provided function
-// object built by a previous CODEGEN_TEST_GENERATE.
-#define CODEGEN_TEST2_GENERATE(name, function, test)                           \
-  static void CodeGenTestGenerate##name(const Function& function,              \
-                                        CodeGenTest* test)
-
-// Pass the name of test and the expected results as RawObject.
-#define CODEGEN_TEST_RUN(name, expected)                                       \
-  static void CodeGenTestRun##name(const Function& function);                  \
-  ISOLATE_UNIT_TEST_CASE(name) {                                               \
-    CodeGenTest __test__("" #name);                                            \
-    CodeGenTestGenerate##name(&__test__);                                      \
-    __test__.Compile();                                                        \
-    CodeGenTestRun##name(__test__.function());                                 \
-  }                                                                            \
-  static void CodeGenTestRun##name(const Function& function) {                 \
-    Object& result = Object::Handle();                                         \
-    result = DartEntry::InvokeFunction(function, Object::empty_array());       \
-    EXPECT(!result.IsError());                                                 \
-    Instance& actual = Instance::Handle();                                     \
-    actual ^= result.raw();                                                    \
-    EXPECT(actual.CanonicalizeEquals(Instance::Handle(expected)));             \
-  }
-
-// Pass the name of test, and use the generated function to call it
-// and evaluate its result.
-#define CODEGEN_TEST_RAW_RUN(name, function)                                   \
-  static void CodeGenTestRun##name(const Function& function);                  \
-  ISOLATE_UNIT_TEST_CASE(name) {                                               \
-    CodeGenTest __test__("" #name);                                            \
-    CodeGenTestGenerate##name(&__test__);                                      \
-    __test__.Compile();                                                        \
-    CodeGenTestRun##name(__test__.function());                                 \
-  }                                                                            \
-  static void CodeGenTestRun##name(const Function& function)
-
-// Generate code for two sequences of AST nodes and execute the first one.
-// The first one may reference the Function object generated by the second one.
-#define CODEGEN_TEST2_RUN(name1, name2, expected)                              \
-  static void CodeGenTestRun##name1(const Function& function);                 \
-  ISOLATE_UNIT_TEST_CASE(name1) {                                              \
-    /* Generate code for name2 */                                              \
-    CodeGenTest __test2__("" #name2);                                          \
-    CodeGenTestGenerate##name2(&__test2__);                                    \
-    __test2__.Compile();                                                       \
-    /* Generate code for name1, providing function2 */                         \
-    CodeGenTest __test1__("" #name1);                                          \
-    CodeGenTestGenerate##name1(__test2__.function(), &__test1__);              \
-    __test1__.Compile();                                                       \
-    CodeGenTestRun##name1(__test1__.function());                               \
-  }                                                                            \
-  static void CodeGenTestRun##name1(const Function& function) {                \
-    Object& result = Object::Handle();                                         \
-    result = DartEntry::InvokeFunction(function, Object::empty_array());       \
-    EXPECT(!result.IsError());                                                 \
-    Instance& actual = Instance::Handle();                                     \
-    actual ^= result.raw();                                                    \
-    EXPECT(actual.CanonicalizeEquals(Instance::Handle(expected)));             \
-  }
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 #if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
@@ -251,6 +210,41 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
+extern const uint8_t* platform_strong_dill;
+extern const intptr_t platform_strong_dill_size;
+
+class TesterState : public AllStatic {
+ public:
+  static const uint8_t* vm_snapshot_data;
+  static Dart_IsolateCreateCallback create_callback;
+  static Dart_IsolateShutdownCallback shutdown_callback;
+  static Dart_IsolateCleanupCallback cleanup_callback;
+  static const char** argv;
+  static int argc;
+};
+
+class KernelBufferList {
+ public:
+  explicit KernelBufferList(const uint8_t* kernel_buffer)
+      : kernel_buffer_(kernel_buffer), next_(NULL) {}
+
+  KernelBufferList(const uint8_t* kernel_buffer, KernelBufferList* next)
+      : kernel_buffer_(kernel_buffer), next_(next) {}
+
+  ~KernelBufferList() {
+    free(const_cast<uint8_t*>(kernel_buffer_));
+    if (next_ != NULL) {
+      delete next_;
+    }
+  }
+
+  void AddBufferToList(const uint8_t* kernel_buffer);
+
+ private:
+  const uint8_t* kernel_buffer_;
+  KernelBufferList* next_;
+};
+
 class TestCaseBase {
  public:
   explicit TestCaseBase(const char* name);
@@ -263,8 +257,11 @@ class TestCaseBase {
 
   static void RunAll();
   static void RunAllRaw();
+  static void CleanupState();
+  static void AddToKernelBuffers(const uint8_t* kernel_buffer);
 
  protected:
+  static KernelBufferList* current_kernel_buffers_;
   bool raw_test_;
 
  private:
@@ -289,60 +286,100 @@ class TestCase : TestCaseBase {
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
-                                        void** kernel_pgm,
-                                        bool incrementally = false);
+                                        const uint8_t** kernel_buffer,
+                                        intptr_t* kernel_buffer_size,
+                                        bool incrementally = true,
+                                        bool allow_compile_errors = false,
+                                        const char* multiroot_filepaths = NULL,
+                                        const char* multiroot_scheme = NULL);
   static char* CompileTestScriptWithDFE(const char* url,
                                         int sourcefiles_count,
                                         Dart_SourceFile sourcefiles[],
-                                        void** kernel_pgm,
-                                        bool incrementally = false);
+                                        const uint8_t** kernel_buffer,
+                                        intptr_t* kernel_buffer_size,
+                                        bool incrementally = true,
+                                        bool allow_compile_errors = false,
+                                        const char* multiroot_filepaths = NULL,
+                                        const char* multiroot_scheme = NULL);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
-                                    bool finalize = true);
-  static Dart_Handle LoadTestLibrary(const char* lib_uri, const char* script);
+                                    bool finalize = true,
+                                    bool allow_compile_errors = false);
+  static Dart_Handle LoadTestScriptWithErrors(
+      const char* script,
+      Dart_NativeEntryResolver resolver = NULL,
+      const char* lib_uri = USER_TEST_URI,
+      bool finalize = true);
+  static Dart_Handle LoadTestLibrary(const char* lib_uri,
+                                     const char* script,
+                                     Dart_NativeEntryResolver resolver = NULL);
   static Dart_Handle LoadTestScriptWithDFE(
       int sourcefiles_count,
       Dart_SourceFile sourcefiles[],
       Dart_NativeEntryResolver resolver = NULL,
       bool finalize = true,
-      bool incrementally = false);
+      bool incrementally = true,
+      bool allow_compile_errors = false,
+      const char* entry_script_uri = NULL,
+      const char* multiroot_filepaths = NULL,
+      const char* multiroot_scheme = NULL);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
+
+  static Dart_Handle EvaluateExpression(const Library& lib,
+                                        const String& expr,
+                                        const Array& param_names,
+                                        const Array& param_values);
+
   static Dart_Handle lib();
   static const char* url();
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
                                                     const char* name = NULL) {
-    return CreateIsolate(buffer, name);
+    return CreateIsolate(buffer, 0, NULL, name);
   }
-  static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
-    return CreateIsolate(bin::core_isolate_snapshot_data, name);
-  }
+  static Dart_Isolate CreateTestIsolate(const char* name = NULL,
+                                        void* data = NULL);
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);
-  static char* BigintToHexValue(Dart_CObject* bigint);
 
   virtual void Run();
 
   // Sets |script| to be the source used at next reload.
-  static void SetReloadTestScript(const char* script);
-  static void SetReloadTestKernel(const void* kernel);
+  static Dart_Handle SetReloadTestScript(const char* script);
 
   // Initiates the reload.
-  static Dart_Handle TriggerReload();
-  // Gets the result of a reload.
-  static Dart_Handle GetReloadErrorOrRootLibrary();
+  static Dart_Handle TriggerReload(const uint8_t* kernel_buffer,
+                                   intptr_t kernel_buffer_size);
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
-  static Dart_Handle ReloadTestKernel(const void* kernel);
+
+  // Helper function which reloads the current isolate using |script|.
+  static Dart_Handle ReloadTestKernel(const uint8_t* kernel_buffer,
+                                      intptr_t kernel_buffer_size);
 
   static void AddTestLib(const char* url, const char* source);
   static const char* GetTestLib(const char* url);
 
  private:
-  static Dart_Isolate CreateIsolate(const uint8_t* buffer, const char* name);
+  // |data_buffer| can either be snapshot data, or kernel binary data.
+  // If |data_buffer| is snapshot data, then |len| should be zero as snapshot
+  // size is encoded within them. If |len| is non-zero, then |data_buffer|
+  // will be treated as a kernel binary (but CreateIsolate will not
+  // take ownership of the buffer) and |instr_buffer| will be ignored.
+  static Dart_Isolate CreateIsolate(const uint8_t* data_buffer,
+                                    intptr_t len,
+                                    const uint8_t* instr_buffer,
+                                    const char* name,
+                                    void* data = NULL);
+
+  static char* ValidateCompilationResult(Zone* zone,
+                                         Dart_KernelCompilationResult result,
+                                         const uint8_t** kernel_buffer,
+                                         intptr_t* kernel_buffer_size,
+                                         bool allow_compile_errors);
 
   RunEntry* const run_;
 };
@@ -415,7 +452,7 @@ class AssemblerTest {
 
   uword payload_start() const { return code_.PayloadStart(); }
   uword payload_size() const { return assembler_->CodeSize(); }
-  uword entry() const { return code_.UncheckedEntryPoint(); }
+  uword entry() const { return code_.EntryPoint(); }
 
 // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
 // using the ABI calling convention.
@@ -538,31 +575,6 @@ class AssemblerTest {
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);
 };
 
-class CodeGenTest {
- public:
-  explicit CodeGenTest(const char* name);
-  ~CodeGenTest() {}
-
-  // Accessors.
-  const Function& function() const { return function_; }
-
-  SequenceNode* node_sequence() const { return node_sequence_; }
-
-  void set_default_parameter_values(ZoneGrowableArray<const Instance*>* value) {
-    default_parameter_values_ = value;
-  }
-
-  // Compile test and set code in function.
-  void Compile();
-
- private:
-  Function& function_;
-  SequenceNode* node_sequence_;
-  ZoneGrowableArray<const Instance*>* default_parameter_values_;
-
-  DISALLOW_COPY_AND_ASSIGN(CodeGenTest);
-};
-
 class CompilerTest : public AllStatic {
  public:
   // Test the Compiler::CompileScript functionality by checking the return
@@ -622,6 +634,24 @@ class CompilerTest : public AllStatic {
     } else {                                                                   \
       dart::Expect(__FILE__, __LINE__)                                         \
           .Fail("expected True, but was '%s'\n", #handle);                     \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_NULL(handle)                                                    \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (!Dart_IsNull(tmp_handle)) {                                            \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected '%s' to be a null handle.\n", #handle);              \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_NON_NULL(handle)                                                \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (Dart_IsNull(tmp_handle)) {                                             \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected '%s' to be a non-null handle.\n", #handle);          \
     }                                                                          \
   } while (0)
 

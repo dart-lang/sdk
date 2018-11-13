@@ -10,24 +10,41 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
+DEFINE_FLAG(bool, write_protect_code, false, "Write protect jitted code");
 
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)
     : address_(address), size_(size) {
   if (FLAG_write_protect_code) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
-                                         VirtualMemory::kReadWrite);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
+                           VirtualMemory::kReadWrite);
   }
 }
 
 WritableInstructionsScope::~WritableInstructionsScope() {
   if (FLAG_write_protect_code) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address_),
-                                         size_, VirtualMemory::kReadExecute);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(address_), size_,
+                           VirtualMemory::kReadExecute);
   }
+}
+
+bool MatchesPattern(uword end, int16_t* pattern, intptr_t size) {
+  // When breaking within generated code in GDB, it may overwrite individual
+  // instructions with trap instructions, which can cause this test to fail.
+  //
+  // Ignoring trap instructions would work well enough within GDB alone, but it
+  // doesn't work in RR, because the check for the trap instrution itself will
+  // cause replay to diverge from the original record.
+  if (FLAG_support_rr) return true;
+
+  uint8_t* bytes = reinterpret_cast<uint8_t*>(end - size);
+  for (intptr_t i = 0; i < size; i++) {
+    int16_t val = pattern[i];
+    if ((val >= 0) && (val != bytes[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace dart

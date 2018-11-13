@@ -38,6 +38,7 @@ const useSdk = "--use-sdk";
 const releaseMode = "--mode=release";
 const productMode = "--mode=product";
 const strong = "--strong";
+const previewDart2 = "--preview-dart-2";
 
 /// Maps configuration names to a corresponding set of test.dart command line
 /// arguments.
@@ -47,17 +48,10 @@ const strong = "--strong";
 /// possibly followed by some modifier for a specific bot or annotated step on
 /// a bot. The configs here are ordered the same order as the waterfall.
 final allConfigs = {
-  "vm": [noCompiler, vm],
   "vm-checked": [noCompiler, vm, checked],
-  "vm-app": [appJit, vm],
-  "vm-app-product": [productMode, appJit, vm],
-  "vm-kernel": [dartk, releaseMode, vm],
   "vm-kernel-strong": [dartk, releaseMode, vm, strong],
-  "vm-kernel-precomp": [dartkp, releaseMode, precompiled],
   "vm-kernel-precomp-strong": [dartkp, releaseMode, precompiled, strong],
-  "vm-precomp": [precompiler, precompiled],
   "vm-precomp-checked": [precompiler, precompiled, checked],
-  "vm-product": [productMode, noCompiler, vm],
   // TODO(rnystrom): Add dart2js-d8-hostchecked, dart2js-d8-minified, or
   // dart2js-jsshell?
   "analyzer": [analyzer, noRuntime, useSdk],
@@ -80,16 +74,9 @@ final allConfigs = {
     useSdk,
     dart2jsBatch
   ],
-  "dart2js-d8-withkernel-checked": [
-    dart2js,
-    d8,
-    dart2jsWithKernel,
-    checked,
-    useSdk,
-    dart2jsBatch
-  ],
   "dart2js-jsshell": [dart2js, jsshell, fastStartup, useSdk, dart2jsBatch],
   // TODO(rnystrom): Is it worth running dart2js on Firefox too?
+  "dart2js-2": [dart2js, chrome, dart2jsBatch, previewDart2],
   "dartdevc": [dartdevc, chrome, useSdk, strong],
   "dartdevc-kernel": [dartdevk, chrome, checked, useSdk, strong],
   "dartdevc-kernel-noruntime": [dartdevk, noRuntime, checked, useSdk, strong],

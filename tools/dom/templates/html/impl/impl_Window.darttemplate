@@ -4,7 +4,6 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)@Native("Window,DOMWindow")
 $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
@@ -55,8 +54,6 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
-   * * [Window open](http://docs.webplatform.org/wiki/dom/methods/open)
-   *   from WebPlatform.org.
    */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
@@ -107,7 +104,6 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * Note: The supplied [callback] needs to call [requestAnimationFrame] again
    * for the animation to continue.
    */
-  @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
     return _requestAnimationFrame(_wrapZone(callback));
@@ -167,23 +163,21 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental()
   IdbFactory get indexedDB =>
       JS('IdbFactory|Null',  // If not supported, returns null.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
   /// The debugging console for this window.
-  @DomName('Window.console')
   Console get console => Console._safeConsole;
 
-
   /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
+   * Access a sandboxed file system of `size` bytes.
+   *
+   * If `persistent` is true, the application will request permission from the
+   * user to create lasting storage. This storage cannot be freed without the
+   * user's permission. Returns a [Future] whose value stores a reference to
+   * the sandboxed file system for use. Because the file system is sandboxed,
    * applications cannot access file systems created in other web pages.
    */
   Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
@@ -203,13 +197,14 @@ $!MEMBERS
    *
    * See [EventStreamProvider] for usage information.
    */
-  @DomName('Window.beforeunloadEvent')
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
       const _BeforeUnloadEventStreamProvider('beforeunload');
 
   /// Stream of `beforeunload` events handled by this [Window].
-  @DomName('Window.onbeforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  /// Stream of `wheel` events handled by this [Window].
+  Stream<WheelEvent> get onWheel => Element.wheelEvent.forTarget(this);
 
   /**
    * Moves this window to a specific position.
@@ -227,12 +222,27 @@ $!MEMBERS
     _moveTo(p.x, p.y);
   }
 
-  @DomName('Window.pageXOffset')
-  @DocsEditable()
+  @JSName('openDatabase')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Creates('SqlDatabase')
+  SqlDatabase openDatabase(
+      String name, String version, String displayName, int estimatedSize,
+      [DatabaseCallback creationCallback]) {
+    var db;
+    if (creationCallback == null)
+      db = _openDatabase(name, version, displayName, estimatedSize);
+    else
+      db = _openDatabase(
+        name, version, displayName, estimatedSize, creationCallback);
+
+    applyExtension('Database', db);
+
+    return db;
+  }
+
   int get pageXOffset => JS('num', '#.pageXOffset', this).round();
 
-  @DomName('Window.pageYOffset')
-  @DocsEditable()
   int get pageYOffset => JS('num', '#.pageYOffset', this).round();
 
   /**
@@ -245,8 +255,6 @@ $!MEMBERS
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  @DomName('Window.scrollX')
-  @DocsEditable()
   int get scrollX => JS('bool', '("scrollX" in #)', this) ?
       JS('num', '#.scrollX', this).round() :
       document.documentElement.scrollLeft;
@@ -261,8 +269,6 @@ $!MEMBERS
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  @DomName('Window.scrollY')
-  @DocsEditable()
   int get scrollY => JS('bool', '("scrollY" in #)', this) ?
       JS('num', '#.scrollY', this).round() :
       document.documentElement.scrollTop;

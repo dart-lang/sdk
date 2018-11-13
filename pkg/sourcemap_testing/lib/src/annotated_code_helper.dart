@@ -25,6 +25,9 @@ class Annotation {
   final String text;
 
   Annotation(this.lineNo, this.columnNo, this.offset, this.text);
+
+  String toString() =>
+      'Annotation(lineNo=$lineNo,columnNo=$columnNo,offset=$offset,text=$text)';
 }
 
 /// A source code text with annotated positions.

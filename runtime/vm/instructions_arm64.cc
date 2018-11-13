@@ -69,10 +69,6 @@ void NativeCallPattern::set_native_function(NativeFunction func) const {
                              reinterpret_cast<uword>(func));
 }
 
-intptr_t InstructionPattern::OffsetFromPPIndex(intptr_t index) {
-  return Array::element_offset(index);
-}
-
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
@@ -174,11 +170,7 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   return start;
 }
 
-// Decodes a load sequence ending at 'end' (the last instruction of the load
-// sequence is the instruction before the one at end).  Returns a pointer to
-// the first instruction in the sequence.  Returns the register being loaded
-// and the index in the pool being read from in the output parameters 'reg'
-// and 'index' respectively.
+// See comment in instructions_arm64.h
 uword InstructionPattern::DecodeLoadWordFromPool(uword end,
                                                  Register* reg,
                                                  intptr_t* index) {
@@ -246,6 +238,74 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   return start;
 }
 
+// See comment in instructions_arm64.h
+uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
+                                                       Register* reg1,
+                                                       Register* reg2,
+                                                       intptr_t* index) {
+  // Cases:
+  //
+  //   1. ldp reg1, reg2, [pp, offset]
+  //
+  //   2. add tmp, pp, #upper12
+  //      ldp reg1, reg2, [tmp, #lower12]
+  //
+  //   3. add tmp, pp, #upper12
+  //      add tmp, tmp, #lower12
+  //      ldp reg1, reg2, [tmp, 0]
+  //
+  // Note that the pp register is untagged!
+  //
+  uword start = end - Instr::kInstrSize;
+  Instr* ldr_instr = Instr::At(start);
+
+  // Last instruction is always an ldp into two 64-bit X registers.
+  RELEASE_ASSERT(ldr_instr->IsLoadStoreRegPairOp() &&
+                 (ldr_instr->Bit(22) == 1));
+
+  // Grab the destination register from the ldp instruction.
+  *reg1 = ldr_instr->RtField();
+  *reg2 = ldr_instr->Rt2Field();
+
+  Register base_reg = ldr_instr->RnField();
+  const int base_offset = 8 * ldr_instr->Imm7Field();
+
+  intptr_t pool_offset = 0;
+  if (base_reg == PP) {
+    // Case 1.
+    pool_offset = base_offset;
+  } else {
+    // Case 2 & 3.
+    RELEASE_ASSERT(base_reg == TMP);
+
+    pool_offset = base_offset;
+
+    start -= Instr::kInstrSize;
+    Instr* add_instr = Instr::At(start);
+    RELEASE_ASSERT(add_instr->IsAddSubImmOp());
+    RELEASE_ASSERT(add_instr->RdField() == TMP);
+
+    const auto shift = add_instr->Imm12ShiftField();
+    RELEASE_ASSERT(shift == 0 || shift == 1);
+    pool_offset += (add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+
+    if (add_instr->RnField() == TMP) {
+      start -= Instr::kInstrSize;
+      Instr* prev_add_instr = Instr::At(start);
+      RELEASE_ASSERT(prev_add_instr->IsAddSubImmOp());
+      RELEASE_ASSERT(prev_add_instr->RnField() == PP);
+
+      const auto shift = prev_add_instr->Imm12ShiftField();
+      RELEASE_ASSERT(shift == 0 || shift == 1);
+      pool_offset += (prev_add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+    } else {
+      RELEASE_ASSERT(add_instr->RnField() == PP);
+    }
+  }
+  *index = ObjectPool::IndexFromOffset(pool_offset - kHeapObjectTag);
+  return start;
+}
+
 bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
 
@@ -258,9 +318,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-        *obj = pool.ObjectAt(index);
-        return true;
+      if (!pool.IsNull()) {
+        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+          *obj = pool.ObjectAt(index);
+          return true;
+        }
       }
     } else if (instr->RnField() == THR) {
       return Thread::ObjectAtOffset(offset, obj);
@@ -319,13 +381,15 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   // Last instruction: blr ip0.
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
 
-  Register reg;
-  uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
-      pc - Instr::kInstrSize, &reg, &data_pool_index_);
-  ASSERT(reg == R5);
-  InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
-                                             &reg, &target_pool_index_);
-  ASSERT(reg == CODE_REG);
+  Register ic_data_reg, code_reg;
+  intptr_t pool_index;
+  InstructionPattern::DecodeLoadDoubleWordFromPool(
+      pc - 2 * Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
+  RELEASE_ASSERT(ic_data_reg == R5);
+  RELEASE_ASSERT(code_reg == CODE_REG);
+
+  data_pool_index_ = pool_index;
+  target_pool_index_ = pool_index + 1;
 }
 
 RawObject* SwitchableCallPattern::data() const {
@@ -353,6 +417,37 @@ bool ReturnPattern::IsValid() const {
   const Register crn = ConcreteRegister(LR);
   const int32_t instruction = RET | (static_cast<int32_t>(crn) << kRnShift);
   return bx_lr->InstructionBits() == instruction;
+}
+
+bool PcRelativeCallPattern::IsValid() const {
+  // bl <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_link = 0x25;
+  return (word >> 26) == branch_link;
+}
+
+bool PcRelativeJumpPattern::IsValid() const {
+  // b <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_nolink = 0x5;
+  return (word >> 26) == branch_nolink;
+}
+
+intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
+  // Calls to the type testing stubs look like:
+  //   ldr R3, [PP+idx]
+  //   blr R9
+
+  // Ensure the caller of the type testing stub (whose return address is [pc_])
+  // branched via the `blr R9` instruction.
+  ASSERT(*reinterpret_cast<uint32_t*>(pc_ - Instr::kInstrSize) == 0xd63f0120);
+  const uword load_instr_end = pc_ - Instr::kInstrSize;
+
+  Register reg;
+  intptr_t pool_index = -1;
+  InstructionPattern::DecodeLoadWordFromPool(load_instr_end, &reg, &pool_index);
+  ASSERT(reg == R3);
+  return pool_index;
 }
 
 }  // namespace dart

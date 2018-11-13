@@ -16,16 +16,10 @@ class Program {
   final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
-  final bool hasIsolateSupport;
   final bool hasSoftDeferredClasses;
 
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
-
-  /// A map from names to strings.
-  ///
-  /// This map is needed to support `const Symbol` expressions;
-  final Map<js.Name, String> symbolsMap;
 
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
@@ -36,15 +30,13 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments, this.holders, this.loadMap, this.symbolsMap,
-      this.typeToInterceptorMap, this._metadataCollector, this.finalizers,
+  Program(this.fragments, this.holders, this.loadMap, this.typeToInterceptorMap,
+      this._metadataCollector, this.finalizers,
       {this.needsNativeSupport,
       this.outputContainsConstantList,
-      this.hasIsolateSupport,
       this.hasSoftDeferredClasses}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
-    assert(hasIsolateSupport != null);
   }
 
   /// Accessor for the list of metadata entries for a given [OutputUnit].
@@ -189,7 +181,7 @@ class Constant {
   Constant(this.name, this.holder, this.value);
 
   String toString() {
-    return 'Constant(name=${name},value=${value.toStructuredText()})';
+    return 'Constant(name=${name.key},value=${value.toStructuredText()})';
   }
 }
 
@@ -233,7 +225,7 @@ class StaticField {
       this.isLazy);
 
   String toString() {
-    return 'StaticField(name=${name},element=${element})';
+    return 'StaticField(name=${name.key},element=${element})';
   }
 }
 
@@ -245,6 +237,7 @@ class Class implements FieldContainer {
   final js.Name name;
   final Holder holder;
   Class _superclass;
+  Class _mixinClass;
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
@@ -266,6 +259,8 @@ class Class implements FieldContainer {
   ///
   /// A soft-deferred class is only fully initialized at first instantiation.
   final bool isSoftDeferred;
+
+  final bool isSuperMixinApplication;
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
@@ -300,18 +295,26 @@ class Class implements FieldContainer {
       this.isDirectlyInstantiated,
       this.isNative,
       this.isClosureBaseClass,
-      this.isSoftDeferred = false}) {
+      this.isSoftDeferred = false,
+      this.isSuperMixinApplication}) {
     assert(onlyForRti != null);
     assert(isDirectlyInstantiated != null);
     assert(isNative != null);
     assert(isClosureBaseClass != null);
   }
 
-  bool get isMixinApplication => false;
+  bool get isSimpleMixinApplication => false;
+
   Class get superclass => _superclass;
 
   void setSuperclass(Class superclass) {
     _superclass = superclass;
+  }
+
+  Class get mixinClass => _mixinClass;
+
+  void setMixinClass(Class mixinClass) {
+    _mixinClass = mixinClass;
   }
 
   js.Name get superclassName => superclass == null ? null : superclass.name;
@@ -319,12 +322,10 @@ class Class implements FieldContainer {
   int get superclassHolderIndex =>
       (superclass == null) ? 0 : superclass.holder.index;
 
-  String toString() => 'Class(name=${name},element=$element)';
+  String toString() => 'Class(name=${name.key},element=$element)';
 }
 
 class MixinApplication extends Class {
-  Class _mixinClass;
-
   MixinApplication(
       ClassEntity element,
       js.Name name,
@@ -354,16 +355,12 @@ class MixinApplication extends Class {
             onlyForRti: onlyForRti,
             isDirectlyInstantiated: isDirectlyInstantiated,
             isNative: false,
-            isClosureBaseClass: false);
+            isClosureBaseClass: false,
+            isSuperMixinApplication: false);
 
-  bool get isMixinApplication => true;
-  Class get mixinClass => _mixinClass;
+  bool get isSimpleMixinApplication => true;
 
-  void setMixinClass(Class mixinClass) {
-    _mixinClass = mixinClass;
-  }
-
-  String toString() => 'Mixin(name=${name},element=$element)';
+  String toString() => 'Mixin(name=${name.key},element=$element)';
 }
 
 /// A field.
@@ -392,9 +389,17 @@ class Field {
 
   final bool needsCheckedSetter;
 
+  final bool nullInitializerInAllocator; // TODO(sra): Generalize.
+
   // TODO(floitsch): support renamed fields.
-  Field(this.element, this.name, this.accessorName, this.getterFlags,
-      this.setterFlags, this.needsCheckedSetter);
+  Field(
+      this.element,
+      this.name,
+      this.accessorName,
+      this.getterFlags,
+      this.setterFlags,
+      this.needsCheckedSetter,
+      this.nullInitializerInAllocator);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;
@@ -409,7 +414,7 @@ class Field {
   bool get needsInterceptedSetterOnThis => setterFlags == 3;
 
   String toString() {
-    return 'Field(name=${name},element=${element})';
+    return 'Field(name=${name.key},element=${element})';
   }
 }
 
@@ -433,9 +438,9 @@ abstract class DartMethod extends Method {
   final js.Name tearOffName;
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
-  final bool canBeReflected;
+  final int applyIndex;
 
-  // Is non-null if [needsTearOff] or [canBeReflected].
+  // Is non-null if [needsTearOff].
   //
   // If the type is encoded in the metadata table this field contains an index
   // into the table. Otherwise the type contains type variables in which case
@@ -443,7 +448,7 @@ abstract class DartMethod extends Method {
   final js.Expression functionType;
 
   // Signature information for this method. This is only required and stored
-  // here if the method [canBeApplied] or [canBeReflected]
+  // here if the method [canBeApplied].
   final int requiredParameterCount;
   final /* Map | List */ optionalParameterDefaultValues;
 
@@ -457,16 +462,15 @@ abstract class DartMethod extends Method {
       {this.needsTearOff,
       this.tearOffName,
       this.canBeApplied,
-      this.canBeReflected,
       this.requiredParameterCount,
       this.optionalParameterDefaultValues,
-      this.functionType})
+      this.functionType,
+      this.applyIndex})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
     assert(canBeApplied != null);
-    assert(canBeReflected != null);
-    assert((!canBeReflected && !canBeApplied) ||
+    assert(!canBeApplied ||
         (requiredParameterCount != null &&
             optionalParameterDefaultValues != null));
   }
@@ -486,32 +490,39 @@ class InstanceMethod extends DartMethod {
   /// functions that can be torn off.
   final bool isClosureCallMethod;
 
+  /// True if the interceptor calling convention is used for this method.
+  final bool isIntercepted;
+
+  /// Name called via the general 'catch all' path of Function.apply.
+  ///final js.Name applyName;
+
   InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
       List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
       js.Name tearOffName,
       this.aliasName,
       bool canBeApplied,
-      bool canBeReflected,
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
       this.isClosureCallMethod,
-      js.Expression functionType})
+      this.isIntercepted,
+      js.Expression functionType,
+      int applyIndex})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
-            canBeReflected: canBeReflected,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType) {
+            functionType: functionType,
+            applyIndex: applyIndex) {
     assert(isClosureCallMethod != null);
   }
 
   bool get isStatic => false;
 
   String toString() {
-    return 'InstanceMethod(name=${name},element=${element}'
+    return 'InstanceMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -524,7 +535,7 @@ class StubMethod extends Method {
       : super(element, name, code);
 
   String toString() {
-    return 'StubMethod(name=${name},element=${element}'
+    return 'StubMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -550,8 +561,9 @@ class ParameterStubMethod extends StubMethod {
       : super(name, code);
 
   String toString() {
-    return 'ParameterStubMethod(name=${name},element=${element}'
-        ',code=${js.nodeToString(code)})';
+    return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'
+        ', element=${element}'
+        ', code=${js.nodeToString(code)})';
   }
 }
 
@@ -572,23 +584,23 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
       {bool needsTearOff,
       js.Name tearOffName,
       bool canBeApplied,
-      bool canBeReflected,
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
-      js.Expression functionType})
+      js.Expression functionType,
+      int applyIndex})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
-            canBeReflected: canBeReflected,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType);
+            functionType: functionType,
+            applyIndex: applyIndex);
 
   bool get isStatic => true;
 
   String toString() {
-    return 'StaticDartMethod(name=${name},element=${element}'
+    return 'StaticDartMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -599,7 +611,7 @@ class StaticStubMethod extends StubMethod implements StaticMethod {
       : super(name, code);
 
   String toString() {
-    return 'StaticStubMethod(name=${name},element=${element}}'
+    return 'StaticStubMethod(name=${name.key},element=${element}}'
         ',code=${js.nodeToString(code)})';
   }
 }

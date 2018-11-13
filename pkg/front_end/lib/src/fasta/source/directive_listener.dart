@@ -54,7 +54,7 @@ class DirectiveListener extends Listener {
   @override
   void beginLiteralString(Token token) {
     if (_combinators != null || _inPart) {
-      _uri = unescapeString(token.lexeme);
+      _uri = unescapeString(token.lexeme, token, this);
     }
   }
 
@@ -111,7 +111,8 @@ class DirectiveListener extends Listener {
   /// By default, native clauses are not handled and an error is thrown.
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
-    super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+    super.handleRecoverableError(
+        messageExpectedBlockToSkip, nativeToken, nativeToken);
   }
 }
 

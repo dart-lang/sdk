@@ -6,19 +6,29 @@ library fasta.source_loader;
 
 import 'dart:async' show Future;
 
+import 'dart:convert' show utf8;
+
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/src/fasta/type_inference/interface_resolver.dart'
-    show InterfaceResolver;
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        BottomType,
+        Class,
+        Component,
+        DartType,
+        Expression,
+        FunctionNode,
+        InterfaceType,
+        Library,
+        LibraryDependency,
+        ProcedureKind,
+        Supertype;
 
-import 'package:kernel/ast.dart' show Arguments, Expression, Program;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, HandleAmbiguousSupertypes;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'package:kernel/src/incremental_class_hierarchy.dart'
-    show IncrementalClassHierarchy;
 
 import '../../api_prototype/file_system.dart';
 
@@ -27,20 +37,17 @@ import '../../base/instrumentation.dart'
 
 import '../builder/builder.dart'
     show
-        Builder,
         ClassBuilder,
+        Declaration,
         EnumBuilder,
+        FieldBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder;
 
-import '../compiler_context.dart' show CompilerContext;
-
-import '../deprecated_problems.dart' show deprecated_inputError;
-
-import '../problems.dart' show internalProblem;
-
 import '../export.dart' show Export;
+
+import '../import.dart' show Import;
 
 import '../fasta_codes.dart'
     show
@@ -48,31 +55,54 @@ import '../fasta_codes.dart'
         Message,
         SummaryTemplate,
         Template,
+        messagePartOrphan,
+        noLength,
+        templateAmbiguousSupertypes,
+        templateCantReadFile,
         templateCyclicClassHierarchy,
+        templateDuplicatedLibraryExport,
+        templateDuplicatedLibraryExportContext,
+        templateDuplicatedLibraryImport,
+        templateDuplicatedLibraryImportContext,
         templateExtendingEnum,
         templateExtendingRestricted,
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
         templateInternalProblemUriMissingScheme,
-        templateSourceOutlineSummary;
+        templateSourceOutlineSummary,
+        templateDirectCyclicClassHierarchy,
+        templateUntranslatableUri;
 
 import '../fasta_codes.dart' as fasta_codes;
 
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
 
+import '../kernel/kernel_builder.dart' show KernelProcedureBuilder;
+
 import '../kernel/kernel_target.dart' show KernelTarget;
 
-import '../loader.dart' show Loader;
+import '../kernel/body_builder.dart' show BodyBuilder;
+
+import '../loader.dart' show Loader, untranslatableUriScheme;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
+
+import '../parser.dart' show Parser, lengthForToken, offsetForToken;
+
+import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
 import '../severity.dart' show Severity;
 
+import '../type_inference/interface_resolver.dart' show InterfaceResolver;
+
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+
+import '../type_inference/type_inferrer.dart'
+    show LegacyModeMixinInferrer, StrongModeMixinInferrer;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -93,12 +123,15 @@ class SourceLoader<L> extends Loader<L> {
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
-  final bool excludeSource = !CompilerContext.current.options.embedSourceText;
-
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
+  // Used when checking whether a return type of an async function is valid.
+  DartType futureOfBottom;
+  DartType iterableOfBottom;
+  DartType streamOfBottom;
 
+  @override
   TypeInferenceEngine typeInferenceEngine;
 
   InterfaceResolver interfaceResolver;
@@ -113,35 +146,53 @@ class SourceLoader<L> extends Loader<L> {
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
 
+  bool get isSourceLoader => true;
+
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Uri uri = library.fileUri;
-    if (uri == null) {
-      return deprecated_inputError(
-          library.uri, -1, "Not found: ${library.uri}.");
-    } else if (!uri.hasScheme) {
-      return internalProblem(
-          templateInternalProblemUriMissingScheme.withArguments(uri),
-          -1,
-          library.uri);
-    } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
-      // Simulate empty file
-      return null;
-    }
 
-    // Get the library text from the cache, or read from the file system.
+    // Lookup the file URI in the cache.
     List<int> bytes = sourceBytes[uri];
+
     if (bytes == null) {
-      try {
-        List<int> rawBytes = await fileSystem.entityForUri(uri).readAsBytes();
-        Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
-        zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
+      // Error recovery.
+      if (uri.scheme == untranslatableUriScheme) {
+        Message message = templateUntranslatableUri.withArguments(library.uri);
+        library.addProblemAtAccessors(message);
+        bytes = synthesizeSourceForMissingFile(library.uri, null);
+      } else if (!uri.hasScheme) {
+        return internalProblem(
+            templateInternalProblemUriMissingScheme.withArguments(uri),
+            -1,
+            library.uri);
+      } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+        bytes = synthesizeSourceForMissingFile(library.uri, null);
+      }
+      if (bytes != null) {
+        Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
+        zeroTerminatedBytes.setRange(0, bytes.length, bytes);
         bytes = zeroTerminatedBytes;
         sourceBytes[uri] = bytes;
-        byteCount += rawBytes.length;
-      } on FileSystemException catch (e) {
-        return deprecated_inputError(uri, -1, e.message);
       }
+    }
+
+    if (bytes == null) {
+      // If it isn't found in the cache, read the file read from the file
+      // system.
+      List<int> rawBytes;
+      try {
+        rawBytes = await fileSystem.entityForUri(uri).readAsBytes();
+      } on FileSystemException catch (e) {
+        Message message = templateCantReadFile.withArguments(uri, e.message);
+        library.addProblemAtAccessors(message);
+        rawBytes = synthesizeSourceForMissingFile(library.uri, message);
+      }
+      Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
+      zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
+      bytes = zeroTerminatedBytes;
+      sourceBytes[uri] = bytes;
+      byteCount += rawBytes.length;
     }
 
     ScannerResult result = scan(bytes, includeComments: includeComments);
@@ -153,17 +204,28 @@ class SourceLoader<L> extends Loader<L> {
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.addCompileTimeError(
-            error.assertionMessage, token.charOffset, uri);
+        library.addProblem(error.assertionMessage, offsetForToken(token),
+            lengthForToken(token), uri);
       }
       token = token.next;
     }
     return token;
   }
 
-  List<int> getSource(List<int> bytes) {
-    if (excludeSource) return const <int>[];
+  List<int> synthesizeSourceForMissingFile(Uri uri, Message message) {
+    switch ("$uri") {
+      case "dart:core":
+        return utf8.encode(defaultDartCoreSource);
 
+      case "dart:async":
+        return utf8.encode(defaultDartAsyncSource);
+
+      default:
+        return utf8.encode(message == null ? "" : "/* ${message.message} */");
+    }
+  }
+
+  List<int> getSource(List<int> bytes) {
     // bytes is 0-terminated. We don't want that included.
     if (bytes is Uint8List) {
       return new Uint8List.view(
@@ -190,6 +252,10 @@ class SourceLoader<L> extends Loader<L> {
       DietParser parser = new DietParser(listener);
       parser.parseUnit(tokens);
       for (SourceLibraryBuilder part in library.parts) {
+        if (part.partOfLibrary != library) {
+          // Part was included in multiple libraries. Skip it here.
+          continue;
+        }
         Token tokens = await tokenize(part);
         if (tokens != null) {
           listener.uri = part.fileUri;
@@ -200,26 +266,69 @@ class SourceLoader<L> extends Loader<L> {
     }
   }
 
+  Future<Expression> buildExpression(
+      SourceLibraryBuilder library,
+      String enclosingClass,
+      bool isInstanceMember,
+      FunctionNode parameters) async {
+    Token token = await tokenize(library, suppressLexicalErrors: false);
+    if (token == null) return null;
+    DietListener dietListener = createDietListener(library);
+
+    Declaration parent = library;
+    if (enclosingClass != null) {
+      Declaration cls =
+          dietListener.memberScope.lookup(enclosingClass, -1, null);
+      if (cls is ClassBuilder) {
+        parent = cls;
+        dietListener
+          ..currentClass = cls
+          ..memberScope = cls.scope.copyWithParent(
+              dietListener.memberScope.withTypeVariables(cls.typeVariables),
+              "debugExpression in $enclosingClass");
+      }
+    }
+    KernelProcedureBuilder builder = new KernelProcedureBuilder(null, 0, null,
+        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
+      ..parent = parent;
+    BodyBuilder listener = dietListener.createListener(
+        builder, dietListener.memberScope, isInstanceMember);
+
+    return listener.parseSingleExpression(
+        new Parser(listener), token, parameters);
+  }
+
   KernelTarget get target => super.target;
 
-  DietListener createDietListener(LibraryBuilder library) {
+  DietListener createDietListener(SourceLibraryBuilder library) {
     return new DietListener(library, hierarchy, coreTypes, typeInferenceEngine);
   }
 
   void resolveParts() {
     List<Uri> parts = <Uri>[];
+    List<SourceLibraryBuilder> libraries = <SourceLibraryBuilder>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
-        if (sourceLibrary.isPart) {
-          sourceLibrary.validatePart();
+        if (library.isPart) {
           parts.add(uri);
         } else {
-          sourceLibrary.includeParts();
+          libraries.add(library);
         }
       }
     });
-    parts.forEach(builders.remove);
+    Set<Uri> usedParts = new Set<Uri>();
+    for (SourceLibraryBuilder library in libraries) {
+      library.includeParts(usedParts);
+    }
+    for (Uri uri in parts) {
+      if (usedParts.contains(uri)) {
+        builders.remove(uri);
+      } else {
+        SourceLibraryBuilder part = builders[uri];
+        part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
+        part.validatePart(null, null);
+      }
+    }
     ticker.logMs("Resolved parts");
 
     builders.forEach((Uri uri, LibraryBuilder library) {
@@ -259,7 +368,7 @@ class SourceLoader<L> extends Loader<L> {
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          exported.exportScope.forEach((String name, Builder member) {
+          exported.exportScope.forEach((String name, Declaration member) {
             if (export.addToExportScope(name, member)) {
               wasChanged = true;
             }
@@ -288,15 +397,15 @@ class SourceLoader<L> extends Loader<L> {
     // TODO(sigmund): should be `covarint SourceLibraryBuilder`.
     builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
-      Set<Builder> members = new Set<Builder>();
-      library.forEach((String name, Builder member) {
+      Set<Declaration> members = new Set<Declaration>();
+      library.forEach((String name, Declaration member) {
         while (member != null) {
           members.add(member);
           member = member.next;
         }
       });
       List<String> exports = <String>[];
-      library.exportScope.forEach((String name, Builder member) {
+      library.exportScope.forEach((String name, Declaration member) {
         while (member != null) {
           if (!members.contains(member)) {
             exports.add(name);
@@ -331,6 +440,16 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Finished deferred load tearoffs $count");
   }
 
+  void finishNoSuchMethodForwarders() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        count += library.finishForwarders();
+      }
+    });
+    ticker.logMs("Finished forwarders for $count procedures");
+  }
+
   void resolveConstructors() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
@@ -341,14 +460,26 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count constructors");
   }
 
-  void finishTypeVariables(ClassBuilder object) {
+  void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count += library.finishTypeVariables(object);
+        count += library.finishTypeVariables(object, dynamicType);
       }
     });
     ticker.logMs("Resolved $count type-variable bounds");
+  }
+
+  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
+      ClassBuilder objectClass) {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        count +=
+            library.computeDefaultTypes(dynamicType, bottomType, objectClass);
+      }
+    });
+    ticker.logMs("Computed default types for $count type variables");
   }
 
   void finishNativeMethods() {
@@ -452,17 +583,22 @@ class SourceLoader<L> extends Loader<L> {
                 .toList()
                   ..sort())
             .join("', '");
-        messages[templateCyclicClassHierarchy
-            .withArguments(cls.fullNameForErrors, involvedString)
-            .withLocation(cls.fileUri, cls.charOffset)] = cls;
+        LocatedMessage message = involvedString.isEmpty
+            ? templateDirectCyclicClassHierarchy
+                .withArguments(cls.fullNameForErrors)
+                .withLocation(cls.fileUri, cls.charOffset, noLength)
+            : templateCyclicClassHierarchy
+                .withArguments(cls.fullNameForErrors, involvedString)
+                .withLocation(cls.fileUri, cls.charOffset, noLength);
+        messages[message] = cls;
       });
 
       // Report all classes involved in a cycle, sorted to ensure stability as
       // [cyclicCandidates] is sensitive to if the platform (or other modules)
       // are included in [classes].
       for (LocatedMessage message in messages.keys.toList()..sort()) {
-        messages[message]
-            .addCompileTimeError(message.messageObject, message.charOffset);
+        messages[message].addProblem(
+            message.messageObject, message.charOffset, message.length);
       }
     }
     ticker.logMs("Found cycles");
@@ -472,6 +608,7 @@ class SourceLoader<L> extends Loader<L> {
       coreLibrary["num"],
       coreLibrary["double"],
       coreLibrary["String"],
+      coreLibrary["Null"],
     ]);
     for (ClassBuilder cls in classes) {
       if (cls.library.loader != this) continue;
@@ -479,78 +616,298 @@ class SourceLoader<L> extends Loader<L> {
       target.addDirectSupertype(cls, directSupertypes);
       for (ClassBuilder supertype in directSupertypes) {
         if (supertype is EnumBuilder) {
-          cls.addCompileTimeError(
-              templateExtendingEnum.withArguments(supertype.name),
-              cls.charOffset);
+          cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
+              cls.charOffset, noLength);
         } else if (!cls.library.mayImplementRestrictedTypes &&
             blackListedClasses.contains(supertype)) {
-          cls.addCompileTimeError(
+          cls.addProblem(
               templateExtendingRestricted.withArguments(supertype.name),
-              cls.charOffset);
+              cls.charOffset,
+              noLength);
         }
       }
       TypeBuilder mixedInType = cls.mixedInType;
       if (mixedInType != null) {
         bool isClassBuilder = false;
         if (mixedInType is NamedTypeBuilder) {
-          var builder = mixedInType.builder;
+          var builder = mixedInType.declaration;
           if (builder is ClassBuilder) {
             isClassBuilder = true;
-            for (Builder constructory in builder.constructors.local.values) {
+            for (Declaration constructory
+                in builder.constructors.local.values) {
               if (constructory.isConstructor && !constructory.isSynthetic) {
-                cls.addCompileTimeError(
+                cls.addProblem(
                     templateIllegalMixinDueToConstructors
                         .withArguments(builder.fullNameForErrors),
-                    cls.charOffset);
-                builder.addCompileTimeError(
-                    templateIllegalMixinDueToConstructorsCause
-                        .withArguments(builder.fullNameForErrors),
-                    constructory.charOffset);
+                    cls.charOffset,
+                    noLength,
+                    context: [
+                      templateIllegalMixinDueToConstructorsCause
+                          .withArguments(builder.fullNameForErrors)
+                          .withLocation(constructory.fileUri,
+                              constructory.charOffset, noLength)
+                    ]);
               }
             }
           }
         }
         if (!isClassBuilder) {
-          cls.addCompileTimeError(
+          cls.addProblem(
               templateIllegalMixin.withArguments(mixedInType.fullNameForErrors),
-              cls.charOffset);
+              cls.charOffset,
+              noLength);
         }
       }
     }
     ticker.logMs("Checked restricted supertypes");
+
+    // Check imports and exports for duplicate names.
+    // This is rather silly, e.g. it makes importing 'foo' and exporting another
+    // 'foo' ok.
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder && library.loader == this) {
+        // Check exports.
+        if (library.exports.isNotEmpty) {
+          Map<String, List<Export>> nameToExports;
+          bool errorExports = false;
+          for (Export export in library.exports) {
+            String name = export.exported?.name ?? '';
+            if (name != '') {
+              nameToExports ??= new Map<String, List<Export>>();
+              List<Export> exports = nameToExports[name] ??= <Export>[];
+              exports.add(export);
+              if (exports[0].exported != export.exported) errorExports = true;
+            }
+          }
+          if (errorExports) {
+            for (String name in nameToExports.keys) {
+              List<Export> exports = nameToExports[name];
+              if (exports.length < 2) continue;
+              List<LocatedMessage> context = <LocatedMessage>[];
+              for (Export export in exports.skip(1)) {
+                context.add(templateDuplicatedLibraryExportContext
+                    .withArguments(name)
+                    .withLocation(uri, export.charOffset, noLength));
+              }
+              library.addProblem(
+                  templateDuplicatedLibraryExport.withArguments(name),
+                  exports[0].charOffset,
+                  noLength,
+                  uri,
+                  context: context);
+            }
+          }
+        }
+
+        // Check imports.
+        if (library.imports.isNotEmpty) {
+          Map<String, List<Import>> nameToImports;
+          bool errorImports;
+          for (Import import in library.imports) {
+            String name = import.imported?.name ?? '';
+            if (name != '') {
+              nameToImports ??= new Map<String, List<Import>>();
+              List<Import> imports = nameToImports[name] ??= <Import>[];
+              imports.add(import);
+              if (imports[0].imported != import.imported) errorImports = true;
+            }
+          }
+          if (errorImports != null) {
+            for (String name in nameToImports.keys) {
+              List<Import> imports = nameToImports[name];
+              if (imports.length < 2) continue;
+              List<LocatedMessage> context = <LocatedMessage>[];
+              for (Import import in imports.skip(1)) {
+                context.add(templateDuplicatedLibraryImportContext
+                    .withArguments(name)
+                    .withLocation(uri, import.charOffset, noLength));
+              }
+              library.addProblem(
+                  templateDuplicatedLibraryImport.withArguments(name),
+                  imports[0].charOffset,
+                  noLength,
+                  uri,
+                  context: context);
+            }
+          }
+        }
+      }
+    });
+    ticker.logMs("Checked imports and exports for duplicate names");
   }
 
-  void buildProgram() {
+  void buildComponent() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
         L target = sourceLibrary.build(coreLibrary);
-        if (!library.isPatch) {
+        if (!library.isPatch && !library.isSynthetic) {
           libraries.add(target);
         }
       }
     });
-    ticker.logMs("Built program");
+    ticker.logMs("Built component");
   }
 
-  void computeHierarchy(Program program) {
-    hierarchy = new IncrementalClassHierarchy();
+  Component computeFullComponent() {
+    Set<Library> libraries = new Set<Library>();
+    List<Library> workList = <Library>[];
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (!library.isPatch &&
+          (library.loader == this || library.fileUri.scheme == "dart")) {
+        if (libraries.add(library.target)) {
+          workList.add(library.target);
+        }
+      }
+    });
+    while (workList.isNotEmpty) {
+      Library library = workList.removeLast();
+      for (LibraryDependency dependency in library.dependencies) {
+        if (libraries.add(dependency.targetLibrary)) {
+          workList.add(dependency.targetLibrary);
+        }
+      }
+    }
+    return new Component()..libraries.addAll(libraries);
+  }
+
+  void computeHierarchy() {
+    List<List> ambiguousTypesRecords = [];
+    HandleAmbiguousSupertypes onAmbiguousSupertypes =
+        (Class cls, Supertype a, Supertype b) {
+      if (ambiguousTypesRecords != null) {
+        ambiguousTypesRecords.add([cls, a, b]);
+      }
+    };
+    if (hierarchy == null) {
+      hierarchy = new ClassHierarchy(computeFullComponent(),
+          onAmbiguousSupertypes: onAmbiguousSupertypes,
+          mixinInferrer: target.strongMode
+              ? new StrongModeMixinInferrer(this)
+              : new LegacyModeMixinInferrer());
+    } else {
+      hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
+      Component component = computeFullComponent();
+      hierarchy.applyTreeChanges(const [], component.libraries,
+          reissueAmbiguousSupertypesFor: component);
+    }
+    for (List record in ambiguousTypesRecords) {
+      handleAmbiguousSupertypes(record[0], record[1], record[2]);
+    }
+    ambiguousTypesRecords = null;
     ticker.logMs("Computed class hierarchy");
   }
 
-  void computeCoreTypes(Program program) {
-    coreTypes = new CoreTypes(program);
+  void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
+    addProblem(
+        templateAmbiguousSupertypes.withArguments(
+            cls.name, a.asInterfaceType, b.asInterfaceType),
+        cls.fileOffset,
+        noLength,
+        cls.fileUri);
+  }
+
+  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+
+  void computeCoreTypes(Component component) {
+    coreTypes = new CoreTypes(component);
+
+    futureOfBottom = new InterfaceType(
+        coreTypes.futureClass, <DartType>[const BottomType()]);
+    iterableOfBottom = new InterfaceType(
+        coreTypes.iterableClass, <DartType>[const BottomType()]);
+    streamOfBottom = new InterfaceType(
+        coreTypes.streamClass, <DartType>[const BottomType()]);
+
     ticker.logMs("Computed core types");
+  }
+
+  void checkSupertypes(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.checkSupertypes(coreTypes);
+      }
+    }
+    ticker.logMs("Checked overrides");
+  }
+
+  void checkBounds() {
+    if (!target.strongMode) return;
+
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder) {
+        if (library.loader == this) {
+          library
+              .checkBoundsInOutline(typeInferenceEngine.typeSchemaEnvironment);
+        }
+      }
+    });
+    ticker.logMs("Checked type arguments of supers against the bounds");
   }
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.checkOverrides(hierarchy);
+        builder.checkOverrides(
+            hierarchy, typeInferenceEngine?.typeSchemaEnvironment);
       }
     }
     ticker.logMs("Checked overrides");
+  }
+
+  void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
+    if (!target.strongMode) return;
+    assert(hierarchy != null);
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.checkAbstractMembers(
+            coreTypes, hierarchy, typeInferenceEngine.typeSchemaEnvironment);
+      }
+    }
+    ticker.logMs("Checked abstract members");
+  }
+
+  void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
+    if (!target.strongMode) return;
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.checkRedirectingFactories(
+            typeInferenceEngine.typeSchemaEnvironment);
+      }
+    }
+    ticker.logMs("Checked redirecting factories");
+  }
+
+  void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
+    if (!target.backendTarget.enableNoSuchMethodForwarders) return;
+
+    List<Class> changedClasses = new List<Class>();
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
+          changedClasses.add(builder.target);
+        }
+      }
+    }
+    hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
+    ticker.logMs("Added noSuchMethod forwarders");
+  }
+
+  void checkMixins(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        if (builder.isMixinDeclaration) {
+          builder.checkMixinDeclaration();
+        }
+
+        Class mixedInClass = builder.cls.mixedInClass;
+        if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
+          builder.checkMixinApplication(hierarchy);
+        }
+      }
+    }
+    ticker.logMs("Checked mixin declaration applications");
   }
 
   void createTypeInferenceEngine() {
@@ -558,11 +915,13 @@ class SourceLoader<L> extends Loader<L> {
         new ShadowTypeInferenceEngine(instrumentation, target.strongMode);
   }
 
-  /// Performs the first phase of top level initializer inference, which
-  /// consists of creating kernel objects for all fields and top level variables
-  /// that might be subject to type inference, and records dependencies between
-  /// them.
-  void prepareTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+    if (target.disableTypeInference) return;
+
+    /// The first phase of top level initializer inference, which consists of
+    /// creating kernel objects for all fields and top level variables that
+    /// might be subject to type inference, and records dependencies between
+    /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     interfaceResolver = new InterfaceResolver(
         typeInferenceEngine,
@@ -571,36 +930,63 @@ class SourceLoader<L> extends Loader<L> {
         target.strongMode);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        library.prepareTopLevelInference(library, null);
+        library.forEach((String name, Declaration member) {
+          if (member is FieldBuilder) {
+            member.prepareTopLevelInference();
+          }
+        });
       }
     });
-    // Note: we need to create a list before iterating, since calling
-    // builder.prepareTopLevelInference causes further class hierarchy queries
-    // to be made which would otherwise result in a concurrent modification
-    // exception.
-    orderedClasses = hierarchy
-        .getOrderedClasses(sourceClasses.map((builder) => builder.target))
-        .map((class_) => ShadowClass.getClassInferenceInfo(class_).builder)
-        .toList();
-    for (var builder in orderedClasses) {
-      ShadowClass class_ = builder.target;
-      builder.prepareTopLevelInference(builder.library, builder);
-      class_.setupApiMembers(interfaceResolver);
+    {
+      // Note: we need to create a list before iterating, since calling
+      // builder.prepareTopLevelInference causes further class hierarchy
+      // queries to be made which would otherwise result in a concurrent
+      // modification exception.
+      List<Class> classes = new List<Class>(sourceClasses.length);
+      for (int i = 0; i < sourceClasses.length; i++) {
+        classes[i] = sourceClasses[i].target;
+      }
+      orderedClasses = null;
+      List<ClassBuilder> result = new List<ClassBuilder>(sourceClasses.length);
+      int i = 0;
+      for (Class cls
+          in new List<Class>.from(hierarchy.getOrderedClasses(classes))) {
+        result[i++] = ShadowClass.getClassInferenceInfo(cls).builder
+          ..prepareTopLevelInference();
+      }
+      if (i != result.length) {
+        unexpected("${result.length}", "$i", -1, null);
+      }
+      orderedClasses = result;
     }
     typeInferenceEngine.isTypeInferencePrepared = true;
     ticker.logMs("Prepared top level inference");
-  }
 
-  /// Performs the second phase of top level initializer inference, which is to
-  /// visit fields and top level variables in topologically-sorted order and
-  /// assign their types.
-  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+    /// The second phase of top level initializer inference, which is to visit
+    /// fields and top level variables in topologically-sorted order and assign
+    /// their types.
     typeInferenceEngine.finishTopLevelFields();
+    List<Class> changedClasses = new List<Class>();
     for (var builder in orderedClasses) {
       ShadowClass class_ = builder.target;
+      int memberCount = class_.fields.length +
+          class_.constructors.length +
+          class_.procedures.length +
+          class_.redirectingFactoryConstructors.length;
       class_.finalizeCovariance(interfaceResolver);
       ShadowClass.clearClassInferenceInfo(class_);
+      int newMemberCount = class_.fields.length +
+          class_.constructors.length +
+          class_.procedures.length +
+          class_.redirectingFactoryConstructors.length;
+      if (newMemberCount != memberCount) {
+        // The inference potentially adds new members (but doesn't otherwise
+        // change the classes), so if the member count has changed we need to
+        // update the class in the class hierarchy.
+        changedClasses.add(class_);
+      }
     }
+
     orderedClasses = null;
     typeInferenceEngine.finishTopLevelInitializingFormals();
     if (instrumentation != null) {
@@ -614,14 +1000,10 @@ class SourceLoader<L> extends Loader<L> {
     // Since finalization of covariance may have added forwarding stubs, we need
     // to recompute the class hierarchy so that method compilation will properly
     // target those forwarding stubs.
-    // TODO(paulberry): could we make this unnecessary by not clearing class
-    // inference info?
-    typeInferenceEngine.classHierarchy =
-        hierarchy = new IncrementalClassHierarchy();
+    hierarchy.onAmbiguousSupertypes = ignoreAmbiguousSupertypes;
+    hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
     ticker.logMs("Performed top level inference");
   }
-
-  List<Uri> getDependencies() => sourceBytes.keys.toList();
 
   Expression instantiateInvocation(Expression receiver, String name,
       Arguments arguments, int offset, bool isSuper) {
@@ -655,24 +1037,13 @@ class SourceLoader<L> extends Loader<L> {
         isTopLevel: isTopLevel);
   }
 
-  Expression throwCompileConstantError(Expression error) {
-    return target.backendTarget.throwCompileConstantError(coreTypes, error);
-  }
-
-  Expression buildCompileTimeError(Message message, int offset, Uri uri) {
-    String text = target.context
-        .format(message.withLocation(uri, offset), Severity.error);
-    return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
-  }
-
-  void recordMessage(
-      Severity severity, Message message, int charOffset, Uri fileUri,
-      {LocatedMessage context}) {
+  void recordMessage(Severity severity, Message message, int charOffset,
+      int length, Uri fileUri,
+      {List<LocatedMessage> context}) {
     if (instrumentation == null) return;
 
     if (charOffset == -1 &&
-        (severity == Severity.nit ||
-            message.code == fasta_codes.codeConstConstructorWithBody ||
+        (message.code == fasta_codes.codeConstConstructorWithBody ||
             message.code == fasta_codes.codeConstructorNotFound ||
             message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
             message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
@@ -692,13 +1063,23 @@ class SourceLoader<L> extends Loader<L> {
         severityString = "internal problem";
         break;
 
-      case Severity.nit:
-        severityString = "nit";
-        break;
-
       case Severity.warning:
         severityString = "warning";
         break;
+
+      case Severity.errorLegacyWarning:
+        // Should have been resolved to either error or warning at this point.
+        // Use a property name expressing that, in case it slips through.
+        severityString = "unresolved severity";
+        break;
+
+      case Severity.context:
+        severityString = "context";
+        break;
+
+      case Severity.ignored:
+        unhandled("IGNORED", "recordMessage", charOffset, fileUri);
+        return;
     }
     instrumentation.record(
         fileUri,
@@ -707,8 +1088,136 @@ class SourceLoader<L> extends Loader<L> {
         // TODO(ahe): Should I add an InstrumentationValue for Message?
         new InstrumentationValueLiteral(message.code.name));
     if (context != null) {
-      instrumentation.record(context.uri, context.charOffset, "context",
-          new InstrumentationValueLiteral(context.code.name));
+      for (LocatedMessage contextMessage in context) {
+        instrumentation.record(
+            contextMessage.uri,
+            contextMessage.charOffset,
+            "context",
+            new InstrumentationValueLiteral(contextMessage.code.name));
+      }
     }
   }
+
+  void releaseAncillaryResources() {
+    hierarchy = null;
+    typeInferenceEngine = null;
+  }
 }
+
+/// A minimal implementation of dart:core that is sufficient to create an
+/// instance of [CoreTypes] and compile a program.
+const String defaultDartCoreSource = """
+import 'dart:_internal';
+import 'dart:async';
+
+print(object) {}
+
+class Iterator {}
+
+class Iterable {}
+
+class List extends Iterable {
+  factory List.unmodifiable(elements) => null;
+}
+
+class Map extends Iterable {
+  factory Map.unmodifiable(other) => null;
+}
+
+class NoSuchMethodError {
+  NoSuchMethodError.withInvocation(receiver, invocation);
+}
+
+class Null {}
+
+class Object {
+  noSuchMethod(invocation) => null;
+}
+
+class String {}
+
+class Symbol {}
+
+class Type {}
+
+class _InvocationMirror {
+  _InvocationMirror._withType(_memberName, _type, _typeArguments,
+      _positionalArguments, _namedArguments);
+}
+
+class bool {}
+
+class double extends num {}
+
+class int extends num {}
+
+class num {}
+
+class _SyncIterable {}
+
+class _SyncIterator {
+  var _current;
+  var _yieldEachIterable;
+}
+""";
+
+/// A minimal implementation of dart:async that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartAsyncSource = """
+_asyncErrorWrapperHelper(continuation) {}
+
+_asyncStackTraceHelper(async_op) {}
+
+_asyncThenWrapperHelper(continuation) {}
+
+_awaitHelper(object, thenCallback, errorCallback, awaiter) {}
+
+_completeOnAsyncReturn(completer, value) {}
+
+class _AsyncStarStreamController {
+  add(event) {}
+
+  addError(error, stackTrace) {}
+
+  addStream(stream) {}
+
+  close() {}
+
+  get stream => null;
+}
+
+class Completer {
+  factory Completer.sync() => null;
+
+  get future;
+
+  complete([value]);
+
+  completeError(error, [stackTrace]);
+}
+
+class Future {
+  factory Future.microtask(computation) => null;
+}
+
+class FutureOr {
+}
+
+class _AsyncAwaitCompleter implements Completer {
+  get future => null;
+
+  complete([value]) {}
+
+  completeError(error, [stackTrace]) {}
+}
+
+class Stream {}
+
+class _StreamIterator {
+  get current => null;
+
+  moveNext() {}
+
+  cancel() {}
+}
+""";

@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -52,6 +53,8 @@ class _DartUnitClosingLabelsComputerVisitor
   List<ClosingLabel> labelStack = [];
 
   _DartUnitClosingLabelsComputerVisitor(this.computer);
+
+  ClosingLabel get _currentLabel => labelStack.isEmpty ? null : labelStack.last;
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -117,9 +120,9 @@ class _DartUnitClosingLabelsComputerVisitor
 
     checkLinesUsing = checkLinesUsing ?? node;
 
-    final LineInfo_Location start =
+    final CharacterLocation start =
         computer._lineInfo.getLocation(checkLinesUsing.offset);
-    final LineInfo_Location end =
+    final CharacterLocation end =
         computer._lineInfo.getLocation(checkLinesUsing.end - 1);
 
     final ClosingLabel closingLabel =
@@ -141,13 +144,11 @@ class _DartUnitClosingLabelsComputerVisitor
     return closingLabel;
   }
 
-  void _pushLabel(ClosingLabel label) {
-    labelStack.add(label);
-  }
-
-  ClosingLabel get _currentLabel => labelStack.isEmpty ? null : labelStack.last;
-
   void _popLabel() {
     labelStack.removeLast();
+  }
+
+  void _pushLabel(ClosingLabel label) {
+    labelStack.add(label);
   }
 }

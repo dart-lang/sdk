@@ -56,7 +56,7 @@ class LoggingPageElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     LoggingPageElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<LoggingPageElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -76,7 +76,7 @@ class LoggingPageElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   LoggingListElement _logs;
@@ -84,8 +84,8 @@ class LoggingPageElement extends HtmlElement implements Renderable {
   void render() {
     _logs = _logs ?? new LoggingListElement(_isolate, _events);
     _logs.level = _level;
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -100,7 +100,7 @@ class LoggingPageElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Logging',
           new SpanElement()..text = 'Show messages with severity ',
           _createLevelSelector(),

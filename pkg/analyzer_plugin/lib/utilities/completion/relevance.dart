@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,10 +7,11 @@
 // suggestions in Dart code.
 //
 
+const int DART_RELEVANCE_BOOST_SUBTYPE = 100;
+const int DART_RELEVANCE_BOOST_TYPE = 200;
 const int DART_RELEVANCE_COMMON_USAGE = 1200;
 const int DART_RELEVANCE_DEFAULT = 1000;
 const int DART_RELEVANCE_HIGH = 2000;
-const int DART_RELEVANCE_INCREMENT = 100;
 const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
 const int DART_RELEVANCE_INHERITED_FIELD = 1058;
 const int DART_RELEVANCE_INHERITED_METHOD = 1057;

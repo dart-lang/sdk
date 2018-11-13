@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,17 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class PluginLocatorTest {
-  MemoryResourceProvider resourceProvider;
+class PluginLocatorTest extends Object with ResourceProviderMixin {
   String packageRoot;
   String pubspecPath;
   String defaultDirPath;
   PluginLocator locator;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-    packageRoot = resourceProvider.convertPath('/package');
-    resourceProvider.newFolder(packageRoot);
+    packageRoot = newFolder('/package').path;
     locator = new PluginLocator(resourceProvider);
   }
 
@@ -66,25 +63,23 @@ class PluginLocatorTest {
   }
 
   void _createDefaultDir() {
-    defaultDirPath = resourceProvider.pathContext.join(packageRoot,
-        PluginLocator.toolsFolderName, PluginLocator.defaultPluginFolderName);
-    resourceProvider.newFolder(defaultDirPath);
+    defaultDirPath = newFolder(
+            '/package/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}')
+        .path;
   }
 
   void _createPubspec(String content) {
-    pubspecPath = resourceProvider.pathContext
-        .join(packageRoot, PluginLocator.pubspecFileName);
-    resourceProvider.newFile(pubspecPath, content);
+    pubspecPath =
+        newFile('/package/${PluginLocator.pubspecFileName}', content: content)
+            .path;
   }
 
   String _createPubspecWithKey() {
-    String nonDefaultPath =
-        resourceProvider.pathContext.join(packageRoot, 'pluginDir');
+    String nonDefaultPath = newFolder('/package/pluginDir').path;
     _createPubspec('''
 name: test_project
 ${PluginLocator.analyzerPluginKey}: $nonDefaultPath
 ''');
-    resourceProvider.newFolder(nonDefaultPath);
     return nonDefaultPath;
   }
 

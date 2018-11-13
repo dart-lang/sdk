@@ -8,7 +8,7 @@ library test;
 typedef void F<T>(T x);
 
 class B<T, U extends F<T>> {
-  B<T, F<T>> operator /*@genericContravariant=true*/ +(other) => null;
+  B<T, F<T>> operator +(other) => null;
 }
 
 class C {

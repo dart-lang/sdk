@@ -38,13 +38,14 @@ abstract class _RectangleBase<T extends num> {
     return 'Rectangle ($left, $top) $width x $height';
   }
 
-  bool operator ==(other) {
-    if (other is! Rectangle) return false;
-    return left == other.left &&
-        top == other.top &&
-        right == other.right &&
-        bottom == other.bottom;
-  }
+  bool operator ==(dynamic other) =>
+      // Can't change argument type to `Object` since subclasses inherit it
+      // and uses their argument dynamically.
+      other is Rectangle &&
+      left == other.left &&
+      top == other.top &&
+      right == other.right &&
+      bottom == other.bottom;
 
   int get hashCode => _JenkinsSmiHash.hash4(
       left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);

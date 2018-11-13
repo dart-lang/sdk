@@ -25,19 +25,9 @@
 
 namespace dart {
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 1) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   uint64_t id = isolate->random()->NextUInt64();
   return Capability::New(id);
 }
@@ -58,7 +48,8 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id = PortMap::CreatePort(isolate->message_handler());
   return ReceivePort::New(port_id, false /* not control port */);
 }
@@ -106,15 +97,10 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
     PortMap::PostMessage(
         new Message(destination_port_id, obj.raw(), Message::kNormalPriority));
   } else {
-    uint8_t* data = NULL;
-    MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator,
-                         can_send_any_object);
-    writer.WriteMessage(obj);
-
+    MessageWriter writer(can_send_any_object);
     // TODO(turnidge): Throw an exception when the return value is false?
-    PortMap::PostMessage(new Message(destination_port_id, data,
-                                     writer.BytesWritten(),
-                                     Message::kNormalPriority));
+    PortMap::PostMessage(writer.WriteMessage(obj, destination_port_id,
+                                             Message::kNormalPriority));
   }
   return Object::null();
 }
@@ -215,7 +201,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
 #if defined(DEBUG)
       Context& ctx = Context::Handle();
       ctx = Closure::Cast(closure).context();
-      ASSERT(ctx.num_variables() == 0);
+      ASSERT(ctx.IsNull());
 #endif
       // Get the parent function so that we get the right function name.
       func = func.parent_function();
@@ -228,15 +214,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
       // serializable this will throw an exception.
       SerializedObjectBuffer message_buffer;
       {
-        MessageWriter writer(message_buffer.data_buffer(), &malloc_allocator,
-                             &malloc_deallocator,
-                             /* can_send_any_object = */ true,
-                             message_buffer.data_length());
-        writer.WriteMessage(message);
+        MessageWriter writer(/* can_send_any_object = */ true);
+        message_buffer.set_message(writer.WriteMessage(
+            message, ILLEGAL_PORT, Message::kNormalPriority));
       }
 
-      const char* utf8_package_root =
-          packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
+      // TODO(mfairhurst) remove package_root, as it no longer does anything.
+      const char* utf8_package_root = NULL;
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
 
@@ -273,14 +257,9 @@ static const char* CanonicalizeUri(Thread* thread,
   const char* result = NULL;
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler != NULL) {
-    TransitionVMToNative transition(thread);
-    Dart_EnterScope();
-    Dart_Handle handle =
-        handler(Dart_kCanonicalizeUrl, Api::NewHandle(thread, library.raw()),
-                Api::NewHandle(thread, uri.raw()));
-    const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+  if (isolate->HasTagHandler()) {
+    const Object& obj = Object::Handle(
+        isolate->CallTagHandler(Dart_kCanonicalizeUrl, library, uri));
     if (obj.IsString()) {
       result = String2UTF8(String::Cast(obj));
     } else if (obj.IsError()) {
@@ -294,7 +273,6 @@ static const char* CanonicalizeUri(Thread* thread,
           "library tag handler returned wrong type",
           uri.ToCString());
     }
-    Dart_ExitScope();
   } else {
     *error = zone->PrintToString(
         "Unable to canonicalize uri '%s': no library tag handler found.",
@@ -341,16 +319,14 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   SerializedObjectBuffer arguments_buffer;
   SerializedObjectBuffer message_buffer;
   {
-    MessageWriter writer(
-        arguments_buffer.data_buffer(), &malloc_allocator, &malloc_deallocator,
-        /* can_send_any_object = */ false, arguments_buffer.data_length());
-    writer.WriteMessage(args);
+    MessageWriter writer(/* can_send_any_object = */ false);
+    arguments_buffer.set_message(
+        writer.WriteMessage(args, ILLEGAL_PORT, Message::kNormalPriority));
   }
   {
-    MessageWriter writer(
-        message_buffer.data_buffer(), &malloc_allocator, &malloc_deallocator,
-        /* can_send_any_object = */ false, message_buffer.data_length());
-    writer.WriteMessage(message);
+    MessageWriter writer(/* can_send_any_object = */ false);
+    message_buffer.set_message(
+        writer.WriteMessage(message, ILLEGAL_PORT, Message::kNormalPriority));
   }
 
   // Canonicalize the uri with respect to the current isolate.
@@ -363,8 +339,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
     ThrowIsolateSpawnException(msg);
   }
 
-  const char* utf8_package_root =
-      packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
+  // TODO(mfairhurst) remove package_root, as it no longer does anything.
+  const char* utf8_package_root = NULL;
   const char* utf8_package_config =
       packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
 
@@ -377,10 +353,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
-    bool val = checked.value();
+    bool is_checked = checked.value();
     Dart_IsolateFlags* flags = state->isolate_flags();
-    flags->enable_asserts = val;
-    flags->enable_type_checks = val;
+    flags->enable_asserts = is_checked;
+    // Do not enable type checks in strong mode.
+    flags->enable_type_checks = is_checked && !FLAG_strong;
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
@@ -420,12 +397,9 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
   // Make sure to route this request to the isolate library OOB mesage handler.
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(msg);
-
-  PortMap::PostMessage(new Message(port.Id(), data, writer.BytesWritten(),
-                                   Message::kOOBPriority));
+  MessageWriter writer(false);
+  PortMap::PostMessage(
+      writer.WriteMessage(msg, port.Id(), Message::kOOBPriority));
 
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.

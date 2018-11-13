@@ -21,20 +21,12 @@ class A {
           invocation.positionalArguments, invocation.namedArguments);
     }
   }
-
-  init() {
-    closure_fails = (String str) {
-      return str.toUpperCase();
-    };
-  }
-
-  run() {
-    print(closure_fails("Hello World"));
-  }
 }
 
 void main() {
-  var a = new A();
-  a.init();
-  a.run();
+  dynamic a = new A();
+  a.closure_fails = (String str) {
+    return str.toUpperCase();
+  };
+  print(a.closure_fails("Hello World"));
 }

@@ -9,21 +9,20 @@ import 'package:kernel/kernel.dart';
 Constructor unnamedConstructor(Class c) =>
     c.constructors.firstWhere((c) => c.name.name == '', orElse: () => null);
 
-/// Returns the enclosing library for reference [r].
-Library getLibrary(NamedNode n) {
-  while (n != null && n is! Library) {
-    n = n.parent;
+/// Returns the enclosing library for reference [node].
+Library getLibrary(NamedNode node) {
+  for (TreeNode n = node; n != null; n = n.parent) {
+    if (n is Library) return n;
   }
-  return n;
+  return null;
 }
 
-final Pattern genericTypeEncodingCharacters = new RegExp('[&^#]');
+final Pattern _syntheticTypeCharacters = RegExp('[&^#.]');
 
-// TODO(karlklose): add a namer for all identifiers?
 String _escapeIdentifier(String identifier) {
   // Remove the special characters used to encode mixin application class names
   // which are legal in Kernel, but not in JavaScript.
-  return identifier?.replaceAll(genericTypeEncodingCharacters, r'$');
+  return identifier?.replaceAll(_syntheticTypeCharacters, r'$');
 }
 
 /// Returns the escaped name for class [node].
@@ -84,99 +83,12 @@ bool isBuiltinAnnotation(
     Expression value, String libraryName, String expectedName) {
   if (value is ConstructorInvocation) {
     var c = value.target.enclosingClass;
-    return c.name == expectedName &&
-        c.enclosingLibrary.importUri.toString() == libraryName;
-  }
-  return false;
-}
-
-/// If [node] has annotation matching [test] and the first argument is a
-/// string, this returns the string value.
-///
-/// For example
-///
-///     class MyAnnotation {
-///       final String name;
-///       // ...
-///       const MyAnnotation(this.name/*, ... other params ... */);
-///     }
-///
-///     @MyAnnotation('FooBar')
-///     main() { ... }
-///
-/// If we match the annotation for the `@MyAnnotation('FooBar')` this will
-/// return the string `'FooBar'`.
-String getAnnotationName(NamedNode node, bool test(Expression value)) {
-  var match = findAnnotation(node, test);
-  if (match is ConstructorInvocation && match.arguments.positional.isNotEmpty) {
-    var first = match.arguments.positional[0];
-    if (first is StringLiteral) {
-      return first.value;
+    if (c.name == expectedName) {
+      var uri = c.enclosingLibrary.importUri;
+      return uri.scheme == 'dart' && uri.path == libraryName;
     }
   }
-  return null;
-}
-
-/// Finds constant expressions as defined in Dart language spec 4th ed,
-/// 16.1 Constants
-class ConstantVisitor extends ExpressionVisitor<bool> {
-  final CoreTypes coreTypes;
-  ConstantVisitor(this.coreTypes);
-
-  bool isConstant(Expression e) => e.accept(this);
-
-  defaultExpression(node) => false;
-  defaultBasicLiteral(node) => true;
-  visitTypeLiteral(node) => true; // TODO(jmesserly): deferred libraries?
-  visitSymbolLiteral(node) => true;
-  visitListLiteral(node) => node.isConst;
-  visitMapLiteral(node) => node.isConst;
-  visitStaticInvocation(node) {
-    return node.isConst ||
-        node.target == coreTypes.identicalProcedure &&
-            node.arguments.positional.every(isConstant);
-  }
-
-  visitDirectMethodInvocation(node) {
-    return node.receiver is BasicLiteral &&
-        isOperatorMethodName(node.name.name) &&
-        node.arguments.positional.every((p) => p is BasicLiteral);
-  }
-
-  visitMethodInvocation(node) {
-    return node.receiver is BasicLiteral &&
-        isOperatorMethodName(node.name.name) &&
-        node.arguments.positional.every((p) => p is BasicLiteral);
-  }
-
-  visitConstructorInvocation(node) => node.isConst;
-  visitStringConcatenation(node) =>
-      node.expressions.every((e) => e is BasicLiteral);
-  visitStaticGet(node) {
-    var target = node.target;
-    return target is Procedure || target is Field && target.isConst;
-  }
-
-  visitVariableGet(node) => node.variable.isConst;
-  visitNot(node) {
-    var operand = node.operand;
-    return operand is BoolLiteral ||
-        operand is DirectMethodInvocation &&
-            visitDirectMethodInvocation(operand) ||
-        operand is MethodInvocation && visitMethodInvocation(operand);
-  }
-
-  visitLogicalExpression(node) =>
-      node.left is BoolLiteral && node.right is BoolLiteral;
-  visitConditionalExpression(node) =>
-      node.condition is BoolLiteral &&
-      node.then is BoolLiteral &&
-      node.otherwise is BoolLiteral;
-
-  visitLet(Let node) {
-    var init = node.variable.initializer;
-    return (init == null || isConstant(init)) && isConstant(node.body);
-  }
+  return false;
 }
 
 /// Returns true if [name] is an operator method that is available on primitive
@@ -209,6 +121,13 @@ bool isOperatorMethodName(String name) {
   return false;
 }
 
+bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
+  var target = node.target;
+  return node.isConst &&
+      target.name.name == 'fromEnvironment' &&
+      target.enclosingLibrary == coreTypes.coreLibrary;
+}
+
 /// Returns true if this class is of the form:
 /// `class C = Object with M [implements I1, I2 ...];`
 ///
@@ -219,7 +138,7 @@ bool isMixinAliasClass(Class c) =>
 
 List<Class> getSuperclasses(Class c) {
   var result = <Class>[];
-  var visited = new HashSet<Class>();
+  var visited = HashSet<Class>();
   while (c != null && visited.add(c)) {
     for (var m = c.mixedInClass; m != null; m = m.mixedInClass) {
       result.add(m);
@@ -248,5 +167,78 @@ Expression getInvocationReceiver(InvocationExpression node) =>
 
 bool isInlineJS(Member e) =>
     e is Procedure &&
-    e.name == 'JS' &&
+    e.name.name == 'JS' &&
     e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
+
+/// Whether the parameter [p] is covariant (either explicitly `covariant` or
+/// implicitly due to generics) and needs a check for soundness.
+bool isCovariantParameter(VariableDeclaration p) {
+  return p.isCovariant || p.isGenericCovariantImpl;
+}
+
+/// Whether the field [p] is covariant (either explicitly `covariant` or
+/// implicitly due to generics) and needs a check for soundness.
+bool isCovariantField(Field f) {
+  return f.isCovariant || f.isGenericCovariantImpl;
+}
+
+/// Returns true iff this factory constructor just throws [UnsupportedError]/
+///
+/// `dart:html` has many of these.
+bool isUnsupportedFactoryConstructor(Procedure node) {
+  if (node.name.isPrivate && node.enclosingLibrary.importUri.scheme == 'dart') {
+    var body = node.function.body;
+    if (body is Block) {
+      var statements = body.statements;
+      if (statements.length == 1) {
+        var statement = statements[0];
+        if (statement is ExpressionStatement) {
+          var expr = statement.expression;
+          if (expr is Throw) {
+            var error = expr.expression;
+            if (error is ConstructorInvocation &&
+                error.target.enclosingClass.name == 'UnsupportedError') {
+              // HTML adds a lot of private constructors that are unreachable.
+              // Skip these.
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/// Returns the redirecting factory constructors for the enclosing class,
+/// if the field [f] is storing that information, otherwise returns `null`.
+Iterable<Member> getRedirectingFactories(Field f) {
+  // TODO(jmesserly): this relies on implementation details in Kernel
+  if (f.name.name == "_redirecting#") {
+    assert(f.isStatic);
+    var list = f.initializer as ListLiteral;
+    return list.expressions.map((e) => (e as StaticGet).target);
+  }
+  return null;
+}
+
+/// Gets the real supertype of [c] and the list of [mixins] in reverse
+/// application order (mixins will appear before ones they override).
+///
+/// This is used to ignore synthetic mixin application classes.
+///
+// TODO(jmesserly): consider replacing this with Kernel's mixin unrolling once
+// we don't have the Analyzer backend to maintain.
+Class getSuperclassAndMixins(Class c, List<Class> mixins) {
+  assert(mixins.isEmpty);
+
+  var mixedInClass = c.mixedInClass;
+  if (mixedInClass != null) mixins.add(mixedInClass);
+
+  var sc = c.superclass;
+  for (; sc.isAnonymousMixin; sc = sc.superclass) {
+    mixedInClass = sc.mixedInClass;
+    if (mixedInClass != null) mixins.add(sc.mixedInClass);
+  }
+  return sc;
+}

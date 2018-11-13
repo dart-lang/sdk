@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.html.error.lint_codes;
 
 import 'package:analyzer/error/error.dart';
 
@@ -28,8 +26,8 @@ class HtmlErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const HtmlErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const HtmlErrorCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -71,8 +69,8 @@ class HtmlWarningCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const HtmlWarningCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const HtmlWarningCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

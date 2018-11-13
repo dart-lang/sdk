@@ -47,15 +47,13 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemEntity;
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 
 import 'perf_common.dart';
@@ -71,7 +69,7 @@ ${argParser.usage}""";
   var entryUri = _resolveOverlayUri(options.rest[0]);
   var editsUri = Uri.base.resolve(options.rest[1]);
   var changeSets =
-      parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
+      parse(jsonDecode(new File.fromUri(editsUri).readAsStringSync()));
   bool verbose = options["verbose"];
   bool verboseCompilation = options["verbose-compilation"];
   bool strongMode = options["mode"] == "strong";
@@ -113,8 +111,8 @@ Future benchmark(
   var compilerOptions = new CompilerOptions()
     ..verbose = verboseCompilation
     ..fileSystem = overlayFs
-    ..strongMode = strongMode
-    ..onError = onErrorHandler(strongMode)
+    ..legacyMode = !strongMode
+    ..onDiagnostic = onDiagnosticMessageHandler(strongMode)
     ..target = createTarget(isFlutter: isFlutter, strongMode: strongMode);
   if (sdkSummary != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
@@ -125,24 +123,20 @@ Future benchmark(
   }
 
   var dir = Directory.systemTemp.createTempSync("ikg-cache");
-  compilerOptions.byteStore = createByteStore(cache, dir.path);
 
   final processedOptions =
-      new ProcessedOptions(compilerOptions, false, [entryUri]);
+      new ProcessedOptions(options: compilerOptions, inputs: [entryUri]);
   final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
   collector.start("Initial compilation");
-  var generator = await IncrementalKernelGenerator.newInstance(
-      compilerOptions, entryUri,
-      useMinimalGenerator: useMinimalGenerator);
+  var generator = new IncrementalKernelGenerator(compilerOptions, entryUri);
 
-  var delta = await generator.computeDelta();
-  generator.acceptLastDelta();
+  var component = await generator.computeDelta();
   collector.stop("Initial compilation");
   if (verbose) {
-    print("Libraries changed: ${delta.newProgram.libraries.length}");
+    print("Libraries changed: ${component.libraries.length}");
   }
-  if (delta.newProgram.libraries.length < 1) {
+  if (component.libraries.length < 1) {
     throw "No libraries were changed";
   }
 
@@ -151,14 +145,13 @@ Future benchmark(
     await applyEdits(
         changeSet.edits, overlayFs, generator, uriTranslator, verbose);
     collector.start(name);
-    delta = await generator.computeDelta();
-    generator.acceptLastDelta();
+    component = await generator.computeDelta();
     collector.stop(name);
     if (verbose) {
       print("Change '${changeSet.name}' - "
-          "Libraries changed: ${delta.newProgram.libraries.length}");
+          "Libraries changed: ${component.libraries.length}");
     }
-    if (delta.newProgram.libraries.length < 1) {
+    if (component.libraries.length < 1) {
       throw "No libraries were changed";
     }
   }
@@ -218,7 +211,7 @@ List<ChangeSet> parse(List json) {
 class OverlayFileSystem implements FileSystem {
   final MemoryFileSystem memory =
       new MemoryFileSystem(Uri.parse('org-dartlang-overlay:///'));
-  final PhysicalFileSystem physical = PhysicalFileSystem.instance;
+  final StandardFileSystem physical = StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
@@ -265,21 +258,6 @@ class OverlayFileSystemEntity implements FileSystemEntity {
 
   void writeAsStringSync(String contents) =>
       _fs.memory.entityForUri(uri).writeAsStringSync(contents);
-}
-
-ByteStore createByteStore(String cachePolicy, String path) {
-  switch (cachePolicy) {
-    case 'memory':
-      return new MemoryByteStore();
-    case 'protected':
-      return new ProtectedFileByteStore(path);
-    case 'evicting':
-      return new MemoryCachingByteStore(
-          new EvictingFileByteStore(path, 1024 * 1024 * 1024 /* 1G */),
-          64 * 1024 * 1024 /* 64M */);
-    default:
-      throw new UnsupportedError('Unknown cache policy: $cachePolicy');
-  }
 }
 
 /// A string replacement edit in a source file.

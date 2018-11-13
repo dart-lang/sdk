@@ -44,18 +44,18 @@ main() async {
       context: clientContext);
   socket.listen((RawSocketEvent event) {
     switch (event) {
-      case RawSocketEvent.READ:
+      case RawSocketEvent.read:
         body.addAll(socket.read());
         break;
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         written += socket.write(message, written, message.length - written);
         if (written < message.length) {
           socket.writeEventsEnabled = true;
         } else {
-          socket.shutdown(SocketDirection.SEND);
+          socket.shutdown(SocketDirection.send);
         }
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         Expect.isTrue(body.length > 100, "$body\n${body.length}");
         Expect.equals(72, body[0]);
         Expect.equals(9, body[body.length - 1]);

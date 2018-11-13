@@ -64,8 +64,7 @@ class LinkEntry<T> extends Link<T> {
   final T head;
   Link<T> tail;
 
-  LinkEntry(this.head, [Link<T> tail])
-      : this.tail = ((tail == null) ? const Link() : tail);
+  LinkEntry(this.head, [Link<T> tail]) : tail = tail ?? const Link<Null>();
 
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
@@ -89,8 +88,9 @@ class LinkEntry<T> extends Link<T> {
     return buffer.toString();
   }
 
-  Link<T> reverse() {
-    Link<T> result = const Link();
+  @override
+  Link<T> reverse(Link<T> tail) {
+    Link<T> result = tail;
     for (Link<T> link = this; link.isNotEmpty; link = link.tail) {
       result = result.prepend(link.head);
     }
@@ -147,17 +147,6 @@ class LinkEntry<T> extends Link<T> {
     }
     return length;
   }
-
-  Link copyWithout(e) {
-    LinkBuilder copy = new LinkBuilder();
-    Link link = this;
-    for (; link.isNotEmpty; link = link.tail) {
-      if (link.head != e) {
-        copy.addLast(link.head);
-      }
-    }
-    return copy.toLink(link);
-  }
 }
 
 class LinkBuilderImplementation<T> implements LinkBuilder<T> {
@@ -167,7 +156,8 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
 
   LinkBuilderImplementation();
 
-  Link<T> toLink([Link<T> tail = const Link()]) {
+  @override
+  Link<T> toLink(Link<T> tail) {
     if (head == null) return tail;
     lastLink.tail = tail;
     Link<T> link = head;

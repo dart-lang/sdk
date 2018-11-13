@@ -13,16 +13,16 @@ class C {
   dynamic get h => null;
   void test() {
     // Call via this
-    f /*@callKind=this*/ ();
-    this.f /*@callKind=this*/ ();
+    f();
+    this.f();
 
     // Get via this, then closure invocation
-    g /*@callKind=closure*/ ();
-    this.g /*@callKind=closure*/ ();
+    g();
+    this.g();
 
     // Get via this, then dynamic invocation
-    h /*@callKind=dynamic*/ ();
-    this.h /*@callKind=dynamic*/ ();
+    h();
+    this.h();
   }
 }
 
@@ -31,19 +31,19 @@ void test(C c, F f, dynamic d) {
   c.f();
 
   // Closure invocation
-  f /*@callKind=closure*/ ();
+  f();
 
   // Dynamic call
-  d /*@callKind=dynamic*/ ();
+  d();
 
   // Dynamic call
-  d.f /*@callKind=dynamic*/ ();
+  d.f();
 
   // Get via interface, then closure invocation
-  c.g /*@callKind=closure*/ ();
+  c.g();
 
   // Get via interface, then dynamic invocation
-  c.h /*@callKind=dynamic*/ ();
+  c.h();
 }
 
 main() {}

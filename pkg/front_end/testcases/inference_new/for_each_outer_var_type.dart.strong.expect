@@ -1,19 +1,31 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the variable.
+//   for (i /*@error=ForInLoopElementTypeNotAssignable*/ in iterable) {}
+//                                                       ^
+//
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the variable.
+//   await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
+//                                                             ^
+
 library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method test() → dynamic async {
   core::Iterable<self::A> iterable;
@@ -34,10 +46,16 @@ static method test() → dynamic async {
     b = #t4 as{TypeError} self::B;
   }
   for (final self::A #t5 in iterable) {
-    i = let final dynamic #t6 = #t5 in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:39: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  for (i /*@error=InvalidAssignment*/ in iterable) {}\n                                      ^"));
+    i = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the variable.
+  for (i /*@error=ForInLoopElementTypeNotAssignable*/ in iterable) {}
+                                                      ^" in #t5 as{TypeError} core::int;
   }
   await for (final self::A #t7 in stream) {
-    i = let final dynamic #t8 = #t7 in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:45: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  await for (i /*@error=InvalidAssignment*/ in stream) {}\n                                            ^"));
+    i = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the variable.
+  await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
+                                                            ^" in #t7 as{TypeError} core::int;
   }
   for (final self::A #t9 in self::f<core::Iterable<self::A>>()) {
     a = #t9;

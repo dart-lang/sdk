@@ -4,7 +4,7 @@
 
 #include "vm/os_thread.h"
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/thread_interrupter.h"
@@ -18,6 +18,10 @@ ThreadLocalKey OSThread::thread_key_ = kUnsetThreadLocalKey;
 OSThread* OSThread::thread_list_head_ = NULL;
 Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
+
+#if defined(HAS_C11_THREAD_LOCAL)
+thread_local Thread* OSThread::current_vm_thread_ = NULL;
+#endif
 
 OSThread::OSThread()
     : BaseThread(true),
@@ -62,6 +66,12 @@ OSThread* OSThread::CreateOSThread() {
 }
 
 OSThread::~OSThread() {
+  if (!is_os_thread()) {
+    // If the embedder enters an isolate on this thread and does not exit the
+    // isolate, the thread local at thread_key_, which we are destructing here,
+    // will contain a dart::Thread instead of a dart::OSThread.
+    FATAL("Thread exited without calling Dart_ExitIsolate");
+  }
   RemoveThreadFromList(this);
   delete log_;
   log_ = NULL;
@@ -91,6 +101,7 @@ void OSThread::SetName(const char* name) {
 // stack (SafeStack).
 NO_SANITIZE_ADDRESS
 NO_SANITIZE_SAFE_STACK
+DART_NOINLINE
 uword OSThread::GetCurrentStackPointer() {
   uword stack_allocated_local = reinterpret_cast<uword>(&stack_allocated_local);
   return stack_allocated_local;
@@ -125,15 +136,17 @@ static void DeleteThread(void* thread) {
   delete reinterpret_cast<OSThread*>(thread);
 }
 
-void OSThread::InitOnce() {
+void OSThread::Init() {
   // Allocate the global OSThread lock.
-  ASSERT(thread_list_lock_ == NULL);
-  thread_list_lock_ = new Mutex();
+  if (thread_list_lock_ == NULL) {
+    thread_list_lock_ = new Mutex();
+  }
   ASSERT(thread_list_lock_ != NULL);
 
   // Create the thread local key.
-  ASSERT(thread_key_ == kUnsetThreadLocalKey);
-  thread_key_ = CreateThreadLocal(DeleteThread);
+  if (thread_key_ == kUnsetThreadLocalKey) {
+    thread_key_ = CreateThreadLocal(DeleteThread);
+  }
   ASSERT(thread_key_ != kUnsetThreadLocalKey);
 
   // Enable creation of OSThread structures in the VM.
@@ -262,8 +275,18 @@ void OSThread::RemoveThreadFromList(OSThread* thread) {
   }
 }
 
-void OSThread::SetCurrent(OSThread* current) {
-  OSThread::SetThreadLocal(thread_key_, reinterpret_cast<uword>(current));
+void OSThread::SetCurrentTLS(BaseThread* value) {
+  // Provides thread-local destructors.
+  SetThreadLocal(thread_key_, reinterpret_cast<uword>(value));
+
+#if defined(HAS_C11_THREAD_LOCAL)
+  // Allows the C compiler more freedom to optimize.
+  if ((value != NULL) && !value->is_os_thread()) {
+    current_vm_thread_ = static_cast<Thread*>(value);
+  } else {
+    current_vm_thread_ = NULL;
+  }
+#endif
 }
 
 OSThreadIterator::OSThreadIterator() {

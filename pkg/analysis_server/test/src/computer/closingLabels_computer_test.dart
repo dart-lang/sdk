@@ -24,7 +24,7 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
 
   setUp() {
     super.setUp();
-    sourcePath = provider.convertPath('/p/lib/source.dart');
+    sourcePath = resourceProvider.convertPath('/p/lib/source.dart');
   }
 
   test_adjacentLinesExcluded() async {
@@ -74,46 +74,6 @@ List<ClosingLabel> compute() {
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
-  }
-
-  test_noLabelsForOneElement() async {
-    String content = """
-Widget build(BuildContext context) {
-  return new Row(
-  );
-}
-""";
-
-    var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 0);
-  }
-
-  test_labelsShownForMultipleElements() async {
-    String content = """
-Widget build(BuildContext context) {
-  return /*1*/new Row(
-    child: new RaisedButton(),
-  )/*1:Row*/;
-}
-""";
-
-    var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 1);
-  }
-
-  test_labelsShownForMultipleElements_2() async {
-    String content = """
-Widget build(BuildContext context) {
-  return /*1*/new Row(
-    child: /*2*/new RaisedButton(
-      onPressed: increment,
-    )/*2:RaisedButton*/,
-  )/*1:Row*/;
-}
-""";
-
-    var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
   test_constConstructor() async {
@@ -175,6 +135,34 @@ Widget build(BuildContext context) {
     // might not be fixed until the code is using the new shared parser.
     // https://github.com/dart-lang/sdk/issues/30370
     await _computeElements(content);
+  }
+
+  test_labelsShownForMultipleElements() async {
+    String content = """
+Widget build(BuildContext context) {
+  return /*1*/new Row(
+    child: new RaisedButton(),
+  )/*1:Row*/;
+}
+""";
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 1);
+  }
+
+  test_labelsShownForMultipleElements_2() async {
+    String content = """
+Widget build(BuildContext context) {
+  return /*1*/new Row(
+    child: /*2*/new RaisedButton(
+      onPressed: increment,
+    )/*2:RaisedButton*/,
+  )/*1:Row*/;
+}
+""";
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
   test_listLiterals() async {
@@ -267,6 +255,18 @@ void myMethod() {
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
+  }
+
+  test_noLabelsForOneElement() async {
+    String content = """
+Widget build(BuildContext context) {
+  return new Row(
+  );
+}
+""";
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
   test_NoLabelsFromInterpolatedStrings() async {
@@ -399,7 +399,7 @@ void myMethod() {
   }
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
-    provider.newFile(sourcePath, sourceContent);
+    newFile(sourcePath, content: sourceContent);
     ResolveResult result = await driver.getResult(sourcePath);
     DartUnitClosingLabelsComputer computer =
         new DartUnitClosingLabelsComputer(result.lineInfo, result.unit);

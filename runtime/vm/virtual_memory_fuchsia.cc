@@ -27,7 +27,7 @@
 #define LOG_ERR(msg, ...)                                                      \
   OS::PrintErr("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
 #define LOG_INFO(msg, ...)                                                     \
-  OS::Print("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
+  OS::PrintErr("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
 #define LOG_ERR(msg, ...)
 #define LOG_INFO(msg, ...)
@@ -37,7 +37,7 @@ namespace dart {
 
 uword VirtualMemory::page_size_ = 0;
 
-void VirtualMemory::InitOnce() {
+void VirtualMemory::Init() {
   page_size_ = getpagesize();
 }
 
@@ -57,16 +57,28 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
-  const uint32_t flags = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE |
-                         (is_executable ? ZX_VM_FLAG_PERM_EXECUTE : 0);
+  if (is_executable) {
+    // Add ZX_PERM_EXECUTE permission to VMO, so it can be mapped
+    // into memory as executable.
+    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    if (status != ZX_OK) {
+      LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
+              zx_status_get_string(status));
+      return NULL;
+    }
+  }
+
+  const uint32_t flags = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
+                         (is_executable ? ZX_VM_PERM_EXECUTE : 0);
   uword address;
-  status = zx_vmar_map(zx_vmar_root_self(), 0, vmo, 0, size, flags, &address);
+  status = zx_vmar_map(zx_vmar_root_self(), flags, 0, vmo, 0, size, &address);
   zx_handle_close(vmo);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%ld, %ld, %u) failed: %s\n", offset, size, flags,
+    LOG_ERR("zx_vmar_map(%u, %ld) failed: %s\n", flags, size,
             zx_status_get_string(status));
     return NULL;
   }
+  LOG_INFO("zx_vmar_map(%u,%ld) success\n", flags, size);
 
   MemoryRegion region(reinterpret_cast<void*>(address), size);
   return new VirtualMemory(region, region);
@@ -93,13 +105,24 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
-  const uint32_t flags = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE |
-                         (is_executable ? ZX_VM_FLAG_PERM_EXECUTE : 0);
+  if (is_executable) {
+    // Add ZX_PERM_EXECUTE permission to VMO, so it can be mapped
+    // into memory as executable.
+    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    if (status != ZX_OK) {
+      LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
+              zx_status_get_string(status));
+      return NULL;
+    }
+  }
+
+  const zx_vm_option_t options = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
+                                 (is_executable ? ZX_VM_PERM_EXECUTE : 0);
   uword base;
-  status = zx_vmar_map(vmar, 0u, vmo, 0u, allocated_size, flags, &base);
+  status = zx_vmar_map(vmar, options, 0u, vmo, 0u, allocated_size, &base);
   zx_handle_close(vmo);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%ld, %ld, %u) failed: %s\n", offset, size, flags,
+    LOG_ERR("zx_vmar_map(%u, %ld) failed: %s\n", flags, size,
             zx_status_get_string(status));
     return NULL;
   }
@@ -129,12 +152,16 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 }
 
 VirtualMemory::~VirtualMemory() {
-  if (vm_owns_region()) {
+  // Reserved region may be empty due to VirtualMemory::Truncate.
+  if (vm_owns_region() && reserved_.size() != 0) {
     zx_status_t status =
         zx_vmar_unmap(zx_vmar_root_self(), reserved_.start(), reserved_.size());
     if (status != ZX_OK) {
-      FATAL1("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
+      FATAL3("zx_vmar_unmap(%lx, %lx) failed: %s\n", reserved_.start(),
+             reserved_.size(), zx_status_get_string(status));
     }
+    LOG_INFO("zx_vmar_unmap(%lx, %lx) success\n", reserved_.start(),
+             reserved_.size());
   }
 }
 
@@ -142,15 +169,20 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   zx_status_t status = zx_vmar_unmap(
       zx_vmar_root_self(), reinterpret_cast<uintptr_t>(address), size);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
+    LOG_ERR("zx_vmar_unmap(%p, %lx) failed: %s\n", address, size,
+            zx_status_get_string(status));
     return false;
   }
+  LOG_INFO("zx_vmar_unmap(%p, %lx) success\n", address, size);
   return true;
 }
 
-bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
-  ASSERT(Thread::Current()->IsMutatorThread() ||
-         Isolate::Current()->mutator_thread()->IsAtSafepoint());
+void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT((thread == nullptr) || thread->IsMutatorThread() ||
+         thread->isolate()->mutator_thread()->IsAtSafepoint());
+#endif
   const uword start_address = reinterpret_cast<uword>(address);
   const uword end_address = start_address + size;
   const uword page_address = Utils::RoundDown(start_address, PageSize());
@@ -160,29 +192,26 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
       prot = 0;
       break;
     case kReadOnly:
-      prot = ZX_VM_FLAG_PERM_READ;
+      prot = ZX_VM_PERM_READ;
       break;
     case kReadWrite:
-      prot = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE;
+      prot = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE;
       break;
     case kReadExecute:
-      prot = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_EXECUTE;
+      prot = ZX_VM_PERM_READ | ZX_VM_PERM_EXECUTE;
       break;
     case kReadWriteExecute:
-      prot = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE |
-             ZX_VM_FLAG_PERM_EXECUTE;
+      prot = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE | ZX_VM_PERM_EXECUTE;
       break;
   }
-  zx_status_t status = zx_vmar_protect(zx_vmar_root_self(), page_address,
-                                       end_address - page_address, prot);
+  zx_status_t status = zx_vmar_protect(zx_vmar_root_self(), prot, page_address,
+                                       end_address - page_address);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_protect(%lx, %lx, %x) success: %s\n", page_address,
-            end_address - page_address, prot, zx_status_get_string(status));
-    return false;
+    FATAL3("zx_vmar_protect(%lx, %lx) failed: %s\n", page_address,
+           end_address - page_address, zx_status_get_string(status));
   }
   LOG_INFO("zx_vmar_protect(%lx, %lx, %x) success\n", page_address,
            end_address - page_address, prot);
-  return true;
 }
 
 }  // namespace dart

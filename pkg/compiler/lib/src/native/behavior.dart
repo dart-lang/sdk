@@ -3,21 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/backend_api.dart' show ForeignResolver;
-import '../common/resolution.dart' show ParsingContext, Resolution;
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
-import '../resolution/resolution_strategy.dart';
-import '../tree/tree.dart';
+import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../util/util.dart';
 import 'js.dart';
 
 typedef dynamic /*DartType|SpecialType*/ TypeLookup(String typeString,
@@ -132,6 +125,10 @@ class NativeThrowBehavior {
  * `null` may be returned.
  */
 class NativeBehavior {
+  /// Tag used for identifying serialized [NativeBehavior] objects in a
+  /// debugging data stream.
+  static const String tag = 'native-behavior';
+
   /// [DartType]s or [SpecialType]s returned or yielded by the native
   /// element.
   final List typesReturned = [];
@@ -163,6 +160,88 @@ class NativeBehavior {
   NativeBehavior() : sideEffects = new SideEffects.empty();
 
   NativeBehavior.internal(this.sideEffects);
+
+  /// Deserializes a [NativeBehavior] object from [source].
+  factory NativeBehavior.readFromDataSource(DataSource source) {
+    source.begin(tag);
+
+    List readTypes() {
+      List types = [];
+      types.addAll(source.readDartTypes());
+      int specialCount = source.readInt();
+      for (int i = 0; i < specialCount; i++) {
+        String name = source.readString();
+        types.add(SpecialType.fromName(name));
+      }
+      return types;
+    }
+
+    List typesReturned = readTypes();
+    List typesInstantiated = readTypes();
+    String codeTemplateText = source.readStringOrNull();
+    SideEffects sideEffects = new SideEffects.readFromDataSource(source);
+    int throwBehavior = source.readInt();
+    bool isAllocation = source.readBool();
+    bool useGvn = source.readBool();
+    source.end(tag);
+
+    NativeBehavior behavior = new NativeBehavior.internal(sideEffects);
+    behavior.typesReturned.addAll(typesReturned);
+    behavior.typesInstantiated.addAll(typesInstantiated);
+    if (codeTemplateText != null) {
+      behavior.codeTemplateText = codeTemplateText;
+      behavior.codeTemplate = js.js.parseForeignJS(codeTemplateText);
+    }
+    switch (throwBehavior) {
+      case 0:
+        behavior.throwBehavior = NativeThrowBehavior.NEVER;
+        break;
+      case 1:
+        behavior.throwBehavior =
+            NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+        break;
+      case 2:
+        behavior.throwBehavior = NativeThrowBehavior.MAY;
+        break;
+      case 3:
+        behavior.throwBehavior = NativeThrowBehavior.MUST;
+        break;
+    }
+    behavior.isAllocation = isAllocation;
+    behavior.useGvn = useGvn;
+    return behavior;
+  }
+
+  /// Serializes this [NativeBehavior] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+
+    void writeTypes(List types) {
+      List<DartType> dartTypes = [];
+      List<SpecialType> specialTypes = [];
+      for (var type in types) {
+        if (type is DartType) {
+          dartTypes.add(type);
+        } else {
+          specialTypes.add(type);
+        }
+      }
+      sink.writeDartTypes(dartTypes);
+      sink.writeInt(specialTypes.length);
+      for (SpecialType type in specialTypes) {
+        sink.writeString(type.name);
+      }
+    }
+
+    writeTypes(typesReturned);
+    writeTypes(typesInstantiated);
+    sink.writeStringOrNull(codeTemplateText);
+    sideEffects.writeToDataSink(sink);
+    sink.writeInt(throwBehavior._bits);
+    sink.writeBool(isAllocation);
+    sink.writeBool(useGvn);
+    sink.end(tag);
+  }
 
   String toString() {
     return 'NativeBehavior('
@@ -495,61 +574,6 @@ class NativeBehavior {
     return sideEffects;
   }
 
-  /// Returns a [TypeLookup] that uses [resolver] to perform lookup and [node]
-  /// as position for errors.
-  static TypeLookup _typeLookup(
-      Node node, DiagnosticReporter reporter, ForeignResolver resolver) {
-    ResolutionDartType lookup(String name, {bool required}) {
-      ResolutionDartType type = resolver.resolveTypeFromString(node, name);
-      if (type == null && required) {
-        reporter.reportErrorMessage(
-            node, MessageKind.GENERIC, {'text': "Type '$name' not found."});
-      }
-      return type;
-    }
-
-    return lookup;
-  }
-
-  /// Compute the [NativeBehavior] for a [Send] node calling the 'JS' function.
-  static NativeBehavior ofJsCallSend(
-      Send jsCall,
-      DiagnosticReporter reporter,
-      ParsingContext parsing,
-      CommonElements commonElements,
-      ForeignResolver resolver) {
-    var argNodes = jsCall.arguments;
-    if (argNodes.isEmpty || argNodes.tail.isEmpty) {
-      reporter.reportErrorMessage(jsCall, MessageKind.WRONG_ARGUMENT_FOR_JS);
-      return new NativeBehavior();
-    }
-
-    dynamic specArgument = argNodes.head;
-    if (specArgument is! StringNode || specArgument.isInterpolation) {
-      reporter.reportErrorMessage(
-          specArgument, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
-      return new NativeBehavior();
-    }
-
-    dynamic codeArgument = argNodes.tail.head;
-    if (codeArgument is! StringNode || codeArgument.isInterpolation) {
-      reporter.reportErrorMessage(
-          codeArgument, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
-      return new NativeBehavior();
-    }
-
-    String specString = specArgument.dartString.slowToString();
-    String codeString = codeArgument.dartString.slowToString();
-
-    return ofJsCall(
-        specString,
-        codeString,
-        _typeLookup(specArgument, reporter, resolver),
-        specArgument,
-        reporter,
-        commonElements);
-  }
-
   /// Compute the [NativeBehavior] for a call to the 'JS' function with the
   /// given [specString] and [codeString] (first and second arguments).
   static NativeBehavior ofJsCall(
@@ -636,50 +660,6 @@ class NativeBehavior {
         nullType: commonElements.nullType);
   }
 
-  static NativeBehavior ofJsBuiltinCallSend(
-      Send jsBuiltinCall,
-      DiagnosticReporter reporter,
-      CommonElements commonElements,
-      ForeignResolver resolver) {
-    NativeBehavior behavior = new NativeBehavior();
-    behavior.sideEffects.setTo(new SideEffects());
-
-    // The first argument of a JS-embedded global call is a string encoding
-    // the type of the code.
-    //
-    //  'Type1|Type2'.  A union type.
-    //  '=Object'.      A JavaScript Object, no subtype.
-
-    Link<Node> argNodes = jsBuiltinCall.arguments;
-    if (argNodes.isEmpty) {
-      reporter.internalError(
-          jsBuiltinCall, "JS builtin expression has no type.");
-    }
-
-    // We don't check the given name. That needs to be done at a later point.
-    // This is, because we want to allow non-literals (like references to
-    // enums) as names.
-    if (argNodes.tail.isEmpty) {
-      reporter.internalError(jsBuiltinCall, "JS builtin is missing name.");
-    }
-
-    LiteralString specLiteral = argNodes.head.asLiteralString();
-    if (specLiteral == null) {
-      // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
-      // is not very satisfactory because it does not work for void, dynamic.
-      reporter.internalError(argNodes.head, "Unexpected first argument.");
-    }
-
-    String specString = specLiteral.dartString.slowToString();
-
-    return ofJsBuiltinCall(
-        specString,
-        _typeLookup(jsBuiltinCall, reporter, resolver),
-        jsBuiltinCall,
-        reporter,
-        commonElements);
-  }
-
   static NativeBehavior ofJsBuiltinCall(
       String specString,
       TypeLookup lookupType,
@@ -691,60 +671,6 @@ class NativeBehavior {
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
         behavior, spannable, specString, lookupType, reporter, commonElements);
     return behavior;
-  }
-
-  static NativeBehavior ofJsEmbeddedGlobalCallSend(
-      Send jsEmbeddedGlobalCall,
-      DiagnosticReporter reporter,
-      CommonElements commonElements,
-      ForeignResolver resolver) {
-    NativeBehavior behavior = new NativeBehavior();
-    // TODO(sra): Allow the use site to override these defaults.
-    // Embedded globals are usually pre-computed data structures or JavaScript
-    // functions that never change.
-    behavior.sideEffects.setTo(new SideEffects.empty());
-    behavior.throwBehavior = NativeThrowBehavior.NEVER;
-
-    // The first argument of a JS-embedded global call is a string encoding
-    // the type of the code.
-    //
-    //  'Type1|Type2'.  A union type.
-    //  '=Object'.      A JavaScript Object, no subtype.
-
-    Link<Node> argNodes = jsEmbeddedGlobalCall.arguments;
-    if (argNodes.isEmpty) {
-      reporter.internalError(
-          jsEmbeddedGlobalCall, "JS embedded global expression has no type.");
-    }
-
-    // We don't check the given name. That needs to be done at a later point.
-    // This is, because we want to allow non-literals (like references to
-    // enums) as names.
-    if (argNodes.tail.isEmpty) {
-      reporter.internalError(
-          jsEmbeddedGlobalCall, "JS embedded global is missing name.");
-    }
-
-    if (!argNodes.tail.tail.isEmpty) {
-      reporter.internalError(argNodes.tail.tail.head,
-          'JS embedded global has more than 2 arguments');
-    }
-
-    LiteralString specLiteral = argNodes.head.asLiteralString();
-    if (specLiteral == null) {
-      // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
-      // is not very satisfactory because it does not work for void, dynamic.
-      reporter.internalError(argNodes.head, "Unexpected first argument.");
-    }
-
-    String specString = specLiteral.dartString.slowToString();
-
-    return ofJsEmbeddedGlobalCall(
-        specString,
-        _typeLookup(jsEmbeddedGlobalCall, reporter, resolver),
-        jsEmbeddedGlobalCall,
-        reporter,
-        commonElements);
   }
 
   static NativeBehavior ofJsEmbeddedGlobalCall(
@@ -765,72 +691,11 @@ class NativeBehavior {
     return behavior;
   }
 
-  static NativeBehavior ofMethodElement(
-      MethodElement element, Compiler compiler,
-      {bool isJsInterop}) {
-    ResolutionFunctionType type = element.computeType(compiler.resolution);
-    List<ConstantValue> metadata = <ConstantValue>[];
-    for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(compiler.resolution);
-      metadata.add(compiler.constants.getConstantValue(annotation.constant));
-    }
-
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(
-        compiler, compiler.frontendStrategy.nativeBasicData);
-    return builder.buildMethodBehavior(
-        type, metadata, lookupFromElement(compiler.resolution, element),
-        isJsInterop: isJsInterop);
-  }
-
-  static NativeBehavior ofFieldElementLoad(
-      MemberElement element, Compiler compiler,
-      {bool isJsInterop}) {
-    Resolution resolution = compiler.resolution;
-    ResolutionDartType type = element.computeType(resolution);
-    List<ConstantValue> metadata = <ConstantValue>[];
-    for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(compiler.resolution);
-      metadata.add(compiler.constants.getConstantValue(annotation.constant));
-    }
-
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(
-        compiler, compiler.frontendStrategy.nativeBasicData);
-    return builder.buildFieldLoadBehavior(
-        type, metadata, lookupFromElement(resolution, element),
-        isJsInterop: isJsInterop);
-  }
-
-  static NativeBehavior ofFieldElementStore(
-      MemberElement field, Compiler compiler) {
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(
-        compiler, compiler.frontendStrategy.nativeBasicData);
-    ResolutionDartType type = field.computeType(compiler.resolution);
-    return builder.buildFieldStoreBehavior(type);
-  }
-
-  static TypeLookup lookupFromElement(Resolution resolution, Element element) {
-    ResolutionDartType lookup(String name, {bool required}) {
-      Element e = element.buildScope().lookup(name);
-      if (e == null || e is! ClassElement) {
-        if (required) {
-          resolution.reporter.reportErrorMessage(element, MessageKind.GENERIC,
-              {'text': "Type '$name' not found."});
-        }
-        return null;
-      }
-      ClassElement cls = e;
-      cls.ensureResolved(resolution);
-      return cls.thisType;
-    }
-
-    return lookup;
-  }
-
   static dynamic /*DartType|SpecialType*/ _parseType(
       String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return const ResolutionDynamicType();
+      return const DynamicType();
     }
     int index = typeString.indexOf('<');
     var type = lookupType(typeString, required: index == -1);
@@ -843,7 +708,7 @@ class NativeBehavior {
         return type;
       }
     }
-    return const ResolutionDynamicType();
+    return const DynamicType();
   }
 }
 
@@ -897,7 +762,7 @@ abstract class BehaviorBuilder {
             'Annotations needs one string: ${value.toStructuredText()}');
       }
       StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.primitiveValue;
+      String specString = specStringConstant.stringValue;
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(typeString, lookupType);
         if (types == null) types = [];
@@ -909,15 +774,15 @@ abstract class BehaviorBuilder {
 
   /// Models the behavior of having instances of [type] escape from Dart code
   /// into native code.
-  void _escape(DartType type) {
+  void _escape(DartType type, bool isJsInterop) {
     type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
-      _escape(functionType.returnType);
+      _escape(functionType.returnType, isJsInterop);
       for (DartType parameter in functionType.parameterTypes) {
-        _capture(parameter);
+        _capture(parameter, isJsInterop);
       }
     }
   }
@@ -928,16 +793,16 @@ abstract class BehaviorBuilder {
   ///
   /// We assume that JS-interop APIs cannot instantiate Dart types or
   /// non-JSInterop native types.
-  void _capture(DartType type, {bool isInterop: false}) {
+  void _capture(DartType type, bool isJsInterop) {
     type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
-      _capture(functionType.returnType, isInterop: isInterop);
+      _capture(functionType.returnType, isJsInterop);
       for (DartType parameter in functionType.parameterTypes) {
-        _escape(parameter);
+        _escape(parameter, isJsInterop);
       }
     } else {
-      if (!isInterop) {
+      if (!isJsInterop) {
         _behavior.typesInstantiated.add(type);
       } else {
         if (type is InterfaceType &&
@@ -978,14 +843,14 @@ abstract class BehaviorBuilder {
         : commonElements.dynamicType);
     // Declared types are nullable.
     _behavior.typesReturned.add(commonElements.nullType);
-    _capture(type, isInterop: isJsInterop);
+    _capture(type, isJsInterop);
     _overrideWithAnnotations(metadata, lookupType);
     return _behavior;
   }
 
   NativeBehavior buildFieldStoreBehavior(DartType type) {
     _behavior = new NativeBehavior();
-    _escape(type);
+    _escape(type, false);
     // We don't override the default behaviour - the annotations apply to
     // loading the field.
     return _behavior;
@@ -1012,39 +877,16 @@ abstract class BehaviorBuilder {
       // Declared types are nullable.
       _behavior.typesReturned.add(commonElements.nullType);
     }
-    _capture(type, isInterop: isJsInterop);
+    _capture(type, isJsInterop);
 
     for (DartType type in type.optionalParameterTypes) {
-      _escape(type);
+      _escape(type, isJsInterop);
     }
     for (DartType type in type.namedParameterTypes) {
-      _escape(type);
+      _escape(type, isJsInterop);
     }
 
     _overrideWithAnnotations(metadata, lookupType);
     return _behavior;
-  }
-}
-
-class ResolverBehaviorBuilder extends BehaviorBuilder {
-  final Compiler compiler;
-  final NativeBasicData nativeBasicData;
-
-  ResolverBehaviorBuilder(this.compiler, this.nativeBasicData);
-
-  @override
-  CommonElements get commonElements => compiler.resolution.commonElements;
-
-  @override
-  bool get trustJSInteropTypeAnnotations =>
-      compiler.options.trustJSInteropTypeAnnotations;
-
-  @override
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  @override
-  ElementEnvironment get elementEnvironment {
-    ResolutionFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-    return frontendStrategy.elementEnvironment;
   }
 }

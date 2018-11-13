@@ -577,7 +577,7 @@ ASSEMBLER_TEST_RUN(Semaphore32, test) {
   typedef intptr_t (*Semaphore32)() DART_UNUSED;
   // Lower word has been atomically switched from 40 to 42k, whereas upper word
   // is unchanged at 40.
-  EXPECT_EQ(42 + (40l << 32),
+  EXPECT_EQ(42 + (DART_INT64_C(40) << 32),
             EXECUTE_TEST_CODE_INT64(Semaphore32, test->entry()));
 }
 
@@ -604,7 +604,7 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
   typedef intptr_t (*FailedSemaphore32)() DART_UNUSED;
   // Lower word has had the failure code (1) added to it.  Upper word is
   // unchanged at 40.
-  EXPECT_EQ(41 + (40l << 32),
+  EXPECT_EQ(41 + (DART_INT64_C(40) << 32),
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
 }
 
@@ -1008,15 +1008,22 @@ ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+static const int64_t kBits5And35 = (1 << 5) | (1ll << 35);
+
 ASSEMBLER_TEST_GENERATE(TstBranchIfZero, assembler) {
-  Label l;
+  Label l, l2;
 
   __ movz(R0, Immediate(42), 0);
-  __ movz(R1, Immediate((0 << 5) | 1), 0);
+  __ LoadImmediate(R1, ~kBits5And35);
 
   __ tbz(&l, R1, 5);
   __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
+
+  __ tbz(&l2, R1, 35);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l2);
+
   __ ret();
 }
 
@@ -1029,7 +1036,7 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfZeroNotTaken, assembler) {
   Label l;
 
   __ movz(R0, Immediate(0), 0);
-  __ movz(R1, Immediate((1 << 5) | 1), 0);
+  __ LoadImmediate(R1, kBits5And35);
 
   __ tbz(&l, R1, 5);
   __ movz(R0, Immediate(42), 0);
@@ -1043,14 +1050,19 @@ ASSEMBLER_TEST_RUN(TstBranchIfZeroNotTaken, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfNotZero, assembler) {
-  Label l;
+  Label l, l2;
 
   __ movz(R0, Immediate(42), 0);
-  __ movz(R1, Immediate((1 << 5) | 1), 0);
+  __ LoadImmediate(R1, kBits5And35);
 
   __ tbnz(&l, R1, 5);
   __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
+
+  __ tbnz(&l2, R1, 35);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l2);
+
   __ ret();
 }
 
@@ -1063,7 +1075,7 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroNotTaken, assembler) {
   Label l;
 
   __ movz(R0, Immediate(0), 0);
-  __ movz(R1, Immediate((0 << 5) | 1), 0);
+  __ LoadImmediate(R1, ~kBits5And35);
 
   __ tbnz(&l, R1, 5);
   __ movz(R0, Immediate(42), 0);
@@ -1072,6 +1084,52 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroNotTaken, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(TstBranchIfNotZeroNotTaken, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ LoadImmediate(R1, ~kBits5And35);
+
+  __ tbz(&l, R1, 5);
+
+  const intptr_t kRange = 1 << 14;  // tbz has 14 bits of range.
+  for (intptr_t i = 0; i < kRange; i++) {
+    __ brk(0);
+  }
+
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroFar, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ LoadImmediate(R1, kBits5And35);
+
+  __ tbnz(&l, R1, 5);
+
+  const intptr_t kRange = 1 << 14;  // tbnz has 14 bits of range.
+  for (intptr_t i = 0; i < kRange; i++) {
+    __ brk(0);
+  }
+
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfNotZeroFar, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
@@ -1093,6 +1151,80 @@ ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
 ASSEMBLER_TEST_RUN(FcmpEqBranch, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar1, assembler) {
+  Label l;
+
+  __ LoadImmediate(R0, 41);
+  __ tbnz(&l, R0, 5);
+  __ Stop("Hammertime");
+
+  for (int i = 0; i < 0x10000; i++) {
+    __ add(R0, R0, Operand(1));
+    __ sub(R0, R0, Operand(1));
+  }
+
+  __ AddImmediate(R0, R0, -1);  // Not run.
+
+  __ Bind(&l);
+  __ AddImmediate(R0, R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar1, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar2, assembler) {
+  Label l;
+
+  for (int i = 0; i < 0x10000; i++) {
+    __ add(R0, R0, Operand(1));
+    __ sub(R0, R0, Operand(1));
+  }
+
+  __ LoadImmediate(R0, 41);
+  __ tbnz(&l, R0, 5);
+  __ Stop("Hammertime");
+
+  __ AddImmediate(R0, R0, -1);  // Not run.
+
+  __ Bind(&l);
+  __ AddImmediate(R0, R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar2, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar3, assembler) {
+  Label l, l2;
+  __ LoadImmediate(R0, 41);
+  __ b(&l, AL);
+
+  __ AddImmediate(R0, R0, -1);  // Not run.
+
+  __ Bind(&l2);
+  __ AddImmediate(R0, R0, 1);
+  __ ret();
+
+  for (int i = 0; i < 0x10000; i++) {
+    __ add(R0, R0, Operand(1));
+    __ sub(R0, R0, Operand(1));
+  }
+
+  __ Bind(&l);
+  __ tbnz(&l2, R0, 5);
+  __ Stop("Hammertime");
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar3, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(FcmpEqBranchNotTaken, assembler) {
@@ -1534,6 +1666,154 @@ ASSEMBLER_TEST_RUN(Umaddl, test) {
   EXPECT_EQ(0x700000001, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(Smaddl, assembler) {
+  __ movn(R1, Immediate(1), 0);   // W1 = -2.
+  __ movz(R2, Immediate(7), 0);   // W2 = 7.
+  __ movz(R3, Immediate(20), 0);  // X3 = 20.
+  __ smaddl(R0, R1, R2, R3);      // X0 = W1*W2 + X3 = 6.
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Smaddl, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(6, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Smaddl2, assembler) {
+  __ movn(R1, Immediate(1), 0);  // W1 = -2.
+  __ movn(R2, Immediate(0), 0);  // W2 = -1.
+  __ smull(R0, R1, R2);          // X0 = W1*W2 = 2, alias of smaddl.
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Smaddl2, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Smaddl3, assembler) {
+  __ movz(R1, Immediate(0xffff), 0);  // W1 = 0xffff.
+  __ movz(R2, Immediate(0xffff), 0);  // W2 = 0xffff.
+  __ smull(R0, R1, R2);               // X0 = W1*W2, alias of smaddl.
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Smaddl3, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0xffffl * 0xffffl,
+            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(SmaddlOverflow, assembler) {
+  Label return_ltuae;
+  __ movz(R1, Immediate(0xffff), 0);  // W1 = 0xffff.
+  __ AddImmediate(R1, 4);             // W1 = 0x10003.
+  __ movz(R2, Immediate(0x7fff), 0);  // W2 = 0xffff.
+  __ smull(R0, R1, R2);               // X0 = W1*W2, alias of smaddl.
+  __ AsrImmediate(R3, R0, 31);
+  __ cmp(R3, Operand(R0, ASR, 63));  // Detect signed 32 bit overflow.
+  __ b(&return_ltuae, NE);
+  __ ret();
+  __ Bind(&return_ltuae);
+  __ movz(R0, Immediate(42), 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(SmaddlOverflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(SmaddlOverflow2, assembler) {
+  Label return_ltuae;
+  __ movz(R1, Immediate(0xffff), 0);  // W1 = 0xffff.
+  __ movn(R2, Immediate(0xffff), 0);  // W2 = -0x10000.
+  __ AddImmediate(R2, -3);            // W2 = -0x10003.
+  __ smull(R0, R1, R2);               // X0 = W1*W2, alias of smaddl.
+  __ AsrImmediate(R3, R0, 31);
+  __ cmp(R3, Operand(R0, ASR, 63));  // Detect signed 32 bit overflow.
+  __ b(&return_ltuae, NE);
+  __ ret();
+  __ Bind(&return_ltuae);
+  __ movz(R0, Immediate(42), 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(SmaddlOverflow2, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(SmaddlOverflow3, assembler) {
+  Label return_ltuae;
+  __ LoadImmediate(R1, 0x01007fff);
+  __ LoadImmediate(R2, 0x01007fff);
+  __ smull(R0, R1, R2);  // X0 = W1*W2, alias of smaddl.
+  __ AsrImmediate(R3, R0, 31);
+  __ cmp(R3, Operand(R0, ASR, 63));  // Detect signed 32 bit overflow.
+  __ b(&return_ltuae, NE);
+  __ ret();
+  __ Bind(&return_ltuae);
+  __ movz(R0, Immediate(42), 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(SmaddlOverflow3, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(NegNoOverflow, assembler) {
+  Label return_ltuae;
+  __ LoadImmediate(R1, 0x7fffffff);
+  __ negsw(R0, R1);  // X0 = W1*W2, alias of smaddl.
+  __ sxtw(R0, R0);
+  __ b(&return_ltuae, VS);  // Branch on overflow set.
+  __ ret();
+  __ Bind(&return_ltuae);
+  __ movz(R0, Immediate(42), 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(NegNoOverflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-0x7fffffff, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(NegNoOverflow2, assembler) {
+  Label return_ltuae;
+  __ LoadImmediate(R1, 0x7123);
+  __ negsw(R0, R1);  // X0 = W1*W2, alias of smaddl.
+  __ sxtw(R0, R0);
+  __ b(&return_ltuae, VS);  // Branch on overflow set.
+  __ ret();
+  __ Bind(&return_ltuae);
+  __ movz(R0, Immediate(42), 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(NegNoOverflow2, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-0x7123, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(NegOverflow, assembler) {
+  Label return_ltuae;
+  __ LoadImmediate(R1, -0x80000000ll);
+  __ negsw(R0, R1);  // X0 = W1*W2, alias of smaddl.
+  __ sxtw(R0, R0);
+  __ b(&return_ltuae, VS);  // Branch on overflow set.
+  __ ret();
+  __ Bind(&return_ltuae);
+  __ movz(R0, Immediate(42), 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(NegOverflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 // Loading immediate values without the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
   __ LoadImmediate(R0, 42);
@@ -1778,14 +2058,17 @@ static void EnterTestFrame(Assembler* assembler) {
   __ EnterFrame(0);
   __ Push(CODE_REG);
   __ Push(THR);
+  __ Push(BARRIER_MASK);
   __ TagAndPushPP();
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
   __ mov(THR, R1);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ LoadPoolPointer(PP);
 }
 
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
+  __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
@@ -2025,6 +2308,19 @@ ASSEMBLER_TEST_RUN(Bfi, test) {
   EXPECT_EQ(0x5a5b9a5a, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(Ubfiz, assembler) {
+  __ LoadImmediate(R1, 0xff1248ff);
+  __ LoadImmediate(R0, 0x5a5a5a5a);
+  // Take 30 low bits and place at position 1 in R0, zeroing the rest.
+  __ ubfiz(R0, R1, 1, 30);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Ubfiz, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x7e2491fe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(Bfxil, assembler) {
   __ LoadImmediate(R1, 0x819);
   __ LoadImmediate(R0, 0x5a5a5a5a);
@@ -2095,6 +2391,23 @@ ASSEMBLER_TEST_GENERATE(Sxtw, assembler) {
 ASSEMBLER_TEST_RUN(Sxtw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x29, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Uxtw, assembler) {
+  __ LoadImmediate(R1, 0xffffffffll);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ ubfiz(R0, R1, 0, 32);           // Zero extend word.
+  __ LoadImmediate(R2, 0x10000002all);
+  __ LoadImmediate(R1, 0x5a5a5a5a);  // Overwritten.
+  __ ubfiz(R1, R2, 0, 32);           // Zero extend word.
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Uxtw, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0xffffffffll + 42,
+            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(Uxtb, assembler) {
@@ -3780,11 +4093,14 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ SetupDartSP();
   __ Push(CODE_REG);
   __ Push(THR);
+  __ Push(BARRIER_MASK);
   __ Push(LR);
   __ mov(THR, R2);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
                      R0);
   __ Pop(LR);
+  __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ RestoreCSP();

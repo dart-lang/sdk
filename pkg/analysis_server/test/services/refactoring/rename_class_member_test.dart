@@ -126,13 +126,38 @@ class C extends A {
     assertRefactoringStatusOK(status);
   }
 
+  test_checkFinalConditions_OK_noShadow_nullVisibleRange() async {
+    await indexTestUnit('''
+class A {
+  int foo;
+
+  A(this.foo);
+}
+
+class B {
+  int bar; // declaration
+
+  B(this.bar);
+
+  void referenceField() {
+    bar;
+  }
+}
+''');
+    createRenameRefactoringAtString('bar; // declaration');
+    // check status
+    refactoring.newName = 'foo';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
   test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
     await indexTestUnit('''
 class A {
   test() {}
 }
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit('/project/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -331,7 +356,7 @@ class A {
   newName() {} // marker
 }
 ''';
-    await indexUnit('/lib.dart', libCode);
+    await indexUnit('/project/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';
 class B extends A {
@@ -697,7 +722,7 @@ processObj(p) {
 }
 ''');
     await indexTestUnit('''
-import '$pkgLib';
+import '${convertAbsolutePathToUri(pkgLib)}';
 class A {
   test() {}
 }
@@ -712,7 +737,7 @@ main(var a) {
     refactoring.newName = 'newName';
     // validate change
     await assertSuccessfulRefactoring('''
-import '/.pub-cache/lib.dart';
+import '${convertAbsolutePathToUri('/.pub-cache/lib.dart')}';
 class A {
   newName() {}
 }

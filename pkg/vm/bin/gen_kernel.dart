@@ -6,13 +6,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm.dart' show VmTarget;
-import 'package:vm/kernel_front_end.dart' show compileToKernel, ErrorDetector;
+import 'package:kernel/text/ast_to_text.dart'
+    show globalDebuggingNames, NameSystem;
+import 'package:vm/kernel_front_end.dart'
+    show compileToKernel, ErrorDetector, ErrorPrinter, parseCommandLineDefines;
+import 'package:vm/target/vm.dart' show VmTarget;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('platform',
@@ -24,7 +26,28 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false)
-  ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true);
+  ..addFlag('sync-async',
+      help: 'Start `async` functions synchronously', defaultsTo: true)
+  ..addFlag('embed-sources',
+      help: 'Embed source files in the generated kernel component',
+      defaultsTo: true)
+  ..addFlag('tfa',
+      help:
+          'Enable global type flow analysis and related transformations in AOT mode.',
+      defaultsTo: true)
+  ..addMultiOption('define',
+      abbr: 'D',
+      help: 'The values for the environment constants (e.g. -Dkey=value).')
+  ..addFlag('enable-asserts',
+      help: 'Whether asserts will be enabled.', defaultsTo: false)
+  ..addFlag('enable-constant-evaluation',
+      help: 'Whether kernel constant evaluation will be enabled.',
+      defaultsTo: true)
+  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
+  ..addFlag('drop-ast',
+      help: 'Drop AST for members with bytecode', defaultsTo: false)
+  ..addFlag('use-future-bytecode-format',
+      help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -57,30 +80,55 @@ Future<int> compile(List<String> arguments) async {
   final String filename = options.rest.single;
   final String kernelBinaryFilename = options['output'] ?? "$filename.dill";
   final String packages = options['packages'];
-  final bool strongMode = options['strong-mode'];
   final bool aot = options['aot'];
+  final bool tfa = options['tfa'];
+  final bool genBytecode = options['gen-bytecode'];
+  final bool dropAST = options['drop-ast'];
+  final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
+  final bool enableAsserts = options['enable-asserts'];
+  final bool enableConstantEvaluation = options['enable-constant-evaluation'];
+  final Map<String, String> environmentDefines = {};
 
-  ErrorDetector errorDetector = new ErrorDetector();
+  if (!parseCommandLineDefines(options['define'], environmentDefines, _usage)) {
+    return _badUsageExitCode;
+  }
+
+  final errorPrinter = new ErrorPrinter();
+  final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
-    ..strongMode = strongMode
-    ..target = new VmTarget(new TargetFlags(strongMode: strongMode))
-    ..linkedDependencies = <Uri>[Uri.base.resolve(platformKernel)]
-    ..packagesFileUri = packages != null ? Uri.base.resolve(packages) : null
-    ..reportMessages = true
-    ..onError = errorDetector;
+    ..target = new VmTarget(new TargetFlags(syncAsync: true))
+    ..linkedDependencies = <Uri>[
+      Uri.base.resolveUri(new Uri.file(platformKernel))
+    ]
+    ..packagesFileUri =
+        packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null
+    ..onDiagnostic = (DiagnosticMessage m) {
+      errorDetector(m);
+    }
+    ..embedSourceText = options['embed-sources'];
 
-  Program program = await compileToKernel(
-      Uri.base.resolve(filename), compilerOptions,
-      aot: aot);
+  final inputUri = new Uri.file(filename);
+  final component = await compileToKernel(
+      Uri.base.resolveUri(inputUri), compilerOptions,
+      aot: aot,
+      useGlobalTypeFlowAnalysis: tfa,
+      environmentDefines: environmentDefines,
+      genBytecode: genBytecode,
+      dropAST: dropAST,
+      useFutureBytecodeFormat: useFutureBytecodeFormat,
+      enableAsserts: enableAsserts,
+      enableConstantEvaluation: enableConstantEvaluation);
 
-  if (errorDetector.hasCompilationErrors || (program == null)) {
+  errorPrinter.printCompilationMessages(inputUri);
+
+  if (errorDetector.hasCompilationErrors || (component == null)) {
     return _compileTimeErrorExitCode;
   }
 
   final IOSink sink = new File(kernelBinaryFilename).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink);
-  printer.writeProgramFile(program);
+  printer.writeComponentFile(component);
   await sink.close();
 
   return 0;
@@ -102,6 +150,10 @@ Future runBatchModeCompiler() async {
     //     report the compilation result accordingly.
     //
     final exitCode = await compile(arguments);
+
+    // Re-create global NameSystem to avoid accumulating garbage.
+    globalDebuggingNames = new NameSystem();
+
     switch (exitCode) {
       case 0:
         return batch_util.CompilerOutcome.Ok;

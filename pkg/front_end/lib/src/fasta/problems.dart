@@ -8,13 +8,27 @@ import 'compiler_context.dart' show CompilerContext;
 
 import 'messages.dart'
     show
+        LocatedMessage,
         Message,
+        noLength,
+        templateInternalProblemDebugAbort,
         templateInternalProblemUnexpected,
         templateInternalProblemUnhandled,
         templateInternalProblemUnimplemented,
         templateInternalProblemUnsupported;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show Severity, severityTexts;
+
+class DebugAbort {
+  final LocatedMessage message;
+
+  DebugAbort(Uri uri, int charOffset, Severity severity, StackTrace trace)
+      : message = templateInternalProblemDebugAbort
+            .withArguments(severityTexts[severity], "$trace")
+            .withLocation(uri, charOffset, noLength);
+
+  toString() => "DebugAbort: ${message.message}";
+}
 
 /// Used to report an internal error.
 ///
@@ -26,8 +40,9 @@ import 'severity.dart' show Severity;
 ///
 /// Before printing the message, the string `"Internal error: "` is prepended.
 dynamic internalProblem(Message message, int charOffset, Uri uri) {
-  throw CompilerContext.current
-      .format(message.withLocation(uri, charOffset), Severity.internalProblem);
+  throw CompilerContext.current.format(
+      message.withLocation(uri, charOffset, noLength),
+      Severity.internalProblem);
 }
 
 dynamic unimplemented(String what, int charOffset, Uri uri) {

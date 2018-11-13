@@ -6,11 +6,12 @@ library fasta.scope_listener;
 
 import '../../scanner/token.dart' show Token;
 
-import 'unhandled_listener.dart' show NullValue, UnhandledListener;
-
 import '../scope.dart' show Scope;
 
-export 'unhandled_listener.dart' show NullValue, Unhandled;
+import 'stack_listener.dart' show NullValue, StackListener;
+
+export 'stack_listener.dart'
+    show FixedNullableList, GrowableList, NullValue, ParserRecovery;
 
 enum JumpTargetKind {
   Break,
@@ -18,7 +19,7 @@ enum JumpTargetKind {
   Goto, // Continue label in switch.
 }
 
-abstract class ScopeListener<J> extends UnhandledListener {
+abstract class ScopeListener<J> extends StackListener {
   Scope scope;
 
   J breakTarget;

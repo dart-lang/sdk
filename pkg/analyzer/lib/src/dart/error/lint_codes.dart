@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.error.lint_codes;
 
 import 'package:analyzer/error/error.dart';
 
@@ -14,8 +12,8 @@ import 'package:analyzer/error/error.dart';
  * might aggregated to define a project's style guide.
  */
 class LintCode extends ErrorCode {
-  const LintCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const LintCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;

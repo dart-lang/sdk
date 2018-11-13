@@ -4,15 +4,14 @@
 
 library ordered_typeset;
 
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show Link, LinkBuilder, LinkEntry;
+
 import 'common.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
-import 'elements/elements.dart' show ClassElement;
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart';
 import 'elements/types.dart';
-import 'util/util.dart' show Link, LinkBuilder;
-import 'package:front_end/src/fasta/util/link_implementation.dart'
-    show LinkEntry;
+import 'serialization/serialization.dart';
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are
@@ -32,12 +31,79 @@ import 'package:front_end/src/fasta/util/link_implementation.dart'
  *     C: [C, B, A, Object]
  */
 class OrderedTypeSet {
+  /// Tag used for identifying serialized [OrderedTypeSet] objects in a
+  /// debugging data stream.
+  static const String tag = 'ordered-type-set';
+
   final List<Link<InterfaceType>> _levels;
   final Link<InterfaceType> types;
   final Link<InterfaceType> _supertypes;
 
-  OrderedTypeSet.internal(List<Link<InterfaceType>> this._levels,
-      Link<InterfaceType> this.types, Link<InterfaceType> this._supertypes);
+  OrderedTypeSet.internal(this._levels, this.types, this._supertypes);
+
+  /// Deserializes a [OrderedTypeSet] object from [source].
+  factory OrderedTypeSet.readFromDataSource(DataSource source) {
+    // TODO(johnniwinther): Make the deserialized type sets share their
+    // internal links like the original type sets do?
+    source.begin(tag);
+    int typesCount = source.readInt();
+    LinkBuilder<InterfaceType> typeLinkBuilder =
+        new LinkBuilder<InterfaceType>();
+    List<Link<InterfaceType>> links = [];
+    for (int i = 0; i < typesCount; i++) {
+      links.add(typeLinkBuilder.addLast(source.readDartType()));
+    }
+    Link<InterfaceType> types =
+        typeLinkBuilder.toLink(const Link<InterfaceType>());
+    links.add(const Link<InterfaceType>());
+
+    int supertypesCount = source.readInt();
+    LinkBuilder<InterfaceType> supertypeLinkBuilder =
+        new LinkBuilder<InterfaceType>();
+    for (int i = 0; i < supertypesCount; i++) {
+      supertypeLinkBuilder.addLast(source.readDartType());
+    }
+    Link<InterfaceType> supertypes =
+        supertypeLinkBuilder.toLink(const Link<InterfaceType>());
+
+    int levelCount = source.readInt();
+    List<Link<InterfaceType>> levels =
+        new List<Link<InterfaceType>>(levelCount);
+    for (int i = 0; i < levelCount; i++) {
+      levels[i] = links[source.readInt()];
+    }
+    source.end(tag);
+    return new OrderedTypeSet.internal(levels, types, supertypes);
+  }
+
+  /// Serializes this [OrderedTypeSet] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    List<InterfaceType> typeList = types.toList();
+    sink.writeInt(typeList.length);
+    for (InterfaceType type in typeList) {
+      sink.writeDartType(type);
+    }
+    List<InterfaceType> supertypeList = _supertypes.toList();
+    sink.writeInt(supertypeList.length);
+    for (InterfaceType supertype in supertypeList) {
+      sink.writeDartType(supertype);
+    }
+    List<int> levelList = [];
+    Link<InterfaceType> link = types;
+    while (link != null) {
+      int index = _levels.indexOf(link);
+      if (index != -1) {
+        levelList.add(index);
+      }
+      link = link.tail;
+    }
+    sink.writeInt(levelList.length);
+    for (int level in levelList) {
+      sink.writeInt(level);
+    }
+    sink.end(tag);
+  }
 
   factory OrderedTypeSet.singleton(InterfaceType type) {
     Link<InterfaceType> types =
@@ -164,12 +230,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
 
   final DiagnosticReporter reporter;
   final ClassEntity cls;
-  InterfaceType _objectType;
+  final InterfaceType _objectType;
 
-  // TODO(johnniwinther): Provide access to `Object` in deserialization and
-  // make [objectType] mandatory.
-  OrderedTypeSetBuilderBase(this.cls, {this.reporter, InterfaceType objectType})
-      : this._objectType = objectType;
+  OrderedTypeSetBuilderBase(this.cls, this._objectType, {this.reporter});
 
   InterfaceType getThisType(covariant ClassEntity cls);
   InterfaceType substByContext(
@@ -228,6 +291,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     }
   }
 
+  // TODO(sigmund): delete once Issue #31118 is fixed.
+  bool get reportMultiInheritanceIssue => true;
+
   void _addAtDepth(InterfaceType type, int depth) {
     LinkEntry<InterfaceType> prev = null;
     LinkEntry<InterfaceType> link = map[depth];
@@ -236,11 +302,13 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       if (existingType == type) return;
       if (existingType.element == type.element) {
         if (reporter != null) {
-          reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
-            'thisType': getThisType(cls),
-            'firstType': existingType,
-            'secondType': type
-          });
+          if (reportMultiInheritanceIssue) {
+            reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
+              'thisType': getThisType(cls),
+              'firstType': existingType,
+              'secondType': type
+            });
+          }
         } else {
           assert(false, failedAt(cls, 'Invalid ordered typeset for $cls'));
         }
@@ -284,7 +352,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       }
     }
     return new OrderedTypeSet.internal(
-        levels, levels.last, allSupertypes.toLink());
+        levels, levels.last, allSupertypes.toLink(const Link<InterfaceType>()));
   }
 
   String toString() {
@@ -292,47 +360,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     for (int depth = 0; depth <= maxDepth; depth++) {
       sb.write('$depth: ');
       LinkEntry<InterfaceType> first = map[depth];
-      if (first.isNotEmpty) {
-        sb.write('${first.head}');
-        while (first.tail.isNotEmpty) {
-          sb.write(', ${first.tail.head}');
-          first = first.tail;
-        }
-      }
+      first.printOn(sb, ", ");
       sb.write('\n');
     }
     return sb.toString();
-  }
-}
-
-class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  ResolutionOrderedTypeSetBuilder(ClassElement cls,
-      {DiagnosticReporter reporter, InterfaceType objectType})
-      : super(cls, reporter: reporter, objectType: objectType);
-
-  InterfaceType getThisType(ClassElement cls) => cls.thisType;
-
-  ResolutionInterfaceType substByContext(
-      ResolutionInterfaceType type, ResolutionInterfaceType context) {
-    return type.substByContext(context);
-  }
-
-  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
-
-  OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
-      cls.allSupertypesAndSelf;
-
-  OrderedTypeSet createOrderedTypeSet(
-      InterfaceType supertype, Link<DartType> interfaces) {
-    if (_objectType == null) {
-      // Find `Object` through in hierarchy. This is used for serialization
-      // where it is assumed that the hierarchy is valid.
-      ResolutionInterfaceType objectType = supertype;
-      while (!objectType.isObject) {
-        objectType = objectType.element.supertype;
-      }
-      _objectType = objectType;
-    }
-    return super.createOrderedTypeSet(supertype, interfaces);
   }
 }

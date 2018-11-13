@@ -22,11 +22,11 @@ void testServerCompress({bool clientAutoUncompress: true}) {
       var client = new HttpClient();
       client.autoUncompress = clientAutoUncompress;
       client.get("127.0.0.1", server.port, "/").then((request) {
-        request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip,deflate");
+        request.headers.set(HttpHeaders.acceptEncodingHeader, "gzip,deflate");
         return request.close();
       }).then((response) {
         Expect.equals(
-            "gzip", response.headers.value(HttpHeaders.CONTENT_ENCODING));
+            "gzip", response.headers.value(HttpHeaders.contentEncodingHeader));
         response.fold([], (list, b) {
           list.addAll(b);
           return list;
@@ -34,7 +34,7 @@ void testServerCompress({bool clientAutoUncompress: true}) {
           if (clientAutoUncompress) {
             Expect.listEquals(data, list);
           } else {
-            Expect.listEquals(data, GZIP.decode(list));
+            Expect.listEquals(data, gzip.decode(list));
           }
           server.close();
           client.close();
@@ -61,11 +61,13 @@ void testAcceptEncodingHeader() {
       });
       var client = new HttpClient();
       client.get("127.0.0.1", server.port, "/").then((request) {
-        request.headers.set(HttpHeaders.ACCEPT_ENCODING, encoding);
+        request.headers.set(HttpHeaders.acceptEncodingHeader, encoding);
         return request.close();
       }).then((response) {
-        Expect.equals(valid,
-            ("gzip" == response.headers.value(HttpHeaders.CONTENT_ENCODING)));
+        Expect.equals(
+            valid,
+            ("gzip" ==
+                response.headers.value(HttpHeaders.contentEncodingHeader)));
         response.listen((_) {}, onDone: () {
           server.close();
           client.close();
@@ -92,7 +94,8 @@ void testDisableCompressTest() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     Expect.equals(false, server.autoCompress);
     server.listen((request) {
-      Expect.equals('gzip', request.headers.value(HttpHeaders.ACCEPT_ENCODING));
+      Expect.equals(
+          'gzip', request.headers.value(HttpHeaders.acceptEncodingHeader));
       request.response.write("data");
       request.response.close();
     });
@@ -101,7 +104,8 @@ void testDisableCompressTest() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      Expect.equals(null, response.headers.value(HttpHeaders.CONTENT_ENCODING));
+      Expect.equals(
+          null, response.headers.value(HttpHeaders.contentEncodingHeader));
       response.listen((_) {}, onDone: () {
         server.close();
         client.close();

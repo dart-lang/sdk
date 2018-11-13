@@ -22,6 +22,7 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 class StubEntry;
+class RegisterSet;
 
 // Instruction encoding bits.
 enum {
@@ -62,47 +63,6 @@ enum {
   B25 = 1 << 25,
   B26 = 1 << 26,
   B27 = 1 << 27,
-};
-
-class Label : public ValueObject {
- public:
-  Label() : position_(0) {}
-
-  ~Label() {
-    // Assert if label is being destroyed with unresolved branches pending.
-    ASSERT(!IsLinked());
-  }
-
-  // Returns the position for bound and linked labels. Cannot be used
-  // for unused labels.
-  intptr_t Position() const {
-    ASSERT(!IsUnused());
-    return IsBound() ? -position_ - kWordSize : position_ - kWordSize;
-  }
-
-  bool IsBound() const { return position_ < 0; }
-  bool IsUnused() const { return position_ == 0; }
-  bool IsLinked() const { return position_ > 0; }
-
- private:
-  intptr_t position_;
-
-  void Reinitialize() { position_ = 0; }
-
-  void BindTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = -position - kWordSize;
-    ASSERT(IsBound());
-  }
-
-  void LinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = position + kWordSize;
-    ASSERT(IsLinked());
-  }
-
-  friend class Assembler;
-  DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
 class ArmEncode : public AllStatic {
@@ -376,14 +336,12 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(bool use_far_branches = false)
-      : buffer_(),
-        prologue_offset_(-1),
-        has_single_entry_point_(true),
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false)
+      : AssemblerBase(object_pool_wrapper),
         use_far_branches_(use_far_branches),
-        comments_(),
         constant_pool_allowed_(false) {}
 
   ~Assembler() {}
@@ -394,26 +352,14 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { b(label); }
 
+  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+
+  void CompareWithFieldValue(Register value, FieldAddress address) {
+    ldr(TMP, address);
+    cmp(value, Operand(TMP));
+  }
+
   // Misc. functionality
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.  On ARM there are no pointers in code.
-  intptr_t CountPointerOffsets() const { return 0; }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
-  }
-
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
   }
@@ -424,23 +370,11 @@ class Assembler : public ValueObject {
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 #endif  // TESTING || DEBUG
 
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
-
   // Debugging and bringup support.
   void Breakpoint() { bkpt(0); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
 
@@ -723,23 +657,37 @@ class Assembler : public ValueObject {
   void blx(Register rm, Condition cond = AL);
 
   void Branch(const StubEntry& stub_entry,
-              Patchability patchable = kNotPatchable,
+              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
               Register pp = PP,
               Condition cond = AL);
 
-  void BranchLink(const StubEntry& stub_entry,
-                  Patchability patchable = kNotPatchable);
-  void BranchLink(const Code& code, Patchability patchable);
+  void Branch(const Address& address, Condition cond = AL);
+
+  void BranchLink(
+      const StubEntry& stub_entry,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
+  void BranchLink(const Code& code,
+                  ObjectPool::Patchability patchable,
+                  Code::EntryKind entry_kind = Code::EntryKind::kNormal);
   void BranchLinkToRuntime();
 
+  void CallNullErrorShared(bool save_fpu_registers);
+
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(const StubEntry& stub_entry);
-  void BranchLinkPatchable(const Code& code);
+  void BranchLinkPatchable(
+      const StubEntry& stub_entry,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
+  void BranchLinkPatchable(
+      const Code& code,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                 const Object& equivalence);
+  void BranchLinkWithEquivalence(
+      const StubEntry& stub_entry,
+      const Object& equivalence,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
@@ -801,6 +749,13 @@ class Assembler : public ValueObject {
 
   void LoadIsolate(Register rd);
 
+  // Load word from pool from the given offset using encoding that
+  // InstructionPattern::DecodeLoadWordFromPool can decode.
+  void LoadWordFromPoolOffset(Register rd,
+                              int32_t offset,
+                              Register pp,
+                              Condition cond);
+
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
   void LoadFunctionFromCalleePool(Register dst,
@@ -808,19 +763,36 @@ class Assembler : public ValueObject {
                                   Register new_pp);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       Patchability patchable,
+                       ObjectPool::Patchability patchable,
                        Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
+  // Store into a heap object and apply the generational and incremental write
+  // barriers. All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variants.
+  // Preserves object and value registers.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       bool can_value_be_smi = true);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       bool lr_reserved = false);
+  void StoreIntoArray(Register object,
+                      Register slot,
+                      Register value,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      bool lr_reserved = false);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             bool can_value_be_smi = true);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             bool lr_reserved = false);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -858,7 +830,6 @@ class Assembler : public ValueObject {
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object, Register scratch);
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
@@ -929,6 +900,9 @@ class Assembler : public ValueObject {
 
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
+
+  void PushRegisters(const RegisterSet& regs);
+  void PopRegisters(const RegisterSet& regs);
 
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
   void BranchIf(Condition condition, Label* label) { b(label, condition); }
@@ -1012,7 +986,7 @@ class Assembler : public ValueObject {
 
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
-  void LeaveFrame(RegList regs);
+  void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
@@ -1028,7 +1002,22 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+
+  void LeaveDartFrame();
+
+  // Leaves the frame and returns.
+  //
+  // The difference to "LeaveDartFrame(); Ret();" is that we return using
+  //
+  //   ldmia sp!, {fp, pc}
+  //
+  // instead of
+  //
+  //   ldmia sp!, {fp, lr}
+  //   blx lr
+  //
+  // This means that our return must go to ARM mode (and not thumb).
+  void LeaveDartFrameAndReturn();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -1113,6 +1102,19 @@ class Assembler : public ValueObject {
                         Register temp1,
                         Register temp2);
 
+  // This emits an PC-relative call of the form "blr <offset>".  The offset
+  // is not yet known and needs therefore relocation to the right place before
+  // the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 
@@ -1124,11 +1126,23 @@ class Assembler : public ValueObject {
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
+  // Whether we can branch to a target which is [distance] bytes away from the
+  // beginning of the branch instruction.
+  //
+  // Use this function for testing whether [distance] can be encoded using the
+  // 24-bit offets in the branch instructions, which are multiples of 4.
+  static bool CanEncodeBranchDistance(int32_t distance) {
+    ASSERT(Utils::IsAligned(distance, 4));
+    // The distance is off by 8 due to the way the ARM CPUs read PC.
+    distance -= Instr::kPCReadOffset;
+    distance >>= 2;
+    return Utils::IsInt(24, distance);
+  }
+
+  static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
+  static int32_t DecodeBranchOffset(int32_t inst);
+
  private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
-  int32_t prologue_offset_;
-  bool has_single_entry_point_;
   bool use_far_branches_;
 
   // If you are thinking of using one or both of these instructions directly,
@@ -1139,29 +1153,7 @@ class Assembler : public ValueObject {
   void BindARMv6(Label* label);
   void BindARMv7(Label* label);
 
-  void LoadWordFromPoolOffset(Register rd,
-                              int32_t offset,
-                              Register pp,
-                              Condition cond);
-
   void BranchLink(const ExternalLabel* label);
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
 
@@ -1263,17 +1255,30 @@ class Assembler : public ValueObject {
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
-  int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
-  static int32_t DecodeBranchOffset(int32_t inst);
+  void BailoutIfInvalidBranchOffset(int32_t offset);
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int32_t DecodeTstOffset(int32_t inst);
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  enum BarrierFilterMode {
+    // Filter falls through into the barrier update code. Target label
+    // is a "after-store" label.
+    kJumpToNoUpdate,
 
-  // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+    // Filter falls through to the "after-store" code. Target label
+    // is barrier update code label.
+    kJumpToBarrier,
+
+    // Filter falls through into the conditional barrier update code and does
+    // not jump. Target label is unused. The barrier should run if the NE
+    // condition is set.
+    kNoJump
+  };
+
+  void StoreIntoObjectFilter(Register object,
+                             Register value,
+                             Label* label,
+                             CanBeSmi can_be_smi,
+                             BarrierFilterMode barrier_filter_mode);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

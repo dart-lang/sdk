@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class DeltaBlue extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method run() → void {
@@ -256,7 +256,7 @@ class Variable extends core::Object {
 }
 class Planner extends core::Object {
   field core::int currentMark = 0;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method incrementalAdd(self::Constraint c) → void {
@@ -353,7 +353,7 @@ class Planner extends core::Object {
 }
 class Plan extends core::Object {
   field core::List<self::Constraint> list = <self::Constraint>[];
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method addConstraint(self::Constraint c) → void {

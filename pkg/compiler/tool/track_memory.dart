@@ -66,7 +66,7 @@ _resumeMainIsolateIfPaused() async {
 Future _sendMessage(String method, [Map args = const {}]) {
   var id = _requestId++;
   _pendingResponses[id] = new Completer();
-  socket.add(JSON.encode({
+  socket.add(jsonEncode({
     'jsonrpc': '2.0',
     'id': '$id',
     'method': '$method',
@@ -77,7 +77,7 @@ Future _sendMessage(String method, [Map args = const {}]) {
 
 /// Handle all responses
 void _handleResponse(Object s) {
-  var json = JSON.decode(s);
+  var json = jsonDecode(s);
   if (json['method'] != 'streamNotify') {
     var id = json['id'];
     if (id is String) id = int.parse(id);

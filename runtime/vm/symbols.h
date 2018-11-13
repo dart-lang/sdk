@@ -25,6 +25,7 @@ class ObjectPointerVisitor;
   V(TruncDivOperator, "~/")                                                    \
   V(UnaryMinus, "unary-")                                                      \
   V(Identical, "identical")                                                    \
+  V(UnsafeCast, "unsafeCast")                                                  \
   V(Length, "length")                                                          \
   V(_setLength, "_setLength")                                                  \
   V(IndexToken, "[]")                                                          \
@@ -60,6 +61,7 @@ class ObjectPointerVisitor;
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(ExprTemp, ":expr_temp")                                                    \
+  V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(AnonymousSignature, "<anonymous signature>")                               \
@@ -73,9 +75,11 @@ class ObjectPointerVisitor;
   V(FallThroughError, "FallThroughError")                                      \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
+  V(IntegerDivisionByZeroException, "IntegerDivisionByZeroException")          \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
+  V(ThrowNewInvocation, "_throwNewInvocation")                                 \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(Symbol, "Symbol")                                                          \
@@ -95,6 +99,7 @@ class ObjectPointerVisitor;
   V(ArgDescVar, ":arg_desc")                                                   \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
+  V(TryFinallyReturnValue, ":try_finally_return_value")                        \
   V(ExceptionParameter, ":exception")                                          \
   V(StackTraceParameter, ":stack_trace")                                       \
   V(ExceptionVar, ":exception_var")                                            \
@@ -135,6 +140,7 @@ class ObjectPointerVisitor;
   V(AwaitTempVarPrefix, ":await_temp_var_")                                    \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
+  V(FutureImpl, "_Future")                                                     \
   V(Future, "Future")                                                          \
   V(FutureOr, "FutureOr")                                                      \
   V(FutureMicrotask, "Future.microtask")                                       \
@@ -145,7 +151,12 @@ class ObjectPointerVisitor;
   V(CompleterComplete, "complete")                                             \
   V(CompleterCompleteError, "completeError")                                   \
   V(CompleterSyncConstructor, "Completer.sync")                                \
+  V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
+  V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
+  V(_AsyncAwaitCompleterStart, "_AsyncAwaitCompleter.start")                   \
+  V(_AsyncAwaitStart, "start")                                                 \
   V(CompleterFuture, "future")                                                 \
+  V(CompleterGetFuture, "get:future")                                          \
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(Native, "native")                                                          \
@@ -162,17 +173,17 @@ class ObjectPointerVisitor;
   V(_MixinAppType, "_MixinAppType")                                            \
   V(TypeArguments, "TypeArguments")                                            \
   V(Patch, "patch")                                                            \
+  V(Pragma, "pragma")                                                          \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(_Closure, "_Closure")                                                      \
+  V(_ClosureCall, "_Closure.call")                                             \
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
   V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
-  V(LiteralToken, "LiteralToken")                                              \
-  V(TokenStream, "TokenStream")                                                \
   V(Script, "Script")                                                          \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
@@ -203,7 +214,6 @@ class ObjectPointerVisitor;
   V(Number, "num")                                                             \
   V(_Smi, "_Smi")                                                              \
   V(_Mint, "_Mint")                                                            \
-  V(_Bigint, "_Bigint")                                                        \
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
   V(_List, "_List")                                                            \
@@ -229,7 +239,6 @@ class ObjectPointerVisitor;
   V(ColonStream, ":stream")                                                    \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
-  V(Int64, "_int64")                                                           \
   V(Double, "double")                                                          \
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \
@@ -319,6 +328,7 @@ class ObjectPointerVisitor;
   V(ForwardingCorpse, "ForwardingCorpse")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
+  V(AllocateInvocationMirrorForClosure, "_allocateInvocationMirrorForClosure") \
   V(toString, "toString")                                                      \
   V(_lookupHandler, "_lookupHandler")                                          \
   V(_handleMessage, "_handleMessage")                                          \
@@ -353,10 +363,10 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
-  V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
+  V(DynamicPrefix, "dyn:")                                                     \
   V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
@@ -377,7 +387,6 @@ class ObjectPointerVisitor;
   V(ExternalName, "ExternalName")                                              \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
-  V(_A, "_A")                                                                  \
   V(_stackTrace, "_stackTrace")                                                \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
   V(_LocalClassMirror, "_LocalClassMirror")                                    \
@@ -430,20 +439,28 @@ class ObjectPointerVisitor;
   V(ConstructorStacktracePrefix, "new ")                                       \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
   V(_name, "_name")                                                            \
   V(name, "name")                                                              \
+  V(options, "options")                                                        \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
-  V(_classRangeAssert, "_classRangeAssert")                                    \
-  V(_classIdEqualsAssert, "_classIdEqualsAssert")                              \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(PrependTypeArguments, "_prependTypeArguments")                             \
   V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
-  V(GrowRegExpStack, "_growRegExpStack")
+  V(GrowRegExpStack, "_growRegExpStack")                                       \
+  V(DebugProcedureName, ":Eval")                                               \
+  V(DebugClassName, "#DebugClass")                                             \
+  V(vm_entry_point, "vm:entry-point")                                          \
+  V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(Get, "get")                                                                \
+  V(Set, "set")                                                                \
+  V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
+  V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
@@ -584,8 +601,8 @@ class Symbols : public AllStatic {
   static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
-  static void InitOnce(Isolate* isolate);
-  static void InitOnceFromSnapshot(Isolate* isolate);
+  static void Init(Isolate* isolate);
+  static void InitFromSnapshot(Isolate* isolate);
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);

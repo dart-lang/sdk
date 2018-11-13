@@ -13,15 +13,15 @@ import '../js/js.dart' show js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../universe/codegen_world_builder.dart';
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
 import 'model.dart';
 
 class NativeEmitter {
   final CodeEmitterTask _emitterTask;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
@@ -79,7 +79,7 @@ class NativeEmitter {
   Set<Class> prepareNativeClasses(
       List<Class> classes,
       Set<ClassEntity> interceptorClassesNeededByConstants,
-      Set<ClassEntity> classesModifiedByEmitRTISupport) {
+      Iterable<ClassEntity> classesNeededForRti) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -136,9 +136,7 @@ class NativeEmitter {
         needed = true;
       } else if (interceptorClassesNeededByConstants.contains(classElement)) {
         needed = true;
-      } else if (classesModifiedByEmitRTISupport.contains(classElement)) {
-        // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
-        // adds information to a class prototype or constructor.
+      } else if (classesNeededForRti.contains(classElement)) {
         needed = true;
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
@@ -259,15 +257,13 @@ class NativeEmitter {
     return cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
         cls.callStubs.isEmpty &&
-        !cls.superclass.isMixinApplication &&
+        !cls.superclass.isSimpleMixinApplication &&
         !cls.fields.any(needsAccessor);
   }
 
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
       FunctionEntity member, List<jsAst.Parameter> stubParameters) {
-    FunctionEntity converter = _commonElements.closureConverter;
-    jsAst.Expression closureConverter =
-        _emitterTask.staticFunctionAccess(converter);
+    jsAst.Expression closureConverter;
     _worldBuilder.forEachParameter(member, (DartType type, String name, _) {
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
@@ -275,6 +271,9 @@ class NativeEmitter {
         if (stubParameter.name == name) {
           type = type.unaliased;
           if (type.isFunctionType) {
+            closureConverter ??= _emitterTask
+                .staticFunctionAccess(_commonElements.closureConverter);
+
             // The parameter type is a function type either directly or through
             // typedef(s).
             FunctionType functionType = type;

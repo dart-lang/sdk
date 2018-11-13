@@ -18,18 +18,17 @@ import 'test_suite.dart';
 /// shared between multiple test cases, it should not be mutated after
 /// construction.
 abstract class RuntimeConfiguration {
-  factory RuntimeConfiguration(Configuration configuration) {
+  TestConfiguration _configuration;
+
+  static RuntimeConfiguration _makeInstance(TestConfiguration configuration) {
     switch (configuration.runtime) {
-      case Runtime.contentShellOnAndroid:
       case Runtime.chrome:
       case Runtime.chromeOnAndroid:
       case Runtime.firefox:
       case Runtime.ie11:
       case Runtime.ie10:
       case Runtime.ie9:
-      case Runtime.opera:
       case Runtime.safari:
-      case Runtime.safariMobileSim:
         // TODO(ahe): Replace this with one or more browser runtimes.
         return new DummyRuntimeConfiguration();
 
@@ -58,14 +57,14 @@ abstract class RuntimeConfiguration {
         }
         break;
 
-      case Runtime.drt:
-        return new DrtRuntimeConfiguration();
-
       case Runtime.selfCheck:
         return new SelfCheckRuntimeConfiguration();
     }
-
     throw "unreachable";
+  }
+
+  factory RuntimeConfiguration(TestConfiguration configuration) {
+    return _makeInstance(configuration).._configuration = configuration;
   }
 
   RuntimeConfiguration._subclass();
@@ -175,6 +174,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     switch (arch) {
       case Architecture.simarm:
       case Architecture.arm:
+      case Architecture.arm64:
       case Architecture.simarmv6:
       case Architecture.armv6:
       case Architecture.simarmv5te:
@@ -186,35 +186,20 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
     }
 
+    if (_configuration.compiler == Compiler.dartkb) {
+      multiplier *= 4;
+    }
     if (mode.isDebug) {
       multiplier *= 2;
-      if (isReload) {
-        multiplier *= 2;
-      }
+    }
+    if (isReload) {
+      multiplier *= 2;
     }
     return multiplier;
   }
 }
 
-/// Runtime configuration for Content Shell.  We previously used a similar
-/// program named Dump Render Tree, hence the name.
-class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  int timeoutMultiplier(
-      {Mode mode,
-      bool isChecked: false,
-      bool isReload: false,
-      Architecture arch}) {
-    return 4 // Allow additional time for browser testing to run.
-        // TODO(ahe): We might need to distinguish between DRT for running
-        // JavaScript and Dart code.  I'm not convinced the inherited timeout
-        // multiplier is relevant for JavaScript.
-        *
-        super.timeoutMultiplier(
-            mode: mode, isChecked: isChecked, isReload: isReload);
-  }
-}
-
-/// The standalone Dart VM binary, "dart" or "dart.exe".
+//// The standalone Dart VM binary, "dart" or "dart.exe".
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
@@ -233,10 +218,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
     String executable = suite.dartVmBinaryFileName;
     if (type == 'application/kernel-ir-fully-linked') {
-      // We don't use the pkg/vm/tool/dart2 wrapper script for fully linked
-      // kernel files, since we don't want to pass the --dfe/--kernel-binaries
-      // flags to the VM (the vm cannot distinguish fully-linked vs
-      // not-fully-linked, see http://dartbug.com/31545)
       executable = suite.dartVmExecutableFileName;
     }
     return [Command.vm(executable, arguments, environmentOverrides)];

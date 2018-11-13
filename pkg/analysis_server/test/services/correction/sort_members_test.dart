@@ -802,7 +802,7 @@ int c;
     expect(result, expectedCode);
   }
 
-  Future<Null> _parseTestUnit(String code) async {
+  Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
     ParseResult result = await driver.parseFile(testSource.fullName);
     testUnit = result.unit;

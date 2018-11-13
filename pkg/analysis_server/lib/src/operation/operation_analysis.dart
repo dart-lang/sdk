@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
+import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -17,15 +18,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-Future<Null> scheduleImplementedNotification(
+Future<void> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
   SearchEngine searchEngine = server.searchEngine;
   if (searchEngine == null) {
     return;
   }
   for (String file in files) {
     CompilationUnit unit = server.getCachedAnalysisResult(file)?.unit;
-    CompilationUnitElement unitElement = unit?.element;
+    CompilationUnitElement unitElement = unit?.declaredElement;
     if (unitElement != null) {
       try {
         ImplementedComputer computer =
@@ -90,6 +93,15 @@ void sendAnalysisNotificationFlushResults(
   });
 }
 
+void sendAnalysisNotificationFolding(AnalysisServer server, String file,
+    LineInfo lineInfo, CompilationUnit dartUnit) {
+  _sendNotification(server, () {
+    var regions = new DartUnitFoldingComputer(lineInfo, dartUnit).compute();
+    var params = new protocol.AnalysisFoldingParams(file, regions);
+    server.sendNotification(params.toNotification());
+  });
+}
+
 void sendAnalysisNotificationHighlights(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
@@ -117,7 +129,8 @@ void sendAnalysisNotificationOutline(AnalysisServer server, String file,
     // compute library name
     String libraryName = _computeLibraryName(dartUnit);
     // compute Outline
-    var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit);
+    var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit,
+        withBasicFlutter: true);
     protocol.Outline outline = computer.compute();
     // send notification
     var params = new protocol.AnalysisOutlineParams(file, fileKind, outline,

@@ -51,7 +51,7 @@ class EventListeners {
  * elements.
  */
 class _PlaceholderView extends View {
-  _PlaceholderView() : super() {}
+  _PlaceholderView();
 
   Element render() => new Element.tag('div');
 }
@@ -146,8 +146,7 @@ class GenericListView<D> extends View {
       this._removeClippedViews,
       this._showScrollbar,
       this._pages)
-      : super(),
-        _activeInterval = new Interval(0, 0),
+      : _activeInterval = new Interval(0, 0),
         _itemViews = new Map<int, View>() {
     // TODO(rnystrom): Move this into enterDocument once we have an exitDocument
     // that we can use to unregister it.
@@ -686,7 +685,7 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     return getPageLength(viewLength) ~/ _itemLength * page;
   }
 
-  int getSnapIndex(num offset, int viewLength) {
+  int getSnapIndex(num offset, num viewLength) {
     int index = (-offset / _itemLength).round();
     if (_paginate) {
       index = getPageStartIndex(getPage(index, viewLength), viewLength);
@@ -863,7 +862,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     throw 'Not implemented';
   }
 
-  int getSnapIndex(num offset, int viewLength) {
+  int getSnapIndex(num offset, num viewLength) {
     for (int i = 1; i < _data.length; i++) {
       if (getOffset(i) + getOffset(i - 1) > -offset * 2) {
         return i - 1;
@@ -930,7 +929,7 @@ class VariableSizeListView<D> extends GenericListView<D> {
 
 /** A back button that is equivalent to clicking "back" in the browser. */
 class BackButton extends View {
-  BackButton() : super();
+  BackButton();
 
   Element render() => new Element.html('<div class="back-arrow button"></div>');
 
@@ -946,7 +945,7 @@ class PushButtonView extends View {
   final String _cssClass;
   final _clickHandler;
 
-  PushButtonView(this._text, this._cssClass, this._clickHandler) : super();
+  PushButtonView(this._text, this._cssClass, this._clickHandler);
 
   Element render() {
     return new Element.html('<button class="${_cssClass}">${_text}</button>');
@@ -968,7 +967,7 @@ class DialogView extends View {
   Element container;
   PushButtonView _done;
 
-  DialogView(this._title, this._cssName, this._content) : super() {}
+  DialogView(this._title, this._cssName, this._content);
 
   Element render() {
     final node = new Element.html('''

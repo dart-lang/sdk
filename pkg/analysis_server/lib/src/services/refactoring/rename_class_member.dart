@@ -19,6 +19,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * Checks if creating a method with the given [name] in [classElement] will
@@ -40,8 +41,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   _ClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, Element element)
-      : super(searchEngine, element);
+      RefactoringWorkspace workspace, this.astProvider, Element element)
+      : super(workspace, element);
 
   @override
   String get refactoringName {
@@ -63,6 +64,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = await super.checkInitialConditions();
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
@@ -83,25 +86,26 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
+  Future<void> fillChange() async {
+    var processor = new RenameProcessor(searchEngine, change, newName);
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
-        addDeclarationEdit(renameElement.getter);
-        addDeclarationEdit(renameElement.setter);
+        processor.addDeclarationEdit(renameElement.getter);
+        processor.addDeclarationEdit(renameElement.setter);
       } else {
-        addDeclarationEdit(renameElement);
+        processor.addDeclarationEdit(renameElement);
       }
     }
     // update references
-    addReferenceEdits(_validator.references);
+    processor.addReferenceEdits(_validator.references);
     // potential matches
     List<SearchMatch> nameMatches =
         await searchEngine.searchMemberReferences(oldName);
     List<SourceReference> nameRefs = getSourceReferences(nameMatches);
     for (SourceReference reference in nameRefs) {
       // ignore references from SDK and pub cache
-      if (isElementInSdkOrPubCache(reference.element)) {
+      if (!workspace.containsFile(reference.element.source.fullName)) {
         continue;
       }
       // check the element being renamed is accessible
@@ -158,6 +162,8 @@ class _ClassMemberValidator {
         elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // check if there is a member with "newName" in the same ClassElement
     for (Element newNameMember in getChildren(elementClass, name)) {
       result.addError(
@@ -248,8 +254,12 @@ class _ClassMemberValidator {
   }
 
   Future<_MatchShadowedByLocal> _getShadowingLocalElement() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var localElementMap = <CompilationUnitElement, List<LocalElement>>{};
     Future<List<LocalElement>> getLocalElements(Element element) async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       var unitElement = unitCache.getUnitElement(element);
       var localElements = localElementMap[unitElement];
       if (localElements == null) {
@@ -270,7 +280,9 @@ class _ClassMemberValidator {
       // Check local elements that might shadow the reference.
       var localElements = await getLocalElements(match.element);
       for (LocalElement localElement in localElements) {
-        if (localElement.visibleRange.intersects(match.sourceRange)) {
+        SourceRange elementRange = localElement.visibleRange;
+        if (elementRange != null &&
+            elementRange.intersects(match.sourceRange)) {
           return new _MatchShadowedByLocal(match, localElement);
         }
       }
@@ -282,6 +294,8 @@ class _ClassMemberValidator {
    * Fills [elements] with [Element]s to rename.
    */
   Future _prepareElements() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
@@ -293,11 +307,15 @@ class _ClassMemberValidator {
    * Fills [references] with all references to [elements].
    */
   Future _prepareReferences() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!isRename) {
       return new Future.value();
     }
     await _prepareElements();
     await Future.forEach(elements, (Element element) async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       List<SearchMatch> elementReferences =
           await searchEngine.searchReferences(element);
       references.addAll(elementReferences);
@@ -323,7 +341,7 @@ class _ClassMemberValidator {
   }
 }
 
-class _LocalElementsCollector extends GeneralizingAstVisitor<Null> {
+class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
   final List<LocalElement> elements = [];
 

@@ -14,7 +14,8 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../options.dart';
-import '../universe/world_builder.dart';
+import '../universe/codegen_world_builder.dart';
+import '../universe/member_usage.dart';
 import '../universe/use.dart'
     show
         ConstantUse,
@@ -31,8 +32,6 @@ import '../util/util.dart' show Setlet;
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
-  final EnqueuerStrategy strategy;
-
   Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   bool _recentConstants = false;
   final CodegenWorldBuilderImpl _worldBuilder;
@@ -50,10 +49,14 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// All declaration elements that have been processed by codegen.
   final Set<MemberEntity> _processedEntities = new Set<MemberEntity>();
 
+  // If not `null` this is called when the queue has been emptied. It allows for
+  // applying additional impacts before re-emptying the queue.
+  void Function() onEmptyForTesting;
+
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(this.task, this._options, this.strategy, this._worldBuilder,
+  CodegenEnqueuer(this.task, this._options, this._worldBuilder,
       this._workItemBuilder, this.listener)
       : this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
@@ -96,17 +99,16 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void _registerInstantiatedType(InterfaceType type,
-      {bool mirrorUsage: false, bool nativeUsage: false}) {
+      {bool nativeUsage: false}) {
     task.measure(() {
-      _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
-          byMirrors: mirrorUsage);
+      _worldBuilder.registerTypeInstantiation(type, _applyClassUse);
       listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
     });
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods(
       ElementEnvironment elementEnvironment) {
-    return strategy.checkEnqueuerConsistency(this, elementEnvironment);
+    return checkEnqueuerConsistency(elementEnvironment);
   }
 
   void checkClass(ClassEntity cls) {
@@ -175,23 +177,38 @@ class CodegenEnqueuer extends EnqueuerImpl {
       case TypeUseKind.INSTANTIATION:
         _registerInstantiatedType(type);
         break;
-      case TypeUseKind.MIRROR_INSTANTIATION:
-        _registerInstantiatedType(type, mirrorUsage: true);
-        break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         _registerInstantiatedType(type, nativeUsage: true);
         break;
       case TypeUseKind.IS_CHECK:
-      case TypeUseKind.AS_CAST:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
         break;
-      case TypeUseKind.CHECKED_MODE_CHECK:
-        if (_options.enableTypeAssertions) {
+      case TypeUseKind.AS_CAST:
+        if (!_options.omitAsCasts) {
+          _registerIsCheck(type);
+        }
+        break;
+      case TypeUseKind.IMPLICIT_CAST:
+        if (_options.implicitDowncastCheckPolicy.isEmitted) {
+          _registerIsCheck(type);
+        }
+        break;
+      case TypeUseKind.PARAMETER_CHECK:
+        if (_options.parameterCheckPolicy.isEmitted) {
           _registerIsCheck(type);
         }
         break;
       case TypeUseKind.TYPE_LITERAL:
+        if (type is TypeVariableType) {
+          _worldBuilder.registerTypeVariableTypeLiteral(type);
+        }
+        break;
+      case TypeUseKind.RTI_VALUE:
+        _worldBuilder.registerConstTypeLiteral(type);
+        break;
+      case TypeUseKind.TYPE_ARGUMENT:
+        _worldBuilder.registerTypeArgument(type);
         break;
     }
   }
@@ -215,13 +232,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
     _worldBuilder.registerClosurizedMember(element);
   }
 
-  void forEach(void f(WorkItem work)) {
+  void _forEach(void f(WorkItem work)) {
     do {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
         if (!_processedEntities.contains(work.element)) {
-          strategy.processWorkItem(f, work);
+          f(work);
           // TODO(johnniwinther): Register the processed element here. This
           // is currently a side-effect of calling `work.run`.
           _processedEntities.add(work.element);
@@ -233,6 +250,14 @@ class CodegenEnqueuer extends EnqueuerImpl {
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
     } while (
         _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
+  }
+
+  void forEach(void f(WorkItem work)) {
+    _forEach(f);
+    if (onEmptyForTesting != null) {
+      onEmptyForTesting();
+      _forEach(f);
+    }
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]
@@ -259,5 +284,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
   Iterable<MemberEntity> get processedEntities => _processedEntities;
 
   @override
-  Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
+  Iterable<ClassEntity> get processedClasses =>
+      _worldBuilder.instantiatedClasses;
 }

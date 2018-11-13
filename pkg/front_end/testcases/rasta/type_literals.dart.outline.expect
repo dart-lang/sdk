@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 typedef Func = () → void;
-class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+class C<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T>
     ;
   method test() → dynamic
     ;

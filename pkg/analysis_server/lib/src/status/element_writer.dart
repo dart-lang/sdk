@@ -54,6 +54,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isProxy'] = element.isProxy;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
+      properties['superclassConstraints'] = element.superclassConstraints;
       properties['supertype'] = element.supertype;
     }
     if (element is ClassMemberElement) {
@@ -128,7 +129,13 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element is ParameterElement) {
       properties['defaultValueCode'] = element.defaultValueCode;
       properties['isInitializingFormal'] = element.isInitializingFormal;
-      properties['parameterKind'] = element.parameterKind;
+      if (element.isNotOptional) {
+        properties['parameterKind'] = 'required';
+      } else if (element.isOptionalPositional) {
+        properties['parameterKind'] = 'positional';
+      } else if (element.isNamed) {
+        properties['parameterKind'] = 'named';
+      }
     }
     if (element is PropertyAccessorElement) {
       properties['isGetter'] = element.isGetter;
@@ -136,7 +143,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     }
     if (element is PropertyInducingElement) {
       properties['isStatic'] = element.isStatic;
-      properties['propagatedType'] = element.propagatedType;
     }
     if (element is TypeDefiningElement) {
       properties['type'] = element.type;
@@ -167,7 +173,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element.isSynthetic) {
       buffer.write('<i>');
     }
-    buffer.write(HTML_ESCAPE.convert(element.toString()));
+    buffer.write(htmlEscape.convert(element.toString()));
     if (element.isSynthetic) {
       buffer.write('</i>');
     }

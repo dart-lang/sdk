@@ -9,9 +9,9 @@ typedef void F<T>(T x);
 typedef F<T> G<T>();
 
 class C<T> {
-  F<T> /*@genericContravariant=true*/ _x;
+  F<T> _x;
   C(this._x);
-  F<T> /*@genericContravariant=true*/ f() => /*@callKind=this*/ _x;
+  F<T> f() => _x;
 }
 
 G<num> g(C<num> c) {

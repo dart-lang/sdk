@@ -7,7 +7,6 @@
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
-#include "vm/ast_printer.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/jit/compiler.h"
@@ -17,6 +16,7 @@
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -46,7 +46,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
 #endif
 }
 
-bool FlowGraphCompiler::SupportsUnboxedMints() {
+bool FlowGraphCompiler::SupportsUnboxedInt64() {
   return false;
 }
 
@@ -58,7 +58,7 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
   return true;
 }
 
-bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   return false;
 }
 
@@ -107,7 +107,11 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   if (lazy_deopt_with_result_) {
     ASSERT(reason() == ICData::kDeoptAtCall);
-    builder->AddCopy(NULL, Location::StackSlot(stack_height), slot_ix++);
+    builder->AddCopy(
+        NULL,
+        Location::StackSlot(
+            compiler_frame_layout.FrameSlotForVariableIndex(-stack_height)),
+        slot_ix++);
   }
 
   // For the innermost environment, set outgoing arguments and the locals.
@@ -124,7 +128,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              Thread::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
     builder->AddPcMarker(previous->function(), slot_ix++);
@@ -174,7 +178,7 @@ void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     // Return/ReturnTOS instruction drops incoming arguments so
     // we have to drop outgoing arguments from the innermost environment.
@@ -279,8 +283,8 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
 }
 
-void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
-  __ Move(0, -(1 + kParamEndSlotFromFp));
+void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
+  __ Move(0, -(1 + compiler_frame_layout.param_end_from_fp));
   ASSERT(offset % kWordSize == 0);
   if (Utils::IsInt(8, offset / kWordSize)) {
     __ LoadField(0, 0, offset / kWordSize);
@@ -291,9 +295,9 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ Return(0);
 }
 
-void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
-  __ Move(0, -(2 + kParamEndSlotFromFp));
-  __ Move(1, -(1 + kParamEndSlotFromFp));
+void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
+  __ Move(0, -(2 + compiler_frame_layout.param_end_from_fp));
+  __ Move(1, -(1 + compiler_frame_layout.param_end_from_fp));
   ASSERT(offset % kWordSize == 0);
   if (Utils::IsInt(8, offset / kWordSize)) {
     __ StoreField(0, offset / kWordSize, 1);
@@ -326,10 +330,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (parsed_function().has_arg_desc_var()) {
       // TODO(kustermann): If dbc simulator put the args_desc_ into the
       // _special_regs, we could replace these 3 with the MoveSpecial bytecode.
-      const intptr_t args_desc_index =
-          -(parsed_function().arg_desc_var()->index() - kFirstLocalSlotFromFp);
+      const intptr_t slot_index = compiler_frame_layout.FrameSlotForVariable(
+          parsed_function().arg_desc_var());
       __ LoadArgDescriptor();
-      __ StoreLocal(args_desc_index);
+      __ StoreLocal(LocalVarIndex(0, slot_index));
       __ Drop(1);
     }
   }
@@ -356,16 +360,6 @@ uint16_t FlowGraphCompiler::ToEmbeddableCid(intptr_t cid,
   return static_cast<uint16_t>(cid);
 }
 
-intptr_t FlowGraphCompiler::CatchEntryRegForVariable(const LocalVariable& var) {
-  const Function& function = parsed_function().function();
-  const intptr_t num_non_copied_params =
-      function.HasOptionalParameters() ? 0 : function.NumParameters();
-
-  ASSERT(is_optimizing());
-  ASSERT(var.index() <= 0);
-  return kNumberOfCpuRegisters - (num_non_copied_params - var.index());
-}
-
 #undef __
 #define __ compiler_->assembler()->
 
@@ -374,15 +368,22 @@ void ParallelMoveResolver::EmitMove(int index) {
   const Location source = move->src();
   const Location destination = move->dest();
   if (source.IsStackSlot() && destination.IsRegister()) {
-    // Only allow access to the arguments.
+    // Only allow access to the arguments (which have in the non-inverted stack
+    // positive indices).
     ASSERT(source.base_reg() == FPREG);
-    ASSERT(source.stack_index() < 0);
-    __ Move(destination.reg(), -kParamEndSlotFromFp + source.stack_index());
+    ASSERT(source.stack_index() > compiler_frame_layout.param_end_from_fp);
+    __ Move(destination.reg(), -source.stack_index());
   } else if (source.IsRegister() && destination.IsRegister()) {
     __ Move(destination.reg(), source.reg());
   } else if (source.IsArgsDescRegister()) {
     ASSERT(destination.IsRegister());
     __ LoadArgDescriptorOpt(destination.reg());
+  } else if (source.IsExceptionRegister()) {
+    ASSERT(destination.IsRegister());
+    __ MoveSpecial(destination.reg(), Simulator::kExceptionSpecialIndex);
+  } else if (source.IsStackTraceRegister()) {
+    ASSERT(destination.IsRegister());
+    __ MoveSpecial(destination.reg(), Simulator::kStackTraceSpecialIndex);
   } else if (source.IsConstant() && destination.IsRegister()) {
     if (source.constant_instruction()->representation() == kUnboxedDouble) {
       const Register result = destination.reg();
@@ -430,10 +431,6 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
-  UNREACHABLE();
-}
-
-void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   UNREACHABLE();
 }
 

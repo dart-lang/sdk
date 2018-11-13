@@ -43,8 +43,10 @@ class StdioProcess {
   static Future<StdioProcess> run(String executable, List<String> arguments,
       {String input,
       Duration timeout: const Duration(seconds: 60),
-      bool suppressOutput: true}) async {
-    Process process = await Process.start(executable, arguments);
+      bool suppressOutput: true,
+      bool runInShell: false}) async {
+    Process process =
+        await Process.start(executable, arguments, runInShell: runInShell);
     Timer timer;
     StringBuffer sb = new StringBuffer();
     if (timeout != null) {
@@ -58,7 +60,7 @@ class StdioProcess {
         process.kill();
         timer = new Timer(const Duration(seconds: 10), () {
           sb.writeln("Sending SIGKILL to process");
-          process.kill(ProcessSignal.SIGKILL);
+          process.kill(ProcessSignal.sigkill);
         });
       });
     }

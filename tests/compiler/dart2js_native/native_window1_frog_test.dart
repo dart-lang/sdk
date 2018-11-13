@@ -15,7 +15,9 @@ class _DOMWindowJs implements Window {
   final int document;
 }
 
-class Win implements Window {}
+class Win implements Window {
+  noSuchMethod(m) => super.noSuchMethod(m);
+}
 
 main() {
   nativeTesting();

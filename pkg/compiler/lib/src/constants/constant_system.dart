@@ -55,10 +55,12 @@ abstract class ConstantSystem {
 
   BinaryOperation get codeUnitAt;
   UnaryOperation get round;
+  UnaryOperation get abs;
 
   const ConstantSystem();
 
-  ConstantValue createInt(int i);
+  ConstantValue createInt(BigInt i);
+  ConstantValue createIntFromInt(int i) => createInt(new BigInt.from(i));
   ConstantValue createDouble(double d);
   ConstantValue createString(String string);
   ConstantValue createBool(bool value);

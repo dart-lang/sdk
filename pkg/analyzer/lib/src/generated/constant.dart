@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.constant;
-
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -14,9 +12,9 @@ import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/type_system.dart'
-    show TypeSystem, TypeSystemImpl;
+    show StrongTypeSystemImpl, TypeSystem;
 
-export 'package:analyzer/context/declared_variables.dart';
+export 'package:analyzer/dart/analysis/declared_variables.dart';
 export 'package:analyzer/dart/constant/value.dart';
 export 'package:analyzer/src/dart/constant/evaluation.dart';
 export 'package:analyzer/src/dart/constant/utilities.dart';
@@ -120,7 +118,7 @@ class ConstantEvaluator {
    */
   ConstantEvaluator(this._source, TypeProvider typeProvider,
       {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider),
+      : _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
         _typeProvider = typeProvider;
 
   EvaluationResult evaluate(Expression expression) {

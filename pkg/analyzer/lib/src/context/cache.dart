@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.cache;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -12,8 +10,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
  * The cache results visiting function type.
@@ -905,7 +903,7 @@ class CacheEntry {
  */
 class CacheFlushManager<T> {
   final IsPriorityAnalysisTarget isPriorityAnalysisTarget;
-  final ResultCachingPolicy<T> policy;
+  final ResultCachingPolicy policy;
   final int maxActiveSize;
   final int maxIdleSize;
 
@@ -934,8 +932,7 @@ class CacheFlushManager<T> {
    */
   int maxSize;
 
-  CacheFlushManager(
-      ResultCachingPolicy<T> policy, this.isPriorityAnalysisTarget)
+  CacheFlushManager(ResultCachingPolicy policy, this.isPriorityAnalysisTarget)
       : policy = policy,
         maxActiveSize = policy.maxActiveSize,
         maxIdleSize = policy.maxIdleSize,
@@ -952,7 +949,7 @@ class CacheFlushManager<T> {
   List<TargetedResult> flushToSize() {
     // If still under the cap, done.
     if (currentSize <= maxSize) {
-      return TargetedResult.EMPTY_LIST;
+      return const <TargetedResult>[];
     }
     // Flush results until we are under the cap.
     List<TargetedResult> resultsToFlush = <TargetedResult>[];
@@ -1125,7 +1122,7 @@ abstract class CachePartition {
    */
   List<Source> getSourcesWithFullName(String path) {
     List<Source> sources = pathToSource[path];
-    return sources ?? Source.EMPTY_LIST;
+    return sources ?? const <Source>[];
   }
 
   /**
@@ -1540,7 +1537,7 @@ class UnlimitedCacheFlushManager extends CacheFlushManager {
 
   @override
   List<TargetedResult> resultStored(TargetedResult newResult, newValue) {
-    return TargetedResult.EMPTY_LIST;
+    return const <TargetedResult>[];
   }
 
   @override

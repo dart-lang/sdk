@@ -14,6 +14,12 @@ final _combinations = {
       'compiler': 'dart2analyzer'
     },
     {
+      'runtimes': ['none'],
+      'modes': ['release'],
+      'archs': ['x64'],
+      'compiler': 'compare_analyzer_cfe'
+    },
+    {
       'runtimes': ['vm'],
       'modes': ['debug', 'release'],
       'archs': ['ia32', 'x64', 'simarm'],
@@ -54,7 +60,7 @@ final _combinations = {
       'compiler': 'none'
     },
     {
-      'runtimes': ['safari', 'safarimobilesim'],
+      'runtimes': ['safari'],
       'modes': ['release'],
       'archs': ['ia32'],
       'compiler': 'dart2js'
@@ -164,7 +170,7 @@ void main(List<String> args) {
           var totalIndex = (result.stdout as String).indexOf('JSON:');
           var report = (result.stdout as String).substring(totalIndex + 5);
 
-          var map = JSON.decode(report) as Map<String, int>;
+          var map = jsonDecode(report) as Map<String, int>;
 
           if (keys == null) {
             keys = map.keys.toList();

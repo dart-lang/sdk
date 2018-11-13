@@ -28,6 +28,8 @@ final _variables = {
   "compiler": new _Variable((c) => c.compiler, Compiler.names),
   "csp": new _Variable.bool((c) => c.csp),
   "dart2js_with_kernel": new _Variable.bool((c) => c.dart2JsWithKernel),
+  "dart2js_old_frontend": new _Variable.bool((c) => c.dart2JsOldFrontend),
+  "fasta": new _Variable.bool((c) => c.fasta),
   "fast_startup": new _Variable.bool((c) => c.fastStartup),
   "enable_asserts": new _Variable.bool((c) => c.enableAsserts),
   "host_checked": new _Variable.bool((c) => c.hostChecked),
@@ -44,6 +46,7 @@ final _variables = {
   }),
   "minified": new _Variable.bool((c) => c.minified),
   "mode": new _Variable((c) => c.mode, Mode.names),
+  "no_preview_dart_2": new _Variable.bool((c) => c.noPreviewDart2),
   "runtime": new _Variable(_runtimeName, Runtime.names),
   "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => c.strong),
@@ -96,7 +99,7 @@ class ConfigurationEnvironment implements Environment {
     if (variable == null) {
       // This shouldn't happen since we validate variables before evaluating
       // expressions.
-      throw new ArgumentError('Unknown variable "$variable".');
+      throw new ArgumentError('Unknown variable "$name".');
     }
 
     return variable.lookUp(_configuration);

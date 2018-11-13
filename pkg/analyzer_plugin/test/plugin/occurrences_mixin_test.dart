@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -51,7 +51,7 @@ class OccurrencesMixinTest {
     await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<Null> notificationReceived = new Completer<Null>();
+    Completer<void> notificationReceived = new Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
       AnalysisOccurrencesParams params =
@@ -120,8 +120,7 @@ class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
 
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
-    AnalysisResult result = new AnalysisResult(
-        null, null, path, null, null, null, null, null, null, null, null);
+    AnalysisResult result = new MockAnalysisResult(path: path);
     return new DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }

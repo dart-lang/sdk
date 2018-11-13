@@ -26,7 +26,7 @@ main() {
 
   group('test', () {
     test('test', () {
-      document.registerElement('x-custom', CustomElement);
+      document.registerElement2('x-custom', {'prototype': CustomElement});
       CustomElement custom = new CustomElement();
       document.body.children.add(custom);
       // Will call appendChild in JS.

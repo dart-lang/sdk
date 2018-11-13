@@ -1,0 +1,20 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Clonable<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::Clonable<self::Clonable::T>
+    ;
+}
+class Pair<T extends self::Clonable<self::Pair::T> = dynamic, U extends self::Clonable<self::Pair::U> = dynamic> extends core::Object {
+  field self::Pair::T t;
+  field self::Pair::U u;
+  constructor •(self::Pair::T t, self::Pair::U u) → self::Pair<self::Pair::T, self::Pair::U>
+    ;
+  constructor _() → self::Pair<self::Pair::T, self::Pair::U>
+    ;
+  get reversed() → self::Pair<self::Pair::U, self::Pair::T>
+    ;
+}
+static method main() → dynamic
+  ;

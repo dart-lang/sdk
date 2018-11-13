@@ -16,7 +16,7 @@ import "package:expect/expect.dart";
 void testConnectStreamDataCloseCancel(bool useDestroy) {
   List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   asyncStart();
-  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((client) {
       client.add(sendData);
       if (useDestroy) {

@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/generic_methods_downwards_inference_fold.dart:20:5: Context: Write to y@436
+  y = /*info:DYNAMIC_CAST*/ z;
+    ^
+pkg/front_end/testcases/inference/generic_methods_downwards_inference_fold.dart:35:5: Context: Write to y@941
+  y = /*info:DYNAMIC_CAST*/ z;
+    ^

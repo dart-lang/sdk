@@ -17,7 +17,7 @@ void main() {
   // Connect socket and listen on the stream. The server closes
   // immediately so only a done event is received.
   asyncStart();
-  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((client) {
       client.close();
       client.done.then((_) => client.destroy());

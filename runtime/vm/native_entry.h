@@ -10,10 +10,10 @@
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
+#include "vm/heap/verifier.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry.h"
-#include "vm/verifier.h"
 
 #include "include/dart_api.h"
 
@@ -36,8 +36,10 @@ class String;
 //    scope.
 
 typedef void (*NativeFunction)(NativeArguments* arguments);
+typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
+                                      Dart_NativeFunction func);
 
-#ifndef PRODUCT
+#ifdef DEBUG
 #define TRACE_NATIVE_CALL(format, name)                                        \
   if (FLAG_trace_natives) {                                                    \
     THR_Print("Calling native: " format "\n", name);                           \
@@ -127,6 +129,10 @@ class NativeEntry : public AllStatic {
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
 
+  static uword BootstrapNativeCallWrapperEntry();
+  static void BootstrapNativeCallWrapper(Dart_NativeArguments args,
+                                         Dart_NativeFunction func);
+
   static uword NoScopeNativeCallWrapperEntry();
   static void NoScopeNativeCallWrapper(Dart_NativeArguments args,
                                        Dart_NativeFunction func);
@@ -135,11 +141,8 @@ class NativeEntry : public AllStatic {
   static void AutoScopeNativeCallWrapper(Dart_NativeArguments args,
                                          Dart_NativeFunction func);
 
-// DBC does not support lazy native call linking.
-#if !defined(TARGET_ARCH_DBC)
   static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
-#endif
 
  private:
   static void NoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,
@@ -150,6 +153,52 @@ class NativeEntry : public AllStatic {
   static bool ReturnValueIsError(NativeArguments* arguments);
   static void PropagateErrors(NativeArguments* arguments);
 };
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+class NativeEntryData : public ValueObject {
+ public:
+  explicit NativeEntryData(const TypedData& data) : data_(data) {}
+
+  MethodRecognizer::Kind kind() const;
+  void set_kind(MethodRecognizer::Kind value) const;
+  static MethodRecognizer::Kind GetKind(RawTypedData* data);
+
+  NativeFunctionWrapper trampoline() const;
+  void set_trampoline(NativeFunctionWrapper value) const;
+  static NativeFunctionWrapper GetTrampoline(RawTypedData* data);
+
+  NativeFunction native_function() const;
+  void set_native_function(NativeFunction value) const;
+  static NativeFunction GetNativeFunction(RawTypedData* data);
+
+  intptr_t argc_tag() const;
+  void set_argc_tag(intptr_t value) const;
+  static intptr_t GetArgcTag(RawTypedData* data);
+
+  static RawTypedData* New(MethodRecognizer::Kind kind,
+                           NativeFunctionWrapper trampoline,
+                           NativeFunction native_function,
+                           intptr_t argc_tag);
+
+ private:
+  struct Payload {
+    NativeFunctionWrapper trampoline;
+    NativeFunction native_function;
+    intptr_t argc_tag;
+    MethodRecognizer::Kind kind;
+  };
+
+  static Payload* FromTypedArray(RawTypedData* data);
+
+  const TypedData& data_;
+
+  friend class Interpreter;
+  friend class ObjectPoolSerializationCluster;
+  DISALLOW_COPY_AND_ASSIGN(NativeEntryData);
+};
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

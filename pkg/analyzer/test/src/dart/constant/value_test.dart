@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.src.dart.constant.value_test;
 
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -21,7 +19,7 @@ main() {
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 final Matcher throwsEvaluationException =
-    throwsA(new isInstanceOf<EvaluationException>());
+    throwsA(new TypeMatcher<EvaluationException>());
 
 @reflectiveTest
 class DartObjectImplTest extends EngineTestCase {
@@ -964,16 +962,12 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_logicalAnd_false_null() {
-    expect(() {
-      _assertLogicalAnd(_boolValue(false), _boolValue(false), _nullValue());
-    }, throwsEvaluationException);
+    _assertLogicalAnd(_boolValue(false), _boolValue(false), _nullValue());
   }
 
   void test_logicalAnd_false_string() {
-    expect(() {
-      _assertLogicalAnd(
-          _boolValue(false), _boolValue(false), _stringValue("false"));
-    }, throwsEvaluationException);
+    _assertLogicalAnd(
+        _boolValue(false), _boolValue(false), _stringValue("false"));
   }
 
   void test_logicalAnd_false_true() {
@@ -1097,16 +1091,11 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_logicalOr_true_null() {
-    expect(() {
-      _assertLogicalOr(_boolValue(true), _boolValue(true), _nullValue());
-    }, throwsEvaluationException);
+    _assertLogicalOr(_boolValue(true), _boolValue(true), _nullValue());
   }
 
   void test_logicalOr_true_string() {
-    expect(() {
-      _assertLogicalOr(
-          _boolValue(true), _boolValue(true), _stringValue("true"));
-    }, throwsEvaluationException);
+    _assertLogicalOr(_boolValue(true), _boolValue(true), _stringValue("true"));
   }
 
   void test_logicalOr_true_true() {
@@ -1298,6 +1287,10 @@ class DartObjectImplTest extends EngineTestCase {
     _assertRemainder(_intValue(1), _intValue(7), _intValue(2));
   }
 
+  void test_remainder_knownInt_knownInt_zero() {
+    _assertRemainder(null, _intValue(7), _intValue(0));
+  }
+
   void test_remainder_knownInt_knownString() {
     _assertRemainder(null, _intValue(7), _stringValue("2"));
   }
@@ -1334,6 +1327,10 @@ class DartObjectImplTest extends EngineTestCase {
     _assertShiftLeft(_intValue(48), _intValue(6), _intValue(3));
   }
 
+  void test_shiftLeft_knownInt_knownInt_negative() {
+    _assertShiftLeft(null, _intValue(1), _intValue(-1));
+  }
+
   void test_shiftLeft_knownInt_knownString() {
     _assertShiftLeft(null, _intValue(6), _stringValue(null));
   }
@@ -1364,6 +1361,10 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_shiftRight_knownInt_knownInt() {
     _assertShiftRight(_intValue(6), _intValue(48), _intValue(3));
+  }
+
+  void test_shiftRight_knownInt_knownInt_negative() {
+    _assertShiftRight(null, _intValue(1), _intValue(-1));
   }
 
   void test_shiftRight_knownInt_knownString() {
@@ -1716,10 +1717,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.logicalAnd(_typeProvider, right);
+        left.logicalAnd(_typeProvider, () => right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.logicalAnd(_typeProvider, right);
+      DartObjectImpl result = left.logicalAnd(_typeProvider, () => right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1750,10 +1751,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.logicalOr(_typeProvider, right);
+        left.logicalOr(_typeProvider, () => right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.logicalOr(_typeProvider, right);
+      DartObjectImpl result = left.logicalOr(_typeProvider, () => right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1925,7 +1926,6 @@ class DartObjectImplTest extends EngineTestCase {
       return new DartObjectImpl(_typeProvider.boolType, BoolState.TRUE_STATE);
     }
     fail("Invalid boolean value used in test");
-    return null;
   }
 
   DartObjectImpl _doubleValue(double value) {
@@ -1952,12 +1952,12 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   DartObjectImpl _listValue(
-      [List<DartObjectImpl> elements = DartObjectImpl.EMPTY_LIST]) {
+      [List<DartObjectImpl> elements = const <DartObjectImpl>[]]) {
     return new DartObjectImpl(_typeProvider.listType, new ListState(elements));
   }
 
   DartObjectImpl _mapValue(
-      [List<DartObjectImpl> keyElementPairs = DartObjectImpl.EMPTY_LIST]) {
+      [List<DartObjectImpl> keyElementPairs = const <DartObjectImpl>[]]) {
     Map<DartObjectImpl, DartObjectImpl> map =
         new Map<DartObjectImpl, DartObjectImpl>();
     int count = keyElementPairs.length;

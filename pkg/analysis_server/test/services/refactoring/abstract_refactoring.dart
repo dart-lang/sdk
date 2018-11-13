@@ -56,10 +56,10 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    */
   void assertFileChangeResult(String path, String expectedCode) {
     // prepare FileEdit
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(convertPath(path));
     expect(fileEdit, isNotNull, reason: 'No file edit for $path');
     // validate resulting code
-    File file = provider.getResource(path);
+    File file = getFile(path);
     String ini = file.readAsStringSync();
     String actualCode = SourceEdit.applySequence(ini, fileEdit.edits);
     expect(actualCode, expectedCode);
@@ -159,11 +159,11 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
         .resolveCompilationUnit(element.source, element.library);
   }
 
-  Future<Null> indexTestUnit(String code) async {
+  Future<void> indexTestUnit(String code) async {
     await resolveTestUnit(code);
   }
 
-  Future<Null> indexUnit(String file, String code) async {
+  Future<void> indexUnit(String file, String code) async {
     addSource(file, code);
   }
 

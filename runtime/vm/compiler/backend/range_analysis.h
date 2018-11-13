@@ -63,17 +63,19 @@ class RangeBoundary : public ValueObject {
   // Construct a RangeBoundary from a definition and offset.
   static RangeBoundary FromDefinition(Definition* defn, int64_t offs = 0);
 
+  static bool IsValidOffsetForSymbolicRangeBoundary(int64_t offset) {
+    if ((offset > (kMaxInt64 - kSmiMax)) || (offset < (kMinInt64 - kSmiMin))) {
+      // Avoid creating symbolic range boundaries which can wrap around.
+      return false;
+    }
+    return true;
+  }
+
   // Construct a RangeBoundary for the constant MinSmi value.
   static RangeBoundary MinSmi() { return FromConstant(Smi::kMinValue); }
 
   // Construct a RangeBoundary for the constant MaxSmi value.
   static RangeBoundary MaxSmi() { return FromConstant(Smi::kMaxValue); }
-
-  // Construct a RangeBoundary for the constant kMin value.
-  static RangeBoundary MinConstant() { return FromConstant(kMin); }
-
-  // Construct a RangeBoundary for the constant kMax value.
-  static RangeBoundary MaxConstant() { return FromConstant(kMax); }
 
   // Construct a RangeBoundary for the constant kMin value.
   static RangeBoundary MinConstant(RangeSize size) {
@@ -288,8 +290,14 @@ class RangeBoundary : public ValueObject {
 class Range : public ZoneAllocated {
  public:
   Range() : min_(), max_() {}
+
   Range(RangeBoundary min, RangeBoundary max) : min_(min), max_(max) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());
+
+    if (min_.IsInfinity() || max_.IsInfinity()) {
+      // Value can wrap around, so fall back to the full 64-bit range.
+      SetInt64Range();
+    }
   }
 
   Range(const Range& other)
@@ -326,8 +334,24 @@ class Range : public ZoneAllocated {
 
   const RangeBoundary& min() const { return min_; }
   const RangeBoundary& max() const { return max_; }
-  void set_min(const RangeBoundary& value) { min_ = value; }
-  void set_max(const RangeBoundary& value) { max_ = value; }
+
+  void set_min(const RangeBoundary& value) {
+    min_ = value;
+
+    if (min_.IsInfinity()) {
+      // Value can wrap around, so fall back to the full 64-bit range.
+      SetInt64Range();
+    }
+  }
+
+  void set_max(const RangeBoundary& value) {
+    max_ = value;
+
+    if (max_.IsInfinity()) {
+      // Value can wrap around, so fall back to the full 64-bit range.
+      SetInt64Range();
+    }
+  }
 
   static RangeBoundary ConstantMinSmi(const Range* range) {
     return ConstantMin(range, RangeBoundary::kRangeBoundarySmi);
@@ -453,6 +477,11 @@ class Range : public ZoneAllocated {
  private:
   RangeBoundary min_;
   RangeBoundary max_;
+
+  void SetInt64Range() {
+    min_ = RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64);
+    max_ = RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64);
+  }
 };
 
 class RangeUtils : public AllStatic {
@@ -496,10 +525,6 @@ class RangeAnalysis : public ValueObject {
   // inference.
   // Returns meaningful results for uses of non-smi/non-int definitions that
   // have smi/int as a reaching type.
-  // For Int typed definitions we use full Int64 range as a safe approximation
-  // even though they might contain Bigint values because we only support
-  // 64-bit operations in the optimized code - which means that Bigint will
-  // cause deoptimization.
   const Range* GetSmiRange(Value* value) const;
   const Range* GetIntRange(Value* value) const;
 
@@ -536,12 +561,6 @@ class RangeAnalysis : public ValueObject {
 
   bool ConstrainValueAfterBranch(Value* use, Definition* defn);
   void ConstrainValueAfterCheckArrayBound(Value* use, Definition* defn);
-
-  // Replace uses of the definition def that are dominated by instruction dom
-  // with uses of other definition.
-  void RenameDominatedUses(Definition* def,
-                           Instruction* dom,
-                           Definition* other);
 
   // Infer ranges for integer (smi or mint) definitions.
   void InferRanges();
@@ -586,7 +605,7 @@ class RangeAnalysis : public ValueObject {
 
   GrowableArray<BinaryInt64OpInstr*> binary_int64_ops_;
 
-  GrowableArray<ShiftInt64OpInstr*> shift_int64_ops_;
+  GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
 
   // All CheckArrayBound instructions.
   GrowableArray<CheckArrayBoundInstr*> bounds_checks_;

@@ -204,7 +204,7 @@ const String& Symbols::Token(Token::Kind token) {
   return *symbol_handles_[token_id];
 }
 
-void Symbols::InitOnce(Isolate* vm_isolate) {
+void Symbols::Init(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
@@ -250,7 +250,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   vm_isolate->object_store()->set_symbol_table(table.Release());
 }
 
-void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
+void Symbols::InitFromSnapshot(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
@@ -654,12 +654,12 @@ RawString* Symbols::NewFormattedV(Thread* thread,
                                   va_list args) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  OS::VSNPrint(buffer, (len + 1), format, args);
+  Utils::VSNPrint(buffer, (len + 1), format, args);
 
   return Symbols::New(thread, buffer);
 }
@@ -676,12 +676,12 @@ void Symbols::DumpStats(Isolate* isolate) {
   intptr_t capacity = -1;
   // First dump VM symbol table stats.
   GetStats(Dart::vm_isolate(), &size, &capacity);
-  OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("VM Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // Now dump regular isolate symbol table stats.
   GetStats(isolate, &size, &capacity);
-  OS::Print("Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // TODO(koda): Consider recording growth and collision stats in HashTable,
   // in DEBUG mode.
 }

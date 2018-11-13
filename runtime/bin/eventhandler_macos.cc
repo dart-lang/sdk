@@ -93,7 +93,7 @@ static void AddToKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
 }
 
 EventHandlerImplementation::EventHandlerImplementation()
-    : socket_map_(&HashMap::SamePointerValue, 16) {
+    : socket_map_(&SimpleHashMap::SamePointerValue, 16) {
   intptr_t result;
   result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
   if (result != 0) {
@@ -160,8 +160,8 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
     intptr_t fd,
     bool is_listening) {
   ASSERT(fd >= 0);
-  HashMap::Entry* entry = socket_map_.Lookup(GetHashmapKeyFromFd(fd),
-                                             GetHashmapHashFromFd(fd), true);
+  SimpleHashMap::Entry* entry = socket_map_.Lookup(
+      GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
   if (di == NULL) {
@@ -230,7 +230,9 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // message.
         intptr_t old_mask = di->Mask();
         Dart_Port port = msg[i].dart_port;
-        di->RemovePort(port);
+        if (port != ILLEGAL_PORT) {
+          di->RemovePort(port);
+        }
         intptr_t new_mask = di->Mask();
         UpdateKQueueInstance(old_mask, di);
 

@@ -42,10 +42,15 @@ enum {
   kBoolType,
   kStringType,
   kArrayType,
+  kIntTypeArguments,
+  kDoubleTypeArguments,
+  kStringTypeArguments,
+  kStringDynamicTypeArguments,
+  kStringStringTypeArguments,
+  kEmptyTypeArguments,
 
   kExtractorParameterTypes,
   kExtractorParameterNames,
-  kEmptyContextObject,
   kEmptyContextScopeObject,
   kImplicitClosureScopeObject,
   kEmptyObjectPool,
@@ -53,9 +58,9 @@ enum {
   kEmptyVarDescriptors,
   kEmptyExceptionHandlers,
   kCachedArgumentsDescriptor0,
-  kCachedArgumentsDescriptorN = (kCachedArgumentsDescriptor0 +
-                                 ArgumentsDescriptor::kCachedDescriptorCount -
-                                 1),
+  kCachedArgumentsDescriptorN =
+      (kCachedArgumentsDescriptor0 +
+       ArgumentsDescriptor::kCachedDescriptorCount - 1),
   kCachedICDataArray0,
   kCachedICDataArrayN =
       (kCachedICDataArray0 + ICData::kCachedICDataArrayCount - 1),

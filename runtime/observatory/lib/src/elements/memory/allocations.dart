@@ -55,7 +55,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     assert(editor != null);
     assert(repository != null);
     MemoryAllocationsElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MemoryAllocationsElement>(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
     e._repository = repository;
@@ -75,7 +75,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   Future reload({bool gc = false, bool reset = false}) async {
@@ -84,13 +84,13 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
 
   void render() {
     if (_profile == null) {
-      children = [
+      children = <Element>[
         new DivElement()
           ..classes = ['content-centered-big']
-          ..children = [new HeadingElement.h2()..text = 'Loading...']
+          ..children = <Element>[new HeadingElement.h2()..text = 'Loading...']
       ];
     } else {
-      children = [
+      children = <Element>[
         new VirtualCollectionElement(
             _createCollectionLine, _updateCollectionLine,
             createHeader: _createCollectionHeader,
@@ -129,15 +129,21 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     }
     switch (_sortingDirection) {
       case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
+        int sort(M.ClassHeapStats a, M.ClassHeapStats b) {
+          return getter(a).compareTo(getter(b));
+        }
+        return sort;
       case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
+        int sort(M.ClassHeapStats a, M.ClassHeapStats b) {
+          return getter(b).compareTo(getter(a));
+        }
+        return sort;
     }
   }
 
   static HtmlElement _createCollectionLine() => new DivElement()
     ..classes = ['collection-item']
-    ..children = [
+    ..children = <Element>[
       new SpanElement()
         ..classes = ['bytes']
         ..text = '0B',
@@ -158,10 +164,10 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['collection-item']
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['group']
-            ..children = [
+            ..nodes = [
               new Text('Since Last '),
               resetAccumulators
                 ..text = 'Reset'
@@ -178,7 +184,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['collection-item']
-        ..children = [
+        ..children = <Element>[
           _createHeaderButton(const ['bytes'], 'Size',
               _SortingField.accumulatedSize, _SortingDirection.descending),
           _createHeaderButton(const ['instances'], 'Instances',
@@ -221,7 +227,8 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  void _updateCollectionLine(Element e, M.ClassHeapStats item, index) {
+  void _updateCollectionLine(Element e, itemDynamic, index) {
+    M.ClassHeapStats item = itemDynamic;
     e.children[0].text = Utils.formatSize(_getAccumulatedSize(item));
     e.children[1].text = '${_getAccumulatedInstances(item)}';
     e.children[2].text = Utils.formatSize(_getCurrentSize(item));
@@ -242,7 +249,8 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     });
   }
 
-  bool _search(Pattern pattern, M.ClassHeapStats item) {
+  bool _search(Pattern pattern, itemDynamic) {
+    M.ClassHeapStats item = itemDynamic;
     final String value = item.clazz?.name ?? item.displayName;
     return value.contains(pattern);
   }

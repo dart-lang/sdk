@@ -3,9 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::C
     ;
-  abstract set x(dynamic value) → void;
+  set x(dynamic value) → void
+    ;
 }
 static method test(self::C c) → void
   ;

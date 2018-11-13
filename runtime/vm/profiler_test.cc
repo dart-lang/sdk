@@ -10,6 +10,7 @@
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
 #include "vm/source_report.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -17,6 +18,7 @@ namespace dart {
 #ifndef PRODUCT
 
 DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(bool, profile_vm_allocation);
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(int, optimization_counter_threshold);
@@ -24,14 +26,21 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
  public:
-  DisableNativeProfileScope() : FLAG_profile_vm_(FLAG_profile_vm) {
+  DisableNativeProfileScope()
+      : FLAG_profile_vm_(FLAG_profile_vm),
+        FLAG_profile_vm_allocation_(FLAG_profile_vm_allocation) {
     FLAG_profile_vm = false;
+    FLAG_profile_vm_allocation = false;
   }
 
-  ~DisableNativeProfileScope() { FLAG_profile_vm = FLAG_profile_vm_; }
+  ~DisableNativeProfileScope() {
+    FLAG_profile_vm = FLAG_profile_vm_;
+    FLAG_profile_vm_allocation = FLAG_profile_vm_allocation_;
+  }
 
  private:
   const bool FLAG_profile_vm_;
+  const bool FLAG_profile_vm_allocation_;
 };
 
 class DisableBackgroundCompilationScope : public ValueObject {
@@ -147,18 +156,42 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
+static RawLibrary* LoadTestScript(const char* script) {
+  Dart_Handle api_lib;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    api_lib = TestCase::LoadTestScript(script, NULL);
+  }
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(api_lib);
+  return lib.raw();
+}
+
 static RawClass* GetClass(const Library& lib, const char* name) {
-  const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(
-      String::Handle(Symbols::New(Thread::Current(), name))));
+  Thread* thread = Thread::Current();
+  const Class& cls = Class::Handle(
+      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
 
 static RawFunction* GetFunction(const Library& lib, const char* name) {
+  Thread* thread = Thread::Current();
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
-      String::Handle(Symbols::New(Thread::Current(), name))));
+      String::Handle(Symbols::New(thread, name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
   return func.raw();
+}
+
+static void Invoke(const Library& lib,
+                   const char* name,
+                   intptr_t argc = 0,
+                   Dart_Handle* argv = NULL) {
+  Thread* thread = Thread::Current();
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
+  TransitionVMToNative transition(thread);
+  Dart_Handle result = Dart_Invoke(api_lib, NewString(name), argc, argv);
+  EXPECT_VALID(result);
 }
 
 class AllocationFilter : public SampleFilter {
@@ -192,13 +225,14 @@ class AllocationFilter : public SampleFilter {
 static void EnableProfiler() {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
-    Profiler::InitOnce();
+    Profiler::Init();
   }
 }
 
-TEST_CASE(Profiler_TrivialRecordAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -213,18 +247,14 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
       "  return B.boo();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const int64_t before_allocations_micros = Dart_TimelineGetMicros();
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
   class_a.SetTraceAllocation(true);
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   const int64_t after_allocations_micros = Dart_TimelineGetMicros();
   const int64_t allocation_extent_micros =
@@ -232,7 +262,6 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -302,7 +331,6 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -351,7 +379,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -494,7 +521,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -511,7 +537,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -530,10 +555,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
 #endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
         // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
 
-TEST_CASE(Profiler_ToggleRecordAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
   EnableProfiler();
 
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -548,21 +574,16 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
       "  return B.boo();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -575,13 +596,11 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   // Turn on allocation tracing for A.
   class_a.SetTraceAllocation(true);
 
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -647,13 +666,11 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   // Turn off allocation tracing for A.
   class_a.SetTraceAllocation(false);
 
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -664,9 +681,10 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   }
 }
 
-TEST_CASE(Profiler_CodeTicks) {
+ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -681,21 +699,16 @@ TEST_CASE(Profiler_CodeTicks) {
       "  return B.boo();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -709,17 +722,13 @@ TEST_CASE(Profiler_CodeTicks) {
   class_a.SetTraceAllocation(true);
 
   // Allocate three times.
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
+  Invoke(root_library, "main");
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -769,9 +778,10 @@ TEST_CASE(Profiler_CodeTicks) {
   }
 }
 
-TEST_CASE(Profiler_FunctionTicks) {
+ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -786,21 +796,16 @@ TEST_CASE(Profiler_FunctionTicks) {
       "  return B.boo();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -814,17 +819,13 @@ TEST_CASE(Profiler_FunctionTicks) {
   class_a.SetTraceAllocation(true);
 
   // Allocate three times.
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
+  Invoke(root_library, "main");
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -874,29 +875,28 @@ TEST_CASE(Profiler_FunctionTicks) {
   }
 }
 
-TEST_CASE(Profiler_IntrinsicAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript = "double foo(double a, double b) => a + b;";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
   const Class& double_class =
       Class::Handle(isolate->object_store()->double_class());
   EXPECT(!double_class.IsNull());
 
-  Dart_Handle args[2] = {
-      Dart_NewDouble(1.0), Dart_NewDouble(2.0),
-  };
+  Dart_Handle args[2];
+  {
+    TransitionVMToNative transition(thread);
+    args[0] = Dart_NewDouble(1.0);
+    args[1] = Dart_NewDouble(2.0);
+  }
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -907,11 +907,9 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   }
 
   double_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -934,11 +932,9 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   }
 
   double_class.SetTraceAllocation(false);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -949,27 +945,23 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   }
 }
 
-TEST_CASE(Profiler_ArrayAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "List foo() => new List(4);\n"
       "List bar() => new List();\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
   const Class& array_class =
       Class::Handle(isolate->object_store()->array_class());
   EXPECT(!array_class.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -980,11 +972,9 @@ TEST_CASE(Profiler_ArrayAllocation) {
   }
 
   array_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1002,18 +992,14 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("new List._internal", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
   array_class.SetTraceAllocation(false);
-  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1027,18 +1013,15 @@ TEST_CASE(Profiler_ArrayAllocation) {
   ProfilerService::ClearSamples();
 
   // Compile bar (many List objects allocated).
-  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "bar");
 
   // Enable again.
   array_class.SetTraceAllocation(true);
 
   // Run bar.
-  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "bar");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1050,29 +1033,25 @@ TEST_CASE(Profiler_ArrayAllocation) {
   }
 }
 
-TEST_CASE(Profiler_ContextAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "var msg1 = 'a';\n"
       "foo() {\n"
       "  var msg = msg1 + msg1;\n"
       "  return (x) { return '$msg + $msg'; }(msg);\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
   const Class& context_class = Class::Handle(Object::context_class());
   EXPECT(!context_class.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1083,11 +1062,9 @@ TEST_CASE(Profiler_ContextAllocation) {
   }
 
   context_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1108,11 +1085,9 @@ TEST_CASE(Profiler_ContextAllocation) {
   }
 
   context_class.SetTraceAllocation(false);
-  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1123,9 +1098,10 @@ TEST_CASE(Profiler_ContextAllocation) {
   }
 }
 
-TEST_CASE(Profiler_ClosureAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "var msg1 = 'a';\n"
       "\n"
@@ -1140,10 +1116,7 @@ TEST_CASE(Profiler_ClosureAllocation) {
       "  return (x, y) { return '$x + $y'; }(msg, msg2);\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
   const Class& closure_class =
@@ -1152,11 +1125,9 @@ TEST_CASE(Profiler_ClosureAllocation) {
   closure_class.SetTraceAllocation(true);
 
   // Invoke "foo" which during compilation, triggers a closure allocation.
-  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1181,11 +1152,9 @@ TEST_CASE(Profiler_ClosureAllocation) {
   closure_class.SetTraceAllocation(false);
 
   // Invoke "bar" which during compilation, triggers a closure allocation.
-  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "bar");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1197,16 +1166,14 @@ TEST_CASE(Profiler_ClosureAllocation) {
   }
 }
 
-TEST_CASE(Profiler_TypedArrayAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "import 'dart:typed_data';\n"
       "List foo() => new Float32List(4);\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
   const Library& typed_data_library =
@@ -1216,11 +1183,9 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
       Class::Handle(GetClass(typed_data_library, "_Float32List"));
   EXPECT(!float32_list_class.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1231,11 +1196,9 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   }
 
   float32_list_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1256,11 +1219,9 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   }
 
   float32_list_class.SetTraceAllocation(false);
-  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1271,11 +1232,9 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   }
 
   float32_list_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo");
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1286,29 +1245,28 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   }
 }
 
-TEST_CASE(Profiler_StringAllocation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => a + b;";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
       Class::Handle(isolate->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
-  Dart_Handle args[2] = {
-      NewString("a"), NewString("b"),
-  };
+  Dart_Handle args[2];
+  {
+    TransitionVMToNative transition(thread);
+    args[0] = NewString("a");
+    args[1] = NewString("b");
+  }
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1319,11 +1277,9 @@ TEST_CASE(Profiler_StringAllocation) {
   }
 
   one_byte_string_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1346,11 +1302,9 @@ TEST_CASE(Profiler_StringAllocation) {
   }
 
   one_byte_string_class.SetTraceAllocation(false);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1361,11 +1315,9 @@ TEST_CASE(Profiler_StringAllocation) {
   }
 
   one_byte_string_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1376,30 +1328,28 @@ TEST_CASE(Profiler_StringAllocation) {
   }
 }
 
-TEST_CASE(Profiler_StringInterpolation) {
+ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
       Class::Handle(isolate->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
-  Dart_Handle args[2] = {
-      NewString("a"), NewString("b"),
-  };
+  Dart_Handle args[2];
+  {
+    TransitionVMToNative transition(thread);
+    args[0] = NewString("a");
+    args[1] = NewString("b");
+  }
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1410,11 +1360,9 @@ TEST_CASE(Profiler_StringInterpolation) {
   }
 
   one_byte_string_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1439,11 +1387,9 @@ TEST_CASE(Profiler_StringInterpolation) {
   }
 
   one_byte_string_class.SetTraceAllocation(false);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1454,11 +1400,9 @@ TEST_CASE(Profiler_StringInterpolation) {
   }
 
   one_byte_string_class.SetTraceAllocation(true);
-  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
-  EXPECT_VALID(result);
+  Invoke(root_library, "foo", 2, &args[0]);
 
   {
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1469,10 +1413,11 @@ TEST_CASE(Profiler_StringInterpolation) {
   }
 }
 
-TEST_CASE(Profiler_FunctionInline) {
+ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
 
   const char* kScript =
       "class A {\n"
@@ -1500,26 +1445,20 @@ TEST_CASE(Profiler_FunctionInline) {
       "  B.boo(true);\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
   // Compile "main".
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
   // Compile "mainA".
-  result = Dart_Invoke(lib, NewString("mainA"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "mainA");
   // At this point B.boo should be optimized and inlined B.foo and B.choo.
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1533,13 +1472,11 @@ TEST_CASE(Profiler_FunctionInline) {
   class_a.SetTraceAllocation(true);
 
   // Allocate 50,000 instances of A.
-  result = Dart_Invoke(lib, NewString("mainA"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "mainA");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1658,7 +1595,6 @@ TEST_CASE(Profiler_FunctionInline) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1757,7 +1693,7 @@ TEST_CASE(Profiler_FunctionInline) {
   }
 }
 
-TEST_CASE(Profiler_InliningIntervalBoundry) {
+ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
   // The PC of frames below the top frame is a call's return address,
   // which can belong to a different inlining interval than the call.
   // This test checks the profiler service takes this into account; see
@@ -1766,6 +1702,8 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
+
   const char* kScript =
       "class A {\n"
       "}\n"
@@ -1800,19 +1738,14 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
       "  a();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
   // Compile and optimize.
-  Dart_Handle result = Dart_Invoke(lib, NewString("mainNoAlloc"), 0, NULL);
-  EXPECT_VALID(result);
-  result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "mainNoAlloc");
+  Invoke(root_library, "mainAlloc");
 
   // At this point a should be optimized and have inlined both right and wrong,
   // but not maybeAllocate or doNothing.
@@ -1832,7 +1765,6 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1845,13 +1777,11 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   // Turn on allocation tracing for A.
   class_a.SetTraceAllocation(true);
 
-  result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "mainAlloc");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1874,12 +1804,9 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
     EXPECT_STREQ("a", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("mainAlloc", walker.CurrentName());
-    EXPECT(walker.Down());  // Account for "[Native] [xxxxxxx, xxxxxxx)"
-    EXPECT(!walker.Down());
 
     // Inline expansion should show us the complete call chain:
     walker.Reset(Profile::kInclusiveFunction);
-    EXPECT(walker.Down());  // Account for "[Native] [xxxxxxx, xxxxxxx)"
     EXPECT(walker.Down());
     EXPECT_STREQ("mainAlloc", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1896,7 +1823,7 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   }
 }
 
-TEST_CASE(Profiler_ChainedSamples) {
+ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
   EnableProfiler();
   MaxProfileDepthScope mpds(32);
   DisableNativeProfileScope dnps;
@@ -1935,22 +1862,17 @@ TEST_CASE(Profiler_ChainedSamples) {
       "  return go();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
   class_a.SetTraceAllocation(true);
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2010,7 +1932,7 @@ TEST_CASE(Profiler_ChainedSamples) {
   }
 }
 
-TEST_CASE(Profiler_BasicSourcePosition) {
+ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -2032,28 +1954,22 @@ TEST_CASE(Profiler_BasicSourcePosition) {
       "  B.boo();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   // Turn on allocation tracing for A.
   class_a.SetTraceAllocation(true);
 
   // Allocate one time.
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2086,7 +2002,7 @@ TEST_CASE(Profiler_BasicSourcePosition) {
   }
 }
 
-TEST_CASE(Profiler_BasicSourcePositionOptimized) {
+ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -2112,10 +2028,7 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
       "  B.boo();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -2125,8 +2038,7 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
 
   // Warm up function.
   while (true) {
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-    EXPECT_VALID(result);
+    Invoke(root_library, "main");
     const Code& code = Code::Handle(main.CurrentCode());
     if (code.is_optimized()) {
       // Warmed up.
@@ -2138,8 +2050,7 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   class_a.SetTraceAllocation(true);
 
   // Allocate one time.
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   // Still optimized.
   const Code& code = Code::Handle(main.CurrentCode());
@@ -2148,7 +2059,6 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2181,7 +2091,7 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   }
 }
 
-TEST_CASE(Profiler_SourcePosition) {
+ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -2215,28 +2125,22 @@ TEST_CASE(Profiler_SourcePosition) {
       "  new C()..bacon();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   // Turn on allocation tracing for A.
   class_a.SetTraceAllocation(true);
 
   // Allocate one time.
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2287,7 +2191,7 @@ TEST_CASE(Profiler_SourcePosition) {
   }
 }
 
-TEST_CASE(Profiler_SourcePositionOptimized) {
+ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -2326,10 +2230,7 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
       "  new C()..bacon();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -2339,8 +2240,7 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
 
   // Warm up function.
   while (true) {
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-    EXPECT_VALID(result);
+    Invoke(root_library, "main");
     const Code& code = Code::Handle(main.CurrentCode());
     if (code.is_optimized()) {
       // Warmed up.
@@ -2352,8 +2252,7 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
   class_a.SetTraceAllocation(true);
 
   // Allocate one time.
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   // Still optimized.
   const Code& code = Code::Handle(main.CurrentCode());
@@ -2362,7 +2261,6 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2413,7 +2311,7 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
   }
 }
 
-TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
+ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -2450,28 +2348,22 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
       "  new C()..bacon();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   // Turn on allocation tracing for A.
   class_a.SetTraceAllocation(true);
 
   // Allocate one time.
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2528,7 +2420,7 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
   }
 }
 
-TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
+ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -2570,10 +2462,7 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
       "  new C()..bacon();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -2583,8 +2472,7 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
 
   // Warm up function.
   while (true) {
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-    EXPECT_VALID(result);
+    Invoke(root_library, "main");
     const Code& code = Code::Handle(main.CurrentCode());
     if (code.is_optimized()) {
       // Warmed up.
@@ -2596,8 +2484,7 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   class_a.SetTraceAllocation(true);
 
   // Allocate one time.
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   // Still optimized.
   const Code& code = Code::Handle(main.CurrentCode());
@@ -2606,7 +2493,6 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2702,7 +2588,7 @@ static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
   return 0;
 }
 
-TEST_CASE(Profiler_GetSourceReport) {
+ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   EnableProfiler();
   const char* kScript =
       "doWork(i) => i * i;\n"
@@ -2715,10 +2601,10 @@ TEST_CASE(Profiler_GetSourceReport) {
       "}\n";
 
   // Token position of * in `i * i`.
-  const TokenPosition squarePosition = TokenPosition(6);
+  const TokenPosition squarePosition = TokenPosition(15);
 
   // Token position of the call to `doWork`.
-  const TokenPosition callPosition = TokenPosition(39);
+  const TokenPosition callPosition = TokenPosition(90);
 
   DisableNativeProfileScope dnps;
   // Disable profiling for this thread.
@@ -2729,14 +2615,10 @@ TEST_CASE(Profiler_GetSourceReport) {
   SampleBuffer* sample_buffer = Profiler::sample_buffer();
   EXPECT(sample_buffer != NULL);
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& root_library = Library::Handle();
-  root_library ^= Api::UnwrapHandle(lib);
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
   // Invoke main so that it gets compiled.
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  Invoke(root_library, "main");
 
   {
     // Clear the profile for this isolate.
@@ -2778,10 +2660,6 @@ TEST_CASE(Profiler_GetSourceReport) {
       FindPCForTokenPosition(do_work_code, TokenPosition::kControlFlow);
   EXPECT(controlFlowPc != 0);
 
-  uword tempMovePc =
-      FindPCForTokenPosition(main_code, TokenPosition::kTempMove);
-  EXPECT(tempMovePc != 0);
-
   // Insert fake samples.
 
   // Sample 1:
@@ -2805,41 +2683,34 @@ TEST_CASE(Profiler_GetSourceReport) {
                      callPositionPc,  // main.
                      0};
 
-  // Sample 4:
-  // tempMovePc exclusive.
-  uword sample4[] = {tempMovePc,  // main.
-                     0};
-
   InsertFakeSample(sample_buffer, &sample1[0]);
   InsertFakeSample(sample_buffer, &sample2[0]);
   InsertFakeSample(sample_buffer, &sample3[0]);
-  InsertFakeSample(sample_buffer, &sample4[0]);
 
   // Generate source report for main.
   JSONStream js;
   {
-    TransitionNativeToVM transition(thread);
     SourceReport sourceReport(SourceReport::kProfile);
     sourceReport.PrintJSON(&js, script, do_work.token_pos(),
                            main.end_token_pos());
   }
 
   // Verify positions in do_work.
-  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",6]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",15]", js.ToCString());
   // Verify exclusive ticks in do_work.
   EXPECT_SUBSTRING("\"exclusiveTicks\":[1,2]", js.ToCString());
   // Verify inclusive ticks in do_work.
   EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 
   // Verify positions in main.
-  EXPECT_SUBSTRING("\"positions\":[\"TempMove\",39]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[90]", js.ToCString());
   // Verify exclusive ticks in main.
-  EXPECT_SUBSTRING("\"exclusiveTicks\":[1,0]", js.ToCString());
+  EXPECT_SUBSTRING("\"exclusiveTicks\":[0]", js.ToCString());
   // Verify inclusive ticks in main.
-  EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
+  EXPECT_SUBSTRING("\"inclusiveTicks\":[2]", js.ToCString());
 }
 
-TEST_CASE(Profiler_ProfileCodeTableTest) {
+ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
   Zone* Z = Thread::Current()->zone();
 
   ProfileCodeTable* table = new (Z) ProfileCodeTable();

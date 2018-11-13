@@ -28,7 +28,9 @@ ifNull() {
 
 /*element: _ifNotNullInvoke:[null|exact=JSBool]*/
 _ifNotNullInvoke(/*[null|exact=JSUInt31]*/ o) {
-  return o?. /*ast.[null|exact=JSUInt31]*/ /*kernel.[exact=JSUInt31]*/ isEven;
+  return o?.
+      /*[exact=JSUInt31]*/
+      isEven;
 }
 
 /*element: ifNotNullInvoke:[null]*/

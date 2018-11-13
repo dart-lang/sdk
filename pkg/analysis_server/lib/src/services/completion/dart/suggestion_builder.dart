@@ -12,10 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
-
-const String DYNAMIC = 'dynamic';
 
 /**
  * Return a suggestion based upon the given element
@@ -38,7 +35,7 @@ CompletionSuggestion createSuggestion(Element element,
   if (completion == null) {
     completion = element.displayName;
   }
-  bool isDeprecated = element.isDeprecated;
+  bool isDeprecated = element.hasDeprecated;
   CompletionSuggestion suggestion = new CompletionSuggestion(
       kind,
       isDeprecated ? DART_RELEVANCE_LOW : relevance,
@@ -70,13 +67,12 @@ CompletionSuggestion createSuggestion(Element element,
       return paramType != null ? paramType.displayName : 'var';
     }).toList();
 
-    Iterable<ParameterElement> requiredParameters = element.parameters.where(
-        (ParameterElement param) =>
-            param.parameterKind == ParameterKind.REQUIRED);
+    Iterable<ParameterElement> requiredParameters = element.parameters
+        .where((ParameterElement param) => param.isNotOptional);
     suggestion.requiredParameterCount = requiredParameters.length;
 
-    Iterable<ParameterElement> namedParameters = element.parameters.where(
-        (ParameterElement param) => param.parameterKind == ParameterKind.NAMED);
+    Iterable<ParameterElement> namedParameters =
+        element.parameters.where((ParameterElement param) => param.isNamed);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
     addDefaultArgDetails(
@@ -146,14 +142,16 @@ abstract class ElementSuggestionBuilder {
   /**
    * Add a suggestion based upon the given element.
    */
-  void addSuggestion(Element element,
-      {String prefix, int relevance: DART_RELEVANCE_DEFAULT}) {
+  CompletionSuggestion addSuggestion(Element element,
+      {String prefix,
+      int relevance: DART_RELEVANCE_DEFAULT,
+      String elementCompletion}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
-        return;
+        return null;
       }
     }
-    String completion = element.displayName;
+    String completion = elementCompletion ?? element.displayName;
     if (prefix != null && prefix.length > 0) {
       if (completion == null || completion.length <= 0) {
         completion = prefix;
@@ -162,7 +160,7 @@ abstract class ElementSuggestionBuilder {
       }
     }
     if (completion == null || completion.length <= 0) {
-      return;
+      return null;
     }
     CompletionSuggestion suggestion = createSuggestion(element,
         completion: completion, kind: kind, relevance: relevance);
@@ -195,7 +193,7 @@ abstract class ElementSuggestionBuilder {
                 typeParameters: getter.element.typeParameters,
                 parameters: null,
                 returnType: getter.returnType);
-            return;
+            return existingSuggestion;
           }
 
           // Cache lone getter/setter so that it can be paired
@@ -206,24 +204,19 @@ abstract class ElementSuggestionBuilder {
         suggestions.add(suggestion);
       }
     }
+    return suggestion;
   }
 }
 
 /**
- * This class visits elements in a library and provides suggestions based upon
- * the visible members in that library.
+ * This class creates suggestions based upon top-level elements.
  */
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
+class LibraryElementSuggestionBuilder extends SimpleElementVisitor
     with ElementSuggestionBuilder {
   final LibraryElement containingLibrary;
   final CompletionSuggestionKind kind;
   final bool typesOnly;
   final bool instCreation;
-
-  /**
-   * The set of libraries that have been, or are currently being, visited.
-   */
-  final Set<LibraryElement> visitedLibraries = new Set<LibraryElement>();
 
   LibraryElementSuggestionBuilder(
       this.containingLibrary, this.kind, this.typesOnly, this.instCreation);
@@ -238,17 +231,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   }
 
   @override
-  visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-    LibraryElement containingLibrary = element.library;
-    if (containingLibrary != null) {
-      for (var lib in containingLibrary.exportedLibraries) {
-        lib.accept(this);
-      }
-    }
-  }
-
-  @override
   visitConstructorElement(ConstructorElement element) {
     if (instCreation) {
       ClassElement classElem = element.enclosingElement;
@@ -259,11 +241,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         }
       }
     }
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
   }
 
   @override
@@ -284,19 +261,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   }
 
   @override
-  visitLibraryElement(LibraryElement element) {
-    if (visitedLibraries.add(element)) {
-      element.visitChildren(this);
-    }
-  }
-
-  @override
-  visitTopLevelVariableElement(TopLevelVariableElement element) {
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!typesOnly) {
-      int relevance = element.library == containingLibrary
+      PropertyInducingElement variable = element.variable;
+      int relevance = variable.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, relevance: relevance);
+      addSuggestion(variable, relevance: relevance);
     }
   }
 }

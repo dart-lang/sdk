@@ -36,12 +36,12 @@ Future<RawSecureServerSocket> startEchoServer() {
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
             readChunks.add(client.read());
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isFalse(client.writeEventsEnabled);
             Expect.isNotNull(dataToWrite);
             bytesWritten += client.write(
@@ -50,10 +50,10 @@ Future<RawSecureServerSocket> startEchoServer() {
               client.writeEventsEnabled = true;
             }
             if (bytesWritten == dataToWrite.length) {
-              client.shutdown(SocketDirection.SEND);
+              client.shutdown(SocketDirection.send);
             }
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             dataToWrite = readChunks.fold(<int>[], (list, x) {
               list.addAll(x);
               return list;

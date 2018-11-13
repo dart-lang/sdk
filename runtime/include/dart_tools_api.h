@@ -5,7 +5,7 @@
 #ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
 #define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
-#include "dart_api.h"
+#include "include/dart_api.h"
 
 /** \mainpage Dart Tools Embedding API Reference
  *
@@ -158,6 +158,29 @@ typedef void (*Dart_EmbedderInformationCallback)(
 DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback);
 
+/**
+ * Invoke a vm-service method and wait for its result.
+ *
+ * \param request_json The utf8-encoded json-rpc request.
+ * \param request_json_length The length of the json-rpc request.
+ *
+ * \param response_json The returned utf8-encoded json response, must be
+ *   free()ed by caller.
+ * \param response_json_length The length of the returned json response.
+ * \param error An optional error, must be free()ed by caller.
+ *
+ * \return Whether the call was sucessfully performed.
+ *
+ * NOTE: This method does not need a current isolate and must not have the
+ * vm-isolate being the current isolate. It must be called after
+ * Dart_Initialize() and before Dart_Cleanup().
+ */
+DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
+                                            intptr_t request_json_length,
+                                            uint8_t** response_json,
+                                            intptr_t* response_json_length,
+                                            char** error);
+
 /*
  * ========
  * Event Streams
@@ -194,7 +217,7 @@ typedef void (*Dart_ServiceStreamCancelCallback)(const char* stream_id);
  * \return Success if the callbacks were added.  Otherwise, returns an
  *   error handle.
  */
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback);
 
@@ -243,8 +266,8 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  */
 typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback);
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback);
 
 /**
  * Returns true if isolate is currently reloading.
@@ -418,5 +441,49 @@ typedef void (*Dart_EmbedderTimelineStopRecording)();
 DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
     Dart_EmbedderTimelineStartRecording start_recording,
     Dart_EmbedderTimelineStopRecording stop_recording);
+
+/*
+ * =======
+ * Metrics
+ * =======
+ */
+
+/**
+ * Return metrics gathered for the VM and individual isolates.
+ *
+ * NOTE: Metrics are not available in PRODUCT builds of Dart.
+ * Calling the metric functions on a PRODUCT build might return invalid metrics.
+ */
+DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
+DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte
+DART_EXPORT int64_t Dart_VMPeakRSSMetric();       // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldCapacityMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldExternalMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewCapacityMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewExternalMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapGlobalUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapGlobalUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
+DART_EXPORT int64_t
+Dart_IsolateRunnableHeapSizeMetric(Dart_Isolate isolate);  // Byte
 
 #endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_

@@ -11,6 +11,5 @@ test0(x) {
 }
 
 main() {
-  // Incorrect number of arguments, should be NoSuchMethodError but crashes.
-  test0(0, 1);
+  test0(0, 1); //# 00: compile-time error
 }

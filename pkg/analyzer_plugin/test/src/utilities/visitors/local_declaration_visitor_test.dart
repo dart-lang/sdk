@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,12 +21,13 @@ main() {
 
 @reflectiveTest
 class LocalDeclarationVisitorTest {
-  CompilationUnit parseCompilationUnit(String source) {
+  CompilationUnit parseCompilationUnit(String content) {
     AnalysisErrorListener listener = AnalysisErrorListener.NULL_LISTENER;
     Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
+        new Scanner(null, new CharSequenceReader(content), listener);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    var source = new StringSource(content, '/test.dart');
+    Parser parser = new Parser(source, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     return unit;
@@ -35,7 +37,7 @@ class LocalDeclarationVisitorTest {
     CompilationUnit unit = parseCompilationUnit('''
 class MyClass {}
 f(List<MyClass> list) {
-  for(MyClas( x in list) {}
+  for(x in list) {}
 }
 ''');
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -44,7 +46,7 @@ f(List<MyClass> list) {
     expect(f, isNotNull);
     BlockFunctionBody body = f.functionExpression.body;
     Statement statement = body.block.statements[0];
-    expect(statement, new isInstanceOf<ForEachStatement>());
+    expect(statement, const TypeMatcher<ForEachStatement>());
     statement.accept(new TestVisitor(statement.offset));
   }
 }

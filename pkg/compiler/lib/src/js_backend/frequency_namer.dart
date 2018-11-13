@@ -21,15 +21,17 @@ class FrequencyBasedNamer extends Namer
   final String getterPrefix = 'g';
   final String setterPrefix = 's';
   final String callPrefix = ''; // this will create function names $<n>
+  String get callCatchAllName => r'$C';
   String get requiredParameterField => r'$R';
   String get defaultValuesField => r'$D';
   String get operatorSignature => r'$S';
+  String get genericInstantiationPrefix => r'$I';
 
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= getFreshName(instanceScope, 'static');
 
   FrequencyBasedNamer(
-      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
+      JClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
       : super(closedWorld, codegenWorldBuilder) {
     fieldRegistry = new _FieldNamingRegistry(this);
   }

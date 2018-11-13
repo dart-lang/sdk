@@ -30,18 +30,21 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 
 // List of instructions that are still unimplemented by DBC backend.
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
-  M(LoadCodeUnits)                                                             \
   M(BinaryInt32Op)                                                             \
-  M(Int32ToDouble)                                                             \
-  M(DoubleToInteger)                                                           \
+  M(BinaryUint32Op)                                                            \
   M(BoxInt64)                                                                  \
-  M(TruncDivMod)                                                               \
+  M(CheckCondition)                                                            \
+  M(DoubleToInteger)                                                           \
+  M(ExtractNthOutput)                                                          \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
+  M(GuardFieldType)                                                            \
   M(IfThenElse)                                                                \
-  M(ExtractNthOutput)                                                          \
-  M(BinaryUint32Op)                                                            \
+  M(Int32ToDouble)                                                             \
+  M(LoadCodeUnits)                                                             \
   M(ShiftUint32Op)                                                             \
+  M(SpeculativeShiftUint32Op)                                                  \
+  M(TruncDivMod)                                                               \
   M(UnaryUint32Op)                                                             \
   M(UnboxedIntConverter)
 
@@ -56,9 +59,10 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(GenericCheckBound)                                                         \
   M(CheckNull)                                                                 \
   M(IndirectGoto)                                                              \
-  M(MintToDouble)                                                              \
+  M(Int64ToDouble)                                                             \
   M(BinaryInt64Op)                                                             \
   M(ShiftInt64Op)                                                              \
+  M(SpeculativeShiftInt64Op)                                                   \
   M(UnaryInt64Op)                                                              \
   M(CheckedSmiOp)                                                              \
   M(CheckedSmiComparison)                                                      \
@@ -195,7 +199,8 @@ EMIT_NATIVE_CODE(AssertBoolean,
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());
   }
-  __ AssertBoolean(Isolate::Current()->type_checks() ? 1 : 0);
+  Isolate* isolate = Isolate::Current();
+  __ AssertBoolean(isolate->type_checks() ? 1 : 0);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
@@ -327,19 +332,19 @@ EMIT_NATIVE_CODE(PushArgument, 1) {
 
 EMIT_NATIVE_CODE(LoadLocal, 0) {
   ASSERT(!compiler->is_optimizing());
-  ASSERT(local().index() != 0);
-  __ Push((local().index() > 0) ? (-local().index()) : (-local().index() - 1));
+  const intptr_t slot_index =
+      compiler_frame_layout.FrameSlotForVariable(&local());
+  __ Push(LocalVarIndex(0, slot_index));
 }
 
 EMIT_NATIVE_CODE(StoreLocal, 0) {
   ASSERT(!compiler->is_optimizing());
-  ASSERT(local().index() != 0);
+  const intptr_t slot_index =
+      compiler_frame_layout.FrameSlotForVariable(&local());
   if (HasTemp()) {
-    __ StoreLocal((local().index() > 0) ? (-local().index())
-                                        : (-local().index() - 1));
+    __ StoreLocal(LocalVarIndex(0, slot_index));
   } else {
-    __ PopLocal((local().index() > 0) ? (-local().index())
-                                      : (-local().index() - 1));
+    __ PopLocal(LocalVarIndex(0, slot_index));
   }
 }
 
@@ -387,8 +392,10 @@ EMIT_NATIVE_CODE(Return, 1) {
   }
 }
 
-LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
-                                                            bool opt) const {
+LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(
+
+    Zone* zone,
+    bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs = new (zone)
@@ -509,20 +516,23 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 
   if (!compiler->is_optimizing()) {
-    const Bytecode::Opcode eq_op = needs_number_check()
-                                       ? Bytecode::kIfEqStrictNumTOS
-                                       : Bytecode::kIfEqStrictTOS;
-    const Bytecode::Opcode ne_op = needs_number_check()
-                                       ? Bytecode::kIfNeStrictNumTOS
-                                       : Bytecode::kIfNeStrictTOS;
+    const SimulatorBytecode::Opcode eq_op =
+        needs_number_check() ? SimulatorBytecode::kIfEqStrictNumTOS
+                             : SimulatorBytecode::kIfEqStrictTOS;
+    const SimulatorBytecode::Opcode ne_op =
+        needs_number_check() ? SimulatorBytecode::kIfNeStrictNumTOS
+                             : SimulatorBytecode::kIfNeStrictTOS;
     __ Emit(comparison == Token::kEQ_STRICT ? eq_op : ne_op);
   } else {
-    const Bytecode::Opcode eq_op =
-        needs_number_check() ? Bytecode::kIfEqStrictNum : Bytecode::kIfEqStrict;
-    const Bytecode::Opcode ne_op =
-        needs_number_check() ? Bytecode::kIfNeStrictNum : Bytecode::kIfNeStrict;
-    __ Emit(Bytecode::Encode((comparison == Token::kEQ_STRICT) ? eq_op : ne_op,
-                             locs()->in(0).reg(), locs()->in(1).reg()));
+    const SimulatorBytecode::Opcode eq_op =
+        needs_number_check() ? SimulatorBytecode::kIfEqStrictNum
+                             : SimulatorBytecode::kIfEqStrict;
+    const SimulatorBytecode::Opcode ne_op =
+        needs_number_check() ? SimulatorBytecode::kIfNeStrictNum
+                             : SimulatorBytecode::kIfNeStrict;
+    __ Emit(SimulatorBytecode::Encode(
+        (comparison == Token::kEQ_STRICT) ? eq_op : ne_op, locs()->in(0).reg(),
+        locs()->in(1).reg()));
   }
 
   if (needs_number_check() && token_pos().IsReal()) {
@@ -597,7 +607,10 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+LocationSummary* BranchInstr::MakeLocationSummary(
+
+    Zone* zone,
+    bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   if (!comparison()->HasLocs()) {
     return NULL;
@@ -954,23 +967,34 @@ EMIT_NATIVE_CODE(NativeCall,
 
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
-  ASSERT(!link_lazily());
-  const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
-  const intptr_t target_kidx =
-      __ object_pool_wrapper().FindNativeEntry(&label, kNotPatchable);
+  NativeFunctionWrapper trampoline;
+  NativeFunction function;
+  if (link_lazily()) {
+    trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+    function = reinterpret_cast<NativeFunction>(&NativeEntry::LinkNativeCall);
+  } else {
+    if (is_bootstrap_native()) {
+      trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+    } else if (is_auto_scope()) {
+      trampoline = &NativeEntry::AutoScopeNativeCallWrapper;
+    } else {
+      trampoline = &NativeEntry::NoScopeNativeCallWrapper;
+    }
+    function = native_c_function();
+  }
+
+  const ExternalLabel trampoline_label(reinterpret_cast<uword>(trampoline));
+  const intptr_t trampoline_kidx =
+      __ object_pool_wrapper().FindNativeFunctionWrapper(
+          &trampoline_label, ObjectPool::kPatchable);
+  const ExternalLabel label(reinterpret_cast<uword>(function));
+  const intptr_t target_kidx = __ object_pool_wrapper().FindNativeFunction(
+      &label, ObjectPool::kPatchable);
   const intptr_t argc_tag_kidx =
       __ object_pool_wrapper().FindImmediate(static_cast<uword>(argc_tag));
-  __ PushConstant(target_kidx);
-  __ PushConstant(argc_tag_kidx);
-  if (is_bootstrap_native()) {
-    __ NativeBootstrapCall();
-  } else if (is_auto_scope()) {
-    __ NativeAutoScopeCall();
-  } else {
-    __ NativeNoScopeCall();
-  }
+  __ NativeCall(trampoline_kidx, target_kidx, argc_tag_kidx);
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
 }
 
@@ -1019,15 +1043,15 @@ EMIT_NATIVE_CODE(AllocateObject,
       }
       __ PushConstant(cls());
       __ AllocateT();
-      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
-                                     Thread::kNoDeoptId, token_pos());
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
+                                     token_pos());
       compiler->RecordSafepoint(locs());
       __ PopLocal(locs()->out(0).reg());
     } else {
       __ PushConstant(cls());
       __ AllocateT();
-      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
-                                     Thread::kNoDeoptId, token_pos());
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
+                                     token_pos());
       compiler->RecordSafepoint(locs());
     }
   } else if (compiler->is_optimizing()) {
@@ -1048,14 +1072,14 @@ EMIT_NATIVE_CODE(AllocateObject,
     }
     const intptr_t kidx = __ AddConstant(cls());
     __ Allocate(kidx);
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                    token_pos());
     compiler->RecordSafepoint(locs());
     __ PopLocal(locs()->out(0).reg());
   } else {
     const intptr_t kidx = __ AddConstant(cls());
     __ Allocate(kidx);
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                    token_pos());
     compiler->RecordSafepoint(locs());
   }
@@ -1120,7 +1144,7 @@ EMIT_NATIVE_CODE(AllocateContext,
   ASSERT(!compiler->is_optimizing());
   __ AllocateContext(num_context_variables());
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
 }
 
@@ -1133,7 +1157,7 @@ EMIT_NATIVE_CODE(AllocateUninitializedContext,
                                   num_context_variables());
   __ AllocateContext(num_context_variables());
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   __ PopLocal(locs()->out(0).reg());
 }
@@ -1147,7 +1171,7 @@ EMIT_NATIVE_CODE(CloneContext,
   }
   __ CloneContext();
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
@@ -1162,7 +1186,7 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
-  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id);
   } else {
@@ -1172,69 +1196,22 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
-
-  Register context_reg = kNoRegister;
-
-  // Auxiliary variables introduced by the try catch can be captured if we are
-  // inside a function with yield/resume points. In this case we first need
-  // to restore the context to match the context at entry into the closure.
-  if (should_restore_closure_context()) {
-    const ParsedFunction& parsed_function = compiler->parsed_function();
-
-    ASSERT(parsed_function.function().IsClosureFunction());
-    LocalScope* scope = parsed_function.node_sequence()->scope();
-
-    LocalVariable* closure_parameter = scope->VariableAt(0);
-    ASSERT(!closure_parameter->is_captured());
-
-    const LocalVariable& current_context_var =
-        *parsed_function.current_context_var();
-
-    context_reg = compiler->is_optimizing()
-                      ? compiler->CatchEntryRegForVariable(current_context_var)
-                      : LocalVarIndex(0, current_context_var.index());
-
-    Register closure_reg;
-    if (closure_parameter->index() > 0) {
-      __ Move(context_reg, LocalVarIndex(0, closure_parameter->index()));
-      closure_reg = context_reg;
-    } else {
-      closure_reg = LocalVarIndex(0, closure_parameter->index());
-    }
-
-    __ LoadField(context_reg, closure_reg,
-                 Closure::context_offset() / kWordSize);
-  }
-
-  if (exception_var().is_captured()) {
-    ASSERT(stacktrace_var().is_captured());
-    ASSERT(context_reg != kNoRegister);
-    // This will be SP[1] register so we are free to use it as a temporary.
-    const Register temp = compiler->StackSize();
-    __ MoveSpecial(temp, Simulator::kExceptionSpecialIndex);
-    __ StoreField(context_reg,
-                  Context::variable_offset(exception_var().index()) / kWordSize,
-                  temp);
-    __ MoveSpecial(temp, Simulator::kStackTraceSpecialIndex);
-    __ StoreField(
-        context_reg,
-        Context::variable_offset(stacktrace_var().index()) / kWordSize, temp);
-  } else {
-    if (compiler->is_optimizing()) {
-      const intptr_t exception_reg =
-          compiler->CatchEntryRegForVariable(exception_var());
-      const intptr_t stacktrace_reg =
-          compiler->CatchEntryRegForVariable(stacktrace_var());
-      __ MoveSpecial(exception_reg, Simulator::kExceptionSpecialIndex);
-      __ MoveSpecial(stacktrace_reg, Simulator::kStackTraceSpecialIndex);
-    } else {
-      __ MoveSpecial(LocalVarIndex(0, exception_var().index()),
-                     Simulator::kExceptionSpecialIndex);
-      __ MoveSpecial(LocalVarIndex(0, stacktrace_var().index()),
-                     Simulator::kStackTraceSpecialIndex);
-    }
-  }
   __ SetFrame(compiler->StackSize());
+
+  if (!compiler->is_optimizing()) {
+    if (raw_exception_var_ != nullptr) {
+      __ MoveSpecial(
+          LocalVarIndex(0, compiler_frame_layout.FrameSlotForVariable(
+                               raw_exception_var_)),
+          Simulator::kExceptionSpecialIndex);
+    }
+    if (raw_stacktrace_var_ != nullptr) {
+      __ MoveSpecial(
+          LocalVarIndex(0, compiler_frame_layout.FrameSlotForVariable(
+                               raw_stacktrace_var_)),
+          Simulator::kStackTraceSpecialIndex);
+    }
+  }
 }
 
 EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
@@ -1296,8 +1273,11 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->CanFallThroughTo(normal_entry())) {
-    __ Jump(compiler->GetJumpLabel(normal_entry()));
+  BlockEntryInstr* entry = normal_entry();
+  if (entry == nullptr) entry = osr_entry();
+
+  if (!compiler->CanFallThroughTo(entry)) {
+    __ Jump(compiler->GetJumpLabel(entry));
   }
 }
 
@@ -1315,6 +1295,10 @@ CompileType BinaryUint32OpInstr::ComputeType() const {
 }
 
 CompileType ShiftUint32OpInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
@@ -1652,7 +1636,7 @@ EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
   }
   const intptr_t kidx = __ AddConstant(compiler->double_class());
   __ Allocate(kidx);
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   compiler->RecordSafepoint(locs());
   __ PopLocal(out);
@@ -1887,43 +1871,43 @@ static Token::Kind FlipCondition(Token::Kind kind) {
   }
 }
 
-static Bytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
+static SimulatorBytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
-      return Bytecode::kIfEqStrict;
+      return SimulatorBytecode::kIfEqStrict;
     case Token::kNE:
-      return Bytecode::kIfNeStrict;
+      return SimulatorBytecode::kIfNeStrict;
     case Token::kLT:
-      return Bytecode::kIfLt;
+      return SimulatorBytecode::kIfLt;
     case Token::kGT:
-      return Bytecode::kIfGt;
+      return SimulatorBytecode::kIfGt;
     case Token::kLTE:
-      return Bytecode::kIfLe;
+      return SimulatorBytecode::kIfLe;
     case Token::kGTE:
-      return Bytecode::kIfGe;
+      return SimulatorBytecode::kIfGe;
     default:
       UNREACHABLE();
-      return Bytecode::kTrap;
+      return SimulatorBytecode::kTrap;
   }
 }
 
-static Bytecode::Opcode OpcodeForDoubleCondition(Token::Kind kind) {
+static SimulatorBytecode::Opcode OpcodeForDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
-      return Bytecode::kIfDEq;
+      return SimulatorBytecode::kIfDEq;
     case Token::kNE:
-      return Bytecode::kIfDNe;
+      return SimulatorBytecode::kIfDNe;
     case Token::kLT:
-      return Bytecode::kIfDLt;
+      return SimulatorBytecode::kIfDLt;
     case Token::kGT:
-      return Bytecode::kIfDGt;
+      return SimulatorBytecode::kIfDGt;
     case Token::kLTE:
-      return Bytecode::kIfDLe;
+      return SimulatorBytecode::kIfDLe;
     case Token::kGTE:
-      return Bytecode::kIfDGe;
+      return SimulatorBytecode::kIfDGe;
     default:
       UNREACHABLE();
-      return Bytecode::kTrap;
+      return SimulatorBytecode::kTrap;
   }
 }
 
@@ -1945,7 +1929,8 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   if (compiler->is_optimizing()) {
     const Register left = locs->in(0).reg();
     const Register right = locs->in(1).reg();
-    __ Emit(Bytecode::Encode(OpcodeForSmiCondition(comparison), left, right));
+    __ Emit(SimulatorBytecode::Encode(OpcodeForSmiCondition(comparison), left,
+                                      right));
     return condition;
   } else {
     switch (kind) {
@@ -1986,7 +1971,8 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   // TODO(fschneider): Change the block order instead in DBC so that the
   // false block in always the fall-through block.
   Condition condition = NEXT_IS_TRUE;
-  __ Emit(Bytecode::Encode(OpcodeForDoubleCondition(comparison), left, right));
+  __ Emit(SimulatorBytecode::Encode(OpcodeForDoubleCondition(comparison), left,
+                                    right));
   return condition;
 }
 

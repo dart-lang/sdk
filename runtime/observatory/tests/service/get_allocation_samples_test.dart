@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:developer';
 import 'package:observatory/models.dart' as M;
@@ -55,7 +54,7 @@ var tests = <IsolateTest>[
     var fooClass = await getClassFromRootLib(isolate, 'Foo');
     await fooClass.reload();
     expect(fooClass.traceAllocations, isTrue);
-    var profileResponse = await fooClass.getAllocationSamples();
+    dynamic profileResponse = await fooClass.getAllocationSamples();
     expect(profileResponse, isNotNull);
     expect(profileResponse['type'], equals('_CpuProfile'));
     await fooClass.setTraceAllocations(false);

@@ -6,13 +6,15 @@ library fasta.import;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
-import 'builder/builder.dart' show Builder, LibraryBuilder, PrefixBuilder;
+import 'builder/builder.dart' show Declaration, LibraryBuilder;
 
 import 'kernel/kernel_builder.dart' show toKernelCombinators;
 
+import 'kernel/kernel_prefix_builder.dart' show KernelPrefixBuilder;
+
 import 'combinator.dart' show Combinator;
 
-typedef void AddToScope(String name, Builder member);
+import 'configuration.dart' show Configuration;
 
 class Import {
   /// The library that is importing [imported];
@@ -21,7 +23,7 @@ class Import {
   /// The library being imported.
   final LibraryBuilder imported;
 
-  final PrefixBuilder prefixBuilder;
+  final KernelPrefixBuilder prefixBuilder;
 
   final bool deferred;
 
@@ -29,29 +31,45 @@ class Import {
 
   final List<Combinator> combinators;
 
+  final List<Configuration> configurations;
+
   final int charOffset;
 
   final int prefixCharOffset;
 
-  Import(this.importer, this.imported, this.deferred, this.prefix,
-      this.combinators, this.charOffset, this.prefixCharOffset)
+  // The LibraryBuilder for the imported library ('imported') may be null when
+  // this field is set.
+  final String nativeImportPath;
+
+  Import(
+      this.importer,
+      this.imported,
+      this.deferred,
+      this.prefix,
+      this.combinators,
+      this.configurations,
+      this.charOffset,
+      this.prefixCharOffset,
+      int importIndex,
+      {this.nativeImportPath})
       : prefixBuilder = createPrefixBuilder(prefix, importer, imported,
-            combinators, deferred, charOffset, prefixCharOffset);
+            combinators, deferred, charOffset, prefixCharOffset, importIndex);
 
   Uri get fileUri => importer.fileUri;
 
   void finalizeImports(LibraryBuilder importer) {
-    AddToScope add;
+    if (nativeImportPath != null) return;
+    void Function(String, Declaration) add;
     if (prefixBuilder == null) {
-      add = (String name, Builder member) {
+      add = (String name, Declaration member) {
         importer.addToScope(name, member, charOffset, true);
       };
     } else {
-      add = (String name, Builder member) {
+      add = (String name, Declaration member) {
         prefixBuilder.addToExportScope(name, member, charOffset);
       };
     }
-    imported.exportScope.forEach((String name, Builder member) {
+    imported.exportScope.forEach((String name, Declaration member) {
       if (combinators != null) {
         for (Combinator combinator in combinators) {
           if (combinator.isShow && !combinator.names.contains(name)) return;
@@ -61,7 +79,8 @@ class Import {
       add(name, member);
     });
     if (prefixBuilder != null) {
-      Builder existing = importer.addBuilder(prefix, prefixBuilder, charOffset);
+      Declaration existing =
+          importer.addBuilder(prefix, prefixBuilder, charOffset);
       if (existing == prefixBuilder) {
         importer.addToScope(prefix, prefixBuilder, prefixCharOffset, true);
       }
@@ -69,14 +88,15 @@ class Import {
   }
 }
 
-createPrefixBuilder(
+KernelPrefixBuilder createPrefixBuilder(
     String prefix,
     LibraryBuilder importer,
     LibraryBuilder imported,
     List<Combinator> combinators,
     bool deferred,
     int charOffset,
-    int prefixCharOffset) {
+    int prefixCharOffset,
+    int importIndex) {
   if (prefix == null) return null;
   LibraryDependency dependency = null;
   if (deferred) {
@@ -84,6 +104,6 @@ createPrefixBuilder(
         combinators: toKernelCombinators(combinators))
       ..fileOffset = charOffset;
   }
-  return new PrefixBuilder(
-      prefix, deferred, importer, dependency, prefixCharOffset);
+  return new KernelPrefixBuilder(
+      prefix, deferred, importer, dependency, prefixCharOffset, importIndex);
 }

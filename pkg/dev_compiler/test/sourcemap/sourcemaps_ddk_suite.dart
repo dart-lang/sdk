@@ -15,7 +15,7 @@ import 'ddc_common.dart';
 
 Future<ChainContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new SourceMapContext(environment);
+  return SourceMapContext(environment);
 }
 
 class SourceMapContext extends ChainContextWithCleanupHelper
@@ -30,29 +30,29 @@ class SourceMapContext extends ChainContextWithCleanupHelper
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),
-      new Compile(new RunDdc(this, debugging())),
+      Compile(DevCompilerRunner(this, debugging())),
       const StepWithD8(),
-      new CheckSteps(debugging()),
+      CheckSteps(debugging()),
     ];
   }
 
   bool debugging() => environment.containsKey("debug");
 }
 
-class RunDdc implements DdcRunner {
+class DevCompilerRunner implements CompilerRunner {
   final WithCompilerState context;
   final bool debugging;
 
-  const RunDdc(this.context, [this.debugging = false]);
+  const DevCompilerRunner(this.context, [this.debugging = false]);
 
-  Future<Null> runDDC(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
+  Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
     Uri outDir = outputFile.resolve(".");
     String outputFilename = outputFile.pathSegments.last;
 
     File sdkJsFile = findInOutDir("gen/utils/dartdevc/js/es6/dart_sdk.js");
     var jsSdkPath = sdkJsFile.uri;
 
-    File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/ddc_sdk.dill");
+    File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/kernel/ddc_sdk.dill");
 
     var ddc = getDdcDir().uri.resolve("bin/dartdevk.dart");
 
@@ -69,7 +69,7 @@ class RunDdc implements DdcRunner {
     try {
       var result = await compile(args, compilerState: context.compilerState);
       context.compilerState = result.compilerState;
-      succeeded = result.result;
+      succeeded = result.success;
     } catch (e, s) {
       print('Unhandled exception:');
       print(e);
@@ -82,8 +82,8 @@ class RunDdc implements DdcRunner {
           "${args.reduce((value, element) => '$value "$element"')}";
     }
 
-    var jsContent = new File.fromUri(outputFile).readAsStringSync();
-    new File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
+    var jsContent = File.fromUri(outputFile).readAsStringSync();
+    File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
         "from 'dart_sdk'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
 
     if (debugging) {
@@ -94,7 +94,7 @@ class RunDdc implements DdcRunner {
     var inputFileName = inputFile.pathSegments.last;
     var inputFileNameNoExt =
         inputFileName.substring(0, inputFileName.lastIndexOf("."));
-    new File.fromUri(outWrapperFile).writeAsStringSync(
+    File.fromUri(outWrapperFile).writeAsStringSync(
         getWrapperContent(jsSdkPath, inputFileNameNoExt, outputFilename));
   }
 }

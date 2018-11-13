@@ -4,12 +4,13 @@
 
 #include "vm/raw_object.h"
 
-#include "vm/become.h"
 #include "vm/class_table.h"
 #include "vm/dart.h"
-#include "vm/freelist.h"
+#include "vm/heap/become.h"
+#include "vm/heap/freelist.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/runtime_entry.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -30,9 +31,26 @@ void RawObject::Validate(Isolate* isolate) const {
   }
   // Validate that the tags_ field is sensible.
   uint32_t tags = ptr()->tags_;
-  intptr_t reserved = ReservedBits::decode(tags);
-  if (reserved != 0) {
-    FATAL1("Invalid tags field encountered %x\n", tags);
+  if (IsNewObject()) {
+    if (!NewBit::decode(tags)) {
+      FATAL1("New object missing kNewBit: %x\n", tags);
+    }
+    if (OldBit::decode(tags)) {
+      FATAL1("New object has kOldBit: %x\n", tags);
+    }
+    if (OldAndNotMarkedBit::decode(tags)) {
+      FATAL1("New object has kOldAndNotMarkedBit: %x\n", tags);
+    }
+    if (OldAndNotRememberedBit::decode(tags)) {
+      FATAL1("Mew object has kOldAndNotRememberedBit: %x\n", tags);
+    }
+  } else {
+    if (NewBit::decode(tags)) {
+      FATAL1("Old object has kNewBit: %x\n", tags);
+    }
+    if (!OldBit::decode(tags)) {
+      FATAL1("Old object missing kOldBit: %x\n", tags);
+    }
   }
   intptr_t class_id = ClassIdTag::decode(tags);
   if (!isolate->class_table()->IsValidIndex(class_id)) {
@@ -49,6 +67,9 @@ void RawObject::Validate(Isolate* isolate) const {
   }
 }
 
+// Can't look at the class object because it can be called during
+// compaction when the class objects are moving. Can use the class
+// id in the header and the sizes in the Class Table.
 intptr_t RawObject::SizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
@@ -187,9 +208,7 @@ intptr_t RawObject::SizeFromClass() const {
                ptr()->tags_);
       }
 #endif  // DEBUG
-      RawClass* raw_class = isolate->GetClassForHeapWalkAt(class_id);
-      instance_size = raw_class->ptr()->instance_size_in_words_
-                      << kWordSizeLog2;
+      instance_size = isolate->GetClassSizeForHeapWalkAt(class_id);
     }
   }
   ASSERT(instance_size != 0);
@@ -275,14 +294,26 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       size = Size();
       break;
     default:
-      OS::Print("Class Id: %" Pd "\n", class_id);
+      OS::PrintErr("Class Id: %" Pd "\n", class_id);
       UNREACHABLE();
       break;
   }
 
+#if defined(DEBUG)
   ASSERT(size != 0);
-  ASSERT(size == Size());
+  const intptr_t expected_size = Size();
+
+  // In general we expect that visitors return exactly the same size that Size
+  // would compute. However in case of Arrays we might have a discrepancy when
+  // concurrently visiting an array that is being shrunk with
+  // Array::MakeFixedLength: the visitor might have visited the full array while
+  // here we are observing a smaller Size().
+  ASSERT(size == expected_size ||
+         (class_id == kArrayCid && size > expected_size));
+  return size;  // Prefer larger size.
+#else
   return size;
+#endif
 }
 
 bool RawObject::FindObject(FindObjectVisitor* visitor) {
@@ -363,8 +394,6 @@ REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
 REGULAR_VISITOR(RedirectionData)
 REGULAR_VISITOR(Field)
-REGULAR_VISITOR(LiteralToken)
-REGULAR_VISITOR(TokenStream)
 REGULAR_VISITOR(Script)
 REGULAR_VISITOR(Library)
 REGULAR_VISITOR(LibraryPrefix)
@@ -377,7 +406,6 @@ REGULAR_VISITOR(ApiError)
 REGULAR_VISITOR(LanguageError)
 REGULAR_VISITOR(UnhandledException)
 REGULAR_VISITOR(UnwindError)
-REGULAR_VISITOR(Bigint)
 REGULAR_VISITOR(ExternalOneByteString)
 REGULAR_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
@@ -471,6 +499,9 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
 #else
   visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
 
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&raw_obj->ptr()->bytecode_));
+
   if (ShouldVisitCode(raw_obj->ptr()->code_)) {
     visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&raw_obj->ptr()->code_));
@@ -529,11 +560,12 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   const intptr_t length = raw_obj->ptr()->length_;
   RawObjectPool::Entry* entries = raw_obj->ptr()->data();
-  uint8_t* entry_types = raw_obj->ptr()->entry_types();
+  uint8_t* entry_bits = raw_obj->ptr()->entry_bits();
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
-        static_cast<ObjectPool::EntryType>(entry_types[i]);
-    if (entry_type == ObjectPool::kTaggedObject) {
+        ObjectPool::TypeBits::decode(entry_bits[i]);
+    if ((entry_type == ObjectPool::kTaggedObject) ||
+        (entry_type == ObjectPool::kNativeEntryData)) {
       visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }
@@ -555,9 +587,8 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   uint32_t tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    RawClass* cls =
-        visitor->isolate()->GetClassForHeapWalkAt(raw_obj->GetClassId());
-    instance_size = cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
+    instance_size =
+        visitor->isolate()->GetClassSizeForHeapWalkAt(raw_obj->GetClassId());
   }
 
   // Calculate the first and last raw object pointer fields.
@@ -574,5 +605,20 @@ intptr_t RawImmutableArray::VisitImmutableArrayPointers(
     ObjectPointerVisitor* visitor) {
   return RawArray::VisitArrayPointers(raw_obj, visitor);
 }
+
+void RawObject::RememberCard(RawObject* const* slot) {
+  HeapPage::Of(this)->RememberCard(slot);
+}
+
+DEFINE_LEAF_RUNTIME_ENTRY(void,
+                          RememberCard,
+                          2,
+                          RawObject* object,
+                          RawObject** slot) {
+  ASSERT(object->IsOldObject());
+  ASSERT(object->IsCardRemembered());
+  HeapPage::Of(object)->RememberCard(slot);
+}
+END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

@@ -1644,6 +1644,9 @@ timeline-dashboard button:disabled:hover {
   cursor: default;
 }
 
+timeline-dashboard p {
+  margin-top: 0.4em;
+}
 
 memory-dashboard button,
 timeline-dashboard button,
@@ -1669,11 +1672,21 @@ memory-profile .header_button,
 timeline-dashboard .header_button {
   padding: 3px 5px;
   margin: 0px 1px;
+  min-width: 130px;
+}
+
+memory-profile .header_button,
+timeline-dashboard .header_button {
+  margin-left: 6px;
+}
+
+.header_button.left-pad {
+  margin-left: 75px;
 }
 
 memory-profile .header_button:first-child,
 timeline-dashboard .header_button:first-child {
-  margin-left: 5px;
+  margin-left: 30px;
 }
 
 memory-profile .tab_buttons,
@@ -1685,7 +1698,8 @@ timeline-dashboard .tab_buttons {
 
 memory-profile .tab_buttons button,
 timeline-dashboard .tab_buttons button {
-  padding: 10px 5px;
+  padding: 5px 5px;
+  min-width: 100px
 }
 
 memory-profile .tab_buttons button:not(:first-child),
@@ -1709,7 +1723,7 @@ memory-dashboard memory-graph {
 
 memory-dashboard memory-profile {
   position: absolute;
-  bottom: 0;
+  bottom: 20px;
   left: 0;
   right: 0;
   top: 300px;

@@ -7,7 +7,7 @@ import 'class_hierarchy_self_check.dart';
 
 main() {
   test('All-pairs class hierarchy tests on dart2js', () {
-    testClassHierarchyOnProgram(
-        loadProgramFromBinary('test/data/dart2js.dill'));
+    testClassHierarchyOnComponent(
+        loadComponentFromBinary('test/data/dart2js.dill'));
   });
 }

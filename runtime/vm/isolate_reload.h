@@ -135,9 +135,12 @@ class IsolateReloadContext {
   explicit IsolateReloadContext(Isolate* isolate, JSONStream* js);
   ~IsolateReloadContext();
 
+  // If kernel_buffer is provided, the VM takes ownership when Reload is called.
   void Reload(bool force_reload,
               const char* root_script_url = NULL,
-              const char* packages_url = NULL);
+              const char* packages_url = NULL,
+              const uint8_t* kernel_buffer = NULL,
+              intptr_t kernel_buffer_size = 0);
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
@@ -169,6 +172,8 @@ class IsolateReloadContext {
 
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
+  void DiscardSavedClassTable();
 
   void RegisterClass(const Class& new_cls);
 
@@ -231,12 +236,16 @@ class IsolateReloadContext {
   void CheckpointClasses();
 
   bool ScriptModifiedSince(const Script& script, int64_t since);
-  BitVector* FindModifiedLibraries(bool force_reload);
+  BitVector* FindModifiedLibraries(bool force_reload, bool root_lib_modified);
+  void FindModifiedSources(Thread* thread,
+                           bool force_reload,
+                           Dart_SourceFile** modified_sources,
+                           intptr_t* count,
+                           const char* packages_url);
 
   void CheckpointLibraries();
 
-  // Transforms the heap based on instance_morphers_.
-  void MorphInstances();
+  void MorphInstancesAndApplyNewClassTable();
 
   void RunNewFieldInitializers();
 
@@ -258,7 +267,7 @@ class IsolateReloadContext {
   void ClearReplacedObjectBits();
 
   // atomic_install:
-  void MarkAllFunctionsForRecompilation();
+  void RunInvalidationVisitors();
   void ResetUnoptimizedICsOnStack();
   void ResetMegamorphicCaches();
   void InvalidateWorld();
@@ -275,7 +284,7 @@ class IsolateReloadContext {
   JSONStream* js_;
 
   intptr_t saved_num_cids_;
-  RawClass** saved_class_table_;
+  ClassAndSize* saved_class_table_;
   intptr_t num_saved_libs_;
 
   // Collect the necessary instance transformation for schema changes.

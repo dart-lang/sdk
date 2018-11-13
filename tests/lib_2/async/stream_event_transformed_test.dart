@@ -71,7 +71,7 @@ class TypeChangingSink implements EventSink<int> {
   }
 }
 
-class SinkTransformer<S, T> implements StreamTransformer<S, T> {
+class SinkTransformer<S, T> extends StreamTransformerBase<S, T> {
   final Function sinkMapper;
   SinkTransformer(this.sinkMapper);
 

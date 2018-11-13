@@ -76,6 +76,8 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandAssert(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findAssertExpression, (expr) {
       return "assert(${processor.utils.getNodeText(expr)});";
     }, withBraces: false);
@@ -83,12 +85,16 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandElse(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => "if (${processor.makeNegatedBoolExpr(expr)})");
   }
 
   static Future<PostfixCompletion> expandFor(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findIterableExpression, (expr) {
       String value = processor.newVariable("value");
       return "for (var $value in ${processor.utils.getNodeText(expr)})";
@@ -97,21 +103,26 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandFori(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findIntExpression, (expr) {
       String index = processor.newVariable("i");
-      return "for (int $index = 0; $index < ${processor.utils.getNodeText(
-          expr)}; $index++)";
+      return "for (int $index = 0; $index < ${processor.utils.getNodeText(expr)}; $index++)";
     });
   }
 
   static Future<PostfixCompletion> expandIf(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => "if (${processor.utils.getNodeText(expr)})");
   }
 
   static Future<PostfixCompletion> expandNegate(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => processor.makeNegatedBoolExpr(expr),
         withBraces: false);
@@ -119,6 +130,8 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandNotNull(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
           ? "if (false)"
@@ -128,6 +141,8 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandNull(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
           ? "if (true)"
@@ -137,6 +152,8 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandParen(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findObjectExpression,
         (expr) => "(${processor.utils.getNodeText(expr)})",
         withBraces: false);
@@ -144,6 +161,8 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandReturn(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findObjectExpression,
         (expr) => "return ${processor.utils.getNodeText(expr)};",
         withBraces: false);
@@ -151,22 +170,30 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion> expandSwitch(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findObjectExpression,
         (expr) => "switch (${processor.utils.getNodeText(expr)})");
   }
 
   static Future<PostfixCompletion> expandTry(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expandTry(kind, processor.findStatement, withOn: false);
   }
 
   static Future<PostfixCompletion> expandTryon(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expandTry(kind, processor.findStatement, withOn: true);
   }
 
   static Future<PostfixCompletion> expandWhile(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => "while (${processor.utils.getNodeText(expr)})");
   }
@@ -300,8 +327,6 @@ class PostfixCompletionProcessor {
 
   LineInfo get lineInfo => completionContext.lineInfo;
 
-  int get requestLine => lineInfo.getLocation(selectionOffset).lineNumber;
-
   int get selectionOffset => completionContext.selectionOffset;
 
   /**
@@ -320,6 +345,8 @@ class PostfixCompletionProcessor {
   CompilationUnitElement get unitElement => completionContext.unitElement;
 
   Future<PostfixCompletion> compute() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     node = _selectedNode();
     if (node == null) {
       return NO_COMPLETION;
@@ -331,6 +358,8 @@ class PostfixCompletionProcessor {
   Future<PostfixCompletion> expand(
       PostfixCompletionKind kind, Function contexter, Function sourcer,
       {bool withBraces: true}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AstNode expr = contexter();
     if (expr == null) {
       return null;
@@ -366,6 +395,8 @@ class PostfixCompletionProcessor {
   Future<PostfixCompletion> expandTry(
       PostfixCompletionKind kind, Function contexter,
       {bool withOn: false}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AstNode stmt = contexter();
     if (stmt == null) {
       return null;
@@ -420,7 +451,7 @@ class PostfixCompletionProcessor {
       if (boolExpr.parent is ExpressionFunctionBody &&
           boolExpr.parent.parent is FunctionExpression) {
         FunctionExpression fnExpr = boolExpr.parent.parent;
-        var type = fnExpr.bestType;
+        var type = fnExpr.staticType;
         if (type is! FunctionType) {
           return boolExpr;
         }
@@ -429,7 +460,7 @@ class PostfixCompletionProcessor {
           return fnExpr;
         }
       }
-      if (boolExpr.bestType == typeProvider.boolType) {
+      if (boolExpr.staticType == typeProvider.boolType) {
         return boolExpr;
       }
     }
@@ -470,6 +501,8 @@ class PostfixCompletionProcessor {
   }
 
   Future<bool> isApplicable() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     node = _selectedNode();
     if (node == null) {
       return false;
@@ -494,7 +527,7 @@ class PostfixCompletionProcessor {
     }
     if (astNode is ThrowExpression) {
       ThrowExpression expr = astNode;
-      var type = expr.expression.bestType;
+      var type = expr.expression.staticType;
       return type.displayName;
     }
     return 'Exception';
@@ -512,6 +545,10 @@ class PostfixCompletionProcessor {
   }
 
   Expression _findOuterExpression(AstNode start, InterfaceType builtInType) {
+    if (start is SimpleIdentifier && start.staticElement is PrefixElement) {
+      return null;
+    }
+
     AstNode parent;
     if (start is Expression) {
       parent = start;
@@ -521,13 +558,16 @@ class PostfixCompletionProcessor {
     if (parent == null) {
       return null;
     }
+
     var list = <Expression>[];
     while (parent is Expression) {
       list.add(parent);
       parent = parent.parent;
     }
+
     Expression expr = list.firstWhere((expr) {
-      DartType type = expr.bestType;
+      DartType type = expr.staticType;
+      if (type == null) return false;
       if (type.isSubtypeOf(builtInType)) return true;
       Element element = type.element;
       if (element is TypeDefiningElement) {

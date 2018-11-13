@@ -178,6 +178,92 @@ class Expect {
         "fails.");
   }
 
+  /**
+   * Finds equivalence classes of objects (by index) wrt. identity.
+   *
+   * Returns a list of lists of identical object indices per object.
+   * That is, `objects[i]` is identical to objects with indices in
+   * `_findEquivalences(objects)[i]`.
+   *
+   * Uses `null` for objects that are only identical to themselves.
+   */
+  static List<List<int>> _findEquivalences(List<Object> objects) {
+    var equivalences = new List<List<int>>(objects.length);
+    for (int i = 0; i < objects.length; i++) {
+      if (equivalences[i] != null) continue;
+      var o = objects[i];
+      for (int j = i + 1; j < objects.length; j++) {
+        if (equivalences[j] != null) continue;
+        if (_identical(o, objects[j])) {
+          equivalences[j] = (equivalences[i] ??= <int>[i])..add(j);
+        }
+      }
+    }
+    return equivalences;
+  }
+
+  static void _writeEquivalences(
+      List<Object> objects, List<List<int>> equivalences, StringBuffer buffer) {
+    var separator = "";
+    for (int i = 0; i < objects.length; i++) {
+      buffer.write(separator);
+      separator = ",";
+      var equivalence = equivalences[i];
+      if (equivalence == null) {
+        buffer.write('_');
+      } else {
+        int first = equivalence[0];
+        buffer..write('#')..write(first);
+        if (first == i) {
+          buffer..write('=')..write(objects[i]);
+        }
+      }
+    }
+  }
+
+  static void allIdentical(Iterable<Object> objects, [String reason]) {
+    if (objects.length <= 1) return;
+    String msg = _getMessage(reason);
+    var equivalences = _findEquivalences(objects);
+    var first = equivalences[0];
+    if (first != null && first.length == objects.length) return;
+    var buffer = new StringBuffer("Expect.allIdentical([");
+    _writeEquivalences(objects, equivalences, buffer);
+    buffer..write("]")..write(msg)..write(")");
+    _fail(buffer.toString());
+  }
+
+  /**
+   * Checks whether the expected and actual values are *not* identical
+   * (using `identical`).
+   */
+  static void notIdentical(var unexpected, var actual, [String reason = null]) {
+    if (!_identical(unexpected, actual)) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.notIdentical(expected and actual: <$actual>$msg) fails.");
+  }
+
+  /**
+   * Checks that no two [objects] are `identical`.
+   */
+  static void allDistinct(List<Object> objects, [String reason = null]) {
+    String msg = _getMessage(reason);
+    var equivalences = _findEquivalences(objects);
+
+    bool hasEquivalence = false;
+    for (int i = 0; i < equivalences.length; i++) {
+      if (equivalences[i] != null) {
+        hasEquivalence = true;
+        break;
+      }
+    }
+    if (!hasEquivalence) return;
+    var buffer = new StringBuffer("Expect.allDistinct([");
+    _writeEquivalences(objects, equivalences, buffer);
+    buffer..write("]")..write(msg)..write(")");
+    _fail(buffer.toString());
+  }
+
   // Unconditional failure.
   static void fail(String msg) {
     _fail("Expect.fail('$msg')");
@@ -241,7 +327,7 @@ class Expect {
   static void mapEquals(Map expected, Map actual, [String reason = null]) {
     String msg = _getMessage(reason);
 
-    // Make sure all of the values are present in both and match.
+    // Make sure all of the values are present in both, and they match.
     for (final key in expected.keys) {
       if (!actual.containsKey(key)) {
         _fail('Expect.mapEquals(missing expected key: <$key>$msg) fails');
@@ -429,29 +515,41 @@ class Expect {
   }
 
   /**
-   * Calls the function [f] and verifies that it throws an exception.
+   * Calls the function [f] and verifies that it throws a `T`.
    * The optional [check] function can provide additional validation
-   * that the correct exception is being thrown.  For example, to check
-   * the type of the exception you could write this:
+   * that the correct object is being thrown.  For example, to check
+   * the content of the thrown boject you could write this:
    *
-   *     Expect.throws(myThrowingFunction, (e) => e is MyException);
+   *     Expect.throws<MyException>(myThrowingFunction,
+   *          (e) => e.myMessage.contains("WARNING"));
+   *
+   * The type variable can be omitted and the type checked in [check]
+   * instead. This was traditionally done before Dart had generic methods.
+   *
+   * If `f` fails an expectation (i.e., throws an [ExpectException]), that
+   * exception is not caught by [Expect.throws]. The test is still considered
+   * failing.
    */
-  static void throws(void f(), [_CheckExceptionFn check, String reason]) {
+  static void throws<T>(void f(), [bool check(T error), String reason]) {
     String msg = reason == null ? "" : "($reason)";
-    if (f is! _Nullary) {
+    if (f is! Function()) {
       // Only throws from executing the function body should count as throwing.
       // The failure to even call `f` should throw outside the try/catch.
       _fail("Expect.throws$msg: Function f not callable with zero arguments");
     }
     try {
       f();
-    } catch (e, s) {
-      if (check != null) {
-        if (!check(e)) {
-          _fail("Expect.throws$msg: Unexpected '$e'\n$s");
-        }
+    } on Object catch (e, s) {
+      // A test failure doesn't count as throwing.
+      if (e is ExpectException) rethrow;
+      if (e is T && (check == null || check(e))) return;
+      // Throws something unexpected.
+      String type = "";
+      if (T != dynamic && T != Object) {
+        type = "<$T>";
       }
-      return;
+      _fail("Expect.throws$type$msg: "
+          "Unexpected '${Error.safeToString(e)}'\n$s");
     }
     _fail('Expect.throws$msg fails: Did not throw');
   }
@@ -506,6 +604,46 @@ class Expect {
     _fail("Test error: $message");
   }
 
+  /// Checks that [object] has type [T].
+  static void type<T>(Object object, [String reason]) {
+    if (object is T) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.type($object is $T$msg) fails "
+        "on ${Error.safeToString(object)}");
+  }
+
+  /// Checks that [object] does not have type [T].
+  static void notType<T>(Object object, [String reason]) {
+    if (object is! T) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.type($object is! $T$msg) fails"
+        "on ${Error.safeToString(object)}");
+  }
+
+  /// Checks that `Sub` is a subtype of `Super` at compile time and run time.
+  static bool subtype<Sub extends Super, Super>() {
+    List<Super> list = <Sub>[];
+    _subtypeAtRuntime<Sub, Super>();
+  }
+
+  /// Checks that `Sub` is a subtype of `Super` at run time.
+  ///
+  /// This is similar to [subtype] but without the `Sub extends Super` generic
+  /// constraint, so a compiler is less likely to optimize away the `is` check
+  /// because the types appear to be unrelated.
+  static bool _subtypeAtRuntime<Sub, Super>() {
+    if (<Sub>[] is! List<Super>) {
+      fail("$Sub is not a subtype of $Super");
+    }
+  }
+
+  /// Checks that `Sub` is not a subtype of `Super` at run time.
+  static bool notSubtype<Sub, Super>() {
+    if (<Sub>[] is List<Super>) {
+      fail("$Sub is a subtype of $Super");
+    }
+  }
+
   static String _getMessage(String reason) =>
       (reason == null) ? "" : ", '$reason'";
 
@@ -514,15 +652,16 @@ class Expect {
   }
 }
 
+/// Used in [Expect] because [Expect.identical] shadows the real [identical].
 bool _identical(a, b) => identical(a, b);
 
-typedef bool _CheckExceptionFn(exception);
-typedef _Nullary(); // Expect.throws argument must be this type.
-
+/// Exception thrown on a failed expectation check.
+///
+/// Always recognized by [Expect.throws] as an unexpected error.
 class ExpectException implements Exception {
+  final String message;
   ExpectException(this.message);
   String toString() => message;
-  String message;
 }
 
 /// Annotation class for testing of dart2js. Use this as metadata on method
@@ -567,12 +706,9 @@ final bool typeAssertionsEnabled = (() {
 
 /// Is true iff `assert` statements are enabled.
 final bool assertStatementsEnabled = (() {
-  try {
-    assert(false);
-  } on AssertionError {
-    return true;
-  }
-  return false;
+  bool result = false;
+  assert(result = true);
+  return result;
 })();
 
 /// Is true iff checked mode is enabled.

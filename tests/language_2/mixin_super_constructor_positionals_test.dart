@@ -8,7 +8,7 @@ class Base {
   int i, j;
   Base.ctor(
       int this.i,
-            [ //                 //# 01: compile-time error
+            [ //                 //# 01: ok
       int this.j
             ] //                 //# 01: continued
       );

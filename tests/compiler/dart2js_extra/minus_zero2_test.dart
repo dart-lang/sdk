@@ -12,7 +12,7 @@ void main() {
   var list = [1, 2, 3];
   if (new DateTime.now().millisecondsSinceEpoch == 42) list[1] = 4;
   int sum = 0;
-  for (int i = -0.0; i < list.length; i++) {
+  for (num i = -0.0; i < list.length; i++) {
     sum += list[i];
   }
   Expect.equals(6, sum);

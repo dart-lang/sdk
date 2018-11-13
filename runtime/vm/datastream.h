@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_DATASTREAM_H_
 #define RUNTIME_VM_DATASTREAM_H_
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
@@ -77,6 +78,12 @@ class ReadStream : public ValueObject {
   void SetPosition(intptr_t value) {
     ASSERT((end_ - buffer_) > value);
     current_ = buffer_ + value;
+  }
+
+  void Align(intptr_t alignment) {
+    intptr_t position_before = Position();
+    intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    Advance(position_after - position_before);
   }
 
   const uint8_t* AddressOfCurrentPosition() const { return current_; }
@@ -395,7 +402,7 @@ class WriteStream : public ValueObject {
     // Measure.
     va_list measure_args;
     va_copy(measure_args, args);
-    intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+    intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
     va_end(measure_args);
 
     // Alloc.
@@ -407,8 +414,8 @@ class WriteStream : public ValueObject {
     // Print.
     va_list print_args;
     va_copy(print_args, args);
-    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
-                 print_args);
+    Utils::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
+                    print_args);
     va_end(print_args);
     current_ += len;  // Not len + 1 to swallow the terminating NUL.
   }
@@ -460,6 +467,56 @@ class WriteStream : public ValueObject {
   intptr_t initial_size_;
 
   DISALLOW_COPY_AND_ASSIGN(WriteStream);
+};
+
+class StreamingWriteStream : public ValueObject {
+ public:
+  explicit StreamingWriteStream(intptr_t initial_capacity,
+                                Dart_StreamingWriteCallback callback,
+                                void* callback_data);
+  ~StreamingWriteStream();
+
+  intptr_t position() const { return flushed_size_ + (cursor_ - buffer_); }
+
+  void Align(intptr_t alignment) {
+    intptr_t padding = Utils::RoundUp(position(), alignment) - position();
+    EnsureAvailable(padding);
+    memset(cursor_, 0, padding);
+    cursor_ += padding;
+  }
+
+  void Print(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    VPrint(format, args);
+    va_end(args);
+  }
+  void VPrint(const char* format, va_list args);
+
+  void WriteBytes(const uint8_t* buffer, intptr_t size) {
+    EnsureAvailable(size);
+    memmove(cursor_, buffer, size);
+    cursor_ += size;
+  }
+
+ private:
+  void EnsureAvailable(intptr_t needed) {
+    intptr_t available = limit_ - cursor_;
+    if (available >= needed) return;
+    EnsureAvailableSlowPath(needed);
+  }
+
+  void EnsureAvailableSlowPath(intptr_t needed);
+  void Flush();
+
+  uint8_t* buffer_;
+  uint8_t* cursor_;
+  uint8_t* limit_;
+  intptr_t flushed_size_;
+  Dart_StreamingWriteCallback callback_;
+  void* callback_data_;
+
+  DISALLOW_COPY_AND_ASSIGN(StreamingWriteStream);
 };
 
 }  // namespace dart

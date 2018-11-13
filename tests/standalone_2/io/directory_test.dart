@@ -194,7 +194,6 @@ class DirectoryTest {
           if (++errors == 2) {
             d.delete(recursive: true).then((_) => asyncEnd());
           }
-          return true;
         }
 
         long.delete().catchError(onError);
@@ -359,8 +358,8 @@ class DirectoryTest {
     String template = 'dart_temp_dir';
     if (base.existsSync()) {
       asyncStart();
-      Future.wait([base.createTemp(template), base.createTemp(template)]).then(
-          (tempDirs) {
+      Future.wait([base.createTemp(template), base.createTemp(template)])
+          .then((tempDirs) {
         Expect.notEquals(tempDirs[0].path, tempDirs[1].path);
         for (Directory t in tempDirs) {
           Expect.isTrue(t.existsSync());

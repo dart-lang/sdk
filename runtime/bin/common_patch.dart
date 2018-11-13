@@ -23,7 +23,7 @@ import "dart:async"
 
 import "dart:collection" show HashMap;
 
-import "dart:convert" show Encoding;
+import "dart:convert" show Encoding, utf8;
 
 import "dart:developer" show registerExtension;
 
@@ -55,6 +55,7 @@ class _IOCrypto {
   static Uint8List getRandomBytes(int count) native "Crypto_GetRandomBytes";
 }
 
+@pragma("vm:entry-point")
 _setupHooks() {
   VMLibraryHooks.eventHandlerSendData = _EventHandler._sendData;
   VMLibraryHooks.timerMillisecondClock = _EventHandler._timerMillisecondClock;

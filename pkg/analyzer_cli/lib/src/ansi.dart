@@ -10,7 +10,7 @@ bool runningTests = false;
 bool terminalSupportsAnsi() {
   return !runningTests &&
       !Platform.isWindows &&
-      stdioType(stdout) == StdioType.TERMINAL;
+      stdioType(stdout) == StdioType.terminal;
 }
 
 class AnsiLogger {

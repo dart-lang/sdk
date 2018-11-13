@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetAvailableRefactoringsTest);
-    defineReflectiveTests(GetAvailableRefactoringsTest_PreviewDart2);
   });
 }
 
@@ -35,11 +34,4 @@ void foo() { }
             pathname, text.indexOf('foo('), 0);
     expect(result.kinds, isNotEmpty);
   }
-}
-
-@reflectiveTest
-class GetAvailableRefactoringsTest_PreviewDart2
-    extends GetAvailableRefactoringsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

@@ -1,9 +1,8 @@
 library;
 import self as self;
-import "dart:core" as core;
 
 static method main() → dynamic {
-  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/breaking_bad.dart:6:3: Error: No target of break.\n  break;\n  ^"));
+  invalid-expression "pkg/front_end/testcases/rasta/breaking_bad.dart:6:3: Error: No target of break.\n  break;\n  ^";
   #L1:
   break #L1;
 }

@@ -20,19 +20,21 @@ import "dart:collection" show HashMap;
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() = _ReceivePortImpl;
+  factory ReceivePort() => new _ReceivePortImpl();
 
   @patch
-  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) =
-      _ReceivePortImpl.fromRawReceivePort;
+  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
+    return new _ReceivePortImpl.fromRawReceivePort(rawPort);
+  }
 }
 
 @patch
 class Capability {
   @patch
-  factory Capability() = _CapabilityImpl;
+  factory Capability() => new _CapabilityImpl();
 }
 
+@pragma("vm:entry-point")
 class _CapabilityImpl implements Capability {
   factory _CapabilityImpl() native "CapabilityImpl_factory";
 
@@ -100,10 +102,12 @@ _ImmediateCallback _pendingImmediateCallback;
 /// The closure that should be used as scheduleImmediateClosure, when the VM
 /// is responsible for the event loop.
 void _isolateScheduleImmediate(void callback()) {
-  assert(_pendingImmediateCallback == null);
+  assert((_pendingImmediateCallback == null) ||
+      (_pendingImmediateCallback == callback));
   _pendingImmediateCallback = callback;
 }
 
+@pragma("vm:entry-point")
 void _runPendingImmediateCallback() {
   if (_pendingImmediateCallback != null) {
     var callback = _pendingImmediateCallback;
@@ -120,10 +124,12 @@ _ImmediateCallback _removePendingImmediateCallback() {
 
 /// The embedder can execute this function to get hold of
 /// [_isolateScheduleImmediate] above.
+@pragma("vm:entry-point")
 Function _getIsolateScheduleImmediateClosure() {
   return _isolateScheduleImmediate;
 }
 
+@pragma("vm:entry-point")
 class _RawReceivePortImpl implements RawReceivePort {
   factory _RawReceivePortImpl() native "RawReceivePortImpl_factory";
 
@@ -150,12 +156,14 @@ class _RawReceivePortImpl implements RawReceivePort {
   _get_sendport() native "RawReceivePortImpl_get_sendport";
 
   // Called from the VM to retrieve the handler for a message.
+  @pragma("vm:entry-point")
   static _lookupHandler(int id) {
     var result = _handlerMap[id];
     return result;
   }
 
   // Called from the VM to dispatch to the handler.
+  @pragma("vm:entry-point")
   static void _handleMessage(Function handler, var message) {
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
@@ -186,8 +194,10 @@ class _RawReceivePortImpl implements RawReceivePort {
   static final Map _handlerMap = _initHandlerMap();
 }
 
+@pragma("vm:entry-point")
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
+  @pragma("vm:entry-point")
   void send(var message) {
     _sendInternal(message);
   }
@@ -217,6 +227,7 @@ typedef _BinaryFunction(Null args, Null message);
  * initial message.  Defers execution of the entry point until the
  * isolate is in the message loop.
  */
+@pragma("vm:entry-point")
 void _startMainIsolate(Function entryPoint, List<String> args) {
   _startIsolate(
       null, // no parent port
@@ -232,6 +243,7 @@ void _startMainIsolate(Function entryPoint, List<String> args) {
  * Takes the real entry point as argument and invokes it with the initial
  * message.
  */
+@pragma("vm:entry-point")
 void _startIsolate(
     SendPort parentPort,
     Function entryPoint,
@@ -341,10 +353,8 @@ class Isolate {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
 
-      // We do not inherit the package root or package config settings
-      // from the parent isolate, instead we use the values that were
-      // set on the command line.
-      var packageRoot = VMLibraryHooks.packageRootString;
+      // We do not inherit the package config settings from the parent isolate,
+      // instead we use the values that were set on the command line.
       var packageConfig = VMLibraryHooks.packageConfigString;
       var script = VMLibraryHooks.platformScript;
       if (script == null) {
@@ -357,7 +367,7 @@ class Isolate {
       }
 
       _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
-          paused, errorsAreFatal, onExit, onError, packageRoot, packageConfig);
+          paused, errorsAreFatal, onExit, onError, null, packageConfig);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
@@ -417,11 +427,9 @@ class Isolate {
 
       // Ensure to resolve package: URIs being handed in as parameters.
       if (packageRoot != null) {
-        // Avoid calling resolvePackageUri if not stricly necessary in case
-        // the API is not supported.
-        if (packageRoot.scheme == "package") {
-          packageRoot = await Isolate.resolvePackageUri(packageRoot);
-        }
+        // `packages/` directory is no longer supported. Force it null.
+        // TODO(mfairhurst) Should this throw an exception?
+        packageRoot = null;
       } else if (packageConfig != null) {
         // Avoid calling resolvePackageUri if not strictly necessary in case
         // the API is not supported.

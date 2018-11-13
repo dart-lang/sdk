@@ -62,6 +62,33 @@ class _ClassMeaning extends _Meaning {
 }
 
 /**
+ * A node in computing exported namespaces.
+ */
+class _ExportNamespace {
+  static int nextId = 0;
+
+  /**
+   * The export namespace, full (with all exports included), or partial (with
+   * public namespace, and only some of the exports included).
+   */
+  final _Namespace namespace;
+
+  /**
+   * This field is set to non-zero when we start computing the export namespace
+   * for the corresponding library, and is set back to zero when we finish
+   * computation.
+   */
+  int id = 0;
+
+  /**
+   * Whether the [namespace] is full, so we don't need chasing exports.
+   */
+  bool isFull = false;
+
+  _ExportNamespace(this.namespace);
+}
+
+/**
  * A [_Meaning] stores all the information necessary to find the declaration
  * referred to by a name in a namespace.
  */
@@ -230,10 +257,43 @@ class _Prelinker {
    */
   final List<_Namespace> dependencyToPublicNamespace = <_Namespace>[];
 
+  /**
+   * Map from absolute URI of a library to its export namespace.
+   */
+  final Map<String, _ExportNamespace> exportNamespaces = {};
+
   _Prelinker(this.definingUnitUri, this.definingUnit, this.getPart,
       this.getImport, this.getDeclaredVariable) {
     partCache[definingUnitUri] = definingUnit;
     importCache[definingUnitUri] = definingUnit.publicNamespace;
+  }
+
+  void addClassToPrivateNamespace(int unitNum, UnlinkedClass cls) {
+    _Namespace namespace = new _Namespace();
+    cls.fields.forEach((field) {
+      if (field.isStatic && field.isConst) {
+        namespace.add(field.name,
+            new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0));
+      }
+    });
+    cls.executables.forEach((executable) {
+      ReferenceKind kind = null;
+      if (executable.kind == UnlinkedExecutableKind.constructor) {
+        kind = ReferenceKind.constructor;
+      } else if (executable.kind == UnlinkedExecutableKind.functionOrMethod &&
+          executable.isStatic) {
+        kind = ReferenceKind.method;
+      } else if (executable.kind == UnlinkedExecutableKind.getter &&
+          executable.isStatic) {
+        kind = ReferenceKind.propertyAccessor;
+      }
+      if (kind != null && executable.name.isNotEmpty) {
+        namespace.add(executable.name,
+            new _Meaning(unitNum, kind, 0, executable.typeParameters.length));
+      }
+    });
+    privateNamespace.add(cls.name,
+        new _ClassMeaning(unitNum, 0, cls.typeParameters.length, namespace));
   }
 
   /**
@@ -296,35 +356,76 @@ class _Prelinker {
    * information from the library and the transitive closure of its exports.
    */
   _Namespace computeExportNamespace(String absoluteUri) {
-    Set<String> seenUris = new Set<String>();
-    _Namespace chaseExports(String absoluteUri, NameFilter filter) {
-      _Namespace exportedNamespace = aggregatePublicNamespace(absoluteUri);
-      if (seenUris.add(absoluteUri)) {
-        UnlinkedPublicNamespace publicNamespace = getImportCached(absoluteUri);
-        if (publicNamespace != null) {
-          for (UnlinkedExportPublic export in publicNamespace.exports) {
-            String unlinkedExportUri =
-                _selectUri(export.uri, export.configurations);
-            String exportUri = resolveUri(absoluteUri, unlinkedExportUri);
-            if (exportUri != null) {
-              NameFilter newFilter = filter.merge(
-                  new NameFilter.forUnlinkedCombinators(export.combinators));
-              _Namespace exportNamespace = chaseExports(exportUri, newFilter);
-              exportNamespace.forEach((String name, _Meaning meaning) {
-                if (newFilter.accepts(name) &&
-                    !exportedNamespace.definesLibraryName(name)) {
-                  exportedNamespace.add(name, meaning);
-                }
-              });
+    int firstCycleIdOfLastCall = 0;
+    _Namespace chaseExports(String absoluteUri) {
+      _ExportNamespace exportNamespace = getExportNamespace(absoluteUri);
+
+      // If the export namespace is ready, return it.
+      if (exportNamespace.isFull) {
+        firstCycleIdOfLastCall = 0;
+        return exportNamespace.namespace;
+      }
+
+      // If we are computing the export namespace for this library, and we
+      // reached here, then we found a cycle.
+      if (exportNamespace.id != 0) {
+        firstCycleIdOfLastCall = exportNamespace.id;
+        return null;
+      }
+
+      // Give each library a unique identifier.
+      exportNamespace.id = _ExportNamespace.nextId++;
+
+      // Append from exports.
+      int firstCycleId = 0;
+      UnlinkedPublicNamespace publicNamespace = getImportCached(absoluteUri);
+      if (publicNamespace != null) {
+        for (UnlinkedExportPublic export in publicNamespace.exports) {
+          String unlinkedExportUri =
+              _selectUri(export.uri, export.configurations);
+          String exportUri = resolveUri(absoluteUri, unlinkedExportUri);
+          if (exportUri != null) {
+            NameFilter filter =
+                new NameFilter.forUnlinkedCombinators(export.combinators);
+            _Namespace exported = chaseExports(exportUri);
+            exported?.forEach((String name, _Meaning meaning) {
+              if (filter.accepts(name) &&
+                  !exportNamespace.namespace.definesLibraryName(name)) {
+                exportNamespace.namespace.add(name, meaning);
+              }
+            });
+            if (firstCycleIdOfLastCall != 0) {
+              if (firstCycleId == 0 || firstCycleId > firstCycleIdOfLastCall) {
+                firstCycleId = firstCycleIdOfLastCall;
+              }
             }
           }
         }
-        seenUris.remove(absoluteUri);
       }
-      return exportedNamespace;
+
+      // If this library is the first component of the cycle, then we are at
+      // the beginning of this cycle, and combination of partial export
+      // namespaces of other exported libraries and declarations of this
+      // library is the full export namespace of this library.
+      if (firstCycleId != 0 && firstCycleId == exportNamespace.id) {
+        firstCycleId = 0;
+      }
+
+      // We're done with this library, successfully or not.
+      exportNamespace.id = 0;
+
+      // If no cycle detected in exports, mark the export namespace as full.
+      if (firstCycleId == 0) {
+        exportNamespace.isFull = true;
+      }
+
+      // Return the full or partial result.
+      firstCycleIdOfLastCall = firstCycleId;
+      return exportNamespace.namespace;
     }
 
-    return chaseExports(absoluteUri, NameFilter.identity);
+    _ExportNamespace.nextId = 1;
+    return chaseExports(absoluteUri);
   }
 
   /**
@@ -334,31 +435,7 @@ class _Prelinker {
    */
   void extractPrivateNames(UnlinkedUnit unit, int unitNum) {
     for (UnlinkedClass cls in unit.classes) {
-      _Namespace namespace = new _Namespace();
-      cls.fields.forEach((field) {
-        if (field.isStatic && field.isConst) {
-          namespace.add(field.name,
-              new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0));
-        }
-      });
-      cls.executables.forEach((executable) {
-        ReferenceKind kind = null;
-        if (executable.kind == UnlinkedExecutableKind.constructor) {
-          kind = ReferenceKind.constructor;
-        } else if (executable.kind == UnlinkedExecutableKind.functionOrMethod &&
-            executable.isStatic) {
-          kind = ReferenceKind.method;
-        } else if (executable.kind == UnlinkedExecutableKind.getter &&
-            executable.isStatic) {
-          kind = ReferenceKind.propertyAccessor;
-        }
-        if (kind != null && executable.name.isNotEmpty) {
-          namespace.add(executable.name,
-              new _Meaning(unitNum, kind, 0, executable.typeParameters.length));
-        }
-      });
-      privateNamespace.add(cls.name,
-          new _ClassMeaning(unitNum, 0, cls.typeParameters.length, namespace));
+      addClassToPrivateNamespace(unitNum, cls);
     }
     for (UnlinkedEnum enm in unit.enums) {
       _Namespace namespace = new _Namespace();
@@ -381,6 +458,9 @@ class _Prelinker {
                   : ReferenceKind.topLevelPropertyAccessor,
               0,
               executable.typeParameters.length));
+    }
+    for (UnlinkedClass mixin in unit.mixins) {
+      addClassToPrivateNamespace(unitNum, mixin);
     }
     for (UnlinkedTypedef typedef in unit.typedefs) {
       ReferenceKind kind;
@@ -428,6 +508,21 @@ class _Prelinker {
         result.add(name, meaning);
       }
     });
+  }
+
+  /**
+   * Return the [_ExportNamespace] for the library with the given [absoluteUri].
+   * The export namespace might be full (will all exports included), or
+   * partial (with public namespace, and only some of the exports included).
+   */
+  _ExportNamespace getExportNamespace(String absoluteUri) {
+    _ExportNamespace exportNamespace = exportNamespaces[absoluteUri];
+    if (exportNamespace == null) {
+      _Namespace publicNamespace = aggregatePublicNamespace(absoluteUri);
+      exportNamespace = new _ExportNamespace(publicNamespace);
+      exportNamespaces[absoluteUri] = exportNamespace;
+    }
+    return exportNamespace;
   }
 
   /**

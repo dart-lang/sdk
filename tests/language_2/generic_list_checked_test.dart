@@ -6,6 +6,6 @@ import 'package:expect/expect.dart';
 
 main() {
   Expect.throws(() {
-    List<int> t = new List<String>();
+    List<int> t = (<String>[] as Object);
   });
 }

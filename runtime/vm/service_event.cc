@@ -33,8 +33,7 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       timestamp_(OS::GetCurrentTimeMillis()) {
   // We should never generate events for the vm or service isolates.
   ASSERT(isolate_ != Dart::vm_isolate());
-  ASSERT(isolate == NULL ||
-         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+  ASSERT(isolate == NULL || !Isolate::IsVMInternalIsolate(isolate));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {

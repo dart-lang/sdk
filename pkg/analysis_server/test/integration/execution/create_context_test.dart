@@ -10,7 +10,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateContextTest);
-    defineReflectiveTests(CreateContextTest_PreviewDart2);
   });
 }
 
@@ -22,10 +21,4 @@ class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
         (await sendExecutionCreateContext(sourceDirectory.path)).id;
     expect(contextId, isNotNull);
   }
-}
-
-@reflectiveTest
-class CreateContextTest_PreviewDart2 extends CreateContextTest {
-  @override
-  bool get usePreviewDart2 => true;
 }

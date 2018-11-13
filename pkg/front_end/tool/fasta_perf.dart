@@ -39,7 +39,7 @@ main(List<String> args) async {
   var bench = options.rest[0];
   var entryUri = Uri.base.resolve(options.rest[1]);
 
-  await setup(entryUri);
+  await setup(entryUri, strongMode: strongMode);
 
   Map<Uri, List<int>> files = await scanReachableFiles(entryUri);
   var handlers = {
@@ -79,7 +79,9 @@ Uri _computeRoot() {
   if (new Directory('runtime/lib/').existsSync()) {
     return Uri.base.resolve("sdk/");
   }
-  return Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
+  return Uri.base
+      .resolveUri(new Uri.file(Platform.resolvedExecutable))
+      .resolve('patched_sdk/');
 }
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
@@ -87,15 +89,16 @@ UriTranslator uriResolver;
 
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
-Future setup(Uri entryUri) async {
+Future setup(Uri entryUri, {bool strongMode: false}) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     // Because this is only used to create a uriResolver, we don't allow any
     // whitelisting of error messages in the error handler.
-    ..onError = onErrorHandler(false)
+    ..onDiagnostic = onDiagnosticMessageHandler(false)
     ..compileSdk = true
-    ..packagesFileUri = Uri.base.resolve('.packages');
-  uriResolver = await new ProcessedOptions(options).getUriTranslator();
+    ..packagesFileUri = Uri.base.resolve('.packages')
+    ..target = createTarget(isFlutter: false, strongMode: strongMode);
+  uriResolver = await new ProcessedOptions(options: options).getUriTranslator();
 }
 
 /// Scan [contents] and return the first token produced by the scanner.
@@ -210,7 +213,7 @@ parseFull(Uri uri, List<int> source) {
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri) : super(null, null, null, null, true, uri);
+  _PartialAstBuilder(Uri uri) : super(null, null, true, uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override
@@ -227,11 +230,9 @@ generateKernel(Uri entryUri,
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..reportMessages = true
-    ..onError = onErrorHandler(strongMode)
-    ..strongMode = strongMode
+    ..onDiagnostic = onDiagnosticMessageHandler(strongMode)
+    ..legacyMode = !strongMode
     ..target = createTarget(isFlutter: false, strongMode: strongMode)
-    ..chaseDependencies = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
   if (!compileSdk) {
@@ -241,23 +242,7 @@ generateKernel(Uri entryUri,
     options.sdkSummary = sdkRoot.resolve('outline.dill');
   }
 
-  var entrypoints = [
-    entryUri,
-    // These extra libraries are added to match the same set of libraries
-    // scanned by default by the VM and the other benchmarks.
-    Uri.parse('dart:async'),
-    Uri.parse('dart:collection'),
-    Uri.parse('dart:convert'),
-    Uri.parse('dart:core'),
-    Uri.parse('dart:developer'),
-    Uri.parse('dart:_internal'),
-    Uri.parse('dart:io'),
-    Uri.parse('dart:isolate'),
-    Uri.parse('dart:math'),
-    Uri.parse('dart:mirrors'),
-    Uri.parse('dart:typed_data'),
-  ];
-  var program = await kernelForBuildUnit(entrypoints, options);
+  var program = await kernelForComponent([entryUri], options);
 
   timer.stop();
   var name = 'kernel_gen_e2e${compileSdk ? "" : "_sum"}';

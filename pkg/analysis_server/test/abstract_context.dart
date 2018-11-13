@@ -9,18 +9,22 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
 import 'mock_sdk.dart';
+import 'src/utilities/flutter_util.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -44,20 +48,30 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
  */
 typedef void _ElementVisitorFunction(Element element);
 
-class AbstractContextTest {
-  MemoryResourceProvider provider;
+class AbstractContextTest extends Object with ResourceProviderMixin {
   DartSdk sdk;
   Map<String, List<Folder>> packageMap;
   UriResolver resourceResolver;
 
   StringBuffer _logBuffer = new StringBuffer();
-  FileContentOverlay _fileContentOverlay = new FileContentOverlay();
+  FileContentOverlay fileContentOverlay = new FileContentOverlay();
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
 
+  void addFlutterPackage() {
+    addMetaPackageSource();
+    Folder libFolder = configureFlutterPackage(resourceProvider);
+    packageMap['flutter'] = [libFolder];
+    configureDriver();
+  }
+
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;
+
+const _IsTest isTest = const _IsTest();
+
+const _IsTestGroup isTestGroup = const _IsTestGroup();
 
 const Required required = const Required();
 
@@ -65,31 +79,46 @@ class Required {
   final String reason;
   const Required([this.reason]);
 }
+
+class _IsTest {
+  const _IsTest();
+}
+
+class _IsTestGroup {
+  const _IsTestGroup();
+}
 ''');
 
   Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [(newFolder('/pubcache/$packageName/lib'))];
-    File file = newFile('/pubcache/$packageName/lib/$filePath', content);
+    packageMap[packageName] = [newFolder('/pubcache/$packageName/lib')];
+    File file =
+        newFile('/pubcache/$packageName/lib/$filePath', content: content);
+    configureDriver();
     return file.createSource();
   }
 
   Source addSource(String path, String content, [Uri uri]) {
-    if (path.startsWith('/')) {
-      path = provider.convertPath(path);
-    }
-    File file = newFile(path, content);
+    File file = newFile(path, content: content);
     Source source = file.createSource(uri);
-    driver.addFile(path);
-    driver.changeFile(path);
-    _fileContentOverlay[path] = content;
+    driver.addFile(file.path);
+    driver.changeFile(file.path);
+    fileContentOverlay[file.path] = content;
     return source;
   }
 
-  File newFile(String path, [String content]) =>
-      provider.newFile(provider.convertPath(path), content ?? '');
+  /**
+   * Re-configure the driver. This is necessary, for example, after defining a
+   * new package that test code will reference.
+   */
+  void configureDriver() {
+    driver.configure();
+  }
 
-  Folder newFolder(String path) =>
-      provider.newFolder(provider.convertPath(path));
+  void configurePreviewDart2() {
+    driver.configure(
+        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
+          ..previewDart2 = true);
+  }
 
   void processRequiredPlugins() {
     AnalysisEngine.instance.processRequiredPlugins();
@@ -102,11 +131,11 @@ class Required {
   void setUp() {
     processRequiredPlugins();
     setupResourceProvider();
-    sdk = new MockSdk(resourceProvider: provider);
-    resourceResolver = new ResourceUriResolver(provider);
+    sdk = new MockSdk(resourceProvider: resourceProvider);
+    resourceResolver = new ResourceUriResolver(resourceProvider);
     packageMap = new Map<String, List<Folder>>();
     PackageMapUriResolver packageResolver =
-        new PackageMapUriResolver(provider, packageMap);
+        new PackageMapUriResolver(resourceProvider, packageMap);
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), packageResolver, resourceResolver]);
     PerformanceLog log = new PerformanceLog(_logBuffer);
@@ -114,22 +143,20 @@ class Required {
     _driver = new AnalysisDriver(
         scheduler,
         log,
-        provider,
+        resourceProvider,
         new MemoryByteStore(),
-        _fileContentOverlay,
-        null,
+        fileContentOverlay,
+        new ContextRoot(resourceProvider.convertPath('/project'), [],
+            pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl()..strongMode = true);
+        new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }
 
-  void setupResourceProvider() {
-    provider = new MemoryResourceProvider();
-  }
+  void setupResourceProvider() {}
 
   void tearDown() {
-    provider = null;
     AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
   }

@@ -34,7 +34,7 @@ part of dart.async;
 /// means that `FutureOr<Object>` is equivalent to `Object`.
 ///
 /// As a corollary, `FutureOr<Object>` is equivalent to
-/// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>> is equivalent to
+/// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>>` is equivalent to
 /// `Future<Object>`.
 abstract class FutureOr<T> {
   // Private generative constructor, so that it is not subclassable, mixable, or
@@ -148,10 +148,12 @@ abstract class FutureOr<T> {
  */
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
-  static final _Future<Null> _nullFuture = new _Future<Null>.value(null);
+  static final _Future<Null> _nullFuture =
+      new _Future<Null>.zoneValue(null, Zone.root);
 
   /// A `Future<bool>` completed with `false`.
-  static final _Future<bool> _falseFuture = new _Future<bool>.value(false);
+  static final _Future<bool> _falseFuture =
+      new _Future<bool>.zoneValue(false, Zone.root);
 
   /**
    * Creates a future containing the result of calling [computation]
@@ -287,7 +289,11 @@ abstract class Future<T> {
    * Creates a future that runs its computation after a delay.
    *
    * The [computation] will be executed after the given [duration] has passed,
-   * and the future is completed with the result of the computation,
+   * and the future is completed with the result of the computation.
+   *
+   * If [computation] returns a future,
+   * the future returned by this constructor will complete with the value or
+   * error of that future.
    *
    * If the duration is 0 or less,
    * it completes no sooner than in the next event-loop iteration,
@@ -306,10 +312,14 @@ abstract class Future<T> {
   factory Future.delayed(Duration duration, [FutureOr<T> computation()]) {
     _Future<T> result = new _Future<T>();
     new Timer(duration, () {
-      try {
-        result._complete(computation?.call());
-      } catch (e, s) {
-        _completeWithErrorCallback(result, e, s);
+      if (computation == null) {
+        result._complete(null);
+      } else {
+        try {
+          result._complete(computation());
+        } catch (e, s) {
+          _completeWithErrorCallback(result, e, s);
+        }
       }
     });
     return result;
@@ -319,11 +329,12 @@ abstract class Future<T> {
    * Waits for multiple futures to complete and collects their results.
    *
    * Returns a future which will complete once all the provided futures
-   * have completed, either with their results, or with an error if either
+   * have completed, either with their results, or with an error if any
    * of the provided futures fail.
    *
    * The value of the returned future will be a list of all the values that
-   * were produced.
+   * were produced in the order that the futures are provided by iterating
+   * [futures].
    *
    * If any future completes with an error,
    * then the returned future completes with that error.
@@ -514,7 +525,7 @@ abstract class Future<T> {
    */
   static Future doWhile(FutureOr<bool> action()) {
     _Future doneSignal = new _Future();
-    var nextIteration;
+    void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
     // This avoids, e.g., deeply nested stack traces from the stack trace
@@ -552,10 +563,14 @@ abstract class Future<T> {
    *
    * If [onError] is provided, and this future completes with an error,
    * the `onError` callback is called with that error and its stack trace.
-   * The `onError` callback must accept either one argument or two arguments.
+   * The `onError` callback must accept either one argument or two arguments
+   * where the latter is a [StackTrace].
    * If `onError` accepts two arguments,
    * it is called with both the error and the stack trace,
    * otherwise it is called with just the error object.
+   * The `onError` callback must return a value or future that can be used
+   * to complete the returned future, so it must be something assignable to
+   * `FutureOr<R>`.
    *
    * Returns a new [Future]
    * which is completed with the result of the call to `onValue`
@@ -586,7 +601,7 @@ abstract class Future<T> {
    * has completed with an error then the error is reported as unhandled error.
    * See the description on [Future].
    */
-  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError});
+  Future<R> then<R>(FutureOr<R> onValue(T value), {Function onError});
 
   /**
    * Handles errors emitted by this [Future].

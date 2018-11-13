@@ -30,8 +30,10 @@ void test(Future<Process> future, int expectedExitCode) {
 
     void readData(List<int> data) {
       buffer.addAll(data);
-      for (int i = received; i < min(data.length, buffer.length) - 1; i++) {
-        Expect.equals(data[i], buffer[i]);
+      for (int i = received;
+          i < min(input_data.length, buffer.length) - 1;
+          i++) {
+        Expect.equals(input_data[i], buffer[i]);
       }
       received = buffer.length;
       if (received >= input_dataSize) {

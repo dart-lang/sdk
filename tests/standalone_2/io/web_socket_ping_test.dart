@@ -24,9 +24,9 @@ void testPing(int totalConnections) {
     int closed = 0;
     server.listen((request) {
       var response = request.response;
-      response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
-      response.headers.set(HttpHeaders.CONNECTION, "upgrade");
-      response.headers.set(HttpHeaders.UPGRADE, "websocket");
+      response.statusCode = HttpStatus.switchingProtocols;
+      response.headers.set(HttpHeaders.connectionHeader, "upgrade");
+      response.headers.set(HttpHeaders.upgradeHeader, "websocket");
       String key = request.headers.value("Sec-WebSocket-Key");
       _SHA1 sha1 = new _SHA1();
       sha1.add("$key$webSocketGUID".codeUnits);

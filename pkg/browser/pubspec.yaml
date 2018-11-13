@@ -1,8 +1,0 @@
-name: browser
-version: 0.10.1
-author: "Dart Team <misc@dartlang.org>"
-homepage: http://www.dartlang.org
-description: >
- The bootstrap dart.js script for Dart apps running in the browser.
-environment:
-  sdk: ">=1.3.0-dev.4.1 <2.0.0"

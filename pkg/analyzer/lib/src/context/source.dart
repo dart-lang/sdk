@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.source;
-
 import 'dart:collection';
 import 'dart:math' show min;
 
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:package_config/packages.dart';
 
 /**
@@ -85,11 +84,11 @@ class SourceFactoryImpl implements SourceFactory {
     // Start by looking in .packages.
     if (_packages != null) {
       Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+      var pathContext = _resourceProvider.pathContext;
       _packages.asMap().forEach((String name, Uri uri) {
         if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-          packageMap[name] = <Folder>[
-            _resourceProvider.getFolder(uri.toFilePath())
-          ];
+          String path = fileUriToNormalizedPath(pathContext, uri);
+          packageMap[name] = <Folder>[_resourceProvider.getFolder(path)];
         }
       });
       return packageMap;
@@ -173,16 +172,18 @@ class SourceFactoryImpl implements SourceFactory {
 
   @override
   Uri restoreUri(Source source) {
-    // First see if a resolver can restore the URI.
     for (UriResolver resolver in resolvers) {
+      // First see if a resolver can restore the URI.
       Uri uri = resolver.restoreAbsolute(source);
+
       if (uri != null) {
-        // Now see if there's a package mapping.
+        // See if there's a package mapping.
         Uri packageMappedUri = _getPackageMapping(uri);
         if (packageMappedUri != null) {
           return packageMappedUri;
         }
-        // Fall back to the resolver's computed URI.
+
+        // Else fall back to the resolver's computed URI.
         return uri;
       }
     }
@@ -194,22 +195,25 @@ class SourceFactoryImpl implements SourceFactory {
     if (_packages == null) {
       return null;
     }
+
     if (sourceUri.scheme != 'file') {
-      //TODO(pquitslund): verify this works for non-file URIs.
+      // TODO(pquitslund): verify this works for non-file URIs.
       return null;
     }
 
-    Uri packageUri;
-    _packages.asMap().forEach((String name, Uri uri) {
-      if (packageUri == null) {
-        if (utils.startsWith(sourceUri, uri)) {
-          String relativePath = sourceUri.path
-              .substring(min(uri.path.length, sourceUri.path.length));
-          packageUri = Uri.parse('package:$name/$relativePath');
-        }
+    Map<String, Uri> packagesMap = _packages.asMap();
+
+    for (String name in packagesMap.keys) {
+      final Uri uri = packagesMap[name];
+
+      if (utils.startsWith(sourceUri, uri)) {
+        String relativePath = sourceUri.path
+            .substring(min(uri.path.length, sourceUri.path.length));
+        return new Uri(scheme: 'package', path: '$name/$relativePath');
       }
-    });
-    return packageUri;
+    }
+
+    return null;
   }
 
   /**

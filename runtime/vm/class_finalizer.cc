@@ -4,9 +4,10 @@
 
 #include "vm/class_finalizer.h"
 
+#include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
@@ -17,6 +18,7 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/type_table.h"
+#include "vm/type_testing_stubs.h"
 
 namespace dart {
 
@@ -92,6 +94,60 @@ static void CollectFinalizedSuperClasses(
     }
   }
 }
+
+class InterfaceFinder {
+ public:
+  InterfaceFinder(Zone* zone,
+                  ClassTable* class_table,
+                  GrowableArray<intptr_t>* cids)
+      : class_table_(class_table),
+        array_handles_(zone),
+        class_handles_(zone),
+        type_handles_(zone),
+        cids_(cids) {}
+
+  void FindAllInterfaces(const Class& klass) {
+    // The class is implementing it's own interface.
+    cids_->Add(klass.id());
+
+    ScopedHandle<Array> array(&array_handles_);
+    ScopedHandle<Class> interface_class(&class_handles_);
+    ScopedHandle<Class> current_class(&class_handles_);
+    ScopedHandle<AbstractType> type(&type_handles_);
+
+    *current_class = klass.raw();
+    while (true) {
+      // We don't care about top types.
+      const intptr_t cid = current_class->id();
+      if (cid == kObjectCid || cid == kDynamicCid || cid == kVoidCid) {
+        break;
+      }
+
+      // The class is implementing it's directly declared implemented
+      // interfaces.
+      *array = klass.interfaces();
+      if (!array->IsNull()) {
+        for (intptr_t i = 0; i < array->Length(); ++i) {
+          *type ^= array->At(i);
+          *interface_class ^= class_table_->At(type->type_class_id());
+          FindAllInterfaces(*interface_class);
+        }
+      }
+
+      // The class is implementing it's super type's interfaces.
+      *type = current_class->super_type();
+      if (type->IsNull()) break;
+      *current_class = class_table_->At(type->type_class_id());
+    }
+  }
+
+ private:
+  ClassTable* class_table_;
+  ReusableHandleStack<Array> array_handles_;
+  ReusableHandleStack<Class> class_handles_;
+  ReusableHandleStack<AbstractType> type_handles_;
+  GrowableArray<intptr_t>* cids_;
+};
 
 static void CollectImmediateSuperInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* cids) {
@@ -188,7 +244,7 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
-    OS::Print("VerifyBootstrapClasses START.\n");
+    OS::PrintErr("VerifyBootstrapClasses START.\n");
   }
   ObjectStore* object_store = Isolate::Current()->object_store();
 
@@ -247,7 +303,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
     OS::Exit(255);
   }
   if (FLAG_trace_class_finalization) {
-    OS::Print("VerifyBootstrapClasses END.\n");
+    OS::PrintErr("VerifyBootstrapClasses END.\n");
   }
   Isolate::Current()->heap()->Verify();
 }
@@ -393,23 +449,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (Isolate::Current()->error_on_bad_override()) {
-    // Verify that the target is compatible with the redirecting factory.
-    Error& error = Error::Handle();
-    if (!target.HasCompatibleParametersWith(factory, &error)) {
-      const Script& script = Script::Handle(target_class.script());
-      type = NewFinalizedMalformedType(
-          error, script, target.token_pos(),
-          "constructor '%s' has incompatible parameters with "
-          "redirecting factory '%s'",
-          String::Handle(target.name()).ToCString(),
-          String::Handle(factory.name()).ToCString());
-      factory.SetRedirectionType(type);
-      ASSERT(factory.RedirectionTarget() == Function::null());
-      return;
-    }
-  }
-
   // Verify that the target is const if the redirecting factory is const.
   if (factory.is_const() && !target.is_const()) {
     ReportError(target_class, target.token_pos(),
@@ -507,7 +546,7 @@ void ClassFinalizer::ResolveTypeClass(const Class& cls, const Type& type) {
          (type.signature() != Function::null()));
 
   // In non-strong mode, replace FutureOr<T> type of async library with dynamic.
-  if (type_class.IsFutureOrClass() && !Isolate::Current()->strong()) {
+  if (type_class.IsFutureOrClass() && !FLAG_strong) {
     Type::Cast(type).set_type_class(Class::Handle(Object::dynamic_class()));
     type.set_arguments(Object::null_type_arguments());
   }
@@ -587,6 +626,10 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
       }
     }
   }
+
+  // After resolving, we re-initialize the type testing stub.
+  type.SetTypeTestingStub(
+      Instructions::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
 }
 
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
@@ -638,7 +681,13 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
   const TypeArguments& arguments =
       TypeArguments::Handle(zone, type.arguments());
   // A type can only be recursive via its type arguments.
-  ASSERT(!arguments.IsNull());
+  if (arguments.IsNull()) {
+    // However, Kernel does not keep the relation between a function type and
+    // its declaring typedef. Therefore, a typedef-declared function type may
+    // refer to the still unfinalized typedef via a type in its signature.
+    ASSERT(type.IsFunctionType());
+    return;
+  }
   const intptr_t num_type_args = arguments.Length();
   ASSERT(num_type_args > 0);
   ASSERT(num_type_args == type_cls.NumTypeArguments());
@@ -1099,7 +1148,7 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
     }
   }
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
-  if (!super_type.IsNull()) {
+  if (!super_type.IsNull() && !super_type.IsBeingFinalized()) {
     const Class& super_class = Class::Handle(super_type.type_class());
     CheckTypeArgumentBounds(super_class, arguments, bound_error);
   }
@@ -1159,7 +1208,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     // malformed.
     if ((finalization >= kCanonicalize) && !type.IsMalformed() &&
         !type.IsCanonical() && type.IsType()) {
-      CheckTypeBounds(cls, type);
+      if (!FLAG_strong) {
+        CheckTypeBounds(cls, type);
+      }
       return type.Canonicalize();
     }
     return type.raw();
@@ -1301,7 +1352,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
 
   // If we are done finalizing a graph of mutually recursive types, check their
   // bounds.
-  if (is_root_type) {
+  if (is_root_type && !FLAG_strong) {
     for (intptr_t i = pending_types->length() - 1; i >= 0; i--) {
       const AbstractType& type = pending_types->At(i);
       if (!type.IsMalformed() && !type.IsCanonical()) {
@@ -1416,50 +1467,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   }
 }
 
-// Check if an instance field, getter, or method of same name exists
-// in any super class.
-static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
-                                                const String& name,
-                                                const String& getter_name) {
-  Class& super_class = Class::Handle();
-  Function& function = Function::Handle();
-  Field& field = Field::Handle();
-  super_class = cls.SuperClass();
-  while (!super_class.IsNull()) {
-    function = super_class.LookupFunction(name);
-    if (!function.IsNull() && !function.is_static()) {
-      return super_class.raw();
-    }
-    function = super_class.LookupFunction(getter_name);
-    if (!function.IsNull() && !function.is_static()) {
-      return super_class.raw();
-    }
-    field = super_class.LookupField(name);
-    if (!field.IsNull() && !field.is_static()) {
-      return super_class.raw();
-    }
-    super_class = super_class.SuperClass();
-  }
-  return Class::null();
-}
-
-// Check if an instance method of same name exists in any super class.
-static RawClass* FindSuperOwnerOfFunction(const Class& cls,
-                                          const String& name) {
-  Class& super_class = Class::Handle();
-  Function& function = Function::Handle();
-  super_class = cls.SuperClass();
-  while (!super_class.IsNull()) {
-    function = super_class.LookupFunction(name);
-    if (!function.IsNull() && !function.is_static() &&
-        !function.IsMethodExtractor()) {
-      return super_class.raw();
-    }
-    super_class = super_class.SuperClass();
-  }
-  return Class::null();
-}
-
 // Resolve the upper bounds of the type parameters of class cls.
 void ClassFinalizer::ResolveUpperBounds(const Class& cls) {
   const intptr_t num_type_params = cls.NumTypeParameters();
@@ -1513,13 +1520,31 @@ void ClassFinalizer::FinalizeUpperBounds(const Class& cls,
   }
 }
 
+#if defined(TARGET_ARCH_X64)
+static bool IsPotentialExactGeneric(const AbstractType& type) {
+  // TODO(dartbug.com/34170) Investigate supporting this for fields with types
+  // that depend on type parameters of the enclosing class.
+  if (type.IsType() && !type.IsFunctionType() && !type.IsDartFunctionType() &&
+      type.IsInstantiated()) {
+    const Class& cls = Class::Handle(type.type_class());
+    return cls.IsGeneric() && !cls.IsFutureOrClass();
+  }
+
+  return false;
+}
+#else
+// TODO(dartbug.com/34170) Support other architectures.
+static bool IsPotentialExactGeneric(const AbstractType& type) {
+  return false;
+}
+#endif
+
 void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // Note that getters and setters are explicitly listed as such in the list of
   // functions of a class, so we do not need to consider fields as implicitly
   // generating getters and setters.
   // Most overriding conflicts are only static warnings, i.e. they are not
-  // reported as compile-time errors by the vm. However, signature conflicts in
-  // overrides can be reported if the flag --error_on_bad_override is specified.
+  // reported as compile-time errors by the vm.
   // Static warning examples are:
   // - a static getter 'v' conflicting with an inherited instance setter 'v='.
   // - a static setter 'v=' conflicting with an inherited instance member 'v'.
@@ -1535,201 +1560,35 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   //   instance method.
 
   // Resolve type of fields and check for conflicts in super classes.
+  Isolate* isolate = Isolate::Current();
   Zone* zone = Thread::Current()->zone();
   Array& array = Array::Handle(zone, cls.fields());
   Field& field = Field::Handle(zone);
   AbstractType& type = AbstractType::Handle(zone);
-  String& name = String::Handle(zone);
-  String& getter_name = String::Handle(zone);
-  String& setter_name = String::Handle(zone);
-  Class& super_class = Class::Handle(zone);
   const intptr_t num_fields = array.Length();
+  const bool track_exactness = FLAG_strong && isolate->use_field_guards();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
     type = FinalizeType(cls, type);
     field.SetFieldType(type);
-    name = field.name();
-    if (field.is_static()) {
-      getter_name = Field::GetterSymbol(name);
-      super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, field.token_pos(),
-                    "static field '%s' of class '%s' conflicts with "
-                    "instance member '%s' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-      // An implicit setter is not generated for a static field, therefore, we
-      // cannot rely on the code below handling the static setter case to report
-      // a conflict with an instance setter. So we check explicitly here.
-      setter_name = Field::SetterSymbol(name);
-      super_class = FindSuperOwnerOfFunction(cls, setter_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, field.token_pos(),
-                    "static field '%s' of class '%s' conflicts with "
-                    "instance setter '%s=' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-
-    } else {
-      // Instance field. Check whether the field overrides a method
-      // (but not getter).
-      super_class = FindSuperOwnerOfFunction(cls, name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, field.token_pos(),
-                    "field '%s' of class '%s' conflicts with method '%s' "
-                    "of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-    }
-    if (field.is_static() && (field.StaticValue() != Object::null()) &&
-        (field.StaticValue() != Object::sentinel().raw())) {
-      // The parser does not preset the value if the type is a type parameter or
-      // is parameterized unless the value is null.
-      Error& error = Error::Handle(zone);
-      if (type.IsMalformedOrMalbounded()) {
-        error = type.error();
-      } else {
-        ASSERT(type.IsInstantiated());
-      }
-      const Instance& const_value = Instance::Handle(zone, field.StaticValue());
-      if (!error.IsNull() ||
-          (!type.IsDynamicType() &&
-           !const_value.IsInstanceOf(type, Object::null_type_arguments(),
-                                     Object::null_type_arguments(), &error))) {
-        if (Isolate::Current()->error_on_bad_type()) {
-          const AbstractType& const_value_type =
-              AbstractType::Handle(zone, const_value.GetType(Heap::kNew));
-          const String& const_value_type_name =
-              String::Handle(zone, const_value_type.UserVisibleName());
-          const String& type_name =
-              String::Handle(zone, type.UserVisibleName());
-          ReportErrors(error, cls, field.token_pos(),
-                       "error initializing static %s field '%s': "
-                       "type '%s' is not a subtype of type '%s'",
-                       field.is_const() ? "const" : "final", name.ToCString(),
-                       const_value_type_name.ToCString(),
-                       type_name.ToCString());
-        } else {
-          // Do not report an error yet, even in checked mode, since the field
-          // may not actually be used.
-          // Also, we may be generating a snapshot in production mode that will
-          // later be executed in checked mode, in which case an error needs to
-          // be reported, should the field be accessed.
-          // Therefore, we undo the optimization performed by the parser, i.e.
-          // we create an implicit static final getter and reset the field value
-          // to the sentinel value.
-          const Function& getter = Function::Handle(
-              zone, Function::New(
-                        getter_name, RawFunction::kImplicitStaticFinalGetter,
-                        /* is_static = */ true,
-                        /* is_const = */ field.is_const(),
-                        /* is_abstract = */ false,
-                        /* is_external = */ false,
-                        /* is_native = */ false, cls, field.token_pos()));
-          getter.set_result_type(type);
-          getter.set_is_debuggable(false);
-          getter.set_kernel_offset(field.kernel_offset());
-          cls.AddFunction(getter);
-          field.SetStaticValue(Object::sentinel(), true);
-        }
-      }
-    }
-  }
-  // If we check for bad overrides, collect interfaces, super interfaces, and
-  // super classes of this class.
-  GrowableArray<const Class*> interfaces(zone, 4);
-  if (Isolate::Current()->error_on_bad_override()) {
-    CollectInterfaces(cls, &interfaces);
-    // Include superclasses in list of interfaces and super interfaces.
-    super_class = cls.SuperClass();
-    while (!super_class.IsNull()) {
-      interfaces.Add(&Class::ZoneHandle(zone, super_class.raw()));
-      CollectInterfaces(super_class, &interfaces);
-      super_class = super_class.SuperClass();
+    if (track_exactness && IsPotentialExactGeneric(type)) {
+      field.set_static_type_exactness_state(
+          StaticTypeExactnessState::Unitialized());
     }
   }
   // Resolve function signatures and check for conflicts in super classes and
   // interfaces.
   array = cls.functions();
   Function& function = Function::Handle(zone);
-  Function& overridden_function = Function::Handle(zone);
   const intptr_t num_functions = array.Length();
-  Error& error = Error::Handle(zone);
   for (intptr_t i = 0; i < num_functions; i++) {
     function ^= array.At(i);
     FinalizeSignature(cls, function);
-    name = function.name();
-    // Report signature conflicts only.
-    if (Isolate::Current()->error_on_bad_override() && !function.is_static() &&
-        !function.IsGenerativeConstructor()) {
-      // A constructor cannot override anything.
-      for (intptr_t i = 0; i < interfaces.length(); i++) {
-        const Class* interface = interfaces.At(i);
-        // All interfaces should have been finalized since override checks
-        // rely on all interface members to be finalized.
-        ASSERT(interface->is_finalized());
-        overridden_function = interface->LookupDynamicFunction(name);
-        if (!overridden_function.IsNull() &&
-            !function.HasCompatibleParametersWith(overridden_function,
-                                                  &error)) {
-          const String& class_name = String::Handle(zone, cls.Name());
-          const String& interface_name =
-              String::Handle(zone, interface->Name());
-          ReportErrors(error, cls, function.token_pos(),
-                       "class '%s' overrides method '%s' of super class or "
-                       "interface '%s' with incompatible parameters",
-                       class_name.ToCString(), name.ToCString(),
-                       interface_name.ToCString());
-        }
-      }
-    }
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
-      if (function.is_static()) {
-        super_class = FindSuperOwnerOfFunction(cls, name);
-        if (!super_class.IsNull()) {
-          const String& class_name = String::Handle(zone, cls.Name());
-          const String& super_cls_name =
-              String::Handle(zone, super_class.Name());
-          ReportError(cls, function.token_pos(),
-                      "static setter '%s=' of class '%s' conflicts with "
-                      "instance setter '%s=' of super class '%s'",
-                      name.ToCString(), class_name.ToCString(),
-                      name.ToCString(), super_cls_name.ToCString());
-        }
-      }
       continue;
     }
-    if (function.IsGetterFunction() || function.IsImplicitGetterFunction()) {
-      getter_name = name.raw();
-      name = Field::NameFromGetter(getter_name);
-    } else {
-      getter_name = Field::GetterSymbol(name);
-    }
     if (function.is_static()) {
-      super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(
-            cls, function.token_pos(),
-            "static %s '%s' of class '%s' conflicts with "
-            "instance member '%s' of super class '%s'",
-            (function.IsGetterFunction() || function.IsImplicitGetterFunction())
-                ? "getter"
-                : "method",
-            name.ToCString(), class_name.ToCString(), name.ToCString(),
-            super_cls_name.ToCString());
-      }
       if (function.IsRedirectingFactory()) {
         // The function may be a still unresolved redirecting factory. Do not
         // yet try to resolve it in order to avoid cycles in class finalization.
@@ -1741,32 +1600,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           type ^= FinalizeType(cls, type);
           function.SetRedirectionType(type);
         }
-      }
-    } else if (function.IsGetterFunction() ||
-               function.IsImplicitGetterFunction()) {
-      super_class = FindSuperOwnerOfFunction(cls, name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, function.token_pos(),
-                    "getter '%s' of class '%s' conflicts with "
-                    "method '%s' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-    } else if (!function.IsSetterFunction() &&
-               !function.IsImplicitSetterFunction()) {
-      // A function cannot conflict with a setter, since they cannot
-      // have the same name. Thus, we do not need to check setters.
-      super_class = FindSuperOwnerOfFunction(cls, getter_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, function.token_pos(),
-                    "method '%s' of class '%s' conflicts with "
-                    "getter '%s' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
       }
     }
   }
@@ -2579,12 +2412,37 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   // Mark as type finalized before resolving type parameter upper bounds
   // in order to break cycles.
   cls.set_is_type_finalized();
+
   // Add this class to the direct subclasses of the superclass, unless the
   // superclass is Object.
   if (!super_type.IsNull() && !super_type.IsObjectType()) {
     ASSERT(!super_class.IsNull());
     super_class.AddDirectSubclass(cls);
   }
+
+  // Add this class as an implementor to the implemented interface's type
+  // classes.
+  Zone* zone = thread->zone();
+  auto& interface_class = Class::Handle(zone);
+  for (intptr_t i = 0; i < interface_types.Length(); ++i) {
+    interface_type ^= interface_types.At(i);
+    interface_class = interface_type.type_class();
+    interface_class.AddDirectImplementor(cls);
+  }
+
+  if (FLAG_use_cha_deopt) {
+    // Invalidate all CHA code which depends on knowing the implementors of any
+    // of the interfaces implemented by this new class.
+    ClassTable* class_table = thread->isolate()->class_table();
+    GrowableArray<intptr_t> cids;
+    InterfaceFinder finder(zone, class_table, &cids);
+    finder.FindAllInterfaces(cls);
+    for (intptr_t j = 0; j < cids.length(); ++j) {
+      interface_class = class_table->At(cids[j]);
+      interface_class.DisableCHAImplementorUsers();
+    }
+  }
+
   // A top level class is parsed eagerly so just finalize it.
   if (cls.IsTopLevel()) {
     FinalizeClass(cls);
@@ -2626,6 +2484,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     THR_Print("Finalize %s\n", cls.ToCString());
   }
 
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                            "ClassFinalizer::FinalizeClass");
+#endif  // !defined(PRODUCT)
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
   // Top level classes are always fully loaded.
@@ -2646,14 +2509,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
     FinalizeClass(super);
-  }
-  // Ensure interfaces are finalized in case we check for bad overrides.
-  if (Isolate::Current()->error_on_bad_override()) {
-    GrowableArray<const Class*> interfaces(4);
-    CollectInterfaces(cls, &interfaces);
-    for (intptr_t i = 0; i < interfaces.length(); i++) {
-      FinalizeClass(*interfaces.At(i));
-    }
   }
   if (cls.IsMixinApplication()) {
     // Copy instance methods and fields from the mixin class.
@@ -2681,8 +2536,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Every class should have at least a constructor, unless it is a top level
   // class or a typedef class. The Kernel frontend does not create an implicit
   // constructor for abstract classes.
-  ASSERT(cls.IsTopLevel() || cls.IsTypedefClass() || cls.is_abstract() ||
-         (Array::Handle(cls.functions()).Length() > 0));
+  // Moreover, Dart 2 precompiler (TFA) can tree shake all members if unused.
+  ASSERT(FLAG_precompiled_mode || cls.IsTopLevel() || cls.IsTypedefClass() ||
+         cls.is_abstract() || (Array::Handle(cls.functions()).Length() > 0));
   // Resolve and finalize all member types.
   ResolveAndFinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
@@ -2695,6 +2551,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     CollectImmediateSuperInterfaces(cls, &cids);
     RemoveCHAOptimizedCode(cls, cids);
   }
+
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
   }
@@ -2709,27 +2566,21 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+
   const Field& index_field =
       Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
+
   const Field& name_field = Field::Handle(
       zone, enum_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
   ASSERT(!name_field.IsNull());
-  const Field& values_field =
-      Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
-  ASSERT(!values_field.IsNull());
-  ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
-  Array& values_list =
-      Array::Handle(zone, Array::RawCast(values_field.StaticValue()));
-  const String& enum_name = String::Handle(enum_cls.ScrubbedName());
-  const String& name_prefix =
-      String::Handle(String::Concat(enum_name, Symbols::Dot()));
 
+  const String& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
+
+  const Array& fields = Array::Handle(zone, enum_cls.fields());
   Field& field = Field::Handle(zone);
-  Instance& ordinal_value = Instance::Handle(zone);
   Instance& enum_value = Instance::Handle(zone);
-
-  String& enum_ident = String::Handle();
+  String& enum_ident = String::Handle(zone);
 
   enum_ident =
       Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), enum_name);
@@ -2740,44 +2591,74 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
   ASSERT(!enum_value.IsNull());
   ASSERT(enum_value.IsCanonical());
-  field = enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel());
-  ASSERT(!field.IsNull());
-  field.SetStaticValue(enum_value, true);
-  field.RecordStore(enum_value);
+  const Field& sentinel = Field::Handle(
+      zone, enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel()));
+  ASSERT(!sentinel.IsNull());
+  sentinel.SetStaticValue(enum_value, true);
+  sentinel.RecordStore(enum_value);
 
-  const Array& fields = Array::Handle(zone, enum_cls.fields());
-  for (intptr_t i = 0; i < fields.Length(); i++) {
-    field = Field::RawCast(fields.At(i));
-    if (!field.is_static()) continue;
-    ordinal_value = field.StaticValue();
-    // The static fields that need to be initialized with enum instances
-    // contain the smi value of the ordinal number, which was stored in
-    // the field by the parser. Other fields contain non-smi values.
-    if (!ordinal_value.IsSmi()) continue;
-    enum_ident = field.name();
-    // Construct the string returned by toString.
-    ASSERT(!enum_ident.IsNull());
-    // For the user-visible name of the enumeration value, we need to
-    // unmangle private names.
-    if (enum_ident.CharAt(0) == '_') {
-      enum_ident = String::ScrubName(enum_ident);
+  if (enum_cls.kernel_offset() > 0) {
+    Object& result = Object::Handle(zone);
+    for (intptr_t i = 0; i < fields.Length(); i++) {
+      field = Field::RawCast(fields.At(i));
+      if (!field.is_static() || !field.is_const() ||
+          (sentinel.raw() == field.raw())) {
+        continue;
+      }
+      // The eager evaluation of the enum values is required for hot-reload (see
+      // commit e3ecc87).
+      if (!FLAG_precompiled_mode) {
+        field.SetStaticValue(Object::transition_sentinel());
+        result = Compiler::EvaluateStaticInitializer(field);
+        ASSERT(!result.IsError());
+        field.SetStaticValue(Instance::Cast(result), true);
+        field.RecordStore(Instance::Cast(result));
+      }
     }
-    enum_ident = Symbols::FromConcat(thread, name_prefix, enum_ident);
-    enum_value = Instance::New(enum_cls, Heap::kOld);
-    enum_value.SetField(index_field, ordinal_value);
-    enum_value.SetField(name_field, enum_ident);
-    enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
-    ASSERT(!enum_value.IsNull());
-    ASSERT(enum_value.IsCanonical());
-    field.SetStaticValue(enum_value, true);
-    field.RecordStore(enum_value);
-    intptr_t ord = Smi::Cast(ordinal_value).Value();
-    ASSERT(ord < values_list.Length());
-    values_list.SetAt(ord, enum_value);
+  } else {
+    const String& name_prefix =
+        String::Handle(String::Concat(enum_name, Symbols::Dot()));
+    Instance& ordinal_value = Instance::Handle(zone);
+    Array& values_list = Array::Handle(zone);
+    const Field& values_field =
+        Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
+    ASSERT(!values_field.IsNull());
+    ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
+    values_list = Array::RawCast(values_field.StaticValue());
+    const Array& fields = Array::Handle(zone, enum_cls.fields());
+    for (intptr_t i = 0; i < fields.Length(); i++) {
+      field = Field::RawCast(fields.At(i));
+      if (!field.is_static()) continue;
+      ordinal_value = field.StaticValue();
+      // The static fields that need to be initialized with enum instances
+      // contain the smi value of the ordinal number, which was stored in
+      // the field by the parser. Other fields contain non-smi values.
+      if (!ordinal_value.IsSmi()) continue;
+      enum_ident = field.name();
+      // Construct the string returned by toString.
+      ASSERT(!enum_ident.IsNull());
+      // For the user-visible name of the enumeration value, we need to
+      // unmangle private names.
+      if (enum_ident.CharAt(0) == '_') {
+        enum_ident = String::ScrubName(enum_ident);
+      }
+      enum_ident = Symbols::FromConcat(thread, name_prefix, enum_ident);
+      enum_value = Instance::New(enum_cls, Heap::kOld);
+      enum_value.SetField(index_field, ordinal_value);
+      enum_value.SetField(name_field, enum_ident);
+      enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
+      ASSERT(!enum_value.IsNull());
+      ASSERT(enum_value.IsCanonical());
+      field.SetStaticValue(enum_value, true);
+      field.RecordStore(enum_value);
+      intptr_t ord = Smi::Cast(ordinal_value).Value();
+      ASSERT(ord < values_list.Length());
+      values_list.SetAt(ord, enum_value);
+    }
+    values_list.MakeImmutable();
+    values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
+    ASSERT(!values_list.IsNull());
   }
-  values_list.MakeImmutable();
-  values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
-  ASSERT(!values_list.IsNull());
 }
 
 bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
@@ -3108,6 +2989,31 @@ RawType* ClassFinalizer::ResolveMixinAppType(
   return Type::New(mixin_app_class, mixin_app_args, mixin_app_type.token_pos());
 }
 
+// For a class used as an interface marks this class and all its superclasses
+// implemented.
+//
+// Does not mark its interfaces implemented because those would already be
+// marked as such.
+static void MarkImplemented(Zone* zone, const Class& iface) {
+  if (iface.is_implemented()) {
+    return;
+  }
+
+  Class& cls = Class::Handle(zone, iface.raw());
+  AbstractType& type = AbstractType::Handle(zone);
+
+  while (!cls.is_implemented()) {
+    cls.set_is_implemented();
+
+    type = cls.super_type();
+    if (type.IsNull() || type.IsObjectType()) {
+      break;
+    }
+    ASSERT(type.IsResolved());
+    cls = type.type_class();
+  }
+}
+
 // Recursively walks the graph of explicitly declared super type and
 // interfaces, resolving unresolved super types and interfaces.
 // Reports an error if there is an interface reference that cannot be
@@ -3156,9 +3062,11 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     cls.set_super_type(super_type);
   }
 
-  // If cls belongs to core lib, restrictions about allowed interfaces
-  // are lifted.
-  const bool cls_belongs_to_core_lib = cls.library() == Library::CoreLibrary();
+  // If cls belongs to core lib or is a synthetic class which could belong to
+  // the core library, the restrictions about allowed interfaces are lifted.
+  const bool exempt_from_hierarchy_restrictions =
+      cls.library() == Library::CoreLibrary() ||
+      String::Handle(cls.Name()).Equals(Symbols::DebugClassName());
 
   // Resolve and check the super type and interfaces of cls.
   visited->Add(cls_index);
@@ -3189,7 +3097,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.
-  if (!cls_belongs_to_core_lib) {
+  if (!exempt_from_hierarchy_restrictions) {
     // Prevent extending core implementation classes.
     bool is_error = false;
     switch (interface_class.id()) {
@@ -3197,7 +3105,6 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       case kIntegerCid:  // Class Integer, not int.
       case kSmiCid:
       case kMintCid:
-      case kBigintCid:
       case kDoubleCid:  // Class Double, not double.
       case kOneByteStringCid:
       case kTwoByteStringCid:
@@ -3268,7 +3175,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     }
     // Verify that unless cls belongs to core lib, it cannot extend, implement,
     // or mixin any of Null, bool, num, int, double, String, dynamic.
-    if (!cls_belongs_to_core_lib) {
+    if (!exempt_from_hierarchy_restrictions) {
       if (interface.IsBoolType() || interface.IsNullType() ||
           interface.IsNumberType() || interface.IsIntType() ||
           interface.IsDoubleType() || interface.IsStringType() ||
@@ -3286,9 +3193,10 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
         }
       }
     }
-    interface_class.set_is_implemented();
+
     // Now resolve the super interfaces.
     ResolveSuperTypeAndInterfaces(interface_class, visited);
+    MarkImplemented(zone, interface_class);
   }
   visited->RemoveLast();
   cls.set_is_cycle_free();
@@ -3695,6 +3603,45 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 #endif
 }
 
+// Clears the cached canonicalized hash codes for all instances which directly
+// (or indirectly) depend on class ids.
+//
+// In the Dart VM heap the following instances directly use cids for the
+// computation of canonical hash codes:
+//
+//    * RawType (due to RawType::type_class_id_)
+//    * RawTypeParameter (due to RawTypeParameter::parameterized_class_id_)
+//
+// The following instances use cids for the computation of canonical hash codes
+// indirectly:
+//
+//    * RawTypeRef (due to RawTypeRef::type_->type_class_id)
+//    * RawType (due to RawType::signature_'s result/parameter types)
+//    * RawBoundedType (due to RawBoundedType::type_parameter_)
+//    * RawTypeArguments (due to type references)
+//    * RawInstance (due to instance fields)
+//    * RawArray (due to type arguments & array entries)
+//
+// Caching of the canonical hash codes happens for:
+//
+//    * RawType::hash_
+//    * RawTypeParameter::hash_
+//    * RawBoundedType::hash_
+//    * RawTypeArguments::hash_
+//
+// No caching of canonical hash codes (i.e. it gets re-computed every time)
+// happens for:
+//
+//    * RawTypeRef (computed via RawTypeRef::type_->type_class_id)
+//    * RawInstance (computed via size & fields)
+//    * RawArray (computed via type arguments & array entries)
+//
+// Usages of canonical hash codes are:
+//
+//   * ObjectStore::canonical_types()
+//   * ObjectStore::canonical_type_arguments()
+//   * Class::constants()
+//
 class ClearTypeHashVisitor : public ObjectVisitor {
  public:
   explicit ClearTypeHashVisitor(Zone* zone)
@@ -3780,6 +3727,10 @@ void ClassFinalizer::RehashTypes() {
     typeargs_table.Release();
   }
 
+  // The canonical constant tables use canonical hashcodes which can change
+  // due to cid-renumbering.
+  I->RehashConstants();
+
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
   typeargs_array =
       HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
@@ -3803,7 +3754,11 @@ void ClassFinalizer::ClearAllCode() {
   ProgramVisitor::VisitFunctions(&function_visitor);
 
   class ClearCodeClassVisitor : public ClassVisitor {
-    void Visit(const Class& cls) { cls.DisableAllocationStub(); }
+    void Visit(const Class& cls) {
+      if (cls.id() >= kNumPredefinedCids) {
+        cls.DisableAllocationStub();
+      }
+    }
   };
   ClearCodeClassVisitor class_visitor;
   ProgramVisitor::VisitClasses(&class_visitor);

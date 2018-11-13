@@ -8,33 +8,35 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:telemetry/telemetry.dart';
 
 /// Instances of the class [AnalyticsDomainHandler] implement a [RequestHandler]
 /// that handles requests in the `analytics` domain.
 class AnalyticsDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
-  bool enabled = false;
+  Analytics get analytics => server.analytics;
 
   AnalyticsDomainHandler(this.server);
 
-  // TODO(devoncarew): This implementation is currently mocked out.
   Response handleEnable(Request request) {
-    // TODO(devoncarew): Implement.
     AnalyticsEnableParams params =
         new AnalyticsEnableParams.fromRequest(request);
-    enabled = params.value;
+    if (analytics != null) {
+      analytics.enabled = params.value;
+    }
     return new AnalyticsEnableResult().toResponse(request.id);
   }
 
   Response handleIsEnabled(Request request) {
-    // TODO(devoncarew): Implement.
-    return new AnalyticsIsEnabledResult(enabled).toResponse(request.id);
+    return new AnalyticsIsEnabledResult(analytics?.enabled ?? false)
+        .toResponse(request.id);
   }
 
   @override
   Response handleRequest(Request request) {
     String requestName = request.method;
+
     if (requestName == ANALYTICS_REQUEST_IS_ENABLED) {
       return handleIsEnabled(request);
     } else if (requestName == ANALYTICS_REQUEST_ENABLE) {
@@ -49,12 +51,26 @@ class AnalyticsDomainHandler implements RequestHandler {
   }
 
   Response handleSendEvent(Request request) {
-    // TODO(devoncarew): Implement.
+    if (analytics == null) {
+      return new AnalyticsSendEventResult().toResponse(request.id);
+    }
+
+    AnalyticsSendEventParams params =
+        new AnalyticsSendEventParams.fromRequest(request);
+    analytics.sendEvent(_clientId, params.action);
     return new AnalyticsSendEventResult().toResponse(request.id);
   }
 
   Response handleSendTiming(Request request) {
-    // TODO(devoncarew): Implement.
+    if (analytics == null) {
+      return new AnalyticsSendTimingResult().toResponse(request.id);
+    }
+
+    AnalyticsSendTimingParams params =
+        new AnalyticsSendTimingParams.fromRequest(request);
+    analytics.sendTiming(params.event, params.millis, category: _clientId);
     return new AnalyticsSendTimingResult().toResponse(request.id);
   }
+
+  String get _clientId => server.options.clientId ?? 'client';
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
@@ -25,7 +26,9 @@ class CompletionTargetTest extends AbstractContextTest {
   int completionOffset;
   CompletionTarget target;
 
-  Future<Null> addTestSource(String content) async {
+  bool get usingFastaParser => analyzer.Parser.useFasta;
+
+  Future<void> addTestSource(String content) async {
     expect(completionOffset, isNull, reason: 'Call addTestSource exactly once');
     completionOffset = content.indexOf('^');
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
@@ -38,13 +41,17 @@ class CompletionTargetTest extends AbstractContextTest {
     target = new CompletionTarget.forOffset(result.unit, completionOffset);
   }
 
-  Future<Null> assertTarget(entityText, nodeText,
-      {int argIndex: null, bool isFunctionalArgument: false}) async {
+  Future<void> assertTarget(entityText, nodeText,
+      {int argIndex: null,
+      bool isFunctionalArgument: false,
+      String droppedToken}) async {
     void assertCommon() {
       expect(target.entity.toString(), entityText, reason: 'entity');
       expect(target.containingNode.toString(), nodeText,
           reason: 'containingNode');
       expect(target.argIndex, argIndex, reason: 'argIndex');
+      expect(target.droppedToken?.toString(), droppedToken ?? isNull,
+          reason: 'droppedToken');
     }
 
     // Assert with parsed unit
@@ -356,6 +363,16 @@ class CompletionTargetTest extends AbstractContextTest {
     await assertTarget('zoo', 'zoo(z) {}');
   }
 
+  test_IfStatement_droppedToken() async {
+    // Comment  ClassDeclaration  CompilationUnit
+    await addTestSource('main() { if (v i^) }');
+    if (usingFastaParser) {
+      await assertTarget(')', 'if (v) ;', droppedToken: 'i');
+    } else {
+      await assertTarget('i;', 'if (v) i;');
+    }
+  }
+
   test_InstanceCreationExpression_identifier() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     await addTestSource('class C {foo(){var f; {var x;} new ^C();}}');
@@ -555,13 +572,13 @@ class C2 {
   test_SwitchStatement_c() async {
     // Token('c') SwitchStatement
     await addTestSource('main() { switch(x) {c^} }');
-    await assertTarget('}', 'switch (x) {}');
+    await assertTarget('}', 'switch (x) {}', droppedToken: 'c');
   }
 
   test_SwitchStatement_c2() async {
     // Token('c') SwitchStatement
     await addTestSource('main() { switch(x) { c^ } }');
-    await assertTarget('}', 'switch (x) {}');
+    await assertTarget('}', 'switch (x) {}', droppedToken: 'c');
   }
 
   test_SwitchStatement_empty() async {

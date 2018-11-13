@@ -35,7 +35,7 @@ void testJson(jsonText, expected) {
   }
 
   for (var reviver in [null, (k, v) => v]) {
-    for (var split in [0, 1, 2, 3]) {
+    for (var split in [0, 1, 2, 3, 4, 5]) {
       var name = (reviver == null) ? "" : "reviver:";
       var sink = new ChunkedConversionSink.withCallback((values) {
         var value = values[0];
@@ -72,6 +72,14 @@ void testJson(jsonText, expected) {
           decoderSink.add(jsonText.substring(2 * third));
           decoderSink.close();
           break;
+        case 4:
+          // Use .decode
+          sink.add([json.decode(jsonText)]);
+          break;
+        case 5:
+          // Use jsonDecode
+          sink.add([jsonDecode(jsonText)]);
+          break;
       }
     }
   }
@@ -96,8 +104,16 @@ String escape(String s) {
 }
 
 void testThrows(jsonText) {
+  var message = "json = '${escape(jsonText)}'";
   Expect.throwsFormatException(() => json.decode(jsonText),
-      "json = '${escape(jsonText)}'");
+      "json.decode, $message");
+  Expect.throwsFormatException(() => jsonDecode(jsonText),
+      "jsonDecode, $message");
+  Expect.throwsFormatException(() => json.decoder.convert(jsonText),
+      "json.decoder.convert, $message");
+  Expect.throwsFormatException(() =>
+      utf8.decoder.fuse(json.decoder).convert(utf8.encode(jsonText)),
+      "utf8.decoder.fuse(json.decoder) o utf.encode, $message");
 }
 
 testNumbers() {
@@ -160,7 +176,7 @@ testNumbers() {
   testError(integers: "");
 
   // Test for "Initial zero only allowed for zero integer part" moved to
-  // json_strict_test.dart because IE's JSON.decode accepts additional initial
+  // json_strict_test.dart because IE's jsonDecode accepts additional initial
   // zeros.
 
   // Only minus allowed as sign.
@@ -177,6 +193,10 @@ testNumbers() {
   testThrows("-2.2 e+2");
   testThrows("-2.2e +2");
   testThrows("-2.2e+ 2");
+  testThrows("01");
+  testThrows("0.");
+  testThrows(".0");
+  testThrows("0.e1");
 
   testThrows("[2.,2]");
   testThrows("{2.:2}");
@@ -187,6 +207,9 @@ testNumbers() {
   Expect.throws(() => json.encode(double.nan));
   Expect.throws(() => json.encode(double.infinity));
   Expect.throws(() => json.encode(double.negativeInfinity));
+  Expect.throws(() => jsonEncode(double.nan));
+  Expect.throws(() => jsonEncode(double.infinity));
+  Expect.throws(() => jsonEncode(double.negativeInfinity));
 }
 
 testStrings() {

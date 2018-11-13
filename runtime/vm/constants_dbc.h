@@ -12,7 +12,7 @@
 namespace dart {
 
 // clang-format off
-// List of Dart Bytecode instructions.
+// List of Simulator Bytecode instructions.
 //
 // INTERPRETER STATE
 //
@@ -165,9 +165,10 @@ namespace dart {
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
 //    The ICData indicates whether the first argument is a type argument vector.
 //
-//  - NativeBootstrapCall, NativeNoScopeCall, NativeAutoScopeCall
+//  - NativeCall ArgA, ArgB, ArgC
 //
-//    Invoke native function SP[-1] with argc_tag SP[0].
+//    Invoke native function at pool[ArgB] with argc_tag at pool[ArgC] using
+//    wrapper at pool[ArgA].
 //
 //  - PushPolymorphicInstanceCall ArgC, D
 //
@@ -309,7 +310,7 @@ namespace dart {
 //    this instruction does so, and skips the following instruction. Otherwise,
 //    the following instruction is not skipped.
 //
-//  - StoreStaticT`OS D
+//  - StoreStaticTOS D
 //
 //    Stores TOS into the static field PP[D].
 //
@@ -595,9 +596,11 @@ namespace dart {
 //    arguments SP[-2] using SubtypeTestCache PP[D].
 //    If A is 1, then the instance may be a Smi.
 //
+//    Instance remains on stack. Other arguments are consumed.
+//
 //  - AssertSubtype
 //
-//    Assers that one type is a subtype of another.  Throws a TypeError
+//    Assert that one type is a subtype of another.  Throws a TypeError
 //    otherwise.  The stack has the following arguments on it:
 //
 //        SP[-4]  instantiator type args
@@ -767,9 +770,7 @@ namespace dart {
   V(InstanceCall2Opt,                    A_D, num, num, ___) \
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
-  V(NativeBootstrapCall,                   0, ___, ___, ___) \
-  V(NativeNoScopeCall,                     0, ___, ___, ___) \
-  V(NativeAutoScopeCall,                   0, ___, ___, ___) \
+  V(NativeCall,                        A_B_C, num, num, num) \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
   V(StringToCharCode,                    A_X, reg, xeg, ___) \
   V(AddTOS,                                0, ___, ___, ___) \
@@ -909,7 +910,7 @@ namespace dart {
   V(Entry,                                 D, num, ___, ___) \
   V(EntryOptimized,                      A_D, num, num, ___) \
   V(Frame,                                 D, num, ___, ___) \
-  V(SetFrame,                              A, num, ___, num) \
+  V(SetFrame,                              A, num, ___, ___) \
   V(AllocateContext,                       D, num, ___, ___) \
   V(AllocateUninitializedContext,        A_D, reg, num, ___) \
   V(CloneContext,                          0, ___, ___, ___) \
@@ -942,7 +943,7 @@ namespace dart {
 
 typedef uint32_t Instr;
 
-class Bytecode {
+class SimulatorBytecode {
  public:
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,
@@ -954,7 +955,7 @@ class Bytecode {
     const char* names[] = {
 #define NAME(name, encoding, op1, op2, op3) #name,
         BYTECODES_LIST(NAME)
-#undef DECLARE_BYTECODE
+#undef NAME
     };
     return names[DecodeOpcode(instr)];
   }
@@ -1001,6 +1002,10 @@ class Bytecode {
     return (bc >> kAShift) & kAMask;
   }
 
+  DART_FORCE_INLINE static uint8_t DecodeB(Instr bc) {
+    return (bc >> kBShift) & kBMask;
+  }
+
   DART_FORCE_INLINE static uint16_t DecodeD(Instr bc) {
     return (bc >> kDShift) & kDMask;
   }
@@ -1010,18 +1015,18 @@ class Bytecode {
   }
 
   DART_FORCE_INLINE static bool IsTrap(Instr instr) {
-    return DecodeOpcode(instr) == Bytecode::kTrap;
+    return DecodeOpcode(instr) == SimulatorBytecode::kTrap;
   }
 
   DART_FORCE_INLINE static bool IsCallOpcode(Instr instr) {
     switch (DecodeOpcode(instr)) {
-      case Bytecode::kStaticCall:
-      case Bytecode::kIndirectStaticCall:
-      case Bytecode::kInstanceCall1:
-      case Bytecode::kInstanceCall2:
-      case Bytecode::kInstanceCall1Opt:
-      case Bytecode::kInstanceCall2Opt:
-      case Bytecode::kDebugBreak:
+      case SimulatorBytecode::kStaticCall:
+      case SimulatorBytecode::kIndirectStaticCall:
+      case SimulatorBytecode::kInstanceCall1:
+      case SimulatorBytecode::kInstanceCall2:
+      case SimulatorBytecode::kInstanceCall1Opt:
+      case SimulatorBytecode::kInstanceCall2Opt:
+      case SimulatorBytecode::kDebugBreak:
         return true;
 
       default:
@@ -1031,14 +1036,14 @@ class Bytecode {
 
   DART_FORCE_INLINE static bool IsFastSmiOpcode(Instr instr) {
     switch (DecodeOpcode(instr)) {
-      case Bytecode::kAddTOS:
-      case Bytecode::kSubTOS:
-      case Bytecode::kMulTOS:
-      case Bytecode::kBitOrTOS:
-      case Bytecode::kBitAndTOS:
-      case Bytecode::kEqualTOS:
-      case Bytecode::kLessThanTOS:
-      case Bytecode::kGreaterThanTOS:
+      case SimulatorBytecode::kAddTOS:
+      case SimulatorBytecode::kSubTOS:
+      case SimulatorBytecode::kMulTOS:
+      case SimulatorBytecode::kBitOrTOS:
+      case SimulatorBytecode::kBitAndTOS:
+      case SimulatorBytecode::kEqualTOS:
+      case SimulatorBytecode::kLessThanTOS:
+      case SimulatorBytecode::kGreaterThanTOS:
         return true;
 
       default:
@@ -1055,7 +1060,7 @@ class Bytecode {
 
  private:
   DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Bytecode);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(SimulatorBytecode);
 };
 
 // Various dummy declarations to make shared code compile.
@@ -1077,7 +1082,6 @@ const intptr_t ARGS_DESC_REG = 0;
 const intptr_t CODE_REG = 0;
 const intptr_t kExceptionObjectReg = 0;
 const intptr_t kStackTraceObjectReg = 0;
-const intptr_t CTX = 0;
 
 enum FpuRegister {
   kNoFpuRegister = -1,

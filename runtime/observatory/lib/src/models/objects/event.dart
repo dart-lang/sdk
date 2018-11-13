@@ -55,13 +55,25 @@ abstract class DebugEvent extends Event {
   IsolateRef get isolate;
 }
 
+abstract class BreakpointEvent extends DebugEvent {
+  /// [optional] The breakpoint associated with this event.
+  Breakpoint get breakpoint;
+}
+
+abstract class PauseEvent extends DebugEvent {}
+
+abstract class AsyncSuspensionEvent extends PauseEvent {
+  /// Is the isolate paused at an await, yield, or yield* statement?
+  bool get atAsyncSuspension;
+}
+
 abstract class DebuggerSettingsUpdateEvent extends DebugEvent {}
 
-abstract class PauseStartEvent extends DebugEvent {}
+abstract class PauseStartEvent extends PauseEvent {}
 
-abstract class PauseExitEvent extends DebugEvent {}
+abstract class PauseExitEvent extends PauseEvent {}
 
-abstract class PauseBreakpointEvent extends DebugEvent {
+abstract class PauseBreakpointEvent extends AsyncSuspensionEvent {
   /// [optional] The breakpoint at which we are currently paused.
   Breakpoint get breakpoint;
 
@@ -77,28 +89,21 @@ abstract class PauseBreakpointEvent extends DebugEvent {
 
   /// The top stack frame associated with this event.
   Frame get topFrame;
-  bool get atAsyncSuspension;
 }
 
-abstract class PauseInterruptedEvent extends DebugEvent {
+abstract class PauseInterruptedEvent extends AsyncSuspensionEvent {
   /// [optional] The top stack frame associated with this event. There will be
   /// no top frame if the isolate is idle (waiting in the message loop).
   Frame get topFrame;
-
-  /// Is the isolate paused at an await, yield, or yield* statement?
-  bool get atAsyncSuspension;
 }
 
-abstract class PausePostRequestEvent extends DebugEvent {
+abstract class PausePostRequestEvent extends AsyncSuspensionEvent {
   /// [optional] The top stack frame associated with this event. There will be
   /// no top frame if the isolate is idle (waiting in the message loop).
   Frame get topFrame;
-
-  /// Is the isolate paused at an await, yield, or yield* statement?
-  bool get atAsyncSuspension;
 }
 
-abstract class PauseExceptionEvent extends DebugEvent {
+abstract class PauseExceptionEvent extends PauseEvent {
   /// The top stack frame associated with this event.
   Frame get topFrame;
 
@@ -113,27 +118,18 @@ abstract class ResumeEvent extends DebugEvent {
   Frame get topFrame;
 }
 
-abstract class BreakpointAddedEvent extends DebugEvent {
-  /// The breakpoint which was added.
-  Breakpoint get breakpoint;
-}
+abstract class BreakpointAddedEvent extends BreakpointEvent {}
 
-abstract class BreakpointResolvedEvent extends DebugEvent {
-  /// The breakpoint which was resolved.
-  Breakpoint get breakpoint;
-}
+abstract class BreakpointResolvedEvent extends BreakpointEvent {}
 
-abstract class BreakpointRemovedEvent extends DebugEvent {
-  /// The breakpoint which was removed.
-  Breakpoint get breakpoint;
-}
+abstract class BreakpointRemovedEvent extends BreakpointEvent {}
 
 abstract class InspectEvent extends DebugEvent {
   /// The argument passed to dart:developer.inspect.
   InstanceRef get inspectee;
 }
 
-abstract class NoneEvent extends DebugEvent {}
+abstract class NoneEvent extends PauseEvent {}
 
 abstract class GCEvent extends Event {
   /// The isolate with which this event is associated.

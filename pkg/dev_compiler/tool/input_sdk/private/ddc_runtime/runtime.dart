@@ -10,33 +10,30 @@ import 'dart:collection';
 
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray, jsNull, JSFunction;
+import 'dart:_internal' as internal show Symbol;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,
         BooleanConversionAssertionError,
-        CastErrorImplementation,
+        CastErrorImpl,
         DartIterator,
         getTraceFromException,
-        Primitives,
-        TypeErrorImplementation,
-        StrongModeCastError,
-        StrongModeErrorImplementation,
-        StrongModeTypeError,
+        TypeErrorImpl,
         JsLinkedHashMap,
         ImmutableMap,
         PrivateSymbol,
-        ReifyFunctionTypes;
+        ReifyFunctionTypes,
+        NoReifyGeneric,
+        notNull;
 import 'dart:_debugger' show trackCall;
 
-export 'dart:_debugger'
-    show getDynamicStats, clearDynamicStats, trackCall;
+export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
 part 'utils.dart';
 part 'classes.dart';
 part 'rtti.dart';
 part 'types.dart';
 part 'errors.dart';
-part 'generators.dart';
 part 'operations.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
@@ -133,7 +130,7 @@ final global_ = JS('', '''
         'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : false);
     $ignoreWhitelistedErrors(
         'ignoreWhitelistedErrors' in settings ?
-            settings.ignoreWhitelistedErrors : true);
+            settings.ignoreWhitelistedErrors : false);
 
     $ignoreAllErrors(
         'ignoreAllErrors' in settings ? settings.ignoreAllErrors : false);
@@ -150,3 +147,38 @@ void trackProfile(bool flag) {
 }
 
 final JsSymbol = JS('', 'Symbol');
+
+// TODO(vsm): Remove once this flag we've removed the ability to
+// whitelist / fallback on the old behavior.
+bool startAsyncSynchronously = true;
+void setStartAsyncSynchronously([bool value = true]) {
+  startAsyncSynchronously = value;
+}
+
+/// A list of all JS Maps used for caching results, such as by [isSubtypeOf] and
+/// [generic].
+///
+/// This is used by [hotRestart] to ensure we don't leak types from previous
+/// libraries.
+@notNull
+final List<Object> _cacheMaps = JS('!', '[]');
+
+/// A list of functions to reset static fields back to their uninitialized
+/// state.
+///
+/// This is populated by [defineLazyField].
+@notNull
+final List<void Function()> _resetFields = JS('', '[]');
+
+/// Clears out runtime state in `dartdevc` so we can hot-restart.
+///
+/// This should be called when the user requests a hot-restart, when the UI is
+/// handling that user action.
+void hotRestart() {
+  for (var f in _resetFields) f();
+  _resetFields.clear();
+  for (var m in _cacheMaps) JS('', '#.clear()', m);
+  _cacheMaps.clear();
+  JS('', '#.clear()', constantMaps);
+  JS('', '#.clear()', _ignoreSubtypeCache);
+}

@@ -12,21 +12,23 @@ class InvocationFactory {
 }
 
 main() {
-  var x;
+  dynamic x;
   // Non-existing method calls noSuchMethod.
   Expect.throwsNoSuchMethodError(() => x.foo());
 
+  var invocation = InvocationFactory.instance.foo;
+
   // Calling noSuchMethod directly.
-  Expect.throwsNoSuchMethodError(() => x.noSuchMethod("foo", []));
+  Expect.throwsNoSuchMethodError(() => x.noSuchMethod(invocation, []));
 
   // Closurizing noSuchMethod and calling it.
-  var nsm = x.noSuchMethod;
+  dynamic nsm = x.noSuchMethod;
   Expect.notEquals(null, nsm);
   Expect.throwsTypeError(() => nsm("foo"));
 
-  var i = InvocationFactory.instance.foo;
-  Expect.throwsNoSuchMethodError(() => nsm(i));
-  Expect.throwsNoSuchMethodError(() => nsm(i, [])); // wrong number of args
+  Expect.throwsNoSuchMethodError(() => nsm(invocation));
+  Expect.throwsNoSuchMethodError(
+      () => nsm(invocation, [])); // wrong number of args
 
   // Wrong number and type of arguments.
   Expect.throwsNoSuchMethodError(() => nsm("foo", [])); //# 01: ok

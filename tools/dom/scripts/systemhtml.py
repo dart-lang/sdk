@@ -13,6 +13,7 @@ import os
 import re
 from generator import *
 from htmldartgenerator import *
+from htmlrenamer import generateCallbackInterface
 
 _logger = logging.getLogger('systemhtml')
 
@@ -35,12 +36,9 @@ _safe_to_ignore_shadowing_members = monitored.Set('systemhtml._safe_to_ignore_sh
     ])
 
 _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
-    'AudioBufferSourceNode.start',
-    'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
     'CanvasRenderingContext2D.drawImage',
-    'CanvasRenderingContext2D.fill',
     'CanvasRenderingContext2D.fillText',
     'CanvasRenderingContext2D.lineDashOffset',
     'CanvasRenderingContext2D.setLineDash',
@@ -128,6 +126,7 @@ _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'Blob',
     'Comment',
     'MutationObserver',
+    'PaymentRequest',
     'RTCIceCandidate',
     'RTCPeerConnection',
     'RTCSessionDescription',
@@ -137,6 +136,15 @@ _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
 # Classes that offer only static methods, and therefore we should suppress
 # constructor creation.
 _static_classes = set(['Url'])
+
+# Callback typedefs with generic List (List<nnn>) convert to List
+_callback_list_generics_mapping = monitored.Set('systemhtml._callback_list_generics_mapping', [
+    'List<Entry>',
+    'List<IntersectionObserverEntry>',
+    'List<MutationRecord>',
+    'List<_Report>',
+])
+
 
 # Information for generating element constructors.
 #
@@ -504,6 +512,8 @@ class HtmlDartInterfaceGenerator(object):
     elif 'Callback' in self._interface.ext_attrs:
       if len(GetCallbackHandlers(self._interface)) > 0:
         self.GenerateCallback()
+      elif generateCallbackInterface(self._interface.id):
+        self.GenerateInterface()
       else:
         return
     else:
@@ -523,10 +533,19 @@ class HtmlDartInterfaceGenerator(object):
     annotations = self._metadata.GetFormattedMetadata(self._library_name,
         self._interface)
 
+    params = info.ParametersAsDeclaration(self._DartType);
+
+    types = params.split()
+    if len(types) > 0:
+      mapType = types[0] in _callback_list_generics_mapping
+      if mapType is True:
+        types[0] = 'List'
+        params = " ".join(types)
+
     code.Emit('$(ANNOTATIONS)typedef void $NAME($PARAMS);\n',
               ANNOTATIONS=annotations,
               NAME=typedef_name,
-              PARAMS=info.ParametersAsDeclaration(self._DartType))
+              PARAMS=params)
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
@@ -664,6 +683,14 @@ class HtmlDartInterfaceGenerator(object):
              self._interface.id == 'CSSStyleDeclaration')):
             base_class = 'DartHtmlDomObject'
 
+    maplikeKeyType = ''
+    maplikeValueType = ''
+    if self._interface.isMaplike:
+        maplikeKeyType = self._type_registry.\
+            _TypeInfo(self._interface.maplike_key_value[0].id).dart_type()
+        maplikeValueType = 'dynamic'
+        mixins_str = " with MapMixin<%s, %s>" % (maplikeKeyType, maplikeValueType)
+
     implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME='dart.dom.%s' % self._library_name,
@@ -674,7 +701,9 @@ class HtmlDartInterfaceGenerator(object):
         IMPLEMENTS=implements_str,
         MIXINS=mixins_str,
         DOMNAME=self._interface.doc_js_name,
-        NATIVESPEC=native_spec)
+        NATIVESPEC=native_spec,
+        KEYTYPE=maplikeKeyType,
+        VALUETYPE=maplikeValueType)
     stream_getter_signatures_emitter = None
     element_stream_getters_emitter = None
     if type(implementation_members_emitter) == tuple:
@@ -751,6 +780,111 @@ class HtmlDartInterfaceGenerator(object):
 
 # ------------------------------------------------------------------------------
 
+''' TODO(terry): Current idl_parser (Chrome) doesn't keep the Promise type e.g.,
+                 Promise<T> in the AST so there is no way to pull this out.  Need
+                 to investigate getting the Chrome folks to fix.  However, they
+                 don't use this in the C++ code generation and don't have a need
+                 for this feature.  For now I have a table that maps to the
+                 parameterized Promise type.
+'''
+promise_attributes = monitored.Dict('systemhtml.promise_attr_type', {
+  "Animation.finished": {"type": "Animation"},
+  "Animation.ready": {"type": "Animation"},
+  "BeforeInstallPromptEvent.userChoice": {"type": "dictionary"},
+  "FontFace.loaded": {"type": "FontFace"},
+  "FontFaceSet.ready": {"type": "FontFaceSet"},
+  "MediaKeySession.closed": {"type": "void"},
+  "PresentationReceiver.connectionList": {"type": "PresentationConnectionList"},
+  "ServiceWorkerContainer.ready": {"type": "ServiceWorkerRegistration"},
+})
+
+promise_operations = monitored.Dict('systemhtml.promise_oper_type', {
+  "Clipboard.read": { "type": "DataTransfer" },
+  "Clipboard.readText": { "type": "String" },
+  "FontFace.load": { "type": "FontFace"},
+  "FontFaceSet.load": { "type": "List<FontFace>" },
+  "OffscreenCanvas.load": { "type": "Blob" },
+  "BackgroundFetchManager.fetch": { "type": "BackgroundFetchRegistration" },
+  "BackgroundFetchManager.get": { "type": "BackgroundFetchRegistration" },
+  "BackgroundFetchManager.getIds": { "type": "List<String>" },
+  "BackgroundFetchRegistration.abort": { "type": "bool" },
+  "SyncManager.getTags": { "type": "List<String>" },
+  "BudgetService.getCost": { "type": "double" },
+  "BudgetService.getBudget": { "type": "BudgetState" },
+  "BudgetService.reserve": { "type": "bool" },
+  "Body.blob": { "type": "Blob" },
+  "Body.formData": { "type": "FormData" },
+  "Body.text": { "type": "String" },
+  "ImageCapture.getPhotoCapabilities": { "type": "PhotoCapabilities" },
+  "ImageCapture.getPhotoSettings": { "type": "dictionary" },
+  "ImageCapture.takePhoto": { "type": "Blob" },
+  "ImageCapture.grabFrame": { "type": "ImageBitmap" },
+  "Navigator.getInstalledRelatedApps": { "type": "RelatedApplication" },
+  "OffscreenCanvas.convertToBlob": { "type": "Blob" },
+  "MediaCapabilities.decodingInfo": { "type": "MediaCapabilitiesInfo" },
+  "MediaCapabilities.encodingInfo": { "type": "MediaCapabilitiesInfo" },
+  "MediaDevices.enumerateDevices": { "type": "List<MediaDeviceInfo>" },
+  "MediaDevices.getUserMedia": { "type": "MediaStream" },
+  "ServiceWorkerRegistration.getNotifications": { "type": "List<Notification>" },
+  "PaymentInstruments.delete": { "type": "bool" },
+  "PaymentInstruments.get": { "type": "dictionary" },
+  "PaymentInstruments.keys": { "type": "List<String>" },
+  "PaymentInstrumentshas.": { "type": "bool" },
+  "PaymentRequest.show": { "type": "PaymentResponse" },
+  "PaymentRequest.canMakePayment": { "type": "bool" },
+  "PaymentRequestEvent.openWindow": { "type": "WindowClient" },
+  "RTCPeerConnection.createOffer": { "type": "RtcSessionDescription" },
+  "RTCPeerConnection.createAnswer": { "type": "RtcSessionDescription" },
+  "RTCPeerConnection.getStats": { "type": "RtcStatsReport", "maplike": "RTCStatsReport"},
+  "RTCPeerConnection.generateCertificate": { "type": "RtcCertificate" },
+  "Permissions.query": { "type": "PermissionStatus" },
+  "Permissions.request": { "type": "PermissionStatus" },
+  "Permissions.revoke": { "type": "PermissionStatus" },
+  "Permissions.requestAll": { "type": "PermissionStatus" },
+  "PresentationRequest.start": { "type": "PresentationConnection" },
+  "PresentationRequest.reconnect": { "type": "PresentationConnection" },
+  "PresentationRequest.getAvailability": { "type": "PresentationAvailability" },
+  "PushManager.subscribe": { "type": "PushSubscription" },
+  "PushManager.getSubscription": { "type": "PushSubscription" },
+  "PushSubscription.unsubscribe": { "type": "bool" },
+  "StorageManager.persisted": { "type": "bool" },
+  "StorageManager.persist": { "type": "bool" },
+  "StorageManager.estimate": { "type": "dictionary" },
+  "RemotePlayback.watchAvailability": { "type": "int" },
+  "Clients.matchAll": { "type": "List<Client>" },
+  "Clients.openWindow": { "type": "WindowClient" },
+  "NavigationPreloadManager.getState": { "type": "dictionary" },
+  "ServiceWorkerContainer.register": { "type": "ServiceWorkerRegistration" },
+  "ServiceWorkerContainer.getRegistration": { "type": "ServiceWorkerRegistration" },
+  "ServiceWorkerContainer.getRegistrations": { "type": "List<ServiceWorkerRegistration>" },
+  "ServiceWorkerGlobalScope.fetch": { "type": "Response" },
+  "ServiceWorkerRegistration.unregister": { "type": "bool" },
+  "WindowClient.focus": { "type": "WindowClient" },
+  "WindowClient.navigate": { "type": "WindowClient" },
+  "BarcodeDetector.detect": { "type": "List<DetectedBarcode>" },
+  "FaceDetector.detect": { "type": "List<DetectedFace>" },
+  "TextDetector.detect": { "type": "List<DetectedText>" },
+  "BaseAudioContext.decodeAudioData": { "type": "AudioBuffer" },
+  "OfflineAudioContext.startRendering": { "type": "AudioBuffer" },
+})
+
+promise_generateCall = monitored.Set('systemhtml.promise_generateCall', [
+   "Navigator.requestKeyboardLock",
+])
+
+def _IsPromiseOperationGenerateCall(interface_operation):
+    return interface_operation in promise_generateCall
+
+def _GetPromiseOperationType(interface_operation):
+  if interface_operation in promise_operations:
+    return promise_operations[interface_operation]
+  return None
+
+def _GetPromiseAttributeType(interface_operation):
+  if interface_operation in promise_attributes:
+    return promise_attributes[interface_operation]
+  return None
+
 class Dart2JSBackend(HtmlDartGenerator):
   """Generates a dart2js class for the dart:html library from a DOM IDL
   interface.
@@ -767,6 +901,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
     self._library_name = self._renamer.GetLibraryName(self._interface)
+    # Global constants for all WebGLRenderingContextBase, WebGL2RenderingContextBase, WebGLDrawBuffers
+    self._gl_constants = []
     _logger.setLevel(logging_level)
 
   def ImplementsMergedMembers(self):
@@ -790,8 +926,14 @@ class Dart2JSBackend(HtmlDartGenerator):
   def ImplementationTemplate(self):
     template_file = ('impl_%s.darttemplate' %
                      self._interface.doc_js_name)
-    return (self._template_loader.TryLoad(template_file) or
-            self._template_loader.Load('dart2js_impl.darttemplate'))
+    template_file_content = self._template_loader.TryLoad(template_file)
+    if not(template_file_content):
+      if self._interface.isMaplike and self._interface.isMaplike_ro:
+          # TODO(terry): There are no mutable maplikes yet.
+          template_file_content = self._template_loader.Load('dart2js_maplike_impl.darttemplate')
+      else:
+        template_file_content = self._template_loader.Load('dart2js_impl.darttemplate')
+    return template_file_content
 
   def StartInterface(self, members_emitter):
     self._members_emitter = members_emitter
@@ -846,6 +988,13 @@ class Dart2JSBackend(HtmlDartGenerator):
     return argument.optional
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
+    if self._interface_type_info.has_generated_interface():
+      # Use dart_type name, we're generating.
+      interface_name = self._interface_type_info.interface_name()
+    else:
+      # Use the implementation name the interface is suppressed.
+      interface_name = self._interface_type_info.implementation_name()
+
     index = len(arguments)
     arguments = constructor_info.ParametersAsArgumentList(index)
     if arguments:
@@ -853,7 +1002,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._members_emitter.Emit(
         "  static $INTERFACE_NAME $NAME($PARAMETERS) => "
           "JS('$INTERFACE_NAME', 'new $CTOR_NAME($PLACEHOLDERS)'$ARGUMENTS);\n",
-        INTERFACE_NAME=self._interface_type_info.interface_name(),
+        INTERFACE_NAME=interface_name,
         NAME=name,
         # TODO(antonm): add types to parameters.
         PARAMETERS=constructor_info.ParametersAsArgumentList(index),
@@ -931,12 +1080,16 @@ class Dart2JSBackend(HtmlDartGenerator):
           ' JS("void", "#[#] = #", this, index, value); }',
           TYPE=self._NarrowInputType(element_type))
     else:
+      theType = self._NarrowInputType(element_type)
+      if theType == 'DomRectList':
+          theType = '';
+
       self._members_emitter.Emit(
           '\n'
           '  void operator[]=(int index, $TYPE value) {\n'
           '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
           '  }\n',
-          TYPE=self._NarrowInputType(element_type))
+          TYPE=theType)
 
     self.EmitListMixin(self._DartType(element_type), nullable)
 
@@ -999,27 +1152,60 @@ class Dart2JSBackend(HtmlDartGenerator):
     input_type = self._NarrowInputType(attribute.type.id)
     metadata = self._Metadata(attribute.type.id, attribute.id, output_type)
     rename = self._RenamingAnnotation(attribute.id, html_name)
+    static_attribute = 'static' if attribute.is_static else ''
     if not read_only:
+      if attribute.type.id == 'Promise':
+        _logger.warn('R/W member is a Promise: %s.%s' % (self._interface.id, html_name))
+      template = '\n  $RENAME$METADATA$STATIC $TYPE $NAME;\n'
       self._members_emitter.Emit(
-          '\n  $RENAME$METADATA$TYPE $NAME;'
-          '\n',
+          template,
           RENAME=rename,
           METADATA=metadata,
+          STATIC=static_attribute,
           NAME=html_name,
           TYPE=output_type)
     else:
       template = '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;\n'
-      # Need to use a getter for list.length properties so we can add a
-      # setter which throws an exception, satisfying List API.
-      if self._interface_type_info.list_item_type() and html_name == 'length':
-        template = ('\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
-            'JS("$TYPE", "#.$NAME", this);\n')
-      self._members_emitter.Emit(
-          template,
-          RENAME=rename,
-          ANNOTATIONS=metadata,
-          NAME=html_name,
-          TYPE=output_type)
+      if attribute.type.id == 'Promise':
+          lookupOp = "%s.%s" % (self._interface.id, html_name)
+          promiseFound = _GetPromiseAttributeType(lookupOp)
+          promiseType = 'Future'
+          promiseCall = 'promiseToFuture'
+          if promiseFound is not (None):
+              if 'maplike' in promiseFound:
+                  promiseCall = 'promiseToFuture<dynamic>'
+                  promiseType = 'Future'
+              elif promiseFound['type'] == 'dictionary':
+                  # It's a dictionary so return as a Map.
+                  promiseCall = 'promiseToFutureAsMap'
+                  promiseType = 'Future<Map<String, dynamic>>'
+              else:
+                  paramType = promiseFound['type']
+                  promiseCall = 'promiseToFuture<%s>' % paramType
+                  promiseType = 'Future<%s>' % paramType
+
+          template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => $PROMISE_CALL(JS("", "#.$NAME", this));\n'
+
+          self._members_emitter.Emit(template,
+                                     RENAME=rename,
+                                     ANNOTATIONS=metadata,
+                                     TYPE=promiseType,
+                                     PROMISE_CALL=promiseCall,
+                                     NAME=html_name)
+      else:
+        template = '\n  $RENAME$(ANNOTATIONS)$STATIC final $TYPE $NAME;\n'
+        # Need to use a getter for list.length properties so we can add a
+        # setter which throws an exception, satisfying List API.
+        if self._interface_type_info.list_item_type() and html_name == 'length':
+          template = ('\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
+              'JS("$TYPE", "#.$NAME", this);\n')
+        self._members_emitter.Emit(
+            template,
+            RENAME=rename,
+            ANNOTATIONS=metadata,
+            STATIC=static_attribute,
+            NAME=html_name,
+            TYPE=input_type if output_type == 'double' else output_type)
 
   def _AddAttributeUsingProperties(self, attribute, html_name, read_only):
     self._AddRenamingGetter(attribute, html_name)
@@ -1118,34 +1304,147 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._AddInterfaceOperation(info, html_name)
     elif info.callback_args:
       self._AddFutureifiedOperation(info, html_name)
-    elif any(self._OperationRequiresConversions(op) for op in info.overloads):
-      # Any conversions needed?
-      self._AddOperationWithConversions(info, html_name)
     else:
-      self._AddDirectNativeOperation(info, html_name)
+      if any(self._OperationRequiresConversions(op) for op in info.overloads):
+        lookupOp = "%s.%s" % (self._interface.id, html_name)
+        if (_GetPromiseOperationType(lookupOp) or info.type_name == 'Promise') and \
+          not _IsPromiseOperationGenerateCall(lookupOp):
+            self._AddDirectNativeOperation(info, html_name)
+        else:
+          # Any conversions needed?
+          self._AddOperationWithConversions(info, html_name)
+      else:
+        self._AddDirectNativeOperation(info, html_name)
+
+  def _computeResultType(self, checkType):
+    # TODO(terry): Work around bug in dart2js compiler e.g.,
+    #     typedef void CustomElementConstructor();
+    #     CustomElementConstructor registerElement(String type, [Map options])
+    # Needs to become:
+    #     Function registerElement(String type, [Map options])
+    resultType = checkType
+    if self._database.HasInterface(resultType):
+        resultInterface = self._database.GetInterface(resultType)
+        if 'Callback' in resultInterface.ext_attrs:
+            resultType = 'Function'
+    return resultType
+
+  def _zeroArgs(self, argsNames):
+    return 'JS("", "#.$NAME()", this)'
+
+  def _manyArgs(self, numberArgs, argsNames):
+    argsPound = "#" if numberArgs == 1 else ("#, " * numberArgs)[:-2]
+    return '    JS("", "#.$NAME(%s)", this, %s)' % (argsPound, argsNames)
+
+  """ If argument conversionsMapToDictionary is a list first entry is argument
+      name and second entry signals if argument is optional (True). """
+  def _promiseToFutureCode(self, argsNames, conversionsMapToDictionary=None):
+    numberArgs = argsNames.count(',') + 1
+    jsCall = self._zeroArgs(argsNames) if len(argsNames) == 0 else \
+        self._manyArgs(numberArgs, argsNames)
+
+    futureTemplate = []
+    if conversionsMapToDictionary is None:
+      futureTemplate = [
+        '\n'
+        '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) => $PROMISE_CALL(', jsCall, ');\n'
+      ]
+    else:
+      mapArg = conversionsMapToDictionary[0]
+      tempVariable = '%s_dict' % mapArg
+      mapArgOptional = conversionsMapToDictionary[1]
+
+      if argsNames.endswith('%s' % mapArg):
+        argsNames = '%s_dict' % argsNames
+        jsCall = self._zeroArgs(argsNames) if len(argsNames) == 0 else \
+            self._manyArgs(numberArgs, argsNames)
+      if mapArgOptional:
+        futureTemplate = [
+          # We will need to convert the Map argument to a Dictionary, test if mapArg is there (optional) then convert.
+          '\n'
+          '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) {\n',
+          '    var ', tempVariable, ' = null;\n',
+          '    if (', mapArg, ' != null) {\n',
+          '      ', tempVariable, ' = convertDartToNative_Dictionary(', mapArg, ');\n',
+          '    }\n',
+          '    return $PROMISE_CALL(', jsCall, ');\n',
+          '  }\n'
+        ]
+      else:
+        futureTemplate = [
+          # We will need to convert the Map argument to a Dictionary, the Map argument is not optional.
+          '\n'
+          '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) {\n',
+          '    var ', tempVariable, ' = convertDartToNative_Dictionary(', mapArg, ');\n',
+          '    return $PROMISE_CALL(', jsCall, ');\n',
+          '  }\n'
+        ]
+
+    return "".join(futureTemplate)
 
   def _AddDirectNativeOperation(self, info, html_name):
-    self._members_emitter.Emit(
+    force_optional = True if html_name.startswith('_') else False
+    resultType = self._computeResultType(info.type_name)
+
+    if info.type_name == 'Promise' and not(force_optional):
+      lookupOp = "%s.%s" % (self._interface.id, html_name)
+      promiseFound = _GetPromiseOperationType(lookupOp)
+      promiseType = 'Future'
+      promiseCall = 'promiseToFuture'
+      if promiseFound is not(None):
+        paramType = promiseFound['type']
+        if 'maplike' in promiseFound:
+          if paramType == 'dictionary':
+            promiseCall = 'promiseToFuture<dynamic>'
+            promiseType = 'Future'
+          else:
+            promiseCall = 'promiseToFuture<%s>' % paramType
+            promiseType = 'Future<%s>' % paramType
+        elif paramType == 'dictionary':
+          # It's a dictionary so return as a Map.
+          promiseCall = 'promiseToFutureAsMap'
+          promiseType = 'Future<Map<String, dynamic>>'
+        else:
+          promiseCall = 'promiseToFuture<%s>' % paramType
+          promiseType = 'Future<%s>' % paramType
+
+      argsNames = info.ParametersAsArgumentList()
+      dictionary_argument = info.dictionaryArgumentName();
+      codeTemplate = self._promiseToFutureCode(argsNames, dictionary_argument)
+      self._members_emitter.Emit(codeTemplate,
+        RENAME=self._RenamingAnnotation(info.declared_name, html_name),
+        METADATA=self._Metadata(info.type_name, info.declared_name,
+            self.SecureOutputType(info.type_name)),
+        MODIFIERS='static ' if info.IsStatic() else '',
+        TYPE=promiseType,
+        PROMISE_CALL=promiseCall,
+        NAME=html_name,
+        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType, force_optional))
+    else:
+        self._members_emitter.Emit(
         '\n'
         '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
         RENAME=self._RenamingAnnotation(info.declared_name, html_name),
         METADATA=self._Metadata(info.type_name, info.declared_name,
             self.SecureOutputType(info.type_name)),
         MODIFIERS='static ' if info.IsStatic() else '',
-        TYPE=self.SecureOutputType(info.type_name, False, True),
+        TYPE=self.SecureOutputType(resultType, False, True),
         NAME=html_name,
-        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
+        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType, force_optional))
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
     assert len(set([op.type.id for op in info.operations])) == 1
-    output_conversion = self._OutputConversion(info.type_name,
+
+    resultType = self._computeResultType(info.type_name)
+
+    output_conversion = self._OutputConversion(resultType,
                                                info.declared_name)
     if output_conversion:
       return_type = output_conversion.output_type
       native_return_type = output_conversion.input_type
     else:
-      return_type = self._NarrowInputType(info.type_name)
+      return_type = resultType if resultType == 'Function' else self._NarrowInputType(resultType)
       native_return_type = return_type
 
     parameter_names = [param_info.name for param_info in info.param_infos]
@@ -1161,7 +1460,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       target = '_%s_%d' % (
           html_name[1:] if html_name.startswith('_') else html_name, version);
 
-      (target_parameters, arguments) = self._ConvertArgumentTypes(
+      (target_parameters, arguments, calling_params) = self._ConvertArgumentTypes(
           stmts_emitter, operation.arguments, argument_count, info)
 
       argument_list = ', '.join(arguments)
@@ -1174,21 +1473,45 @@ class Dart2JSBackend(HtmlDartGenerator):
 
       call_emitter.Emit(call)
 
-      self._members_emitter.Emit(
-          '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
-          RENAME=self._RenamingAnnotation(info.declared_name, target),
-          METADATA=self._Metadata(info.type_name, info.declared_name, None),
-          MODIFIERS='static ' if info.IsStatic() else '',
-          TYPE=TypeOrNothing(native_return_type),
-          TARGET=target,
-          PARAMS=', '.join(target_parameters))
+      if (native_return_type == 'Future'):
+        hashArgs = ''
+        if argument_count > 0:
+          if argument_count < 20:
+            hashArgs = '#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#'[:argument_count * 2 - 1]
+          else:
+            print "ERROR: Arguments exceede 20 - please fix Python code to handle more."
+        self._members_emitter.Emit(
+            '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) =>\n'
+            '      promiseToFuture(JS("", "#.$JSNAME($HASH_STR)", this$CALLING_PARAMS));\n',
+            RENAME=self._RenamingAnnotation(info.declared_name, target),
+            METADATA=self._Metadata(info.type_name, info.declared_name, None),
+            MODIFIERS='static ' if info.IsStatic() else '',
+            TYPE=TypeOrNothing(native_return_type),
+            TARGET=target,
+            PARAMS=', '.join(target_parameters),
+            JSNAME=operation.id,
+            HASH_STR=hashArgs,
+            CALLING_PARAMS=calling_params)
+      else:
+        self._members_emitter.Emit(
+            '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
+            RENAME=self._RenamingAnnotation(info.declared_name, target),
+            METADATA=self._Metadata(info.type_name, info.declared_name, None),
+            MODIFIERS='static ' if info.IsStatic() else '',
+            TYPE=TypeOrNothing(native_return_type),
+            TARGET=target,
+            PARAMS=', '.join(target_parameters))
+
+    # private methods don't need named arguments.
+    full_name = '%s.%s' % (self._interface.id, info.declared_name)
+    force_optional = False if hasNamedFormals(full_name) and not(html_name.startswith('_')) else True
 
     declaration = '%s%s%s %s(%s)' % (
         self._Metadata(info.type_name, info.declared_name, return_type),
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,
-        info.ParametersAsDeclaration(InputType))
+        info.ParametersAsDeclaration(InputType, force_optional))
     self._GenerateDispatcherBody(
         info,
         operations,

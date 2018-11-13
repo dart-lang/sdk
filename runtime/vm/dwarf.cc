@@ -28,7 +28,10 @@ class InliningNode : public ZoneAllocated {
         end_pc_offset(-1),
         children_head(NULL),
         children_tail(NULL),
-        children_next(NULL) {}
+        children_next(NULL) {
+    RELEASE_ASSERT(!function.IsNull());
+    RELEASE_ASSERT(function.IsNotTemporaryScopedHandle());
+  }
 
   void AppendChild(InliningNode* child) {
     if (children_tail == NULL) {
@@ -48,7 +51,7 @@ class InliningNode : public ZoneAllocated {
   InliningNode* children_next;
 };
 
-Dwarf::Dwarf(Zone* zone, WriteStream* stream)
+Dwarf::Dwarf(Zone* zone, StreamingWriteStream* stream)
     : zone_(zone),
       stream_(stream),
       codes_(zone, 1024),
@@ -60,7 +63,7 @@ Dwarf::Dwarf(Zone* zone, WriteStream* stream)
       temp_(0) {}
 
 intptr_t Dwarf::AddCode(const Code& code) {
-  ASSERT(!code.IsNull());
+  RELEASE_ASSERT(!code.IsNull());
   CodeIndexPair* pair = code_to_index_.Lookup(&code);
   if (pair != NULL) {
     return pair->index_;
@@ -86,7 +89,7 @@ intptr_t Dwarf::AddCode(const Code& code) {
 }
 
 intptr_t Dwarf::AddFunction(const Function& function) {
-  ASSERT(!function.IsNull());
+  RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
   if (pair != NULL) {
     return pair->index_;
@@ -101,7 +104,7 @@ intptr_t Dwarf::AddFunction(const Function& function) {
 }
 
 intptr_t Dwarf::AddScript(const Script& script) {
-  ASSERT(!script.IsNull());
+  RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
   if (pair != NULL) {
     return pair->index_;
@@ -115,7 +118,7 @@ intptr_t Dwarf::AddScript(const Script& script) {
 }
 
 intptr_t Dwarf::LookupFunction(const Function& function) {
-  ASSERT(!function.IsNull());
+  RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
   if (pair == NULL) {
     FATAL1("Function detected too late during DWARF generation: %s",
@@ -125,7 +128,7 @@ intptr_t Dwarf::LookupFunction(const Function& function) {
 }
 
 intptr_t Dwarf::LookupScript(const Script& script) {
-  ASSERT(!script.IsNull());
+  RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
   if (pair == NULL) {
     FATAL1("Script detected too late during DWARF generation: %s",
@@ -305,6 +308,7 @@ void Dwarf::WriteConcreteFunctions() {
   Script& script = Script::Handle(zone_);
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
+    RELEASE_ASSERT(!code.IsNull());
     if (!code.IsFunctionCode()) {
       continue;
     }
@@ -349,7 +353,10 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
     return NULL;
   }
   const Array& functions = Array::Handle(zone_, code.inlined_id_to_function());
-  const Function& root_function = Function::Handle(zone_, code.function());
+  const Function& root_function = Function::ZoneHandle(zone_, code.function());
+  if (root_function.IsNull()) {
+    FATAL1("Wherefore art thou functionless code, %s?\n", code.ToCString());
+  }
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);
   GrowableArray<TokenPosition> token_positions(zone_, 4);
@@ -380,7 +387,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
       case CodeSourceMapBuilder::kPushFunction: {
         int32_t func = stream.Read<int32_t>();
         const Function& child_func =
-            Function::Handle(zone_, Function::RawCast(functions.At(func)));
+            Function::ZoneHandle(zone_, Function::RawCast(functions.At(func)));
         TokenPosition call_pos = token_positions.Last();
         InliningNode* child_node =
             new (zone_) InliningNode(child_func, call_pos, current_pc_offset);
@@ -396,6 +403,10 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
         node_stack.Last()->end_pc_offset = current_pc_offset;
         node_stack.RemoveLast();
         token_positions.RemoveLast();
+        break;
+      }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
         break;
       }
       default:
@@ -428,10 +439,10 @@ void Dwarf::WriteInliningNode(InliningNode* node,
   Print("Ltemp%" Pd " = .Lfunc%" Pd " - .Ldebug_info\n", temp, function_index);
   Print(".4byte Ltemp%" Pd "\n", temp);
   // DW_AT_low_pc
-  Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", root_code_index,
+  Print(FORM_ADDR " .Lcode%" Pd " + %d\n", root_code_index,
         node->start_pc_offset);
   // DW_AT_high_pc
-  Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", root_code_index,
+  Print(FORM_ADDR " .Lcode%" Pd " + %d\n", root_code_index,
         node->end_pc_offset);
   // DW_AT_call_file
   uleb128(file);
@@ -473,7 +484,7 @@ void Dwarf::WriteLines() {
   Print(".Llineheader_start:\n");
 
   u1(1);   // 4. minimum_instruction_length
-  u1(0);   // 5. default_is_stmt
+  u1(1);   // 5. default_is_stmt (true for compatibility with dsymutil).
   u1(0);   // 6. line_base
   u1(1);   // 7. line_range
   u1(13);  // 8. opcode_base (12 standard opcodes in Dwarf 2)
@@ -585,7 +596,7 @@ void Dwarf::WriteLines() {
             u1(0);                  // This is an extended opcode
             u1(1 + sizeof(void*));  // that is 5 or 9 bytes long
             u1(DW_LNE_set_address);
-            Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", i, current_pc_offset);
+            Print(FORM_ADDR " .Lcode%" Pd " + %d\n", i, current_pc_offset);
           } else {
             u1(DW_LNS_advance_pc);
             Print(".uleb128 .Lcode%" Pd " - .Lcode%" Pd " + %" Pd "\n", i,
@@ -609,6 +620,10 @@ void Dwarf::WriteLines() {
           ASSERT(token_positions.length() > 1);
           function_stack.RemoveLast();
           token_positions.RemoveLast();
+          break;
+        }
+        case CodeSourceMapBuilder::kNullCheck: {
+          stream.Read<int32_t>();
           break;
         }
         default:

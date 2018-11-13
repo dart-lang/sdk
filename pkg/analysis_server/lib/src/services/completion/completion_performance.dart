@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/source.dart';
-
 /**
  * Overall performance of a code completion operation.
  */
@@ -13,7 +11,7 @@ class CompletionPerformance {
   final Stopwatch _stopwatch = new Stopwatch();
   final List<OperationPerformance> operations = <OperationPerformance>[];
 
-  Source source;
+  String path;
   String snippet = '';
   int notificationCount = -1;
   int suggestionCountFirst = -1;

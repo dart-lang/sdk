@@ -216,12 +216,7 @@ class PrecedenceInfoTest {
   void test_isUnaryPostfixOperator() {
     const unaryPostfixLexemes = const [
       '--',
-      '(',
-      '[',
-      '.',
       '++',
-      '?.',
-      '[]',
     ];
     assertInfo((String source, Token token) {
       expect(token.type.isUnaryPostfixOperator,
@@ -241,6 +236,20 @@ class PrecedenceInfoTest {
     assertInfo((String source, Token token) {
       expect(
           token.type.isUnaryPrefixOperator, unaryPrefixLexemes.contains(source),
+          reason: source);
+    });
+  }
+
+  void test_isSelectorOperator() {
+    const selectorLexemes = const [
+      '(',
+      '[',
+      '.',
+      '?.',
+      '[]',
+    ];
+    assertInfo((String source, Token token) {
+      expect(token.type.isSelectorOperator, selectorLexemes.contains(source),
           reason: source);
     });
   }
@@ -358,7 +367,8 @@ class PrecedenceInfoTest {
   /// because it is interpreted as a minus token (precedence 13).
   void test_precedence() {
     const precedenceTable = const <int, List<String>>{
-      16: const <String>['.', '?.', '++', '--', '[', '('],
+      17: const <String>['.', '?.', '[', '('],
+      16: const <String>['++', '--'],
       15: const <String>['!', '~'], // excluded '-', '++', '--'
       14: const <String>['*', '/', '~/', '%'],
       13: const <String>['+', '-'],

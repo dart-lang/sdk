@@ -38,7 +38,7 @@ enum Register {
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
-  R28 = 28,  // CTX
+  R28 = 28,  // BARRIER_MASK
   R29 = 29,  // FP
   R30 = 30,  // LR
   R31 = 31,  // ZR, CSP
@@ -107,25 +107,25 @@ const FpuRegister kNoFpuRegister = kNoVRegister;
 // Register aliases.
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
-const Register CTX = R28;  // Location of current context at method entry.
 const Register PP = R27;   // Caches object pool pointer in generated code.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
 const Register LRREG = LR;          // Link register.
-const Register ICREG = R5;          // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
+const Register BARRIER_MASK = R28;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = R1;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = R1;
+const Register kWriteBarrierValueReg = R0;
+const Register kWriteBarrierSlotReg = R25;
 
 // Masks, sizes, etc.
 const int kXRegSizeInBits = 64;
@@ -135,7 +135,7 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 
 // List of registers used in load/store multiple.
 typedef uint32_t RegList;
-const RegList kAllCpuRegistersList = 0xFFFF;
+const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
@@ -154,12 +154,15 @@ const int kAbiPreservedFpuRegCount = 8;
 const intptr_t kReservedCpuRegisters =
     (1 << SPREG) |  // Dart SP
     (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
-    (1 << LR) | (1 << R31) |  // C++ SP
-    (1 << CTX) | (1 << R18);  // iOS platform register.
-                              // TODO(rmacnak): Only reserve on Mac & iOS.
+    (1 << LR) | (1 << BARRIER_MASK) | (1 << R31) |  // C++ SP
+    (1 << R18);                                     // iOS platform register.
+// TODO(rmacnak): Only reserve on Mac & iOS.
+constexpr intptr_t kNumberOfReservedCpuRegisters = 10;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
@@ -167,6 +170,8 @@ const Register kDartFirstVolatileCpuReg = R0;
 const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
+
+constexpr int kStoreBufferWrapperSize = 32;
 
 static inline Register ConcreteRegister(Register r) {
   return ((r == ZR) || (r == CSP)) ? R31 : r;
@@ -195,7 +200,9 @@ enum Condition {
 
   // Platform-independent variants declared for all platforms
   EQUAL = EQ,
+  ZERO = EQUAL,
   NOT_EQUAL = NE,
+  NOT_ZERO = NOT_EQUAL,
   LESS = LT,
   LESS_EQUAL = LE,
   GREATER_EQUAL = GE,
@@ -521,11 +528,16 @@ enum MiscDP2SourceOp {
 enum MiscDP3SourceOp {
   MiscDP3SourceMask = 0x1f000000,
   MiscDP3SourceFixed = DPRegisterFixed | B28 | B24,
-  MADD = MiscDP3SourceFixed,
-  MSUB = MiscDP3SourceFixed | B15,
+  MADDW = MiscDP3SourceFixed,
+  MADD = MiscDP3SourceFixed | B31,
+  MSUBW = MiscDP3SourceFixed | B15,
+  MSUB = MiscDP3SourceFixed | B31 | B15,
   SMULH = MiscDP3SourceFixed | B31 | B22,
   UMULH = MiscDP3SourceFixed | B31 | B23 | B22,
+  SMADDL = MiscDP3SourceFixed | B31 | B21,
   UMADDL = MiscDP3SourceFixed | B31 | B23 | B21,
+  SMSUBL = MiscDP3SourceFixed | B31 | B21 | B15,
+  UMSUBL = MiscDP3SourceFixed | B31 | B23 | B21 | B15,
 };
 
 // C3.5.10

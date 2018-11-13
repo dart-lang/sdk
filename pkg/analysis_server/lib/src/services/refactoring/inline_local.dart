@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -26,9 +27,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     implements InlineLocalRefactoring {
   final SearchEngine searchEngine;
   final AstProvider astProvider;
-  final CompilationUnit unit;
+  final ResolveResult resolveResult;
   final int offset;
-  CompilationUnitElement unitElement;
   CorrectionUtils utils;
 
   Element _variableElement;
@@ -36,9 +36,9 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   List<SearchMatch> _references;
 
   InlineLocalRefactoringImpl(
-      this.searchEngine, this.astProvider, this.unit, this.offset) {
-    unitElement = unit.element;
-    utils = new CorrectionUtils(unit);
+      this.searchEngine, this.astProvider, this.resolveResult, this.offset) {
+    utils =
+        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
   }
 
   @override
@@ -68,10 +68,13 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     // prepare variable
     {
-      AstNode offsetNode = new NodeLocator(offset).searchWithin(unit);
+      AstNode offsetNode =
+          new NodeLocator(offset).searchWithin(resolveResult.unit);
       if (offsetNode is SimpleIdentifier) {
         Element element = offsetNode.staticElement;
         if (element is LocalVariableElement) {
@@ -121,8 +124,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
       Statement declarationStatement = _variableNode
           .getAncestor((node) => node is VariableDeclarationStatement);
       SourceRange range = utils.getLinesRangeStatements([declarationStatement]);
-      doSourceChange_addElementEdit(
-          change, unitElement, newSourceEdit_range(range, ''));
+      doSourceChange_addElementEdit(change, resolveResult.unit.declaredElement,
+          newSourceEdit_range(range, ''));
     }
     // prepare initializer
     Expression initializer = _variableNode.initializer;
@@ -158,15 +161,12 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         codeForReference = initializerCode;
       }
       // do replace
-      doSourceChange_addElementEdit(change, unitElement,
+      doSourceChange_addElementEdit(change, resolveResult.unit.declaredElement,
           newSourceEdit_range(editRange, codeForReference));
     }
     // done
     return new Future.value(change);
   }
-
-  @override
-  bool requiresPreview() => false;
 
   bool _isVariableDeclaredInStatement() {
     if (_variableNode == null) {

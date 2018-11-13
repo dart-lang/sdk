@@ -1,17 +1,9 @@
 /*
- * Copyright (c) 2015, the Dart project authors.
+ * Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
  *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package org.dartlang.analysis.server.protocol;
@@ -80,6 +72,24 @@ public class RequestErrorCode {
    * currently subject to analysis.
    */
   public static final String GET_REACHABLE_SOURCES_INVALID_FILE = "GET_REACHABLE_SOURCES_INVALID_FILE";
+
+  /**
+   * An "analysis.getSignature" request specified a FilePath which does not match a file currently
+   * subject to analysis.
+   */
+  public static final String GET_SIGNATURE_INVALID_FILE = "GET_SIGNATURE_INVALID_FILE";
+
+  /**
+   * An "analysis.getSignature" request specified an offset which is not a valid location within for
+   * the contents of the file specified FilePath.
+   */
+  public static final String GET_SIGNATURE_INVALID_OFFSET = "GET_SIGNATURE_INVALID_OFFSET";
+
+  /**
+   * An "analysis.getSignature" request specified an offset that could not be matched to a function
+   * call.
+   */
+  public static final String GET_SIGNATURE_UNKNOWN_FUNCTION = "GET_SIGNATURE_UNKNOWN_FUNCTION";
 
   /**
    * An "edit.importElements" request specified a FilePath that does not match a file currently
@@ -155,22 +165,10 @@ public class RequestErrorCode {
   public static final String SORT_MEMBERS_PARSE_ERRORS = "SORT_MEMBERS_PARSE_ERRORS";
 
   /**
-   * An "analysis.setPriorityFiles" request includes one or more files that are not being analyzed.
-   *
-   * This is a legacy error; it will be removed before the API reaches version 1.0.
-   */
-  public static final String UNANALYZED_PRIORITY_FILES = "UNANALYZED_PRIORITY_FILES";
-
-  /**
    * A request was received which the analysis server does not recognize, or cannot handle in its
    * current configuration.
    */
   public static final String UNKNOWN_REQUEST = "UNKNOWN_REQUEST";
-
-  /**
-   * The analysis server was requested to perform an action on a source that does not exist.
-   */
-  public static final String UNKNOWN_SOURCE = "UNKNOWN_SOURCE";
 
   /**
    * The analysis server was requested to perform an action which is not supported.

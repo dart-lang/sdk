@@ -39,7 +39,7 @@ main() {
       expect(() {
         init();
 
-        expect(queryAll('.foo'), equals([div1, paragraph2]));
+        expect(querySelectorAll('.foo'), equals([div1, paragraph2]));
       }, expectation);
     });
 
@@ -60,7 +60,7 @@ main() {
       expect(() {
         init();
 
-        expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
+        expect(shadowRoot.querySelectorAll('.foo'), equals([paragraph1]));
       }, expectation);
     });
 

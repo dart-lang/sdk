@@ -19,10 +19,12 @@ class NamedConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AstNode node = request.target.containingNode;
     LibraryElement libElem = request.libraryElement;
     if (libElem == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Build the list of suggestions
@@ -38,7 +40,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
         }
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   List<CompletionSuggestion> _buildSuggestions(

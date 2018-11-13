@@ -27,7 +27,7 @@ main() {
     return customElementsReady.then((_) {
       if (!registered) {
         registered = true;
-        document.registerElement(A.tag, A);
+        document.registerElement2(A.tag, {'prototype': A});
       }
     });
   });

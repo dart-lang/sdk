@@ -13,6 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../src/utilities/flutter_util.dart' as flutter;
 
 main() {
   defineReflectiveSuite(() {
@@ -24,11 +25,17 @@ main() {
     defineReflectiveTests(InlineLocalTest);
     defineReflectiveTests(InlineMethodTest);
     defineReflectiveTests(MoveFileTest);
-    // TODO(brianwilkerson) Re-enable these tests. They were commented out
-    // because they are non-deterministic under the new driver. I suspect that
-    // there is a future that isn't being waited for.
-//    defineReflectiveTests(RenameTest);
+    defineReflectiveTests(RenameTest);
   });
+}
+
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
 }
 
 @reflectiveTest
@@ -271,8 +278,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
 
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, r'''
+    newFile(join(testFolder, 'other.dart'), content: r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -406,7 +412,7 @@ main() {
 }
 ''');
 
-    Future<Null> checkUpdate(doUpdate()) async {
+    Future<void> checkUpdate(doUpdate()) async {
       await getRefactoringResult(() {
         return sendStringRequest('1 + 2', 'res', true);
       });
@@ -444,8 +450,8 @@ main() {
   }
 
   test_resetOnAnalysisSetChanged_watch_otherFile() async {
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, '// other 1');
+    String otherFile = join(testFolder, 'other.dart');
+    newFile(otherFile, content: '// other 1');
     addTestFile('''
 main() {
   foo(1 + 2);
@@ -465,7 +471,7 @@ foo(int myName) {}
     // The refactoring is reset, even though it's a different file. It is up to
     // analyzer to track dependencies and provide resolved units fast when
     // possible.
-    addFile(otherFile, '// other 2');
+    newFile(otherFile, content: '// other 2');
     await pumpEventQueue();
     expect(test_resetCount, initialResetCount + 1);
   }
@@ -781,6 +787,14 @@ void res(int a, int b) {
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
 
+  void addFlutterPackage() {
+    var libFolder = flutter.configureFlutterPackage(resourceProvider);
+    // Create .packages in the project.
+    newFile(join(projectPath, '.packages'), content: '''
+flutter:${libFolder.toUri()}
+''');
+  }
+
   /**
    * Tests that there is refactoring of the given [kind] is available at the
    * [search] offset.
@@ -856,6 +870,35 @@ main() {
     await getRefactoringsForString('1 + 2');
     expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
+  Future test_extractLocal_withoutSelection() async {
+    addTestFile('''
+main() {
+  var a = 1 + 2;
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsAtString('1 + 2');
+    expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+    expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
+  Future test_extractWidget() async {
+    addFlutterPackage();
+    addTestFile('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text('AAA');
+  }
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsForString('new Text');
+    expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
   }
 
   Future test_rename_hasElement_class() {
@@ -979,8 +1022,8 @@ main() {
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, r'''
+    String otherFile = join(testFolder, 'other.dart');
+    newFile(otherFile, content: r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -1048,8 +1091,7 @@ main() {
   }
 
   test_resetOnAnalysisSetChanged() async {
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, '// other 1');
+    newFile(join(testFolder, 'other.dart'), content: '// other 1');
     addTestFile('''
 main() {
   int res = 1 + 2;
@@ -1216,8 +1258,8 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
 
   @failingTest
   test_OK() {
-    fail('The move file refactoring is not supported under the new driver');
-    resourceProvider.newFile('/project/bin/lib.dart', '');
+    _fail('The move file refactoring is not supported under the new driver');
+    newFile('/project/bin/lib.dart');
     addTestFile('''
 import 'dart:math';
 import 'lib.dart';
@@ -1308,6 +1350,151 @@ main() {
   new NewName.named();
 }
 ''');
+  }
+
+  test_class_fromFactoryRedirectingConstructor() {
+    addTestFile('''
+class A {
+  A() = Test.named;
+}
+class Test {
+  Test.named() {}
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test.named;', 'NewName');
+      },
+      '''
+class A {
+  A() = NewName.named;
+}
+class NewName {
+  NewName.named() {}
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 18);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation() {
+    addTestFile('''
+class Test {
+  Test() {}
+}
+main() {
+  new Test();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName() {}
+}
+main() {
+  new NewName();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 42);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation_namedConstructor() {
+    addTestFile('''
+class Test {
+  Test.named() {}
+}
+main() {
+  new Test.named();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test.named();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName.named() {}
+}
+main() {
+  new NewName.named();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 48);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation_onNew() {
+    addTestFile('''
+class Test {
+  Test() {}
+}
+main() {
+  new Test();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new Test();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName() {}
+}
+main() {
+  new NewName();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 42);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation_onNew_namedConstructor() {
+    addTestFile('''
+class Test {
+  Test.named() {}
+}
+main() {
+  new Test.named();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new Test.named();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName.named() {}
+}
+main() {
+  new NewName.named();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 48);
+        expect(renameFeedback.length, 4);
+      },
+    );
   }
 
   test_class_options_fatalError() {
@@ -1546,25 +1733,33 @@ class A {
 ''');
   }
 
-  test_constructor_fromFactoryRedirectingConstructor_onClassName() {
+  test_constructor_fromFactoryRedirectingConstructor() {
     addTestFile('''
 class A {
-  A() = B;
+  A() = B.test;
 }
 class B {
-  B() {}
+  B.test() {}
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('B;', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test;', 'newName');
+      },
+      '''
 class A {
   A() = B.newName;
 }
 class B {
   B.newName() {}
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 20);
+        expect(renameFeedback.length, 4);
+      },
+    );
   }
 
   test_constructor_fromInstanceCreation() {
@@ -1576,58 +1771,24 @@ main() {
   new A.test();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test();', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test();', 'newName');
+      },
+      '''
 class A {
   A.newName() {}
 }
 main() {
   new A.newName();
 }
-''');
-  }
-
-  test_constructor_fromInstanceCreation_default_onClassName() {
-    addTestFile('''
-class A {
-  A() {}
-}
-main() {
-  new A();
-}
-''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('A();', 'newName');
-    }, '''
-class A {
-  A.newName() {}
-}
-main() {
-  new A.newName();
-}
-''');
-  }
-
-  test_constructor_fromInstanceCreation_default_onNew() {
-    addTestFile('''
-class A {
-  A() {}
-}
-main() {
-  new A();
-}
-''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('new A();', 'newName');
-    }, '''
-class A {
-  A.newName() {}
-}
-main() {
-  new A.newName();
-}
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 43);
+        expect(renameFeedback.length, 4);
+      },
+    );
   }
 
   test_feedback() {
@@ -1675,16 +1836,23 @@ main() {
   Future f;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest("import 'dart:async';", 'new_name');
-    }, '''
+    return assertSuccessfulRefactoring(
+        () {
+          return sendRenameRequest("import 'dart:async';", 'new_name');
+        },
+        '''
 import 'dart:math';
 import 'dart:async' as new_name;
 main() {
   Random r;
   new_name.Future f;
 }
-''');
+''',
+        feedbackValidator: (feedback) {
+          RenameFeedback renameFeedback = feedback;
+          expect(renameFeedback.offset, -1);
+          expect(renameFeedback.length, 0);
+        });
   }
 
   test_importPrefix_remove() {
@@ -1696,16 +1864,23 @@ main() {
   test.Future f;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest("import 'dart:async' as test;", '');
-    }, '''
+    return assertSuccessfulRefactoring(
+        () {
+          return sendRenameRequest("import 'dart:async' as test;", '');
+        },
+        '''
 import 'dart:math' as test;
 import 'dart:async';
 main() {
   test.Random r;
   Future f;
 }
-''');
+''',
+        feedbackValidator: (feedback) {
+          RenameFeedback renameFeedback = feedback;
+          expect(renameFeedback.offset, 51);
+          expect(renameFeedback.length, 4);
+        });
   }
 
   test_init_fatalError_noElement() {
@@ -1754,7 +1929,7 @@ library my.new_name;
   }
 
   test_library_partOfDirective() {
-    addFile('$testFolder/my_lib.dart', '''
+    newFile(join(testFolder, 'my_lib.dart'), content: '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');
@@ -1963,9 +2138,13 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future assertSuccessfulRefactoring(
-      Future<Response> requestSender(), String expectedCode) async {
+      Future<Response> requestSender(), String expectedCode,
+      {void Function(RefactoringFeedback) feedbackValidator}) async {
     EditGetRefactoringResult result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
+    if (feedbackValidator != null) {
+      feedbackValidator(result.feedback);
+    }
     assertTestRefactoringResult(result, expectedCode);
   }
 
