@@ -84,6 +84,9 @@ class _Visitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {}
 
   @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {}
+
+  @override
   void declaredLabel(Label label, bool isCaseLabel) {}
 
   @override

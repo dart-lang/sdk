@@ -126,6 +126,8 @@ class AnalyzerConverter {
       return plugin.ElementKind.FUNCTION;
     } else if (kind == analyzer.ElementKind.FUNCTION_TYPE_ALIAS) {
       return plugin.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == analyzer.ElementKind.GENERIC_FUNCTION_TYPE) {
+      return plugin.ElementKind.FUNCTION_TYPE_ALIAS;
     } else if (kind == analyzer.ElementKind.GETTER) {
       return plugin.ElementKind.GETTER;
     } else if (kind == analyzer.ElementKind.LABEL) {

@@ -1056,6 +1056,7 @@ class A {
     Outline unitOutline = await _computeOutline('''
 typedef String FTA<K, V>(int i, String s);
 typedef FTB(int p);
+typedef GTAF<T> = void Function<S>(T t, S s);
 class A<T> {}
 class B {}
 class CTA<T> = A<T> with B;
@@ -1066,7 +1067,7 @@ String get propA => null;
 set propB(int v) {}
 ''');
     List<Outline> topOutlines = unitOutline.children;
-    expect(topOutlines, hasLength(10));
+    expect(topOutlines, hasLength(11));
     // FTA
     {
       Outline outline = topOutlines[0];
@@ -1097,9 +1098,24 @@ set propB(int v) {}
       expect(element.parameters, "(int p)");
       expect(element.returnType, "");
     }
+    // GenericTypeAlias - function
+    {
+      Outline outline = topOutlines[2];
+      Element element = outline.element;
+      expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+      expect(element.name, "GTAF");
+      expect(element.typeParameters, '<T>');
+      {
+        Location location = element.location;
+        expect(location.offset, testCode.indexOf("GTAF<T> ="));
+        expect(location.length, "GTAF".length);
+      }
+      expect(element.parameters, "(T t, S s)");
+      expect(element.returnType, "void");
+    }
     // CTA
     {
-      Outline outline = topOutlines[4];
+      Outline outline = topOutlines[5];
       Element element = outline.element;
       expect(element.kind, ElementKind.CLASS_TYPE_ALIAS);
       expect(element.name, "CTA");
@@ -1114,7 +1130,7 @@ set propB(int v) {}
     }
     // CTB
     {
-      Outline outline = topOutlines[5];
+      Outline outline = topOutlines[6];
       Element element = outline.element;
       expect(element.kind, ElementKind.CLASS_TYPE_ALIAS);
       expect(element.name, 'CTB');
@@ -1123,7 +1139,7 @@ set propB(int v) {}
     }
     // fA
     {
-      Outline outline = topOutlines[6];
+      Outline outline = topOutlines[7];
       Element element = outline.element;
       expect(element.kind, ElementKind.FUNCTION);
       expect(element.name, "fA");
@@ -1137,7 +1153,7 @@ set propB(int v) {}
     }
     // fB
     {
-      Outline outline = topOutlines[7];
+      Outline outline = topOutlines[8];
       Element element = outline.element;
       expect(element.kind, ElementKind.FUNCTION);
       expect(element.name, "fB");
@@ -1151,7 +1167,7 @@ set propB(int v) {}
     }
     // propA
     {
-      Outline outline = topOutlines[8];
+      Outline outline = topOutlines[9];
       Element element = outline.element;
       expect(element.kind, ElementKind.GETTER);
       expect(element.name, "propA");
@@ -1165,7 +1181,7 @@ set propB(int v) {}
     }
     // propB
     {
-      Outline outline = topOutlines[9];
+      Outline outline = topOutlines[10];
       Element element = outline.element;
       expect(element.kind, ElementKind.SETTER);
       expect(element.name, "propB");

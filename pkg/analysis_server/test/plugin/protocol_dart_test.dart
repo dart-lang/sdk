@@ -39,6 +39,8 @@ class ElementKindTest {
         convertElementKind(engine.ElementKind.FUNCTION), ElementKind.FUNCTION);
     expect(convertElementKind(engine.ElementKind.FUNCTION_TYPE_ALIAS),
         ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(convertElementKind(engine.ElementKind.GENERIC_FUNCTION_TYPE),
+        ElementKind.FUNCTION_TYPE_ALIAS);
     expect(convertElementKind(engine.ElementKind.GETTER), ElementKind.GETTER);
     expect(convertElementKind(engine.ElementKind.LABEL), ElementKind.LABEL);
     expect(convertElementKind(engine.ElementKind.LIBRARY), ElementKind.LIBRARY);
@@ -402,6 +404,30 @@ typedef int F<T>(String x);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
       expect(location.startColumn, 13);
+    }
+    expect(element.parameters, '(String x)');
+    expect(element.returnType, 'int');
+    expect(element.flags, 0);
+  }
+
+  test_fromElement_FUNCTION_TYPE_ALIAS_genericTypeAlias() async {
+    engine.Source source = addSource('/test.dart', '''
+typedef F<T> = int Function(String x);
+''');
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    engine.GenericTypeAliasElement engineElement = findElementInUnit(unit, 'F');
+    // create notification Element
+    Element element = convertElement(engineElement);
+    expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element.name, 'F');
+    expect(element.typeParameters, '<T>');
+    {
+      Location location = element.location;
+      expect(location.file, convertPath('/test.dart'));
+      expect(location.offset, 8);
+      expect(location.length, 'F'.length);
+      expect(location.startLine, 1);
+      expect(location.startColumn, 9);
     }
     expect(element.parameters, '(String x)');
     expect(element.returnType, 'int');

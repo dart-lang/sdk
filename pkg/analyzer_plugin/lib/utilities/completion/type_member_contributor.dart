@@ -241,6 +241,17 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    if (declaration.name.name == targetName) {
+      TypeAnnotation typeName = declaration.functionType.returnType;
+      if (typeName != null) {
+        typeFound = typeName.type;
+      }
+      finished();
+    }
+  }
+
+  @override
   void declaredLabel(Label label, bool isCaseLabel) {
     if (label.label.name == targetName) {
       // no type

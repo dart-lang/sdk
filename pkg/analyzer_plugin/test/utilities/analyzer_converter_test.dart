@@ -435,6 +435,31 @@ typedef int F<T>(String x);
     expect(element.flags, 0);
   }
 
+  test_convertElement_genericTypeAlias_function() async {
+    analyzer.Source source = addSource(testFile, '''
+typedef F<T> = int Function(String x);
+''');
+    analyzer.CompilationUnit unit = await resolveLibraryUnit(source);
+    analyzer.FunctionTypeAliasElement engineElement =
+        findElementInUnit(unit, 'F');
+    // create notification Element
+    plugin.Element element = converter.convertElement(engineElement);
+    expect(element.kind, plugin.ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element.name, 'F');
+    expect(element.typeParameters, '<T>');
+    {
+      plugin.Location location = element.location;
+      expect(location.file, testFile);
+      expect(location.offset, 8);
+      expect(location.length, 'F'.length);
+      expect(location.startLine, 1);
+      expect(location.startColumn, 9);
+    }
+    expect(element.parameters, '(String x)');
+    expect(element.returnType, 'int');
+    expect(element.flags, 0);
+  }
+
   test_convertElement_getter() async {
     analyzer.Source source = addSource(testFile, '''
 class A {

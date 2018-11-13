@@ -64,6 +64,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
     return ElementKind.FUNCTION_TYPE_ALIAS;
   }
+  if (kind == engine.ElementKind.GENERIC_FUNCTION_TYPE) {
+    return ElementKind.FUNCTION_TYPE_ALIAS;
+  }
   if (kind == engine.ElementKind.GETTER) {
     return ElementKind.GETTER;
   }

@@ -2362,6 +2362,36 @@ class B extends A {
     assertSuggestClass('Object');
   }
 
+  test_functionTypeAlias_genericTypeAlias() async {
+    addSource('/a.dart', r'''
+typedef F = void Function();
+''');
+    addTestSource(r'''
+import 'a.dart';
+
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
+  test_functionTypeAlias_old() async {
+    addSource('/a.dart', r'''
+typedef void F();
+''');
+    addTestSource(r'''
+import 'a.dart';
+
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
   test_IfStatement() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''

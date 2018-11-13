@@ -2778,6 +2778,28 @@ class C2 { }
     assertNotSuggested('Object');
   }
 
+  test_functionTypeAlias_genericTypeAlias() async {
+    addTestSource(r'''
+typedef F = void Function();
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
+  test_functionTypeAlias_old() async {
+    addTestSource(r'''
+typedef void F();
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
   test_IfStatement() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
