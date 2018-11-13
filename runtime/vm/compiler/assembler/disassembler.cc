@@ -360,7 +360,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           default:
             UNREACHABLE();
         }
-        if (!code.IsNull()) {
+        if (function.IsNull()) {
           cls ^= code.owner();
           if (cls.IsNull()) {
             THR_Print("  0x%" Px ": %s, %p (%s)\n", start + offset,
