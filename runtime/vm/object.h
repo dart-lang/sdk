@@ -5183,6 +5183,7 @@ class Code : public Object {
   bool IsAllocationStubCode() const;
   bool IsStubCode() const;
   bool IsFunctionCode() const;
+  bool IsBytecode() const;
 
   void DisableDartCode() const;
 

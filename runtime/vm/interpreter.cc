@@ -1086,6 +1086,7 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   *pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->entry_point_);
   pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
   *FP = callee_fp;
+  fp_ = callee_fp;  // For the profiler.
   *SP = *FP - 1;
   return true;
 }
@@ -1371,6 +1372,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
 #define HANDLE_RETURN                                                          \
   do {                                                                         \
     pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;              \
+    fp_ = FP; /* For the profiler. */                                          \
   } while (0)
 
 // Runtime call helpers: handle invocation and potential exception after return.
@@ -1461,6 +1463,7 @@ DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
   // FrameArguments(...) returns a pointer to the first argument.
   *SP = FrameArguments(*FP, materialization_arg_count) - 1;
   *FP = SavedCallerFP(*FP);
+  fp_ = *FP;  // For the profiler.
 
   // Restore pp.
   pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
@@ -1631,14 +1634,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 #endif
 
-  // Save current VM tag and mark thread as executing Dart code.
-  const uword vm_tag = thread->vm_tag();
-  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
-
-  // Save current top stack resource and reset the list.
-  StackResource* top_resource = thread->top_resource();
-  thread->set_top_resource(NULL);
-
   // Setup entry frame:
   //
   //                        ^
@@ -1693,7 +1688,18 @@ RawObject* Interpreter::Call(RawFunction* function,
   // object pool.
   pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->entry_point_);
   pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
+  fp_ = FP;                           // For the profiler.
   pp_ = bytecode->ptr()->object_pool_;
+
+  // Save current VM tag and mark thread as executing Dart code. For the
+  // profiler, do this *after* setting up the entry frame (compare the machine
+  // code entry stubs).
+  const uword vm_tag = thread->vm_tag();
+  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
+
+  // Save current top stack resource and reset the list.
+  StackResource* top_resource = thread->top_resource();
+  thread->set_top_resource(NULL);
 
   // Cache some frequently used values in the frame.
   RawBool* true_value = Bool::True().raw();
@@ -2365,6 +2371,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     // Restore SP, FP and PP. Push result and dispatch.
     SP = FrameArguments(FP, argc);
     FP = SavedCallerFP(FP);
+    fp_ = FP;  // For the profiler.
     pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;
     *SP = result;
     DISPATCH();
@@ -2918,6 +2925,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     SP = FrameArguments(FP, 0);
     RawObject** args = SP - argc;
     FP = SavedCallerFP(FP);
+    fp_ = FP;  // For the profiler.
     if (has_dart_caller) {
       pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;
     }

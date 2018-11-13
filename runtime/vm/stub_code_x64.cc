@@ -964,9 +964,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movq(RAX, Address(THR, Thread::top_resource_offset()));
@@ -989,6 +986,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #endif
 
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
@@ -1105,9 +1106,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movq(RAX, Address(THR, Thread::top_resource_offset()));
@@ -1129,6 +1127,10 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, kArgDescReg);

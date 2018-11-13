@@ -756,9 +756,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(ECX, Assembler::VMTagAddress());
   __ pushl(ECX);
 
-  // Mark that the thread is executing Dart code.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
   // Save top resource and top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movl(EDX, Address(THR, Thread::top_resource_offset()));
@@ -770,6 +767,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EDX, Address(THR, Thread::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));

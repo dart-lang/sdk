@@ -30,8 +30,10 @@ uword RuntimeEntry::GetEntryPoint() const {
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    ExternalLabel label(GetEntryPoint());
-    __ call(&label);
+    __ movl(EAX, Immediate(GetEntryPoint()));
+    __ movl(Assembler::VMTagAddress(), EAX);
+    __ call(EAX);
+    __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

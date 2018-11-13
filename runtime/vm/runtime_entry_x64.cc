@@ -29,7 +29,9 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     ASSERT(argument_count == this->argument_count());
     COMPILE_ASSERT(CallingConventions::kVolatileCpuRegisters & (1 << RAX));
     __ movq(RAX, Address(THR, Thread::OffsetFromThread(this)));
+    __ movq(Assembler::VMTagAddress(), RAX);
     __ CallCFunction(RAX);
+    __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

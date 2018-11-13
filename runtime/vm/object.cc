@@ -15205,6 +15205,16 @@ bool Code::IsFunctionCode() const {
   return obj.IsFunction();
 }
 
+bool Code::IsBytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return false;
+#else
+  const Object& obj = Object::Handle(owner());
+  if (!obj.IsFunction()) return false;
+  return Function::Cast(obj).Bytecode() == raw();
+#endif
+}
+
 void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
@@ -15283,7 +15293,7 @@ void Code::GetInlinedFunctionsAtInstruction(
     GrowableArray<TokenPosition>* token_positions) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
-    ASSERT(!IsFunctionCode() ||
+    ASSERT(!IsFunctionCode() || IsBytecode() ||
            (Isolate::Current()->object_store()->megamorphic_miss_code() ==
             this->raw()));
     return;  // VM stub, allocation stub, or megamorphic miss function.
