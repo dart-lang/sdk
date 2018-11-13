@@ -48,22 +48,44 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     /// ```dart sample
     /// print();
     /// ```
-    /// 
-    /// And a ref at the [end]
     String [[a^bc]];
     ''';
 
     final expectedHoverContent = '''
+```dart
+String abc
+```
+
 This is a string.
 
-With some `refs` and some
+With some [refs] and some
 [links](https://www.dartlang.org/)
 
 ```dart
 print();
 ```
+    '''
+        .trim();
 
-And a ref at the `end`
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    expect(hover.contents.kind, equals(MarkupKind.Markdown));
+    expect(hover.contents.value, equals(expectedHoverContent));
+  }
+
+  test_hover_no_doc_comment() async {
+    final content = '''
+    String [[a^bc]];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+String abc
+```
     '''
         .trim();
 
@@ -79,7 +101,11 @@ And a ref at the `end`
 
   test_hover_missing() async {
     final content = '''
-    String [[a^bc]];
+    String abc;
+
+    ^
+
+    int a;
     ''';
 
     await initialize();

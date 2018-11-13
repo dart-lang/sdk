@@ -14,7 +14,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 
-final _dartDocBracketedButNotLinks = new RegExp(r'\[(\S+)\](?!\()');
 final _dartDocCodeBlockSections = new RegExp(r'(```\w+) +\w+');
 final _dartDocDirectives =
     new RegExp(r'(\n *{@.*?}$)|(^{@.*?}\n)', multiLine: true);
@@ -54,22 +53,50 @@ class HoverHandler extends MessageHandler {
   }
 
   Hover toHover(LineInfo lineInfo, HoverInformation hover) {
-    return hover == null || hover.dartdoc == null
-        ? null
-        : new Hover(
-            asMarkdown(_cleanDartdoc(hover.dartdoc)),
-            toRange(lineInfo, hover.offset, hover.length),
-          );
+    if (hover == null) {
+      return null;
+    }
+
+    // Import prefix tooltips are not useful currently.
+    // https://github.com/dart-lang/sdk/issues/32735
+    if (hover.elementKind == 'import prefix') {
+      return null;
+    }
+
+    final content = new StringBuffer();
+
+    // Description.
+    if (hover.elementDescription != null) {
+      content.writeln('```dart');
+      if (hover.isDeprecated) {
+        content.write('(deprecated) ');
+      }
+      content..writeln(hover.elementDescription)..writeln('```')..writeln();
+    }
+
+    // Source library.
+    if (hover.containingLibraryName != null &&
+        hover.containingLibraryName.isNotEmpty) {
+      content..writeln('*${hover.containingLibraryName}*')..writeln();
+    } else if (hover.containingLibraryPath != null) {
+      // TODO(dantup): Support displaying the package name (probably by adding
+      // containingPackageName to the main hover?) once the analyzer work to
+      // support this (inc Bazel/Gn) is done.
+      // content..writeln('*${hover.containingPackageName}*')..writeln();
+    }
+
+    // Doc comments.
+    if (hover.dartdoc != null) {
+      content.writeln(_cleanDartdoc(hover.dartdoc));
+    }
+
+    return new Hover(
+      asMarkdown(content.toString().trimRight()),
+      toRange(lineInfo, hover.offset, hover.length),
+    );
   }
 
   String _cleanDartdoc(String doc) {
-    // Change any links without hyperlinks to just code syntax.
-    // That is, anything in `[brackets]` that isn't a `[link](http://blah)`.
-    doc = doc.replaceAllMapped(
-      _dartDocBracketedButNotLinks,
-      (match) => '`${match.group(1)}`',
-    );
-
     // Remove any dartdoc directives like {@template xxx}
     doc = doc.replaceAll(_dartDocDirectives, '');
 
