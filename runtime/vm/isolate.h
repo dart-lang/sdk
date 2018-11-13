@@ -223,9 +223,12 @@ class Isolate : public BaseIsolate {
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
   }
+
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
     message_notify_callback_ = value;
   }
+
+  bool HasPendingMessages();
 
   Thread* mutator_thread() const;
 

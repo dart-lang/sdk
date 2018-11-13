@@ -1773,8 +1773,8 @@
             "--isolates",
             "8",
             "--no-show-stats",
-            "--repeat",
-            "80"
+            "--time",
+            "2700"
           ],
           "shards": 10,
           "fileset": "fuzzer"

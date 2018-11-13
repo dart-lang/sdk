@@ -5,7 +5,7 @@ import "dart:core" as core;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
 Try #0 start:
   PushConstant         CP#0
   PushConstant         CP#2
@@ -64,7 +64,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                5
-  CheckStack
+  CheckStack           0
 Try #0 start:
   PushConstant         CP#0
   PushConstant         CP#2
@@ -228,7 +228,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                7
-  CheckStack
+  CheckStack           0
   AllocateContext      3
   PopLocal             r0
   Push                 r0
@@ -375,7 +375,7 @@ ConstantPool {
 }
 Closure CP#0 {
   EntryFixed           1, 6
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -413,7 +413,7 @@ L1:
 
 Closure CP#25 {
   EntryFixed           1, 6
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -506,7 +506,7 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                8
-  CheckStack
+  CheckStack           0
 Try #0 start:
 Try #1 start:
   PushConstant         CP#0
@@ -615,11 +615,11 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                3
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
 L5:
-  CheckStack
+  CheckStack           1
   Push                 r0
   PushInt              10
   CompareIntLt
@@ -693,7 +693,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                9
-  CheckStack
+  CheckStack           0
   AllocateContext      2
   PopLocal             r0
   Push                 r0
@@ -849,7 +849,7 @@ ConstantPool {
 }
 Closure CP#8 {
   EntryFixed           1, 2
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#9
   PopLocal             r0
@@ -906,7 +906,7 @@ Closure CP#8 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                6
-  CheckStack
+  CheckStack           0
   AllocateContext      1
   PopLocal             r0
   Push                 r0
@@ -1008,7 +1008,7 @@ ConstantPool {
 }
 Closure CP#0 {
   EntryFixed           1, 6
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -1132,7 +1132,7 @@ L3:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                5
-  CheckStack
+  CheckStack           0
 Try #0 start:
 Try #1 start:
   PushConstant         CP#0
@@ -1204,7 +1204,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

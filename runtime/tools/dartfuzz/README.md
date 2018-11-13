@@ -34,6 +34,7 @@ To start a fuzz testing session, run
     run_dartfuzz_test.py  [--help]
                           [--isolates ISOLATES ]
                           [--repeat REPEAT]
+                          [--time TIME]
                           [--true_divergence]
                           [--mode1 MODE]
                           [--mode2 MODE]
@@ -43,6 +44,7 @@ where
     --help            : prints help and exits
     --isolates        : number of isolates in the session (1 by default)
     --repeat          : number of tests to run (1000 by default)
+    --time            : time limit in seconds (none by default)
     --show-stats      : show statistics during session (true by default)
     --true-divergence : only report true divergences (true by default)
     --dart-top        : sets DART_TOP explicitly through command line

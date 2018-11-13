@@ -129,7 +129,6 @@ class BaseFlowGraphBuilder {
         next_used_try_index_(0),
         stack_(NULL),
         pending_argument_count_(0),
-        loop_depth_(0),
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
@@ -220,7 +219,7 @@ class BaseFlowGraphBuilder {
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(TokenPosition position);
-  Fragment CheckStackOverflow(TokenPosition position);
+  Fragment CheckStackOverflow(TokenPosition position, intptr_t loop_depth);
   Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 
@@ -290,7 +289,6 @@ class BaseFlowGraphBuilder {
 
   Value* stack_;
   intptr_t pending_argument_count_;
-  intptr_t loop_depth_;
   InlineExitCollector* exit_collector_;
 
   const bool inlining_unchecked_entry_;

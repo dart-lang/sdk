@@ -2606,7 +2606,8 @@ Fragment StreamingFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
 }
 
 Fragment StreamingFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
-  return flow_graph_builder_->CheckStackOverflow(position);
+  return flow_graph_builder_->CheckStackOverflow(
+      position, flow_graph_builder_->loop_depth_);
 }
 
 Fragment StreamingFlowGraphBuilder::CloneContext(

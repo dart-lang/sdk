@@ -8,7 +8,7 @@ Bytecode (version: stable) {
   LoadConstant         r1, CP#0
   LoadConstant         r2, CP#1
   Frame                1
-  CheckStack
+  CheckStack           0
   PushNull
   PushInt              2
   CreateArrayTOS
@@ -92,7 +92,7 @@ Bytecode (version: stable) {
   LoadConstant         r4, CP#5
   LoadConstant         r4, CP#6
   Frame                1
-  CheckStack
+  CheckStack           0
   PushNull
   PushInt              2
   CreateArrayTOS
@@ -221,7 +221,7 @@ Bytecode (version: stable) {
   LoadConstant         r3, CP#2
   LoadConstant         r3, CP#3
   Frame                1
-  CheckStack
+  CheckStack           0
   CheckFunctionTypeArgs 2, r4
   PushNull
   Push                 r4
@@ -259,7 +259,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
   PushConstant         CP#3

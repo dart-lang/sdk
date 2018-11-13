@@ -9,7 +9,7 @@ class _ScheduleImmediate extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -30,7 +30,7 @@ class _NamespaceImpl extends core::Object implements self::_Namespace {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -48,7 +48,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   Push                 FP[-5]
   NativeCall           CP#0
@@ -62,7 +62,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   NativeCall           CP#0
   ReturnTOS
@@ -75,7 +75,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   NativeCall           CP#0
   ReturnTOS
 }
@@ -87,7 +87,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   Allocate             CP#0
   StoreLocal           r1
   Push                 r1
@@ -115,7 +115,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
@@ -156,7 +156,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   PushConstant         CP#3
@@ -176,7 +176,7 @@ class _Namespace extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -194,7 +194,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -212,7 +212,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   ReturnTOS
@@ -226,7 +226,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   ReturnTOS
@@ -253,7 +253,7 @@ class VMLibraryHooks extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -271,7 +271,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   StoreStaticTOS       CP#0
   PushNull
@@ -290,7 +290,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
@@ -339,7 +339,7 @@ static field core::String _rawScript;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   NativeCall           CP#0
   ReturnTOS
@@ -352,7 +352,7 @@ external static method _printString(core::String s) → void;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   InstanceCall         1, CP#1
   PushConstant         CP#2
@@ -372,7 +372,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   ReturnTOS
 }
@@ -384,7 +384,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   StoreStaticTOS       CP#0
   PushNull
@@ -399,7 +399,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                3
-  CheckStack
+  CheckStack           0
   Push                 FP[-7]
   StoreStaticTOS       CP#0
   Push                 FP[-6]
@@ -422,7 +422,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
@@ -500,7 +500,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
@@ -519,7 +519,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

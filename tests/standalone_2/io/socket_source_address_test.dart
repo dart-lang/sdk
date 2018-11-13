@@ -29,8 +29,13 @@ Future testArguments(connectFunction) async {
 
   var sourceAddress;
   asyncStart();
-  var server =
-      await ServerSocket.bind(InternetAddress.loopbackIPv4, freePort);
+  var server;
+  try {
+    server = await ServerSocket.bind(InternetAddress.loopbackIPv4, freePort);
+  } catch (e) {
+    asyncEnd();
+    rethrow;
+  }
   server.listen((_) {
     throw 'Unexpected connection from address $sourceAddress';
   }, onDone: () => asyncEnd());

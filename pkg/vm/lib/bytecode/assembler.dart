@@ -371,8 +371,8 @@ class BytecodeAssembler {
     emitWord(_encodeA(Opcode.kAssertBoolean, ra));
   }
 
-  void emitCheckStack() {
-    emitWord(_encode0(Opcode.kCheckStack));
+  void emitCheckStack(int ra) {
+    emitWord(_encodeA(Opcode.kCheckStack, ra));
   }
 
   void emitCheckFunctionTypeArgs(int ra, int rd) {

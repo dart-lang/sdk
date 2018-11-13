@@ -6091,6 +6091,9 @@ void Function::SwitchToUnoptimizedCode() const {
 }
 
 void Function::SwitchToLazyCompiledUnoptimizedCode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (!HasOptimizedCode()) {
     return;
   }
@@ -6105,9 +6108,14 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
 
   const Code& unopt_code = Code::Handle(zone, unoptimized_code());
   if (unopt_code.IsNull()) {
-    // Set the lazy compile code.
-    TIR_Print("Switched to lazy compile stub for %s\n", ToCString());
-    SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+    // Set the lazy compile or interpreter call stub code.
+    if (FLAG_enable_interpreter && HasBytecode()) {
+      TIR_Print("Switched to interpreter call stub for %s\n", ToCString());
+      SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+    } else {
+      TIR_Print("Switched to lazy compile stub for %s\n", ToCString());
+      SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+    }
     return;
   }
 
@@ -6115,6 +6123,7 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
 
   AttachCode(unopt_code);
   unopt_code.Enable();
+#endif
 }
 
 void Function::set_unoptimized_code(const Code& value) const {

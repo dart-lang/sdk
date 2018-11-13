@@ -103,6 +103,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   BytecodeAssembler asm;
   List<BytecodeAssembler> savedAssemblers;
   bool hasErrors;
+  int currentLoopDepth;
 
   BytecodeGenerator(
       this.component,
@@ -798,6 +799,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     constantEmitter = new ConstantEmitter(cp);
     asm = new BytecodeAssembler();
     savedAssemblers = <BytecodeAssembler>[];
+    currentLoopDepth = 0;
 
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
@@ -899,7 +901,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitEntry(locals.frameSize);
     }
-    asm.emitCheckStack();
+    asm.emitCheckStack(0);
 
     if (isClosure) {
       asm.emitPush(locals.closureVarIndexInFrame);
@@ -1231,6 +1233,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final savedIsClosure = isClosure;
     isClosure = true;
     enclosingFunction = function;
+    final savedLoopDepth = currentLoopDepth;
+    currentLoopDepth = 0;
 
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters ??= new List<TypeParameter>();
@@ -1287,6 +1291,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingFunction = parentFunction;
     parentFunction = savedParentFunction;
     isClosure = savedIsClosure;
+    currentLoopDepth = savedLoopDepth;
 
     locals.leaveScope();
 
@@ -2307,11 +2312,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
-    asm.emitCheckStack();
+    asm.emitCheckStack(++currentLoopDepth);
 
     node.body.accept(this);
 
     _genConditionAndJumpIf(node.condition, true, join);
+
+    --currentLoopDepth;
   }
 
   @override
@@ -2361,7 +2368,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final Label join = new Label(allowsBackwardJumps: true);
 
     asm.bind(join);
-    asm.emitCheckStack();
+    asm.emitCheckStack(++currentLoopDepth);
 
     if (capturedIteratorVar != null) {
       _genLoadVar(capturedIteratorVar);
@@ -2394,6 +2401,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitJump(join);
 
     asm.bind(done);
+    --currentLoopDepth;
   }
 
   @override
@@ -2412,7 +2420,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       final Label join = new Label(allowsBackwardJumps: true);
       asm.bind(join);
 
-      asm.emitCheckStack();
+      asm.emitCheckStack(++currentLoopDepth);
 
       if (node.condition != null) {
         _genConditionAndJumpIf(node.condition, false, done);
@@ -2434,6 +2442,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitJump(join);
 
       asm.bind(done);
+      --currentLoopDepth;
     } finally {
       _leaveScope();
     }
@@ -2824,13 +2833,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
-    asm.emitCheckStack();
+    asm.emitCheckStack(++currentLoopDepth);
 
     _genConditionAndJumpIf(node.condition, false, done);
 
     node.body.accept(this);
 
     asm.emitJump(join);
+    --currentLoopDepth;
 
     asm.bind(done);
   }

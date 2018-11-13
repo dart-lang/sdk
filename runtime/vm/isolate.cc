@@ -484,6 +484,10 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
   }
 }
 
+bool Isolate::HasPendingMessages() {
+  return message_handler_->HasMessages() || message_handler_->HasOOBMessages();
+}
+
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     Message* message) {
   ASSERT(IsCurrentIsolate());

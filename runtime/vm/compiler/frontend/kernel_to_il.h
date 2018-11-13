@@ -181,6 +181,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   intptr_t next_function_id_;
   intptr_t AllocateFunctionId() { return next_function_id_++; }
 
+  intptr_t loop_depth_;
   intptr_t try_depth_;
   intptr_t catch_depth_;
   intptr_t for_in_depth_;

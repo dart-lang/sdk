@@ -165,7 +165,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kCheckFunctionTypeArgs: const Format(
       Encoding.kAD, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kAllocateT: const Format(
