@@ -238,6 +238,32 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitSetLiteral(SetLiteral node) {
+    super.visitSetLiteral(node);
+    if (node.isConst) {
+      DartObjectImpl result;
+      for (Expression element in node.elements) {
+        result =
+            _validate(element, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
+        if (result != null) {
+          _reportErrorIfFromDeferredLibrary(
+              element,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY);
+          DartType type = result.type;
+          if (_implementsEqualsWhenNotAllowed(type)) {
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+                element,
+                [type.displayName]);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
   Object visitSwitchStatement(SwitchStatement node) {
     // TODO(paulberry): to minimize error messages, it would be nice to
     // compare all types with the most popular type rather than the first

@@ -200,6 +200,14 @@ main() {
 }''', [StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS]);
   }
 
+  @failingTest
+  test_expectedOneSetTypeArgument() async {
+    await assertErrorsInCode(r'''
+main() {
+  <int, int>{};
+}''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
+  }
+
   test_expectedTwoMapTypeArguments_one() async {
     await assertErrorsInCode(r'''
 main() {

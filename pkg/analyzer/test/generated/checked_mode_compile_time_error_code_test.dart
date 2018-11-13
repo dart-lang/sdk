@@ -637,6 +637,17 @@ var v = const A.a1(0);''');
     verify([source]);
   }
 
+  @failingTest
+  test_setElementTypeNotAssignable() async {
+    Source source = addSource("var v = const <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
+    ]);
+    verify([source]);
+  }
+
   test_superConstructor_paramTypeMismatch() async {
     Source source = addSource(r'''
 class C {

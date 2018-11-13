@@ -1066,6 +1066,9 @@ class CodeChecker extends RecursiveAstVisitor {
       } else if (expr is MapLiteral) {
         _recordMessage(
             expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
+      } else if (expr is SetLiteral) {
+        _recordMessage(
+            expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
       } else {
         _recordMessage(
             expr, StrongModeCode.INVALID_CAST_LITERAL, [expr, from, to]);

@@ -196,6 +196,7 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_CAST_LITERAL);
         removeCode(StrongModeCode.INVALID_CAST_LITERAL_LIST);
         removeCode(StrongModeCode.INVALID_CAST_LITERAL_MAP);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL_SET);
         removeCode(StrongModeCode.INVALID_CAST_FUNCTION_EXPR);
         removeCode(StrongModeCode.INVALID_CAST_NEW_EXPR);
         removeCode(StrongModeCode.INVALID_CAST_METHOD);

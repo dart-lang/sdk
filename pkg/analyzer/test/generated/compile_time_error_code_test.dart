@@ -1433,6 +1433,95 @@ main() {
     verify([source]);
   }
 
+  @failingTest
+  test_constSetElementTypeImplementsEquals_constField() async {
+    Source source = addSource(r'''
+main() {
+  const {double.INFINITY};
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_constSetElementTypeImplementsEquals_direct() async {
+    Source source = addSource(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+main() {
+  const {const A()};
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_constSetElementTypeImplementsEquals_dynamic() async {
+    // Note: static type of B.a is "dynamic", but actual type of the const
+    // object is A.  We need to make sure we examine the actual type when
+    // deciding whether there is a problem with operator==.
+    Source source = addSource(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+class B {
+  static const a = const A();
+}
+main() {
+  const {B.a};
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_constSetElementTypeImplementsEquals_factory() async {
+    Source source = addSource(r'''
+class A { const factory A() = B; }
+
+class B implements A {
+  const B();
+
+  operator ==(o) => true;
+}
+
+main() {
+  var m = const {const A()};
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_constSetElementTypeImplementsEquals_super() async {
+    Source source = addSource(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+class B extends A {
+  const B();
+}
+main() {
+  const {const B()};
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
   test_constWithInvalidTypeParameters() async {
     Source source = addSource(r'''
 class A {
@@ -3611,6 +3700,20 @@ class A<E> {
     verify([source]);
   }
 
+  @failingTest
+  test_invalidTypeArgumentInConstSet() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET]);
+    verify([source]);
+  }
+
   test_invalidUri_export() async {
     Source source = addSource("export 'ht:';");
     await computeAnalysisResult(source);
@@ -4610,6 +4713,51 @@ f() {
 }'''
     ], [
       CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
+    ]);
+  }
+
+  @failingTest
+  test_nonConstSetElement() async {
+    Source source = addSource(r'''
+f(a) {
+  return const {a};
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_nonConstSetElementFromDeferredLibrary() async {
+    await resolveWithErrors(<String>[
+      r'''
+library lib1;
+const int c = 1;''',
+      r'''
+library root;
+import 'lib1.dart' deferred as a;
+f() {
+  return const {a.c};
+}'''
+    ], [
+      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY
+    ]);
+  }
+
+  @failingTest
+  test_nonConstSetElementFromDeferredLibrary_nested() async {
+    await resolveWithErrors(<String>[
+      r'''
+library lib1;
+const int c = 1;''',
+      r'''
+library root;
+import 'lib1.dart' deferred as a;
+f() {
+  return const {a.c + 1};
+}'''
+    ], [
+      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY
     ]);
   }
 

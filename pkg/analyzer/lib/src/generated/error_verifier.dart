@@ -1125,6 +1125,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitSetLiteral(SetLiteral node) {
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (node.isConst) {
+        NodeList<TypeAnnotation> arguments = typeArguments.arguments;
+        if (arguments.isNotEmpty) {
+          _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
+              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET);
+        }
+      }
+      _checkForExpectedOneSetTypeArgument(node, typeArguments);
+    }
+    _checkForImplicitDynamicTypedLiteral(node);
+    _checkForSetElementTypeNotAssignable(node);
+
+    return super.visitSetLiteral(node);
+  }
+
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
@@ -2884,6 +2903,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
           typeArguments,
           [num]);
+    }
+  }
+
+  /**
+   * Verify that if the given set [literal] has type arguments then there is
+   * exactly one. The [typeArguments] are the type arguments.
+   *
+   * See [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS].
+   */
+  void _checkForExpectedOneSetTypeArgument(
+      SetLiteral literal, TypeArgumentList typeArguments) {
+    // check number of type arguments
+    int count = typeArguments.arguments.length;
+    if (count != 1) {
+      _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS,
+          typeArguments,
+          [count]);
     }
   }
 
@@ -5026,6 +5063,41 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
 
     reportTypeError();
+  }
+
+  /**
+   * Verify that the elements in the given set [literal] are subtypes of the
+   * set's static type.
+   *
+   * See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
+   */
+  void _checkForSetElementTypeNotAssignable(SetLiteral literal) {
+    // Determine the list's element type. We base this on the static type and
+    // not the literal's type arguments because in strong mode, the type
+    // arguments may be inferred.
+    DartType setType = literal.staticType;
+    assert(setType is InterfaceTypeImpl);
+
+    List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
+    assert(typeArguments.length == 1);
+
+    DartType setElementType = typeArguments[0];
+
+    // Check every list element.
+    bool isConst = literal.isConst;
+    for (Expression element in literal.elements) {
+      if (isConst) {
+        // TODO(paulberry): this error should be based on the actual type of the
+        // element, not the static type.  See dartbug.com/21119.
+        _checkForArgumentTypeNotAssignableWithExpectedTypes(
+            element,
+            setElementType,
+            CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+      }
+      _checkForArgumentTypeNotAssignableWithExpectedTypes(element,
+          setElementType, StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+    }
   }
 
   /**
