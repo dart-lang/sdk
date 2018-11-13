@@ -79,7 +79,9 @@ bool shouldIncludeNode(AstNode node) {
   // These types are not used for v3.0 (Feb 2017) and by dropping them we don't
   // have to handle any cases where both a namespace and interfaces are declared
   // with the same name.
-  return node.name != 'InitializeError' && node.name != 'MarkedString';
+  return node.name != 'InitializeError' &&
+      // startsWith because there are inline types that will be generated.
+      !node.name.startsWith('MarkedString');
 }
 
 /// Removes types that are in the spec that we don't want.

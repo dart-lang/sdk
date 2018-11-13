@@ -38,6 +38,42 @@ export interface SomeOptions {
       expect(field.type, isArrayOf(isSimpleType('OptionKind')));
     });
 
+    test('parses an interface with a field with an inline/unnamed type', () {
+      final String input = '''
+export interface Capabilities {
+	textDoc?: {
+    deprecated?: bool;
+  };
+}
+    ''';
+      final List<AstNode> output = parseFile(input);
+      // Length is two because we'll fabricate the type of textDoc.
+      expect(output, hasLength(2));
+
+      // Check there was a full fabricarted interface for this type.
+      expect(output[0], const TypeMatcher<Interface>());
+      Interface interface = output[0];
+      expect(interface.name, equals('CapabilitiesTextDoc'));
+      expect(interface.members, hasLength(1));
+      expect(interface.members[0], const TypeMatcher<Field>());
+      Field field = interface.members[0];
+      expect(field.name, equals('deprecated'));
+      expect(field.allowsNull, isFalse);
+      expect(field.allowsUndefined, isTrue);
+      expect(field.type, isSimpleType('bool'));
+      expect(field.allowsUndefined, isTrue);
+
+      expect(output[1], const TypeMatcher<Interface>());
+      interface = output[1];
+      expect(interface.name, equals('Capabilities'));
+      expect(interface.members, hasLength(1));
+      expect(interface.members[0], const TypeMatcher<Field>());
+      field = interface.members[0];
+      expect(field.name, equals('textDoc'));
+      expect(field.allowsNull, isFalse);
+      expect(field.type, isSimpleType('CapabilitiesTextDoc'));
+    });
+
     test('parses an interface with multiple fields', () {
       final String input = '''
 export interface SomeOptions {

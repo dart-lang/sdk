@@ -4,6 +4,9 @@
 
 import 'dart:math';
 
+import 'package:analysis_server/src/services/correction/strings.dart'
+    show capitalize;
+
 import 'codegen_dart.dart';
 import 'typescript.dart';
 
@@ -98,6 +101,13 @@ class FixedValueField extends Field {
   ) : super(comment, nameToken, type, allowsNull, allowsUndefined);
 }
 
+class InlineInterface extends Interface {
+  InlineInterface(
+    String name,
+    List<Member> members,
+  ) : super(null, new Token.identifier(name), [], [], members);
+}
+
 class Interface extends AstNode {
   final Token nameToken;
   final List<Token> typeArgs;
@@ -138,17 +148,19 @@ class Namespace extends AstNode {
 class Parser {
   final List<Token> _tokens;
   int _current = 0;
+  List<AstNode> _nodes;
   Parser(this._tokens);
 
   bool get _isAtEnd => _peek().type == TokenType.EOF;
 
   List<AstNode> parse() {
-    final parser = new Parser(_tokens);
-    final nodes = <AstNode>[];
-    while (!parser._isAtEnd) {
-      nodes.add(parser._topLevel());
+    if (_nodes == null) {
+      _nodes = <AstNode>[];
+      while (!_isAtEnd) {
+        _nodes.add(_topLevel());
+      }
     }
-    return nodes;
+    return _nodes;
   }
 
   /// Returns the current token and moves to the next.
@@ -164,12 +176,12 @@ class Parser {
     return Comment(_advance());
   }
 
-  Const _const(Comment leadingComment) {
+  Const _const(String containerName, Comment leadingComment) {
     _eatUnwantedKeywords();
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     TypeBase type;
     if (_match([TokenType.COLON])) {
-      type = _type();
+      type = _type(containerName, name.lexeme);
     }
     final value = _match([TokenType.EQUAL]) ? _advance() : null;
 
@@ -201,7 +213,7 @@ class Parser {
     _consume(TokenType.LEFT_BRACE, 'Expected {');
     final consts = <Const>[];
     while (!_check(TokenType.RIGHT_BRACE)) {
-      consts.add(_enumValue());
+      consts.add(_enumValue(name.lexeme));
       // Commas might not be present (eg. for last one).
       _match([TokenType.COMMA]);
     }
@@ -210,13 +222,13 @@ class Parser {
     return new Namespace(leadingComment, name, consts);
   }
 
-  Const _enumValue() {
+  Const _enumValue(String enumName) {
     final leadingComment = _comment();
     _eatUnwantedKeywords();
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     TypeBase type;
     if (_match([TokenType.COLON])) {
-      type = _type();
+      type = _type(enumName, name.lexeme);
     }
     final value = _match([TokenType.EQUAL]) ? _advance() : null;
 
@@ -224,6 +236,10 @@ class Parser {
       type = typeOfLiteral(value.type);
     }
     return Const(leadingComment, name, type, value);
+  }
+
+  String _joinNames(String parent, String child) {
+    return '$parent${capitalize(child)}';
   }
 
   Field _field(String containerName, Comment leadingComment) {
@@ -234,7 +250,7 @@ class Parser {
     _consume(TokenType.COLON, 'Expected :');
     TypeBase type;
     Token value;
-    type = _type(includeUndefined: canBeUndefined);
+    type = _type(containerName, name.lexeme, includeUndefined: canBeUndefined);
 
     // Handle improved type mappings for things that aren't very tight in the spec.
     final improvedTypeName = getImprovedType(containerName, name.lexeme);
@@ -306,7 +322,7 @@ class Parser {
     final baseTypes = <TypeBase>[];
     if (_match([TokenType.EXTENDS_KEYWORD])) {
       while (true) {
-        baseTypes.add(_type());
+        baseTypes.add(_type(name.lexeme, null));
         if (_check(TokenType.LEFT_BRACE)) {
           break;
         }
@@ -346,7 +362,7 @@ class Parser {
     _eatUnwantedKeywords();
 
     if (_match([TokenType.CONST_KEYWORD])) {
-      return _const(leadingComment);
+      return _const(containerName, leadingComment);
     } else if (_match([TokenType.LEFT_BRACKET])) {
       // TODO(dantup): Support (or not?) indexers...
       while (true) {
@@ -403,7 +419,8 @@ class Parser {
     }
   }
 
-  TypeBase _type({bool includeUndefined = false}) {
+  TypeBase _type(String containerName, String fieldName,
+      {bool includeUndefined = false}) {
     var types = <TypeBase>[];
     if (includeUndefined) {
       types.add(Type.Undefined);
@@ -411,21 +428,28 @@ class Parser {
     while (true) {
       TypeBase type;
       if (_match([TokenType.LEFT_BRACE])) {
-        // TODO(dantup): Handle inline types.
-        int braces = 1;
-        while (!_isAtEnd && braces > 0) {
-          if (_check(TokenType.LEFT_BRACE)) {
-            braces++;
-          } else if (_check(TokenType.RIGHT_BRACE)) {
-            braces--;
-          }
-          _advance();
+        // Inline interfaces.
+        final members = <Member>[];
+        while (!_check(TokenType.RIGHT_BRACE)) {
+          members.add(_member(containerName));
         }
-        // TODO(dantup): For now, just pretend they were `any`...
-        type = Type.Any;
+
+        // TODO(dantup): Temporary hack until we handle indexers. Remove nulls, which
+        // are (currently) returned by _field() for indexers.
+        members.removeWhere((m) => m == null);
+
+        _consume(TokenType.RIGHT_BRACE, 'Expected }');
+        // Some of the inline interfaces have trailing commas (and some do not!)
+        _match([TokenType.COMMA]);
+
+        // Add a synthetic interface to the parsers list of nodes to represent this type.
+        final generatedName = _joinNames(containerName, fieldName);
+        _nodes.add(new InlineInterface(generatedName, members));
+        // Record the type as a simple type that references this interface.
+        type = new Type.identifier(generatedName);
       } else if (_match([TokenType.LEFT_PAREN])) {
         // Some types are in (parens), so we just parse the contents as a nested type.
-        type = _type();
+        type = _type(containerName, fieldName);
         _consume(TokenType.RIGHT_PAREN, 'Expected )');
       } else if (_match([TokenType.STRING])) {
         // In TS and the spec, literal strings can be types:
@@ -443,7 +467,7 @@ class Parser {
         final typeArgs = <Type>[];
         if (_match([TokenType.LESS])) {
           while (true) {
-            typeArgs.add(_type());
+            typeArgs.add(_type(containerName, fieldName));
             if (_peek() != TokenType.COMMA) {
               _consume(TokenType.GREATER, 'Expected >');
               break;
@@ -464,7 +488,7 @@ class Parser {
       if (_match([TokenType.AMPERSAND])) {
         while (true) {
           // Eat as many types/ampersands as we have.
-          _type();
+          _type(containerName, fieldName);
           if (!_check(TokenType.AMPERSAND)) {
             break;
           }
@@ -491,7 +515,7 @@ class Parser {
   TypeAlias _typeAlias(Comment leadingComment) {
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     _consume(TokenType.EQUAL, 'Expected =');
-    final type = _type();
+    final type = _type(name.lexeme, null);
     _consume(TokenType.SEMI_COLON, 'Expected ;');
 
     return new TypeAlias(leadingComment, name, type);
@@ -687,6 +711,8 @@ class Token {
 
   Token(this.type, this.lexeme);
 
+  Token.identifier(String identifier) : this(TokenType.IDENTIFIER, identifier);
+
   @override
   String toString() => '${type.toString().padRight(25)} '
       '${lexeme.padRight(10)}\n';
@@ -741,7 +767,7 @@ class Type extends TypeBase {
   }
 
   Type.identifier(String identifier)
-      : this(new Token(TokenType.IDENTIFIER, identifier), []);
+      : this(new Token.identifier(identifier), []);
 
   @override
   String get dartType {
@@ -765,6 +791,7 @@ class Type extends TypeBase {
 
   String get name => nameToken.lexeme;
 
+  @override
   String get typeArgsString {
     // Always resolve type aliases when asked for our Dart type.
     final resolvedType = resolveTypeAlias(this);

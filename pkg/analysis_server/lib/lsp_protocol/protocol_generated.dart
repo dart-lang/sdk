@@ -6535,7 +6535,9 @@ class ServerCapabilities implements ToJsonable {
     final executeCommandProvider = json['executeCommandProvider'] != null
         ? ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
         : null;
-    final workspace = json['workspace'];
+    final workspace = json['workspace'] != null
+        ? ServerCapabilitiesWorkspace.fromJson(json['workspace'])
+        : null;
     final experimental = json['experimental'];
     return new ServerCapabilities(
         textDocumentSync,
@@ -6643,7 +6645,7 @@ class ServerCapabilities implements ToJsonable {
   final Either2<bool, dynamic> typeDefinitionProvider;
 
   /// Workspace specific server capabilities
-  final dynamic workspace;
+  final ServerCapabilitiesWorkspace workspace;
 
   /// The server provides workspace symbol support.
   final bool workspaceSymbolProvider;
@@ -6789,6 +6791,113 @@ class ServerCapabilities implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, executeCommandProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, workspace.hashCode);
     hash = JenkinsSmiHash.combine(hash, experimental.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class ServerCapabilitiesWorkspace implements ToJsonable {
+  ServerCapabilitiesWorkspace(this.workspaceFolders);
+  static ServerCapabilitiesWorkspace fromJson(Map<String, dynamic> json) {
+    final workspaceFolders = json['workspaceFolders'] != null
+        ? ServerCapabilitiesWorkspaceFolders.fromJson(json['workspaceFolders'])
+        : null;
+    return new ServerCapabilitiesWorkspace(workspaceFolders);
+  }
+
+  /// The server supports workspace folder.
+  ///
+  /// Since 3.6.0
+  final ServerCapabilitiesWorkspaceFolders workspaceFolders;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (workspaceFolders != null) {
+      __result['workspaceFolders'] = workspaceFolders;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCapabilitiesWorkspace) {
+      return workspaceFolders == other.workspaceFolders && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, workspaceFolders.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
+  ServerCapabilitiesWorkspaceFolders(this.supported, this.changeNotifications);
+  static ServerCapabilitiesWorkspaceFolders fromJson(
+      Map<String, dynamic> json) {
+    final supported = json['supported'];
+    final changeNotifications = json['changeNotifications'] is String
+        ? new Either2<String, bool>.t1(json['changeNotifications'])
+        : (json['changeNotifications'] is bool
+            ? new Either2<String, bool>.t2(json['changeNotifications'])
+            : (throw '''${json['changeNotifications']} was not one of (String, bool)'''));
+    return new ServerCapabilitiesWorkspaceFolders(
+        supported, changeNotifications);
+  }
+
+  /// Whether the server wants to receive workspace folder change notifications.
+  ///
+  /// If a strings is provided the string is treated as a ID under which the
+  /// notification is registered on the client side. The ID can be used to
+  /// unregister for these events using the `client/unregisterCapability`
+  /// request.
+  final Either2<String, bool> changeNotifications;
+
+  /// The server has support for workspace folders
+  final bool supported;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (supported != null) {
+      __result['supported'] = supported;
+    }
+    if (changeNotifications != null) {
+      __result['changeNotifications'] = changeNotifications;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCapabilitiesWorkspaceFolders) {
+      return supported == other.supported &&
+          changeNotifications == other.changeNotifications &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, supported.hashCode);
+    hash = JenkinsSmiHash.combine(hash, changeNotifications.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -7522,26 +7631,78 @@ class TextDocumentClientCapabilities implements ToJsonable {
       this.publishDiagnostics,
       this.foldingRange);
   static TextDocumentClientCapabilities fromJson(Map<String, dynamic> json) {
-    final synchronization = json['synchronization'];
-    final completion = json['completion'];
-    final hover = json['hover'];
-    final signatureHelp = json['signatureHelp'];
-    final references = json['references'];
-    final documentHighlight = json['documentHighlight'];
-    final documentSymbol = json['documentSymbol'];
-    final formatting = json['formatting'];
-    final rangeFormatting = json['rangeFormatting'];
-    final onTypeFormatting = json['onTypeFormatting'];
-    final definition = json['definition'];
-    final typeDefinition = json['typeDefinition'];
-    final implementation = json['implementation'];
-    final codeAction = json['codeAction'];
-    final codeLens = json['codeLens'];
-    final documentLink = json['documentLink'];
-    final colorProvider = json['colorProvider'];
-    final rename = json['rename'];
-    final publishDiagnostics = json['publishDiagnostics'];
-    final foldingRange = json['foldingRange'];
+    final synchronization = json['synchronization'] != null
+        ? TextDocumentClientCapabilitiesSynchronization.fromJson(
+            json['synchronization'])
+        : null;
+    final completion = json['completion'] != null
+        ? TextDocumentClientCapabilitiesCompletion.fromJson(json['completion'])
+        : null;
+    final hover = json['hover'] != null
+        ? TextDocumentClientCapabilitiesHover.fromJson(json['hover'])
+        : null;
+    final signatureHelp = json['signatureHelp'] != null
+        ? TextDocumentClientCapabilitiesSignatureHelp.fromJson(
+            json['signatureHelp'])
+        : null;
+    final references = json['references'] != null
+        ? TextDocumentClientCapabilitiesReferences.fromJson(json['references'])
+        : null;
+    final documentHighlight = json['documentHighlight'] != null
+        ? TextDocumentClientCapabilitiesDocumentHighlight.fromJson(
+            json['documentHighlight'])
+        : null;
+    final documentSymbol = json['documentSymbol'] != null
+        ? TextDocumentClientCapabilitiesDocumentSymbol.fromJson(
+            json['documentSymbol'])
+        : null;
+    final formatting = json['formatting'] != null
+        ? TextDocumentClientCapabilitiesFormatting.fromJson(json['formatting'])
+        : null;
+    final rangeFormatting = json['rangeFormatting'] != null
+        ? TextDocumentClientCapabilitiesRangeFormatting.fromJson(
+            json['rangeFormatting'])
+        : null;
+    final onTypeFormatting = json['onTypeFormatting'] != null
+        ? TextDocumentClientCapabilitiesOnTypeFormatting.fromJson(
+            json['onTypeFormatting'])
+        : null;
+    final definition = json['definition'] != null
+        ? TextDocumentClientCapabilitiesDefinition.fromJson(json['definition'])
+        : null;
+    final typeDefinition = json['typeDefinition'] != null
+        ? TextDocumentClientCapabilitiesTypeDefinition.fromJson(
+            json['typeDefinition'])
+        : null;
+    final implementation = json['implementation'] != null
+        ? TextDocumentClientCapabilitiesImplementation.fromJson(
+            json['implementation'])
+        : null;
+    final codeAction = json['codeAction'] != null
+        ? TextDocumentClientCapabilitiesCodeAction.fromJson(json['codeAction'])
+        : null;
+    final codeLens = json['codeLens'] != null
+        ? TextDocumentClientCapabilitiesCodeLens.fromJson(json['codeLens'])
+        : null;
+    final documentLink = json['documentLink'] != null
+        ? TextDocumentClientCapabilitiesDocumentLink.fromJson(
+            json['documentLink'])
+        : null;
+    final colorProvider = json['colorProvider'] != null
+        ? TextDocumentClientCapabilitiesColorProvider.fromJson(
+            json['colorProvider'])
+        : null;
+    final rename = json['rename'] != null
+        ? TextDocumentClientCapabilitiesRename.fromJson(json['rename'])
+        : null;
+    final publishDiagnostics = json['publishDiagnostics'] != null
+        ? TextDocumentClientCapabilitiesPublishDiagnostics.fromJson(
+            json['publishDiagnostics'])
+        : null;
+    final foldingRange = json['foldingRange'] != null
+        ? TextDocumentClientCapabilitiesFoldingRange.fromJson(
+            json['foldingRange'])
+        : null;
     return new TextDocumentClientCapabilities(
         synchronization,
         completion,
@@ -7566,71 +7727,71 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 
   /// Capabilities specific to the `textDocument/codeAction`
-  final dynamic codeAction;
+  final TextDocumentClientCapabilitiesCodeAction codeAction;
 
   /// Capabilities specific to the `textDocument/codeLens`
-  final dynamic codeLens;
+  final TextDocumentClientCapabilitiesCodeLens codeLens;
 
   /// Capabilities specific to the `textDocument/documentColor` and the
   /// `textDocument/colorPresentation` request.
   ///
   /// Since 3.6.0
-  final dynamic colorProvider;
+  final TextDocumentClientCapabilitiesColorProvider colorProvider;
 
   /// Capabilities specific to the `textDocument/completion`
-  final dynamic completion;
+  final TextDocumentClientCapabilitiesCompletion completion;
 
   /// Capabilities specific to the `textDocument/definition`
-  final dynamic definition;
+  final TextDocumentClientCapabilitiesDefinition definition;
 
   /// Capabilities specific to the `textDocument/documentHighlight`
-  final dynamic documentHighlight;
+  final TextDocumentClientCapabilitiesDocumentHighlight documentHighlight;
 
   /// Capabilities specific to the `textDocument/documentLink`
-  final dynamic documentLink;
+  final TextDocumentClientCapabilitiesDocumentLink documentLink;
 
   /// Capabilities specific to the `textDocument/documentSymbol`
-  final dynamic documentSymbol;
+  final TextDocumentClientCapabilitiesDocumentSymbol documentSymbol;
 
   /// Capabilities specific to `textDocument/foldingRange` requests.
   ///
   /// Since 3.10.0
-  final dynamic foldingRange;
+  final TextDocumentClientCapabilitiesFoldingRange foldingRange;
 
   /// Capabilities specific to the `textDocument/formatting`
-  final dynamic formatting;
+  final TextDocumentClientCapabilitiesFormatting formatting;
 
   /// Capabilities specific to the `textDocument/hover`
-  final dynamic hover;
+  final TextDocumentClientCapabilitiesHover hover;
 
   /// Capabilities specific to the `textDocument/implementation`.
   ///
   /// Since 3.6.0
-  final dynamic implementation;
+  final TextDocumentClientCapabilitiesImplementation implementation;
 
   /// Capabilities specific to the `textDocument/onTypeFormatting`
-  final dynamic onTypeFormatting;
+  final TextDocumentClientCapabilitiesOnTypeFormatting onTypeFormatting;
 
   /// Capabilities specific to `textDocument/publishDiagnostics`.
-  final dynamic publishDiagnostics;
+  final TextDocumentClientCapabilitiesPublishDiagnostics publishDiagnostics;
 
   /// Capabilities specific to the `textDocument/rangeFormatting`
-  final dynamic rangeFormatting;
+  final TextDocumentClientCapabilitiesRangeFormatting rangeFormatting;
 
   /// Capabilities specific to the `textDocument/references`
-  final dynamic references;
+  final TextDocumentClientCapabilitiesReferences references;
 
   /// Capabilities specific to the `textDocument/rename`
-  final dynamic rename;
+  final TextDocumentClientCapabilitiesRename rename;
 
   /// Capabilities specific to the `textDocument/signatureHelp`
-  final dynamic signatureHelp;
-  final dynamic synchronization;
+  final TextDocumentClientCapabilitiesSignatureHelp signatureHelp;
+  final TextDocumentClientCapabilitiesSynchronization synchronization;
 
   /// Capabilities specific to the `textDocument/typeDefinition`
   ///
   /// Since 3.6.0
-  final dynamic typeDefinition;
+  final TextDocumentClientCapabilitiesTypeDefinition typeDefinition;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -7752,6 +7913,1411 @@ class TextDocumentClientCapabilities implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, rename.hashCode);
     hash = JenkinsSmiHash.combine(hash, publishDiagnostics.hashCode);
     hash = JenkinsSmiHash.combine(hash, foldingRange.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
+  TextDocumentClientCapabilitiesCodeAction(
+      this.dynamicRegistration, this.codeActionLiteralSupport);
+  static TextDocumentClientCapabilitiesCodeAction fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final codeActionLiteralSupport = json['codeActionLiteralSupport'] != null
+        ? TextDocumentClientCapabilitiesCodeActionLiteralSupport.fromJson(
+            json['codeActionLiteralSupport'])
+        : null;
+    return new TextDocumentClientCapabilitiesCodeAction(
+        dynamicRegistration, codeActionLiteralSupport);
+  }
+
+  /// The client support code action literals as a valid response of the
+  /// `textDocument/codeAction` request.
+  ///
+  /// Since 3.8.0
+  final TextDocumentClientCapabilitiesCodeActionLiteralSupport
+      codeActionLiteralSupport;
+
+  /// Whether code action supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (codeActionLiteralSupport != null) {
+      __result['codeActionLiteralSupport'] = codeActionLiteralSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesCodeAction) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          codeActionLiteralSupport == other.codeActionLiteralSupport &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeActionLiteralSupport.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
+  TextDocumentClientCapabilitiesCodeActionKind(this.valueSet) {
+    if (valueSet == null) {
+      throw 'valueSet is required but was not provided';
+    }
+  }
+  static TextDocumentClientCapabilitiesCodeActionKind fromJson(
+      Map<String, dynamic> json) {
+    final valueSet = json['valueSet']
+        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
+        ?.cast<CodeActionKind>()
+        ?.toList();
+    return new TextDocumentClientCapabilitiesCodeActionKind(valueSet);
+  }
+
+  /// The code action kind values the client supports. When this property exists
+  /// the client also guarantees that it will handle values outside its set
+  /// gracefully and falls back to a default value when unknown.
+  final List<CodeActionKind> valueSet;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['valueSet'] =
+        valueSet ?? (throw 'valueSet is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('valueSet') &&
+        (obj['valueSet'] is List &&
+            (obj['valueSet'].length == 0 ||
+                obj['valueSet'].every((item) => item is String)));
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesCodeActionKind) {
+      return listEqual(valueSet, other.valueSet,
+              (CodeActionKind a, CodeActionKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesCodeActionLiteralSupport
+    implements ToJsonable {
+  TextDocumentClientCapabilitiesCodeActionLiteralSupport(this.codeActionKind) {
+    if (codeActionKind == null) {
+      throw 'codeActionKind is required but was not provided';
+    }
+  }
+  static TextDocumentClientCapabilitiesCodeActionLiteralSupport fromJson(
+      Map<String, dynamic> json) {
+    final codeActionKind = json['codeActionKind'] != null
+        ? TextDocumentClientCapabilitiesCodeActionKind.fromJson(
+            json['codeActionKind'])
+        : null;
+    return new TextDocumentClientCapabilitiesCodeActionLiteralSupport(
+        codeActionKind);
+  }
+
+  /// The code action kind is support with the following value set.
+  final TextDocumentClientCapabilitiesCodeActionKind codeActionKind;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['codeActionKind'] =
+        codeActionKind ?? (throw 'codeActionKind is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('codeActionKind') &&
+        TextDocumentClientCapabilitiesCodeActionKind.canParse(
+            obj['codeActionKind']);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesCodeActionLiteralSupport) {
+      return codeActionKind == other.codeActionKind && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, codeActionKind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
+  TextDocumentClientCapabilitiesCodeLens(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesCodeLens fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesCodeLens(dynamicRegistration);
+  }
+
+  /// Whether code lens supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesCodeLens) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
+  TextDocumentClientCapabilitiesColorProvider(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesColorProvider fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesColorProvider(dynamicRegistration);
+  }
+
+  /// Whether colorProvider supports dynamic registration. If this is set to
+  /// `true` the client supports the new `(ColorProviderOptions &
+  /// TextDocumentRegistrationOptions & StaticRegistrationOptions)` return value
+  /// for the corresponding server capability as well.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesColorProvider) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
+  TextDocumentClientCapabilitiesCompletion(this.dynamicRegistration,
+      this.completionItem, this.completionItemKind, this.contextSupport);
+  static TextDocumentClientCapabilitiesCompletion fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final completionItem = json['completionItem'] != null
+        ? TextDocumentClientCapabilitiesCompletionItem.fromJson(
+            json['completionItem'])
+        : null;
+    final completionItemKind = json['completionItemKind'] != null
+        ? TextDocumentClientCapabilitiesCompletionItemKind.fromJson(
+            json['completionItemKind'])
+        : null;
+    final contextSupport = json['contextSupport'];
+    return new TextDocumentClientCapabilitiesCompletion(dynamicRegistration,
+        completionItem, completionItemKind, contextSupport);
+  }
+
+  /// The client supports the following `CompletionItem` specific capabilities.
+  final TextDocumentClientCapabilitiesCompletionItem completionItem;
+  final TextDocumentClientCapabilitiesCompletionItemKind completionItemKind;
+
+  /// The client supports to send additional context information for a
+  /// `textDocument/completion` request.
+  final bool contextSupport;
+
+  /// Whether completion supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (completionItem != null) {
+      __result['completionItem'] = completionItem;
+    }
+    if (completionItemKind != null) {
+      __result['completionItemKind'] = completionItemKind;
+    }
+    if (contextSupport != null) {
+      __result['contextSupport'] = contextSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesCompletion) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          completionItem == other.completionItem &&
+          completionItemKind == other.completionItemKind &&
+          contextSupport == other.contextSupport &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, completionItem.hashCode);
+    hash = JenkinsSmiHash.combine(hash, completionItemKind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contextSupport.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
+  TextDocumentClientCapabilitiesCompletionItem(
+      this.snippetSupport,
+      this.commitCharactersSupport,
+      this.documentationFormat,
+      this.deprecatedSupport,
+      this.preselectSupport);
+  static TextDocumentClientCapabilitiesCompletionItem fromJson(
+      Map<String, dynamic> json) {
+    final snippetSupport = json['snippetSupport'];
+    final commitCharactersSupport = json['commitCharactersSupport'];
+    final documentationFormat = json['documentationFormat']
+        ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
+        ?.cast<MarkupKind>()
+        ?.toList();
+    final deprecatedSupport = json['deprecatedSupport'];
+    final preselectSupport = json['preselectSupport'];
+    return new TextDocumentClientCapabilitiesCompletionItem(
+        snippetSupport,
+        commitCharactersSupport,
+        documentationFormat,
+        deprecatedSupport,
+        preselectSupport);
+  }
+
+  /// Client supports commit characters on a completion item.
+  final bool commitCharactersSupport;
+
+  /// Client supports the deprecated property on a completion item.
+  final bool deprecatedSupport;
+
+  /// Client supports the follow content formats for the documentation property.
+  /// The order describes the preferred format of the client.
+  final List<MarkupKind> documentationFormat;
+
+  /// Client supports the preselect property on a completion item.
+  final bool preselectSupport;
+
+  /// Client supports snippets as insert text.
+  ///
+  /// A snippet can define tab stops and placeholders with `$1`, `$2` and
+  /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
+  /// snippet. Placeholders with equal identifiers are linked, that is typing in
+  /// one will update others too.
+  final bool snippetSupport;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (snippetSupport != null) {
+      __result['snippetSupport'] = snippetSupport;
+    }
+    if (commitCharactersSupport != null) {
+      __result['commitCharactersSupport'] = commitCharactersSupport;
+    }
+    if (documentationFormat != null) {
+      __result['documentationFormat'] = documentationFormat;
+    }
+    if (deprecatedSupport != null) {
+      __result['deprecatedSupport'] = deprecatedSupport;
+    }
+    if (preselectSupport != null) {
+      __result['preselectSupport'] = preselectSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesCompletionItem) {
+      return snippetSupport == other.snippetSupport &&
+          commitCharactersSupport == other.commitCharactersSupport &&
+          listEqual(documentationFormat, other.documentationFormat,
+              (MarkupKind a, MarkupKind b) => a == b) &&
+          deprecatedSupport == other.deprecatedSupport &&
+          preselectSupport == other.preselectSupport &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, snippetSupport.hashCode);
+    hash = JenkinsSmiHash.combine(hash, commitCharactersSupport.hashCode);
+    hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, deprecatedSupport.hashCode);
+    hash = JenkinsSmiHash.combine(hash, preselectSupport.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
+  TextDocumentClientCapabilitiesCompletionItemKind(this.valueSet);
+  static TextDocumentClientCapabilitiesCompletionItemKind fromJson(
+      Map<String, dynamic> json) {
+    final valueSet = json['valueSet']
+        ?.map((item) => item != null ? CompletionItemKind.fromJson(item) : null)
+        ?.cast<CompletionItemKind>()
+        ?.toList();
+    return new TextDocumentClientCapabilitiesCompletionItemKind(valueSet);
+  }
+
+  /// The completion item kind values the client supports. When this property
+  /// exists the client also guarantees that it will handle values outside its
+  /// set gracefully and falls back to a default value when unknown.
+  ///
+  /// If this property is not present the client only supports the completion
+  /// items kinds from `Text` to `Reference` as defined in the initial version
+  /// of the protocol.
+  final List<CompletionItemKind> valueSet;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (valueSet != null) {
+      __result['valueSet'] = valueSet;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesCompletionItemKind) {
+      return listEqual(valueSet, other.valueSet,
+              (CompletionItemKind a, CompletionItemKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
+  TextDocumentClientCapabilitiesDefinition(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesDefinition fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesDefinition(dynamicRegistration);
+  }
+
+  /// Whether definition supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesDefinition) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
+  TextDocumentClientCapabilitiesDocumentHighlight(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesDocumentHighlight fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesDocumentHighlight(
+        dynamicRegistration);
+  }
+
+  /// Whether document highlight supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesDocumentHighlight) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
+  TextDocumentClientCapabilitiesDocumentLink(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesDocumentLink fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesDocumentLink(dynamicRegistration);
+  }
+
+  /// Whether document link supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesDocumentLink) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
+  TextDocumentClientCapabilitiesDocumentSymbol(this.dynamicRegistration,
+      this.symbolKind, this.hierarchicalDocumentSymbolSupport);
+  static TextDocumentClientCapabilitiesDocumentSymbol fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final symbolKind = json['symbolKind'] != null
+        ? TextDocumentClientCapabilitiesSymbolKind.fromJson(json['symbolKind'])
+        : null;
+    final hierarchicalDocumentSymbolSupport =
+        json['hierarchicalDocumentSymbolSupport'];
+    return new TextDocumentClientCapabilitiesDocumentSymbol(
+        dynamicRegistration, symbolKind, hierarchicalDocumentSymbolSupport);
+  }
+
+  /// Whether document symbol supports dynamic registration.
+  final bool dynamicRegistration;
+
+  /// The client support hierarchical document symbols.
+  final bool hierarchicalDocumentSymbolSupport;
+
+  /// Specific capabilities for the `SymbolKind`.
+  final TextDocumentClientCapabilitiesSymbolKind symbolKind;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (symbolKind != null) {
+      __result['symbolKind'] = symbolKind;
+    }
+    if (hierarchicalDocumentSymbolSupport != null) {
+      __result['hierarchicalDocumentSymbolSupport'] =
+          hierarchicalDocumentSymbolSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesDocumentSymbol) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          symbolKind == other.symbolKind &&
+          hierarchicalDocumentSymbolSupport ==
+              other.hierarchicalDocumentSymbolSupport &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, symbolKind.hashCode);
+    hash = JenkinsSmiHash.combine(
+        hash, hierarchicalDocumentSymbolSupport.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
+  TextDocumentClientCapabilitiesFoldingRange(
+      this.dynamicRegistration, this.rangeLimit, this.lineFoldingOnly);
+  static TextDocumentClientCapabilitiesFoldingRange fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final rangeLimit = json['rangeLimit'];
+    final lineFoldingOnly = json['lineFoldingOnly'];
+    return new TextDocumentClientCapabilitiesFoldingRange(
+        dynamicRegistration, rangeLimit, lineFoldingOnly);
+  }
+
+  /// Whether implementation supports dynamic registration for folding range
+  /// providers. If this is set to `true` the client supports the new
+  /// `(FoldingRangeProviderOptions & TextDocumentRegistrationOptions &
+  /// StaticRegistrationOptions)` return value for the corresponding server
+  /// capability as well.
+  final bool dynamicRegistration;
+
+  /// If set, the client signals that it only supports folding complete lines.
+  /// If set, client will ignore specified `startCharacter` and `endCharacter`
+  /// properties in a FoldingRange.
+  final bool lineFoldingOnly;
+
+  /// The maximum number of folding ranges that the client prefers to receive
+  /// per document. The value serves as a hint, servers are free to follow the
+  /// limit.
+  final num rangeLimit;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (rangeLimit != null) {
+      __result['rangeLimit'] = rangeLimit;
+    }
+    if (lineFoldingOnly != null) {
+      __result['lineFoldingOnly'] = lineFoldingOnly;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesFoldingRange) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          rangeLimit == other.rangeLimit &&
+          lineFoldingOnly == other.lineFoldingOnly &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rangeLimit.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lineFoldingOnly.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
+  TextDocumentClientCapabilitiesFormatting(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesFormatting fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesFormatting(dynamicRegistration);
+  }
+
+  /// Whether formatting supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesFormatting) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesHover implements ToJsonable {
+  TextDocumentClientCapabilitiesHover(
+      this.dynamicRegistration, this.contentFormat);
+  static TextDocumentClientCapabilitiesHover fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final contentFormat = json['contentFormat']
+        ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
+        ?.cast<MarkupKind>()
+        ?.toList();
+    return new TextDocumentClientCapabilitiesHover(
+        dynamicRegistration, contentFormat);
+  }
+
+  /// Client supports the follow content formats for the content property. The
+  /// order describes the preferred format of the client.
+  final List<MarkupKind> contentFormat;
+
+  /// Whether hover supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (contentFormat != null) {
+      __result['contentFormat'] = contentFormat;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesHover) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          listEqual(contentFormat, other.contentFormat,
+              (MarkupKind a, MarkupKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contentFormat.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
+  TextDocumentClientCapabilitiesImplementation(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesImplementation fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesImplementation(
+        dynamicRegistration);
+  }
+
+  /// Whether implementation supports dynamic registration. If this is set to
+  /// `true` the client supports the new `(TextDocumentRegistrationOptions &
+  /// StaticRegistrationOptions)` return value for the corresponding server
+  /// capability as well.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesImplementation) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
+  TextDocumentClientCapabilitiesOnTypeFormatting(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesOnTypeFormatting fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesOnTypeFormatting(
+        dynamicRegistration);
+  }
+
+  /// Whether on type formatting supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesOnTypeFormatting) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
+  TextDocumentClientCapabilitiesPublishDiagnostics(this.relatedInformation);
+  static TextDocumentClientCapabilitiesPublishDiagnostics fromJson(
+      Map<String, dynamic> json) {
+    final relatedInformation = json['relatedInformation'];
+    return new TextDocumentClientCapabilitiesPublishDiagnostics(
+        relatedInformation);
+  }
+
+  /// Whether the clients accepts diagnostics with related information.
+  final bool relatedInformation;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (relatedInformation != null) {
+      __result['relatedInformation'] = relatedInformation;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesPublishDiagnostics) {
+      return relatedInformation == other.relatedInformation && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, relatedInformation.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
+  TextDocumentClientCapabilitiesRangeFormatting(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesRangeFormatting fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesRangeFormatting(
+        dynamicRegistration);
+  }
+
+  /// Whether range formatting supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesRangeFormatting) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesReferences implements ToJsonable {
+  TextDocumentClientCapabilitiesReferences(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesReferences fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesReferences(dynamicRegistration);
+  }
+
+  /// Whether references supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesReferences) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesRename implements ToJsonable {
+  TextDocumentClientCapabilitiesRename(
+      this.dynamicRegistration, this.prepareSupport);
+  static TextDocumentClientCapabilitiesRename fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final prepareSupport = json['prepareSupport'];
+    return new TextDocumentClientCapabilitiesRename(
+        dynamicRegistration, prepareSupport);
+  }
+
+  /// Whether rename supports dynamic registration.
+  final bool dynamicRegistration;
+
+  /// Client supports testing for validity of rename operations before
+  /// execution.
+  final bool prepareSupport;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (prepareSupport != null) {
+      __result['prepareSupport'] = prepareSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesRename) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          prepareSupport == other.prepareSupport &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, prepareSupport.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
+  TextDocumentClientCapabilitiesSignatureHelp(
+      this.dynamicRegistration, this.signatureInformation);
+  static TextDocumentClientCapabilitiesSignatureHelp fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final signatureInformation = json['signatureInformation'] != null
+        ? TextDocumentClientCapabilitiesSignatureInformation.fromJson(
+            json['signatureInformation'])
+        : null;
+    return new TextDocumentClientCapabilitiesSignatureHelp(
+        dynamicRegistration, signatureInformation);
+  }
+
+  /// Whether signature help supports dynamic registration.
+  final bool dynamicRegistration;
+
+  /// The client supports the following `SignatureInformation` specific
+  /// properties.
+  final TextDocumentClientCapabilitiesSignatureInformation signatureInformation;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (signatureInformation != null) {
+      __result['signatureInformation'] = signatureInformation;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesSignatureHelp) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          signatureInformation == other.signatureInformation &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, signatureInformation.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
+  TextDocumentClientCapabilitiesSignatureInformation(this.documentationFormat);
+  static TextDocumentClientCapabilitiesSignatureInformation fromJson(
+      Map<String, dynamic> json) {
+    final documentationFormat = json['documentationFormat']
+        ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
+        ?.cast<MarkupKind>()
+        ?.toList();
+    return new TextDocumentClientCapabilitiesSignatureInformation(
+        documentationFormat);
+  }
+
+  /// Client supports the follow content formats for the documentation property.
+  /// The order describes the preferred format of the client.
+  final List<MarkupKind> documentationFormat;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (documentationFormat != null) {
+      __result['documentationFormat'] = documentationFormat;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesSignatureInformation) {
+      return listEqual(documentationFormat, other.documentationFormat,
+              (MarkupKind a, MarkupKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
+  TextDocumentClientCapabilitiesSymbolKind(this.valueSet);
+  static TextDocumentClientCapabilitiesSymbolKind fromJson(
+      Map<String, dynamic> json) {
+    final valueSet = json['valueSet']
+        ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
+        ?.cast<SymbolKind>()
+        ?.toList();
+    return new TextDocumentClientCapabilitiesSymbolKind(valueSet);
+  }
+
+  /// The symbol kind values the client supports. When this property exists the
+  /// client also guarantees that it will handle values outside its set
+  /// gracefully and falls back to a default value when unknown.
+  ///
+  /// If this property is not present the client only supports the symbol kinds
+  /// from `File` to `Array` as defined in the initial version of the protocol.
+  final List<SymbolKind> valueSet;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (valueSet != null) {
+      __result['valueSet'] = valueSet;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesSymbolKind) {
+      return listEqual(valueSet, other.valueSet,
+              (SymbolKind a, SymbolKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
+  TextDocumentClientCapabilitiesSynchronization(this.dynamicRegistration,
+      this.willSave, this.willSaveWaitUntil, this.didSave);
+  static TextDocumentClientCapabilitiesSynchronization fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final willSave = json['willSave'];
+    final willSaveWaitUntil = json['willSaveWaitUntil'];
+    final didSave = json['didSave'];
+    return new TextDocumentClientCapabilitiesSynchronization(
+        dynamicRegistration, willSave, willSaveWaitUntil, didSave);
+  }
+
+  /// The client supports did save notifications.
+  final bool didSave;
+
+  /// Whether text document synchronization supports dynamic registration.
+  final bool dynamicRegistration;
+
+  /// The client supports sending will save notifications.
+  final bool willSave;
+
+  /// The client supports sending a will save request and waits for a response
+  /// providing text edits which will be applied to the document before it is
+  /// saved.
+  final bool willSaveWaitUntil;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (willSave != null) {
+      __result['willSave'] = willSave;
+    }
+    if (willSaveWaitUntil != null) {
+      __result['willSaveWaitUntil'] = willSaveWaitUntil;
+    }
+    if (didSave != null) {
+      __result['didSave'] = didSave;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesSynchronization) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          willSave == other.willSave &&
+          willSaveWaitUntil == other.willSaveWaitUntil &&
+          didSave == other.didSave &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, willSave.hashCode);
+    hash = JenkinsSmiHash.combine(hash, willSaveWaitUntil.hashCode);
+    hash = JenkinsSmiHash.combine(hash, didSave.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
+  TextDocumentClientCapabilitiesTypeDefinition(this.dynamicRegistration);
+  static TextDocumentClientCapabilitiesTypeDefinition fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new TextDocumentClientCapabilitiesTypeDefinition(
+        dynamicRegistration);
+  }
+
+  /// Whether typeDefinition supports dynamic registration. If this is set to
+  /// `true` the client supports the new `(TextDocumentRegistrationOptions &
+  /// StaticRegistrationOptions)` return value for the corresponding server
+  /// capability as well.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesTypeDefinition) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -8698,11 +10264,25 @@ class WorkspaceClientCapabilities implements ToJsonable {
       this.configuration);
   static WorkspaceClientCapabilities fromJson(Map<String, dynamic> json) {
     final applyEdit = json['applyEdit'];
-    final workspaceEdit = json['workspaceEdit'];
-    final didChangeConfiguration = json['didChangeConfiguration'];
-    final didChangeWatchedFiles = json['didChangeWatchedFiles'];
-    final symbol = json['symbol'];
-    final executeCommand = json['executeCommand'];
+    final workspaceEdit = json['workspaceEdit'] != null
+        ? WorkspaceClientCapabilitiesWorkspaceEdit.fromJson(
+            json['workspaceEdit'])
+        : null;
+    final didChangeConfiguration = json['didChangeConfiguration'] != null
+        ? WorkspaceClientCapabilitiesDidChangeConfiguration.fromJson(
+            json['didChangeConfiguration'])
+        : null;
+    final didChangeWatchedFiles = json['didChangeWatchedFiles'] != null
+        ? WorkspaceClientCapabilitiesDidChangeWatchedFiles.fromJson(
+            json['didChangeWatchedFiles'])
+        : null;
+    final symbol = json['symbol'] != null
+        ? WorkspaceClientCapabilitiesSymbol.fromJson(json['symbol'])
+        : null;
+    final executeCommand = json['executeCommand'] != null
+        ? WorkspaceClientCapabilitiesExecuteCommand.fromJson(
+            json['executeCommand'])
+        : null;
     final workspaceFolders = json['workspaceFolders'];
     final configuration = json['configuration'];
     return new WorkspaceClientCapabilities(
@@ -8727,20 +10307,21 @@ class WorkspaceClientCapabilities implements ToJsonable {
 
   /// Capabilities specific to the `workspace/didChangeConfiguration`
   /// notification.
-  final dynamic didChangeConfiguration;
+  final WorkspaceClientCapabilitiesDidChangeConfiguration
+      didChangeConfiguration;
 
   /// Capabilities specific to the `workspace/didChangeWatchedFiles`
   /// notification.
-  final dynamic didChangeWatchedFiles;
+  final WorkspaceClientCapabilitiesDidChangeWatchedFiles didChangeWatchedFiles;
 
   /// Capabilities specific to the `workspace/executeCommand` request.
-  final dynamic executeCommand;
+  final WorkspaceClientCapabilitiesExecuteCommand executeCommand;
 
   /// Capabilities specific to the `workspace/symbol` request.
-  final dynamic symbol;
+  final WorkspaceClientCapabilitiesSymbol symbol;
 
   /// Capabilities specific to `WorkspaceEdit`s
-  final dynamic workspaceEdit;
+  final WorkspaceClientCapabilitiesWorkspaceEdit workspaceEdit;
 
   /// The client has support for workspace folders.
   ///
@@ -8814,10 +10395,319 @@ class WorkspaceClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
+  WorkspaceClientCapabilitiesDidChangeConfiguration(this.dynamicRegistration);
+  static WorkspaceClientCapabilitiesDidChangeConfiguration fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new WorkspaceClientCapabilitiesDidChangeConfiguration(
+        dynamicRegistration);
+  }
+
+  /// Did change configuration notification supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceClientCapabilitiesDidChangeConfiguration) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
+  WorkspaceClientCapabilitiesDidChangeWatchedFiles(this.dynamicRegistration);
+  static WorkspaceClientCapabilitiesDidChangeWatchedFiles fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new WorkspaceClientCapabilitiesDidChangeWatchedFiles(
+        dynamicRegistration);
+  }
+
+  /// Did change watched files notification supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceClientCapabilitiesDidChangeWatchedFiles) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
+  WorkspaceClientCapabilitiesExecuteCommand(this.dynamicRegistration);
+  static WorkspaceClientCapabilitiesExecuteCommand fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    return new WorkspaceClientCapabilitiesExecuteCommand(dynamicRegistration);
+  }
+
+  /// Execute command supports dynamic registration.
+  final bool dynamicRegistration;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceClientCapabilitiesExecuteCommand) {
+      return dynamicRegistration == other.dynamicRegistration && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
+  WorkspaceClientCapabilitiesSymbol(this.dynamicRegistration, this.symbolKind);
+  static WorkspaceClientCapabilitiesSymbol fromJson(Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final symbolKind = json['symbolKind'] != null
+        ? WorkspaceClientCapabilitiesSymbolKind.fromJson(json['symbolKind'])
+        : null;
+    return new WorkspaceClientCapabilitiesSymbol(
+        dynamicRegistration, symbolKind);
+  }
+
+  /// Symbol request supports dynamic registration.
+  final bool dynamicRegistration;
+
+  /// Specific capabilities for the `SymbolKind` in the `workspace/symbol`
+  /// request.
+  final WorkspaceClientCapabilitiesSymbolKind symbolKind;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (symbolKind != null) {
+      __result['symbolKind'] = symbolKind;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceClientCapabilitiesSymbol) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          symbolKind == other.symbolKind &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, symbolKind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
+  WorkspaceClientCapabilitiesSymbolKind(this.valueSet);
+  static WorkspaceClientCapabilitiesSymbolKind fromJson(
+      Map<String, dynamic> json) {
+    final valueSet = json['valueSet']
+        ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
+        ?.cast<SymbolKind>()
+        ?.toList();
+    return new WorkspaceClientCapabilitiesSymbolKind(valueSet);
+  }
+
+  /// The symbol kind values the client supports. When this property exists the
+  /// client also guarantees that it will handle values outside its set
+  /// gracefully and falls back to a default value when unknown.
+  ///
+  /// If this property is not present the client only supports the symbol kinds
+  /// from `File` to `Array` as defined in the initial version of the protocol.
+  final List<SymbolKind> valueSet;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (valueSet != null) {
+      __result['valueSet'] = valueSet;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceClientCapabilitiesSymbolKind) {
+      return listEqual(valueSet, other.valueSet,
+              (SymbolKind a, SymbolKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
+  WorkspaceClientCapabilitiesWorkspaceEdit(
+      this.documentChanges, this.resourceOperations, this.failureHandling);
+  static WorkspaceClientCapabilitiesWorkspaceEdit fromJson(
+      Map<String, dynamic> json) {
+    final documentChanges = json['documentChanges'];
+    final resourceOperations = json['resourceOperations']
+        ?.map((item) =>
+            item != null ? ResourceOperationKind.fromJson(item) : null)
+        ?.cast<ResourceOperationKind>()
+        ?.toList();
+    final failureHandling = json['failureHandling'] != null
+        ? FailureHandlingKind.fromJson(json['failureHandling'])
+        : null;
+    return new WorkspaceClientCapabilitiesWorkspaceEdit(
+        documentChanges, resourceOperations, failureHandling);
+  }
+
+  /// The client supports versioned document changes in `WorkspaceEdit`s
+  final bool documentChanges;
+
+  /// The failure handling strategy of a client if applying the workspace edit
+  /// failes.
+  final FailureHandlingKind failureHandling;
+
+  /// The resource operations the client supports. Clients should at least
+  /// support 'create', 'rename' and 'delete' files and folders.
+  final List<ResourceOperationKind> resourceOperations;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (documentChanges != null) {
+      __result['documentChanges'] = documentChanges;
+    }
+    if (resourceOperations != null) {
+      __result['resourceOperations'] = resourceOperations;
+    }
+    if (failureHandling != null) {
+      __result['failureHandling'] = failureHandling;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceClientCapabilitiesWorkspaceEdit) {
+      return documentChanges == other.documentChanges &&
+          listEqual(resourceOperations, other.resourceOperations,
+              (ResourceOperationKind a, ResourceOperationKind b) => a == b) &&
+          failureHandling == other.failureHandling &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
+    hash = JenkinsSmiHash.combine(hash, resourceOperations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, failureHandling.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class WorkspaceEdit implements ToJsonable {
   WorkspaceEdit(this.changes, this.documentChanges);
   static WorkspaceEdit fromJson(Map<String, dynamic> json) {
-    final changes = json['changes'];
+    final changes = json['changes'] != null
+        ? WorkspaceEditChanges.fromJson(json['changes'])
+        : null;
     final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].length == 0 || json['documentChanges'].every((item) => TextDocumentEdit.canParse(item))))
         ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(json['documentChanges']
             ?.map(
@@ -8840,7 +10730,7 @@ class WorkspaceEdit implements ToJsonable {
   }
 
   /// Holds changes to existing resources.
-  final dynamic changes;
+  final WorkspaceEditChanges changes;
 
   /// Depending on the client capability
   /// `workspace.workspaceEdit.resourceOperations` document changes are either
@@ -8889,6 +10779,38 @@ class WorkspaceEdit implements ToJsonable {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, changes.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class WorkspaceEditChanges implements ToJsonable {
+  static WorkspaceEditChanges fromJson(Map<String, dynamic> json) {
+    return new WorkspaceEditChanges();
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is WorkspaceEditChanges) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 
